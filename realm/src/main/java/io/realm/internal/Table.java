@@ -1137,6 +1137,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         cachedPrimaryKeyColumnIndex = index;
     }
 
+    public void setPrimaryKey(long columnIndex) {
+        setPrimaryKey(nativeGetColumnName(nativePtr, columnIndex));
+    }
+
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
 
     private Table getPrimaryKeyTable() {

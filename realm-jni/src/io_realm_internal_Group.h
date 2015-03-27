@@ -73,6 +73,22 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeGetTableName
 
 /*
  * Class:     io_realm_internal_Group
+ * Method:    nativeRemoveTable
+ * Signature: (JLjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeRemoveTable
+  (JNIEnv *, jobject, jlong, jstring);
+
+/*
+ * Class:     io_realm_internal_Group
+ * Method:    nativeRenameTable
+ * Signature: (JLjava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeRenameTable
+  (JNIEnv *, jobject, jlong, jstring, jstring);
+
+/*
+ * Class:     io_realm_internal_Group
  * Method:    nativeGetTableNativePtr
  * Signature: (JLjava/lang/String;)J
  */

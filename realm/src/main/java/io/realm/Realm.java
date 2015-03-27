@@ -50,6 +50,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.dynamic.RealmSchema;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -213,8 +214,8 @@ public final class Realm implements Closeable {
     protected void finalize() throws Throwable {
         if (sharedGroup != null) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
-                    "Realm " + path + " is being finalized without being closed, " +
-                    "this can lead to running out of native memory."
+                            "Realm " + path + " is being finalized without being closed, " +
+                            "this can lead to running out of native memory."
             );
         }
         super.finalize();
@@ -1650,15 +1651,26 @@ public final class Realm implements Closeable {
         migrateRealmAtPath(realmPath, null, migration, autoRefresh);
     }
 
-    public static synchronized void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration,
+    public static synchronized void migrateRealmAtPath(String realmPath, byte[] key, final RealmMigration migration,
                                             boolean autoUpdate) {
         Realm realm = Realm.createAndValidate(realmPath, key, false, autoUpdate);
         realm.beginTransaction();
-        realm.setVersion(migration.execute(realm, realm.getVersion()));
-        realm.commitTransaction();
-        realm.close();
+        try {
+            // TODO Record steps instead of executing?
+            migration.migrate(realm.getSchema(), realm.getVersion(), realm.getVersion() + 1);
+//            realm.setVersion(migration.execute(realm, realm.getVersion()));
+            realm.commitTransaction();
+        } finally {
+            realm.close();
+            realmsCache.remove();
+        }
+    }
 
-        realmsCache.remove();
+    /**
+     * Returns the dynamic schema for this Realm.
+     */
+    RealmSchema getSchema() {
+        return new RealmSchema(transaction);
     }
 
     /**

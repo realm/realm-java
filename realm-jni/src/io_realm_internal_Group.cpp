@@ -158,6 +158,27 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeGetTableName(
     return 0;
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeRemoveTable(
+    JNIEnv* env, jobject, jlong nativeGroupPtr, jstring name)
+{
+    TR_ENTER_PTR(nativeGroupPtr)
+    try {
+        JStringAccessor table_name(env, name);
+        G(nativeGroupPtr)->remove_table(table_name);
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeRenameTable(
+    JNIEnv* env, jobject, jlong nativeGroupPtr, jstring oldName, jstring newName)
+{
+    TR_ENTER_PTR(nativeGroupPtr)
+    try {
+        JStringAccessor old_name(env, oldName);
+        JStringAccessor new_name(env, newName);
+        G(nativeGroupPtr)->rename_table(old_name, new_name);
+    } CATCH_STD()
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
     JNIEnv *env, jobject, jlong nativeGroupPtr, jstring name)
 {

@@ -4,13 +4,37 @@ import android.test.AndroidTestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumSet;
 
-import io.realm.dynamic.RealmSpec;
+import io.realm.dynamic.RealmModifier;
+import io.realm.dynamic.RealmSchema;
 import io.realm.entities.AllTypes;
+import io.realm.entities.Cat;
 import io.realm.entities.Dog;
+import io.realm.entities.Owner;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnType;
+import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.SharedGroup;
+import io.realm.internal.Table;
 
 public class RealmMigrationTests extends AndroidTestCase {
+
+    private ImplicitTransaction realm;
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        if (realm != null) {
+            realm.close();
+        }
+    }
+
+    private ImplicitTransaction getDefaultSharedGroup() {
+        String path = new File(getContext().getFilesDir(), "default.realm").getAbsolutePath();
+        SharedGroup sharedGroup = new SharedGroup(path, SharedGroup.Durability.FULL, null);
+        return sharedGroup.beginImplicitTransaction();
+    }
 
     public void testRealmClosedAfterMigrationException() throws IOException {
         String REALM_NAME = "default0.realm";
@@ -37,17 +61,225 @@ public class RealmMigrationTests extends AndroidTestCase {
         realm.close();
     }
 
-    private String getDefaultRealm() {
+    private void createSimpleRealm() {
+        Realm.setSchema(Owner.class, Dog.class, Cat.class);
+        Realm.deleteRealmFile(getContext());
+        Realm realm = Realm.getInstance(getContext());
+        realm.close();
+    }
+
+    private String getDefaultRealmPath() {
         return new File(getContext().getFilesDir(), "default.realm").getAbsolutePath();
+    }
+
+    public void testAddEmptyClassThrows() {
+        createEmptyDefaultRealm();
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
+                    realm.addClass(null);
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
     }
 
     public void testAddClass() {
         createEmptyDefaultRealm();
-        Realm.migrateRealmAtPath(getDefaultRealm(), new RealmMigration() {
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
-            public void migrate(RealmSpec realm, long oldVersion, long newVersion) {
+            public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
+                realm.addClass("Foo");
             }
         });
-        fail();
+        realm = getDefaultSharedGroup();
+        assertTrue(realm.hasTable("class_Foo"));
+    }
+
+    public void testRemoveEmptyClassThrows() {
+        createEmptyDefaultRealm();
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
+                    realm.removeClass(null);
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testRemoveLinkedClassThrows() {
+        createSimpleRealm();
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
+                realm.removeClass("Owner");
+                }
+            });
+            fail();
+        } catch (RuntimeException expected) {
+        }
+    }
+
+    public void testRemoveClass() {
+        createEmptyDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
+                realm.removeClass("AllTypes");
+            }
+        });
+        realm = getDefaultSharedGroup();
+        assertFalse(realm.hasTable("class_AllTypes"));
+    }
+
+    public void testRenameEmptyClassThrows() {
+        createSimpleRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
+                // Test first argument is null
+                try {
+                    realm.renameClass(null, "Foo");
+                } catch (IllegalArgumentException expected) {
+                }
+
+                // Test second argument is null
+                try {
+                    realm.renameClass("Foo", null);
+                } catch (IllegalArgumentException expected) {
+                }
+            }
+        });
+    }
+
+    public void testRenameClass() {
+        createSimpleRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
+                realm.renameClass("Owner", "Foo");
+            }
+        });
+        realm = getDefaultSharedGroup();
+        assertFalse(realm.hasTable("class_Owner"));
+        assertTrue(realm.hasTable("class_Foo"));
+    }
+
+    public void testAddEmptyFieldThrows() {
+        createEmptyDefaultRealm();
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    schema.addClass("Foo").addString(null);
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testAddField() {
+        createEmptyDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.addClass("Foo")
+                        .addString("a")
+                        .addShort("b")
+                        .addInt("c")
+                        .addLong("d")
+                        .addBoolean("e")
+                        .addFloat("f")
+                        .addDouble("g")
+                        .addByteArray("h")
+                        .addDate("i")
+                        .addObject("j", schema.getClass("AllTypes"))
+                        .addList("k", schema.getClass("AllTypes"));
+            }
+        });
+
+        realm = getDefaultSharedGroup();
+        assertTrue(realm.hasTable("class_Foo"));
+        Table table = realm.getTable("class_Foo");
+        assertEquals(11, table.getColumnCount());
+        assertColumn(table, "a", 0, ColumnType.STRING);
+        assertColumn(table, "b", 1, ColumnType.INTEGER);
+        assertColumn(table, "c", 2, ColumnType.INTEGER);
+        assertColumn(table, "d", 3, ColumnType.INTEGER);
+        assertColumn(table, "e", 4, ColumnType.BOOLEAN);
+        assertColumn(table, "f", 5, ColumnType.FLOAT);
+        assertColumn(table, "g", 6, ColumnType.DOUBLE);
+        assertColumn(table, "h", 7, ColumnType.BINARY);
+        assertColumn(table, "i", 8, ColumnType.DATE);
+        assertColumn(table, "j", 9, ColumnType.LINK);
+        assertColumn(table, "k", 10, ColumnType.LINK_LIST);
+    }
+
+    public void testAddFieldWithModifiers() {
+        createEmptyDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.addClass("Foo")
+                        .addString("a", EnumSet.of(RealmModifier.INDEXED))
+                        .addLong("b", EnumSet.of(RealmModifier.PRIMARY_KEY))
+                        .addBoolean("c", null);
+            }
+        });
+
+        realm = getDefaultSharedGroup();
+        assertTrue(realm.hasTable("class_Foo"));
+        Table table = realm.getTable("class_Foo");
+        assertEquals(3, table.getColumnCount());
+        assertColumn(table, "a", 0, ColumnType.STRING);
+        assertColumn(table, "b", 1, ColumnType.INTEGER);
+        assertColumn(table, "c", 2, ColumnType.BOOLEAN);
+        assertTrue(table.hasIndex(0));
+        assertEquals(1, table.getPrimaryKey());
+    }
+
+    public void testRemoveEmptyFieldThrows() {
+        createEmptyDefaultRealm();
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    schema.getClass("AllTypes").removeField(null);
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testRemoveNonExistingFieldThrows() {
+        createEmptyDefaultRealm();
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    schema.getClass("AllTypes").removeField("unknown");
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testRemoveField() {
+
+    }
+
+    private void assertColumn(Table table, String columnName, int columnIndex, ColumnType columnType) {
+        long index = table.getColumnIndex(columnName);
+        assertEquals(columnIndex, index);
+        assertEquals(columnType, table.getColumnType(index));
     }
 }

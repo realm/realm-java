@@ -205,6 +205,24 @@ public class Group implements Closeable {
     protected native String nativeGetTableName(long nativeGroupPtr, int index);
 
     /**
+     * Removes a table from the group and delete all data.
+     */
+    public void removeTable(String name) {
+        nativeRemoveTable(nativePtr, name);
+    }
+
+    native void nativeRemoveTable(long nativeGroupPtr, String tableName);
+
+    /**
+     * Renames a table
+     */
+    public void renameTable(String oldName, String newName) {
+        nativeRenameTable(nativePtr, oldName, newName);
+    }
+
+    native void nativeRenameTable(long nativeGroupPtr, String oldName, String newName);
+
+    /**
      * Returns a table with the specified name.
      *
      * @param name  The name of the table.
@@ -316,8 +334,4 @@ public class Group implements Closeable {
     }
 
     protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
-
-    private void throwImmutable() {
-        throw new IllegalStateException("Objects cannot be changed outside a transaction; see beginTransaction() for details.");
-    }
 }

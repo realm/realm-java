@@ -16,15 +16,6 @@
 
 package io.realm.dynamic;
 
-/**
- * Class for interacting with a specification for a given RealmClass. This makes it possible to add, delete
- * or change the fields on a given class.
- *
- * This can be used when migrating between versions of a RealmClass.
- *
- * @see io.realm.RealmMigration
- */
-public class RealmClassSpec {
-
-
+public enum RealmModifier {
+    INDEXED, PRIMARY_KEY
 }
