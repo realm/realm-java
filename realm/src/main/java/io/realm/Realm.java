@@ -1089,6 +1089,47 @@ public final class Realm implements Closeable {
         return get(clazz, rowIndex);
     }
 
+    /**
+     * Creates a new object inside the Realm with the Primary key value initially set.
+     * If the value violates the primary key constraint, no object will be added and and
+     * {@link RealmException will be thrown}.
+     *
+     * @param clazz The Class of the object to create
+     * @param primaryKeyValue Value for the primary key field.
+     * @return The new object
+     * @throws {@link RealmException} if object could not be created.
+     */
+    <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        Table table;
+        table = tables.get(clazz);
+        if (table == null) {
+            Class<?> generatedClass = getProxyClass(clazz);
+
+            Method method = initTableMethods.get(generatedClass);
+            if (method == null) {
+                try {
+                    method = generatedClass.getMethod("initTable", new Class[]{ImplicitTransaction.class});
+                } catch (NoSuchMethodException e) {
+                    throw new RealmException("Could not find the initTable() method in generated proxy class: " + APT_NOT_EXECUTED_MESSAGE);
+                }
+                initTableMethods.put(generatedClass, method);
+            }
+
+            try {
+                table = (Table) method.invoke(null, transaction);
+                tables.put(clazz, table);
+            } catch (IllegalAccessException e) {
+                throw new RealmException("Could not launch the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+                throw new RealmException("An exception occurred while running the initTable method: " + APT_NOT_EXECUTED_MESSAGE);
+            }
+        }
+
+        long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
+        return get(clazz, rowIndex);
+    }
+
     private Class<?> getProxyClass(Class<?> clazz) {
 
         String simpleClassName = getClassSimpleName(clazz);
