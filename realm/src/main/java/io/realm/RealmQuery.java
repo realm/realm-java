@@ -74,7 +74,7 @@ public class RealmQuery<E extends RealmObject> {
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
         this.query = table.where();
-        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
+        this.columns = realm.getColumnIndices().get(clazz.getSimpleName());
     }
 
     /**
@@ -89,7 +89,7 @@ public class RealmQuery<E extends RealmObject> {
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
         this.query = realmList.getTable().where();
-        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
+        this.columns = realm.getColumnIndices().get(clazz.getSimpleName());
     }
 
     RealmQuery(Realm realm, LinkView view, Class<E> clazz) {
@@ -98,7 +98,7 @@ public class RealmQuery<E extends RealmObject> {
         this.query = view.where();
         this.view = view;
         this.table = realm.getTable(clazz);
-        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
+        this.columns = realm.getColumnIndices().get(clazz.getSimpleName());
     }
 
     private boolean containsDot(String s) {

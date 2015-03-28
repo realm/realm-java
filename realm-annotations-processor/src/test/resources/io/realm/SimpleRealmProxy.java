@@ -27,25 +27,25 @@ public class SimpleRealmProxy extends Simple {
     @Override
     public String getName() {
         realm.checkIfValid();
-        return (java.lang.String) row.getString(Realm.columnIndices.get("Simple").get("name"));
+        return (java.lang.String) row.getString(realm.getColumnIndices().get("Simple").get("name"));
     }
 
     @Override
     public void setName(String value) {
         realm.checkIfValid();
-        row.setString(Realm.columnIndices.get("Simple").get("name"), (String) value);
+        row.setString(realm.getColumnIndices().get("Simple").get("name"), (String) value);
     }
 
     @Override
     public int getAge() {
         realm.checkIfValid();
-        return (int) row.getLong(Realm.columnIndices.get("Simple").get("age"));
+        return (int) row.getLong(realm.getColumnIndices().get("Simple").get("age"));
     }
 
     @Override
     public void setAge(int value) {
         realm.checkIfValid();
-        row.setLong(Realm.columnIndices.get("Simple").get("age"), (long) value);
+        row.setLong(realm.getColumnIndices().get("Simple").get("age"), (long) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {

@@ -19,6 +19,7 @@ package io.realm;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.media.CamcorderProfile;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -177,7 +178,7 @@ public final class Realm implements Closeable {
     private static final long UNVERSIONED = -1;
 
     // Package protected to be reachable by proxy classes
-    static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
+    private final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -213,8 +214,8 @@ public final class Realm implements Closeable {
     protected void finalize() throws Throwable {
         if (sharedGroup != null) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
-                    "Realm " + path + " is being finalized without being closed, " +
-                    "this can lead to running out of native memory."
+                            "Realm " + path + " is being finalized without being closed, " +
+                            "this can lead to running out of native memory."
             );
         }
         super.finalize();
@@ -653,7 +654,8 @@ public final class Realm implements Closeable {
                     if (columnIndex == -1) {
                         throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type '" + modelClassName + "'");
                     }
-                    Map<String, Long> innerMap = columnIndices.get(modelClassName);
+                    Map<String, Map<String, Long>> columnIndices = realm.getColumnIndices();
+                    Map<String, Long> innerMap = realm.getColumnIndices().get(modelClassName);
                     if (innerMap == null) {
                         innerMap = new HashMap<String, Long>();
                     }
@@ -668,6 +670,11 @@ public final class Realm implements Closeable {
                 realm.cancelTransaction();
             }
         }
+    }
+
+    // Returns the column indeces for this Realm
+    Map<String, Map<String, Long>> getColumnIndices() {
+        return columnIndices;
     }
 
     /**

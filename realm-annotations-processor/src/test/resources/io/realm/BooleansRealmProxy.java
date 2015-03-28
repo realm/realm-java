@@ -27,37 +27,37 @@ public class BooleansRealmProxy extends Booleans {
     @Override
     public boolean isDone() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("done"));
+        return (boolean) row.getBoolean(realm.getColumnIndices().get("Booleans").get("done"));
     }
 
     @Override
     public void setDone(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(Realm.columnIndices.get("Booleans").get("done"), (boolean) value);
+        row.setBoolean(realm.getColumnIndices().get("Booleans").get("done"), (boolean) value);
     }
 
     @Override
     public boolean isReady() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("isReady"));
+        return (boolean) row.getBoolean(realm.getColumnIndices().get("Booleans").get("isReady"));
     }
 
     @Override
     public void setReady(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(Realm.columnIndices.get("Booleans").get("isReady"), (boolean) value);
+        row.setBoolean(realm.getColumnIndices().get("Booleans").get("isReady"), (boolean) value);
     }
 
     @Override
     public boolean ismCompleted() {
         realm.checkIfValid();
-        return (boolean) row.getBoolean(Realm.columnIndices.get("Booleans").get("mCompleted"));
+        return (boolean) row.getBoolean(realm.getColumnIndices().get("Booleans").get("mCompleted"));
     }
 
     @Override
     public void setmCompleted(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(Realm.columnIndices.get("Booleans").get("mCompleted"), (boolean) value);
+        row.setBoolean(realm.getColumnIndices().get("Booleans").get("mCompleted"), (boolean) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
