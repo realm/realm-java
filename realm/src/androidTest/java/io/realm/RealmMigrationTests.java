@@ -14,6 +14,12 @@ import io.realm.internal.Table;
 
 public class RealmMigrationTests extends AndroidTestCase {
 
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        Realm.setSchema(null);
+    }
+
     public void testRealmClosedAfterMigrationException() throws IOException {
         String REALM_NAME = "default0.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
