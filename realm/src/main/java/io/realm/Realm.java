@@ -19,7 +19,6 @@ package io.realm;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.media.CamcorderProfile;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
