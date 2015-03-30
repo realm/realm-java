@@ -398,7 +398,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             long rowIndex;
             Row row;
 
-            // Add with with primary key initially set
+            // Add with primary key initially set
             switch(type) {
                 case STRING:
                     if (!(primaryKeyValue instanceof String)) {
