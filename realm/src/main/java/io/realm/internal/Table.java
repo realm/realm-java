@@ -399,7 +399,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             Row row;
 
             // Add with primary key initially set
-            switch(type) {
+            switch (type) {
                 case STRING:
                     if (!(primaryKeyValue instanceof String)) {
                         throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
