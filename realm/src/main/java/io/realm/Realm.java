@@ -1066,7 +1066,7 @@ public final class Realm implements Closeable {
 
     /**
      * Creates a new object inside the Realm with the Primary key value initially set.
-     * If the value violates the primary key constraint, no object will be added and and
+     * If the value violates the primary key constraint, no object will be added and a
      * {@link RealmException} will be thrown.
      *
      * @param clazz The Class of the object to create
