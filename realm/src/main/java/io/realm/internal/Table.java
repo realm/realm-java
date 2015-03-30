@@ -370,7 +370,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (hasPrimaryKey()) {
             long primaryKeyColumnIndex = getPrimaryKey();
             ColumnType type = getColumnType(primaryKeyColumnIndex);
-            switch(type) {
+            switch (type) {
                 case STRING:
                     if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(STRING_DEFAULT_VALUE);
