@@ -36,6 +36,12 @@ public class RealmMigrationTests extends AndroidTestCase {
         return sharedGroup.beginImplicitTransaction();
     }
 
+    private void assertColumn(Table table, String columnName, int columnIndex, ColumnType columnType) {
+        long index = table.getColumnIndex(columnName);
+        assertEquals(columnIndex, index);
+        assertEquals(columnType, table.getColumnType(index));
+    }
+
     public void testRealmClosedAfterMigrationException() throws IOException {
         String REALM_NAME = "default0.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
@@ -274,12 +280,125 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveField() {
-
+        createEmptyDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.getClass("AllTypes").removeField("columnString");
+            }
+        });
+        realm = getDefaultSharedGroup();
+        Table allTypesTable = realm.getTable("class_AllTypes");
+        assertEquals(8, allTypesTable.getColumnCount());
+        assertEquals(-1, allTypesTable.getColumnIndex("columnString"));
     }
 
-    private void assertColumn(Table table, String columnName, int columnIndex, ColumnType columnType) {
-        long index = table.getColumnIndex(columnName);
-        assertEquals(columnIndex, index);
-        assertEquals(columnType, table.getColumnType(index));
+    public void testRenameEmptyFieldThrows() {
+        createEmptyDefaultRealm();
+
+        // From field
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    schema.getClass("AllTypes").renameField(null, "Foo");
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+
+        // To field
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    schema.getClass("AllTypes").renameField("columnString", null);
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testRenameNonExistingFieldThrows() {
+        createEmptyDefaultRealm();
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    schema.getClass("AllTypes").renameField("foo", "bar");
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testRenameField() {
+        createEmptyDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.getClass("AllTypes").renameField("columnString", "columnString2");
+            }
+        });
+        realm = getDefaultSharedGroup();
+        Table t = realm.getTable("class_AllTypes");
+        assertEquals(9, t.getColumnCount());
+        assertEquals(-1, t.getColumnIndex("columnString"));
+        assertTrue(t.getColumnIndex("columnString2") != -1);
+    }
+
+    public void testAddEmptyIndexThrows() {
+        fail();
+    }
+
+    public void testAddNonExistingIndexThrows() {
+        fail();
+    }
+
+    public void testAddIllegalIndexThrows() {
+        fail();
+    }
+
+    public void testAddIndex() {
+        fail();
+    }
+
+    public void testRemoveIndexEmptyFieldThrows() {
+        fail();
+    }
+
+    public void testRemoveIndexNonExistingFieldThrows() {
+        fail();
+    }
+
+    public void testRemoveNonExistingIndexThrows() {
+        fail();
+    }
+
+    public void testRemoveIndex() {
+        fail();
+    }
+
+    public void addPrimaryKeyEmptyFieldThrows() {
+        fail();
+    }
+
+    public void addPrimaryKeyNonExistingFieldThrows() {
+        fail();
+    }
+
+    public void addPrimaryKey() {
+        fail();
+    }
+
+    public void testRemoveNonExistingPrimaryKeyThrows() {
+        fail();
+    }
+
+    public void testRemovePrimaryKey() {
+        fail();
     }
 }

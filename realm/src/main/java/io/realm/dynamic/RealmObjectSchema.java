@@ -164,34 +164,41 @@ public class RealmObjectSchema {
 
     public RealmObjectSchema removeField(String fieldName) {
         checkEmpty(fieldName);
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex == -1) {
-            throw new IllegalArgumentException(
-                    String.format("Fieldname '%s' does not exist on schema for '%s",
-                    fieldName, getClassName()
-            ));
-        }
+        long columnIndex = getColumnIndex(fieldName);
         table.removeColumn(columnIndex);
         return this;
     }
 
     public RealmObjectSchema renameField(String oldFieldName, String newFieldName) {
+        checkEmpty(oldFieldName);
+        checkEmpty(newFieldName);
+        long columnIndex = getColumnIndex(oldFieldName);
+        table.renameColumn(columnIndex, newFieldName);
         return this;
     }
 
     public RealmObjectSchema addIndex(String fieldName) {
+        checkEmpty(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
+        table.setIndex(columnIndex);
         return this;
     }
 
     public RealmObjectSchema removeIndex(String fieldName) {
+        checkEmpty(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
+        table.removeIndex(columnIndex);
         return this;
     }
 
     public RealmObjectSchema addPrimaryKey(String fieldName) {
+        checkEmpty(fieldName);
+        table.setPrimaryKey(fieldName);
         return this;
     }
 
-    public RealmObjectSchema removePrimaryKey(String fieldName) {
+    public RealmObjectSchema removePrimaryKey() {
+        table.setPrimaryKey("");
         return this;
     }
 
@@ -201,12 +208,6 @@ public class RealmObjectSchema {
 
     public RealmObjectSchema forEach(Iterator iterator) {
         return this;
-    }
-
-    private void checkEmpty(String fieldName) {
-        if (fieldName == null || fieldName.isEmpty()) {
-            throw new IllegalArgumentException("Fieldname must not be null or empty");
-        }
     }
 
     public void setModifiers(long columnIndex, Set<RealmModifier> modifiers) {
@@ -219,6 +220,23 @@ public class RealmObjectSchema {
                 table.setPrimaryKey(columnIndex);
             }
         }
+    }
+
+    private void checkEmpty(String fieldName) {
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Fieldname must not be null or empty");
+        }
+    }
+
+    private long getColumnIndex(String fieldName) {
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(
+                    String.format("Fieldname '%s' does not exist on schema for '%s",
+                            fieldName, getClassName()
+                    ));
+        }
+        return columnIndex;
     }
 
     /**
