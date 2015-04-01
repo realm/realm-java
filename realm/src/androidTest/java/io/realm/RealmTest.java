@@ -26,6 +26,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -1528,5 +1529,51 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(2, owner2.getDogs().size());
 
         testRealm.commitTransaction();
+    }
+
+    public void testCreateObjectWithValues() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        HashMap<String, Object> hashMap = new HashMap<String, Object>();
+        hashMap.put(FIELD_BOOLEAN, true);
+        hashMap.put(FIELD_DATE, new Date());
+        hashMap.put(FIELD_DOUBLE, 3.1415d);
+        hashMap.put(FIELD_FLOAT, 2.7182f);
+        hashMap.put(FIELD_LONG, 1L);
+        hashMap.put(FIELD_STRING, "Hello World");
+        AllTypes allTypes = testRealm.createObjectWithValues(AllTypes.class, hashMap);
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> allTypeses = testRealm.allObjects(AllTypes.class);
+        assertEquals(1L, allTypeses.size());
+        assertEquals(true, allTypeses.first().isColumnBoolean());
+        assertEquals(3.1415d, allTypeses.first().getColumnDouble());
+        assertEquals("Hello World", allTypeses.first().getColumnString());
+    }
+
+    public void testCreateObjectWithWrongValues() {
+        // not existing field
+        testRealm.beginTransaction();
+        try {
+            HashMap<String, Object> hashMap = new HashMap<String, Object>();
+            hashMap.put("NotExisting", true);
+            AllTypes allTypes = testRealm.createObjectWithValues(AllTypes.class, hashMap);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        // existing field but with value of wrong type
+        testRealm.beginTransaction();
+        try {
+            HashMap<String, Object> hashMap = new HashMap<String, Object>();
+            hashMap.put(FIELD_BOOLEAN, "Hello World");
+            AllTypes allTypes = testRealm.createObjectWithValues(AllTypes.class, hashMap);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
     }
 }
