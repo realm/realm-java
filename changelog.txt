@@ -1,6 +1,7 @@
 0.81
  * Fixed bug causing Realms to be cached even though they failed to open correctly.
  * Fixed bug causing queries to fail if multiple Realms has different field ordering.
+ * Fixed bug when using Realm.copyToRealm() with a primary key could crash if default value was already used in the Realm.
 
 0.80
 * Queries on relationships can be case sensitive.

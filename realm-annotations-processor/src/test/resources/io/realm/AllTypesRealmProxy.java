@@ -416,7 +416,7 @@ public class AllTypesRealmProxy extends AllTypes {
     }
 
     public static AllTypes copy(Realm realm, AllTypes newObject, boolean update, Map<RealmObject,RealmObject> cache) {
-        AllTypes realmObject = realm.createObject(AllTypes.class);
+        AllTypes realmObject = realm.createObject(AllTypes.class, newObject.getColumnString());
         cache.put(newObject, realmObject);
         realmObject.setColumnString(newObject.getColumnString() != null ? newObject.getColumnString() : "");
         realmObject.setColumnLong(newObject.getColumnLong());

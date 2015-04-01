@@ -1051,8 +1051,29 @@ public final class Realm implements Closeable {
      * @throws RealmException An object could not be created
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
-        Table table;
-        table = tables.get(clazz);
+        Table table = initTable(clazz);
+        long rowIndex = table.addEmptyRow();
+        return get(clazz, rowIndex);
+    }
+
+    /**
+     * Creates a new object inside the Realm with the Primary key value initially set.
+     * If the value violates the primary key constraint, no object will be added and a
+     * {@link RealmException} will be thrown.
+     *
+     * @param clazz The Class of the object to create
+     * @param primaryKeyValue Value for the primary key field.
+     * @return The new object
+     * @throws {@link RealmException} if object could not be created.
+     */
+    <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        Table table = initTable(clazz);
+        long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
+        return get(clazz, rowIndex);
+    }
+
+    private <E extends RealmObject> Table initTable(Class<E> clazz) {
+        Table table = tables.get(clazz);
         if (table == null) {
             Class<?> generatedClass = getProxyClass(clazz);
 
@@ -1077,8 +1098,7 @@ public final class Realm implements Closeable {
             }
         }
 
-        long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        return table;
     }
 
     private Class<?> getProxyClass(Class<?> clazz) {
