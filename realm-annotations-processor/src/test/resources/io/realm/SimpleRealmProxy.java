@@ -5,6 +5,7 @@ import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
@@ -12,7 +13,9 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -24,28 +27,39 @@ import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple {
 
+    private static long INDEX_NAME;
+    private static long INDEX_AGE;
+    private static Map<String, Long> columnIndices;
+    private static final List<String> FIELD_NAMES;
+    static {
+        List<String> fieldNames = new ArrayList<String>();
+        fieldNames.add("name");
+        fieldNames.add("age");
+        FIELD_NAMES = Collections.unmodifiableList(fieldNames);
+    }
+
     @Override
     public String getName() {
         realm.checkIfValid();
-        return (java.lang.String) row.getString(realm.getColumnIndices().get("Simple").get("name"));
+        return (java.lang.String) row.getString(INDEX_NAME);
     }
 
     @Override
     public void setName(String value) {
         realm.checkIfValid();
-        row.setString(realm.getColumnIndices().get("Simple").get("name"), (String) value);
+        row.setString(INDEX_NAME, (String) value);
     }
 
     @Override
     public int getAge() {
         realm.checkIfValid();
-        return (int) row.getLong(realm.getColumnIndices().get("Simple").get("age"));
+        return (int) row.getLong(INDEX_AGE);
     }
 
     @Override
     public void setAge(int value) {
         realm.checkIfValid();
-        row.setLong(realm.getColumnIndices().get("Simple").get("age"), (long) value);
+        row.setLong(INDEX_AGE, (long) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -81,11 +95,28 @@ public class SimpleRealmProxy extends Simple {
             if (columnTypes.get("age") != ColumnType.INTEGER) {
                 throw new IllegalStateException("Invalid type 'int' for column 'age'");
             }
+
+            columnIndices = new HashMap<String, Long>();
+            for (String fieldName : getFieldNames()) {
+                long index = table.getColumnIndex(fieldName);
+                if (index == -1) {
+                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type Simple");
+                }
+                columnIndices.put(fieldName, index);
+            }
+            INDEX_NAME = table.getColumnIndex("name");
+            INDEX_AGE = table.getColumnIndex("age");
+        } else {
+            throw new RealmMigrationNeededException("The Simple class is missing from the schema for this Realm.");
         }
     }
 
     public static List<String> getFieldNames() {
-        return Arrays.asList("name", "age");
+        return FIELD_NAMES;
+    }
+
+    public static Map<String,Long> getColumnIndices() {
+        return columnIndices;
     }
 
     public static void populateUsingJsonObject(Simple obj, JSONObject json)
@@ -116,11 +147,11 @@ public class SimpleRealmProxy extends Simple {
         reader.endObject();
     }
 
-    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject, RealmObject> cache) {
+    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObject> cache) {
         return copy(realm, object, update, cache);
     }
 
-    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject, RealmObject> cache) {
+    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObject> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, realmObject);
         realmObject.setName(newObject.getName() != null ? newObject.getName() : "");

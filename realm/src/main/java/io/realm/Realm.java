@@ -53,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmJson;
@@ -176,8 +177,7 @@ public final class Realm implements Closeable {
     private static final Set<Class<? extends RealmObject>> customSchema = new HashSet<Class<? extends RealmObject>>();
     private static final long UNVERSIONED = -1;
 
-    // Package protected to be reachable by proxy classes
-    private final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
+    private final ColumnIndices columnIndices = new ColumnIndices();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -632,35 +632,22 @@ public final class Realm implements Closeable {
                 }
 
                 // Populate the columnIndices table
-                Method fieldNamesMethod;
+                Method columnIndiciesMethod;
                 try {
-                    fieldNamesMethod = generatedClass.getMethod("getFieldNames");
+                    columnIndiciesMethod = generatedClass.getMethod("getColumnIndices");
                 } catch (NoSuchMethodException e) {
-                    throw new RealmException("Could not find the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
+                    throw new RealmException("Could not find the getColumnIndices method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
                 }
-                List<String> fieldNames;
+                Map<String,Long> indices;
                 try {
                     //noinspection unchecked
-                    fieldNames = (List<String>) fieldNamesMethod.invoke(null);
+                    indices = (Map<String,Long>) columnIndiciesMethod.invoke(null);
                 } catch (IllegalAccessException e) {
-                    throw new RealmException("Could not execute the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
+                    throw new RealmException("Could not execute the getColumnIndices method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
                 } catch (InvocationTargetException e) {
-                    throw new RealmException("An exception was thrown in the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
+                    throw new RealmException("An exception was thrown in the getColumnIndices method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
                 }
-                Table table = realm.transaction.getTable(TABLE_PREFIX + modelClassName);
-                for (String fieldName : fieldNames) {
-                    long columnIndex = table.getColumnIndex(fieldName);
-                    if (columnIndex == -1) {
-                        throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type '" + modelClassName + "'");
-                    }
-                    Map<String, Map<String, Long>> columnIndices = realm.getColumnIndices();
-                    Map<String, Long> innerMap = realm.getColumnIndices().get(modelClassName);
-                    if (innerMap == null) {
-                        innerMap = new HashMap<String, Long>();
-                    }
-                    innerMap.put(fieldName, columnIndex);
-                    columnIndices.put(modelClassName, innerMap);
-                }
+                columnIndices.addClass((Class<? extends RealmObject>) generatedClass.getSuperclass(), indices);
             }
         } finally {
             if (commitNeeded) {
@@ -1306,8 +1293,8 @@ public final class Realm implements Closeable {
         checkIfValid();
         Table table = getTable(clazz);
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-        Long columnIndex = columnIndices.get(getClassSimpleName(clazz)).get(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
+        long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
+        if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
 
