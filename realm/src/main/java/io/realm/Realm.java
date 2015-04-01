@@ -643,11 +643,11 @@ public final class Realm implements Closeable {
                     //noinspection unchecked
                     indices = (Map<String,Long>) columnIndiciesMethod.invoke(null);
                 } catch (IllegalAccessException e) {
-                    throw new RealmException("Could not execute the getColumnIndices method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
+                    throw new RealmException("Could not execute the getColumnIndices method in the generated " + generatedClassName + " class", e);
                 } catch (InvocationTargetException e) {
-                    throw new RealmException("An exception was thrown in the getColumnIndices method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
+                    throw new RealmException("An exception was thrown in the getColumnIndices method in the generated " + generatedClassName + " class", e);
                 }
-                columnIndices.addClass((Class<? extends RealmObject>) generatedClass.getSuperclass(), indices);
+                realm.getColumnIndices().addClass((Class<? extends RealmObject>) generatedClass.getSuperclass(), indices);
             }
         } finally {
             if (commitNeeded) {
@@ -658,8 +658,7 @@ public final class Realm implements Closeable {
         }
     }
 
-    // Returns the column indeces for this Realm
-    Map<String, Map<String, Long>> getColumnIndices() {
+    ColumnIndices getColumnIndices() {
         return columnIndices;
     }
 
