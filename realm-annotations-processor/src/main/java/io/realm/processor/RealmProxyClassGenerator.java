@@ -539,7 +539,11 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "Realm", "realm", className, "newObject", "boolean", "update", "Map<RealmObject,RealmObject>", "cache"); // Argument type & argument name
 
-        writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
+        if (metadata.hasPrimaryKey()) {
+            writer.emitStatement("%s realmObject = realm.createObject(%s.class, newObject.%s())", className, className, metadata.getPrimaryKeyGetter());
+        } else {
+            writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
+        }
         writer.emitStatement("cache.put(newObject, realmObject)");
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
