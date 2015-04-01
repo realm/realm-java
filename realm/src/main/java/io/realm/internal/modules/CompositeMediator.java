@@ -87,6 +87,12 @@ public class CompositeMediator implements RealmProxyMediator {
     }
 
     @Override
+    public Map<String, Long> getColumnIndices(Class<? extends RealmObject> clazz) {
+        RealmProxyMediator mediator = getMediator(clazz);
+        return mediator.getColumnIndices(clazz);
+    }
+
+    @Override
     public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
         RealmProxyMediator mediator = getMediator(object.getClass());
         return mediator.copyOrUpdate(realm, object, update, cache);

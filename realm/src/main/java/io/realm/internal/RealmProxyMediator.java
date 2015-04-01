@@ -91,6 +91,13 @@ public interface RealmProxyMediator {
     public List<Class<? extends RealmObject>> getModelClasses();
 
     /**
+     * Returns a map of the column indices for all Realm fields in the model class.
+     *
+     * @return Map from field name to column indices for all Realm fields in the model class.
+     */
+    public Map<String, Long> getColumnIndices(Class<? extends RealmObject> clazz);
+
+    /**
      * Copy a non-manged RealmObject or a RealmObject from another Realm to this Realm. After being
      * copied any changes to the original object will not be persisted.
      *

@@ -144,6 +144,7 @@ public class RealmProxyClassGenerator {
         imports.add("android.util.JsonToken");
         imports.add("io.realm.RealmObject");
         imports.add("io.realm.exceptions.RealmException");
+        imports.add("io.realm.exceptions.RealmMigrationNeededException");
         imports.add("io.realm.internal.ColumnType");
         imports.add("io.realm.internal.RealmObjectProxy");
         imports.add("io.realm.internal.Table");
@@ -152,6 +153,8 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.LinkView");
         imports.add("io.realm.internal.android.JsonUtils");
         imports.add("java.io.IOException");
+        imports.add("java.util.ArrayList");
+        imports.add("java.util.Collections");
         imports.add("java.util.List");
         imports.add("java.util.Arrays");
         imports.add("java.util.Date");
@@ -186,11 +189,13 @@ public class RealmProxyClassGenerator {
                 "RealmObjectProxy")          // interfaces to implement
                 .emitEmptyLine();
 
+        emitClassFields(writer);
         emitAccessors(writer);
         emitInitTableMethod(writer);
         emitValidateTableMethod(writer);
         emitGetTableNameMethod(writer);
         emitGetFieldNamesMethod(writer);
+        emitGetColumnIndicesMethod(writer);
         emitPopulateUsingJsonObjectMethod(writer);
         emitPopulateUsingJsonStreamMethod(writer);
         emitCopyOrUpdateMethod(writer);
@@ -203,6 +208,22 @@ public class RealmProxyClassGenerator {
         // End the class definition
         writer.endType();
         writer.close();
+    }
+
+    private void emitClassFields(JavaWriter writer) throws IOException {
+        for (VariableElement variableElement : metadata.getFields()) {
+            writer.emitField("long", staticFieldIndexVarName(variableElement), EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
+        }
+        writer.emitField("Map<String, Long>", "columnIndices", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
+        writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
+        writer.beginInitializer(true);
+        writer.emitStatement("List<String> fieldNames = new ArrayList<String>()");
+        for (VariableElement field : metadata.getFields()) {
+            writer.emitStatement("fieldNames.add(\"%s\")", field.getSimpleName().toString());
+        }
+        writer.emitStatement("FIELD_NAMES = Collections.unmodifiableList(fieldNames)");
+        writer.endInitializer();
+        writer.emitEmptyLine();
     }
 
     private void emitAccessors(JavaWriter writer) throws IOException {
@@ -224,8 +245,8 @@ public class RealmProxyClassGenerator {
                         "realm.checkIfValid()"
                 );
                 writer.emitStatement(
-                        "return (%s) row.get%s(Realm.columnIndices.get(\"%s\").get(\"%s\"))",
-                        fieldTypeCanonicalName, realmType, className, fieldName);
+                        "return (%s) row.get%s(%s)",
+                        fieldTypeCanonicalName, realmType, staticFieldIndexVarName(field));
                 writer.endMethod();
                 writer.emitEmptyLine();
 
@@ -236,8 +257,8 @@ public class RealmProxyClassGenerator {
                         "realm.checkIfValid()"
                 );
                 writer.emitStatement(
-                        "row.set%s(Realm.columnIndices.get(\"%s\").get(\"%s\"), (%s) value)",
-                        realmType, className, fieldName, castingType);
+                        "row.set%s(%s, (%s) value)",
+                        realmType, staticFieldIndexVarName(field), castingType);
                 writer.endMethod();
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 /**
@@ -247,12 +268,12 @@ public class RealmProxyClassGenerator {
                 // Getter
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-                writer.beginControlFlow("if (row.isNullLink(Realm.columnIndices.get(\"%s\").get(\"%s\")))", className, fieldName);
+                writer.beginControlFlow("if (row.isNullLink(%s))", staticFieldIndexVarName(field));
                 writer.emitStatement("return null");
                 writer.endControlFlow();
                 writer.emitStatement(
-                        "return realm.get(%s.class, row.getLink(Realm.columnIndices.get(\"%s\").get(\"%s\")))",
-                        fieldTypeCanonicalName, className, fieldName);
+                        "return realm.get(%s.class, row.getLink(%s))",
+                        fieldTypeCanonicalName, staticFieldIndexVarName(field));
                 writer.endMethod();
                 writer.emitEmptyLine();
 
@@ -260,10 +281,10 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.beginControlFlow("if (value == null)");
-                writer.emitStatement("row.nullifyLink(Realm.columnIndices.get(\"%s\").get(\"%s\"))", className, fieldName);
+                writer.emitStatement("row.nullifyLink(%s)", staticFieldIndexVarName(field));
                 writer.emitStatement("return");
                 writer.endControlFlow();
-                writer.emitStatement("row.setLink(Realm.columnIndices.get(\"%s\").get(\"%s\"), value.row.getIndex())", className, fieldName);
+                writer.emitStatement("row.setLink(%s, value.row.getIndex())", staticFieldIndexVarName(field));
                 writer.endMethod();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 /**
@@ -275,15 +296,15 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
-                        "return new RealmList<%s>(%s.class, row.getLinkList(Realm.columnIndices.get(\"%s\").get(\"%s\")), realm)",
-                        genericType, genericType, className, fieldName);
+                        "return new RealmList<%s>(%s.class, row.getLinkList(%s), realm)",
+                        genericType, genericType, staticFieldIndexVarName(field));
                 writer.endMethod();
                 writer.emitEmptyLine();
 
                 // Setter
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
-                writer.emitStatement("LinkView links = row.getLinkList(Realm.columnIndices.get(\"%s\").get(\"%s\"))", className, fieldName);
+                writer.emitStatement("LinkView links = row.getLinkList(%s)", staticFieldIndexVarName(field));
                 writer.beginControlFlow("if (value == null)");
                 writer.emitStatement("return"); // TODO: delete all the links instead
                 writer.endControlFlow();
@@ -429,6 +450,23 @@ public class RealmProxyClassGenerator {
 //                writer.endControlFlow();
             }
         }
+
+        // Populate column indices
+        writer.emitEmptyLine();
+        writer.emitStatement("columnIndices = new HashMap<String, Long>()");
+        writer
+            .beginControlFlow("for (String fieldName : getFieldNames())")
+                .emitStatement("long index = table.getColumnIndex(fieldName)")
+                .beginControlFlow("if (index == -1)")
+                    .emitStatement("throw new RealmMigrationNeededException(\"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
+                .endControlFlow()
+                .emitStatement("columnIndices.put(fieldName, index)")
+            .endControlFlow();
+        for (VariableElement field : metadata.getFields()) {
+            writer.emitStatement("%s = table.getColumnIndex(\"%s\")", staticFieldIndexVarName(field), field.getSimpleName().toString());
+        }
+        writer.nextControlFlow("else");
+        writer.emitStatement("throw new RealmMigrationNeededException(\"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
         writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
@@ -443,19 +481,14 @@ public class RealmProxyClassGenerator {
 
     private void emitGetFieldNamesMethod(JavaWriter writer) throws IOException {
         writer.beginMethod("List<String>", "getFieldNames", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
-        StringBuilder stringBuilder = new StringBuilder();
-        Iterator<VariableElement> iterator = metadata.getFields().iterator();
-        while (iterator.hasNext()) {
-            String fieldName = iterator.next().getSimpleName().toString();
-            stringBuilder.append("\"");
-            stringBuilder.append(fieldName);
-            stringBuilder.append("\"");
-            if (iterator.hasNext()) {
-                stringBuilder.append(", ");
-            }
-        }
-        String statementSection = stringBuilder.toString();
-        writer.emitStatement("return Arrays.asList(%s)", statementSection);
+        writer.emitStatement("return FIELD_NAMES");
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitGetColumnIndicesMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod("Map<String,Long>", "getColumnIndices", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC));
+        writer.emitStatement("return columnIndices");
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -516,7 +549,11 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "Realm", "realm", className, "newObject", "boolean", "update", "Map<RealmObject,RealmObjectProxy>", "cache"); // Argument type & argument name
 
-        writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
+        if (metadata.hasPrimaryKey()) {
+            writer.emitStatement("%s realmObject = realm.createObject(%s.class, newObject.%s())", className, className, metadata.getPrimaryKeyGetter());
+        } else {
+            writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
+        }
         writer.emitStatement("cache.put(newObject, (RealmObjectProxy) realmObject)");
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
@@ -820,5 +857,9 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("reader.endObject()");
         writer.endMethod();
         writer.emitEmptyLine();
+    }
+
+    private String staticFieldIndexVarName(VariableElement variableElement) {
+        return "INDEX_" + variableElement.getSimpleName().toString().toUpperCase();
     }
 }

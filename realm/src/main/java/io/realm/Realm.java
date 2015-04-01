@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
@@ -168,7 +169,7 @@ public final class Realm implements Closeable {
     private static final long UNVERSIONED = -1;
 
     // Package protected to be reachable by proxy classes
-    static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
+    static final ColumnIndices columnIndices = new ColumnIndices();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -553,22 +554,7 @@ public final class Realm implements Closeable {
                     proxyMediator.createTable(modelClass, realm.transaction);
                 }
                 proxyMediator.validateTable(modelClass, realm.transaction);
-
-                // Create columnIndices
-                List<String> fieldNames = proxyMediator.getFieldNames(modelClass);
-                Table table = realm.transaction.getTable(proxyMediator.getTableName(modelClass));
-                for (String fieldName : fieldNames) {
-                    long columnIndex = table.getColumnIndex(fieldName);
-                    if (columnIndex == -1) {
-                        throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type '" + modelClassName + "'");
-                    }
-                    Map<String, Long> innerMap = columnIndices.get(modelClassName);
-                    if (innerMap == null) {
-                        innerMap = new HashMap<String, Long>();
-                    }
-                    innerMap.put(fieldName, columnIndex);
-                    columnIndices.put(modelClassName, innerMap);
-                }
+                columnIndices.addClass(modelClass, proxyMediator.getColumnIndices(modelClass));
             }
         } finally {
             if (commitNeeded) {
@@ -973,8 +959,20 @@ public final class Realm implements Closeable {
         return get(clazz, rowIndex);
     }
 
-    private <E extends RealmObject> E getProxyClass(Class<E> clazz) {
-        return proxyMediator.newInstance(clazz);
+    /**
+     * Creates a new object inside the Realm with the Primary key value initially set.
+     * If the value violates the primary key constraint, no object will be added and a
+     * {@link RealmException} will be thrown.
+     *
+     * @param clazz The Class of the object to create
+     * @param primaryKeyValue Value for the primary key field.
+     * @return The new object
+     * @throws {@link RealmException} if object could not be created.
+     */
+    <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        Table table = getTable(clazz);
+        long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
+        return get(clazz, rowIndex);
     }
 
     void remove(Class<? extends RealmObject> clazz, long objectIndex) {
@@ -1123,8 +1121,8 @@ public final class Realm implements Closeable {
         checkIfValid();
         Table table = getTable(clazz);
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-        Long columnIndex = columnIndices.get(clazz.getSimpleName()).get(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
+        long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
+        if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
 

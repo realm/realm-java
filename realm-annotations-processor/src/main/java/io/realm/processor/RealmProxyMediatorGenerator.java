@@ -25,9 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -102,6 +100,7 @@ public class RealmProxyMediatorGenerator {
         emitGetTableNameMethod(writer);
         emitNewInstanceMethod(writer);
         emitGetClassModelList(writer);
+        emitGetColumnIndices(writer);
         emitCopyToRealmMethod(writer);
         emitPopulateUsingJsonObject(writer);
         emitPopulateUsingJsonStream(writer);
@@ -216,6 +215,24 @@ public class RealmProxyMediatorGenerator {
         writer.emitAnnotation("Override");
         writer.beginMethod("List<Class<? extends RealmObject>>", "getModelClasses", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("return MODEL_CLASSES");
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitGetColumnIndices(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("Override");
+        writer.beginMethod(
+                "Map<String, Long>",
+                "getColumnIndices",
+                EnumSet.of(Modifier.PUBLIC),
+                "Class<? extends RealmObject>", "clazz"
+        );
+        emitMediatorSwitch(new ProxySwitchStatement() {
+            @Override
+            public void emitStatement(int i, JavaWriter writer) throws IOException {
+                writer.emitStatement("return %s.getColumnIndices()", proxyClasses.get(i));
+            }
+        }, writer, false);
         writer.endMethod();
         writer.emitEmptyLine();
     }

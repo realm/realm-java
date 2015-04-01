@@ -46,6 +46,7 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
@@ -1067,6 +1068,26 @@ public class RealmTest extends AndroidTestCase {
         assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
     }
 
+    // Check that using copyToRealm will set the primary key directly instead of first setting
+    // it to the default value (which can fail)
+    public void testCopyToRealmWithPrimaryKeySetValueDirectly() {
+        testRealm.beginTransaction();
+        testRealm.createObject(OwnerPrimaryKey.class);
+        testRealm.copyToRealm(new OwnerPrimaryKey(1, "Foo"));
+        testRealm.commitTransaction();
+        assertEquals(2, testRealm.where(OwnerPrimaryKey.class).count());
+    }
+
+    public void testCopyToRealmWithPrimaryAsNullThrows() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.copyToRealm(new PrimaryKeyAsString());
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
 
     public void testCopyToRealmList() {
         Dog dog1 = new Dog();
@@ -1500,7 +1521,6 @@ public class RealmTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {
         }
-
     }
 
     public void testUpdateObjectWithLinks() throws Exception {

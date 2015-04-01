@@ -99,6 +99,12 @@ public class FilterableMediator implements RealmProxyMediator {
     }
 
     @Override
+    public Map<String, Long> getColumnIndices(Class<? extends RealmObject> clazz) {
+        checkSchemaHasClass(clazz);
+        return originalMediator.getColumnIndices(clazz);
+    }
+
+    @Override
     public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
         checkSchemaHasClass(object.getClass());
         return originalMediator.copyOrUpdate(realm, object, update, cache);
