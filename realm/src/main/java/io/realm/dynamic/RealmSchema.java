@@ -16,8 +16,11 @@
 
 package io.realm.dynamic;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -65,6 +68,10 @@ public class RealmSchema {
      */
     public RealmObjectSchema addClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
+        String internalTableName = TABLE_PREFIX + className;
+        if (realm.hasTable(internalTableName)) {
+            throw new IllegalArgumentException("Class already exists: " + className);
+        }
         Table table = realm.getTable(TABLE_PREFIX + className);
         return new RealmObjectSchema(realm, table);
     }
@@ -96,6 +103,9 @@ public class RealmSchema {
         checkEmpty(newName, "Class names cannot be empty or null");
         String oldInternalName = TABLE_PREFIX + oldName;
         String newInternalName = TABLE_PREFIX + newName;
+        if (realm.hasTable(newInternalName)) {
+            throw new IllegalArgumentException(oldName + " cannot be renamed because the new class already exists: " + newName);
+        }
         realm.renameTable(oldInternalName, newInternalName);
         return new RealmObjectSchema(realm, realm.getTable(newInternalName));
     }

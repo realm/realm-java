@@ -11,7 +11,9 @@ import io.realm.dynamic.RealmSchema;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
+import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.Owner;
+import io.realm.entities.OwnerPrimaryKey;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
@@ -74,22 +76,36 @@ public class RealmMigrationTests extends AndroidTestCase {
         realm.close();
     }
 
+    private void createSimpleRealmWithPrimaryKey() {
+        Realm.setSchema(OwnerPrimaryKey.class, DogPrimaryKey.class, Dog.class);
+        Realm.deleteRealmFile(getContext());
+        Realm realm = Realm.getInstance(getContext());
+        realm.close();
+    }
+
+
     private String getDefaultRealmPath() {
         return new File(getContext().getFilesDir(), "default.realm").getAbsolutePath();
     }
 
     public void testAddEmptyClassThrows() {
         createEmptyDefaultRealm();
-        try {
-            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-                @Override
-                public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
-                    realm.addClass(null);
-                }
-            });
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.addClass(null);
+            }
+        });
+    }
+
+    public void testAddExistingClassThrows() {
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.addClass("AllTypes");
+            }
+        });
     }
 
     public void testAddClass() {
@@ -106,30 +122,22 @@ public class RealmMigrationTests extends AndroidTestCase {
 
     public void testRemoveEmptyClassThrows() {
         createEmptyDefaultRealm();
-        try {
-            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-                @Override
-                public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
-                    realm.removeClass(null);
-                }
-            });
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.removeClass(null);
+            }
+        });
     }
 
     public void testRemoveLinkedClassThrows() {
         createSimpleRealm();
-        try {
-            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-                @Override
-                public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
-                realm.removeClass("Owner");
-                }
-            });
-            fail();
-        } catch (RuntimeException expected) {
-        }
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.removeClass("Owner");
+            }
+        });
     }
 
     public void testRemoveClass() {
@@ -146,20 +154,30 @@ public class RealmMigrationTests extends AndroidTestCase {
 
     public void testRenameEmptyClassThrows() {
         createSimpleRealm();
-        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-            @Override
-            public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
-                // Test first argument is null
-                try {
-                    realm.renameClass(null, "Foo");
-                } catch (IllegalArgumentException expected) {
-                }
 
-                // Test second argument is null
-                try {
-                    realm.renameClass("Foo", null);
-                } catch (IllegalArgumentException expected) {
-                }
+        // Test from class
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.renameClass(null, "Foo");
+            }
+        });
+
+        // Test to class
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.renameClass("Owner", null);
+            }
+        });
+    }
+
+    public void testRenameToExistingClassThrows() {
+        createSimpleRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.renameClass("Owner", "Dog");
             }
         });
     }
@@ -179,16 +197,12 @@ public class RealmMigrationTests extends AndroidTestCase {
 
     public void testAddEmptyFieldThrows() {
         createEmptyDefaultRealm();
-        try {
-            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-                @Override
-                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
-                    schema.addClass("Foo").addString(null);
-                }
-            });
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.addClass("Foo").addString(null);
+            }
+        });
     }
 
     public void testAddField() {
@@ -253,30 +267,22 @@ public class RealmMigrationTests extends AndroidTestCase {
 
     public void testRemoveEmptyFieldThrows() {
         createEmptyDefaultRealm();
-        try {
-            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-                @Override
-                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
-                    schema.getClass("AllTypes").removeField(null);
-                }
-            });
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").removeField(null);
+            }
+        });
     }
 
     public void testRemoveNonExistingFieldThrows() {
         createEmptyDefaultRealm();
-        try {
-            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-                @Override
-                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
-                    schema.getClass("AllTypes").removeField("unknown");
-                }
-            });
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").removeField("unknown");
+            }
+        });
     }
 
     public void testRemoveField() {
@@ -297,28 +303,20 @@ public class RealmMigrationTests extends AndroidTestCase {
         createEmptyDefaultRealm();
 
         // From field
-        try {
-            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-                @Override
-                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
-                    schema.getClass("AllTypes").renameField(null, "Foo");
-                }
-            });
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").renameField(null, "Foo");
+            }
+        });
 
         // To field
-        try {
-            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
-                @Override
-                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
-                    schema.getClass("AllTypes").renameField("columnString", null);
-                }
-            });
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").renameField("columnString", null);
+            }
+        });
     }
 
     public void testRenameNonExistingFieldThrows() {
@@ -351,54 +349,166 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddEmptyIndexThrows() {
-        fail();
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").addIndex(null);
+            }
+        });
     }
 
     public void testAddNonExistingIndexThrows() {
-        fail();
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").addIndex("columnFoo");
+            }
+        });
     }
 
     public void testAddIllegalIndexThrows() {
-        fail();
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").addIndex("columnDate");
+            }
+        });
     }
 
     public void testAddIndex() {
-        fail();
+        createEmptyDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.getClass("AllTypes").addIndex("columnString");
+            }
+        });
+        realm = getDefaultSharedGroup();
+        Table t = realm.getTable("class_AllTypes");
+        assertTrue(t.hasIndex(t.getColumnIndex("columnString")));
     }
 
     public void testRemoveIndexEmptyFieldThrows() {
-        fail();
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").removeIndex(null);
+            }
+        });
     }
 
     public void testRemoveIndexNonExistingFieldThrows() {
-        fail();
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").removeIndex("columnFoo");
+            }
+        });
     }
 
     public void testRemoveNonExistingIndexThrows() {
-        fail();
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").removeIndex("columnString");
+            }
+        });
     }
 
     public void testRemoveIndex() {
-        fail();
+        createEmptyDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.getClass("Dog").removeIndex("name");
+            }
+        });
+        realm = getDefaultSharedGroup();
+        Table t = realm.getTable("class_Dog");
+        assertTrue(t.hasIndex(t.getColumnIndex("columnString")));
     }
 
-    public void addPrimaryKeyEmptyFieldThrows() {
-        fail();
+    public void testAddPrimaryKeyEmptyFieldThrows() {
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").addPrimaryKey(null);
+            }
+        });
     }
 
-    public void addPrimaryKeyNonExistingFieldThrows() {
-        fail();
+    public void testAddPrimaryKeyNonExistingFieldThrows() {
+        createEmptyDefaultRealm();
+        expectIllegalArgumentException(new MigrationBlock() {
+            @Override
+            public void migrationCode(RealmSchema schema) {
+                schema.getClass("AllTypes").addPrimaryKey("foo");
+            }
+        });
     }
 
-    public void addPrimaryKey() {
-        fail();
+    public void testAddPrimaryKey() {
+        createEmptyDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.getClass("AllTypes").addPrimaryKey("columnString");
+            }
+        });
+        realm = getDefaultSharedGroup();
+        Table t = realm.getTable("class_AllTypes");
+        assertTrue(t.hasPrimaryKey());
+        assertEquals(t.getColumnIndex("columnString"), t.getPrimaryKey());
     }
 
     public void testRemoveNonExistingPrimaryKeyThrows() {
-        fail();
+        createEmptyDefaultRealm();
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    schema.getClass("AllTypes").removePrimaryKey();
+                }
+            });
+            fail();
+        } catch (IllegalStateException expected) {
+        }
     }
 
     public void testRemovePrimaryKey() {
-        fail();
+        createSimpleRealmWithPrimaryKey();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.getClass("OwnerPrimaryKey").removePrimaryKey();
+            }
+        });
+        realm = getDefaultSharedGroup();
+        Table t = realm.getTable("class_OwnerPrimaryKey");
+        assertFalse(t.hasPrimaryKey());
+    }
+
+    private void expectIllegalArgumentException(final MigrationBlock block) {
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    block.migrationCode(schema);
+                }
+            });
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public interface MigrationBlock {
+        public void migrationCode(RealmSchema schema);
     }
 }

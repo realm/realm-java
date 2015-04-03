@@ -16,12 +16,15 @@
 
 package io.realm.dynamic;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collections;
 import java.util.Set;
 
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 
 /**
  * Class for interacting with a schema for a given RealmClass. This makes it possible to add, delete
@@ -56,6 +59,7 @@ public class RealmObjectSchema {
 
     public RealmObjectSchema addString(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldAlreadyExists(fieldName);
         long columnIndex = table.addColumn(ColumnType.STRING, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -193,11 +197,17 @@ public class RealmObjectSchema {
 
     public RealmObjectSchema addPrimaryKey(String fieldName) {
         checkEmpty(fieldName);
+        if (table.getColumnIndex(fieldName) == TableOrView.NO_MATCH) {
+            throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
+        }
         table.setPrimaryKey(fieldName);
         return this;
     }
 
     public RealmObjectSchema removePrimaryKey() {
+        if (!table.hasPrimaryKey()) {
+            throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
+        }
         table.setPrimaryKey("");
         return this;
     }
@@ -225,6 +235,12 @@ public class RealmObjectSchema {
     private void checkEmpty(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Fieldname must not be null or empty");
+        }
+    }
+
+    private void checkFieldAlreadyExists(@NotNull String fieldName) {
+        if (table.getColumnIndex(fieldName) != TableOrView.NO_MATCH) {
+            throw new IllegalArgumentException("Field already exist in '" + getClassName() + "': " + fieldName);
         }
     }
 
