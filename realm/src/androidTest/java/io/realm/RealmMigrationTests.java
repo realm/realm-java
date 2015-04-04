@@ -14,6 +14,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
+import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
@@ -132,12 +133,16 @@ public class RealmMigrationTests extends AndroidTestCase {
 
     public void testRemoveLinkedClassThrows() {
         createSimpleRealm();
-        expectIllegalArgumentException(new MigrationBlock() {
-            @Override
-            public void migrationCode(RealmSchema schema) {
-                schema.removeClass("Owner");
-            }
-        });
+        try {
+            Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+                @Override
+                public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    schema.removeClass("Owner");
+                }
+            });
+            fail();
+        } catch (RealmException expected) {
+        }
     }
 
     public void testRemoveClass() {
@@ -431,7 +436,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         });
         realm = getDefaultSharedGroup();
         Table t = realm.getTable("class_Dog");
-        assertTrue(t.hasIndex(t.getColumnIndex("columnString")));
+        assertFalse(t.hasIndex(t.getColumnIndex("columnString")));
     }
 
     public void testAddPrimaryKeyEmptyFieldThrows() {

@@ -18,6 +18,7 @@ package io.realm.dynamic;
 
 import org.jetbrains.annotations.NotNull;
 
+import io.realm.exceptions.RealmException;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -85,10 +86,12 @@ public class RealmSchema {
     public void removeClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
-        if (!realm.hasTable(internalTableName)) {
-            throw new IllegalArgumentException("Class doesn't exist in this Realm: " + className);
+        checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
+        try {
+            realm.removeTable(internalTableName);
+        } catch (RuntimeException e) {
+            throw new RealmException("Class is referenced by other classes. Remove those first.");
         }
-        realm.removeTable(internalTableName);
     }
 
     /**
@@ -103,6 +106,7 @@ public class RealmSchema {
         checkEmpty(newName, "Class names cannot be empty or null");
         String oldInternalName = TABLE_PREFIX + oldName;
         String newInternalName = TABLE_PREFIX + newName;
+        checkHasTable(oldName, "Cannot rename class because it doesn't exist in this Realm: " + oldName);
         if (realm.hasTable(newInternalName)) {
             throw new IllegalArgumentException(oldName + " cannot be renamed because the new class already exists: " + newName);
         }
@@ -113,6 +117,13 @@ public class RealmSchema {
     private void checkEmpty(String str, String error) {
         if (str == null || str.isEmpty()) {
             throw new IllegalArgumentException(error);
+        }
+    }
+
+    private void checkHasTable(String className, String errorMsg) {
+        String internalTableName = TABLE_PREFIX + className;
+        if (!realm.hasTable(internalTableName)) {
+            throw new IllegalArgumentException(errorMsg);
         }
     }
 }

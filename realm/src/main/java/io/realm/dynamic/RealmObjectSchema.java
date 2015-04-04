@@ -59,7 +59,7 @@ public class RealmObjectSchema {
 
     public RealmObjectSchema addString(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
-        checkFieldAlreadyExists(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.STRING, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -175,7 +175,9 @@ public class RealmObjectSchema {
 
     public RealmObjectSchema renameField(String oldFieldName, String newFieldName) {
         checkEmpty(oldFieldName);
+        checkFieldExists(oldFieldName);
         checkEmpty(newFieldName);
+        checkFieldNameIsAvailable(newFieldName);
         long columnIndex = getColumnIndex(oldFieldName);
         table.renameColumn(columnIndex, newFieldName);
         return this;
@@ -183,6 +185,7 @@ public class RealmObjectSchema {
 
     public RealmObjectSchema addIndex(String fieldName) {
         checkEmpty(fieldName);
+        checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
         table.setIndex(columnIndex);
         return this;
@@ -190,16 +193,18 @@ public class RealmObjectSchema {
 
     public RealmObjectSchema removeIndex(String fieldName) {
         checkEmpty(fieldName);
+        checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
+        if (!table.hasIndex(columnIndex)) {
+            throw new IllegalArgumentException("Field is not indexed: " + fieldName);
+        }
         table.removeIndex(columnIndex);
         return this;
     }
 
     public RealmObjectSchema addPrimaryKey(String fieldName) {
         checkEmpty(fieldName);
-        if (table.getColumnIndex(fieldName) == TableOrView.NO_MATCH) {
-            throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
-        }
+        checkFieldExists(fieldName);
         table.setPrimaryKey(fieldName);
         return this;
     }
@@ -238,9 +243,15 @@ public class RealmObjectSchema {
         }
     }
 
-    private void checkFieldAlreadyExists(@NotNull String fieldName) {
+    private void checkFieldNameIsAvailable(@NotNull String fieldName) {
         if (table.getColumnIndex(fieldName) != TableOrView.NO_MATCH) {
             throw new IllegalArgumentException("Field already exist in '" + getClassName() + "': " + fieldName);
+        }
+    }
+
+    private void checkFieldExists(String fieldName) {
+        if (table.getColumnIndex(fieldName) == TableOrView.NO_MATCH) {
+            throw new IllegalArgumentException("Field name doesn't exist on object '" + getClassName() + "': " + fieldName);
         }
     }
 
