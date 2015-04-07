@@ -177,7 +177,7 @@ public final class Realm implements Closeable {
     private static final Set<Class<? extends RealmObject>> customSchema = new HashSet<Class<? extends RealmObject>>();
     private static final long UNVERSIONED = -1;
 
-    private final ColumnIndices columnIndices = new ColumnIndices();
+    final ColumnIndices columnIndices = new ColumnIndices();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -647,7 +647,7 @@ public final class Realm implements Closeable {
                 } catch (InvocationTargetException e) {
                     throw new RealmException("An exception was thrown in the getColumnIndices method in the generated " + generatedClassName + " class", e);
                 }
-                realm.getColumnIndices().addClass((Class<? extends RealmObject>) generatedClass.getSuperclass(), indices);
+                realm.columnIndices.addClass((Class<? extends RealmObject>) generatedClass.getSuperclass(), indices);
             }
         } finally {
             if (commitNeeded) {
@@ -656,10 +656,6 @@ public final class Realm implements Closeable {
                 realm.cancelTransaction();
             }
         }
-    }
-
-    ColumnIndices getColumnIndices() {
-        return columnIndices;
     }
 
     /**
