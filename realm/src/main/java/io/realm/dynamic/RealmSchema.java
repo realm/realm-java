@@ -16,12 +16,10 @@
 
 package io.realm.dynamic;
 
-import org.jetbrains.annotations.NotNull;
-
+import io.realm.Realm;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
@@ -35,13 +33,15 @@ public class RealmSchema {
 
     private static final String TABLE_PREFIX = "class_"; // TODO Move to JNI Object store layer
     public static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
-    private final ImplicitTransaction realm;
+    private final ImplicitTransaction transaction;
+    private final Realm realm;
 
     /**
      * Creates a wrapper to easily manipulate the current schema of a Realm.
      */
-    public RealmSchema(ImplicitTransaction realm) {
+    public RealmSchema(Realm realm, ImplicitTransaction transaction) {
         this.realm = realm;
+        this.transaction = transaction;
     }
 
     /**
@@ -54,8 +54,8 @@ public class RealmSchema {
     public RealmObjectSchema getClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalClassName = TABLE_PREFIX + className;
-        if (realm.hasTable(internalClassName)) {
-            return new RealmObjectSchema(realm, realm.getTable(internalClassName));
+        if (transaction.hasTable(internalClassName)) {
+            return new RealmObjectSchema(realm, transaction, transaction.getTable(internalClassName));
         } else {
             throw new IllegalArgumentException("Class does not exist in this Realm: " + className);
         }
@@ -70,11 +70,11 @@ public class RealmSchema {
     public RealmObjectSchema addClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
-        if (realm.hasTable(internalTableName)) {
+        if (transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
-        Table table = realm.getTable(TABLE_PREFIX + className);
-        return new RealmObjectSchema(realm, table);
+        Table table = transaction.getTable(TABLE_PREFIX + className);
+        return new RealmObjectSchema(realm, transaction, table);
     }
 
     /**
@@ -88,7 +88,7 @@ public class RealmSchema {
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
         try {
-            realm.removeTable(internalTableName);
+            transaction.removeTable(internalTableName);
         } catch (RuntimeException e) {
             throw new RealmException("Class is referenced by other classes. Remove those first.");
         }
@@ -107,11 +107,11 @@ public class RealmSchema {
         String oldInternalName = TABLE_PREFIX + oldName;
         String newInternalName = TABLE_PREFIX + newName;
         checkHasTable(oldName, "Cannot rename class because it doesn't exist in this Realm: " + oldName);
-        if (realm.hasTable(newInternalName)) {
+        if (transaction.hasTable(newInternalName)) {
             throw new IllegalArgumentException(oldName + " cannot be renamed because the new class already exists: " + newName);
         }
-        realm.renameTable(oldInternalName, newInternalName);
-        return new RealmObjectSchema(realm, realm.getTable(newInternalName));
+        transaction.renameTable(oldInternalName, newInternalName);
+        return new RealmObjectSchema(realm, transaction, transaction.getTable(newInternalName));
     }
 
     private void checkEmpty(String str, String error) {
@@ -122,7 +122,7 @@ public class RealmSchema {
 
     private void checkHasTable(String className, String errorMsg) {
         String internalTableName = TABLE_PREFIX + className;
-        if (!realm.hasTable(internalTableName)) {
+        if (!transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException(errorMsg);
         }
     }

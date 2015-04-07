@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
 
+import io.realm.dynamic.DynamicRealmObject;
 import io.realm.dynamic.RealmModifier;
 import io.realm.dynamic.RealmSchema;
 import io.realm.entities.AllTypes;
@@ -63,7 +64,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     // Create a Realm file with no Realm classes
-    private void createEmptyDefaultRealm() {
+    private void createDefaultRealm() {
         Realm.setSchema(AllTypes.class);
         Realm.deleteRealmFile(getContext());
         Realm realm = Realm.getInstance(getContext());
@@ -90,7 +91,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddEmptyClassThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -100,7 +101,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddExistingClassThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -110,7 +111,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddClass() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
@@ -122,7 +123,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveEmptyClassThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -146,7 +147,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveClass() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema realm, long oldVersion, long newVersion) {
@@ -201,7 +202,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddEmptyFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -211,7 +212,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddField() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -248,7 +249,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddFieldWithModifiers() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -271,7 +272,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveEmptyFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -281,7 +282,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveNonExistingFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -291,7 +292,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveField() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -305,7 +306,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRenameEmptyFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
 
         // From field
         expectIllegalArgumentException(new MigrationBlock() {
@@ -325,7 +326,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRenameNonExistingFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         try {
             Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
                 @Override
@@ -339,7 +340,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRenameField() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -354,7 +355,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddEmptyIndexThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -364,7 +365,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddNonExistingIndexThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -374,7 +375,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddIllegalIndexThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -384,7 +385,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddIndex() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -397,7 +398,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveIndexEmptyFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -407,7 +408,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveIndexNonExistingFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -417,7 +418,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveNonExistingIndexThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -427,7 +428,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveIndex() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -440,7 +441,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddPrimaryKeyEmptyFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -450,7 +451,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddPrimaryKeyNonExistingFieldThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         expectIllegalArgumentException(new MigrationBlock() {
             @Override
             public void migrationCode(RealmSchema schema) {
@@ -460,7 +461,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testAddPrimaryKey() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -474,7 +475,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testRemoveNonExistingPrimaryKeyThrows() {
-        createEmptyDefaultRealm();
+        createDefaultRealm();
         try {
             Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
                 @Override
@@ -498,6 +499,20 @@ public class RealmMigrationTests extends AndroidTestCase {
         realm = getDefaultSharedGroup();
         Table t = realm.getTable("class_OwnerPrimaryKey");
         assertFalse(t.hasPrimaryKey());
+    }
+
+    public void testCreateObject() {
+        createDefaultRealm();
+        Realm.migrateRealmAtPath(getDefaultRealmPath(), new RealmMigration() {
+            @Override
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                DynamicRealmObject obj = schema.getClass("AllTypes").createObject();
+                assertNotNull(obj);
+            }
+        });
+        realm = getDefaultSharedGroup();
+        Table t = realm.getTable("class_AllTypes");
+        assertEquals(1, t.size());
     }
 
     private void expectIllegalArgumentException(final MigrationBlock block) {

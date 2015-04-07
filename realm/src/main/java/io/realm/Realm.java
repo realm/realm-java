@@ -1670,7 +1670,7 @@ public final class Realm implements Closeable {
      * Returns the dynamic schema for this Realm.
      */
     RealmSchema getSchema() {
-        return new RealmSchema(transaction);
+        return new RealmSchema(this, transaction);
     }
 
     /**

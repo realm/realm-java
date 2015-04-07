@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.Set;
 
+import io.realm.Realm;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
@@ -37,6 +38,7 @@ import io.realm.internal.TableOrView;
 public class RealmObjectSchema {
 
     private static final String TABLE_PREFIX = "class_";
+    private final Realm realm;
     private final Table table;
     private final ImplicitTransaction transaction;
 
@@ -44,7 +46,8 @@ public class RealmObjectSchema {
      * Creates a schema object for a given Realm class.
      * @param table Table representation of the Realm class
      */
-    RealmObjectSchema(ImplicitTransaction transaction, Table table) {
+    RealmObjectSchema(Realm realm, ImplicitTransaction transaction, Table table) {
+        this.realm = realm;
         this.transaction = transaction;
         this.table = table;
     }
@@ -218,8 +221,18 @@ public class RealmObjectSchema {
     }
 
     public DynamicRealmObject createObject() {
-        return null;
+        if (table.hasPrimaryKey()) {
+            throw new IllegalStateException("Class requires a primary key value. Use createObject(primaryKeyValue) instead.");
+        }
+        long rowIndex = table.addEmptyRow();
+        return new DynamicRealmObject(realm, table.getRow(rowIndex));
     }
+
+//    TODO Require merge of primary key fix which adds support for this
+//    public DynamicRealmObject createObject(Object primaryKeyValue) {
+//        table.
+//        return null;
+//    }
 
     public RealmObjectSchema forEach(Iterator iterator) {
         return this;
