@@ -18,7 +18,6 @@ public class RealmMigrationTests extends AndroidTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        Realm.setSchema(null);
         Realm.deleteRealmFile(getContext());
     }
 
@@ -28,6 +27,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         if (realm != null) {
             realm.close();
         }
+        Realm.setSchema(null);
     }
 
     public void testRealmClosedAfterMigrationException() throws IOException {
