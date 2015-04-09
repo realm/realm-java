@@ -491,6 +491,12 @@ public class RealmProxyClassGenerator {
                 "Realm", "realm", className, "object", "boolean", "update", "Map<RealmObject,RealmObject>", "cache" // Argument type & argument name
         );
 
+        // If object is already in the Realm there is nothing to update
+        writer
+            .beginControlFlow("if (object.realm != null && object.realm.getId() == realm.getId())")
+                .emitStatement("return object")
+            .endControlFlow();
+
         if (!metadata.hasPrimaryKey()) {
             writer.emitStatement("return copy(realm, object, update, cache)");
         } else {
