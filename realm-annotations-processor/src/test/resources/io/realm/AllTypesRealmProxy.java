@@ -295,9 +295,24 @@ public class AllTypesRealmProxy extends AllTypes {
         return columnIndices;
     }
 
-    public static void populateUsingJsonObject(AllTypes obj, JSONObject json)
+    public static AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        boolean standalone = obj.realm == null;
+        AllTypes obj = null;
+        if (update) {
+            Table table = realm.getTable(AllTypes.class);
+            long pkColumnIndex = table.getPrimaryKey();
+            if (!json.isNull("columnString")) {
+                long rowIndex = table.findFirstString(pkColumnIndex, json.getString("columnString"));
+                if (rowIndex != TableOrView.NO_MATCH) {
+                    obj = new AllTypesRealmProxy();
+                    obj.realm = realm;
+                    obj.row = table.getRow(rowIndex);
+                }
+            }
+        }
+        if (obj == null) {
+            obj = realm.createObject(AllTypes.class);
+        }
         if (!json.isNull("columnString")) {
             obj.setColumnString((String) json.getString("columnString"));
         }
@@ -325,26 +340,23 @@ public class AllTypesRealmProxy extends AllTypes {
         }
         obj.setColumnBinary(JsonUtils.stringToBytes(json.isNull("columnBinary") ? null : json.getString("columnBinary")));
         if (!json.isNull("columnObject")) {
-            some.test.AllTypes columnObject = standalone ? new some.test.AllTypes() : obj.realm.createObject(some.test.AllTypes.class);
-            AllTypesRealmProxy.populateUsingJsonObject(columnObject, json.getJSONObject("columnObject"));
-            obj.setColumnObject(columnObject);
+            some.test.AllTypes columnObjectObj = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("columnObject"), update);
+            obj.setColumnObject(columnObjectObj);
         }
         if (!json.isNull("columnRealmList")) {
-            if (standalone) {
-                obj.setColumnRealmList(new RealmList<some.test.AllTypes>());
-            }
+            obj.getColumnRealmList().clear();
             JSONArray array = json.getJSONArray("columnRealmList");
             for (int i = 0; i < array.length(); i++) {
-                some.test.AllTypes item = standalone ? new some.test.AllTypes() : obj.realm.createObject(some.test.AllTypes.class);
-                AllTypesRealmProxy.populateUsingJsonObject(item, array.getJSONObject(i));
+                some.test.AllTypes item = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update);
                 obj.getColumnRealmList().add(item);
             }
         }
+        return obj;
     }
 
-    public static void populateUsingJsonStream(AllTypes obj, JsonReader reader)
+    public static AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        boolean standalone = obj.realm == null;
+        AllTypes obj = realm.createObject(AllTypes.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -370,17 +382,12 @@ public class AllTypesRealmProxy extends AllTypes {
             } else if (name.equals("columnBinary")  && reader.peek() != JsonToken.NULL) {
                 obj.setColumnBinary(JsonUtils.stringToBytes(reader.nextString()));
             } else if (name.equals("columnObject")  && reader.peek() != JsonToken.NULL) {
-                some.test.AllTypes columnObjectObj = standalone ? new some.test.AllTypes() : obj.realm.createObject(some.test.AllTypes.class);
-                AllTypesRealmProxy.populateUsingJsonStream(columnObjectObj, reader);
+                some.test.AllTypes columnObjectObj = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
                 obj.setColumnObject(columnObjectObj);
             } else if (name.equals("columnRealmList")  && reader.peek() != JsonToken.NULL) {
                 reader.beginArray();
-                if (standalone) {
-                    obj.setColumnRealmList(new RealmList<some.test.AllTypes>());
-                }
                 while (reader.hasNext()) {
-                    some.test.AllTypes item = standalone ? new some.test.AllTypes() : obj.realm.createObject(some.test.AllTypes.class);
-                    AllTypesRealmProxy.populateUsingJsonStream(item, reader);
+                    some.test.AllTypes item = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
                     obj.getColumnRealmList().add(item);
                 }
                 reader.endArray();
@@ -389,6 +396,7 @@ public class AllTypesRealmProxy extends AllTypes {
             }
         }
         reader.endObject();
+        return obj;
     }
 
     public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update, Map<RealmObject,RealmObject> cache) {
