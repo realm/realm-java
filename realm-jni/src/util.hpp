@@ -173,7 +173,7 @@ extern const char *log_tag;
 #define TBL_AND_COL_INDEX_VALID(env,ptr,col)                    TblColIndexValid(env, ptr, col)
 #define COL_INDEX_AND_TYPE_VALID(env,ptr,col,type)              ColIndexAndTypeValid(env, ptr, col, type)
 #define TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     TblColIndexAndTypeValid(env, ptr, col, type)
-#define TBL_AND_COL_INDEX_AND_LINKLIKE(env,ptr,col)             TblColIndexAndLinklike(env, ptr, col)
+#define TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)     TblColIndexAndLinkOrLinkList(env, ptr, col)
 #define INDEX_VALID(env,ptr,col,row)                            IndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_VALID(env,ptr,col,row)                    TblIndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             TblIndexInsertValid(env, ptr, col, row)
@@ -197,7 +197,7 @@ extern const char *log_tag;
 #define TBL_AND_COL_INDEX_VALID(env,ptr,col)                    (true)
 #define COL_INDEX_AND_TYPE_VALID(env,ptr,col,type)              (true)
 #define TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     (true)
-#define TBL_AND_COL_INDEX_AND_LINKLIKE(env,ptr,col)             (true)
+#define TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)     (true)
 #define INDEX_VALID(env,ptr,col,row)                            (true)
 #define TBL_AND_INDEX_VALID(env,ptr,col,row)                    (true)
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             (true)
@@ -420,7 +420,7 @@ inline bool TblColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, i
 }
 
 template <class T>
-inline bool TblColIndexAndLinklike(JNIEnv* env, T* pTable, jlong columnIndex) {
+inline bool TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnIndex) {
     return TableIsValid(env, pTable)
         && TypeIsLinkLike(env, pTable, columnIndex);
 }

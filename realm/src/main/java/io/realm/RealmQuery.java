@@ -179,7 +179,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> isNull(String fieldName) {
         // Currently we only support querying top-level
         if (containsDot(fieldName)) {
-            throw new IllegalArgumentException("Following multiple relationships is not supported.");
+            throw new IllegalArgumentException("Checking for null in nested objects is not supported.");
         }
 
         // checking that fieldName has the correct type is done in C++

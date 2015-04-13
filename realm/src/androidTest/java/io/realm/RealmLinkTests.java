@@ -464,44 +464,52 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, subOwners.size());
     }
 
-    public void testIsNull() {
+    public void testLinkIsNull() {
+        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNull("cat").findAll();
+        assertEquals(0, owners1.size());
+
+        testRealm.beginTransaction();
+        testRealm.clear(Cat.class);
+        testRealm.commitTransaction();
+
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("cat").findAll();
+        assertEquals(1, owners2.size());
+    }
+
+    public void testLinkListIsNull() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNull("dogs").findAll();
         assertEquals(0, owners1.size());
 
-        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("cat").findAll();
-        assertEquals(0, owners2.size());
-
-        // remove cat and dogs and query again
         testRealm.beginTransaction();
         testRealm.clear(Dog.class);
+        testRealm.commitTransaction();
+
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("dogs").findAll();
+        assertEquals(1, owners2.size());
+    }
+
+    public void testLinkIsNotNull() {
+        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotNull("cat").findAll();
+        assertEquals(1, owners1.size());
+
+        testRealm.beginTransaction();
         testRealm.clear(Cat.class);
         testRealm.commitTransaction();
 
-        RealmResults<Owner> owners3 = testRealm.where(Owner.class).isNull("dogs").findAll();
-        assertEquals(1, owners3.size());
-
-        RealmResults<Owner> owners4 = testRealm.where(Owner.class).isNull("cat").findAll();
-        assertEquals(1, owners4.size());
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("cat").findAll();
+        assertEquals(0, owners2.size());
     }
 
-    public void testIsNotNull() {
+    public void testLinkListIsNotNull() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotNull("dogs").findAll();
         assertEquals(1, owners1.size());
 
-        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("cat").findAll();
-        assertEquals(1, owners2.size());
-
-        // remove cat and dogs and query again
         testRealm.beginTransaction();
         testRealm.clear(Dog.class);
-        testRealm.clear(Cat.class);
         testRealm.commitTransaction();
 
-        RealmResults<Owner> owners3 = testRealm.where(Owner.class).isNotNull("dogs").findAll();
-        assertEquals(0, owners3.size());
-
-        RealmResults<Owner> owners4 = testRealm.where(Owner.class).isNotNull("cat").findAll();
-        assertEquals(0, owners4.size());
+        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("dogs").findAll();
+        assertEquals(0, owners2.size());
     }
 
     public void testIsNullWrongType() {
