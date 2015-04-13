@@ -441,8 +441,7 @@ inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong r
 template <class T>
 inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
 {
-    return TableIsValid(env, pTable)
-        && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
+    return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
 }
 
 

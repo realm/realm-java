@@ -509,7 +509,7 @@ public class RealmLinkTests extends AndroidTestCase {
             // Owner.name is a String
             RealmResults<Owner> owners = testRealm.where(Owner.class).isNull("name").findAll();
             fail();
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 }
