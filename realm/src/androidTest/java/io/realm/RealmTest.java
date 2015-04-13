@@ -1535,6 +1535,5 @@ public class RealmTest extends AndroidTestCase {
         tmpFile.delete();
         assertTrue(tmpFile.createNewFile());
         assertTrue(Realm.deleteRealmFile(tmpFile));
-        tmpFile.delete();
     }
 }
