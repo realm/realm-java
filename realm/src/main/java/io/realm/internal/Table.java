@@ -364,13 +364,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
 
-    // Row Handling methods.
     public long addEmptyRow() {
         checkImmutable();
         if (hasPrimaryKey()) {
             long primaryKeyColumnIndex = getPrimaryKey();
             ColumnType type = getColumnType(primaryKeyColumnIndex);
-            switch(type) {
+            switch (type) {
                 case STRING:
                     if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(STRING_DEFAULT_VALUE);
@@ -388,6 +387,51 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
 
         return nativeAddEmptyRow(nativePtr, 1);
+    }
+
+    public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
+        checkImmutable();
+        checkHasPrimaryKey();
+        
+        long primaryKeyColumnIndex = getPrimaryKey();
+        ColumnType type = getColumnType(primaryKeyColumnIndex);
+        long rowIndex;
+        Row row;
+
+        // Add with primary key initially set
+        switch (type) {
+            case STRING:
+                if (!(primaryKeyValue instanceof String)) {
+                    throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
+                }
+                if (findFirstString(primaryKeyColumnIndex, (String)primaryKeyValue) != NO_MATCH) {
+                    throwDuplicatePrimaryKeyException(primaryKeyValue);
+                }
+                rowIndex = nativeAddEmptyRow(nativePtr, 1);
+                row = getRow(rowIndex);
+                row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
+                break;
+
+            case INTEGER:
+                long pkValue;
+                try {
+                    pkValue = new Long(primaryKeyValue.toString());
+                } catch (RuntimeException e) {
+                    throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
+                }
+                if (findFirstLong(primaryKeyColumnIndex, pkValue) != NO_MATCH) {
+                    throwDuplicatePrimaryKeyException(pkValue);
+                }
+                rowIndex = nativeAddEmptyRow(nativePtr, 1);
+                row = getRow(rowIndex);
+                row.setLong(primaryKeyColumnIndex, pkValue);
+                break;
+
+            default:
+                throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
+        }
+
+        return rowIndex;
     }
 
     public long addEmptyRows(long rows) {
@@ -1199,6 +1243,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
     void checkImmutable() {
         if (isImmutable()) {
             throwImmutable();
+        }
+    }
+
+    private void checkHasPrimaryKey() {
+        if (!hasPrimaryKey()) {
+            throw new IllegalStateException(getName() + " has no primary key defined");
         }
     }
 
