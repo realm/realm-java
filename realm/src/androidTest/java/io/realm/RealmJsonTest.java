@@ -457,6 +457,15 @@ public class RealmJsonTest extends AndroidTestCase {
         fail();
     }
 
+    public void testCreateOrUpdateObjectStream_invalidJSonThrows() throws IOException {
+        try {
+            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, strToStream("{"));
+        } catch (RealmException expected) {
+            return;
+        }
+        fail();
+    }
+
     public void testCreateOrUpdateObjectString_noPrimaryKeyThrows() throws IOException {
         try {
             testRealm.createOrUpdateObjectFromJson(AllTypes.class, "{}");
@@ -486,7 +495,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
     public void testCreateOrUpdateJsonObject_ignoreUnsetProperties() {
         testRealm.beginTransaction();
-        AllTypesPrimaryKey obj = testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ 'columnLong':1, 'columnString': 'foo' }");
+        AllTypesPrimaryKey obj = testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\":1, \"columnString\": \"foo\" }");
         obj.setColumnBoolean(true);
         testRealm.commitTransaction();
 
@@ -558,6 +567,15 @@ public class RealmJsonTest extends AndroidTestCase {
         try {
             testRealm.createOrUpdateAllFromJson(AllTypes.class, new TestHelper.StubInputStream());
         } catch (IllegalArgumentException expected) {
+            return;
+        }
+        fail();
+    }
+
+    public void testCreateOrUpdateAllStream_invalidJSonThrows() throws IOException {
+        try {
+            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, strToStream("["));
+        } catch (RealmException expected) {
             return;
         }
         fail();

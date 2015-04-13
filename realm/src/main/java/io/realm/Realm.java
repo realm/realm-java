@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -675,9 +676,8 @@ public final class Realm implements Closeable {
         }
 
         for (int i = 0; i < json.length(); i++) {
-            E obj = createObject(clazz);
             try {
-                realmJson.populateUsingJsonObject(obj, json.getJSONObject(i));
+                realmJson.createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), false);
             } catch (Exception e) {
                 throw new RealmException("Could not map Json", e);
             }
@@ -700,12 +700,9 @@ public final class Realm implements Closeable {
             return;
         }
         checkHasPrimaryKey(clazz);
-
         for (int i = 0; i < json.length(); i++) {
-            E obj = createStandaloneRealmObjectInstance(clazz);
             try {
-                realmJson.populateUsingJsonObject(obj, json.getJSONObject(i));
-                copyToRealmOrUpdate(obj);
+                realmJson.createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
             } catch (Exception e) {
                 throw new RealmException("Could not map Json", e);
             }
@@ -786,8 +783,7 @@ public final class Realm implements Closeable {
         try {
             reader.beginArray();
             while (reader.hasNext()) {
-                E obj = createObject(clazz);
-                realmJson.populateUsingJsonStream(obj, reader);
+                realmJson.createUsingJsonStream(clazz, this, reader);
             }
             reader.endArray();
         } finally {
@@ -813,17 +809,21 @@ public final class Realm implements Closeable {
         }
         checkHasPrimaryKey(clazz);
 
-        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+        // As we need the primary key value we have to first parse the entire input stream as in the general
+        // case that value might be the last property :(
+        Scanner scanner = null;
         try {
-            reader.beginArray();
-            while (reader.hasNext()) {
-                E obj = createStandaloneRealmObjectInstance(clazz);
-                realmJson.populateUsingJsonStream(obj, reader);
-                copyToRealmOrUpdate(obj);
+            scanner = new Scanner(in, "UTF-8").useDelimiter("\\A");
+            JSONArray json = new JSONArray(scanner.next());
+            for (int i = 0; i < json.length(); i++) {
+                realmJson.createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
             }
-            reader.endArray();
+        } catch (JSONException e) {
+            throw new RealmException("Failed to read JSON", e);
         } finally {
-            reader.close();
+            if (scanner != null) {
+                scanner.close();
+            }
         }
     }
 
@@ -844,14 +844,11 @@ public final class Realm implements Closeable {
             return null;
         }
 
-        E obj = createObject(clazz);
         try {
-            realmJson.populateUsingJsonObject(obj, json);
+            return realmJson.createOrUpdateUsingJsonObject(clazz, this, json, false);
         } catch (Exception e) {
             throw new RealmException("Could not map Json", e);
         }
-
-        return obj;
     }
 
     /**
@@ -870,17 +867,11 @@ public final class Realm implements Closeable {
             return null;
         }
         checkHasPrimaryKey(clazz);
-
-        E obj = createStandaloneRealmObjectInstance(clazz);
-
         try {
-            realmJson.populateUsingJsonObject(obj, json);
-            copyToRealmOrUpdate(obj);
+            return realmJson.createOrUpdateUsingJsonObject(clazz, this, json, true);
         } catch (JSONException e) {
             throw new RealmException("Could not map Json", e);
         }
-
-        return obj;
     }
 
     /**
@@ -957,9 +948,7 @@ public final class Realm implements Closeable {
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
-            E obj = createObject(clazz);
-            realmJson.populateUsingJsonStream(obj, reader);
-            return obj;
+            return realmJson.createUsingJsonStream(clazz, this, reader);
         } finally {
             reader.close();
         }
@@ -983,25 +972,19 @@ public final class Realm implements Closeable {
         }
         checkHasPrimaryKey(clazz);
 
-        E obj = createStandaloneRealmObjectInstance(clazz);
-        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+        // As we need the primary key value we have to first parse the entire input stream as in the general
+        // case that value might be the last property :(
+        Scanner scanner = null;
         try {
-            realmJson.populateUsingJsonStream(obj, reader);
-            copyToRealmOrUpdate(obj);
-        } catch (RuntimeException e) {
-            throw new RealmException("Could not create Json object from string", e);
-        }
-
-        return obj;
-    }
-
-    private <E extends RealmObject> E createStandaloneRealmObjectInstance(Class<E> clazz) {
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException e) {
-            throw new RealmException("Could not create an object of class: " + clazz, e);
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not create an object of class: " + clazz, e);
+            scanner = new Scanner(in, "UTF-8").useDelimiter("\\A");
+            JSONObject json = new JSONObject(scanner.next());
+            return realmJson.createOrUpdateUsingJsonObject(clazz, this, json, true);
+        } catch (JSONException e) {
+            throw new RealmException("Failed to read JSON", e);
+        } finally {
+            if (scanner != null) {
+                scanner.close();
+            }
         }
     }
 
