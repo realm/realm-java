@@ -1,4 +1,5 @@
 0.81
+ * Realm.createOrUpdateWithJson() no longer reset fields to their default value if they are not found in the JSON input.
  * Fixed bug causing Realms to be cached even though they failed to open correctly.
  * Fixed bug when using Realm.copyToRealm() with a primary key could crash if default value was already used in the Realm.
 
