@@ -271,6 +271,11 @@ string string_to_hex(const string& message, const jchar *str, size_t size, size_
     return ret.str();
 }
 
+string concat_stringdata(const char *message, StringData strData)
+{
+    return std::string(message) + (strData != NULL ? strData.data() : "");
+}
+
 jstring to_jstring(JNIEnv* env, StringData str)
 {
     // For efficiency, if the incoming UTF-8 string is sufficiently

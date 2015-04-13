@@ -53,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmJson;
@@ -177,7 +178,7 @@ public final class Realm implements Closeable {
     private static final long UNVERSIONED = -1;
 
     // Package protected to be reachable by proxy classes
-    static final Map<String, Map<String, Long>> columnIndices = new HashMap<String, Map<String, Long>>();
+    static final ColumnIndices columnIndices = new ColumnIndices();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -213,8 +214,8 @@ public final class Realm implements Closeable {
     protected void finalize() throws Throwable {
         if (sharedGroup != null) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
-                    "Realm " + path + " is being finalized without being closed, " +
-                    "this can lead to running out of native memory."
+                            "Realm " + path + " is being finalized without being closed, " +
+                            "this can lead to running out of native memory."
             );
         }
         super.finalize();
@@ -490,25 +491,16 @@ public final class Realm implements Closeable {
     }
 
     private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema,
-                                            boolean autoRefresh) {
+                                                        boolean autoRefresh) {
+        // Check thread local cache for existing Realm
         int id = absolutePath.hashCode();
         Map<Integer, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
         if (references == null) {
             references = 0;
         }
-        if (references == 0) {
-            AtomicInteger counter = openRealms.get(id);
-            if (counter == null) {
-                openRealms.put(id, new AtomicInteger(1));
-            } else {
-                counter.incrementAndGet();
-            }
-
-        }
         Map<Integer, Realm> realms = realmsCache.get();
         Realm realm = realms.get(absolutePath.hashCode());
-
         if (realm != null) {
             if (!Arrays.equals(realm.key, key)) {
                 throw new IllegalStateException(DIFFERENT_KEY_MESSAGE);
@@ -524,6 +516,17 @@ public final class Realm implements Closeable {
         realmsCache.set(realms);
         localRefCount.put(id, references + 1);
 
+        // Increment global reference counter
+        if (references == 0) {
+            AtomicInteger counter = openRealms.get(id);
+            if (counter == null) {
+                openRealms.put(id, new AtomicInteger(1));
+            } else {
+                counter.incrementAndGet();
+            }
+        }
+
+        // Initialize Realm schema if needed
         if (validateSchema) {
             try {
                 initializeRealm(realm);
@@ -630,34 +633,22 @@ public final class Realm implements Closeable {
                 }
 
                 // Populate the columnIndices table
-                Method fieldNamesMethod;
+                Method columnIndiciesMethod;
                 try {
-                    fieldNamesMethod = generatedClass.getMethod("getFieldNames");
+                    columnIndiciesMethod = generatedClass.getMethod("getColumnIndices");
                 } catch (NoSuchMethodException e) {
-                    throw new RealmException("Could not find the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
+                    throw new RealmException("Could not find the getColumnIndices method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
                 }
-                List<String> fieldNames;
+                Map<String,Long> indices;
                 try {
                     //noinspection unchecked
-                    fieldNames = (List<String>) fieldNamesMethod.invoke(null);
+                    indices = (Map<String,Long>) columnIndiciesMethod.invoke(null);
                 } catch (IllegalAccessException e) {
-                    throw new RealmException("Could not execute the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
+                    throw new RealmException("Could not execute the getColumnIndices method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
                 } catch (InvocationTargetException e) {
-                    throw new RealmException("An exception was thrown in the getFieldNames method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
+                    throw new RealmException("An exception was thrown in the getColumnIndices method in the generated " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
                 }
-                Table table = realm.transaction.getTable(TABLE_PREFIX + modelClassName);
-                for (String fieldName : fieldNames) {
-                    long columnIndex = table.getColumnIndex(fieldName);
-                    if (columnIndex == -1) {
-                        throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type '" + modelClassName + "'");
-                    }
-                    Map<String, Long> innerMap = columnIndices.get(modelClassName);
-                    if (innerMap == null) {
-                        innerMap = new HashMap<String, Long>();
-                    }
-                    innerMap.put(fieldName, columnIndex);
-                    columnIndices.put(modelClassName, innerMap);
-                }
+                columnIndices.addClass((Class<? extends RealmObject>) generatedClass.getSuperclass(), indices);
             }
         } finally {
             if (commitNeeded) {
@@ -1057,8 +1048,29 @@ public final class Realm implements Closeable {
      * @throws RealmException An object could not be created
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
-        Table table;
-        table = tables.get(clazz);
+        Table table = initTable(clazz);
+        long rowIndex = table.addEmptyRow();
+        return get(clazz, rowIndex);
+    }
+
+    /**
+     * Creates a new object inside the Realm with the Primary key value initially set.
+     * If the value violates the primary key constraint, no object will be added and a
+     * {@link RealmException} will be thrown.
+     *
+     * @param clazz The Class of the object to create
+     * @param primaryKeyValue Value for the primary key field.
+     * @return The new object
+     * @throws {@link RealmException} if object could not be created.
+     */
+    <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
+        Table table = initTable(clazz);
+        long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
+        return get(clazz, rowIndex);
+    }
+
+    private <E extends RealmObject> Table initTable(Class<E> clazz) {
+        Table table = tables.get(clazz);
         if (table == null) {
             Class<?> generatedClass = getProxyClass(clazz);
 
@@ -1083,8 +1095,7 @@ public final class Realm implements Closeable {
             }
         }
 
-        long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        return table;
     }
 
     private Class<?> getProxyClass(Class<?> clazz) {
@@ -1298,8 +1309,8 @@ public final class Realm implements Closeable {
         checkIfValid();
         Table table = getTable(clazz);
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-        Long columnIndex = columnIndices.get(getClassSimpleName(clazz)).get(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
+        long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
+        if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
 
