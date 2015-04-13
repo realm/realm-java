@@ -170,7 +170,7 @@ def examples = [
     encryptionExample: "RealmEncryptionExample"
 ]
 
-def abi = [ 'armeabi', 'armeabi-v7a', 'mips', 'x86' ]
+def abi = [ 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips', 'x86' ]
 
 //for Ant filter
 import org.apache.tools.ant.filters.ReplaceTokens
