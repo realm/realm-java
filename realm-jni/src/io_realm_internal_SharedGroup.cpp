@@ -111,11 +111,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
         file_name = StringData(file_name_tmp);
         KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-        Replication* repl = makeWriteLogCollector(file_name, false, key.data()).get();
+        std::unique_ptr<Replication> repl = makeWriteLogCollector(file_name, false, key.data());
 #else
-        Replication* repl = makeWriteLogCollector(file_name).get();
+        std::unique_ptr<Replication> repl = makeWriteLogCollector(file_name);
 #endif
-        return reinterpret_cast<jlong>(repl);
+        return reinterpret_cast<jlong>(repl.release());
     }
     CATCH_FILE(file_name)
     CATCH_STD()

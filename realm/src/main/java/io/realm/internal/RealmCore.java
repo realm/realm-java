@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Utility methods for TightDB.
  */
-public class TightDB {
+public class RealmCore {
 
 ///*
     private static final String FILE_SEP = File.separator;
