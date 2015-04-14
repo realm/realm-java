@@ -200,7 +200,7 @@ public class AllTypesRealmProxy extends AllTypes
         if(transaction.hasTable("class_AllTypes")) {
             Table table = transaction.getTable("class_AllTypes");
             if(table.getColumnCount() != 9) {
-                throw new RealmMigrationNeededException("Column count does not match");
+                throw new RealmMigrationNeededException("Field count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for(long i = 0; i < 9; i++) {

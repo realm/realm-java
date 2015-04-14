@@ -79,7 +79,7 @@ public class SimpleRealmProxy extends Simple
         if(transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
             if(table.getColumnCount() != 2) {
-                throw new RealmMigrationNeededException("Column count does not match");
+                throw new RealmMigrationNeededException("Field count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for(long i = 0; i < 2; i++) {
