@@ -1186,10 +1186,6 @@ public final class Realm implements Closeable {
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
-        if (isObjectInRealm(object)) {
-            return object;
-        }
-
         return copyOrUpdate(object, false);
     }
 
@@ -1206,10 +1202,6 @@ public final class Realm implements Closeable {
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object);
-        if (isObjectInRealm(object)) {
-            return object;
-        }
-
         return copyOrUpdate(object, true);
     }
 
@@ -1620,10 +1612,6 @@ public final class Realm implements Closeable {
         } catch (InvocationTargetException e) {
             throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + proxyClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
         }
-    }
-
-    private <E extends RealmObject> boolean isObjectInRealm(E object) {
-        return (object.realm != null && object.realm.id == this.id);
     }
 
     private <E extends RealmObject> void checkNotNullObject(E object) {
