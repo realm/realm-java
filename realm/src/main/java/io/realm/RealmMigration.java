@@ -61,6 +61,6 @@ public interface RealmMigration {
      * @param oldVersion The version of the Realm at the start of the migration.
      * @param newVersion The version of the Realm after executing the migration.
      */
-    public void migrate(RealmSchema realm, long oldVersion, long newVersion);
+    public void migrate(RealmSchema schema, long oldVersion, long newVersion);
 }
 

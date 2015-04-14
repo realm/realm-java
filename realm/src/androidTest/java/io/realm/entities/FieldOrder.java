@@ -17,35 +17,25 @@
 package io.realm.entities;
 
 import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 
-public class PrimaryKeyAsString extends RealmObject {
+public class FieldOrder extends RealmObject {
 
-    @PrimaryKey
-    private String name;
+    private boolean field1;
+    private int field2;
 
-    private long id;
-
-    public PrimaryKeyAsString() {
+    public boolean isField1() {
+        return field1;
     }
 
-    public PrimaryKeyAsString(String name) {
-        this.name = name;
+    public void setField1(boolean field1) {
+        this.field1 = field1;
     }
 
-    public String getName() {
-        return name;
+    public int getField2() {
+        return field2;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+    public void setField2(int field2) {
+        this.field2 = field2;
     }
 }

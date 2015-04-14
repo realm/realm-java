@@ -36,7 +36,24 @@ public class JNITransactions extends AndroidTestCase {
         }
     }
 
-    
+    private Table getTableWithStringPrimaryKey() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
+        WriteTransaction trans = db.beginWrite();
+        Table t = trans.getTable("TestTable");
+        t.addColumn(ColumnType.STRING, "colName");
+        t.setPrimaryKey("colName");
+        return t;
+    }
+
+    private Table getTableWithIntegerPrimaryKey() {
+        SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
+        WriteTransaction trans = db.beginWrite();
+        Table t = trans.getTable("TestTable");
+        t.addColumn(ColumnType.INTEGER, "colName");
+        t.setPrimaryKey("colName");
+        return t;
+    }
+
     private void createDBFileName(){
         testFile = new File(
                 this.getContext().getFilesDir(),
@@ -319,24 +336,44 @@ public class JNITransactions extends AndroidTestCase {
         fail("Primary key not enforced.");
     }
 
-
-
-    /*  ARM Only works for Java 1.7 - NOT available in Android.
-
-    @Test(enabled=true)
-    public void mustReadARM() {
-        writeOneTransaction(1);
-
-        // Read from table
-        // System.out.println("mustReadARM.");
-        try (ReadTransaction t = new ReadTransaction(db)) {
-            EmployeeTable employees = new EmployeeTable(t);
-            assertEquals(true, employees.isValid());
-            assertEquals(1, employees.size());
-        }
-        catch (Throwable e) {
-
+    public void testAddEmptyRowWithPrimaryKeyWrongTypeStringThrows() {
+        Table t = getTableWithStringPrimaryKey();
+        try {
+            t.addEmptyRowWithPrimaryKey(42);
+            fail();
+        } catch (IllegalArgumentException expected) {
         }
     }
-     */
+
+    public void testAddEmptyRowWithPrimaryKeyNullStringThrows() {
+        Table t = getTableWithStringPrimaryKey();
+        try {
+            t.addEmptyRowWithPrimaryKey(null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testAddEmptyRowWithPrimaryKeyWrongTypeIntegerThrows() {
+        Table t = getTableWithIntegerPrimaryKey();
+        try {
+            t.addEmptyRowWithPrimaryKey("Foo");
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testAddEmptyRowWithPrimaryKeyString() {
+        Table t = getTableWithStringPrimaryKey();
+        long rowIndex = t.addEmptyRowWithPrimaryKey("Foo");
+        assertEquals(1, t.size());
+        assertEquals("Foo", t.getRow(rowIndex).getString(0));
+    }
+
+    public void testAddEmptyRowWithPrimaryKeyLong() {
+        Table t = getTableWithIntegerPrimaryKey();
+        long rowIndex = t.addEmptyRowWithPrimaryKey(42);
+        assertEquals(1, t.size());
+        assertEquals(42, t.getRow(rowIndex).getLong(0));
+    }
 }
