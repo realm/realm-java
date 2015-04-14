@@ -18,11 +18,11 @@
 #define REALM_COLUMN_TYPE_UTIL_H
 
 #include <jni.h>
-#include <tightdb.hpp>
+#include <realm.hpp>
 
 #ifdef __cplusplus
 
-using tightdb::DataType;
+using realm::DataType;
 
 extern "C" {
 

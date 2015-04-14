@@ -19,7 +19,7 @@
 
 #include <cstdlib> // size_t
 
-/// This function requires that TIGHTDB_ENABLE_MEM_USAGE is specified
+/// This function requires that REALM_ENABLE_MEM_USAGE is specified
 /// during building. Otherwise it always returns zero.
 size_t GetMemUsage();
 
