@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include <tightdb/util/safe_int_ops.hpp>
+#include <realm/util/safe_int_ops.hpp>
 
 #include "util.hpp"
 #include "io_realm_internal_Group.h"
 
-using namespace tightdb;
+using namespace realm;
 using std::string;
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__(
@@ -53,7 +53,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_createNative__Ljava_lang_St
         }
 
         KeyBuffer key(env, keyArray);
-#ifdef TIGHTDB_ENABLE_ENCRYPTION
+#ifdef REALM_ENABLE_ENCRYPTION
         pGroup = new Group(file_name, key.data(), openmode);
 #else
         pGroup = new Group(file_name, NULL, openmode);
@@ -179,7 +179,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeWriteToFile(
     try {
         JStringAccessor file_name_tmp(env, jFileName); // throws
         file_name = StringData(file_name_tmp);
-#ifdef TIGHTDB_ENABLE_ENCRYPTION
+#ifdef REALM_ENABLE_ENCRYPTION
         G(nativeGroupPtr)->write(file_name, key.data());
 #else
         G(nativeGroupPtr)->write(file_name);

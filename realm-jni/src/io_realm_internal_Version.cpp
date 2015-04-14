@@ -19,16 +19,16 @@
 
 #include "util.hpp"
 #include "io_realm_internal_Version.h"
-#include <tightdb/version.hpp>
+#include <realm/version.hpp>
 
-static int tightdb_jni_version = 23;
+static int realm_jni_version = 23;
 
 
-using namespace tightdb;
+using namespace realm;
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_Version_nativeGetAPIVersion(JNIEnv*, jclass)
 {
-    return tightdb_jni_version;
+    return realm_jni_version;
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Version_nativeGetVersion(JNIEnv *env, jclass)

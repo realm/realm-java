@@ -18,7 +18,7 @@
 #include "mixedutil.hpp"
 #include "columntypeutil.hpp"
 
-using namespace tightdb;
+using namespace realm;
 
 jclass GetClassMixed(JNIEnv* env)
 {

@@ -1,7 +1,7 @@
 ENABLE_INSTALL_DEBUG_LIBS = 1
 
 # Construct fat binaries on Darwin when using Clang
-ifneq ($(TIGHTDB_ENABLE_FAT_BINARIES),)
+ifneq ($(REALM_ENABLE_FAT_BINARIES),)
   ifeq ($(OS),Darwin)
     ifeq ($(COMPILER_IS),clang)
       CFLAGS_ARCH += -arch i386 -arch x86_64
@@ -13,7 +13,7 @@ ifeq ($(OS),Darwin)
   CFLAGS_ARCH += -mmacosx-version-min=10.8 -stdlib=libc++
 endif
 
-# FIXME: '-fno-elide-constructors' currently causes TightDB to fail
+# FIXME: '-fno-elide-constructors' currently causes Realm to fail
 #CFLAGS_DEBUG += -fno-elide-constructors
 CFLAGS_PTHREADS += -pthread
 CFLAGS_GENERAL += -Wextra -ansi -pedantic -Wno-long-long
@@ -37,11 +37,11 @@ endif
   #jnidir = $(JNI_INSTALL_DIR)
 #endif
 
-ifeq ($(TIGHTDB_ANDROID),)
-  TIGHTDB_LDFLAGS += -llog
+ifeq ($(REALM_ANDROID),)
+  REALM_LDFLAGS += -llog
   CFLAGS_INCLUDE += $(JAVA_CFLAGS)
-  ifneq ($(TIGHTDB_ENABLE_MEM_USAGE),)
-    PROJECT_CFLAGS += -DTIGHTDB_ENABLE_MEM_USAGE
+  ifneq ($(REALM_ENABLE_MEM_USAGE),)
+    PROJECT_CFLAGS += -DREALM_ENABLE_MEM_USAGE
     ifeq ($(shell pkg-config libprocps --exists 2>/dev/null && echo yes),yes)
       PROCPS_CFLAGS  := $(shell pkg-config libprocps --cflags)
       PROCPS_LDFLAGS := $(shell pkg-config libprocps --libs)
@@ -56,9 +56,9 @@ else
   CFLAGS_OPTIM = -Os -DNDEBUG
 endif
 
-PROJECT_CFLAGS_OPTIM  += $(TIGHTDB_CFLAGS)
-PROJECT_CFLAGS_DEBUG  += $(TIGHTDB_CFLAGS_DBG)
-PROJECT_CFLAGS_COVER  += $(TIGHTDB_CFLAGS_DBG)
-PROJECT_LDFLAGS_OPTIM += $(TIGHTDB_LDFLAGS)
-PROJECT_LDFLAGS_DEBUG += $(TIGHTDB_LDFLAGS_DBG)
-PROJECT_LDFLAGS_COVER += $(TIGHTDB_LDFLAGS_DBG)
+PROJECT_CFLAGS_OPTIM  += $(REALM_CFLAGS)
+PROJECT_CFLAGS_DEBUG  += $(REALM_CFLAGS_DBG)
+PROJECT_CFLAGS_COVER  += $(REALM_CFLAGS_DBG)
+PROJECT_LDFLAGS_OPTIM += $(REALM_LDFLAGS)
+PROJECT_LDFLAGS_DEBUG += $(REALM_LDFLAGS_DBG)
+PROJECT_LDFLAGS_COVER += $(REALM_LDFLAGS_DBG)
