@@ -94,29 +94,29 @@ public class BooleansRealmProxy extends Booleans
         if(transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
             if(table.getColumnCount() != 3) {
-                throw new IllegalStateException("Column count does not match");
+                throw new RealmMigrationNeededException("Column count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for(long i = 0; i < 3; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("done")) {
-                throw new IllegalStateException("Missing column 'done'");
+                throw new RealmMigrationNeededException("Missing field 'done'");
             }
             if (columnTypes.get("done") != ColumnType.BOOLEAN) {
-                throw new IllegalStateException("Invalid type 'boolean' for column 'done'");
+                throw new RealmMigrationNeededException("Invalid type 'boolean' for field 'done'");
             }
             if (!columnTypes.containsKey("isReady")) {
-                throw new IllegalStateException("Missing column 'isReady'");
+                throw new RealmMigrationNeededException("Missing field 'isReady'");
             }
             if (columnTypes.get("isReady") != ColumnType.BOOLEAN) {
-                throw new IllegalStateException("Invalid type 'boolean' for column 'isReady'");
+                throw new RealmMigrationNeededException("Invalid type 'boolean' for field 'isReady'");
             }
             if (!columnTypes.containsKey("mCompleted")) {
-                throw new IllegalStateException("Missing column 'mCompleted'");
+                throw new RealmMigrationNeededException("Missing field 'mCompleted'");
             }
             if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
-                throw new IllegalStateException("Invalid type 'boolean' for column 'mCompleted'");
+                throw new RealmMigrationNeededException("Invalid type 'boolean' for field 'mCompleted'");
             }
 
             columnIndices = new HashMap<String, Long>();

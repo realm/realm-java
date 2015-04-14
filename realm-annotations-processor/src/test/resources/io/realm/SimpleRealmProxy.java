@@ -79,23 +79,23 @@ public class SimpleRealmProxy extends Simple
         if(transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
             if(table.getColumnCount() != 2) {
-                throw new IllegalStateException("Column count does not match");
+                throw new RealmMigrationNeededException("Column count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for(long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("name")) {
-                throw new IllegalStateException("Missing column 'name'");
+                throw new RealmMigrationNeededException("Missing field 'name'");
             }
             if (columnTypes.get("name") != ColumnType.STRING) {
-                throw new IllegalStateException("Invalid type 'String' for column 'name'");
+                throw new RealmMigrationNeededException("Invalid type 'String' for field 'name'");
             }
             if (!columnTypes.containsKey("age")) {
-                throw new IllegalStateException("Missing column 'age'");
+                throw new RealmMigrationNeededException("Missing field 'age'");
             }
             if (columnTypes.get("age") != ColumnType.INTEGER) {
-                throw new IllegalStateException("Invalid type 'int' for column 'age'");
+                throw new RealmMigrationNeededException("Invalid type 'int' for field 'age'");
             }
 
             columnIndices = new HashMap<String, Long>();
