@@ -9,7 +9,7 @@ public class JNIBinaryTypeTest extends TestCase {
 
     @Override
     public void setUp() {
-        TightDB.loadLibrary();
+        RealmCore.loadLibrary();
         //util.setDebugLevel(0); //Set to 1 to see more JNI debug messages
 
         table = new Table();
