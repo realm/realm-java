@@ -210,6 +210,12 @@ public class AllTypesRealmProxy extends AllTypes {
             if (columnTypes.get("columnString") != ColumnType.STRING) {
                 throw new IllegalStateException("Invalid type 'String' for column 'columnString'");
             }
+            if (table.getPrimaryKey() != table.getColumnIndex("columnString")) {
+                throw new IllegalStateException("Primary key not defined for field 'columnString'");
+            }
+            if (!table.hasIndex(table.getColumnIndex("columnString"))) {
+                throw new IllegalStateException("Index not defined for field 'columnString'");
+            }
             if (!columnTypes.containsKey("columnLong")) {
                 throw new IllegalStateException("Missing column 'columnLong'");
             }
