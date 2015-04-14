@@ -408,6 +408,21 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
+
+                // Validate @PrimaryKey
+                if (field.equals(metadata.getPrimaryKey())) {
+                    writer.beginControlFlow("if (table.getPrimaryKey() != table.getColumnIndex(\"%s\"))", fieldName);
+                    writer.emitStatement("throw new IllegalStateException(\"Primary key not defined for field '%s'\")", fieldName);
+                    writer.endControlFlow();
+                }
+
+                // Validate @Index
+                if (metadata.getIndexedFields().contains(field)) {
+                    writer.beginControlFlow("if (!table.hasIndex(table.getColumnIndex(\"%s\")))", fieldName);
+                    writer.emitStatement("throw new IllegalStateException(\"Index not defined for field '%s'\")", fieldName);
+                    writer.endControlFlow();
+                }
+
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) { // Links
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
                 writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
@@ -490,6 +505,12 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "Realm", "realm", className, "object", "boolean", "update", "Map<RealmObject,RealmObject>", "cache" // Argument type & argument name
         );
+
+        // If object is already in the Realm there is nothing to update
+        writer
+            .beginControlFlow("if (object.realm != null && object.realm.getId() == realm.getId())")
+                .emitStatement("return object")
+            .endControlFlow();
 
         if (!metadata.hasPrimaryKey()) {
             writer.emitStatement("return copy(realm, object, update, cache)");
