@@ -28,7 +28,7 @@ public class RealmJSonImplGenerator {
 
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String CLASS_NAME = "RealmJsonImpl";
-    private static final String EXCEPTION_MSG = "\"Could not find the generated proxy class for \" + classQualifiedName";
+    private static final String EXCEPTION_MSG = "\"Could not find the generated proxy class for \"";
 
     public RealmJSonImplGenerator(ProcessingEnvironment processingEnv, Set<ClassMetaData> classesToValidate) {
         this.processingEnvironment = processingEnv;
@@ -109,7 +109,7 @@ public class RealmJSonImplGenerator {
     // Consider switching to HashMap or similar.
     private void emitProxySwitch(String proxyStatement, JavaWriter writer) throws IOException {
         if (simpleModelClasses.size() == 0) {
-            writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
+            writer.emitStatement("throw new RealmException(%s + clazz)", EXCEPTION_MSG);
         } else {
             writer.beginControlFlow("if (clazz.equals(%s.class))", simpleModelClasses.get(0));
             writer.emitStatement(proxyStatement, proxyClasses.get(0));
@@ -118,7 +118,7 @@ public class RealmJSonImplGenerator {
                 writer.emitStatement(proxyStatement, proxyClasses.get(i));
             }
             writer.nextControlFlow("else");
-            writer.emitStatement("throw new RealmException(\"Boom\")", EXCEPTION_MSG);
+            writer.emitStatement("throw new RealmException(%s + clazz)", EXCEPTION_MSG);
             writer.endControlFlow();
         }
     }
