@@ -39,7 +39,7 @@ public class ModuleMetaData {
     private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>();
-    private boolean shouldCreateDefaultModule = false;
+    private boolean shouldCreateDefaultModule;
 
     public ModuleMetaData(RoundEnvironment env, Set<ClassMetaData> availableClasses) {
         this.env = env;
@@ -80,7 +80,7 @@ public class ModuleMetaData {
                     ClassMetaData metadata = classMetaData.get(clazz.getName());
                     if (metadata == null) {
                         Utils.error(Utils.stripPackage(qualifiedName) + " could not be added to the module. It is not " +
-                                "possible to add classes are part of another library.");
+                                "possible to add classes which are part of another library.");
                         return false;
                     }
                     classes.add(metadata);

@@ -26,19 +26,17 @@ import java.lang.annotation.Target;
  * As a default a Realm can store all RealmObjects in a project. However, if you want to restrict a Realm to contain only
  * certain RealmObjects or want to share RealmObjects between a library project and a app project you will have to do so
  * using a Realm module.
- *
+ * <p>
  * A Realm module is a collection of RealmObjects that can be combined with other modules to create the object schema
  * for an Realm. This makes it easier to control versioning and migration of those Realms.
- *
+ * <p>
  * A Realm module can either be a library module or an app module. This distinction is made by setting
  * {@code library = true}. Creating a library module will prevent Realm from creating the default Realm module, which
  * would otherwise conflict with same class being created by app projects.
- *
+ * <p>
  * This means that library projects are <bold>required</bold> to use library modules to allow the library to work
  * seemlessly with app code. App developers can then reuse the modules exposed by the library if they want to use RealmObjects
  * from that library.
- *
- * TODO Add example once RealmConfiguration gets merged.
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
