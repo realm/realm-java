@@ -171,7 +171,7 @@ public class RealmProxyClassGenerator {
             } else if (typeUtils.isAssignable(field.asType(), realmList)) { // LinkLists
                 fieldTypeName = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
             }
-            if (fieldTypeName != "" && !imports.contains(fieldTypeName)) {
+            if (!fieldTypeName.isEmpty() && !imports.contains(fieldTypeName)) {
                 imports.add(fieldTypeName);
             }
         }
