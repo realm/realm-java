@@ -1,5 +1,8 @@
 0.81
+ * The ARM64 binary is now properly a part of the Eclipse distribution package.
+ * A RealmMigrationExceptionNeeded is now properly thrown if @Index and @PrimaryKey are not set correctly during a migration.
  * Fixed bug causing Realms to be cached even though they failed to open correctly.
+ * Fixed bug causing queries to fail if multiple Realms has different field ordering.
  * Fixed bug when using Realm.copyToRealm() with a primary key could crash if default value was already used in the Realm.
 
 0.80

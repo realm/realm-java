@@ -168,8 +168,7 @@ public final class Realm implements Closeable {
 
     private static final long UNVERSIONED = -1;
 
-    // Package protected to be reachable by proxy classes
-    static final ColumnIndices columnIndices = new ColumnIndices();
+    final ColumnIndices columnIndices = new ColumnIndices();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -554,7 +553,7 @@ public final class Realm implements Closeable {
                     proxyMediator.createTable(modelClass, realm.transaction);
                 }
                 proxyMediator.validateTable(modelClass, realm.transaction);
-                columnIndices.addClass(modelClass, proxyMediator.getColumnIndices(modelClass));
+                realm.columnIndices.addClass(modelClass, proxyMediator.getColumnIndices(modelClass));
             }
         } finally {
             if (commitNeeded) {
@@ -1589,7 +1588,7 @@ public final class Realm implements Closeable {
     static void setSchema(Class<? extends RealmObject>... schemaClass) {
         if (schemaClass != null) {
             // Filter default schema
-            proxyMediator = new FilterableMediator(proxyMediator, Arrays.asList(schemaClass));
+            proxyMediator = new FilterableMediator(getDefaultMediator(), Arrays.asList(schemaClass));
         } else if (proxyMediator instanceof FilterableMediator) {
             // else reset filter if needed
             proxyMediator = ((FilterableMediator) proxyMediator).getOriginalMediator();

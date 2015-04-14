@@ -38,8 +38,7 @@ import io.realm.annotations.RealmClass;
  *
  * DESIGN GOALS
  *
- * While the above process might seem overly complicated it is necessary if we want to support the following design
- * goals:
+ * The processor should support the following design goals:
  *
  * - Minimize reflection.
  * - As much as possible can be obfuscated.
@@ -51,7 +50,7 @@ import io.realm.annotations.RealmClass;
  * SUMMARY
  *
  * 1 ) Create proxy classes for all classes marked with @RealmClass. They are named <modelClass>RealmProxy.java
- * 2 ) Create a DefaultRealmModule if needed.
+ * 2 ) Create a DefaultRealmModule containing all model classes (if needed).
  * 3 ) Create a RealmProxyMediator class for all classes marked with @RealmModule. They are named
  *     <moduleName>Mediator.java
  *
@@ -60,32 +59,32 @@ import io.realm.annotations.RealmClass;
  *
  * 1) A RealmObjectProxy object is created for each class annotated with {@link io.realm.annotations.RealmClass}. This
  * proxy extends the original model class and rewires all field access to point to the native Realm memory instead of
- * Java memory. It also adds a lot of static helper methods to the class.
+ * Java memory. It also adds some static helper methods to the class.
  *
  * 2) The annotation processor is either in "library" mode or in "app" mode. This is defined by having a class
- * annotated with @RealmModule(library = true). Modules with library = true and library = false cannot be mixed, and
- * will throw an exception. If no library modules are defined, we will create a DefaultRealmModule containing all known
- * RealmObjects and with the @RealmModule annotation. Realm automatically knows about this module, while still allowing
- * users to create different modules in the same app code.
+ * annotated with @RealmModule(library = true). It is not allowed to have both a class with library = true and
+ * library = false in the same IntelliJ module and it will cause the annotation processor to throw an exception. If no
+ * library modules are defined, we will create a DefaultRealmModule containing all known RealmObjects and with the
+ * @RealmModule annotation. Realm automatically knows about this module, but it is still possible for users to create
+ * their own modules with a subset of model classes.
  *
  * 3) For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
  * class has an interface that matches the static helper methods for the proxy classes. All access to these static
  * helper methods should be done through this Mediator. Java 8 has support for interface static methods, but we can't
  * use that yet :(
  *
- * This allows ProGuard to obfuscate all model classes as all access to the methods happen through the Mediator, and
- * the only requirement is then that the RealmModule and Mediator classes cannot be obfuscated.
+ * This allows ProGuard to obfuscate all model and proxy classes as all access to the static methods now happens through
+ * the Mediator, and the only requirement is now that only RealmModule and Mediator class names cannot be obfuscated.
  *
  *
  * CREATING A REALM
  *
  * This means the workflow when instantiating a Realm on runtime is the following:
  *
- * 1) Create a Realm.
- *
- * 2) It is assigned one or more modules. If no module is assigned, the default module is used.
- *
- * 4) Each time a static helper method is needed, the Realm can now delegate these method calls to the appropriate
+ * 1) Open a Realm.
+ * 2) Assign one or more modules (that are allowed to overlap). If no module is assigned, the default module is used.
+ * 3) The Realm schema is now defined as all model classes known by these modules.
+ * 4) Each time a static helper method is needed, Realm can now delegate these method calls to the appropriate
  *    Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.
  */
 @SupportedAnnotationTypes({

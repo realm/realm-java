@@ -387,7 +387,7 @@ public class RealmProxyClassGenerator {
 
         // verify number of columns
         writer.beginControlFlow("if(table.getColumnCount() != " + metadata.getFields().size() + ")");
-        writer.emitStatement("throw new IllegalStateException(\"Column count does not match\")");
+        writer.emitStatement("throw new RealmMigrationNeededException(\"Column count does not match\")");
         writer.endControlFlow();
 
         // create type dictionary for lookup
@@ -405,49 +405,52 @@ public class RealmProxyClassGenerator {
             if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 // make sure types align
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
+                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)", fieldName, JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
-                writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(\"Invalid type '%s' for field '%s'\")",
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
+
+                // Validate @PrimaryKey
+                if (field.equals(metadata.getPrimaryKey())) {
+                    writer.beginControlFlow("if (table.getPrimaryKey() != table.getColumnIndex(\"%s\"))", fieldName);
+                    writer.emitStatement("throw new RealmMigrationNeededException(\"Primary key not defined for field '%s'\")", fieldName);
+                    writer.endControlFlow();
+                }
+
+                // Validate @Index
+                if (metadata.getIndexedFields().contains(field)) {
+                    writer.beginControlFlow("if (!table.hasIndex(table.getColumnIndex(\"%s\")))", fieldName);
+                    writer.emitStatement("throw new RealmMigrationNeededException(\"Index not defined for field '%s'\")", fieldName);
+                    writer.endControlFlow();
+                }
+
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) { // Links
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
+                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if (columnTypes.get(\"%s\") != ColumnType.LINK)", fieldName);
-                writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(\"Invalid type '%s' for field '%s'\")",
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
-                writer.emitStatement("throw new IllegalStateException(\"Missing table '%s%s' for column '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing class '%s%s' for field '%s'\")",
                         Constants.TABLE_PREFIX, fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
-                // TODO: Replace with a proper comparison
-//                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, fieldTypeName);
-//                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
-//                writer.emitStatement("throw new IllegalStateException(\"Mismatching link tables for column '%s'\")",
-//                        fieldName);
-//                writer.endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) { // Link Lists
                 String genericType = Utils.getGenericType(field);
                 writer.beginControlFlow("if(!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
+                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if(columnTypes.get(\"%s\") != ColumnType.LINK_LIST)", fieldName);
-                writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(\"Invalid type '%s' for field '%s'\")",
                         genericType, fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericType);
-                writer.emitStatement("throw new IllegalStateException(\"Missing table '%s%s' for column '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing class '%s%s' for field '%s'\")",
                         Constants.TABLE_PREFIX, genericType, fieldName);
                 writer.endControlFlow();
-                // TODO: Replace with a proper comparison
-//                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, genericType);
-//                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
-//                writer.emitStatement("throw new IllegalStateException(\"Mismatching link list tables for column '%s'\")",
-//                        fieldName);
-//                writer.endControlFlow();
             }
         }
 
