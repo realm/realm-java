@@ -29,7 +29,7 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Utility methods for TightDB.
+ * Utility methods for Realm Core.
  */
 public class RealmCore {
 
@@ -47,7 +47,7 @@ public class RealmCore {
     {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("win") >= 0)
-            return "realm_jni32.dll or tightdb_jni64.dll";
+            return "realm_jni32.dll or realm_jni64.dll";
         if (os.indexOf("mac") >= 0)
             return "librealm-jni.jnilib";
         if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 || os.indexOf("sunos") >= 0)
@@ -117,7 +117,7 @@ public class RealmCore {
         });
     }
 
-    private static void initRealm() {
+    private static void init() {
         // Guarantee gc is done on JVM exit to clean up any native resources
         gcOnExit();
     }
@@ -127,7 +127,7 @@ public class RealmCore {
             // only load library once
             return;
 
-        initRealm();
+        init();
 
         String jnilib;
         if (osIsWindows()) {
