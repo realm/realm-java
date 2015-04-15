@@ -938,10 +938,9 @@ public class RealmTest extends AndroidTestCase {
     public void testCompactRealmFileThrowsIfOpen() throws IOException {
         try {
             Realm.compactRealmFile(getContext());
+            fail();
         } catch (IllegalStateException expected) {
-            return;
         }
-        fail();
     }
 
     public void testCompactEncryptedEmptyRealmFile() {

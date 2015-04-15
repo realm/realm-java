@@ -45,7 +45,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -1753,9 +1752,9 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Compact a Realm file. A realm file usually contain free/unused space.
+     * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
+     * Objects within the Realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
      * The file system should have free space for at least a copy of the Realm file.<br>
@@ -1773,7 +1772,7 @@ public final class Realm implements Closeable {
     /**
      * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
+     * Objects within the Realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
      * The file system should have free space for at least a copy of the Realm file.<br>
@@ -1792,7 +1791,7 @@ public final class Realm implements Closeable {
     /**
      * Returns the absolute path to where this Realm is persisted on disk.
      *
-     * @return The absolute path to the realm file.
+     * @return The absolute path to the Realm file.
      */
     public String getPath() {
         return path;
