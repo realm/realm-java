@@ -331,7 +331,7 @@ public class RealmJsonTest extends AndroidTestCase {
    public void testCreateAllFromJsonStream_null() throws IOException {
         testRealm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
-    }
+   }
 
     public void testCreateObjectFromJsonStream_allSimpleTypes() throws IOException {
         InputStream in = loadJsonFromAssets("all_simple_types.json");

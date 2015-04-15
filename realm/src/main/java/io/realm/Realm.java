@@ -26,6 +26,7 @@ import android.os.Message;
 import android.util.JsonReader;
 import android.util.Log;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -812,7 +813,7 @@ public final class Realm implements Closeable {
         // case that value might be the last property :(
         Scanner scanner = null;
         try {
-            scanner = new Scanner(in, "UTF-8").useDelimiter("\\A");
+            scanner = getFullStringScanner(in);
             JSONArray json = new JSONArray(scanner.next());
             for (int i = 0; i < json.length(); i++) {
                 realmJson.createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
@@ -975,7 +976,7 @@ public final class Realm implements Closeable {
         // case that value might be the last property :(
         Scanner scanner = null;
         try {
-            scanner = new Scanner(in, "UTF-8").useDelimiter("\\A");
+            scanner = getFullStringScanner(in);
             JSONObject json = new JSONObject(scanner.next());
             return realmJson.createOrUpdateUsingJsonObject(clazz, this, json, true);
         } catch (JSONException e) {
@@ -985,6 +986,10 @@ public final class Realm implements Closeable {
                 scanner.close();
             }
         }
+    }
+
+    private Scanner getFullStringScanner(InputStream in) {
+        return new Scanner(in, "UTF-8").useDelimiter("\\A");
     }
 
     /**

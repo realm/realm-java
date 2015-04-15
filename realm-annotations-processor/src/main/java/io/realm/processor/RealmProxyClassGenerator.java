@@ -786,7 +786,7 @@ public class RealmProxyClassGenerator {
                 .beginControlFlow("if (update)")
                     .emitStatement("Table table = realm.getTable(%s.class)", className)
                     .emitStatement("long pkColumnIndex = table.getPrimaryKey()")
-                   .beginControlFlow("if (!json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
+                    .beginControlFlow("if (!json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
                         .emitStatement("long rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
                                 pkType, pkType, metadata.getPrimaryKey().getSimpleName())
                         .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
