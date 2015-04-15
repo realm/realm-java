@@ -226,7 +226,7 @@ public class SharedGroup implements Closeable {
     /**
      * Compacts a shared group. This will block access to the shared group until done.
      *
-     * @return True if compaction succeded, false otherwise.
+     * @return True if compaction succeeded, false otherwise.
      * @throws RuntimeException if using this within either a read or or write transaction.
      */
     public boolean compact() {

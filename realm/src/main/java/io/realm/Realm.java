@@ -1724,6 +1724,7 @@ public final class Realm implements Closeable {
      * The file must be closed before this method is called.<br>
      * The file system should have free space for at least a copy of the Realm file.<br>
      * The realm file is left untouched if any file operation fails.<br>
+     * Currently it is not possible to compact an encrypted Realm.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
@@ -1733,6 +1734,10 @@ public final class Realm implements Closeable {
      * @throws IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName, byte[] key) {
+        if (key != null) {
+            throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
+        }
+
         File realmFile = new File(context.getFilesDir(), fileName);
         String path = realmFile.getAbsolutePath();
         if (openRealms.get(path.hashCode()).get() > 0) {
