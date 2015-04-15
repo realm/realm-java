@@ -172,7 +172,7 @@ public class RealmProxyClassGenerator {
             } else if (typeUtils.isAssignable(field.asType(), realmList)) { // LinkLists
                 fieldTypeName = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
             }
-            if (fieldTypeName != "" && !imports.contains(fieldTypeName)) {
+            if (!fieldTypeName.isEmpty() && !imports.contains(fieldTypeName)) {
                 imports.add(fieldTypeName);
             }
         }
@@ -503,6 +503,12 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "Realm", "realm", className, "object", "boolean", "update", "Map<RealmObject,RealmObjectProxy>", "cache" // Argument type & argument name
         );
+
+        // If object is already in the Realm there is nothing to update
+        writer
+            .beginControlFlow("if (object.realm != null && object.realm.getId() == realm.getId())")
+                .emitStatement("return object")
+            .endControlFlow();
 
         if (!metadata.hasPrimaryKey()) {
             writer.emitStatement("return copy(realm, object, update, cache)");

@@ -998,10 +998,6 @@ public final class Realm implements Closeable {
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
-        if (isObjectInRealm(object)) {
-            return object;
-        }
-
         return copyOrUpdate(object, false);
     }
 
@@ -1018,10 +1014,6 @@ public final class Realm implements Closeable {
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
-        if (isObjectInRealm(object)) {
-            return object;
-        }
-
         return copyOrUpdate(object, true);
     }
 
@@ -1416,10 +1408,6 @@ public final class Realm implements Closeable {
         return proxyMediator.copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
     }
 
-    private <E extends RealmObject> boolean isObjectInRealm(E object) {
-        return (object.realm != null && object.realm.id == this.id);
-    }
-
     private <E extends RealmObject> void checkNotNullObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
@@ -1465,7 +1453,7 @@ public final class Realm implements Closeable {
 
     /**
      * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
-     * The realm must be unused and closed before calling this method.
+     * The Realm must be unused and closed before calling this method.
      * WARNING: Your Realm must not be open (typically when your app launch).
      *
      * @param context an Android {@link android.content.Context}.
@@ -1478,26 +1466,40 @@ public final class Realm implements Closeable {
 
     /**
      * Delete the Realm file from the filesystem for a custom named Realm.
-     * The realm must be unused and closed before calling this method.
+     * The Realm must be unused and closed before calling this method.
      *
      * @param context  an Android {@link android.content.Context}.
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static synchronized boolean deleteRealmFile(Context context, String fileName) {
+    public static boolean deleteRealmFile(Context context, String fileName) {
+        return deleteRealmFile(new File(context.getFilesDir(), fileName));
+    }
+
+    /**
+     * Delete the Realm file from the filesystem for a custom named Realm.
+     * The Realm must be unused and closed before calling this method.
+     *
+     * @param realmFile The reference to the Realm file.
+     * @return false if a file could not be deleted. The failing file will be logged.
+     */
+    public static synchronized boolean deleteRealmFile(File realmFile) {
         boolean result = true;
-        File writableFolder = context.getFilesDir();
+        File realmFolder = realmFile.getParentFile();
+        String fileName = realmFile.getName();
 
-        File realmFile = new File(writableFolder, fileName);
         int realmId = realmFile.getAbsolutePath().hashCode();
-
         AtomicInteger counter = openRealms.get(realmId);
         if (counter != null && counter.get() > 0) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
         }
 
-        List<File> filesToDelete = Arrays.asList(realmFile, new File(writableFolder, fileName + ".lock"));
+        List<File> filesToDelete = Arrays.asList(realmFile,
+                new File(realmFolder, fileName + ".lock"),
+                new File(realmFolder, fileName + ".lock_a"),
+                new File(realmFolder, fileName + ".lock_b"),
+                new File(realmFolder, fileName + ".log"));
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();

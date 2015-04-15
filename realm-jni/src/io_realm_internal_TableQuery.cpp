@@ -18,7 +18,7 @@
 #include "io_realm_internal_TableQuery.h"
 #include "tablequery.hpp"
 
-using namespace tightdb;
+using namespace realm;
 
 #if 1
 #define COL_TYPE_VALID(env,ptr,col, type)           TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)

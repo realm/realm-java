@@ -18,9 +18,9 @@
 #define MIXED_UTIL_H
 
 #include <jni.h>
-#include <tightdb.hpp>
+#include <realm.hpp>
 
-using namespace tightdb;
+using namespace realm;
 
 DataType GetMixedObjectType(JNIEnv* env, jobject jMixed);
 jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed);

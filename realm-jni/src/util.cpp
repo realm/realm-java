@@ -17,15 +17,15 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include <tightdb/util/assert.hpp>
+#include <realm/util/assert.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
 
 using namespace std;
-using namespace tightdb;
-using namespace tightdb::util;
+using namespace realm;
+using namespace realm::util;
 
 void ConvertException(JNIEnv* env, const char *file, int line)
 {
@@ -42,7 +42,7 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ThrowException(env, Unspecified, ss.str());
     }
     catch (...) { \
-        TIGHTDB_ASSERT(false);
+        REALM_ASSERT(false);
         ss << "Exception in " << file << " line " << line;
         ThrowException(env, RuntimeError, ss.str());
     }
@@ -182,7 +182,7 @@ void jprintf(JNIEnv *env, const char *format, ...)
     va_end(argptr);
 }
 
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& bin)
+bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& bin)
 {
     const char* data = static_cast<char*>(env->GetDirectBufferAddress(jByteBuffer));
     if (!data) {
@@ -209,8 +209,8 @@ namespace {
 // non-sign value bits, that is, an unsigned 16-bit integer, or any
 // signed or unsigned integer with more than 16 bits.
 struct JcharTraits {
-    static jchar to_int_type(jchar c)  TIGHTDB_NOEXCEPT { return c; }
-    static jchar to_char_type(jchar i) TIGHTDB_NOEXCEPT { return i; }
+    static jchar to_int_type(jchar c)  REALM_NOEXCEPT { return c; }
+    static jchar to_char_type(jchar i) REALM_NOEXCEPT { return i; }
 };
 
 struct JStringCharsAccessor {
@@ -220,8 +220,8 @@ struct JStringCharsAccessor {
     {
         m_env->ReleaseStringChars(m_string, m_data);
     }
-    const jchar* data() const TIGHTDB_NOEXCEPT { return m_data; }
-    size_t size() const TIGHTDB_NOEXCEPT { return m_size; }
+    const jchar* data() const REALM_NOEXCEPT { return m_data; }
+    size_t size() const REALM_NOEXCEPT { return m_size; }
 
 private:
     JNIEnv* const m_env;
@@ -286,7 +286,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
 
     const size_t stack_buf_size = 48;
     jchar stack_buf[stack_buf_size];
-    UniquePtr<jchar[]> dyn_buf;
+    std::unique_ptr<jchar[]> dyn_buf;
 
     const char* in_begin = str.data();
     const char* in_end   = str.data() + str.size();
@@ -319,7 +319,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
         if (retcode != 0) 
             throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
-        TIGHTDB_ASSERT(in_begin == in_end);
+        REALM_ASSERT(in_begin == in_end);
     }
 
   transcode_complete:
@@ -346,7 +346,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
 
     typedef Utf8x16<jchar, JcharTraits> Xcode;
     size_t max_project_size = 48;
-    TIGHTDB_ASSERT(max_project_size <= numeric_limits<size_t>::max()/4);
+    REALM_ASSERT(max_project_size <= numeric_limits<size_t>::max()/4);
     size_t buf_size;
     if (chars.size() <= max_project_size) {
         buf_size = chars.size() * 4;

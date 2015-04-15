@@ -181,6 +181,9 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        if (object.realm != null && object.realm.getId() == realm.getId()) {
+            return object;
+        }
         return copy(realm, object, update, cache);
     }
 
