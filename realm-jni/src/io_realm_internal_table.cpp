@@ -27,7 +27,7 @@
 #include "tablequery.hpp"
 
 using namespace std;
-using namespace tightdb;
+using namespace realm;
 
 // Note: Don't modify spec on a table which has a shared_spec.
 // A spec is shared on subtables that are not in Mixed columns.
@@ -254,7 +254,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddEmptyRow(
     if (!TABLE_VALID(env, pTable))
         return 0;
     if (pTable->get_column_count() < 1){
-        ThrowException(env, IndexOutOfBounds, "Table has no columns");
+        ThrowException(env, IndexOutOfBounds, concat_stringdata("Table has no columns: ", pTable->get_name()));
         return 0;
     }
     try {
@@ -1451,7 +1451,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
         // I
         if (columnName == NULL || env->GetStringLength(columnName) == 0) {
             // No primary key set. Remove any previous set keys
-            if (row_index != tightdb::not_found) {
+            if (row_index != realm::not_found) {
                 pk_table->remove(row_index);
             }
             return jlong(io_realm_internal_Table_NO_PRIMARY_KEY);
@@ -1459,7 +1459,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
         else {
             JStringAccessor columnName2(env, columnName);
             size_t primary_key_column_index = table->get_column_index(columnName2);
-            if (row_index == tightdb::not_found) {
+            if (row_index == realm::not_found) {
                 // No primary key is currently set
                 if (check_valid_primary_key_column(env, table, primary_key_column_index)) {
                     row_index = pk_table->add_empty_row();

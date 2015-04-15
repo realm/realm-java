@@ -18,7 +18,7 @@
 #include "tablequery.hpp"
 #include "util.hpp"
 
-using namespace tightdb;
+using namespace realm;
 
 JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeClose
   (JNIEnv*, jclass, jlong nativeLinkViewPtr)

@@ -21,7 +21,7 @@
 #include "tablequery.hpp"
 #include <ostream>
 
-using namespace tightdb;
+using namespace realm;
 
 // if you disable the validation, please remember to call sync_in_needed() 
 #define VIEW_VALID_AND_IN_SYNC(env, ptr) view_valid_and_in_sync(env, ptr)

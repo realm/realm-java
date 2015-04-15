@@ -43,6 +43,7 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
@@ -167,7 +168,26 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-
+    // TODO Disabled due to the build phone keep crashing on this. It might be related to https://github.com/realm/realm-java/issues/1008
+    public void DISABLEtestGetInstanceClearsCacheWhenFailed() {
+        String REALM_NAME = "invalid_cache.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Random random = new Random();
+        byte[] key = new byte[64];
+        random.nextBytes(key);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key); // Create starting Realm with key1
+        realm.close();
+        random.nextBytes(key);
+        try {
+            Realm.getInstance(getContext(), REALM_NAME, key); // Try to open with key 2
+        } catch (IllegalArgumentException expected) {
+            // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
+            // if initialization failed.
+            assertTrue(Realm.deleteRealmFile(getContext(), REALM_NAME));
+            Realm.getInstance(getContext(), REALM_NAME, key);
+            realm.close();
+        }
+    }
 
     public void testRealmCache() {
         Realm newRealm = Realm.getInstance(getContext());
@@ -1089,6 +1109,40 @@ public class RealmTest extends AndroidTestCase {
         assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
     }
 
+    // Check that using copyToRealm will set the primary key directly instead of first setting
+    // it to the default value (which can fail)
+    public void testCopyToRealmWithPrimaryKeySetValueDirectly() {
+        testRealm.beginTransaction();
+        testRealm.createObject(OwnerPrimaryKey.class);
+        testRealm.copyToRealm(new OwnerPrimaryKey(1, "Foo"));
+        testRealm.commitTransaction();
+        assertEquals(2, testRealm.where(OwnerPrimaryKey.class).count());
+    }
+
+    public void testCopyToRealmWithPrimaryAsNullThrows() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.copyToRealm(new PrimaryKeyAsString());
+            fail();
+        } catch (RealmException expected) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testCopyToRealmDontCopyNestedRealmObjets() {
+        testRealm.beginTransaction();
+        CyclicTypePrimaryKey childObj = testRealm.createObject(CyclicTypePrimaryKey.class);
+        childObj.setName("Child");
+        childObj.setId(1);
+
+        CyclicTypePrimaryKey parentObj = new CyclicTypePrimaryKey(2);
+        parentObj.setObject(childObj);
+        testRealm.copyToRealm(parentObj);
+        testRealm.commitTransaction();
+
+        assertEquals(2, testRealm.where(CyclicTypePrimaryKey.class).count());
+    }
 
     public void testCopyToRealmList() {
         Dog dog1 = new Dog();
@@ -1512,7 +1566,6 @@ public class RealmTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {
         }
-
     }
 
     public void testUpdateObjectWithLinks() throws Exception {
@@ -1540,5 +1593,12 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(2, owner2.getDogs().size());
 
         testRealm.commitTransaction();
+    }
+
+    public void testDeleteNonRealmFile() throws IOException {
+        File tmpFile = new File(getContext().getFilesDir(), "tmp");
+        tmpFile.delete();
+        assertTrue(tmpFile.createNewFile());
+        assertTrue(Realm.deleteRealmFile(tmpFile));
     }
 }

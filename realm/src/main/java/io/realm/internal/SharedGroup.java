@@ -31,7 +31,7 @@ public class SharedGroup implements Closeable {
     private final Context context;
 
     static {
-        TightDB.loadLibrary();
+        RealmCore.loadLibrary();
     }
 
     public enum Durability {

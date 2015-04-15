@@ -53,18 +53,11 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileEmptyFile() {
-        ASSERT.about(javaSource())
-                .that(emptyModel)
-                .compilesWithoutError();
-    }
-
-    @Test
     public void compileProcessedEmptyFile() throws Exception {
         ASSERT.about(javaSource())
                 .that(emptyModel)
                 .processedWith(new RealmProcessor())
-                .compilesWithoutError();
+                .failsToCompile();
     }
 
     @Test
