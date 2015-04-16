@@ -30,6 +30,8 @@ public class RealmProcessorTest {
     private JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/SimpleRealmProxy.java");
     private JavaFileObject allTypesModel = JavaFileObjects.forResource("some/test/AllTypes.java");
     private JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/AllTypesRealmProxy.java");
+    private JavaFileObject allTypesDefaultModule = JavaFileObjects.forResource("io/realm/RealmDefaultModule.java");
+    private JavaFileObject allTypesDefaultMediator = JavaFileObjects.forResource("io/realm/RealmDefaultModuleMediator.java");
     private JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
     private JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
     private JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
@@ -106,7 +108,7 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
-                .generatesSources(allTypesProxy);
+                .generatesSources(allTypesDefaultMediator, allTypesDefaultModule, allTypesDefaultMediator);
     }
 
     @Test
