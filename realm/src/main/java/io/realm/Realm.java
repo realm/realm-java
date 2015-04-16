@@ -24,7 +24,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonReader;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,7 +45,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -1711,7 +1709,7 @@ public final class Realm implements Closeable {
                 boolean deleteResult = fileToDelete.delete();
                 if (!deleteResult) {
                     result = false;
-                    Log.w(TAG, "Could not delete the file " + fileToDelete);
+                    RealmLog.w("Could not delete the file " + fileToDelete);
                 }
             }
         }
@@ -1719,64 +1717,86 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Compact a realm file. A realm file usually contain free/unused space.
+     * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
+     * Objects within the Realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
      * The realm file is left untouched if any file operation fails.<br>
+     * Currently it is not possible to compact an encrypted Realm.<br>
+     *
+     * @param context an Android {@link android.content.Context}
+     * @param fileName the name of the file to compact
+     * @param key Key for opening an encrypted Realm.
+     * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
+     */
+    public static synchronized boolean compactRealmFile(Context context, String fileName, byte[] key) {
+        if (key != null) {
+            throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
+        }
+
+        File realmFile = new File(context.getFilesDir(), fileName);
+        String path = realmFile.getAbsolutePath();
+        if (openRealms.get(path.hashCode()).get() > 0) {
+            throw new IllegalStateException("Cannot compact an open Realm");
+        }
+        SharedGroup sharedGroup = null;
+        boolean result = false;
+        try {
+            sharedGroup = new SharedGroup(path, false, key);
+            result = sharedGroup.compact();
+        } finally {
+            if (sharedGroup != null) {
+                sharedGroup.close();
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Compact a Realm file. A Realm file usually contain free/unused space.
+     * This method removes this free space and the file size is thereby reduced.
+     * Objects within the Realm files are untouched.
+     * <p>
+     * The file must be closed before this method is called.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
+     *
+     * @param context an Android {@link android.content.Context}
+     * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
+     */
+    public static boolean compactRealmFile(Context context) {
+        return compactRealmFile(context, DEFAULT_REALM_NAME, null);
+    }
+
+    /**
+     * Compact a Realm file. A Realm file usually contain free/unused space.
+     * This method removes this free space and the file size is thereby reduced.
+     * Objects within the Realm files are untouched.
+     * <p>
+     * The file must be closed before this method is called.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
      * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName) {
-        File realmFile = new File(context.getFilesDir(), fileName);
-        File tmpFile = new File(
-                context.getFilesDir(),
-                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
-
-        Realm realm = null;
-        try {
-            realm = Realm.getInstance(context, fileName);
-            realm.writeCopyTo(tmpFile);
-            if (!realmFile.delete()) {
-                return false;
-            }
-            if (!tmpFile.renameTo(realmFile)) {
-                return false;
-            }
-        } catch (IOException e) {
-            return false;
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Compact a realm file. A realm file usually contain free/unused space.
-     * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
-     * <p>
-     * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
-     * The realm file is left untouched if any file operation fails.<br>
-     *
-     * @param context an Android {@link android.content.Context}
-     * @return true if successful, false if any file operation failed
-     */
-    public static boolean compactRealmFile(Context context) {
-        return compactRealmFile(context, DEFAULT_REALM_NAME);
+        return compactRealmFile(context, fileName, null);
     }
 
     /**
      * Returns the absolute path to where this Realm is persisted on disk.
      *
-     * @return The absolute path to the realm file.
+     * @return The absolute path to the Realm file.
      */
     public String getPath() {
         return path;
