@@ -19,10 +19,7 @@ import android.content.Context;
 import android.test.AndroidTestCase;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,9 +34,9 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
-import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
@@ -92,12 +89,12 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    private void populateTestRealm(int objects) {
-        testRealm.beginTransaction();
-        testRealm.allObjects(AllTypes.class).clear();
-        testRealm.allObjects(NonLatinFieldNames.class).clear();
+    private void populateTestRealm(Realm realm, int objects) {
+        realm.beginTransaction();
+        realm.allObjects(AllTypes.class).clear();
+        realm.allObjects(NonLatinFieldNames.class).clear();
         for (int i = 0; i < objects; ++i) {
-            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            AllTypes allTypes = realm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
             allTypes.setColumnDate(new Date());
@@ -105,17 +102,17 @@ public class RealmTest extends AndroidTestCase {
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
-            NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
+            NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
             nonLatinFieldNames.set베타(1.234567f + i);
             nonLatinFieldNames.setΒήτα(1.234567f + i);
         }
-        testRealm.commitTransaction();
+        realm.commitTransaction();
     }
 
     private void populateTestRealm() {
-        populateTestRealm(TEST_DATA_SIZE);
+        populateTestRealm(testRealm, TEST_DATA_SIZE);
     }
 
 
@@ -287,7 +284,7 @@ public class RealmTest extends AndroidTestCase {
 
     // Note that this test is relying on the values set while initializing the test dataset
     public void testQueriesResults() throws IOException {
-        populateTestRealm(159);
+        populateTestRealm(testRealm, 159);
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_LONG, 33).findAll();
         assertEquals(1, resultList.size());
 
@@ -937,14 +934,66 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testCompactRealmFile() throws IOException {
-        final String copyRealm = "copy.realm";
-        fileCopy(
-                new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME),
-                new File(getContext().getFilesDir(), copyRealm));
-        long before = new File(getContext().getFilesDir(), copyRealm).length();
-        assertTrue(Realm.compactRealmFile(getContext()));
-        long after = new File(getContext().getFilesDir(), copyRealm).length();
+
+    public void testCompactRealmFileThrowsIfOpen() throws IOException {
+        try {
+            Realm.compactRealmFile(getContext());
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+    }
+
+    public void testCompactEncryptedEmptyRealmFile() {
+        String REALM_NAME = "enc.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        byte[] key = new byte[64];
+        new Random(42).nextBytes(key);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        realm.close();
+        // TODO: remove try/catch block when compacting encrypted Realms is supported
+        try {
+            assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testCompactEncryptedPopulatedRealmFile() {
+        String REALM_NAME = "enc.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        byte[] key = new byte[64];
+        new Random(42).nextBytes(key);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        populateTestRealm(realm, 100);
+        realm.close();
+        // TODO: remove try/catch block when compacting encrypted Realms is supported
+        try {
+            assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testCompactEmptyRealmFile() throws IOException {
+        final String REALM_NAME = "test.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME);
+        realm.close();
+        long before = new File(getContext().getFilesDir(), REALM_NAME).length();
+        assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME));
+        long after = new File(getContext().getFilesDir(), REALM_NAME).length();
+        assertTrue(before >= after);
+    }
+
+    public void testCompactPopulateRealmFile() throws IOException {
+        final String REALM_NAME = "test.realm";
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME);
+        populateTestRealm(realm, 100);
+        realm.close();
+        long before = new File(getContext().getFilesDir(), REALM_NAME).length();
+        assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME));
+        long after = new File(getContext().getFilesDir(), REALM_NAME).length();
         assertTrue(before >= after);
     }
 
@@ -991,7 +1040,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testCopyToRealmObject() {
         Date date = new Date();
-        date.setTime(1000); // Remove ms. precission as Realm doesn't support it yet.
+        date.setTime(1000); // Remove ms. precision as Realm doesn't support it yet.
         Dog dog = new Dog();
         dog.setName("Fido");
         RealmList<Dog> list = new RealmList<Dog>();
@@ -1358,16 +1407,6 @@ public class RealmTest extends AndroidTestCase {
 
         assertEquals(2, testRealm.allObjects(AllTypesPrimaryKey.class).size());
         assertEquals(1, testRealm.allObjects(DogPrimaryKey.class).size());
-    }
-
-    private void fileCopy(File src, File dst) throws IOException {
-        FileInputStream inStream = new FileInputStream(src);
-        FileOutputStream outStream = new FileOutputStream(dst);
-        FileChannel inChannel = inStream.getChannel();
-        FileChannel outChannel = outStream.getChannel();
-        inChannel.transferTo(0, inChannel.size(), outChannel);
-        inStream.close();
-        outStream.close();
     }
 
     public void testOpeningOfEncryptedRealmWithDifferentKeyInstances() {

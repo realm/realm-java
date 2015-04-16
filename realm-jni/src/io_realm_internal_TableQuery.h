@@ -481,6 +481,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeIsNull
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeCount
  * Signature: (JJJJ)J
  */

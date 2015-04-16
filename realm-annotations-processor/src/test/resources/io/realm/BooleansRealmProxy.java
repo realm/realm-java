@@ -147,9 +147,9 @@ public class BooleansRealmProxy extends Booleans
         return columnIndices;
     }
 
-    public static void populateUsingJsonObject(Booleans obj, JSONObject json)
+    public static Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        boolean standalone = obj.realm == null;
+        Booleans obj = realm.createObject(Booleans.class);
         if (!json.isNull("done")) {
             obj.setDone((boolean) json.getBoolean("done"));
         }
@@ -159,11 +159,12 @@ public class BooleansRealmProxy extends Booleans
         if (!json.isNull("mCompleted")) {
             obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
         }
+        return obj;
     }
 
-    public static void populateUsingJsonStream(Booleans obj, JsonReader reader)
+    public static Booleans createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        boolean standalone = obj.realm == null;
+        Booleans obj = realm.createObject(Booleans.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -178,6 +179,7 @@ public class BooleansRealmProxy extends Booleans
             }
         }
         reader.endObject();
+        return obj;
     }
 
     public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {

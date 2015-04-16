@@ -99,15 +99,15 @@ public class CompositeMediator implements RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmObject> void populateUsingJsonObject(E object, JSONObject json) throws JSONException {
-        RealmProxyMediator mediator = getMediator(object.getClass());
-        mediator.populateUsingJsonObject(object, json);
+    public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException {
+        RealmProxyMediator mediator = getMediator(clazz);
+        return mediator.createOrUpdateUsingJsonObject(clazz, realm, json, update);
     }
 
     @Override
-    public <E extends RealmObject> void populateUsingJsonStream(E object, JsonReader reader) throws IOException {
-        RealmProxyMediator mediator = getMediator(object.getClass());
-        mediator.populateUsingJsonStream(object, reader);
+    public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws IOException {
+        RealmProxyMediator mediator = getMediator(clazz);
+        return mediator.createUsingJsonStream(clazz, realm, reader);
     }
 
     private RealmProxyMediator getMediator(Class<? extends RealmObject> clazz) {

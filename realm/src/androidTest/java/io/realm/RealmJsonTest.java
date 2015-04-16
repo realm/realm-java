@@ -26,6 +26,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Date;
 
 import io.realm.entities.AllTypes;
@@ -61,6 +62,10 @@ public class RealmJsonTest extends AndroidTestCase {
         } finally {
             return input;
         }
+    }
+
+    private InputStream strToStream(String str) {
+        return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
     }
 
     public void testCreateObjectFromJson_nullObject() {
@@ -326,7 +331,7 @@ public class RealmJsonTest extends AndroidTestCase {
    public void testCreateAllFromJsonStream_null() throws IOException {
         testRealm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
-    }
+   }
 
     public void testCreateObjectFromJsonStream_allSimpleTypes() throws IOException {
         InputStream in = loadJsonFromAssets("all_simple_types.json");
@@ -452,6 +457,15 @@ public class RealmJsonTest extends AndroidTestCase {
         fail();
     }
 
+    public void testCreateOrUpdateObjectStream_invalidJSonThrows() throws IOException {
+        try {
+            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, strToStream("{"));
+        } catch (RealmException expected) {
+            return;
+        }
+        fail();
+    }
+
     public void testCreateOrUpdateObjectString_noPrimaryKeyThrows() throws IOException {
         try {
             testRealm.createOrUpdateObjectFromJson(AllTypes.class, "{}");
@@ -479,6 +493,37 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals("bar", newObj.getColumnString());
     }
 
+    public void testCreateOrUpdateJsonObject_ignoreUnsetProperties() {
+        testRealm.beginTransaction();
+        AllTypesPrimaryKey obj = testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\":1, \"columnString\": \"foo\" }");
+        obj.setColumnBoolean(true);
+        testRealm.commitTransaction();
+
+        testRealm.beginTransaction();
+        obj = testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\":1, \"columnString\": \"bar\" }");
+        testRealm.commitTransaction();
+
+        assertTrue(obj.isColumnBoolean());
+    }
+
+    public void testCreateOrUpdateJsonStream_ignoreUnsetProperties() throws IOException {
+        testRealm.beginTransaction();
+        AllTypesPrimaryKey obj = testRealm.createOrUpdateObjectFromJson(
+                AllTypesPrimaryKey.class, strToStream("{ \"columnLong\":1, \"columnString\": \"foo\" }")
+        );
+        obj.setColumnBoolean(true);
+        testRealm.commitTransaction();
+
+        testRealm.beginTransaction();
+        obj = testRealm.createOrUpdateObjectFromJson(
+                AllTypesPrimaryKey.class, strToStream("{ \"columnLong\":1, \"columnString\": \"bar\" }")
+        );
+        testRealm.commitTransaction();
+
+        assertTrue(obj.isColumnBoolean());
+        assertEquals("bar", obj.getColumnString());
+    }
+
     public void testCreateOrUpdateInputStream() throws IOException {
         testRealm.beginTransaction();
         AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
@@ -486,7 +531,7 @@ public class RealmJsonTest extends AndroidTestCase {
         obj.setColumnString("Foo");
         testRealm.copyToRealm(obj);
 
-        ByteArrayInputStream in = new ByteArrayInputStream("{ \"columnLong\" : 1, \"columnString\" : \"bar\" }".getBytes());
+        InputStream in = strToStream("{ \"columnLong\" : 1, \"columnString\" : \"bar\" }");
         AllTypesPrimaryKey newObj = testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, in);
         testRealm.commitTransaction();
 
@@ -522,6 +567,15 @@ public class RealmJsonTest extends AndroidTestCase {
         try {
             testRealm.createOrUpdateAllFromJson(AllTypes.class, new TestHelper.StubInputStream());
         } catch (IllegalArgumentException expected) {
+            return;
+        }
+        fail();
+    }
+
+    public void testCreateOrUpdateAllStream_invalidJSonThrows() throws IOException {
+        try {
+            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, strToStream("["));
+        } catch (RealmException expected) {
             return;
         }
         fail();

@@ -111,15 +111,15 @@ public class FilterableMediator implements RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmObject> void populateUsingJsonObject(E object, JSONObject json) throws JSONException {
-        checkSchemaHasClass(object.getClass());
-        originalMediator.populateUsingJsonObject(object, json);
+    public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException {
+        checkSchemaHasClass(clazz);
+        return originalMediator.createOrUpdateUsingJsonObject(clazz, realm, json, update);
     }
 
     @Override
-    public <E extends RealmObject> void populateUsingJsonStream(E object, JsonReader reader) throws IOException {
-        checkSchemaHasClass(object.getClass());
-        originalMediator.populateUsingJsonStream(object, reader);
+    public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws IOException {
+        checkSchemaHasClass(clazz);
+        return originalMediator.createUsingJsonStream(clazz, realm, reader);
     }
 
     private void checkSchemaHasClass(Class<? extends RealmObject> clazz) {

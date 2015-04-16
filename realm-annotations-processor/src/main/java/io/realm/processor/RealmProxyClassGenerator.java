@@ -196,8 +196,8 @@ public class RealmProxyClassGenerator {
         emitGetTableNameMethod(writer);
         emitGetFieldNamesMethod(writer);
         emitGetColumnIndicesMethod(writer);
-        emitPopulateUsingJsonObjectMethod(writer);
-        emitPopulateUsingJsonStreamMethod(writer);
+        emitCreateOrUpdateUsingJsonObject(writer);
+        emitCreateUsingJsonStream(writer);
         emitCopyOrUpdateMethod(writer);
         emitCopyMethod(writer);
         emitUpdateMethod(writer);
@@ -766,15 +766,39 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
     }
 
-    private void emitPopulateUsingJsonObjectMethod(JavaWriter writer) throws IOException {
+
+    private void emitCreateOrUpdateUsingJsonObject(JavaWriter writer) throws IOException {
         writer.beginMethod(
-                "void",
-                "populateUsingJsonObject",
+                className,
+                "createOrUpdateUsingJsonObject",
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
-                Arrays.asList(className, "obj", "JSONObject", "json"),
+                Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"),
                 Arrays.asList("JSONException"));
 
-        writer.emitStatement("boolean standalone = obj.realm == null");
+        if (!metadata.hasPrimaryKey()) {
+            writer.emitStatement("%s obj = realm.createObject(%s.class)", className, className);
+        } else {
+            String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
+            writer
+                .emitStatement("%s obj = null", className)
+                .beginControlFlow("if (update)")
+                    .emitStatement("Table table = realm.getTable(%s.class)", className)
+                    .emitStatement("long pkColumnIndex = table.getPrimaryKey()")
+                    .beginControlFlow("if (!json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
+                        .emitStatement("long rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
+                                pkType, pkType, metadata.getPrimaryKey().getSimpleName())
+                        .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
+                            .emitStatement("obj = new %s()", Utils.getProxyClassName(className))
+                            .emitStatement("obj.realm = realm")
+                            .emitStatement("obj.row = table.getRow(rowIndex)")
+                        .endControlFlow()
+                    .endControlFlow()
+                .endControlFlow()
+                .beginControlFlow("if (obj == null)")
+                    .emitStatement("obj = realm.createObject(%s.class)", className)
+                .endControlFlow();
+        }
+
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
@@ -804,19 +828,20 @@ public class RealmProxyClassGenerator {
             }
         }
 
+        writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
     }
 
-    private void emitPopulateUsingJsonStreamMethod(JavaWriter writer) throws IOException {
+    private void emitCreateUsingJsonStream(JavaWriter writer) throws IOException {
         writer.beginMethod(
-                "void",
-                "populateUsingJsonStream",
+                className,
+                "createUsingJsonStream",
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
-                Arrays.asList(className, "obj", "JsonReader", "reader"),
+                Arrays.asList("Realm", "realm", "JsonReader", "reader"),
                 Arrays.asList("IOException"));
 
-        writer.emitStatement("boolean standalone = obj.realm == null");
+        writer.emitStatement("%s obj = realm.createObject(%s.class)",className, className);
         writer.emitStatement("reader.beginObject()");
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
@@ -864,6 +889,7 @@ public class RealmProxyClassGenerator {
         }
         writer.endControlFlow();
         writer.emitStatement("reader.endObject()");
+        writer.emitStatement("return obj");
         writer.endMethod();
         writer.emitEmptyLine();
     }

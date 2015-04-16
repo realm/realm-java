@@ -109,20 +109,25 @@ public interface RealmProxyMediator {
     public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache);
 
     /**
-     * Updates a RealmObject with data from JSONObject
-     * @param obj   RealmObject to update
-     * @param json  JSON data
+     * Creates or updates a RealmObject using the provided JSON data.
      *
-     * @throws JSONException If the JSON mapping doesn't contain the proper datatype.
+     * @param clazz     Type of RealmObject
+     * @param realm     Reference to Realm where to create the object.
+     * @param json      JSON data
+     * @param update    True if Realm should try to update a existing object. This requires that the model has a @PrimaryKey
+     * @return RealmObject that has been created or updated.
+     * @throws JSONException If the JSON mapping doesn't match the expected class.
      */
-    public <E extends RealmObject> void populateUsingJsonObject(E obj, JSONObject json) throws JSONException;
+    public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException;
 
     /**
-     * Updates a RealmObject with data from a stream of JSON data
-     * @param obj       RealmObject to update
-     * @param reader    JSON data
+     * Creates new RealmObjects based on a JSON input stream.
      *
-     * @throws JSONException If the JSON mapping doesn't contain the proper datatype.
+     * @param clazz     Type of RealmObject
+     * @param realm     Reference to Realm where to create the object.
+     * @param reader    Reference to the InputStream containg the JSON data.
+     * @return The created RealmObject
+     * @throws IOException if an error occurs with the inputstream.
      */
-    public <E extends RealmObject> void populateUsingJsonStream(E obj, JsonReader reader) throws java.io.IOException;
+    public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws java.io.IOException;
 }

@@ -34,7 +34,7 @@ import io.realm.Realm;
  * This example demonstrates how to import RealmObjects as JSON. Realm supports JSON represented
  * as Strings, JSONObject, JSONArray or InputStreams (from API 11+)
  */
-public class JsonExampleActivity extends Activity {
+public class TableJsonExampleActivity extends Activity {
 
     public static final String TAG = JsonExampleActivity.class.getName();
 
