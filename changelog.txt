@@ -1,4 +1,5 @@
 0.80.1
+ * Realm.createOrUpdateWithJson() no longer reset fields to their default value if they are not found in the JSON input.
  * Realm.compactRealmFile() now uses Realm Core's compact() method which is more failure resilient.
  * Realm.copyToRealm() now correctly handles referenced child objects that are already in the Realm.
  * The ARM64 binary is now properly a part of the Eclipse distribution package.
