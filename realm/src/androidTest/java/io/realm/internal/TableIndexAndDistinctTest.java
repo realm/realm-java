@@ -25,8 +25,8 @@ public class TableIndexAndDistinctTest extends TestCase {
         init();
 
         // Must set index before using distinct()
-        table.setIndex(1);
-        assertEquals(true, table.hasIndex(1));
+        table.addSearchIndex(1);
+        assertEquals(true, table.hasSearchIndex(1));
 
         TableView view = table.getDistinctView(1);
         assertEquals(4, view.size());
@@ -82,8 +82,8 @@ public class TableIndexAndDistinctTest extends TestCase {
         t.add("row1", "row2", "row3", "row4", "row5");
 
         for (long c=0;c<t.getColumnCount();c++){
-            t.setIndex(c);
-            assertEquals(true, t.hasIndex(c));
+            t.addSearchIndex(c);
+            assertEquals(true, t.hasSearchIndex(c));
         }
     }
 
@@ -105,17 +105,17 @@ public class TableIndexAndDistinctTest extends TestCase {
             throw new IllegalArgumentException();
         }
 
-        t.setIndex(index);
+        t.addSearchIndex(index);
     }*/
 
     public void testShouldCheckIndexIsOkOnColumn() {
         init();
-        table.setIndex(1);
+        table.addSearchIndex(1);
     }
 
     public void testShouldThrowDistinctErrorWhenWrongColumnType() {
         init();
-        table.setIndex(1);
+        table.addSearchIndex(1);
         try {
             TableView view = table.getDistinctView(0);
             fail();
@@ -144,20 +144,20 @@ public class TableIndexAndDistinctTest extends TestCase {
 
     public void testUnsetIndex() {
         init();
-        table.setIndex(1);
-        assertEquals(true, table.hasIndex(1));
+        table.addSearchIndex(1);
+        assertEquals(true, table.hasSearchIndex(1));
 
-        table.unsetIndex(1);
-        assertEquals(false, table.hasIndex(1));
+        table.removeSearchIndex(1);
+        assertEquals(false, table.hasSearchIndex(1));
     }
 
     public void testUnsetIndexNoop() {
         init();
-        assertEquals(false, table.hasIndex(1));
+        assertEquals(false, table.hasSearchIndex(1));
 
         // remove index from non-indexed column is a no-op
-        table.unsetIndex(1);
-        assertEquals(false, table.hasIndex(1));
+        table.removeSearchIndex(1);
+        assertEquals(false, table.hasSearchIndex(1));
     }
 }
 

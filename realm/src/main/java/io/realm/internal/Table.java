@@ -1154,7 +1154,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     private final String MSG_ONLY_STRING_COLOUM_CAN_BE_INDEXED = "Index is only supported on string columns.";
 
-    public void setIndex(long columnIndex) {
+    public void addSearchIndex(long columnIndex) {
         checkImmutable();
         if (getColumnType(columnIndex) != ColumnType.STRING) {
             throw new IllegalArgumentException(MSG_ONLY_STRING_COLOUM_CAN_BE_INDEXED);
@@ -1162,7 +1162,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetIndex(nativePtr, columnIndex);
     }
 
-    public void unsetIndex(long columnIndex) {
+    public void removeSearchIndex(long columnIndex) {
         checkImmutable();
         if (getColumnType(columnIndex) != ColumnType.STRING) {
             throw new IllegalArgumentException(MSG_ONLY_STRING_COLOUM_CAN_BE_INDEXED);
@@ -1222,7 +1222,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeUnsetIndex(long nativePtr, long columnIndex);
 
-    public boolean hasIndex(long columnIndex) {
+    public boolean hasSearchIndex(long columnIndex) {
         return nativeHasIndex(nativePtr, columnIndex);
     }
 

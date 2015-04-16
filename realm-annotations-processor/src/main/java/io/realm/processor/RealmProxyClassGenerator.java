@@ -355,7 +355,7 @@ public class RealmProxyClassGenerator {
 
         for (VariableElement field : metadata.getIndexedFields()) {
             String fieldName = field.getSimpleName().toString();
-            writer.emitStatement("table.setIndex(table.getColumnIndex(\"%s\"))", fieldName);
+            writer.emitStatement("table.addSearchIndex(table.getColumnIndex(\"%s\"))", fieldName);
         }
 
         if (metadata.hasPrimaryKey()) {
@@ -418,7 +418,7 @@ public class RealmProxyClassGenerator {
 
                 // Validate @Index
                 if (metadata.getIndexedFields().contains(field)) {
-                    writer.beginControlFlow("if (!table.hasIndex(table.getColumnIndex(\"%s\")))", fieldName);
+                    writer.beginControlFlow("if (!table.hasSearchIndex(table.getColumnIndex(\"%s\")))", fieldName);
                     writer.emitStatement("throw new IllegalStateException(\"Index not defined for field '%s'\")", fieldName);
                     writer.endControlFlow();
                 }

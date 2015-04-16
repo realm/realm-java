@@ -187,7 +187,7 @@ public class AllTypesRealmProxy extends AllTypes {
                 AllTypesRealmProxy.initTable(transaction);
             }
             table.addColumnLink(ColumnType.LINK_LIST, "columnRealmList", transaction.getTable("class_AllTypes"));
-            table.setIndex(table.getColumnIndex("columnString"));
+            table.addSearchIndex(table.getColumnIndex("columnString"));
             table.setPrimaryKey("columnString");
             return table;
         }
