@@ -660,6 +660,14 @@ public class TableQuery implements Closeable {
     protected native long nativeMinimumDate(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
+    // isNull and isNotNull
+    public TableQuery isNull(long columnIndex) {
+        nativeIsNull(nativePtr, columnIndex);
+        return this;
+    }
+
+    protected native void nativeIsNull(long nativePtr, long columnIndex);
+
     // count
 
     // TODO: Rename all start, end parameter names to firstRow, lastRow

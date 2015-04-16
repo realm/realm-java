@@ -1,4 +1,4 @@
-0.81
+0.80.1
  * Realm.copyToRealm() now correctly handles referenced child objects that are already in the Realm.
  * The ARM64 binary is now properly a part of the Eclipse distribution package.
  * A RealmMigrationExceptionNeeded is now properly thrown if @Index and @PrimaryKey are not set correctly during a migration.
@@ -7,7 +7,7 @@
  * Fixed bug causing queries to fail if multiple Realms has different field ordering.
  * Fixed bug when using Realm.copyToRealm() with a primary key could crash if default value was already used in the Realm.
  * Updated Realm Core: performance improvements, bug fixes related to string based primary keys and indexed fields.
-
+ * Added RealmQuery.isNull() and RealmQuery.isNotNull() for querying relationships.
 
 0.80
 * Queries on relationships can be case sensitive.
