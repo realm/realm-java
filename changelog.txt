@@ -1,5 +1,5 @@
 0.81
- * Realm.compactRealmFile() now also works for encrypted Realms.
+ * Realm.compactRealmFile() now uses Realm Core's compact() method which is more failure resilient.
  * Realm.copyToRealm() now correctly handles referenced child objects that are already in the Realm.
  * The ARM64 binary is now properly a part of the Eclipse distribution package.
  * A RealmMigrationExceptionNeeded is now properly thrown if @Index and @PrimaryKey are not set correctly during a migration.

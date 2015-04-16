@@ -953,6 +953,7 @@ public class RealmTest extends AndroidTestCase {
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
             assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            fail();
         } catch (IllegalArgumentException expected) {
         }
     }
@@ -968,6 +969,7 @@ public class RealmTest extends AndroidTestCase {
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
             assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            fail();
         } catch (IllegalArgumentException expected) {
         }
     }
