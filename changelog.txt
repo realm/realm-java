@@ -6,7 +6,12 @@
  * Added Realm.deleteRealmFile(File) method.
  * Fixed bug causing queries to fail if multiple Realms has different field ordering.
  * Fixed bug when using Realm.copyToRealm() with a primary key could crash if default value was already used in the Realm.
- * Updated Realm Core to version 0.89: performance improvements, bug fixes related to string based primary keys and indexed fields.
+ * Updated Realm Core to version 0.89.0
+   - improved performance for sorting RealmResults.
+   - improved performance for refreshing a Realm after inserting or modifying strings or binary data.
+   - fixed bug causing incorrect result when querying indexed fields.
+   - fixed bug causing corruption of string index when deleting an object where there are duplicate values for the indexed field.
+   - fixed bug causing a crash after compacting the Realm file.
  * Added RealmQuery.isNull() and RealmQuery.isNotNull() for querying relationships.
 
 0.80
