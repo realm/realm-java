@@ -2,13 +2,6 @@ package io.realm.internal;
 
 import junit.framework.TestCase;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import io.realm.internal.test.DataProviderUtil;
-import io.realm.internal.test.TestHelper;
-
 public class TableIndexAndDistinctTest extends TestCase {
     Table table;
 
@@ -148,5 +141,23 @@ public class TableIndexAndDistinctTest extends TestCase {
         List<?> mixedValues = Arrays.asList(values);
         return DataProviderUtil.allCombinations(mixedValues);
     }*/
+
+    public void testUnsetIndex() {
+        init();
+        table.setIndex(1);
+        assertEquals(true, table.hasIndex(1));
+
+        table.unsetIndex(1);
+        assertEquals(false, table.hasIndex(1));
+    }
+
+    public void testUnsetIndexNoop() {
+        init();
+        assertEquals(false, table.hasIndex(1));
+
+        // remove index from non-indexed column is a no-op
+        table.unsetIndex(1);
+        assertEquals(false, table.hasIndex(1));
+    }
 }
 

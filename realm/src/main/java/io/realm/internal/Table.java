@@ -1152,13 +1152,22 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
+    private final String MSG_ONLY_STRING_COLOUM_CAN_BE_INDEXED = "Index is only supported on string columns.";
 
     public void setIndex(long columnIndex) {
         checkImmutable();
         if (getColumnType(columnIndex) != ColumnType.STRING) {
-            throw new IllegalArgumentException("Index is only supported on string columns.");
+            throw new IllegalArgumentException(MSG_ONLY_STRING_COLOUM_CAN_BE_INDEXED);
         }
         nativeSetIndex(nativePtr, columnIndex);
+    }
+
+    public void unsetIndex(long columnIndex) {
+        checkImmutable();
+        if (getColumnType(columnIndex) != ColumnType.STRING) {
+            throw new IllegalArgumentException(MSG_ONLY_STRING_COLOUM_CAN_BE_INDEXED);
+        }
+        nativeUnsetIndex(nativePtr, columnIndex);
     }
 
     /**
@@ -1211,6 +1220,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeSetIndex(long nativePtr, long columnIndex);
 
+    protected native void nativeUnsetIndex(long nativePtr, long columnIndex);
 
     public boolean hasIndex(long columnIndex) {
         return nativeHasIndex(nativePtr, columnIndex);

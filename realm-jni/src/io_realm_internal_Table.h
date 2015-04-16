@@ -515,6 +515,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeUnsetIndex
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUnsetIndex
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeHasIndex
  * Signature: (JJ)Z
  */
