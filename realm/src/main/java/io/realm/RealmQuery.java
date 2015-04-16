@@ -169,6 +169,35 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    /**
+     * Test if a field is null. Only works for relationships and RealmLists.
+     *
+     * @param fieldName - the field name
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
+     */
+    public RealmQuery<E> isNull(String fieldName) {
+        // Currently we only support querying top-level
+        if (containsDot(fieldName)) {
+            throw new IllegalArgumentException("Checking for null in nested objects is not supported.");
+        }
+
+        // checking that fieldName has the correct type is done in C++
+        this.query.isNull(columns.get(fieldName));
+        return this;
+    }
+
+    /**
+     * Test if a field is not null. Only works for relationships and RealmLists.
+     *
+     * @param fieldName - the field name
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
+     */
+    public RealmQuery<E> isNotNull(String fieldName) {
+        return this.beginGroup().not().isNull(fieldName).endGroup();
+    }
+
     // Equal
 
     /**
