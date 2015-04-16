@@ -1,10 +1,10 @@
-lib_LIBRARIES = libtightdb-jni.a
+lib_LIBRARIES = librealm-jni.a
 
 JNI_SOURCES := $(wildcard *.cpp)
-libtightdb_jni_a_SOURCES = $(JNI_SOURCES)
+librealm_jni_a_SOURCES = $(JNI_SOURCES)
 
 # Used by ../../build.sh
 get-inst-libraries:
-	@echo $(filter-out libtightdb-jni-cov.%,$(TARGETS_LIB_SHARED_ALIASES))
+	@echo $(filter-out librealm-jni-cov.%,$(TARGETS_LIB_SHARED_ALIASES))
 
 include ../generic.mk

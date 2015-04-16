@@ -49,7 +49,7 @@ import java.util.List;
  *      byte[] imageData;
  *  }
  *
- * Once this class is compiled along with TightDB annotation processor
+ * Once this class is compiled along with Realm annotation processor
  * this will produce following classes.
  *
  * 1. Employee

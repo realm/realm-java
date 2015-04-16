@@ -21,7 +21,7 @@ import java.util.List;
 
 class Context {
 
-    // Each group of related TightDB objects will have a Context object in the root.
+    // Each group of related Realm objects will have a Context object in the root.
     // The root can be a table, a group, or a shared group.
     // The Context object is used to store a list of native pointers 
     // whose disposal need to be handed over from the garbage 

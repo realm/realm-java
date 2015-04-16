@@ -20,7 +20,7 @@
 #include <cstddef>
 #include <vector>
 #include <jni.h>
-#include <tightdb/table.hpp>
+#include <realm/table.hpp>
 
 jlong Java_io_realm_TableSpec_getColumnCount(JNIEnv*, jobject jTableSpec);
 
@@ -32,8 +32,8 @@ jobject Java_io_realm_TableSpec_getTableSpec(JNIEnv*, jobject jTableSpec, jlong 
 
 jlong Java_io_realm_TableSpec_getColumnIndex(JNIEnv*, jobject jTableSpec, jstring columnName);
 
-void set_descriptor(JNIEnv*,       tightdb::Descriptor&, jobject jTableSpec);
-void get_descriptor(JNIEnv*, const tightdb::Descriptor&, jobject jTableSpec);
+void set_descriptor(JNIEnv*,       realm::Descriptor&, jobject jTableSpec);
+void get_descriptor(JNIEnv*, const realm::Descriptor&, jobject jTableSpec);
 
 jclass GetClassTableSpec(JNIEnv*);
 jmethodID GetTableSpecMethodID(JNIEnv*, const char* methodStr, const char* typeStr);

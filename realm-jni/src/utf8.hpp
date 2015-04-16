@@ -1,34 +1,34 @@
 /*************************************************************************
  *
- * TIGHTDB CONFIDENTIAL
+ * REALM CONFIDENTIAL
  * __________________
  *
- *  [2011] - [2012] TightDB Inc
+ *  [2011] - [2012] Realm Inc
  *  All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
- * the property of TightDB Incorporated and its suppliers,
+ * the property of Realm Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
- * herein are proprietary to TightDB Incorporated
+ * herein are proprietary to Realm Incorporated
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
  * Dissemination of this information or reproduction of this material
  * is strictly forbidden unless prior written permission is obtained
- * from TightDB Incorporated.
+ * from Realm Incorporated.
  *
  **************************************************************************/
-#ifndef TIGHTDB_UTIL_UTF8_HPP
-#define TIGHTDB_UTIL_UTF8_HPP
+#ifndef REALM_UTIL_UTF8_HPP
+#define REALM_UTIL_UTF8_HPP
 
 #include <stdint.h>
 #include <string>
 
-#include <tightdb/util/safe_int_ops.hpp>
-#include <tightdb/string_data.hpp>
-#include <tightdb/util/features.h>
-#include <tightdb/utilities.hpp>
+#include <realm/util/safe_int_ops.hpp>
+#include <realm/string_data.hpp>
+#include <realm/util/features.h>
+#include <realm/utilities.hpp>
 
-namespace tightdb {
+namespace realm {
 namespace util {
 
 
@@ -97,34 +97,34 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
     const char* in = in_begin;
     Char16* out = out_begin;
     while (in != in_end) {
-        if (TIGHTDB_UNLIKELY(out == out_end)) {
+        if (REALM_UNLIKELY(out == out_end)) {
             break; // Need space in output buffer
         }
         uint_fast16_t v1 = uint_fast16_t(traits8::to_int_type(in[0]));
-        if (TIGHTDB_LIKELY(v1 < 0x80)) { // One byte
+        if (REALM_LIKELY(v1 < 0x80)) { // One byte
             // UTF-8 layout: 0xxxxxxx
             *out++ = Traits16::to_char_type(v1);
             in += 1;
             continue;
         }
-        if (TIGHTDB_UNLIKELY(v1 < 0xC0)) {
+        if (REALM_UNLIKELY(v1 < 0xC0)) {
             invalid = true;
             break; // Invalid first byte of UTF-8 sequence
         }
-        if (TIGHTDB_LIKELY(v1 < 0xE0)) { // Two bytes
-            if (TIGHTDB_UNLIKELY(in_end - in < 2)) {
+        if (REALM_LIKELY(v1 < 0xE0)) { // Two bytes
+            if (REALM_UNLIKELY(in_end - in < 2)) {
                 invalid = 1;
                 break; // Incomplete UTF-8 sequence
             }
             uint_fast16_t v2 = uint_fast16_t(traits8::to_int_type(in[1]));
             // UTF-8 layout: 110xxxxx 10xxxxxx
-            if (TIGHTDB_UNLIKELY((v2 & 0xC0) != 0x80)) {
+            if (REALM_UNLIKELY((v2 & 0xC0) != 0x80)) {
                 invalid = 2;
                 break; // Invalid continuation byte
             }
             uint_fast16_t v = uint_fast16_t(((v1 & 0x1F) << 6) |
                                             ((v2 & 0x3F) << 0));
-            if (TIGHTDB_UNLIKELY(v < 0x80)) {
+            if (REALM_UNLIKELY(v < 0x80)) {
                 invalid = 3;
                 break; // Overlong encoding is invalid
             }
@@ -132,26 +132,26 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
             in += 2;
             continue;
         }
-        if (TIGHTDB_LIKELY(v1 < 0xF0)) { // Three bytes
-            if (TIGHTDB_UNLIKELY(in_end - in < 3)) {
+        if (REALM_LIKELY(v1 < 0xF0)) { // Three bytes
+            if (REALM_UNLIKELY(in_end - in < 3)) {
                 invalid = 4;
                 break; // Incomplete UTF-8 sequence
             }
             uint_fast16_t v2 = uint_fast16_t(traits8::to_int_type(in[1]));
             uint_fast16_t v3 = uint_fast16_t(traits8::to_int_type(in[2]));
             // UTF-8 layout: 1110xxxx 10xxxxxx 10xxxxxx
-            if (TIGHTDB_UNLIKELY((v2 & 0xC0) != 0x80 || (v3 & 0xC0) != 0x80)) {
+            if (REALM_UNLIKELY((v2 & 0xC0) != 0x80 || (v3 & 0xC0) != 0x80)) {
                 invalid = true;
                 break; // Invalid continuation byte
             }
             uint_fast16_t v = uint_fast16_t(((v1 & 0x0F) << 12) |
                                             ((v2 & 0x3F) <<  6) |
                                             ((v3 & 0x3F) <<  0));
-            if (TIGHTDB_UNLIKELY(v < 0x800)) {
+            if (REALM_UNLIKELY(v < 0x800)) {
                 invalid = 5;
                 break; // Overlong encoding is invalid
             }
-            if (TIGHTDB_UNLIKELY(0xD800 <= v && v < 0xE000)) {
+            if (REALM_UNLIKELY(0xD800 <= v && v < 0xE000)) {
                 invalid = 6;
                 break; // Illegal code point range (reserved for UTF-16 surrogate pairs)
             }
@@ -159,11 +159,11 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
             in += 3;
             continue;
         }
-        if (TIGHTDB_UNLIKELY(out + 1 == out_end)) {
+        if (REALM_UNLIKELY(out + 1 == out_end)) {
             break; // Need space in output buffer for surrogate pair
         }
-        if (TIGHTDB_LIKELY(v1 < 0xF8)) { // Four bytes
-            if (TIGHTDB_UNLIKELY(in_end - in < 4)) {
+        if (REALM_LIKELY(v1 < 0xF8)) { // Four bytes
+            if (REALM_UNLIKELY(in_end - in < 4)) {
                 invalid = 7;
                 break; // Incomplete UTF-8 sequence
             }
@@ -172,7 +172,7 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
             uint_fast16_t v3 = uint_fast16_t(traits8::to_int_type(in[2])); // 16 bit intended
             uint_fast16_t v4 = uint_fast16_t(traits8::to_int_type(in[3])); // 16 bit intended
             // UTF-8 layout: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-            if (TIGHTDB_UNLIKELY((v2 & 0xC0) != 0x80 || (v3 & 0xC0) != 0x80 ||
+            if (REALM_UNLIKELY((v2 & 0xC0) != 0x80 || (v3 & 0xC0) != 0x80 ||
                                  (v4 & 0xC0) != 0x80)) {
                 invalid = 8;
                 break; // Invalid continuation byte
@@ -182,11 +182,11 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf16(const char*& in_begin, const c
                               ((v2 & 0x3F) << 12) | // Parenthesis is 32 bit partial result
                               ((v3 & 0x3F) <<  6) | // Parenthesis is 16 bit partial result
                               ((v4 & 0x3F) <<  0)); // Parenthesis is 16 bit partial result
-            if (TIGHTDB_UNLIKELY(v < 0x10000)) {
+            if (REALM_UNLIKELY(v < 0x10000)) {
                 invalid = 9;
                 break; // Overlong encoding is invalid
             }
-            if (TIGHTDB_UNLIKELY(0x110000 <= v)) {
+            if (REALM_UNLIKELY(0x110000 <= v)) {
                 invalid = 19;
                 break; // Code point too big for UTF-16
             }
@@ -219,17 +219,17 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
     const char* in = in_begin;
     while (in != in_end) {
         uint_fast16_t v1 = uint_fast16_t(traits8::to_int_type(in[0]));
-        if (TIGHTDB_LIKELY(v1 < 0x80)) { // One byte
+        if (REALM_LIKELY(v1 < 0x80)) { // One byte
             num_out += 1;
             in += 1;
             continue;
         }
-        if (TIGHTDB_UNLIKELY(v1 < 0xC0)) {
+        if (REALM_UNLIKELY(v1 < 0xC0)) {
             error_code = 1;
             break; // Invalid first byte of UTF-8 sequence
         }
-        if (TIGHTDB_LIKELY(v1 < 0xE0)) { // Two bytes
-            if (TIGHTDB_UNLIKELY(in_end - in < 2)) {
+        if (REALM_LIKELY(v1 < 0xE0)) { // Two bytes
+            if (REALM_UNLIKELY(in_end - in < 2)) {
                 error_code = 2;
                 break; // Incomplete UTF-8 sequence
             }
@@ -237,8 +237,8 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
             in += 2;
             continue;
         }
-        if (TIGHTDB_LIKELY(v1 < 0xF0)) { // Three bytes
-            if (TIGHTDB_UNLIKELY(in_end - in < 3)) {
+        if (REALM_LIKELY(v1 < 0xF0)) { // Three bytes
+            if (REALM_UNLIKELY(in_end - in < 3)) {
                 error_code = 3;
                 break; // Incomplete UTF-8 sequence
             }
@@ -246,8 +246,8 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf16_buf_size(const char*& i
             in += 3;
             continue;
         }
-        if (TIGHTDB_LIKELY(v1 < 0xF8)) { // Four bytes
-            if (TIGHTDB_UNLIKELY(in_end - in < 4)) {
+        if (REALM_LIKELY(v1 < 0xF8)) { // Four bytes
+            if (REALM_UNLIKELY(in_end - in < 4)) {
                 error_code = 4;
                 break; // Incomplete UTF-8 sequence
             }
@@ -282,8 +282,8 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const 
     char* out = out_begin;
     while (in != in_end) {
         uint_fast16_t v1 = uint_fast16_t(Traits16::to_int_type(in[0]));
-        if (TIGHTDB_LIKELY(v1 < 0x80)) {
-            if (TIGHTDB_UNLIKELY(out == out_end)) {
+        if (REALM_LIKELY(v1 < 0x80)) {
+            if (REALM_UNLIKELY(out == out_end)) {
                 error_code = 1;
                 break; // Not enough output buffer space
             }
@@ -292,8 +292,8 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const 
             in += 1;
             continue;
         }
-        if (TIGHTDB_LIKELY(v1 < 0x800)) {
-            if (TIGHTDB_UNLIKELY(out_end - out < 2)) {
+        if (REALM_LIKELY(v1 < 0x800)) {
+            if (REALM_UNLIKELY(out_end - out < 2)) {
                 error_code = 2;
                 break; // Not enough output buffer space
             }
@@ -303,8 +303,8 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const 
             in += 1;
             continue;
         }
-        if (TIGHTDB_LIKELY(v1 < 0xD800 || 0xE000 <= v1)) {
-            if (TIGHTDB_UNLIKELY(out_end - out < 3)) {
+        if (REALM_LIKELY(v1 < 0xD800 || 0xE000 <= v1)) {
+            if (REALM_UNLIKELY(out_end - out < 3)) {
                 error_code = 3;
                 break; // Not enough output buffer space
             }
@@ -317,22 +317,22 @@ inline size_t Utf8x16<Char16, Traits16>::to_utf8(const Char16*& in_begin, const 
         }
 
         // Surrogate pair
-        if (TIGHTDB_UNLIKELY(out_end - out < 4)) {
+        if (REALM_UNLIKELY(out_end - out < 4)) {
             error_code = 4;
             break; // Not enough output buffer space
         }
-        if (TIGHTDB_UNLIKELY(0xDC00 <= v1)) {
+        if (REALM_UNLIKELY(0xDC00 <= v1)) {
             error_code = 5;
             invalid = true;
             break; // Invalid first half of surrogate pair
         }
-        if (TIGHTDB_UNLIKELY(in + 1 == in_end)) {
+        if (REALM_UNLIKELY(in + 1 == in_end)) {
             error_code = 6;
             invalid = true;
             break; // Incomplete surrogate pair
         }
         uint_fast16_t v2 = uint_fast16_t(Traits16::to_int_type(in[1]));
-        if (TIGHTDB_UNLIKELY(v2 < 0xDC00 || 0xE000 <= v2)) {
+        if (REALM_UNLIKELY(v2 < 0xDC00 || 0xE000 <= v2)) {
             error_code = 7;
             invalid = true;
             break; // Invalid second half of surrogate pair
@@ -363,33 +363,33 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf8_buf_size(const Char16*& 
     const Char16* in = in_begin;
     while (in != in_end) {
         uint_fast16_t v = uint_fast16_t(Traits16::to_int_type(in[0]));
-        if (TIGHTDB_LIKELY(v < 0x80)) {
-            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 1))) {
+        if (REALM_LIKELY(v < 0x80)) {
+            if (REALM_UNLIKELY(int_add_with_overflow_detect(num_out, 1))) {
                 error_code = 1;
                 break; // Avoid overflow
             }
             in += 1;
         }
-        else if (TIGHTDB_LIKELY(v < 0x800)) {
-            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 2))) {
+        else if (REALM_LIKELY(v < 0x800)) {
+            if (REALM_UNLIKELY(int_add_with_overflow_detect(num_out, 2))) {
                 error_code = 2;
                 break; // Avoid overflow
             }
             in += 1;
         }
-        else if (TIGHTDB_LIKELY(v < 0xD800 || 0xE000 <= v)) {
-            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 3))) {
+        else if (REALM_LIKELY(v < 0xD800 || 0xE000 <= v)) {
+            if (REALM_UNLIKELY(int_add_with_overflow_detect(num_out, 3))) {
                 error_code = 3;
                 break; // Avoid overflow
             }
             in += 1;
         }
         else {
-            if (TIGHTDB_UNLIKELY(in + 1 == in_end)) {
+            if (REALM_UNLIKELY(in + 1 == in_end)) {
                 error_code = 4;
                 break; // Incomplete surrogate pair
             }
-            if (TIGHTDB_UNLIKELY(int_add_with_overflow_detect(num_out, 4))) {
+            if (REALM_UNLIKELY(int_add_with_overflow_detect(num_out, 4))) {
                 error_code = 5;
                 break; // Avoid overflow
             }
@@ -401,6 +401,6 @@ inline std::size_t Utf8x16<Char16, Traits16>::find_utf8_buf_size(const Char16*& 
     return num_out;
 }
 } // namespace util
-} // namespace tightdb
+} // namespace realm
 
-#endif // TIGHTDB_UTIL_UTF8_HPP
+#endif // REALM_UTIL_UTF8_HPP

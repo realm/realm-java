@@ -18,15 +18,15 @@
 
 #include "util.hpp"
 
-#include <tightdb/group_shared.hpp>
-#include <tightdb/replication.hpp>
-#include <tightdb/commit_log.hpp>
+#include <realm/group_shared.hpp>
+#include <realm/replication.hpp>
+#include <realm/commit_log.hpp>
 
 #include "util.hpp"
 #include "io_realm_internal_SharedGroup.h"
 
 using namespace std;
-using namespace tightdb;
+using namespace realm;
 
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
@@ -42,7 +42,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
         file_name = StringData(file_name_tmp);
 
         if (enable_replication) {
-#ifdef TIGHTDB_ENABLE_REPLICATION
+#ifdef REALM_ENABLE_REPLICATION
             ThrowException(env, UnsupportedOperation,
                            "Replication is not currently supported by the Java language binding.");
 //            db = new SharedGroup(SharedGroup::replication_tag(), *file_name_ptr ? file_name_ptr : 0);
@@ -69,7 +69,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
             }
 
             KeyBuffer key(env, keyArray);
-#ifdef TIGHTDB_ENABLE_ENCRYPTION
+#ifdef REALM_ENABLE_ENCRYPTION
             db = new SharedGroup(file_name, no_create!=0, level, key.data());
 #else
             db = new SharedGroup(file_name, no_create!=0, level);
@@ -88,10 +88,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
     TR_ENTER()
     try {
         KeyBuffer key(env, keyArray);
-#ifdef TIGHTDB_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr), SharedGroup::durability_Full, key.data());
+#ifdef REALM_ENABLE_ENCRYPTION
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), SharedGroup::durability_Full, key.data());
 #else
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<tightdb::Replication*>(native_replication_ptr));
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr));
 #endif
 
         return reinterpret_cast<jlong>(db);
@@ -110,12 +110,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
         JStringAccessor file_name_tmp(env, jfile_name); // throws
         file_name = StringData(file_name_tmp);
         KeyBuffer key(env, keyArray);
-#ifdef TIGHTDB_ENABLE_ENCRYPTION
-        Replication* repl = makeWriteLogCollector(file_name, false, key.data());
+#ifdef REALM_ENABLE_ENCRYPTION
+        std::unique_ptr<Replication> repl = makeWriteLogCollector(file_name, false, key.data());
 #else
-        Replication* repl = makeWriteLogCollector(file_name);
+        std::unique_ptr<Replication> repl = makeWriteLogCollector(file_name);
 #endif
-        return reinterpret_cast<jlong>(repl);
+        return reinterpret_cast<jlong>(repl.release());
     }
     CATCH_FILE(file_name)
     CATCH_STD()
@@ -257,7 +257,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultRep
     JNIEnv* env, jclass)
 {
     TR_ENTER()
-#ifdef TIGHTDB_ENABLE_REPLICATION
+#ifdef REALM_ENABLE_REPLICATION
     ThrowException(env, UnsupportedOperation,
                    "Replication is not currently supported by the Java language binding.");
     return 0;
@@ -267,4 +267,16 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultRep
                    "Replication was disable in the native library at compile time");
     return 0;
 #endif
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact(
+    JNIEnv* env, jobject, jlong native_ptr)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        return SG(native_ptr)->compact(); // throws
+    }
+    CATCH_FILE()
+    CATCH_STD()
+    return false;
 }
