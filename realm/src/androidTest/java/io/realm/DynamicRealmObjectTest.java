@@ -22,12 +22,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import io.realm.dynamic.DynamicRealmList;
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllJavaTypes;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
-public class RealmDynamicObjectTests extends AndroidTestCase {
+public class DynamicRealmObjectTest extends AndroidTestCase {
 
     private Realm realm;
     private DynamicRealmObject dObj;
@@ -58,6 +59,7 @@ public class RealmDynamicObjectTests extends AndroidTestCase {
     protected void tearDown() throws Exception {
         super.tearDown();
         realm.close();
+        Realm.setSchema(null);
     }
 
     // Test invalid input: <empty, non-existing field, wrong field type>
@@ -300,9 +302,27 @@ public class RealmDynamicObjectTests extends AndroidTestCase {
         }
     }
 
-    // TODO RealmList test
-    // TODO Equals test
-    // TODO hashcode test
-    // TODO toString test
-    // TOOD getKeys test
+    public void testGetList() {
+        DynamicRealmList list = dObj.getRealmList("columnList");
+        assertEquals(1, list.size());
+        assertEquals(dObj, list.get(0));
+    }
+
+    public void testGetKeys() {
+        String[] keys = dObj.getKeys();
+        fail();
+
+    }
+
+    public void testEquals() {
+        fail();
+    }
+
+    public void testHashcode() {
+        fail();
+    }
+
+    public void testToString() {
+        fail();
+    }
 }

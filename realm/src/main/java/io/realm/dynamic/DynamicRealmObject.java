@@ -119,7 +119,11 @@ public class DynamicRealmObject {
     }
 
     public DynamicRealmList getRealmList(String fieldName) {
-        return null;
+        long columnIndex = row.getColumnIndex(fieldName);
+        checkFieldExists(columnIndex, fieldName);
+        checkColumnType(ColumnType.LINK_LIST, columnIndex, fieldName);
+        checkLinkedField(fieldName);
+        return new DynamicRealmList(row.getLinkList(columnIndex), realm);
     }
 
     public List<String> getFields() {
@@ -138,7 +142,13 @@ public class DynamicRealmObject {
         return row.getColumnIndex(fieldName) != TableOrView.NO_MATCH;
     }
 
-
+    public String[] getKeys() {
+        String[] keys = new String[(int) row.getColumnCount()];
+        for (int i = 0; i < keys.length; i++) {
+            keys[i] = row.getColumnName(i);
+        }
+        return keys;
+    }
 
     private void checkFieldExists(long columnIndex, String fieldName) {
         if (columnIndex == TableOrView.NO_MATCH) {
