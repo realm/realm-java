@@ -725,7 +725,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr
 
 //--------------------- Indexing methods:
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     Table* pTable = TBL(nativeTablePtr);
@@ -740,7 +740,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUnsetIndex(
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     Table* pTable = TBL(nativeTablePtr);
@@ -756,7 +756,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeUnsetIndex(
 }
 
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasIndex(
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))

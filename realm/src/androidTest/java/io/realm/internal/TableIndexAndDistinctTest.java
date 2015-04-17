@@ -142,7 +142,7 @@ public class TableIndexAndDistinctTest extends TestCase {
         return DataProviderUtil.allCombinations(mixedValues);
     }*/
 
-    public void testUnsetIndex() {
+    public void testRemoveSearchIndex() {
         init();
         table.addSearchIndex(1);
         assertEquals(true, table.hasSearchIndex(1));
@@ -151,7 +151,7 @@ public class TableIndexAndDistinctTest extends TestCase {
         assertEquals(false, table.hasSearchIndex(1));
     }
 
-    public void testUnsetIndexNoop() {
+    public void testRemoveSearchIndexNoop() {
         init();
         assertEquals(false, table.hasSearchIndex(1));
 

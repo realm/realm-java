@@ -255,7 +255,7 @@ public class JNITransactions extends AndroidTestCase {
         try { table.setBinaryByteArray(0,0,null);   fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setBoolean(0,0,false);          fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setDate(0,0,new Date(0));       fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.addSearchIndex(0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try { table.addSearchIndex(0);              fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setLong(0,0,0);                 fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setMixed(0,0,null);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.setString(0,0,"");              fail();} catch (IllegalStateException e) {assertNotNull(e);}
