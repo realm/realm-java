@@ -213,7 +213,7 @@ public class AllTypesRealmProxy extends AllTypes {
             if (table.getPrimaryKey() != table.getColumnIndex("columnString")) {
                 throw new IllegalStateException("Primary key not defined for field 'columnString'");
             }
-            if (!table.hasIndex(table.getColumnIndex("columnString"))) {
+            if (!table.hasSearchIndex(table.getColumnIndex("columnString"))) {
                 throw new IllegalStateException("Index not defined for field 'columnString'");
             }
             if (!columnTypes.containsKey("columnLong")) {
