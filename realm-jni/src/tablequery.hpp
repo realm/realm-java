@@ -19,16 +19,16 @@
 
 #include <vector>
 #include <assert.h>
-#include <tightdb.hpp>
+#include <realm.hpp>
 
-class TableQuery : public tightdb::Query {
+class TableQuery : public realm::Query {
     // 'subtables' is used to figure out which subtable the query
     // is currectly working on, so that we can lookup the correct
     // table and verify the parameters related to that table.
     std::vector<size_t> subtables;  // holds subtable column indeces 
 
 public:
-    TableQuery(const Query& copy) : tightdb::Query(copy, tightdb::Query::TCopyExpressionTag{}) {};
+    TableQuery(const Query& copy) : realm::Query(copy, realm::Query::TCopyExpressionTag{}) {};
  
     void push_subtable(size_t index) {
         subtables.push_back(index);
@@ -41,8 +41,8 @@ public:
         return true;
     }
     
-    tightdb::TableRef get_current_table() {
-        tightdb::TableRef table = get_table();
+    realm::TableRef get_current_table() {
+        realm::TableRef table = get_table();
 
         // Go through the stack of subtables to find current subtable (if any)
         size_t size = subtables.size(); 

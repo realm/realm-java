@@ -52,7 +52,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected static int TableCount = 0;
 
     static {
-        TightDB.loadLibrary();
+        RealmCore.loadLibrary();
     }
 
 

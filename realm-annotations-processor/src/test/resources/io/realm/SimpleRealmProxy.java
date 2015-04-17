@@ -119,20 +119,21 @@ public class SimpleRealmProxy extends Simple {
         return columnIndices;
     }
 
-    public static void populateUsingJsonObject(Simple obj, JSONObject json)
+    public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        boolean standalone = obj.realm == null;
+        Simple obj = realm.createObject(Simple.class);
         if (!json.isNull("name")) {
             obj.setName((String) json.getString("name"));
         }
         if (!json.isNull("age")) {
             obj.setAge((int) json.getInt("age"));
         }
+        return obj;
     }
 
-    public static void populateUsingJsonStream(Simple obj, JsonReader reader)
+    public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        boolean standalone = obj.realm == null;
+        Simple obj = realm.createObject(Simple.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -145,9 +146,13 @@ public class SimpleRealmProxy extends Simple {
             }
         }
         reader.endObject();
+        return obj;
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObject> cache) {
+        if (object.realm != null && object.realm.getId() == realm.getId()) {
+            return object;
+        }
         return copy(realm, object, update, cache);
     }
 

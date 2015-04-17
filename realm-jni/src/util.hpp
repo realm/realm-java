@@ -19,6 +19,7 @@
 
 #include <string>
 #include <sstream>
+#include <memory>
 
 #include <jni.h>
 
@@ -26,11 +27,10 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#include <tightdb.hpp>
-#include <tightdb/util/meta.hpp>
-#include <tightdb/util/unique_ptr.hpp>
-#include <tightdb/util/safe_int_ops.hpp>
-#include <tightdb/lang_bind_helper.hpp>
+#include <realm.hpp>
+#include <realm/util/meta.hpp>
+#include <realm/util/safe_int_ops.hpp>
+#include <realm/lang_bind_helper.hpp>
 
 #include "io_realm_internal_Util.h"
 
@@ -94,12 +94,12 @@ std::string num_to_string(T pNumber)
 #define S(x)    static_cast<size_t>(x)
 #define B(x)    static_cast<bool>(x)
 #define S64(x)  static_cast<int64_t>(x)
-#define TBL(x)  reinterpret_cast<tightdb::Table*>(x)
-#define TV(x)   reinterpret_cast<tightdb::TableView*>(x)
-#define LV(x)   reinterpret_cast<tightdb::LinkView*>(x)
-#define Q(x)    reinterpret_cast<tightdb::Query*>(x)
-#define G(x)    reinterpret_cast<tightdb::Group*>(x)
-#define ROW(x)  reinterpret_cast<tightdb::Row*>(x)
+#define TBL(x)  reinterpret_cast<realm::Table*>(x)
+#define TV(x)   reinterpret_cast<realm::TableView*>(x)
+#define LV(x)   reinterpret_cast<realm::LinkView*>(x)
+#define Q(x)    reinterpret_cast<realm::Query*>(x)
+#define G(x)    reinterpret_cast<realm::Group*>(x)
+#define ROW(x)  reinterpret_cast<realm::Row*>(x)
 
 // Exception handling
 
@@ -173,6 +173,7 @@ extern const char *log_tag;
 #define TBL_AND_COL_INDEX_VALID(env,ptr,col)                    TblColIndexValid(env, ptr, col)
 #define COL_INDEX_AND_TYPE_VALID(env,ptr,col,type)              ColIndexAndTypeValid(env, ptr, col, type)
 #define TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     TblColIndexAndTypeValid(env, ptr, col, type)
+#define TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)     TblColIndexAndLinkOrLinkList(env, ptr, col)
 #define INDEX_VALID(env,ptr,col,row)                            IndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_VALID(env,ptr,col,row)                    TblIndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             TblIndexInsertValid(env, ptr, col, row)
@@ -196,6 +197,7 @@ extern const char *log_tag;
 #define TBL_AND_COL_INDEX_VALID(env,ptr,col)                    (true)
 #define COL_INDEX_AND_TYPE_VALID(env,ptr,col,type)              (true)
 #define TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     (true)
+#define TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)     (true)
 #define INDEX_VALID(env,ptr,col,row)                            (true)
 #define TBL_AND_INDEX_VALID(env,ptr,col,row)                    (true)
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             (true)
@@ -212,7 +214,7 @@ extern const char *log_tag;
 
 
 inline jlong to_jlong_or_not_found(size_t res) {
-    return (res == tightdb::not_found) ? jlong(-1) : jlong(res);
+    return (res == realm::not_found) ? jlong(-1) : jlong(res);
 }
 
 template <class T>
@@ -221,7 +223,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     bool valid = (objPtr != NULL);
     if (valid) {
         // Check if Table is valid
-        if (tightdb::util::SameType<tightdb::Table, T>::value) {
+        if (realm::util::SameType<realm::Table, T>::value) {
             valid = TBL(objPtr)->is_attached();
         }
         // TODO: Add check for TableView
@@ -256,13 +258,13 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
         ThrowException(env, IndexOutOfBounds, "startIndex < 0.");
         return false;
     }
-    if (tightdb::util::int_greater_than(startIndex, maxIndex)) {
+    if (realm::util::int_greater_than(startIndex, maxIndex)) {
         TR_ERR("startIndex %" PRId64 " > %" PRId64 " - invalid!", S64(startIndex), S64(maxIndex))
         ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
         return false;
     }
 
-    if (tightdb::util::int_greater_than(endIndex, maxIndex)) {
+    if (realm::util::int_greater_than(endIndex, maxIndex)) {
         TR_ERR("endIndex %" PRId64 " > %" PRId64 " - invalid!", S64(endIndex), S64(maxIndex))
         ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
         return false;
@@ -292,7 +294,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=fa
     size_t size = pTable->size();
     if (size > 0 && offset)
         size -= 1;
-    bool rowErr = tightdb::util::int_greater_than_or_equal(rowIndex, size);
+    bool rowErr = realm::util::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
         TR_ERR("rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(size))
         ThrowException(env, IndexOutOfBounds,
@@ -305,7 +307,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=fa
 template <class T>
 inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
-    if (tightdb::util::SameType<tightdb::Table, T>::value) {
+    if (realm::util::SameType<realm::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
@@ -319,7 +321,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
         ThrowException(env, IndexOutOfBounds, "columnIndex is less than 0.");
         return false;
     }
-    bool colErr = tightdb::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
+    bool colErr = realm::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
         TR_ERR("columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()))
         ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
@@ -330,7 +332,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 template <class T>
 inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
-    if (tightdb::util::SameType<tightdb::Table, T>::value) {
+    if (realm::util::SameType<realm::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
@@ -361,7 +363,7 @@ inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong
 {
     if (!TblColIndexValid(env, pTable, columnIndex))
         return false;
-    bool rowErr = tightdb::util::int_greater_than(rowIndex, pTable->size()+1);
+    bool rowErr = realm::util::int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
         TR_ERR("rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(pTable->size()))
         ThrowException(env, IndexOutOfBounds,
@@ -377,7 +379,7 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex,
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
     if (allowMixed) {
-        if (colType == tightdb::type_Mixed) {
+        if (colType == realm::type_Mixed) {
             size_t row = static_cast<size_t>(rowIndex);
             colType = pTable->get_mixed_type(col, row);
         }
@@ -391,6 +393,20 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex,
 }
 
 template <class T>
+inline bool TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
+{
+    size_t col = static_cast<size_t>(columnIndex);
+    int colType = pTable->get_column_type(col);
+    if (colType == type_Link || colType == type_LinkList) {
+        return true;
+    }
+
+    TR_ERR("Expected columnType %d or %d, but got %d", type_Link, type_LinkList, colType)
+    ThrowException(env, IllegalArgument, "ColumnType invalid: expected type_Link or type_LinkList");
+    return false;
+}
+
+template <class T>
 inline bool ColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
     return ColIndexValid(env, pTable, columnIndex)
@@ -401,6 +417,12 @@ inline bool TblColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, i
 {
     return TableIsValid(env, pTable)
         && ColIndexAndTypeValid(env, pTable, columnIndex, expectColType);
+}
+
+template <class T>
+inline bool TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnIndex) {
+    return TableIsValid(env, pTable)
+        && TypeIsLinkLike(env, pTable, columnIndex);
 }
 
 inline bool RowColIndexAndTypeValid(JNIEnv* env, Row* pRow, jlong columnIndex, int expectColType)
@@ -419,8 +441,7 @@ inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong r
 template <class T>
 inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
 {
-    return TableIsValid(env, pTable)
-        && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
+    return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
 }
 
 
@@ -431,7 +452,7 @@ inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex
         && TypeValid(env, pTable, columnIndex, rowIndex, expectColType, false);
 }
 
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, tightdb::BinaryData& data);
+bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& data);
 
 
 // Utility function for appending StringData, which is returned
@@ -444,24 +465,24 @@ std::string concat_stringdata(const char *message, StringData data);
 // UTF-8 where U+0000 is stored as 0xC0 0x80 instead of 0x00 and
 // where a character in the range U+10000 to U+10FFFF is stored as
 // two consecutive UTF-8 encodings of the corresponding UTF-16
-// surrogate pair. Because TightDB uses proper UTF-8, we need to
+// surrogate pair. Because Realm uses proper UTF-8, we need to
 // do the transcoding ourselves.
 //
 // See also http://en.wikipedia.org/wiki/UTF-8#Modified_UTF-8
 
-jstring to_jstring(JNIEnv*, tightdb::StringData);
+jstring to_jstring(JNIEnv*, realm::StringData);
 
 class JStringAccessor {
 public:
     JStringAccessor(JNIEnv*, jstring);  // throws
 
-    operator tightdb::StringData() const TIGHTDB_NOEXCEPT
+    operator realm::StringData() const REALM_NOEXCEPT
     {
-        return tightdb::StringData(m_data.get(), m_size);
+        return realm::StringData(m_data.get(), m_size);
     }
 
 private:
-    tightdb::util::UniquePtr<char[]> m_data;
+    std::unique_ptr<char[]> m_data;
     std::size_t m_size;
 };
 
@@ -472,7 +493,7 @@ public:
     , m_array(arr)
     , m_ptr(0)
     {
-#ifdef TIGHTDB_ENABLE_ENCRYPTION
+#ifdef REALM_ENABLE_ENCRYPTION
         if (arr) {
             if (env->GetArrayLength(m_array) != 64)
                 ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 64 bytes.");

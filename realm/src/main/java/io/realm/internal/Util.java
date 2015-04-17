@@ -21,7 +21,7 @@ import java.util.Scanner;
 public class Util {
 
     static {
-        TightDB.loadLibrary();
+        RealmCore.loadLibrary();
     }
 
     public static long getNativeMemUsage() {

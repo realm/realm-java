@@ -17,7 +17,7 @@
 #include "util.hpp"
 #include "io_realm_internal_SubtableSchema.h"
 
-using namespace tightdb;
+using namespace realm;
 using namespace std;
 
 void arrayToVector(JNIEnv* env, jlongArray path, vector<size_t>& nativePath)

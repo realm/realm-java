@@ -18,14 +18,16 @@
 #include "io_realm_internal_TableQuery.h"
 #include "tablequery.hpp"
 
-using namespace tightdb;
+using namespace realm;
 
 #if 1
 #define COL_TYPE_VALID(env,ptr,col, type)           TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)
+#define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  query_col_type_valid(env, jPtr, col, type)
 #define QUERY_VALID(env, pQuery)                    query_valid(env, pQuery)
 #else
 #define COL_TYPE_VALID(env,ptr,col, type)           (true)
+#define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      (true)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  (true)
 #define QUERY_VALID(env, pQuery)                    (true)
 #endif
@@ -1156,4 +1158,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove(
         return pQuery->remove(S(start), S(end), S(limit));
     } CATCH_STD()
     return 0;
+}
+
+// isNull and isNotNull
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
+    JNIEnv *env, jobject, jlong nativeQueryPtr, jlong columnIndex)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    try {
+        Table* pTable = pQuery->get_table().get();
+        if (!COL_TYPE_LINK_OR_LINKLIST(env, pTable, columnIndex))
+            return;
+        Query query = pTable->column<Link>(S(columnIndex)).is_null();
+        pQuery->and_query(query);
+    } CATCH_STD()
 }

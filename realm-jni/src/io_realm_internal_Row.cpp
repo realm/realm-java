@@ -19,7 +19,7 @@
 #include "mixedutil.hpp"
 #include "tablebase_tpl.hpp"
 
-using namespace tightdb;
+using namespace realm;
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Row_nativeGetColumnCount
   (JNIEnv *, jobject, jlong nativeRowPtr)

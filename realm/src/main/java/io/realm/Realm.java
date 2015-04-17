@@ -24,8 +24,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonReader;
-import android.util.Log;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,8 +45,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -675,9 +675,8 @@ public final class Realm implements Closeable {
         }
 
         for (int i = 0; i < json.length(); i++) {
-            E obj = createObject(clazz);
             try {
-                realmJson.populateUsingJsonObject(obj, json.getJSONObject(i));
+                realmJson.createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), false);
             } catch (Exception e) {
                 throw new RealmException("Could not map Json", e);
             }
@@ -700,12 +699,9 @@ public final class Realm implements Closeable {
             return;
         }
         checkHasPrimaryKey(clazz);
-
         for (int i = 0; i < json.length(); i++) {
-            E obj = createStandaloneRealmObjectInstance(clazz);
             try {
-                realmJson.populateUsingJsonObject(obj, json.getJSONObject(i));
-                copyToRealmOrUpdate(obj);
+                realmJson.createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
             } catch (Exception e) {
                 throw new RealmException("Could not map Json", e);
             }
@@ -786,8 +782,7 @@ public final class Realm implements Closeable {
         try {
             reader.beginArray();
             while (reader.hasNext()) {
-                E obj = createObject(clazz);
-                realmJson.populateUsingJsonStream(obj, reader);
+                realmJson.createUsingJsonStream(clazz, this, reader);
             }
             reader.endArray();
         } finally {
@@ -813,17 +808,21 @@ public final class Realm implements Closeable {
         }
         checkHasPrimaryKey(clazz);
 
-        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+        // As we need the primary key value we have to first parse the entire input stream as in the general
+        // case that value might be the last property :(
+        Scanner scanner = null;
         try {
-            reader.beginArray();
-            while (reader.hasNext()) {
-                E obj = createStandaloneRealmObjectInstance(clazz);
-                realmJson.populateUsingJsonStream(obj, reader);
-                copyToRealmOrUpdate(obj);
+            scanner = getFullStringScanner(in);
+            JSONArray json = new JSONArray(scanner.next());
+            for (int i = 0; i < json.length(); i++) {
+                realmJson.createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
             }
-            reader.endArray();
+        } catch (JSONException e) {
+            throw new RealmException("Failed to read JSON", e);
         } finally {
-            reader.close();
+            if (scanner != null) {
+                scanner.close();
+            }
         }
     }
 
@@ -844,14 +843,11 @@ public final class Realm implements Closeable {
             return null;
         }
 
-        E obj = createObject(clazz);
         try {
-            realmJson.populateUsingJsonObject(obj, json);
+            return realmJson.createOrUpdateUsingJsonObject(clazz, this, json, false);
         } catch (Exception e) {
             throw new RealmException("Could not map Json", e);
         }
-
-        return obj;
     }
 
     /**
@@ -870,17 +866,11 @@ public final class Realm implements Closeable {
             return null;
         }
         checkHasPrimaryKey(clazz);
-
-        E obj = createStandaloneRealmObjectInstance(clazz);
-
         try {
-            realmJson.populateUsingJsonObject(obj, json);
-            copyToRealmOrUpdate(obj);
+            return realmJson.createOrUpdateUsingJsonObject(clazz, this, json, true);
         } catch (JSONException e) {
             throw new RealmException("Could not map Json", e);
         }
-
-        return obj;
     }
 
     /**
@@ -957,9 +947,7 @@ public final class Realm implements Closeable {
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
         try {
-            E obj = createObject(clazz);
-            realmJson.populateUsingJsonStream(obj, reader);
-            return obj;
+            return realmJson.createUsingJsonStream(clazz, this, reader);
         } finally {
             reader.close();
         }
@@ -983,26 +971,24 @@ public final class Realm implements Closeable {
         }
         checkHasPrimaryKey(clazz);
 
-        E obj = createStandaloneRealmObjectInstance(clazz);
-        JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+        // As we need the primary key value we have to first parse the entire input stream as in the general
+        // case that value might be the last property :(
+        Scanner scanner = null;
         try {
-            realmJson.populateUsingJsonStream(obj, reader);
-            copyToRealmOrUpdate(obj);
-        } catch (RuntimeException e) {
-            throw new RealmException("Could not create Json object from string", e);
+            scanner = getFullStringScanner(in);
+            JSONObject json = new JSONObject(scanner.next());
+            return realmJson.createOrUpdateUsingJsonObject(clazz, this, json, true);
+        } catch (JSONException e) {
+            throw new RealmException("Failed to read JSON", e);
+        } finally {
+            if (scanner != null) {
+                scanner.close();
+            }
         }
-
-        return obj;
     }
 
-    private <E extends RealmObject> E createStandaloneRealmObjectInstance(Class<E> clazz) {
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException e) {
-            throw new RealmException("Could not create an object of class: " + clazz, e);
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not create an object of class: " + clazz, e);
-        }
+    private Scanner getFullStringScanner(InputStream in) {
+        return new Scanner(in, "UTF-8").useDelimiter("\\A");
     }
 
     /**
@@ -1187,10 +1173,6 @@ public final class Realm implements Closeable {
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
-        if (isObjectInRealm(object)) {
-            return object;
-        }
-
         return copyOrUpdate(object, false);
     }
 
@@ -1207,10 +1189,6 @@ public final class Realm implements Closeable {
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object);
-        if (isObjectInRealm(object)) {
-            return object;
-        }
-
         return copyOrUpdate(object, true);
     }
 
@@ -1623,10 +1601,6 @@ public final class Realm implements Closeable {
         }
     }
 
-    private <E extends RealmObject> boolean isObjectInRealm(E object) {
-        return (object.realm != null && object.realm.id == this.id);
-    }
-
     private <E extends RealmObject> void checkNotNullObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
@@ -1684,7 +1658,7 @@ public final class Realm implements Closeable {
 
     /**
      * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
-     * The realm must be unused and closed before calling this method.
+     * The Realm must be unused and closed before calling this method.
      * WARNING: Your Realm must not be open (typically when your app launch).
      *
      * @param context an Android {@link android.content.Context}.
@@ -1697,32 +1671,46 @@ public final class Realm implements Closeable {
 
     /**
      * Delete the Realm file from the filesystem for a custom named Realm.
-     * The realm must be unused and closed before calling this method.
+     * The Realm must be unused and closed before calling this method.
      *
      * @param context  an Android {@link android.content.Context}.
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static synchronized boolean deleteRealmFile(Context context, String fileName) {
+    public static boolean deleteRealmFile(Context context, String fileName) {
+        return deleteRealmFile(new File(context.getFilesDir(), fileName));
+    }
+
+    /**
+     * Delete the Realm file from the filesystem for a custom named Realm.
+     * The Realm must be unused and closed before calling this method.
+     *
+     * @param realmFile The reference to the Realm file.
+     * @return false if a file could not be deleted. The failing file will be logged.
+     */
+    public static synchronized boolean deleteRealmFile(File realmFile) {
         boolean result = true;
-        File writableFolder = context.getFilesDir();
+        File realmFolder = realmFile.getParentFile();
+        String fileName = realmFile.getName();
 
-        File realmFile = new File(writableFolder, fileName);
         int realmId = realmFile.getAbsolutePath().hashCode();
-
         AtomicInteger counter = openRealms.get(realmId);
         if (counter != null && counter.get() > 0) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
         }
 
-        List<File> filesToDelete = Arrays.asList(realmFile, new File(writableFolder, fileName + ".lock"));
+        List<File> filesToDelete = Arrays.asList(realmFile,
+                new File(realmFolder, fileName + ".lock"),
+                new File(realmFolder, fileName + ".lock_a"),
+                new File(realmFolder, fileName + ".lock_b"),
+                new File(realmFolder, fileName + ".log"));
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
                 if (!deleteResult) {
                     result = false;
-                    Log.w(TAG, "Could not delete the file " + fileToDelete);
+                    RealmLog.w("Could not delete the file " + fileToDelete);
                 }
             }
         }
@@ -1730,64 +1718,86 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Compact a realm file. A realm file usually contain free/unused space.
+     * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
+     * Objects within the Realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
      * The realm file is left untouched if any file operation fails.<br>
+     * Currently it is not possible to compact an encrypted Realm.<br>
+     *
+     * @param context an Android {@link android.content.Context}
+     * @param fileName the name of the file to compact
+     * @param key Key for opening an encrypted Realm.
+     * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
+     */
+    public static synchronized boolean compactRealmFile(Context context, String fileName, byte[] key) {
+        if (key != null) {
+            throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
+        }
+
+        File realmFile = new File(context.getFilesDir(), fileName);
+        String path = realmFile.getAbsolutePath();
+        if (openRealms.get(path.hashCode()).get() > 0) {
+            throw new IllegalStateException("Cannot compact an open Realm");
+        }
+        SharedGroup sharedGroup = null;
+        boolean result = false;
+        try {
+            sharedGroup = new SharedGroup(path, false, key);
+            result = sharedGroup.compact();
+        } finally {
+            if (sharedGroup != null) {
+                sharedGroup.close();
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Compact a Realm file. A Realm file usually contain free/unused space.
+     * This method removes this free space and the file size is thereby reduced.
+     * Objects within the Realm files are untouched.
+     * <p>
+     * The file must be closed before this method is called.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
+     *
+     * @param context an Android {@link android.content.Context}
+     * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
+     */
+    public static boolean compactRealmFile(Context context) {
+        return compactRealmFile(context, DEFAULT_REALM_NAME, null);
+    }
+
+    /**
+     * Compact a Realm file. A Realm file usually contain free/unused space.
+     * This method removes this free space and the file size is thereby reduced.
+     * Objects within the Realm files are untouched.
+     * <p>
+     * The file must be closed before this method is called.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
      * @return true if successful, false if any file operation failed
+     *
+     * @throws IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName) {
-        File realmFile = new File(context.getFilesDir(), fileName);
-        File tmpFile = new File(
-                context.getFilesDir(),
-                String.valueOf(System.currentTimeMillis()) + UUID.randomUUID() + ".realm");
-
-        Realm realm = null;
-        try {
-            realm = Realm.getInstance(context, fileName);
-            realm.writeCopyTo(tmpFile);
-            if (!realmFile.delete()) {
-                return false;
-            }
-            if (!tmpFile.renameTo(realmFile)) {
-                return false;
-            }
-        } catch (IOException e) {
-            return false;
-        } finally {
-            if (realm != null) {
-                realm.close();
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Compact a realm file. A realm file usually contain free/unused space.
-     * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
-     * <p>
-     * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
-     * The realm file is left untouched if any file operation fails.<br>
-     *
-     * @param context an Android {@link android.content.Context}
-     * @return true if successful, false if any file operation failed
-     */
-    public static boolean compactRealmFile(Context context) {
-        return compactRealmFile(context, DEFAULT_REALM_NAME);
+        return compactRealmFile(context, fileName, null);
     }
 
     /**
      * Returns the absolute path to where this Realm is persisted on disk.
      *
-     * @return The absolute path to the realm file.
+     * @return The absolute path to the Realm file.
      */
     public String getPath() {
         return path;
