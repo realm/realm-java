@@ -1672,8 +1672,8 @@ public final class Realm implements Closeable {
         File realmFolder = realmFile.getParentFile();
         String fileName = realmFile.getName();
 
-        String realmId = realmFile.getAbsolutePath();
-        AtomicInteger counter = openRealms.get(realmId);
+        String realmAbsolutePath = realmFile.getAbsolutePath();
+        AtomicInteger counter = openRealms.get(realmAbsolutePath);
         if (counter != null && counter.get() > 0) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
