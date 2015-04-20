@@ -406,7 +406,7 @@ public class AllTypesRealmProxy extends AllTypes {
     }
 
     public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update, Map<RealmObject,RealmObject> cache) {
-        if (object.realm != null && object.realm.getId().equals(realm.getId())) {
+        if (object.realm != null && object.realm.getAbsolutePath().equals(realm.getAbsolutePath())) {
             return object;
         }
         AllTypes realmObject = null;
@@ -552,7 +552,7 @@ public class AllTypesRealmProxy extends AllTypes {
 
     @Override
     public int hashCode() {
-        String realmName = realm.getPath();
+        String realmName = realm.getAbsolutePath();
         String tableName = row.getTable().getName();
         long rowIndex = row.getIndex();
 
@@ -569,8 +569,8 @@ public class AllTypesRealmProxy extends AllTypes {
         if (o == null || getClass() != o.getClass()) return false;
         AllTypesRealmProxy aAllTypes = (AllTypesRealmProxy)o;
 
-        String path = realm.getPath();
-        String otherPath = aAllTypes.realm.getPath();
+        String path = realm.getAbsolutePath();
+        String otherPath = aAllTypes.realm.getAbsolutePath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
 
         String tableName = row.getTable().getName();

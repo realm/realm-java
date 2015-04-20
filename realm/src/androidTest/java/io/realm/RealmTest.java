@@ -17,12 +17,9 @@ package io.realm;
 
 import android.content.Context;
 import android.test.AndroidTestCase;
-import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -1499,7 +1496,7 @@ public class RealmTest extends AndroidTestCase {
             } finally {
                 if (reEncryptedRealm != null) {
                     reEncryptedRealm.close();
-                    boolean isDeleted = new File(reEncryptedRealm.getPath()).delete();
+                    boolean isDeleted = new File(reEncryptedRealm.getAbsolutePath()).delete();
                     if (!isDeleted) {
                         fail();
                     }
@@ -1520,7 +1517,7 @@ public class RealmTest extends AndroidTestCase {
             } finally {
                 if (decryptedRealm != null) {
                     decryptedRealm.close();
-                    boolean isDeleted = new File(decryptedRealm.getPath()).delete();
+                    boolean isDeleted = new File(decryptedRealm.getAbsolutePath()).delete();
                     if (!isDeleted) {
                         fail();
                     }
@@ -1529,7 +1526,7 @@ public class RealmTest extends AndroidTestCase {
         } finally {
             if (encryptedRealm != null) {
                 encryptedRealm.close();
-                boolean isDeleted = new File(encryptedRealm.getPath()).delete();
+                boolean isDeleted = new File(encryptedRealm.getAbsolutePath()).delete();
                 if (!isDeleted) {
                     fail();
                 }

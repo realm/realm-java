@@ -294,7 +294,7 @@ public class NotificationsTest extends AndroidTestCase {
         Realm.deleteRealmFile(getContext(), "private-realm");
         Realm instance1 = Realm.getInstance(getContext(), "private-realm");
         Realm instance2 = Realm.getInstance(getContext(), "private-realm");
-        assertEquals(instance1.getId(), instance2.getId());
+        assertEquals(instance1.getAbsolutePath(), instance2.getAbsolutePath());
         assertNotNull(instance1.getHandler());
 
         // If multiple instances are open on the same thread, don't remove handler on that thread

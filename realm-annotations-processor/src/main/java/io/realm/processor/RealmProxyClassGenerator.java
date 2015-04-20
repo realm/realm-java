@@ -508,7 +508,7 @@ public class RealmProxyClassGenerator {
 
         // If object is already in the Realm there is nothing to update
         writer
-            .beginControlFlow("if (object.realm != null && object.realm.getId().equals(realm.getId()))")
+            .beginControlFlow("if (object.realm != null && object.realm.getAbsolutePath().equals(realm.getAbsolutePath()))")
                 .emitStatement("return object")
             .endControlFlow();
 
@@ -732,7 +732,7 @@ public class RealmProxyClassGenerator {
     private void emitHashcodeMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC));
-        writer.emitStatement("String realmName = realm.getPath()");
+        writer.emitStatement("String realmName = realm.getAbsolutePath()");
         writer.emitStatement("String tableName = row.getTable().getName()");
         writer.emitStatement("long rowIndex = row.getIndex()");
         writer.emitEmptyLine();
@@ -753,8 +753,8 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("if (o == null || getClass() != o.getClass()) return false");
         writer.emitStatement("%s a%s = (%s)o", proxyClassName, className, proxyClassName);  // FooRealmProxy aFoo = (FooRealmProxy)o
         writer.emitEmptyLine();
-        writer.emitStatement("String path = realm.getPath()");
-        writer.emitStatement("String otherPath = a%s.realm.getPath()", className);
+        writer.emitStatement("String path = realm.getAbsolutePath()");
+        writer.emitStatement("String otherPath = a%s.realm.getAbsolutePath()", className);
         writer.emitStatement("if (path != null ? !path.equals(otherPath) : otherPath != null) return false;");
         writer.emitEmptyLine();
         writer.emitStatement("String tableName = row.getTable().getName()");

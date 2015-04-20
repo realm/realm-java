@@ -25,7 +25,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.JsonReader;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -157,8 +156,7 @@ public final class Realm implements Closeable {
     private Handler handler;
 
     private final byte[] key;
-    private final String id;
-    private final String path;
+    private final String absolutePath;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
     private final RealmJson realmJson = getRealmJson();
@@ -189,7 +187,7 @@ public final class Realm implements Closeable {
         }
 
         // Check if we are in the right thread
-        Realm currentRealm = realmsCache.get().get(this.id);
+        Realm currentRealm = realmsCache.get().get(absolutePath);
         if (currentRealm != this) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
@@ -202,9 +200,8 @@ public final class Realm implements Closeable {
         }
         this.sharedGroup = new SharedGroup(absolutePath, true, key);
         this.transaction = sharedGroup.beginImplicitTransaction();
-        this.path = absolutePath;
+        this.absolutePath = absolutePath;
         this.key = key;
-        this.id = absolutePath;
         setAutoRefresh(autoRefresh);
     }
 
@@ -212,7 +209,7 @@ public final class Realm implements Closeable {
     protected void finalize() throws Throwable {
         if (sharedGroup != null) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
-                            "Realm " + path + " is being finalized without being closed, " +
+                            "Realm " + absolutePath + " is being finalized without being closed, " +
                             "this can lead to running out of native memory."
             );
         }
@@ -228,23 +225,23 @@ public final class Realm implements Closeable {
     @Override
     public void close() {
         Map<String, Integer> localRefCount = referenceCount.get();
-        Integer references = localRefCount.get(id);
+        Integer references = localRefCount.get(absolutePath);
         if (references == null) {
             references = 0;
         }
         if (sharedGroup != null && references == 1) {
-            realmsCache.get().remove(id);
+            realmsCache.get().remove(absolutePath);
             sharedGroup.close();
             sharedGroup = null;
-            AtomicInteger counter = openRealms.get(id);
+            AtomicInteger counter = openRealms.get(absolutePath);
             counter.decrementAndGet();
         }
 
         int refCount = references - 1;
         if (refCount < 0) {
-            RealmLog.w("Calling close() on a Realm that is already closed: " + getPath());
+            RealmLog.w("Calling close() on a Realm that is already closed: " + getAbsolutePath());
         }
-        localRefCount.put(id, Math.max(0, refCount));
+        localRefCount.put(absolutePath, Math.max(0, refCount));
 
         if (handler != null && refCount <= 0) {
             removeHandler(handler);
@@ -310,7 +307,7 @@ public final class Realm implements Closeable {
 
         if (autoRefresh && !this.autoRefresh) { // Switch it on
             handler = new Handler(new RealmCallback());
-            handlers.put(handler, id);
+            handlers.put(handler, absolutePath);
         } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
             removeHandler(handler);
         }
@@ -1469,9 +1466,9 @@ public final class Realm implements Closeable {
 
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();
-            String realmId = handlerIntegerEntry.getValue();
+            String realmPath = handlerIntegerEntry.getValue();
             if (
-                    realmId.equals(id)                           // It's the right realm
+                    realmPath.equals(absolutePath)                       // It's the right realm
                     && !handler.hasMessages(REALM_CHANGED)       // The right message
                     && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     && !handler.equals(this.handler)             // Don't notify yourself
@@ -1532,14 +1529,10 @@ public final class Realm implements Closeable {
         getTable(classSpec).clear();
     }
 
-    String getId() {
-        return id;
-    }
-
     // Returns the Handler for this Realm on the calling thread
     Handler getHandler() {
         for (Map.Entry<Handler, String> entry : handlers.entrySet()) {
-            if (entry.getValue().equals(id)) {
+            if (entry.getValue().equals(absolutePath)) {
                 return entry.getKey();
             }
         }
@@ -1781,14 +1774,23 @@ public final class Realm implements Closeable {
     }
 
     /**
+     * Use {@link #getAbsolutePath()} instead.
+     *
+     * @return The absolute path to the Realm file.
+     */
+    @Deprecated
+    public String getPath() {
+        return absolutePath;
+    }
+
+    /**
      * Returns the absolute path to where this Realm is persisted on disk.
      *
      * @return The absolute path to the Realm file.
      */
-    public String getPath() {
-        return path;
+    public String getAbsolutePath() {
+        return absolutePath;
     }
-
 
     /**
      * Override the standard behavior of all classes extended RealmObject being part of the schema.
