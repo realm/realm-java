@@ -17,7 +17,7 @@ allprojects {
   apply plugin: 'android-sdk-manager'
 
   group = 'io.realm'
-  version = new File("${rootDir}/version.txt").text
+  version = new File("${rootDir}/version.txt").text.replaceAll("\\r|\\n","")
 
   repositories {
     jcenter()

@@ -10,7 +10,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = new File("${projectDir}/../version.txt").text
+version = new File("${projectDir}/../version.txt").text.replaceAll("\\r|\\n","")
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
 
