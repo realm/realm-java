@@ -406,7 +406,7 @@ public class AllTypesRealmProxy extends AllTypes {
     }
 
     public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update, Map<RealmObject,RealmObject> cache) {
-        if (object.realm != null && object.realm.getId() == realm.getId()) {
+        if (object.realm != null && object.realm.getId().equals(realm.getId())) {
             return object;
         }
         AllTypes realmObject = null;

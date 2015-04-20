@@ -17,9 +17,12 @@ package io.realm;
 
 import android.content.Context;
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -168,8 +171,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    // TODO Disabled due to the build phone keep crashing on this. It might be related to https://github.com/realm/realm-java/issues/1008
-    public void DISABLEtestGetInstanceClearsCacheWhenFailed() {
+    public void testGetInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
         Random random = new Random();
@@ -187,6 +189,13 @@ public class RealmTest extends AndroidTestCase {
             Realm.getInstance(getContext(), REALM_NAME, key);
             realm.close();
         }
+    }
+
+    public void testInstanceIdForHashCollision() {
+        // Ea.hashCode() == FB.hashCode()
+        Realm r1 = Realm.getInstance(getContext(), "Ea");
+        Realm r2 = Realm.getInstance(getContext(), "FB");
+        assertNotSame(r1, r2);
     }
 
     public void testRealmCache() {

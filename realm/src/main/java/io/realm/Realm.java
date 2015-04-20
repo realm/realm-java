@@ -124,27 +124,26 @@ public final class Realm implements Closeable {
 
     private static final String TAG = "REALM";
     private static final String TABLE_PREFIX = "class_";
-    protected static final ThreadLocal<Map<Integer, Realm>> realmsCache = new ThreadLocal<Map<Integer, Realm>>() {
+    protected static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
         @SuppressLint("UseSparseArrays")
         @Override
-        protected Map<Integer, Realm> initialValue() {
-            return new HashMap<Integer, Realm>(); // On Android we could use SparseArray<Realm> which is faster,
+        protected Map<String, Realm> initialValue() {
+            return new HashMap<String, Realm>(); // On Android we could use SparseArray<Realm> which is faster,
                                                   // but incompatible with Java
         }
     };
-    private static final ThreadLocal<Map<Integer, Integer>> referenceCount
-            = new ThreadLocal<Map<Integer,Integer>>() {
+    private static final ThreadLocal<Map<String, Integer>> referenceCount = new ThreadLocal<Map<String,Integer>>() {
         @SuppressLint("UseSparseArrays")
         @Override
-        protected Map<Integer, Integer> initialValue() {
-            return new HashMap<Integer, Integer>();
+        protected Map<String, Integer> initialValue() {
+            return new HashMap<String, Integer>();
         }
     };
     private static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
-    protected static final Map<Handler, Integer> handlers = new ConcurrentHashMap<Handler, Integer>();
+    protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
     // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
-    private static final Map<Integer, AtomicInteger> openRealms = new ConcurrentHashMap<Integer, AtomicInteger>();
+    private static final Map<String, AtomicInteger> openRealms = new ConcurrentHashMap<String, AtomicInteger>();
     private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
@@ -158,7 +157,7 @@ public final class Realm implements Closeable {
     private Handler handler;
 
     private final byte[] key;
-    private final int id;
+    private final String id;
     private final String path;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
@@ -205,7 +204,7 @@ public final class Realm implements Closeable {
         this.transaction = sharedGroup.beginImplicitTransaction();
         this.path = absolutePath;
         this.key = key;
-        this.id = absolutePath.hashCode();
+        this.id = absolutePath;
         setAutoRefresh(autoRefresh);
     }
 
@@ -228,7 +227,7 @@ public final class Realm implements Closeable {
      */
     @Override
     public void close() {
-        Map<Integer, Integer> localRefCount = referenceCount.get();
+        Map<String, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
         if (references == null) {
             references = 0;
@@ -492,14 +491,14 @@ public final class Realm implements Closeable {
     private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema,
                                                         boolean autoRefresh) {
         // Check thread local cache for existing Realm
-        int id = absolutePath.hashCode();
-        Map<Integer, Integer> localRefCount = referenceCount.get();
+        String id = absolutePath;
+        Map<String, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
         if (references == null) {
             references = 0;
         }
-        Map<Integer, Realm> realms = realmsCache.get();
-        Realm realm = realms.get(absolutePath.hashCode());
+        Map<String, Realm> realms = realmsCache.get();
+        Realm realm = realms.get(id);
         if (realm != null) {
             if (!Arrays.equals(realm.key, key)) {
                 throw new IllegalStateException(DIFFERENT_KEY_MESSAGE);
@@ -511,7 +510,7 @@ public final class Realm implements Closeable {
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise
         // we risk serving faulty cache data.
         realm = new Realm(absolutePath, key, autoRefresh);
-        realms.put(absolutePath.hashCode(), realm);
+        realms.put(id, realm);
         realmsCache.set(realms);
         localRefCount.put(id, references + 1);
 
@@ -1468,11 +1467,11 @@ public final class Realm implements Closeable {
         checkIfValid();
         transaction.commitAndContinueAsRead();
 
-        for (Map.Entry<Handler, Integer> handlerIntegerEntry : handlers.entrySet()) {
+        for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();
-            int realmId = handlerIntegerEntry.getValue();
+            String realmId = handlerIntegerEntry.getValue();
             if (
-                    realmId == id                                // It's the right realm
+                    realmId.equals(id)                           // It's the right realm
                     && !handler.hasMessages(REALM_CHANGED)       // The right message
                     && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     && !handler.equals(this.handler)             // Don't notify yourself
@@ -1533,14 +1532,14 @@ public final class Realm implements Closeable {
         getTable(classSpec).clear();
     }
 
-    int getId() {
+    String getId() {
         return id;
     }
 
     // Returns the Handler for this Realm on the calling thread
     Handler getHandler() {
-        for (Map.Entry<Handler, Integer> entry : handlers.entrySet()) {
-            if (entry.getValue() == id) {
+        for (Map.Entry<Handler, String> entry : handlers.entrySet()) {
+            if (entry.getValue().equals(id)) {
                 return entry.getKey();
             }
         }
@@ -1680,7 +1679,7 @@ public final class Realm implements Closeable {
         File realmFolder = realmFile.getParentFile();
         String fileName = realmFile.getName();
 
-        int realmId = realmFile.getAbsolutePath().hashCode();
+        String realmId = realmFile.getAbsolutePath();
         AtomicInteger counter = openRealms.get(realmId);
         if (counter != null && counter.get() > 0) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
@@ -1728,7 +1727,7 @@ public final class Realm implements Closeable {
 
         File realmFile = new File(context.getFilesDir(), fileName);
         String path = realmFile.getAbsolutePath();
-        if (openRealms.get(path.hashCode()).get() > 0) {
+        if (openRealms.get(path).get() > 0) {
             throw new IllegalStateException("Cannot compact an open Realm");
         }
         SharedGroup sharedGroup = null;
