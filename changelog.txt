@@ -1,4 +1,4 @@
-0.80
+0.81
  * Fixed bug where creating a Realm instance with a hashcode collision no longer returned the wrong Realm instance.
 
 0.80.1
