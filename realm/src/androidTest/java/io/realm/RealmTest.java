@@ -1179,6 +1179,15 @@ public class RealmTest extends AndroidTestCase {
         fail();
     }
 
+    public void testCopyToRealmOrUpdateNullPrimaryKeyThrows() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.copyToRealmOrUpdate(new PrimaryKeyAsString());
+            fail();
+        } catch (RealmException expected) {
+        }
+    }
+
     public void testCopyOrUpdateNoPrimaryKeyThrows() {
         try {
             testRealm.copyToRealmOrUpdate(new AllTypes());
