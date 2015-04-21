@@ -14,6 +14,30 @@ This repository holds the source code for the Java version of Realm, which curre
 
 Please see the [detailed instructions in our docs](http://realm.io/docs/java/#installation) to add Realm to your project.
 
+### Gradle
+
+Realm is available on [JCenter](https://bintray.com/realm/maven/realm-android/view)
+
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+      compile 'io.realm:realm-android:0.80.1'
+    }
+
+and a **-SNAPSHOT** release of the current development version is available on [JFrog](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
+
+    repositories {
+        maven {
+            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
+    }
+
+    dependencies {
+      compile 'io.realm:realm-android:0.80.2-SNAPSHOT'
+    }
+
 ## Documentation
 
 Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/docs/java).
