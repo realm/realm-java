@@ -156,7 +156,7 @@ public final class Realm implements Closeable {
     private Handler handler;
 
     private final byte[] key;
-    private final String absolutePath;
+    private final String canonicalPath;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
     private final RealmJson realmJson = getRealmJson();
@@ -187,20 +187,20 @@ public final class Realm implements Closeable {
         }
 
         // Check if we are in the right thread
-        Realm currentRealm = realmsCache.get().get(absolutePath);
+        Realm currentRealm = realmsCache.get().get(canonicalPath);
         if (currentRealm != this) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
     }
 
     // The constructor in private to enforce the use of the static one
-    private Realm(String absolutePath, byte[] key, boolean autoRefresh) {
+    private Realm(String canonicalPath, byte[] key, boolean autoRefresh) {
         if (key != null && key.length != 64) {
             throw new IllegalArgumentException(INVALID_KEY_MESSAGE);
         }
-        this.sharedGroup = new SharedGroup(absolutePath, true, key);
+        this.sharedGroup = new SharedGroup(canonicalPath, true, key);
         this.transaction = sharedGroup.beginImplicitTransaction();
-        this.absolutePath = absolutePath;
+        this.canonicalPath = canonicalPath;
         this.key = key;
         setAutoRefresh(autoRefresh);
     }
@@ -209,7 +209,7 @@ public final class Realm implements Closeable {
     protected void finalize() throws Throwable {
         if (sharedGroup != null) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
-                            "Realm " + absolutePath + " is being finalized without being closed, " +
+                            "Realm " + canonicalPath + " is being finalized without being closed, " +
                             "this can lead to running out of native memory."
             );
         }
@@ -225,23 +225,23 @@ public final class Realm implements Closeable {
     @Override
     public void close() {
         Map<String, Integer> localRefCount = referenceCount.get();
-        Integer references = localRefCount.get(absolutePath);
+        Integer references = localRefCount.get(canonicalPath);
         if (references == null) {
             references = 0;
         }
         if (sharedGroup != null && references == 1) {
-            realmsCache.get().remove(absolutePath);
+            realmsCache.get().remove(canonicalPath);
             sharedGroup.close();
             sharedGroup = null;
-            AtomicInteger counter = openRealms.get(absolutePath);
+            AtomicInteger counter = openRealms.get(canonicalPath);
             counter.decrementAndGet();
         }
 
         int refCount = references - 1;
         if (refCount < 0) {
-            RealmLog.w("Calling close() on a Realm that is already closed: " + getAbsolutePath());
+            RealmLog.w("Calling close() on a Realm that is already closed: " + canonicalPath);
         }
-        localRefCount.put(absolutePath, Math.max(0, refCount));
+        localRefCount.put(canonicalPath, Math.max(0, refCount));
 
         if (handler != null && refCount <= 0) {
             removeHandler(handler);
@@ -307,7 +307,7 @@ public final class Realm implements Closeable {
 
         if (autoRefresh && !this.autoRefresh) { // Switch it on
             handler = new Handler(new RealmCallback());
-            handlers.put(handler, absolutePath);
+            handlers.put(handler, canonicalPath);
         } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
             removeHandler(handler);
         }
@@ -477,18 +477,18 @@ public final class Realm implements Closeable {
 
     private static Realm create(File writableFolder, String filename, byte[] key) {
         checkValidRealmPath(writableFolder, filename);
-        String absolutePath = new File(writableFolder, filename).getAbsolutePath();
+        String canonicalPath = getCanonicalPath(new File(writableFolder, filename));
         if (Looper.myLooper() != null) {
-            return createAndValidate(absolutePath, key, true, true);
+            return createAndValidate(canonicalPath, key, true, true);
         } else {
-            return createAndValidate(absolutePath, key, true, false);
+            return createAndValidate(canonicalPath, key, true, false);
         }
     }
 
-    private static synchronized Realm createAndValidate(String absolutePath, byte[] key, boolean validateSchema,
+    private static synchronized Realm createAndValidate(String canonicalPath, byte[] key, boolean validateSchema,
                                                         boolean autoRefresh) {
         // Check thread local cache for existing Realm
-        String id = absolutePath;
+        String id = canonicalPath;
         Map<String, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(id);
         if (references == null) {
@@ -506,7 +506,7 @@ public final class Realm implements Closeable {
 
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise
         // we risk serving faulty cache data.
-        realm = new Realm(absolutePath, key, autoRefresh);
+        realm = new Realm(canonicalPath, key, autoRefresh);
         realms.put(id, realm);
         realmsCache.set(realms);
         localRefCount.put(id, references + 1);
@@ -1468,7 +1468,7 @@ public final class Realm implements Closeable {
             Handler handler = handlerIntegerEntry.getKey();
             String realmPath = handlerIntegerEntry.getValue();
             if (
-                    realmPath.equals(absolutePath)                       // It's the right realm
+                    realmPath.equals(canonicalPath)                       // It's the right realm
                     && !handler.hasMessages(REALM_CHANGED)       // The right message
                     && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     && !handler.equals(this.handler)             // Don't notify yourself
@@ -1532,7 +1532,7 @@ public final class Realm implements Closeable {
     // Returns the Handler for this Realm on the calling thread
     Handler getHandler() {
         for (Map.Entry<Handler, String> entry : handlers.entrySet()) {
-            if (entry.getValue().equals(absolutePath)) {
+            if (entry.getValue().equals(canonicalPath)) {
                 return entry.getKey();
             }
         }
@@ -1672,8 +1672,8 @@ public final class Realm implements Closeable {
         File realmFolder = realmFile.getParentFile();
         String fileName = realmFile.getName();
 
-        String realmAbsolutePath = realmFile.getAbsolutePath();
-        AtomicInteger counter = openRealms.get(realmAbsolutePath);
+        String id = getCanonicalPath(realmFile);
+        AtomicInteger counter = openRealms.get(id);
         if (counter != null && counter.get() > 0) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
@@ -1719,14 +1719,14 @@ public final class Realm implements Closeable {
         }
 
         File realmFile = new File(context.getFilesDir(), fileName);
-        String path = realmFile.getAbsolutePath();
-        if (openRealms.get(path).get() > 0) {
+        String canonicalPath = getCanonicalPath(realmFile);
+        if (openRealms.get(canonicalPath).get() > 0) {
             throw new IllegalStateException("Cannot compact an open Realm");
         }
         SharedGroup sharedGroup = null;
         boolean result = false;
         try {
-            sharedGroup = new SharedGroup(path, false, key);
+            sharedGroup = new SharedGroup(canonicalPath, false, key);
             result = sharedGroup.compact();
         } finally {
             if (sharedGroup != null) {
@@ -1774,22 +1774,23 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Use {@link #getAbsolutePath()} instead.
+     * Use {@link #getCanonicalPath()} instead.
      *
-     * @return The absolute path to the Realm file.
+     * @return The canonical path to the Realm file.
      */
     @Deprecated
     public String getPath() {
-        return absolutePath;
+        return canonicalPath;
     }
 
     /**
-     * Returns the absolute path to where this Realm is persisted on disk.
+     * Returns the canonical path to where this Realm is persisted on disk.
      *
-     * @return The absolute path to the Realm file.
+     * @return The canonical path to the Realm file.
+     * @see File#getCanonicalPath()
      */
-    public String getAbsolutePath() {
-        return absolutePath;
+    public String getCanonicalPath() {
+        return canonicalPath;
     }
 
     /**
@@ -1806,6 +1807,14 @@ public final class Realm implements Closeable {
         customSchema.clear();
         if (schemaClass != null) {
             Collections.addAll(customSchema, schemaClass);
+        }
+    }
+
+    static String getCanonicalPath(File realmFile) {
+        try {
+            return realmFile.getCanonicalPath();
+        } catch (IOException e) {
+            throw new RealmException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
         }
     }
 

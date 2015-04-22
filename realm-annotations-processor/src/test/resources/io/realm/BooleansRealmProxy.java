@@ -177,7 +177,7 @@ public class BooleansRealmProxy extends Booleans {
     }
 
     public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObject> cache) {
-        if (object.realm != null && object.realm.getAbsolutePath().equals(realm.getAbsolutePath())) {
+        if (object.realm != null && object.realm.getCanonicalPath().equals(realm.getCanonicalPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
@@ -222,7 +222,7 @@ public class BooleansRealmProxy extends Booleans {
 
     @Override
     public int hashCode() {
-        String realmName = realm.getAbsolutePath();
+        String realmName = realm.getCanonicalPath();
         String tableName = row.getTable().getName();
         long rowIndex = row.getIndex();
 
@@ -239,8 +239,8 @@ public class BooleansRealmProxy extends Booleans {
         if (o == null || getClass() != o.getClass()) return false;
         BooleansRealmProxy aBooleans = (BooleansRealmProxy)o;
 
-        String path = realm.getAbsolutePath();
-        String otherPath = aBooleans.realm.getAbsolutePath();
+        String path = realm.getCanonicalPath();
+        String otherPath = aBooleans.realm.getCanonicalPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
 
         String tableName = row.getTable().getName();
