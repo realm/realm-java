@@ -27,6 +27,20 @@ The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/ja
 - Sign up for our [**Community Newsletter**](http://eepurl.com/VEKCn) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
 - Attend our monthly [**Online Office Hours**](https://attendee.gotowebinar.com/rt/1182038037080364033) to ask questions directly to the team.
 
+## Using Snapshots
+
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
+
+    repositories {
+        maven {
+            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
+    }
+
+    dependencies {
+      compile 'io.realm:realm-android:0.80.2-SNAPSHOT'
+    }
+
 ## Building Realm
 
 In case you don't want to use the precompiled version, you can build Realm yourself from source.
