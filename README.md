@@ -14,30 +14,6 @@ This repository holds the source code for the Java version of Realm, which curre
 
 Please see the [detailed instructions in our docs](http://realm.io/docs/java/#installation) to add Realm to your project.
 
-### Gradle
-
-Realm is available on [JCenter](https://bintray.com/realm/maven/realm-android/view)
-
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-      compile 'io.realm:realm-android:0.80.1'
-    }
-
-and a **-SNAPSHOT** release of the current development version is available on [JFrog](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
-
-    repositories {
-        maven {
-            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
-        }
-    }
-
-    dependencies {
-      compile 'io.realm:realm-android:0.80.2-SNAPSHOT'
-    }
-
 ## Documentation
 
 Documentation for Realm can be found at [realm.io/docs/java](http://realm.io/docs/java).
@@ -50,6 +26,20 @@ The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/ja
 - **StackOverflow**: look for previous questions under the tag [#realm](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [open a new one](http://stackoverflow.com/questions/ask?tags=realm).
 - Sign up for our [**Community Newsletter**](http://eepurl.com/VEKCn) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
 - Attend our monthly [**Online Office Hours**](https://attendee.gotowebinar.com/rt/1182038037080364033) to ask questions directly to the team.
+
+## Using Snapshots
+
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
+
+    repositories {
+        maven {
+            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
+    }
+
+    dependencies {
+      compile 'io.realm:realm-android:0.80.2-SNAPSHOT'
+    }
 
 ## Building Realm
 
