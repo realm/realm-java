@@ -73,21 +73,6 @@ That command will generate the .jar file containing the Realm runtime and the an
 Generating the Javadoc using the command above will report a failure (1 error, 30+ warnings). The Javadoc is generated, and we will fix 
 `realm/build.gradle` in the near future.
 
-## Filing Issues
-
-Whether you find a bug, typo or an API call that could be clarified, please [file an issue](https://github.com/realm/realm-java/issues) on our GitHub repository.
-
-When filing an issue, please provide as much of the following information as possible in order to help us fix it:
-
-1. **Goals**
-2. **Expected results**
-3. **Actual results**
-4. **Steps to reproduce**
-5. **Code sample that highlights the issue** (link to full Android Studio projects that we can compile ourselves are ideal)
-6. **Version of Realm/Android Studio/OS**
-
-If you'd like to send us sensitive sample code to help troubleshoot your issue, you can email <help@realm.io> directly.
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
