@@ -212,7 +212,7 @@ task copyLibrariesToEclipseFolder(dependsOn: 'androidJar') << {
     abi.each() { abiName ->
         copy {
             from "build/intermediates/eclipse/lib/${abiName}/librealm-jni.so"
-            into "../distribution/eclipse/lib/${abiName}"
+            into "../distribution/eclipse/${abiName}"
         }
     }
 }
