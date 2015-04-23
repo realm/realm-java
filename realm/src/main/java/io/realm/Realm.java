@@ -1774,22 +1774,12 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Use {@link #getCanonicalPath()} instead.
-     *
-     * @return The canonical path to the Realm file.
-     */
-    @Deprecated
-    public String getPath() {
-        return canonicalPath;
-    }
-
-    /**
      * Returns the canonical path to where this Realm is persisted on disk.
      *
      * @return The canonical path to the Realm file.
      * @see File#getCanonicalPath()
      */
-    public String getCanonicalPath() {
+    public String getPath() {
         return canonicalPath;
     }
 

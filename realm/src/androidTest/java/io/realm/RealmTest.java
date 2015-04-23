@@ -1496,7 +1496,7 @@ public class RealmTest extends AndroidTestCase {
             } finally {
                 if (reEncryptedRealm != null) {
                     reEncryptedRealm.close();
-                    boolean isDeleted = new File(reEncryptedRealm.getCanonicalPath()).delete();
+                    boolean isDeleted = new File(reEncryptedRealm.getPath()).delete();
                     if (!isDeleted) {
                         fail();
                     }
@@ -1517,7 +1517,7 @@ public class RealmTest extends AndroidTestCase {
             } finally {
                 if (decryptedRealm != null) {
                     decryptedRealm.close();
-                    boolean isDeleted = new File(decryptedRealm.getCanonicalPath()).delete();
+                    boolean isDeleted = new File(decryptedRealm.getPath()).delete();
                     if (!isDeleted) {
                         fail();
                     }
@@ -1526,7 +1526,7 @@ public class RealmTest extends AndroidTestCase {
         } finally {
             if (encryptedRealm != null) {
                 encryptedRealm.close();
-                boolean isDeleted = new File(encryptedRealm.getCanonicalPath()).delete();
+                boolean isDeleted = new File(encryptedRealm.getPath()).delete();
                 if (!isDeleted) {
                     fail();
                 }
