@@ -23,7 +23,7 @@ The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/ja
 
 - **Reproducible Bugs & Feature Requests** should be filed directly against our [Github Issues](https://github.com/realm/realm-java/issues).
 - **Discussions & Support**: [realm-java@googlegroups.com](https://groups.google.com/d/forum/realm-java).
-- **StackOverflow**: look for previous questions under the tag [#realm](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [open a new one](http://stackoverflow.com/questions/ask?tags=realm).
+- **StackOverflow**: look for previous questions under the tag [#realm](https://stackoverflow.com/questions/tagged/realm.io?sort=newest) — or [open a new one](http://stackoverflow.com/questions/ask?tags=realm.io).
 - Sign up for our [**Community Newsletter**](http://eepurl.com/VEKCn) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
 - Attend our monthly [**Online Office Hours**](https://attendee.gotowebinar.com/rt/1182038037080364033) to ask questions directly to the team.
 
