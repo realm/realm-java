@@ -16,11 +16,35 @@
 package io.realm.exceptions;
 
 public class RealmMigrationNeededException extends RuntimeException {
-    public RealmMigrationNeededException(String detailMessage) {
+
+    private final String absoluteRealmPath;
+
+    public RealmMigrationNeededException(String absoluteRealmPath, String detailMessage) {
         super(detailMessage);
+        this.absoluteRealmPath = absoluteRealmPath;
     }
 
-    public RealmMigrationNeededException(String detailMessage, Throwable throwable) {
+    public RealmMigrationNeededException(String absoluteRealmPath, String detailMessage, Throwable throwable) {
         super(detailMessage, throwable);
+        this.absoluteRealmPath = absoluteRealmPath;
+    }
+
+    /**
+     * Returns the absolute path to the Realm file that needs to be migrated.
+     *
+     * This can be used for easy reference during a migration:
+     *
+     * <pre>
+     * try {
+     *   Realm.getInstance(context);
+     * } cathc (RealmMigrationNeededException e) {
+     *   Realm.migrateRealmAtPath(e.getRealmPath(), new CustomMigration());
+     * }
+     * </pre>
+     *
+     * @return Absolute path to the Realm file
+     */
+    public String getPath() {
+        return absoluteRealmPath;
     }
 }

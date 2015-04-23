@@ -628,7 +628,7 @@ public final class Realm implements Closeable {
                 } catch (IllegalAccessException e) {
                     throw new RealmException("Could not execute the validateTable method in the " + generatedClassName + " class: " + APT_NOT_EXECUTED_MESSAGE);
                 } catch (InvocationTargetException e) {
-                    throw new RealmMigrationNeededException(e.getMessage(), e);
+                    throw new RealmMigrationNeededException(realm.getPath(), e.getMessage(), e);
                 }
 
                 // Populate the columnIndices table
