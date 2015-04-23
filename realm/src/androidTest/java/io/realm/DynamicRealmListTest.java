@@ -18,121 +18,188 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.Date;
+
+import io.realm.dynamic.DynamicRealmList;
+import io.realm.dynamic.DynamicRealmObject;
+import io.realm.entities.AllJavaTypes;
+import io.realm.entities.Dog;
+
 public class DynamicRealmListTest extends AndroidTestCase {
 
-    //    public boolean add(DynamicRealmObject object) {
+    private Realm realm;
+    private DynamicRealmObject dynamicObject;
+    private DynamicRealmList dynamicList;
+
+    @Override
+    protected void setUp() throws Exception {
+        Realm.deleteRealmFile(getContext());
+        Realm.setSchema(AllJavaTypes.class);
+        realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        obj.setColumnString("str");
+        obj.setColumnShort((short) 1);
+        obj.setColumnInt(1);
+        obj.setColumnLong(1);
+        obj.setColumnFloat(1.23f);
+        obj.setColumnDouble(1.234d);
+        obj.setColumnBinary(new byte[]{1, 2, 3});
+        obj.setColumnBoolean(true);
+        obj.setColumnDate(new Date(1000));
+        obj.setColumnObject(obj);
+        obj.getColumnList().add(obj);
+        dynamicObject = new DynamicRealmObject(realm, obj.row);
+        dynamicList = dynamicObject.getRealmList("columnList");
+        realm.commitTransaction();
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        realm.close();
+        Realm.setSchema(null);
+    }
+
     public void testAddNullObjectThrows() {
-
-        fail();
+        realm.beginTransaction();
+        try {
+            dynamicList.add(null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm.cancelTransaction();
+        }
     }
 
-    //    public boolean add(DynamicRealmObject object) {
     public void testAddWrongTableClassThrows() {
-        fail();
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        try {
+            dynamicList.add(new DynamicRealmObject(realm, dog.row));
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm.cancelTransaction();
+        }
     }
 
-    //    public boolean add(DynamicRealmObject object) {
+    public void testAddWrongRealmThrows() {
+        Realm.deleteRealmFile(getContext(), "Realm2");
+        Realm realm2 = Realm.getInstance(getContext(), "Realm2");
+        realm2.beginTransaction();
+        AllJavaTypes realm2Object = realm2.createObject(AllJavaTypes.class);
+        realm2.commitTransaction();
+
+        realm.beginTransaction();
+        try {
+            dynamicList.add(new DynamicRealmObject(realm2, realm2Object.row));
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm.cancelTransaction();
+            realm2.close();
+        }
+    }
+
     public void testAddObject() {
-        fail();
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        dynamicList.add(new DynamicRealmObject(realm, obj.row));
+        realm.commitTransaction();
+
+        assertEquals(2, dynamicList.size());
     }
 
-    //    public boolean addAll(Collection<? extends DynamicRealmObject> collection) {
-    public void testAddAll() {
-        fail();
-    }
-
-    //    public void clear() {
     public void testClear() {
-        fail();
+        realm.beginTransaction();
+        dynamicList.clear();
+        realm.commitTransaction();
+
+        assertEquals(0, dynamicList.size());
     }
 
-    //    public boolean contains(Object object) {
-    public void testContains() {
-        fail();
-    }
-
-    //    public boolean containsAll(Collection<?> collection) {
-    public void testContainsAll() {
-        fail();
-    }
-
-    //    public DynamicRealmObject get(int location) {
     public void testGetIllegalIndexThrows() {
-        fail();
+        int[] indexes = new int[] { -1, 1 };
+        for (int i = 0; i < indexes.length; i++) {
+            try {
+                dynamicList.get(indexes[i]);
+                fail("Could retrieve from index" + indexes[i]);
+            } catch (IndexOutOfBoundsException expected){
+            }
+        }
     }
 
-    //    public DynamicRealmObject get(int location) {
     public void testGet() {
-        fail();
+        DynamicRealmObject listObject = dynamicList.get(0);
+        assertEquals(dynamicObject, listObject);
     }
 
-    //    public int indexOf(Object object) {
-    public void testIndexOfNotFound() {
-        fail();
-    }
-
-    //    public int indexOf(Object object) {
-    public void testIndexOf() {
-        fail();
-    }
-
-    //    public boolean isEmpty() {
-    public void testIsEmpty() {
-        fail();
-    }
-
-    //    public int lastIndexOf(Object object) {
-    public void testLastIndexOfNotFound() {
-        fail();
-    }
-
-    //    public int lastIndexOf(Object object) {
-    public void testLastIndexOf() {
-        fail();
-    }
-
-    //    public DynamicRealmObject remove(int location) {
-    public void testRemoveLocationOutOfBoundsThrows() {
-        fail();
-    }
-
-    public void testRemoveLocation() {
-        fail();
-    }
-
-    //    public boolean remove(Object object) {
-    public void testRemoveObjectFailure() {
-        fail();
-    }
-
-    //    public boolean remove(Object object) {
-    public void testRemoveObjectSuccess() {
-        fail();
-    }
-
-    //    public boolean removeAll(Collection<?> collection) {
-    public void testRemoveAll() {
-        fail();
-    }
-
-    //    public DynamicRealmObject set(int location, DynamicRealmObject object) {
     public void testSetIllegalLocationThrows() {
-        fail();
+        int[] indexes = new int[] { -1, 1 };
+        for (int i = 0; i < indexes.length; i++) {
+            try {
+                dynamicList.set(indexes[i], dynamicObject);
+                fail("Could set index out of bounds " + indexes[i]);
+            } catch (IndexOutOfBoundsException expected){
+            }
+        }
     }
 
-    //    public DynamicRealmObject set(int location, DynamicRealmObject object) {
-    public void testSetIllegalObjectThrows() {
-        fail();
+    public void testSetNullThrows() {
+        realm.beginTransaction();
+        try {
+            dynamicList.set(0, null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm.cancelTransaction();
+        }
     }
 
-    //    public DynamicRealmObject set(int location, DynamicRealmObject object) {
+    public void testSetInvalidTypeThrows() {
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        try {
+            dynamicList.set(0, new DynamicRealmObject(realm, dog.row));
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    public void testSetWrongRealmThrows() {
+        Realm.deleteRealmFile(getContext(), "Realm2");
+        Realm realm2 = Realm.getInstance(getContext(), "Realm2");
+        realm2.beginTransaction();
+        AllJavaTypes realm2Object = realm2.createObject(AllJavaTypes.class);
+        realm2.commitTransaction();
+
+        realm.beginTransaction();
+        try {
+            dynamicList.set(0, new DynamicRealmObject(realm2, realm2Object.row));
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm.cancelTransaction();
+            realm2.close();
+        }
+    }
+
     public void testSet() {
-        fail();
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        obj.setColumnLong(2);
+        dynamicList.set(0, new DynamicRealmObject(realm, obj.row));
+        realm.commitTransaction();
+
+        assertEquals(1, dynamicList.size());
+        assertEquals(new DynamicRealmObject(realm, obj.row), dynamicList.get(0));
     }
 
-    //    public int size() {
     public void testSize() {
-        fail();
+        assertEquals(1, dynamicList.size());
     }
 
     // TODO Iterator tests

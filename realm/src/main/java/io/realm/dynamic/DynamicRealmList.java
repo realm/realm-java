@@ -17,7 +17,6 @@
 package io.realm.dynamic;
 
 import java.util.AbstractList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
 
@@ -41,52 +40,45 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
 
     @Override
     public boolean add(DynamicRealmObject object) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends DynamicRealmObject> collection) {
-        throw new RuntimeException("Not implemented");
+        checkIsValidObject(object);
+        linkView.add(object.row.getIndex());
+        return true;
     }
 
     @Override
     public void clear() {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public boolean contains(Object object) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public boolean containsAll(Collection<?> collection) {
-        throw new RuntimeException("Not implemented");
+        linkView.clear();
     }
 
     @Override
     public DynamicRealmObject get(int location) {
-        throw new RuntimeException("Not implemented");
+        checkValidIndex(location);
+        return new DynamicRealmObject(realm, linkView.get(location));
     }
 
     @Override
-    public int indexOf(Object object) {
-        throw new RuntimeException("Not implemented");
+    public DynamicRealmObject remove(int location) {
+        DynamicRealmObject removedItem = get(location);
+        linkView.remove(location);
+        return removedItem;
     }
 
     @Override
-    public boolean isEmpty() {
-        throw new RuntimeException("Not implemented");
+    public DynamicRealmObject set(int location, DynamicRealmObject object) {
+        checkIsValidObject(object);
+        checkValidIndex(location);
+        linkView.set(location, object.row.getIndex());
+        return object;
+    }
+
+    @Override
+    public int size() {
+        return ((Long)linkView.size()).intValue();
     }
 
     @Override
     public Iterator<DynamicRealmObject> iterator() {
         throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public int lastIndexOf(Object object) {
-        return 0;
     }
 
     @Override
@@ -99,28 +91,26 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
         throw new RuntimeException("Not implemented");
     }
 
-    @Override
-    public DynamicRealmObject remove(int location) {
-        throw new RuntimeException("Not implemented");
+    private void checkIsValidObject(DynamicRealmObject object) {
+        if (object == null) {
+            throw new IllegalArgumentException("DynamicRealmList does not accept null values");
+        }
+        if (!realm.getPath().equals(object.realm.getPath())) {
+            throw new IllegalArgumentException("Cannot add a object belonging already in another Realm");
+        }
+        if (!linkView.getTable().equals(object.row.getTable())) {
+            String expectedClass = linkView.getTable().getName();
+            String objectClassName = object.row.getTable().getName();
+            throw new IllegalArgumentException("Object is of type " + objectClassName + ". Expected " + expectedClass);
+        }
     }
 
-    @Override
-    public boolean remove(Object object) {
-        throw new RuntimeException("Not implemented");
+    private void checkValidIndex(int location) {
+        long size = linkView.size();
+        if (location < 0 || location >= size) {
+            throw new IndexOutOfBoundsException(String.format("Invalid index: %s. Valid range is [%s, %s]", location, 0, size - 1));
+        }
     }
 
-    @Override
-    public boolean removeAll(Collection<?> collection) {
-        throw new RuntimeException("Not implemented");
-    }
 
-    @Override
-    public DynamicRealmObject set(int location, DynamicRealmObject object) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public int size() {
-        throw new RuntimeException("Not implemented");
-    }
 }

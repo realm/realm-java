@@ -96,4 +96,11 @@ public class LinkView {
     }
 
     protected native long nativeWhere(long nativeLinkViewPtr);
+
+    /**
+     * Get the Table data for rows in this LinkView
+     */
+    public Table getTable() {
+        return parent;
+    }
 }
