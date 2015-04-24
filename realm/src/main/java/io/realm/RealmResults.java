@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import io.realm.android.RealmCursor;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
@@ -616,5 +617,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
          */
         @Override
         public void remove() { throw new RealmException("Removing elements not supported."); }
+
+
+        public RealmCursor getCursor() {
+            return new RealmCursor(table);
+        }
     }
 }
