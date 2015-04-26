@@ -182,15 +182,27 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     /**
      * Add a column to the table dynamically.
+     *
+     * @param type The column type.
+     * @param name The field/column name
+     * @param isNullable true if column can contain null values, false otherwise
+     * @return
+     */
+    public long addColumn(ColumnType type, String name, boolean isNullable) {
+        verifyColumnName(name);
+        return nativeAddColumn(nativePtr, type.getValue(), name, isNullable);
+    }
+
+    /**
+     * Add a non-nullable column to the table dynamically.
      * @return Index of the new column.
      */
     @Override
-    public long addColumn (ColumnType type, String name) {
-        verifyColumnName(name);
-        return nativeAddColumn(nativePtr, type.getValue(), name);
+    public long addColumn(ColumnType type, String name) {
+        return addColumn(type, name, false);
     }
 
-    protected native long nativeAddColumn(long nativeTablePtr, int type, String name);
+    protected native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
 
     /**
      * Add a link column to the table dynamically.
@@ -707,9 +719,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     void checkStringValueIsLegal(long columnIndex, long rowToUpdate, String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("Null String is not allowed.");
-        }
         if (isPrimaryKey(columnIndex)) {
             long rowIndex = findFirstString(columnIndex, value);
             if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {

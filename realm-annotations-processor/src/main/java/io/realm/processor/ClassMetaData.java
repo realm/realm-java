@@ -40,6 +40,7 @@ import javax.lang.model.util.Types;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.Nullable;
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -55,6 +56,7 @@ public class ClassMetaData {
     private List<String> fieldNames = new ArrayList<String>();
     private List<String> ignoreFieldNames = new ArrayList<String>();
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
+    private List<String> nullableFieldNames = new ArrayList<String>(); // list of all fields marked @Nullable
     private Set<String> expectedGetters = new HashSet<String>(); // Set of fieldnames that are expected to have a getter
     private Set<String> expectedSetters = new HashSet<String>(); // Set of fieldnames that are expected to have a setter
     private Set<ExecutableElement> methods = new HashSet<ExecutableElement>(); // List of all methods in the model class
@@ -289,12 +291,31 @@ public class ClassMetaData {
                     }
                 }
 
+                if (variableElement.getAnnotation(Nullable.class) != null) {
+                    // The field has the @Nullable annotation. It's only valud for:
+                    // * String
+                    String elementTypeCanonicalName = variableElement.asType().toString();
+                    if (elementTypeCanonicalName.equals("java.lang.String")) {
+                        nullableFieldNames.add(variableElement.getSimpleName().toString());
+                    } else {
+                        Utils.error("@Nullable is only applicable to String fields - got " + element);
+                        return false;
+                    }
+                }
+
                 if (variableElement.getAnnotation(PrimaryKey.class) != null) {
                     // The field has the @PrimaryKey annotation. It is only valid for
                     // String, short, int, long and must only be present one time
                     if (primaryKey != null) {
                         Utils.error(String.format("@PrimaryKey cannot be defined more than once. It was found here \"%s\" and here \"%s\"",
                                 primaryKey.getSimpleName().toString(),
+                                variableElement.getSimpleName().toString()));
+                        return false;
+                    }
+
+                    // A field cannot be nullable and primary key
+                    if (nullableFieldNames.contains(variableElement.getSimpleName().toString())) {
+                        Utils.error(String.format("@PrimaryKey and @Nullable cannot be apply to the same field: '%s'",
                                 variableElement.getSimpleName().toString()));
                         return false;
                     }
@@ -384,6 +405,10 @@ public class ClassMetaData {
 
     public String getPrimaryKeyGetter() {
         return getters.get(primaryKey.getSimpleName().toString());
+    }
+
+    public boolean isNullable(String fieldName) {
+        return nullableFieldNames.contains(fieldName);
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {

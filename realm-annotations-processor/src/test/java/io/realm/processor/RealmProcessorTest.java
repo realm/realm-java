@@ -36,6 +36,8 @@ public class RealmProcessorTest {
     private JavaFileObject noAccessorsModel = JavaFileObjects.forResource("some/test/NoAccessors.java");
     private JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
     private JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
+    private JavaFileObject nullTypesModel = JavaFileObjects.forResource("some/test/NullTypes.java");
+    private JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
 
     @Test
     public void compileSimpleFile() {
@@ -76,6 +78,39 @@ public class RealmProcessorTest {
                 .and()
                 .generatesSources(simpleProxy);
     }
+
+    @Test
+    public void compileSNullTypesFile() {
+        ASSERT.about(javaSource())
+                .that(nullTypesModel)
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileProcessedNullTypesFile() throws Exception {
+        ASSERT.about(javaSource())
+                .that(nullTypesModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileNullTypesProxyFile() throws Exception {
+        ASSERT.about(javaSource())
+                .that(nullTypesProxy)
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compareProcessedNullTypesFile() throws Exception {
+        ASSERT.about(javaSource())
+                .that(nullTypesModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError()
+                .and()
+                .generatesSources(nullTypesProxy);
+    }
+
 
     @Test
     public void compileAllTypesFile() {

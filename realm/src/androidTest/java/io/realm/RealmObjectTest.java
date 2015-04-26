@@ -31,8 +31,10 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Thread;
 import io.realm.internal.Row;
+import io.realm.internal.Util;
 
 
 public class RealmObjectTest extends AndroidTestCase {
@@ -509,5 +511,15 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(allTypes.isValid());
         testRealm.commitTransaction();
         assertTrue(allTypes.isValid());
+    }
+
+    public void testNullString() {
+        Util.setDebugLevel(5);
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldString(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.where(NullTypes.class).findAll().first().getFieldString());
     }
 }

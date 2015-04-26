@@ -79,9 +79,9 @@ public class BooleansRealmProxy extends Booleans {
     public static Table initTable(ImplicitTransaction transaction) {
         if(!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-            table.addColumn(ColumnType.BOOLEAN, "done");
-            table.addColumn(ColumnType.BOOLEAN, "isReady");
-            table.addColumn(ColumnType.BOOLEAN, "mCompleted");
+            table.addColumn(ColumnType.BOOLEAN, "done", false);
+            table.addColumn(ColumnType.BOOLEAN, "isReady", false);
+            table.addColumn(ColumnType.BOOLEAN, "mCompleted", false);
             table.setPrimaryKey("");
             return table;
         }

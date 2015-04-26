@@ -34,7 +34,7 @@ using namespace realm;
 //
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
-  (JNIEnv *env, jobject, jlong nativeTablePtr, jint colType, jstring name)
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jint colType, jstring name, jboolean isNullable)
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
@@ -44,7 +44,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
     }
     try {
         JStringAccessor name2(env, name); // throws
-        return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
+        bool isColumnNullable = isNullable != 0 ? true : false;
+        if (isColumnNullable && DataType(colType) != type_String) {
+            ThrowException(env, IllegalArgument, "Only string fields can be nullable.");
+        }
+        return TBL(nativeTablePtr)->add_column(DataType(colType), name2, isColumnNullable);
     } CATCH_STD()
     return 0;
 }

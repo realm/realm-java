@@ -133,7 +133,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Row_nativeGetString
         return 0;
 
     try {
-        return to_jstring(env, ROW(nativeRowPtr)->get_string( S(columnIndex) ));
+        StringData value = ROW(nativeRowPtr)->get_string( S(columnIndex) );
+        if (value.is_null()) {
+            // TODO: return null Java String
+        }
+        else {
+            return to_jstring(env,  value);
+        }
     } CATCH_STD()
     return NULL;
 }
@@ -284,8 +290,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeSetString
         return;
 
     try {
-        JStringAccessor value2(env, value); // throws
-        ROW(nativeRowPtr)->set_string( S(columnIndex), value2);
+        if (value == NULL) {
+            if (!(ROW(nativeRowPtr)->get_table()->is_nullable( S(columnIndex) ))) {
+                ThrowException(env, IllegalArgument, "Trying to set field to null but field is not nullable.");
+                return;
+            }
+            ROW(nativeRowPtr)->set_string( S(columnIndex), realm::null());
+        }
+        else {
+            JStringAccessor value2(env, value); // throws
+            ROW(nativeRowPtr)->set_string( S(columnIndex), value2);
+        }
     } CATCH_STD()
 }
 

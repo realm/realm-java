@@ -63,7 +63,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsRootTable
  * Signature: (JILjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
-  (JNIEnv *, jobject, jlong, jint, jstring);
+  (JNIEnv *, jobject, jlong, jint, jstring, jboolean);
 
 /*
  * Class:     io_realm_internal_Table
