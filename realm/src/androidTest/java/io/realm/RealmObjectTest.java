@@ -34,7 +34,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Thread;
 import io.realm.internal.Row;
-import io.realm.internal.Util;
 
 
 public class RealmObjectTest extends AndroidTestCase {
@@ -513,13 +512,24 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(allTypes.isValid());
     }
 
+    // store and retrieve null strings
     public void testNullString() {
-        Util.setDebugLevel(5);
         testRealm.beginTransaction();
         NullTypes nullTypes = testRealm.createObject(NullTypes.class);
         nullTypes.setFieldString(null);
         testRealm.commitTransaction();
 
         assertNull(testRealm.where(NullTypes.class).findAll().first().getFieldString());
+    }
+
+    // store and retrieve non-null strings when field can contain null strings
+    public void testNullableField() {
+        final String fooBar = "FooBar";
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldString(fooBar);
+        testRealm.commitTransaction();
+
+        assertEquals(fooBar, testRealm.where(NullTypes.class).findAll().first().getFieldString());
     }
 }
