@@ -857,6 +857,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToString
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeRowToString
   (JNIEnv *, jobject, jlong, jlong);
 
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeMigratePrimaryKeyTableIfNeeded
+ * Signature: (JJ)V;
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
+  (JNIEnv *, jobject, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

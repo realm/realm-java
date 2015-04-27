@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
+import io.realm.TestHelper;
 import io.realm.exceptions.RealmException;
 
 public class JNITransactions extends AndroidTestCase {
@@ -375,5 +376,16 @@ public class JNITransactions extends AndroidTestCase {
         long rowIndex = t.addEmptyRowWithPrimaryKey(42);
         assertEquals(1, t.size());
         assertEquals(42, t.getRow(rowIndex).getLong(0));
+    }
+
+    public void testPrimaryKeyTableMigration() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "wrong_primarykey_table.realm", "default.realm");
+        String realmPath = new File(getContext().getFilesDir(), "default.realm").getAbsolutePath();
+        SharedGroup db = new SharedGroup(realmPath, SharedGroup.Durability.FULL, null);
+        ImplicitTransaction transaction = db.beginImplicitTransaction();
+        Table table = transaction.getTable("pk");
+        assertEquals(2, table.getColumnCount());
+        assertEquals(ColumnType.STRING, table.getColumnType(0));
+        assertEquals(ColumnType.STRING, table.getColumnType(1));
     }
 }
