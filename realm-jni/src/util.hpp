@@ -478,10 +478,16 @@ public:
 
     operator realm::StringData() const REALM_NOEXCEPT
     {
-        return realm::StringData(m_data.get(), m_size);
+        if (m_is_null) {
+            return realm::StringData(NULL);
+        }
+        else {
+            return realm::StringData(m_data.get(), m_size);
+        }
     }
 
 private:
+    bool m_is_null;
     std::unique_ptr<char[]> m_data;
     std::size_t m_size;
 };

@@ -295,12 +295,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeSetString
                 ThrowException(env, IllegalArgument, "Trying to set field to null but field is not nullable.");
                 return;
             }
-            ROW(nativeRowPtr)->set_string( S(columnIndex), realm::null());
         }
-        else {
-            JStringAccessor value2(env, value); // throws
-            ROW(nativeRowPtr)->set_string( S(columnIndex), value2);
-        }
+        JStringAccessor value2(env, value); // throws
+        ROW(nativeRowPtr)->set_string( S(columnIndex), value2);
     } CATCH_STD()
 }
 

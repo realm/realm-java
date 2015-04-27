@@ -278,6 +278,10 @@ string concat_stringdata(const char *message, StringData strData)
 
 jstring to_jstring(JNIEnv* env, StringData str)
 {
+    if (str.is_null()) {
+        return NULL;
+    }
+    
     // For efficiency, if the incoming UTF-8 string is sufficiently
     // small, we will attempt to store the UTF-16 output into a stack
     // allocated buffer of static size. Otherwise we will have to
@@ -341,6 +345,12 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
     // input. This is guaranteed to be enough. However, to avoid
     // excessive over allocation, this is not done for larger input
     // strings.
+
+    if (str == NULL) {
+        m_is_null = true;
+        return;
+    }
+    m_is_null = false;
 
     JStringCharsAccessor chars(env, str);
 
