@@ -532,4 +532,19 @@ public class RealmObjectTest extends AndroidTestCase {
 
         assertEquals(fooBar, testRealm.where(NullTypes.class).findAll().first().getFieldString());
     }
+
+    // try to store null string in non-nullable field
+    public void testNotNullableField() {
+        try {
+            testRealm.beginTransaction();
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnString(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignore) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+    }
 }
