@@ -1485,8 +1485,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
     return 0;
 }
 
-// Fix wrong primary key table created on Realm-Android 0.80.1 and below
-// https://github.com/realm/realm-java/issues/1059
+// Fixes interop issue with Cocoa Realm where the Primary Key table had different types.
+// This effects:
+// - All Realms created by Cocoa and used by Realm-android up to 0.80.1
+// - All Realms created by Realm-Android 0.80.1 and below
+// See https://github.com/realm/realm-java/issues/1059
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
     (JNIEnv* env, jobject, jlong groupNativePtr, jlong privateKeyTableNativePtr)
 {
@@ -1506,7 +1509,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         }
 
         // Delete old int column, and rename tmp column to same name
-        // Index should match as we control creation of table
+        // Index should stay the same as we control creation of table
         pk_table->remove_column(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
     }
