@@ -508,7 +508,7 @@ public class RealmProxyClassGenerator {
 
         // If object is already in the Realm there is nothing to update
         writer
-            .beginControlFlow("if (object.realm != null && object.realm.getId() == realm.getId())")
+            .beginControlFlow("if (object.realm != null && object.realm.getPath().equals(realm.getPath()))")
                 .emitStatement("return object")
             .endControlFlow();
 
