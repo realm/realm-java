@@ -1485,7 +1485,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
     return 0;
 }
 
-// Fix bug https://github.com/realm/realm-java/issues/1059
+// Fix wrong primary key table created on Realm-Android 0.80.1 and below
+// https://github.com/realm/realm-java/issues/1059
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
     (JNIEnv* env, jobject, jlong groupNativePtr, jlong privateKeyTableNativePtr)
 {
@@ -1495,7 +1496,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         StringData tmp_col_name = StringData("tmp_field_name");
         std::size_t tmp_col_ndx = pk_table->add_column(DataType(type_String), tmp_col_name);
 
-        // Create tmp string column with proper data
+        // Create tmp string column with field name instead of column index
         int rows = pk_table->size();
         for (int row_ndx = 0; row_ndx < rows; row_ndx++) {
             StringData table_name = pk_table->get_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_ndx);
@@ -1505,6 +1506,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         }
 
         // Delete old int column, and rename tmp column to same name
+        // Index should match as we control creation of table
         pk_table->remove_column(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
     }

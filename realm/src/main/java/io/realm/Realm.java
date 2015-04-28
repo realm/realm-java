@@ -25,7 +25,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.JsonReader;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
