@@ -29,6 +29,7 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 
 public class RealmResultsTest extends AndroidTestCase {
@@ -78,6 +79,16 @@ public class RealmResultsTest extends AndroidTestCase {
 
     private void populateTestRealm() {
         populateTestRealm(TEST_DATA_SIZE);
+    }
+
+    private void populateTestRealmForNullTests() {
+        String words[] = {"Fish", null, "Horse"};
+        testRealm.beginTransaction();
+        for (String word : words) {
+            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            nullTypes.setFieldString(word);
+        }
+        testRealm.commitTransaction();
     }
 
     @Override
@@ -700,6 +711,30 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
     }
 
+    public void testNullStringNotNullableField() {
+        populateTestRealmForNullTests();
+        RealmResults<AllTypes> list = testRealm.allObjects(AllTypes.class);
+        try {
+            testRealm.beginTransaction();
+            list.first().setColumnString(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignore) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testSetNullString() {
+        populateTestRealmForNullTests();
+        RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
+        testRealm.beginTransaction();
+        list.first().setFieldString(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldString());
+    }
 
     // TODO: More extended tests of querying all types must be done.
 }
