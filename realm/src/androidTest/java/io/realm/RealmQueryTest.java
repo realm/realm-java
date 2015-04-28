@@ -7,6 +7,7 @@ import java.util.Date;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
 
@@ -458,5 +459,19 @@ public class RealmQueryTest extends AndroidTestCase{
         for (int i = 0; i < stringOnlies2.size(); i++) {
             assertEquals(sorted[i], stringOnlies2.get(i).getChars());
         }
+    }
+
+    public void testQueryNullStrings() {
+        String words[] = {"Fish", null, "Horse"};
+        testRealm.beginTransaction();
+        for (String word : words) {
+            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            nullTypes.setFieldString(word);
+        }
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING, "Horse").findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING, (String)null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING, "Goat").findAll().size());
     }
 }

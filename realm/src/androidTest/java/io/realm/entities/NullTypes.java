@@ -21,6 +21,8 @@ import io.realm.annotations.Nullable;
 
 
 public class NullTypes extends RealmObject {
+    public static String FIELD_STRING = "fieldString";
+
     @Nullable
     private String fieldString;
 
