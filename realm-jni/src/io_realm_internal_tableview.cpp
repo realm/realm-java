@@ -385,6 +385,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSetString(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, rowIndex, type_String))
             return;
+        if (!TV(nativeViewPtr)->get_parent().is_nullable(S(columnIndex))) {
+            ThrowException(env, IllegalArgument, "Trying to set field to null but field is not nullable.");
+            return;
+        }
         JStringAccessor value2(env, value);  // throws
         TV(nativeViewPtr)->set_string( S(columnIndex), S(rowIndex), value2);
     } CATCH_STD()

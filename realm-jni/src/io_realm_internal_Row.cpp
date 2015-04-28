@@ -134,12 +134,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Row_nativeGetString
 
     try {
         StringData value = ROW(nativeRowPtr)->get_string( S(columnIndex) );
-        if (value.is_null()) {
-            // TODO: return null Java String
-        }
-        else {
-            return to_jstring(env,  value);
-        }
+        return to_jstring(env,  value);
     } CATCH_STD()
     return NULL;
 }

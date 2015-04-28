@@ -671,6 +671,12 @@ enum StringPredicate {
 void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive, StringPredicate predicate) {
     GET_ARRAY()
     try {
+        if (value == NULL) {
+            if (!(Q(nativeQueryPtr)->get_table()->is_nullable( S(arr[0]) ))) {
+                ThrowException(env, IllegalArgument, "Trying to query field with null but field is not nullable.");
+                return;
+            }
+        }
         bool isCaseSensitive = caseSensitive ? true : false;
         JStringAccessor value2(env, value); // throws
         if (arr_len == 1) {
@@ -696,6 +702,12 @@ void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray co
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            if (value == NULL) {
+                if (tbl->is_nullable(S(arr[arr_len-1]))) {
+                    ThrowException(env, IllegalArgument, "Trying to query field with null but field is not nullable.");
+                    return;    
+                }
+            }
             switch (predicate) {
             case StringEqual:
                 Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).equal(StringData(value2), isCaseSensitive));
