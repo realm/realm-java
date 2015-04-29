@@ -1,5 +1,7 @@
 0.81
  * Fixed bug where creating a Realm instance with a hashcode collision no longer returned the wrong Realm instance.
+ * Updated Realm Core to version 0.89.1
+   - Fixed bug in "index rebuilding" (would delete the wrong column, causing crash).
 
 0.80.1
  * Realm.createOrUpdateWithJson() no longer resets fields to their default value if they are not found in the JSON input.
