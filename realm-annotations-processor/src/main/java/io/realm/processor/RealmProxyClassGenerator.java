@@ -470,7 +470,7 @@ public class RealmProxyClassGenerator {
             .beginControlFlow("for (String fieldName : getFieldNames())")
                 .emitStatement("long index = table.getColumnIndex(fieldName)")
                 .beginControlFlow("if (index == -1)")
-                    .emitStatement("throw new RealmMigrationNeededException(\"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
+                    .emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
                 .endControlFlow()
                 .emitStatement("columnIndices.put(fieldName, index)")
             .endControlFlow();
@@ -478,7 +478,7 @@ public class RealmProxyClassGenerator {
             writer.emitStatement("%s = table.getColumnIndex(\"%s\")", staticFieldIndexVarName(field), field.getSimpleName().toString());
         }
         writer.nextControlFlow("else");
-        writer.emitStatement("throw new RealmMigrationNeededException(\"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
+        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
         writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
@@ -508,7 +508,7 @@ public class RealmProxyClassGenerator {
 
         // If object is already in the Realm there is nothing to update
         writer
-            .beginControlFlow("if (object.realm != null && object.realm.getId() == realm.getId())")
+            .beginControlFlow("if (object.realm != null && object.realm.getPath().equals(realm.getPath()))")
                 .emitStatement("return object")
             .endControlFlow();
 
@@ -523,7 +523,11 @@ public class RealmProxyClassGenerator {
                     .emitStatement("long pkColumnIndex = table.getPrimaryKey()");
 
             if (Utils.isString(metadata.getPrimaryKey())) {
-                writer.emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, object.%s())", metadata.getPrimaryKeyGetter());
+                writer
+                    .beginControlFlow("if (object.%s() == null)", metadata.getPrimaryKeyGetter())
+                        .emitStatement("throw new IllegalArgumentException(\"Primary key value must not be null.\")")
+                    .endControlFlow()
+                    .emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, object.%s())", metadata.getPrimaryKeyGetter());
             } else {
                 writer.emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, object.%s())", metadata.getPrimaryKeyGetter());
             }
