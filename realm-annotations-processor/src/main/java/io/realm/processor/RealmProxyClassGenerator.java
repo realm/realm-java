@@ -470,7 +470,7 @@ public class RealmProxyClassGenerator {
             .beginControlFlow("for (String fieldName : getFieldNames())")
                 .emitStatement("long index = table.getColumnIndex(fieldName)")
                 .beginControlFlow("if (index == -1)")
-                    .emitStatement("throw new RealmMigrationNeededException(\"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
+                    .emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
                 .endControlFlow()
                 .emitStatement("columnIndices.put(fieldName, index)")
             .endControlFlow();
@@ -478,7 +478,7 @@ public class RealmProxyClassGenerator {
             writer.emitStatement("%s = table.getColumnIndex(\"%s\")", staticFieldIndexVarName(field), field.getSimpleName().toString());
         }
         writer.nextControlFlow("else");
-        writer.emitStatement("throw new RealmMigrationNeededException(\"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
+        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
         writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
