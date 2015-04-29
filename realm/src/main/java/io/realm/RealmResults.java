@@ -619,6 +619,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         public void remove() { throw new RealmException("Removing elements not supported."); }
 
 
+        /**
+         * Returns this result set as a {@link RealmCursor}.
+         *
+         * @return A cursor representing the query results.
+         * @see android.database.Cursor
+         */
         public RealmCursor getCursor() {
             return new RealmCursor(table);
         }

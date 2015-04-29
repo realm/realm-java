@@ -25,35 +25,38 @@ import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.Bundle;
 
+import io.realm.RealmResults;
 import io.realm.internal.ColumnType;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
 /**
- * A cursor implementation that exposes {@link io.realm.RealmQuery} results as a cursor.
+ * This classes exposes {@link io.realm.RealmResults} as a cursor.
  *
  * It is possible to traverse links using dot notation to access data in referenced objects, ie.
- * {@code cursor.getInt("foo.bar"} will return the integer from the {@code bar} field in the {@code foo} object from the
- * search result objects.
+ * {@code cursor.getInt("foo.bar"} will return the integer from the {@code bar} field in the {@code foo} object
+ * referenced the class represented by the RealmResult.
  *
  * Many Android framework classes require the presences of an "_id" field. Instead of adding such a field to your
  * model class it is instead possible to use {@link #setIdAlias(String)}.
  *
  * A RealmCursor has the same thread restrictions as RealmResults, so it is not possible to move a RealmCursor between
  * threads.
- *
- * @see RealmResults.getCursor()
  */
 public class RealmCursor implements Cursor {
 
     private TableOrView table;
     private int rowIndex;
     private boolean closed;
+    private String idColumnName = "_id";
     private long idColumnIndex = -1; // Column index for the "_id" field. -1 means it hasn't been set
     private final DataSetObservable dataSetObservable = new DataSetObservable();
 
     /**
-     * Creates a cursor based on a search result.
-     * @param table
+     * Exposes a RealmResults object as a cursor. Use {@link RealmResults#getCursor()} instead of this
+     * constructor
+     *
+     * @param table Table view representing the query results.
      */
     public RealmCursor(TableOrView table) {
         this.table = table;
@@ -127,7 +130,10 @@ public class RealmCursor implements Cursor {
 
     @Override
     public boolean isBeforeFirst() {
-        return false;
+        if (getCount() == 0) {
+            return true;
+        }
+        return rowIndex == -1;
     }
 
     @Override
@@ -140,7 +146,11 @@ public class RealmCursor implements Cursor {
 
     @Override
     public int getColumnIndex(String columnName) {
-        return (int) table.getColumnIndex(columnName);
+        if (idColumnName.equals(columnName)) {
+            return (int) idColumnIndex;
+        } else {
+            return (int) table.getColumnIndex(columnName);
+        }
     }
 
     @Override
@@ -159,7 +169,12 @@ public class RealmCursor implements Cursor {
 
     @Override
     public String[] getColumnNames() {
-        return new String[0];
+        int columns = (int) table.getColumnCount();
+        String[] columnNames = new String[columns];
+        for (long i = 0; i < columns; i++) {
+            columnNames[columns] = table.getColumnName(i);
+        }
+        return columnNames;
     }
 
     @Override
@@ -179,23 +194,52 @@ public class RealmCursor implements Cursor {
 
     @Override
     public void copyStringToBuffer(int columnIndex, CharArrayBuffer buffer) {
-        // TODO
+        String result = getString(columnIndex);
+        if (result != null) {
+            char[] data = buffer.data;
+            if (data == null || data.length < result.length()) {
+                buffer.data = result.toCharArray();
+            } else {
+                result.getChars(0, result.length(), data, 0);
+            }
+            buffer.sizeCopied = result.length();
+        } else {
+            buffer.sizeCopied = 0;
+        }
     }
 
     @Override
     public short getShort(int columnIndex) {
-        return (short) table.getLong(columnIndex, rowIndex);
+        return (short) mapRealmTypeToCursor(columnIndex, false);
     }
 
     @Override
     public int getInt(int columnIndex) {
-        return (int) table.getLong(columnIndex, rowIndex);
+        return (int) mapRealmTypeToCursor(columnIndex, false);
     }
 
     @Override
     public long getLong(int columnIndex) {
-        return table.getLong(columnIndex, rowIndex);
+        return mapRealmTypeToCursor(columnIndex, true);
     }
+
+    private long mapRealmTypeToCursor(int columnIndex, boolean acceptLong) {
+        ColumnType type = table.getColumnType(columnIndex);
+        switch(type) {
+            case BOOLEAN: return table.getBoolean(columnIndex, rowIndex) ? 1 : 0;
+            case INTEGER: return table.getLong(columnIndex, rowIndex);
+            case DATE:
+                if (!acceptLong) {
+                    throw new IllegalArgumentException("Use getLong() instead to get date values.");
+                } else {
+                    return table.getDate(columnIndex, rowIndex).getTime();
+                }
+            default:
+                throw new IllegalArgumentException("Column is not a Boolean or an Integer: "
+                        + columnIndex + ", " +  type);
+        }
+    }
+
 
     @Override
     public float getFloat(int columnIndex) {
@@ -208,13 +252,17 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Returns the SQLite Cursor type for a column index. Realm has more types than SQLite and some of the cannot be
-     * mapped to any meaningful SQLite type. These will return -1.
+     * Returns the SQLite Cursor type for a column index. Realm has more types than SQLite and some of them cannot be
+     * mapped to any meaningful SQLite type. These will return -1 and are cannot be accessed using a cursor.
+     * <p>
+     * Some realm types are mapped to conform to the Cursor interface. These mappings are described below:
+     * <ol>
+     *   <li>Boolean -> {0 = false, 1 = true}, use getShort()/getInt()/getLong()</li>
+     *   <li>Date -> Time in milliseconds since epoch, use getLong()</li>
+     *</ol>
      *
-     * TODO How should we handle the type mismatch between SQLite and Realm.
-
-     * @param columnIndex
-     * @return
+     * @param columnIndex Get the data type from the this column index.
+     * @return One of the {@code FIELD_TYPE_*}'s described in {@link Cursor}
      */
     @Override
     public int getType(int columnIndex) {
@@ -226,7 +274,7 @@ public class RealmCursor implements Cursor {
             case DOUBLE: return Cursor.FIELD_TYPE_FLOAT;
             case STRING: return Cursor.FIELD_TYPE_STRING;
             case BINARY: return Cursor.FIELD_TYPE_BLOB;
-            case DATE: // TODO Support Date somehow?
+            case DATE: return Cursor.FIELD_TYPE_INTEGER;
             case TABLE:
             case MIXED:
             case LINK:
@@ -309,19 +357,30 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Map a field name to also act as "_id". This is required by a number of Android framework classes that uses
-     * cursors. This field must be an integer. If a field already exists in the model class with the name "_id" calling
-     * this will have no effect.
+     * Map a field name to also act as "_id". Such a field is required by a number of Android framework classes that uses
+     * cursors. The field must be able to mapped to a long so {@link #getLong(int)} can return a result. If a field
+     * already exists in the model class with the name "_id" calling this method will throw an
+     * {@link IllegalArgumentException}.
      *
-     * @param fieldName Name of field name that should also act as "_id" field.
-     * @return True if the alias was successfully set, false otherwise.
+     * @param fieldName Field name found in the model class that should also act as the "_id" field.
+     * @throws IllegalArgumentException If the field name doesn't exist, is of the wrong type or a field named
+     * {@code _id} already exists.
      *
      * @see http://developer.android.com/reference/android/widget/CursorAdapter.html
      */
-    public boolean setIdAlias(String fieldName) {
-        // TODO Check if fieldName exists
-        // TODO Check if "_id" already exists as fieldName
-        // TODO Otherwise set alias
-        return false;
+    public void setIdAlias(String fieldName) {
+        int idIndex = getColumnIndex(fieldName);
+        if (idIndex == TableOrView.NO_MATCH) {
+            throw new IllegalArgumentException("Field name doesn't exist: " + fieldName);
+        }
+        int idType = getType(idIndex);
+        if (idType != Cursor.FIELD_TYPE_INTEGER) {
+            throw new IllegalArgumentException(fieldName + " cannot be mapped to a long.");
+        }
+        if (getColumnIndex(idColumnName) != TableOrView.NO_MATCH) {
+            throw new IllegalArgumentException(idColumnName + " is already a field name in the model class and cannot be overridden.");
+        }
+
+       this.idColumnIndex = idIndex;
     }
 }
