@@ -1,4 +1,5 @@
 0.81
+ * RealmMigrationNeedException can now return the path to the Realm that needs to be migrated.
  * Fixed bug where creating a Realm instance with a hashcode collision no longer returned the wrong Realm instance.
 
 0.80.1
