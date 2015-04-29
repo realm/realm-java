@@ -150,7 +150,7 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObject> cache) {
-        if (object.realm != null && object.realm.getId() == realm.getId()) {
+        if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
