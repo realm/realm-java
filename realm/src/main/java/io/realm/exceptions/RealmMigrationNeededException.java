@@ -15,36 +15,39 @@
  */
 package io.realm.exceptions;
 
+import java.io.File;
+
 public class RealmMigrationNeededException extends RuntimeException {
 
-    private final String absoluteRealmPath;
+    private final String canonicalRealmPath;
 
-    public RealmMigrationNeededException(String absoluteRealmPath, String detailMessage) {
+    public RealmMigrationNeededException(String canonicalRealmPath, String detailMessage) {
         super(detailMessage);
-        this.absoluteRealmPath = absoluteRealmPath;
+        this.canonicalRealmPath = canonicalRealmPath;
     }
 
-    public RealmMigrationNeededException(String absoluteRealmPath, String detailMessage, Throwable throwable) {
+    public RealmMigrationNeededException(String canonicalRealmPath, String detailMessage, Throwable throwable) {
         super(detailMessage, throwable);
-        this.absoluteRealmPath = absoluteRealmPath;
+        this.canonicalRealmPath = canonicalRealmPath;
     }
 
     /**
-     * Returns the absolute path to the Realm file that needs to be migrated.
+     * Returns the canonical path to the Realm file that needs to be migrated.
      *
      * This can be used for easy reference during a migration:
      *
      * <pre>
      * try {
      *   Realm.getInstance(context);
-     * } cathc (RealmMigrationNeededException e) {
+     * } catch (RealmMigrationNeededException e) {
      *   Realm.migrateRealmAtPath(e.getRealmPath(), new CustomMigration());
      * }
      * </pre>
      *
-     * @return Absolute path to the Realm file
+     * @return Canonical path to the Realm file.
+     * @see File#getCanonicalPath()
      */
     public String getPath() {
-        return absoluteRealmPath;
+        return canonicalRealmPath;
     }
 }
