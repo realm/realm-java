@@ -1588,7 +1588,7 @@ public final class Realm implements Closeable {
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not execute the copyToRealm method : " + APT_NOT_EXECUTED_MESSAGE, e);
         } catch (InvocationTargetException e) {
-            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class  " + proxyClass.getName() + ": " + APT_NOT_EXECUTED_MESSAGE, e);
+            throw new RealmException("An exception was thrown in the copyToRealm method in the proxy class " + proxyClass.getName(), e);
         }
     }
 
