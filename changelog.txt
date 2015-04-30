@@ -1,5 +1,8 @@
 0.81
+ * Trying to using Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
+ * RealmMigrationNeedException can now return the path to the Realm that needs to be migrated.
  * Fixed bug where creating a Realm instance with a hashcode collision no longer returned the wrong Realm instance.
+ * Updated Realm Core to version 0.89.1.
 
 0.80.1
  * Realm.createOrUpdateWithJson() no longer resets fields to their default value if they are not found in the JSON input.

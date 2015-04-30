@@ -275,7 +275,7 @@ public class AllTypesRealmProxy extends AllTypes {
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type AllTypes");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type AllTypes");
                 }
                 columnIndices.put(fieldName, index);
             }
@@ -289,7 +289,7 @@ public class AllTypesRealmProxy extends AllTypes {
             INDEX_COLUMNOBJECT = table.getColumnIndex("columnObject");
             INDEX_COLUMNREALMLIST = table.getColumnIndex("columnRealmList");
         } else {
-            throw new RealmMigrationNeededException("The AllTypes class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The AllTypes class is missing from the schema for this Realm.");
         }
     }
 
@@ -414,6 +414,9 @@ public class AllTypesRealmProxy extends AllTypes {
         if (canUpdate) {
             Table table = realm.getTable(AllTypes.class);
             long pkColumnIndex = table.getPrimaryKey();
+            if (object.getColumnString() == null) {
+                throw new IllegalArgumentException("Primary key value must not be null.");
+            }
             long rowIndex = table.findFirstString(pkColumnIndex, object.getColumnString());
             if (rowIndex != TableOrView.NO_MATCH) {
                 realmObject = new AllTypesRealmProxy();

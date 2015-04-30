@@ -213,8 +213,6 @@ public class SharedGroup implements Closeable {
         return nativePtr == 0;
     }
 
-    static native String nativeGetDefaultReplicationDatabaseFileName();
-
     public boolean hasChanged() {
         return nativeHasChanged(nativePtr);
     }
@@ -232,6 +230,18 @@ public class SharedGroup implements Closeable {
     public boolean compact() {
         return nativeCompact(nativePtr);
     }
+
+
+    /**
+     * Returns the absolute path to the file backing this SharedGroup.
+     *
+     * @return Absolute path to the Realm file.
+     */
+    public String getPath() {
+        return nativeGetDefaultReplicationDatabaseFileName();
+    }
+
+    private native String nativeGetDefaultReplicationDatabaseFileName();
 
     private native void nativeReserve(long nativePtr, long bytes);
 

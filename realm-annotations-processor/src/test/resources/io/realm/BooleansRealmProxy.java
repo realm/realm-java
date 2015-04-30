@@ -121,7 +121,7 @@ public class BooleansRealmProxy extends Booleans {
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type Booleans");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type Booleans");
                 }
                 columnIndices.put(fieldName, index);
             }
@@ -129,7 +129,7 @@ public class BooleansRealmProxy extends Booleans {
             INDEX_ISREADY = table.getColumnIndex("isReady");
             INDEX_MCOMPLETED = table.getColumnIndex("mCompleted");
         } else {
-            throw new RealmMigrationNeededException("The Booleans class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The Booleans class is missing from the schema for this Realm.");
         }
     }
 
