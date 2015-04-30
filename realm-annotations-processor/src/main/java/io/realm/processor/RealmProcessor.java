@@ -50,7 +50,7 @@ import io.realm.annotations.RealmClass;
  * <h1>SUMMARY</h1>
  *
  * <ol>
- *  <li>Create proxy classes for all classes marked with @RealmClass. They are named <modelClass>RealmProxy.java</li>
+ *  <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;modelClass&gt;RealmProxy.java</li>
  *  <li>Create a DefaultRealmModule containing all model classes (if needed).</li>
  *  <li>Create a RealmProxyMediator class for all classes marked with @RealmModule. They are named <moduleName>Mediator.java</li>
  * </ol>
@@ -71,8 +71,7 @@ import io.realm.annotations.RealmClass;
  *
  * <li>For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
  * class has an interface that matches the static helper methods for the proxy classes. All access to these static
- * helper methods should be done through this Mediator. Java 8 has support for interface static methods, but we can't
- * use that yet :(</li>
+ * helper methods should be done through this Mediator.</li>
  * </ol>
  *
  * This allows ProGuard to obfuscate all model and proxy classes as all access to the static methods now happens through
