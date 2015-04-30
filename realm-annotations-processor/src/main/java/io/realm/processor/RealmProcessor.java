@@ -137,7 +137,7 @@ public class RealmProcessor extends AbstractProcessor {
                 Utils.error(e.getMessage(), classElement);
             } catch (UnsupportedOperationException e) {
                 Utils.error(e.getMessage(), classElement);
-			}
+	    }
         }
 
         if (!hasProcessedModules) {
