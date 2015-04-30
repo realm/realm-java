@@ -349,19 +349,19 @@ public class JNITableTest extends AndroidTestCase {
     public void testShouldThrowWhenSetIndexOnWrongColumnType() {
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
 
-            // Check all other column types than String throws exception when using setIndex()/hasIndex()
+            // Check all other column types than String throws exception when using addSearchIndex()/hasSearchIndex()
             boolean exceptionExpected = (t.getColumnType(colIndex) != ColumnType.STRING);
 
-            // Try to setIndex()
+            // Try to addSearchIndex()
             try {
-                t.setIndex(colIndex);
+                t.addSearchIndex(colIndex);
                 if (exceptionExpected)
                     fail("expected exception for colIndex " + colIndex);
             } catch (IllegalArgumentException e) {
             }
 
-            // Try to hasIndex() for all columnTypes
-            t.hasIndex(colIndex);
+            // Try to hasSearchIndex() for all columnTypes
+            t.hasSearchIndex(colIndex);
         }
     }
 
