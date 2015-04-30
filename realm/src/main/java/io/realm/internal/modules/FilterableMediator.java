@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,14 +47,14 @@ public class FilterableMediator implements RealmProxyMediator {
      * Creates a filterable Mediator.
      *
      * @param originalMediator      Original auto generated mediator.
-     * @param filter                Subset of classes from original mediator to allow.
+     * @param allowedClasses                Subset of classes from original mediator to allow.
      */
-    public FilterableMediator(RealmProxyMediator originalMediator, List<Class<? extends RealmObject>> filter) {
+    public FilterableMediator(RealmProxyMediator originalMediator, List<Class<? extends RealmObject>> allowedClasses) {
         this.originalMediator = originalMediator;
         List<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
-        for (Class<? extends RealmObject> clazz : filter) {
+        for (Class<? extends RealmObject> clazz : allowedClasses) {
             if (originalClasses.contains(clazz)) {
-                allowedClasses.add(clazz);
+                this.allowedClasses.add(clazz);
             }
         }
     }

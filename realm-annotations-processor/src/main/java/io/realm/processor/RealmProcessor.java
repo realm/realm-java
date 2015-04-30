@@ -108,6 +108,9 @@ public class RealmProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        if (hasProcessedModules) {
+            return true;
+        }
         RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
         updateChecker.executeRealmVersionUpdate();
         Utils.initialize(processingEnv);
@@ -137,15 +140,11 @@ public class RealmProcessor extends AbstractProcessor {
                 Utils.error(e.getMessage(), classElement);
             } catch (UnsupportedOperationException e) {
                 Utils.error(e.getMessage(), classElement);
+            }
 	    }
-        }
 
-        if (!hasProcessedModules) {
-            hasProcessedModules = true;
-            return processModules(roundEnv);
-        }
-
-        return true;
+        hasProcessedModules = true;
+        return processModules(roundEnv);
     }
 
     // Returns true if modules was processed successfully, false otherwise
@@ -164,8 +163,8 @@ public class RealmProcessor extends AbstractProcessor {
         }
 
         // Create RealmProxyMediators for all Realm modules
-        for (Map.Entry<String, Set<ClassMetaData>> entry : moduleMetaData.getAllModules().entrySet()) {
-            if (createMediator(Utils.stripPackage(entry.getKey()), entry.getValue())) {
+        for (Map.Entry<String, Set<ClassMetaData>> module : moduleMetaData.getAllModules().entrySet()) {
+            if (!createMediator(Utils.stripPackage(module.getKey()), module.getValue())) {
                 return false;
             }
         }

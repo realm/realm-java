@@ -1,6 +1,5 @@
-
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +41,11 @@ public class RealmProxyMediatorGenerator {
     private List<String> proxyClasses = new ArrayList<String>();
 
     private static final String REALM_PACKAGE_NAME = "io.realm";
-    private static final String EXCEPTION_MSG = "\"Could not find the generated proxy class for \" + clazz + \". \" + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE";
+    private static final String EXCEPTION_MSG = "\"Could not find the generated proxy class for \" + clazz + " +
+            "\". \" + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE";
 
-    public RealmProxyMediatorGenerator(ProcessingEnvironment processingEnvironment, String className, Set<ClassMetaData> classesToValidate) {
+    public RealmProxyMediatorGenerator(ProcessingEnvironment processingEnvironment,
+                                       String className, Set<ClassMetaData> classesToValidate) {
         this.processingEnvironment = processingEnvironment;
         this.className = className;
 
@@ -303,9 +304,12 @@ public class RealmProxyMediatorGenerator {
         emitMediatorSwitch(statement, writer, true);
     }
 
-    private void emitMediatorSwitch(ProxySwitchStatement statement, JavaWriter writer, boolean nullPointerCheck) throws IOException {
+    private void emitMediatorSwitch(ProxySwitchStatement statement, JavaWriter writer, boolean nullPointerCheck)
+            throws IOException {
         if (nullPointerCheck) {
-            writer.emitStatement("if (clazz == null) throw new NullPointerException(\"A class extending RealmObject must be provided\")");
+            writer.beginControlFlow("if (clazz == null)");
+            writer.emitStatement("throw new NullPointerException(\"A class extending RealmObject must be provided\")");
+            writer.endControlFlow();
             writer.emitEmptyLine();
         }
         if (simpleModelClasses.size() == 0) {

@@ -327,7 +327,7 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "ImplicitTransaction", "transaction"); // Argument type & argument name
 
-        writer.beginControlFlow("if(!transaction.hasTable(\"" + Constants.TABLE_PREFIX + this.className + "\"))");
+        writer.beginControlFlow("if (!transaction.hasTable(\"" + Constants.TABLE_PREFIX + this.className + "\"))");
         writer.emitStatement("Table table = transaction.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.className);
 
         // For each field generate corresponding table index constant
@@ -358,7 +358,7 @@ public class RealmProxyClassGenerator {
 
         for (VariableElement field : metadata.getIndexedFields()) {
             String fieldName = field.getSimpleName().toString();
-            writer.emitStatement("table.setIndex(table.getColumnIndex(\"%s\"))", fieldName);
+            writer.emitStatement("table.addSearchIndex(table.getColumnIndex(\"%s\"))", fieldName);
         }
 
         if (metadata.hasPrimaryKey()) {
@@ -382,7 +382,7 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "ImplicitTransaction", "transaction"); // Argument type & argument name
 
-        writer.beginControlFlow("if(transaction.hasTable(\"" + Constants.TABLE_PREFIX + this.className + "\"))");
+        writer.beginControlFlow("if (transaction.hasTable(\"" + Constants.TABLE_PREFIX + this.className + "\"))");
         writer.emitStatement("Table table = transaction.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.className);
 
         // verify number of columns
@@ -421,7 +421,7 @@ public class RealmProxyClassGenerator {
 
                 // Validate @Index
                 if (metadata.getIndexedFields().contains(field)) {
-                    writer.beginControlFlow("if (!table.hasIndex(table.getColumnIndex(\"%s\")))", fieldName);
+                    writer.beginControlFlow("if (!table.hasSearchIndex(table.getColumnIndex(\"%s\")))", fieldName);
                     writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Index not defined for field '%s'\")", fieldName);
                     writer.endControlFlow();
                 }
@@ -440,10 +440,10 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) { // Link Lists
                 String genericType = Utils.getGenericType(field);
-                writer.beginControlFlow("if(!columnTypes.containsKey(\"%s\"))", fieldName);
+                writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
-                writer.beginControlFlow("if(columnTypes.get(\"%s\") != ColumnType.LINK_LIST)", fieldName);
+                writer.beginControlFlow("if (columnTypes.get(\"%s\") != ColumnType.LINK_LIST)", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid type '%s' for field '%s'\")",
                         genericType, fieldName);
                 writer.endControlFlow();

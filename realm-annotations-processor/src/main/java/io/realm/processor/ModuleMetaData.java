@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 
 import io.realm.annotations.internal.RealmModule;
@@ -44,27 +45,37 @@ public class ModuleMetaData {
     public ModuleMetaData(RoundEnvironment env, Set<ClassMetaData> availableClasses) {
         this.env = env;
         this.availableClasses = availableClasses;
-        for (ClassMetaData metadata : availableClasses) {
-            classMetaData.put(metadata.getFullyQualifiedClassName(), metadata);
+        for (ClassMetaData classMetaData : availableClasses) {
+            this.classMetaData.put(classMetaData.getFullyQualifiedClassName(), classMetaData);
         }
     }
 
+    /**
+     * Build the meta data structures for this class. Any errors or messages will be posted on the provided Messager.
+     *
+     * @return True if meta data was correctly created and processing can continue, false otherwise.
+     */
     public boolean generate(ProcessingEnvironment processingEnv) {
 
         // Check that modules are setup correctly
         for (Element classElement : env.getElementsAnnotatedWith(RealmModule.class)) {
+            String classSimpleName = classElement.getSimpleName().toString();
+
+            // Check that the annotation is only applied to a class
             if (!classElement.getKind().equals(ElementKind.CLASS)) {
                 Utils.error("The RealmModule annotation can only be applied to classes", classElement);
                 return false;
             }
 
+            // Check that allClasses and classes are not set at the same time
             RealmModule module = classElement.getAnnotation(RealmModule.class);
-            Utils.note("Processing " + classElement.getSimpleName());
+            Utils.note("Processing " + classSimpleName);
             if (module.allClasses() && module.classes().length > 0) {
-                Utils.error("Setting allClasses to true will override specific classes set in " + classElement.getSimpleName().toString());
+                Utils.error("Setting @RealmModule(allClasses=true) will override @RealmModule(classes={...}) in " + classSimpleName);
                 return false;
             }
 
+            // Check that classes added are proper Realm model classes
             String qualifiedName = ((TypeElement) classElement).getQualifiedName().toString();
             Set<ClassMetaData> classes;
             if (module.allClasses()) {
@@ -87,6 +98,7 @@ public class ModuleMetaData {
                 }
             }
 
+            // Create either a Library or App module
             if (module.library()) {
                 libraryModules.put(qualifiedName, classes);
             } else {
@@ -94,12 +106,13 @@ public class ModuleMetaData {
             }
         }
 
+        // Check that app and library modules are not mixed
         if (modules.size() > 0 && libraryModules.size() > 0) {
             Utils.error("Normal modules and library modules cannot be mixed in the same project");
             return false;
         }
 
-        // Add default realm module if needed
+        // Add default realm module if needed.
         if (libraryModules.size() == 0) {
             shouldCreateDefaultModule = true;
             String defautModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME;

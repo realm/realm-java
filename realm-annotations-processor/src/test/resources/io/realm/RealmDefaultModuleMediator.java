@@ -29,7 +29,9 @@ class DefaultRealmModuleMediator
 
     @Override
     public Table createTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
-        if (clazz == null) throw new NullPointerException("A class extending RealmObject must be provided");
+        if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
 
         if (clazz.equals(AllTypes.class)) {
             return AllTypesRealmProxy.initTable(transaction);
@@ -40,7 +42,9 @@ class DefaultRealmModuleMediator
 
     @Override
     public void validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
-        if (clazz == null) throw new NullPointerException("A class extending RealmObject must be provided");
+        if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
 
         if (clazz.equals(AllTypes.class)) {
             AllTypesRealmProxy.validateTable(transaction);
@@ -51,7 +55,9 @@ class DefaultRealmModuleMediator
 
     @Override
     public List<String> getFieldNames(Class<? extends RealmObject> clazz) {
-        if (clazz == null) throw new NullPointerException("A class extending RealmObject must be provided");
+        if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
 
         if (clazz.equals(AllTypes.class)) {
             return AllTypesRealmProxy.getFieldNames();
@@ -62,7 +68,9 @@ class DefaultRealmModuleMediator
 
     @Override
     public String getTableName(Class<? extends RealmObject> clazz) {
-        if (clazz == null) throw new NullPointerException("A class extending RealmObject must be provided");
+        if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
 
         if (clazz.equals(AllTypes.class)) {
             return AllTypesRealmProxy.getTableName();
@@ -73,7 +81,9 @@ class DefaultRealmModuleMediator
 
     @Override
     public <E extends RealmObject> E newInstance(Class<E> clazz) {
-        if (clazz == null) throw new NullPointerException("A class extending RealmObject must be provided");
+        if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
 
         if (clazz.equals(AllTypes.class)) {
             return (E) new AllTypesRealmProxy();
@@ -110,7 +120,9 @@ class DefaultRealmModuleMediator
     @Override
     public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        if (clazz == null) throw new NullPointerException("A class extending RealmObject must be provided");
+        if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
 
         if (clazz.equals(AllTypes.class)) {
             return (E) AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json, update);
@@ -122,7 +134,9 @@ class DefaultRealmModuleMediator
     @Override
     public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader)
             throws IOException {
-        if (clazz == null) throw new NullPointerException("A class extending RealmObject must be provided");
+        if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
 
         if (clazz.equals(AllTypes.class)) {
             return (E) AllTypesRealmProxy.createUsingJsonStream(realm, reader);

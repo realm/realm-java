@@ -189,7 +189,7 @@ public class AllTypesRealmProxy extends AllTypes
                 AllTypesRealmProxy.initTable(transaction);
             }
             table.addColumnLink(ColumnType.LINK_LIST, "columnRealmList", transaction.getTable("class_AllTypes"));
-            table.setIndex(table.getColumnIndex("columnString"));
+            table.addSearchIndex(table.getColumnIndex("columnString"));
             table.setPrimaryKey("columnString");
             return table;
         }
@@ -215,7 +215,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (table.getPrimaryKey() != table.getColumnIndex("columnString")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Primary key not defined for field 'columnString'");
             }
-            if (!table.hasIndex(table.getColumnIndex("columnString"))) {
+            if (!table.hasSearchIndex(table.getColumnIndex("columnString"))) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Index not defined for field 'columnString'");
             }
             if (!columnTypes.containsKey("columnLong")) {

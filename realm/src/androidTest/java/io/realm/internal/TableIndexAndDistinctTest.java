@@ -2,13 +2,6 @@ package io.realm.internal;
 
 import junit.framework.TestCase;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import io.realm.internal.test.DataProviderUtil;
-import io.realm.internal.test.TestHelper;
-
 public class TableIndexAndDistinctTest extends TestCase {
     Table table;
 
@@ -32,8 +25,8 @@ public class TableIndexAndDistinctTest extends TestCase {
         init();
 
         // Must set index before using distinct()
-        table.setIndex(1);
-        assertEquals(true, table.hasIndex(1));
+        table.addSearchIndex(1);
+        assertEquals(true, table.hasSearchIndex(1));
 
         TableView view = table.getDistinctView(1);
         assertEquals(4, view.size());
@@ -89,8 +82,8 @@ public class TableIndexAndDistinctTest extends TestCase {
         t.add("row1", "row2", "row3", "row4", "row5");
 
         for (long c=0;c<t.getColumnCount();c++){
-            t.setIndex(c);
-            assertEquals(true, t.hasIndex(c));
+            t.addSearchIndex(c);
+            assertEquals(true, t.hasSearchIndex(c));
         }
     }
 
@@ -112,17 +105,17 @@ public class TableIndexAndDistinctTest extends TestCase {
             throw new IllegalArgumentException();
         }
 
-        t.setIndex(index);
+        t.addSearchIndex(index);
     }*/
 
     public void testShouldCheckIndexIsOkOnColumn() {
         init();
-        table.setIndex(1);
+        table.addSearchIndex(1);
     }
 
     public void testShouldThrowDistinctErrorWhenWrongColumnType() {
         init();
-        table.setIndex(1);
+        table.addSearchIndex(1);
         try {
             TableView view = table.getDistinctView(0);
             fail();
@@ -148,5 +141,23 @@ public class TableIndexAndDistinctTest extends TestCase {
         List<?> mixedValues = Arrays.asList(values);
         return DataProviderUtil.allCombinations(mixedValues);
     }*/
+
+    public void testRemoveSearchIndex() {
+        init();
+        table.addSearchIndex(1);
+        assertEquals(true, table.hasSearchIndex(1));
+
+        table.removeSearchIndex(1);
+        assertEquals(false, table.hasSearchIndex(1));
+    }
+
+    public void testRemoveSearchIndexNoop() {
+        init();
+        assertEquals(false, table.hasSearchIndex(1));
+
+        // remove index from non-indexed column is a no-op
+        table.removeSearchIndex(1);
+        assertEquals(false, table.hasSearchIndex(1));
+    }
 }
 

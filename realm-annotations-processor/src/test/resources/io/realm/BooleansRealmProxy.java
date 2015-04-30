@@ -79,7 +79,7 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
-        if(!transaction.hasTable("class_Booleans")) {
+        if (!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
             table.addColumn(ColumnType.BOOLEAN, "done");
             table.addColumn(ColumnType.BOOLEAN, "isReady");
@@ -91,13 +91,13 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static void validateTable(ImplicitTransaction transaction) {
-        if(transaction.hasTable("class_Booleans")) {
+        if (transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-            if(table.getColumnCount() != 3) {
+            if (table.getColumnCount() != 3) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for(long i = 0; i < 3; i++) {
+            for (long i = 0; i < 3; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("done")) {

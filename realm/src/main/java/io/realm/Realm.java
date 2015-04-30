@@ -307,8 +307,9 @@ public final class Realm implements Closeable {
 
     // Public because of migrations
     public Table getTable(Class<? extends RealmObject> clazz) {
-        if (!clazz.getSuperclass().equals(RealmObject.class)) {
-            clazz = (Class<? extends RealmObject>) clazz.getSuperclass();
+        Class<?> superclass = clazz.getSuperclass();
+        if (!superclass.equals(RealmObject.class)) {
+            clazz = (Class<? extends RealmObject>) superclass;
         }
         return transaction.getTable(proxyMediator.getTableName(clazz));
     }

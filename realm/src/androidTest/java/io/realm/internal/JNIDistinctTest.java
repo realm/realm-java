@@ -28,8 +28,8 @@ public class JNIDistinctTest extends TestCase {
         init();
 
         // Must set index before using distinct()
-        table.setIndex(1);
-        assertEquals(true, table.hasIndex(1));
+        table.addSearchIndex(1);
+        assertEquals(true, table.hasSearchIndex(1));
 
         TableView view = table.getDistinctView(1);
         assertEquals(4, view.size());
@@ -61,7 +61,7 @@ public class JNIDistinctTest extends TestCase {
 
     public void testShouldTestDistinctErrorWhenWrongColumnType() {
         init();
-        table.setIndex(1);
+        table.addSearchIndex(1);
         try {
             TableView view = table.getDistinctView(0);
             fail();

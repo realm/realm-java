@@ -96,17 +96,14 @@ public class Utils {
     /**
      * Strips the package name from a fully qualified class name.
      */
-    public static String stripPackage(String clazz) {
-        String[] parts = clazz.split("\\.");
+    public static String stripPackage(String fullyQualifiedClassName) {
+        String[] parts = fullyQualifiedClassName.split("\\.");
         if (parts.length > 0) {
             return parts[parts.length - 1];
         } else {
-            return clazz;
+            return fullyQualifiedClassName;
         }
     }
-
-
-
 
     public static void error(String message, Element element) {
         messager.printMessage(Diagnostic.Kind.ERROR, message, element);
