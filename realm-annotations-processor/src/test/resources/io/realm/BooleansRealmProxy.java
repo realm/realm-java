@@ -26,8 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.Booleans;
 
-public class BooleansRealmProxy extends Booleans
-        implements RealmObjectProxy {
+public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
 
     private static long INDEX_DONE;
     private static long INDEX_ISREADY;
