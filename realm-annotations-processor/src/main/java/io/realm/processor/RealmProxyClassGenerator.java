@@ -386,13 +386,13 @@ public class RealmProxyClassGenerator {
         writer.emitStatement("Table table = transaction.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.className);
 
         // verify number of columns
-        writer.beginControlFlow("if(table.getColumnCount() != " + metadata.getFields().size() + ")");
+        writer.beginControlFlow("if (table.getColumnCount() != " + metadata.getFields().size() + ")");
         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field count does not match\")");
         writer.endControlFlow();
 
         // create type dictionary for lookup
         writer.emitStatement("Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>()");
-        writer.beginControlFlow("for(long i = 0; i < " + metadata.getFields().size() + "; i++)");
+        writer.beginControlFlow("for (long i = 0; i < " + metadata.getFields().size() + "; i++)");
         writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
         writer.endControlFlow();
 
