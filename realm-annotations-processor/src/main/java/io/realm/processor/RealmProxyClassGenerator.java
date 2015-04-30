@@ -387,7 +387,7 @@ public class RealmProxyClassGenerator {
 
         // verify number of columns
         writer.beginControlFlow("if(table.getColumnCount() != " + metadata.getFields().size() + ")");
-        writer.emitStatement("throw new RealmMigrationNeededException(\"Field count does not match\")");
+        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field count does not match\")");
         writer.endControlFlow();
 
         // create type dictionary for lookup
@@ -405,50 +405,50 @@ public class RealmProxyClassGenerator {
             if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 // make sure types align
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing field '%s'\")", fieldName);
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)", fieldName, JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
-                writer.emitStatement("throw new RealmMigrationNeededException(\"Invalid type '%s' for field '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid type '%s' for field '%s'\")",
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
 
                 // Validate @PrimaryKey
                 if (field.equals(metadata.getPrimaryKey())) {
                     writer.beginControlFlow("if (table.getPrimaryKey() != table.getColumnIndex(\"%s\"))", fieldName);
-                    writer.emitStatement("throw new RealmMigrationNeededException(\"Primary key not defined for field '%s'\")", fieldName);
+                    writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Primary key not defined for field '%s'\")", fieldName);
                     writer.endControlFlow();
                 }
 
                 // Validate @Index
                 if (metadata.getIndexedFields().contains(field)) {
                     writer.beginControlFlow("if (!table.hasIndex(table.getColumnIndex(\"%s\")))", fieldName);
-                    writer.emitStatement("throw new RealmMigrationNeededException(\"Index not defined for field '%s'\")", fieldName);
+                    writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Index not defined for field '%s'\")", fieldName);
                     writer.endControlFlow();
                 }
 
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) { // Links
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing field '%s'\")", fieldName);
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if (columnTypes.get(\"%s\") != ColumnType.LINK)", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(\"Invalid type '%s' for field '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid type '%s' for field '%s'\")",
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
-                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing class '%s%s' for field '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing class '%s%s' for field '%s'\")",
                         Constants.TABLE_PREFIX, fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) { // Link Lists
                 String genericType = Utils.getGenericType(field);
                 writer.beginControlFlow("if(!columnTypes.containsKey(\"%s\"))", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing field '%s'\")", fieldName);
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if(columnTypes.get(\"%s\") != ColumnType.LINK_LIST)", fieldName);
-                writer.emitStatement("throw new RealmMigrationNeededException(\"Invalid type '%s' for field '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid type '%s' for field '%s'\")",
                         genericType, fieldName);
                 writer.endControlFlow();
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericType);
-                writer.emitStatement("throw new RealmMigrationNeededException(\"Missing class '%s%s' for field '%s'\")",
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing class '%s%s' for field '%s'\")",
                         Constants.TABLE_PREFIX, genericType, fieldName);
                 writer.endControlFlow();
             }
@@ -461,7 +461,7 @@ public class RealmProxyClassGenerator {
             .beginControlFlow("for (String fieldName : getFieldNames())")
                 .emitStatement("long index = table.getColumnIndex(fieldName)")
                 .beginControlFlow("if (index == -1)")
-                    .emitStatement("throw new RealmMigrationNeededException(\"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
+                    .emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
                 .endControlFlow()
                 .emitStatement("columnIndices.put(fieldName, index)")
             .endControlFlow();
@@ -469,7 +469,7 @@ public class RealmProxyClassGenerator {
             writer.emitStatement("%s = table.getColumnIndex(\"%s\")", staticFieldIndexVarName(field), field.getSimpleName().toString());
         }
         writer.nextControlFlow("else");
-        writer.emitStatement("throw new RealmMigrationNeededException(\"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
+        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
         writer.endControlFlow();
         writer.endMethod();
         writer.emitEmptyLine();
@@ -506,7 +506,7 @@ public class RealmProxyClassGenerator {
 
         // If object is already in the Realm there is nothing to update
         writer
-            .beginControlFlow("if (object.realm != null && object.realm.getId() == realm.getId())")
+            .beginControlFlow("if (object.realm != null && object.realm.getPath().equals(realm.getPath()))")
                 .emitStatement("return object")
             .endControlFlow();
 
@@ -521,7 +521,11 @@ public class RealmProxyClassGenerator {
                     .emitStatement("long pkColumnIndex = table.getPrimaryKey()");
 
             if (Utils.isString(metadata.getPrimaryKey())) {
-                writer.emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, object.%s())", metadata.getPrimaryKeyGetter());
+                writer
+                    .beginControlFlow("if (object.%s() == null)", metadata.getPrimaryKeyGetter())
+                        .emitStatement("throw new IllegalArgumentException(\"Primary key value must not be null.\")")
+                    .endControlFlow()
+                    .emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, object.%s())", metadata.getPrimaryKeyGetter());
             } else {
                 writer.emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, object.%s())", metadata.getPrimaryKeyGetter());
             }

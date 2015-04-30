@@ -79,37 +79,37 @@ public class SimpleRealmProxy extends Simple
         if(transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
             if(table.getColumnCount() != 2) {
-                throw new RealmMigrationNeededException("Field count does not match");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for(long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("name")) {
-                throw new RealmMigrationNeededException("Missing field 'name'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name'");
             }
             if (columnTypes.get("name") != ColumnType.STRING) {
-                throw new RealmMigrationNeededException("Invalid type 'String' for field 'name'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name'");
             }
             if (!columnTypes.containsKey("age")) {
-                throw new RealmMigrationNeededException("Missing field 'age'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age'");
             }
             if (columnTypes.get("age") != ColumnType.INTEGER) {
-                throw new RealmMigrationNeededException("Invalid type 'int' for field 'age'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age'");
             }
 
             columnIndices = new HashMap<String, Long>();
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type Simple");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type Simple");
                 }
                 columnIndices.put(fieldName, index);
             }
             INDEX_NAME = table.getColumnIndex("name");
             INDEX_AGE = table.getColumnIndex("age");
         } else {
-            throw new RealmMigrationNeededException("The Simple class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the schema for this Realm.");
         }
     }
 
@@ -156,7 +156,7 @@ public class SimpleRealmProxy extends Simple
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        if (object.realm != null && object.realm.getId() == realm.getId()) {
+        if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);

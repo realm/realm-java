@@ -94,36 +94,36 @@ public class BooleansRealmProxy extends Booleans
         if(transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
             if(table.getColumnCount() != 3) {
-                throw new RealmMigrationNeededException("Field count does not match");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for(long i = 0; i < 3; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("done")) {
-                throw new RealmMigrationNeededException("Missing field 'done'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done'");
             }
             if (columnTypes.get("done") != ColumnType.BOOLEAN) {
-                throw new RealmMigrationNeededException("Invalid type 'boolean' for field 'done'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'done'");
             }
             if (!columnTypes.containsKey("isReady")) {
-                throw new RealmMigrationNeededException("Missing field 'isReady'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'isReady'");
             }
             if (columnTypes.get("isReady") != ColumnType.BOOLEAN) {
-                throw new RealmMigrationNeededException("Invalid type 'boolean' for field 'isReady'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'isReady'");
             }
             if (!columnTypes.containsKey("mCompleted")) {
-                throw new RealmMigrationNeededException("Missing field 'mCompleted'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'mCompleted'");
             }
             if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
-                throw new RealmMigrationNeededException("Invalid type 'boolean' for field 'mCompleted'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted'");
             }
 
             columnIndices = new HashMap<String, Long>();
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type Booleans");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type Booleans");
                 }
                 columnIndices.put(fieldName, index);
             }
@@ -131,7 +131,7 @@ public class BooleansRealmProxy extends Booleans
             INDEX_ISREADY = table.getColumnIndex("isReady");
             INDEX_MCOMPLETED = table.getColumnIndex("mCompleted");
         } else {
-            throw new RealmMigrationNeededException("The Booleans class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The Booleans class is missing from the schema for this Realm.");
         }
     }
 
@@ -183,7 +183,7 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        if (object.realm != null && object.realm.getId() == realm.getId()) {
+        if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
