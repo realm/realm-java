@@ -491,6 +491,18 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public void add(int index, E element) {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * Returns this result set as a {@link RealmCursor}. All changes done to to this RealmResults afterwards will
+     * also be automatically reflected in the Cursor without having to fetch it again.
+     *
+     * @return A cursor representing the query results.
+     * @see android.database.Cursor
+     */
+    public RealmCursor getCursor() {
+        return new RealmCursor(realm, table);
+    }
+
 //
 //    /**
 //     * Replaces an object at the given index with a new object.
@@ -617,16 +629,5 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
          */
         @Override
         public void remove() { throw new RealmException("Removing elements not supported."); }
-
-
-        /**
-         * Returns this result set as a {@link RealmCursor}.
-         *
-         * @return A cursor representing the query results.
-         * @see android.database.Cursor
-         */
-        public RealmCursor getCursor() {
-            return new RealmCursor(table);
-        }
     }
 }

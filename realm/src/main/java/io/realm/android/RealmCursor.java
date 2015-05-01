@@ -25,9 +25,10 @@ import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.Bundle;
 
+import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.internal.ColumnType;
-import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
 /**
@@ -38,19 +39,31 @@ import io.realm.internal.TableOrView;
  * referenced the class represented by the RealmResult.
  *
  * Many Android framework classes require the presences of an "_id" field. Instead of adding such a field to your
- * model class it is instead possible to use {@link #setIdAlias(String)}.
+ * model class it is instead possible to use {@link #setIdColumn(String)}.
  *
  * A RealmCursor has the same thread restrictions as RealmResults, so it is not possible to move a RealmCursor between
  * threads.
+ *
+ * TODO How to handle RealmList? getString("realmList[0].name)"?
+ * TODO How to iterate a RealmList?
  */
 public class RealmCursor implements Cursor {
 
+    private final Realm realm;
     private TableOrView table;
     private int rowIndex;
     private boolean closed;
     private String idColumnName = "_id";
     private long idColumnIndex = -1; // Column index for the "_id" field. -1 means it hasn't been set
     private final DataSetObservable dataSetObservable = new DataSetObservable();
+    private RealmChangeListener changeListener = new RealmChangeListener() {
+        @Override
+        public void onChange() {
+            if (dataSetObservable != null) {
+                dataSetObservable.notifyChanged(); // TODO Should be replaced with something more finegrained.
+            }
+        }
+    };
 
     /**
      * Exposes a RealmResults object as a cursor. Use {@link RealmResults#getCursor()} instead of this
@@ -58,9 +71,12 @@ public class RealmCursor implements Cursor {
      *
      * @param table Table view representing the query results.
      */
-    public RealmCursor(TableOrView table) {
+    public RealmCursor(Realm realm, TableOrView table) {
         this.table = table;
         this.rowIndex = -1;
+        this.realm = realm;
+
+        realm.addChangeListener(changeListener);
     }
 
     @Override
@@ -303,6 +319,7 @@ public class RealmCursor implements Cursor {
     public void close() {
         closed = true;
         table = null; // Instead of closing the table, we just release it. Original RealmResults would also be closed otherwise.
+        realm.removeChangeListener(changeListener);
         dataSetObservable.notifyInvalidated();
     }
 
@@ -357,9 +374,9 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Map a field name to also act as "_id". Such a field is required by a number of Android framework classes that uses
-     * cursors. The field must be able to mapped to a long so {@link #getLong(int)} can return a result. If a field
-     * already exists in the model class with the name "_id" calling this method will throw an
+     * Map a field name to also act as the "_id" column. Such a column is required by a number of Android framework
+     * classes that uses cursors. The field must be able to mapped to a long so {@link #getLong(int)} can return a
+     * result. If a field already exists in the model class with the name "_id" calling this method will throw an
      * {@link IllegalArgumentException}.
      *
      * @param fieldName Field name found in the model class that should also act as the "_id" field.
@@ -368,7 +385,7 @@ public class RealmCursor implements Cursor {
      *
      * @see http://developer.android.com/reference/android/widget/CursorAdapter.html
      */
-    public void setIdAlias(String fieldName) {
+    public void setIdColumn(String fieldName) {
         int idIndex = getColumnIndex(fieldName);
         if (idIndex == TableOrView.NO_MATCH) {
             throw new IllegalArgumentException("Field name doesn't exist: " + fieldName);
