@@ -59,9 +59,9 @@ public @interface RealmModule {
     boolean library() default false;
 
     /**
-     * Instead of adding all RealmObjects manually to a module, set this boolean to true to automatically
-     * include all RealmObject classes in this project. This does not include classes from other libraries
-     * which must be exposed using their own module.
+     * Instead of adding all Realm classes manually to a module, set this boolean to true to automatically include all
+     * Realm classes in this project. This does not include classes from other libraries which must be  exposed using
+     * their own module.
      *
      * Setting both {@code allClasses = true} and {@code classes()} will result in the annotation processor throwing
      * an error.
@@ -69,7 +69,7 @@ public @interface RealmModule {
     boolean allClasses() default false;
 
     /**
-     * Specify the RealmObject classes part of this module. Only classes in this project can be included. RealmObjects
+     * Specify the Realm classes part of this module. Only classes in this project can be included. Realm classes
      * from other libraries must be exposed using their own module.
      *
      * Setting both {@code allClasses = true} and {@code classes()} will result in the annotation processor throwing
