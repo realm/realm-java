@@ -37,7 +37,7 @@ import io.realm.internal.Table;
 /**
  * This class is able to merge different RealmProxyMediators, so they look like one.
  */
-public class CompositeMediator implements RealmProxyMediator {
+public class CompositeMediator extends RealmProxyMediator {
 
     Map<Class<? extends RealmObject>, RealmProxyMediator> mediators = new HashMap<Class<? extends RealmObject>, RealmProxyMediator>();
 

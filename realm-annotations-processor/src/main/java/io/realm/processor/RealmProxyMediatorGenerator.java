@@ -41,8 +41,6 @@ public class RealmProxyMediatorGenerator {
     private List<String> proxyClasses = new ArrayList<String>();
 
     private static final String REALM_PACKAGE_NAME = "io.realm";
-    private static final String EXCEPTION_MSG = "\"Could not find the generated proxy class for \" + clazz + " +
-            "\". \" + RealmProxyMediator.APT_NOT_EXECUTED_MESSAGE";
 
     public RealmProxyMediatorGenerator(ProcessingEnvironment processingEnvironment,
                                        String className, Set<ClassMetaData> classesToValidate) {
@@ -90,8 +88,7 @@ public class RealmProxyMediatorGenerator {
                 qualifiedGeneratedClassName,        // full qualified name of the item to generate
                 "class",                            // the type of the item
                 Collections.<Modifier>emptySet(),   // modifiers to apply
-                null,                               // class to extend
-                "RealmProxyMediator");              // Interfaces to implement
+                "RealmProxyMediator");               // class to extend
         writer.emitEmptyLine();
 
         emitFields(writer);
@@ -233,7 +230,7 @@ public class RealmProxyMediatorGenerator {
             public void emitStatement(int i, JavaWriter writer) throws IOException {
                 writer.emitStatement("return %s.getColumnIndices()", proxyClasses.get(i));
             }
-        }, writer, false);
+        }, writer, true);
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -307,13 +304,11 @@ public class RealmProxyMediatorGenerator {
     private void emitMediatorSwitch(ProxySwitchStatement statement, JavaWriter writer, boolean nullPointerCheck)
             throws IOException {
         if (nullPointerCheck) {
-            writer.beginControlFlow("if (clazz == null)");
-            writer.emitStatement("throw new NullPointerException(\"A class extending RealmObject must be provided\")");
-            writer.endControlFlow();
+            writer.emitStatement("checkClass(clazz)");
             writer.emitEmptyLine();
         }
         if (simpleModelClasses.size() == 0) {
-            writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
+            writer.emitStatement("throw getMissingProxyClassException(clazz)");
         } else {
             writer.beginControlFlow("if (clazz.equals(%s.class))", simpleModelClasses.get(0));
             statement.emitStatement(0, writer);
@@ -322,7 +317,7 @@ public class RealmProxyMediatorGenerator {
                 statement.emitStatement(i, writer);
             }
             writer.nextControlFlow("else");
-            writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
+            writer.emitStatement("throw getMissingProxyClassException(clazz)");
             writer.endControlFlow();
         }
     }
