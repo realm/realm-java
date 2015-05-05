@@ -40,6 +40,7 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
@@ -396,7 +397,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testQueriesFailWithNullQueryValue() throws IOException {
         try {
-            testRealm.where(AllTypes.class).equalTo(FIELD_STRING, (String) null).findAll();
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL, (String) null).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException ignored) {
         }

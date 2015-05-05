@@ -516,10 +516,10 @@ public class RealmObjectTest extends AndroidTestCase {
     public void testNullString() {
         testRealm.beginTransaction();
         NullTypes nullTypes = testRealm.createObject(NullTypes.class);
-        nullTypes.setFieldString(null);
+        nullTypes.setFieldStringNull(null);
         testRealm.commitTransaction();
 
-        assertNull(testRealm.where(NullTypes.class).findAll().first().getFieldString());
+        assertNull(testRealm.where(NullTypes.class).findAll().first().getFieldStringNull());
     }
 
     // store and retrieve non-null strings when field can contain null strings
@@ -527,18 +527,18 @@ public class RealmObjectTest extends AndroidTestCase {
         final String fooBar = "FooBar";
         testRealm.beginTransaction();
         NullTypes nullTypes = testRealm.createObject(NullTypes.class);
-        nullTypes.setFieldString(fooBar);
+        nullTypes.setFieldStringNull(fooBar);
         testRealm.commitTransaction();
 
-        assertEquals(fooBar, testRealm.where(NullTypes.class).findAll().first().getFieldString());
+        assertEquals(fooBar, testRealm.where(NullTypes.class).findAll().first().getFieldStringNull());
     }
 
     // try to store null string in non-nullable field
     public void testNotNullableField() {
         try {
             testRealm.beginTransaction();
-            AllTypes allTypes = testRealm.createObject(AllTypes.class);
-            allTypes.setColumnString(null);
+            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            nullTypes.setFieldStringNotNull(null);
             fail();
         }
         catch (IllegalArgumentException ignore) {

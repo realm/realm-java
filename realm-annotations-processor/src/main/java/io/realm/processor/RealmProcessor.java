@@ -35,7 +35,7 @@ import io.realm.annotations.RealmClass;
         "io.realm.annotations.Ignore",
         "io.realm.annotations.Index",
         "io.realm.annotations.PrimaryKey",
-        "io.realm.annotations.Nullable"
+        "io.realm.annotations.NotNullable"
 })
 public class RealmProcessor extends AbstractProcessor {
     Set<ClassMetaData> classesToValidate = new HashSet<ClassMetaData>();

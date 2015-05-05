@@ -86,7 +86,10 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.beginTransaction();
         for (String word : words) {
             NullTypes nullTypes = testRealm.createObject(NullTypes.class);
-            nullTypes.setFieldString(word);
+            nullTypes.setFieldStringNull(word);
+            if (word != null) {
+                nullTypes.setFieldStringNotNull(word);
+            }
         }
         testRealm.commitTransaction();
     }
@@ -713,10 +716,10 @@ public class RealmResultsTest extends AndroidTestCase {
 
     public void testNullStringNotNullableField() {
         populateTestRealmForNullTests();
-        RealmResults<AllTypes> list = testRealm.allObjects(AllTypes.class);
+        RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
         try {
             testRealm.beginTransaction();
-            list.first().setColumnString(null);
+            list.first().setFieldStringNotNull(null);
             fail();
         }
         catch (IllegalArgumentException ignore) {
@@ -730,10 +733,10 @@ public class RealmResultsTest extends AndroidTestCase {
         populateTestRealmForNullTests();
         RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
         testRealm.beginTransaction();
-        list.first().setFieldString(null);
+        list.first().setFieldStringNull(null);
         testRealm.commitTransaction();
 
-        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldString());
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldStringNull());
     }
 
     // TODO: More extended tests of querying all types must be done.

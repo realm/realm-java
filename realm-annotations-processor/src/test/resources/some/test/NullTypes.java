@@ -19,17 +19,27 @@ package some.test;
 import java.lang.String;
 
 import io.realm.RealmObject;
-import io.realm.annotations.Nullable;
+import io.realm.annotations.NotNullable;
 
 public class NullTypes extends RealmObject {
-    @Nullable
-    private String fieldString;
+    @NotNullable
+    private String fieldStringNotNull;
 
-    public String getFieldString() {
-        return fieldString;
+    private String fieldStringNull;
+
+    public String getFieldStringNotNull() {
+        return fieldStringNotNull;
     }
 
-    public void setFieldString(String fieldString) {
-        this.fieldString = fieldString;
+    public void setFieldStringNotNull(String fieldStringNotNull) {
+        this.fieldStringNotNull = fieldStringNotNull;
+    }
+
+    public String getFieldStringNull() {
+        return fieldStringNull;
+    }
+
+    public void setFieldStringNull(String fieldStringNull) {
+        this.fieldStringNull = fieldStringNull;
     }
 }

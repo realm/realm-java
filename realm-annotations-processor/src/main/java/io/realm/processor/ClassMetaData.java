@@ -40,7 +40,7 @@ import javax.lang.model.util.Types;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.Nullable;
+import io.realm.annotations.NotNullable;
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -291,15 +291,20 @@ public class ClassMetaData {
                     }
                 }
 
-                if (variableElement.getAnnotation(Nullable.class) != null) {
-                    // The field has the @Nullable annotation. It's only valud for:
+                if (variableElement.getAnnotation(NotNullable.class) == null) {
+                    // The field has not the @NotNullable annotation. It's only valid for:
                     // * String
                     String elementTypeCanonicalName = variableElement.asType().toString();
                     if (elementTypeCanonicalName.equals("java.lang.String")) {
                         nullableFieldNames.add(variableElement.getSimpleName().toString());
-                    } else {
-                        Utils.error("@Nullable is only applicable to String fields - got " + element);
-                        return false;
+                    }
+                } else {
+                    // The field has the @NotNullable annotation. It's only valid for:
+                    // * String
+                    String elementTypeCanonicalName = variableElement.asType().toString();
+                    String variableElementName = variableElement.getSimpleName().toString();
+                    if (elementTypeCanonicalName.equals("java.lang.String") && nullableFieldNames.contains(variableElementName)) {
+                        nullableFieldNames.remove(variableElementName);
                     }
                 }
 
@@ -313,11 +318,9 @@ public class ClassMetaData {
                         return false;
                     }
 
-                    // A field cannot be nullable and primary key
-                    if (nullableFieldNames.contains(variableElement.getSimpleName().toString())) {
-                        Utils.error(String.format("@PrimaryKey and @Nullable cannot be apply to the same field: '%s'",
-                                variableElement.getSimpleName().toString()));
-                        return false;
+                    // A field cannot be nullable and primary key. Currently only String can be nullable
+                    if (Utils.isString(variableElement) && nullableFieldNames.contains(variableElement.getSimpleName().toString())) {
+                        nullableFieldNames.remove(variableElement.getSimpleName().toString());
                     }
 
                     TypeMirror fieldType = variableElement.asType();

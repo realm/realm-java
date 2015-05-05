@@ -27,31 +27,46 @@ import org.json.JSONObject;
 import some.test.NullTypes;
 
 public class NullTypesRealmProxy extends NullTypes {
-    private static long INDEX_FIELDSTRING;
+    private static long INDEX_FIELDSTRINGNOTNULL;
+    private static long INDEX_FIELDSTRINGNULL;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
-        fieldNames.add("fieldString");
+        fieldNames.add("fieldStringNotNull");
+        fieldNames.add("fieldStringNull");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
     @Override
-    public String getFieldString() {
+    public String getFieldStringNotNull() {
         realm.checkIfValid();
-        return (java.lang.String) row.getString(INDEX_FIELDSTRING);
+        return (java.lang.String) row.getString(INDEX_FIELDSTRINGNOTNULL);
     }
 
     @Override
-    public void setFieldString(String value) {
+    public void setFieldStringNotNull(String value) {
         realm.checkIfValid();
-        row.setString(INDEX_FIELDSTRING, (String) value);
+        row.setString(INDEX_FIELDSTRINGNOTNULL, (String) value);
+    }
+
+    @Override
+    public String getFieldStringNull() {
+        realm.checkIfValid();
+        return (java.lang.String) row.getString(INDEX_FIELDSTRINGNULL);
+    }
+
+    @Override
+    public void setFieldStringNull(String value) {
+        realm.checkIfValid();
+        row.setString(INDEX_FIELDSTRINGNULL, (String) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
-            table.addColumn(ColumnType.STRING, "fieldString", true);
+            table.addColumn(ColumnType.STRING, "fieldStringNotNull", false);
+            table.addColumn(ColumnType.STRING, "fieldStringNull", true);
             table.setPrimaryKey("");
             return table;
         }
@@ -61,18 +76,24 @@ public class NullTypesRealmProxy extends NullTypes {
     public static void validateTable(ImplicitTransaction transaction) {
         if(transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
-            if(table.getColumnCount() != 1) {
+            if(table.getColumnCount() != 2) {
                 throw new IllegalStateException("Column count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for(long i = 0; i < 1; i++) {
+            for(long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
-            if (!columnTypes.containsKey("fieldString")) {
-                throw new IllegalStateException("Missing column 'fieldString'");
+            if (!columnTypes.containsKey("fieldStringNotNull")) {
+                throw new IllegalStateException("Missing column 'fieldStringNotNull'");
             }
-            if (columnTypes.get("fieldString") != ColumnType.STRING) {
-                throw new IllegalStateException("Invalid type 'String' for column 'fieldString'");
+            if (columnTypes.get("fieldStringNotNull") != ColumnType.STRING) {
+                throw new IllegalStateException("Invalid type 'String' for column 'fieldStringNotNull'");
+            }
+            if (!columnTypes.containsKey("fieldStringNull")) {
+                throw new IllegalStateException("Missing column 'fieldStringNull'");
+            }
+            if (columnTypes.get("fieldStringNull") != ColumnType.STRING) {
+                throw new IllegalStateException("Invalid type 'String' for column 'fieldStringNull'");
             }
             columnIndices = new HashMap<String, Long>();
             for (String fieldName : getFieldNames()) {
@@ -82,7 +103,8 @@ public class NullTypesRealmProxy extends NullTypes {
                 }
                 columnIndices.put(fieldName, index);
             }
-            INDEX_FIELDSTRING = table.getColumnIndex("fieldString");
+            INDEX_FIELDSTRINGNOTNULL = table.getColumnIndex("fieldStringNotNull");
+            INDEX_FIELDSTRINGNULL = table.getColumnIndex("fieldStringNull");
         } else {
             throw new RealmMigrationNeededException("The NullTypes class is missing from the schema for this Realm.");
         }
@@ -99,8 +121,11 @@ public class NullTypesRealmProxy extends NullTypes {
     public static NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         NullTypes obj = realm.createObject(NullTypes.class);
-        if (!json.isNull("fieldString")) {
-            obj.setFieldString((String) json.getString("fieldString"));
+        if (!json.isNull("fieldStringNotNull")) {
+            obj.setFieldStringNotNull((String) json.getString("fieldStringNotNull"));
+        }
+        if (!json.isNull("fieldStringNull")) {
+            obj.setFieldStringNull((String) json.getString("fieldStringNull"));
         }
         return obj;
     }
@@ -111,8 +136,10 @@ public class NullTypesRealmProxy extends NullTypes {
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
-            if (name.equals("fieldString") && reader.peek() != JsonToken.NULL) {
-                obj.setFieldString((String) reader.nextString());
+            if (name.equals("fieldStringNotNull") && reader.peek() != JsonToken.NULL) {
+                obj.setFieldStringNotNull((String) reader.nextString());
+            } else if (name.equals("fieldStringNull") && reader.peek() != JsonToken.NULL) {
+                obj.setFieldStringNull((String) reader.nextString());
             } else {
                 reader.skipValue();
             }
@@ -122,7 +149,7 @@ public class NullTypesRealmProxy extends NullTypes {
     }
 
     public static NullTypes copyOrUpdate(Realm realm, NullTypes object, boolean update, Map<RealmObject,RealmObject> cache) {
-        if (object.realm != null && object.realm.getId() == realm.getId()) {
+        if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
@@ -131,12 +158,14 @@ public class NullTypesRealmProxy extends NullTypes {
     public static NullTypes copy(Realm realm, NullTypes newObject, boolean update, Map<RealmObject,RealmObject> cache) {
         NullTypes realmObject = realm.createObject(NullTypes.class);
         cache.put(newObject, realmObject);
-        realmObject.setFieldString(newObject.getFieldString() != null ? newObject.getFieldString() : "");
+        realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
+        realmObject.setFieldStringNull(newObject.getFieldStringNull() != null ? newObject.getFieldStringNull() : "");
         return realmObject;
     }
 
     static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObject> cache) {
-        realmObject.setFieldString(newObject.getFieldString() != null ? newObject.getFieldString() : "");
+        realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
+        realmObject.setFieldStringNull(newObject.getFieldStringNull() != null ? newObject.getFieldStringNull() : "");
         return realmObject;
     }
 
@@ -146,8 +175,12 @@ public class NullTypesRealmProxy extends NullTypes {
             return "Invalid object";
         }
         StringBuilder stringBuilder = new StringBuilder("NullTypes = [");
-        stringBuilder.append("{fieldString:");
-        stringBuilder.append(getFieldString());
+        stringBuilder.append("{fieldStringNotNull:");
+        stringBuilder.append(getFieldStringNotNull());
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldStringNull:");
+        stringBuilder.append(getFieldStringNull());
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();

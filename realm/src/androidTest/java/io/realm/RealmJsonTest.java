@@ -252,7 +252,7 @@ public class RealmJsonTest extends AndroidTestCase {
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
 
         // Check that all primitive types are imported correctly
-        assertEquals("", obj.getColumnString());
+        assertNull(obj.getColumnString());
         assertEquals(0L, obj.getColumnLong());
         assertEquals(0f, obj.getColumnFloat());
         assertEquals(0d, obj.getColumnDouble());
@@ -428,7 +428,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
         // Check that all primitive types are imported correctly
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
-        assertEquals("", obj.getColumnString());
+        assertNull(obj.getColumnString());
         assertEquals(0L, obj.getColumnLong());
         assertEquals(0f, obj.getColumnFloat());
         assertEquals(0d, obj.getColumnDouble());
