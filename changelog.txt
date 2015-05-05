@@ -1,3 +1,6 @@
+0.81
+ * RealmChangedListener now also gets called on the same thread that did the commit.
+
 0.80.2
  * Trying to use Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
  * RealmMigrationNeedException can now return the path to the Realm that needs to be migrated.
