@@ -1391,8 +1391,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, j
 // primary key.
 bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column_name) // throws
 {
-    int column_index = table->get_column_index(column_name);
-    int column_type = table->get_column_type(column_index);
+    size_t column_index = table->get_column_index(column_name);
+    DataType column_type = table->get_column_type(column_index);
     TableView results = table->get_sorted_view(column_index);
 
     switch(column_type) {
@@ -1500,10 +1500,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         std::size_t tmp_col_ndx = pk_table->add_column(DataType(type_String), tmp_col_name);
 
         // Create tmp string column with field name instead of column index
-        int rows = pk_table->size();
-        for (int row_ndx = 0; row_ndx < rows; row_ndx++) {
+        size_t number_of_rows = pk_table->size();
+        for (int row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
             StringData table_name = pk_table->get_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_ndx);
-            int64_t col_ndx = pk_table->get_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_ndx);
+            size_t col_ndx = static_cast<size_t>(pk_table->get_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_ndx));
             StringData col_name = group->get_table(table_name)->get_column_name(col_ndx);
             pk_table->set_string(tmp_col_ndx, row_ndx, col_name);
         }
