@@ -21,11 +21,25 @@ The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/ja
 
 ## Getting Help
 
-- **Reproducible Bugs & Feature Requests** should be filed directly against our [Github Issues](https://github.com/realm/realm-java/issues).
-- **Discussions & Support**: [realm-java@googlegroups.com](https://groups.google.com/d/forum/realm-java).
-- **StackOverflow**: look for previous questions under the tag [#realm](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [open a new one](http://stackoverflow.com/questions/ask?tags=realm).
+- **Need help with your code?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We activtely monitor & answer questions on SO!
+- **Have a bug to report?** [Open an issue](https://github.com/realm/realm-java/issues/new). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
+- **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new). Tell us what the feature should do, and why you want the feature.
+- **Want to ask in-depth questions?** [Join our online office hours](https://attendee.gotowebinar.com/rt/1182038037080364033). We host these once a month, and you can join via chat, audio call, or video call.
 - Sign up for our [**Community Newsletter**](http://eepurl.com/VEKCn) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
-- Attend our monthly [**Online Office Hours**](https://attendee.gotowebinar.com/rt/1182038037080364033) to ask questions directly to the team.
+
+## Using Snapshots
+
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
+
+    repositories {
+        maven {
+            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
+    }
+
+    dependencies {
+      compile 'io.realm:realm-android:0.80.3-SNAPSHOT'
+    }
 
 ## Building Realm
 
@@ -58,21 +72,6 @@ That command will generate the .jar file containing the Realm runtime and the an
 
 Generating the Javadoc using the command above will report a failure (1 error, 30+ warnings). The Javadoc is generated, and we will fix 
 `realm/build.gradle` in the near future.
-
-## Filing Issues
-
-Whether you find a bug, typo or an API call that could be clarified, please [file an issue](https://github.com/realm/realm-java/issues) on our GitHub repository.
-
-When filing an issue, please provide as much of the following information as possible in order to help us fix it:
-
-1. **Goals**
-2. **Expected results**
-3. **Actual results**
-4. **Steps to reproduce**
-5. **Code sample that highlights the issue** (link to full Android Studio projects that we can compile ourselves are ideal)
-6. **Version of Realm/Android Studio/OS**
-
-If you'd like to send us sensitive sample code to help troubleshoot your issue, you can email <help@realm.io> directly.
 
 ## Contributing
 

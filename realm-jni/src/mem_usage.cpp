@@ -16,7 +16,7 @@
 
 #include "mem_usage.hpp"
 
-#ifndef TIGHTDB_ENABLE_MEM_USAGE
+#ifndef REALM_ENABLE_MEM_USAGE
 
 size_t GetMemUsage()
 {

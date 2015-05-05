@@ -31,7 +31,7 @@ public class SharedGroup implements Closeable {
     private final Context context;
 
     static {
-        TightDB.loadLibrary();
+        RealmCore.loadLibrary();
     }
 
     public enum Durability {
@@ -213,8 +213,6 @@ public class SharedGroup implements Closeable {
         return nativePtr == 0;
     }
 
-    static native String nativeGetDefaultReplicationDatabaseFileName();
-
     public boolean hasChanged() {
         return nativeHasChanged(nativePtr);
     }
@@ -222,6 +220,28 @@ public class SharedGroup implements Closeable {
     public void reserve(long bytes) {
         nativeReserve(nativePtr, bytes);
     }
+
+    /**
+     * Compacts a shared group. This will block access to the shared group until done.
+     *
+     * @return True if compaction succeeded, false otherwise.
+     * @throws RuntimeException if using this within either a read or or write transaction.
+     */
+    public boolean compact() {
+        return nativeCompact(nativePtr);
+    }
+
+
+    /**
+     * Returns the absolute path to the file backing this SharedGroup.
+     *
+     * @return Absolute path to the Realm file.
+     */
+    public String getPath() {
+        return nativeGetDefaultReplicationDatabaseFileName();
+    }
+
+    private native String nativeGetDefaultReplicationDatabaseFileName();
 
     private native void nativeReserve(long nativePtr, long bytes);
 
@@ -242,6 +262,8 @@ public class SharedGroup implements Closeable {
                                      boolean no_create,
                                      boolean enableReplication,
                                      byte[] key);
+
+    private native boolean nativeCompact(long nativePtr);
 
     private void checkNativePtrNotZero() {
         if (this.nativePtr == 0) {

@@ -1,3 +1,29 @@
+0.80.2
+ * Trying to use Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
+ * RealmMigrationNeedException can now return the path to the Realm that needs to be migrated.
+ * Fixed bug where creating a Realm instance with a hashcode collision no longer returned the wrong Realm instance.
+ * Updated Realm Core to version 0.89.2
+   - fixed bug causing a crash when opening an encrypted Realm file on ARM64 devices.
+
+0.80.1
+ * Realm.createOrUpdateWithJson() no longer resets fields to their default value if they are not found in the JSON input.
+ * Realm.compactRealmFile() now uses Realm Core's compact() method which is more failure resilient.
+ * Realm.copyToRealm() now correctly handles referenced child objects that are already in the Realm.
+ * The ARM64 binary is now properly a part of the Eclipse distribution package.
+ * A RealmMigrationExceptionNeeded is now properly thrown if @Index and @PrimaryKey are not set correctly during a migration.
+ * Fixed bug causing Realms to be cached even though they failed to open correctly.
+ * Added Realm.deleteRealmFile(File) method.
+ * Fixed bug causing queries to fail if multiple Realms has different field ordering.
+ * Fixed bug when using Realm.copyToRealm() with a primary key could crash if default value was already used in the Realm.
+ * Updated Realm Core to version 0.89.0
+   - improved performance for sorting RealmResults.
+   - improved performance for refreshing a Realm after inserting or modifying strings or binary data.
+   - fixed bug causing incorrect result when querying indexed fields.
+   - fixed bug causing corruption of string index when deleting an object where there are duplicate values for the indexed field.
+   - fixed bug causing a crash after compacting the Realm file.
+ * Added RealmQuery.isNull() and RealmQuery.isNotNull() for querying relationships.
+ * Fixed a potential NPE in the RealmList constructor.
+
 0.80
 * Queries on relationships can be case sensitive.
 * Fixed bug when importing JSONObjects containing NULL values.

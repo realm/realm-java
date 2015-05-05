@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-#ifndef REALM_COLUMN_TYPE_UTIL_H
-#define REALM_COLUMN_TYPE_UTIL_H
+package io.realm.entities;
 
-#include <jni.h>
-#include <realm.hpp>
+import io.realm.RealmObject;
 
-#ifdef __cplusplus
+public class FieldOrder extends RealmObject {
 
-using realm::DataType;
+    private boolean field1;
+    private int field2;
 
-extern "C" {
+    public boolean isField1() {
+        return field1;
+    }
 
-#endif
+    public void setField1(boolean field1) {
+        this.field1 = field1;
+    }
 
-DataType GetColumnTypeFromJColumnType(JNIEnv* env, jobject jColumnType);
-jobject GetJColumnTypeFromColumnType(JNIEnv* env, DataType columnType);
+    public int getField2() {
+        return field2;
+    }
 
-#ifdef __cplusplus
+    public void setField2(int field2) {
+        this.field2 = field2;
+    }
 }
-#endif
-
-#endif

@@ -1,4 +1,4 @@
-ext.coreVersion = '0.88.6'
+ext.coreVersion = '0.89.2'
 ext.clang = false // gcc is default for the NDK. It also produces smaller binaries
 
 def commonCflags = [ '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -148,25 +148,25 @@ targets.each { target ->
         environment PATH: "${buildDir}/standalone-toolchains/${target.toolchain.name}/bin:${System.env.PATH}"
         environment CC: "${target.toolchain.commandPrefix}-${clang?'clang':'gcc'}"
         environment STRIP: "${target.toolchain.commandPrefix}-strip"
-        environment TIGHTDB_ANDROID: '1'
+        environment REALM_ANDROID: '1'
         commandLine = [
             'make',
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
-            "TIGHTDB_CFLAGS=-Wno-variadic-macros -DTIGHTDB_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+            "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "TIGHTDB_LDFLAGS=-ltightdb-android-${target.name} -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
+            "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
             'LIB_SUFFIX_SHARED=.so',
-            "libtightdb-jni-${target.name}.so"
+            "librealm-jni-${target.name}.so"
         ]
     }
 
     task "copyAndroidJni${target.name.capitalize()}"(type: Copy) {
         dependsOn "buildAndroidJni${target.name.capitalize()}"
-        from "${projectDir}/src/libtightdb-jni-${target.name}.so"
+        from "${projectDir}/src/librealm-jni-${target.name}.so"
         into "${projectDir}/../realm/src/main/jniLibs/${target.jniFolder}"
-        rename "libtightdb-jni-${target.name}.so", 'libtightdb-jni.so'
+        rename "librealm-jni-${target.name}.so", 'librealm-jni.so'
     }
 }
 

@@ -29,9 +29,9 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Utility methods for TightDB.
+ * Utility methods for Realm Core.
  */
-public class TightDB {
+public class RealmCore {
 
 ///*
     private static final String FILE_SEP = File.separator;
@@ -47,11 +47,11 @@ public class TightDB {
     {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.indexOf("win") >= 0)
-            return "tightdb_jni32.dll or tightdb_jni64.dll";
+            return "realm_jni32.dll or realm_jni64.dll";
         if (os.indexOf("mac") >= 0)
-            return "libtightdb-jni.jnilib";
+            return "librealm-jni.jnilib";
         if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 || os.indexOf("sunos") >= 0)
-            return "libtightdb-jni.so";
+            return "librealm-jni.so";
         return "realm-jni";
     }
 */
@@ -117,7 +117,7 @@ public class TightDB {
         });
     }
 
-    private static void initTightDB() {
+    private static void init() {
         // Guarantee gc is done on JVM exit to clean up any native resources
         gcOnExit();
     }
@@ -127,19 +127,19 @@ public class TightDB {
             // only load library once
             return;
 
-        initTightDB();
+        init();
 
         String jnilib;
         if (osIsWindows()) {
             jnilib = loadLibraryWindows();
         }
         else {
-            String debug = System.getenv("TIGHTDB_JAVA_DEBUG");
+            String debug = System.getenv("REALM_JAVA_DEBUG");
             if (debug == null || debug.isEmpty()) {
-                jnilib = "tightdb-jni";
+                jnilib = "realm-jni";
             }
             else {
-                jnilib = "tightdb-jni-dbg";
+                jnilib = "realm-jni-dbg";
             }
             System.loadLibrary(jnilib);
         }
@@ -160,15 +160,15 @@ public class TightDB {
 //*/
         // Load debug library first - if available
         String jnilib;
-        jnilib = loadCorrectLibrary("tightdb_jni32d", "tightdb_jni64d");
+        jnilib = loadCorrectLibrary("realm_jni32d", "realm_jni64d");
         if (jnilib != null) {
-            System.out.println("!!! TightDB debug version loaded. !!!\n");
+            System.out.println("!!! Realm debug version loaded. !!!\n");
         }
         else {
-            jnilib = loadCorrectLibrary("tightdb_jni32", "tightdb_jni64");
+            jnilib = loadCorrectLibrary("realm_jni32", "realm_jni64");
             if (jnilib == null) {
                 System.err.println("Searched java.library.path=" + System.getProperty("java.library.path"));
-                throw new RuntimeException("Couldn't load the TightDB JNI library 'tightdb_jni32.dll or tightdb_jni64.dll" +
+                throw new RuntimeException("Couldn't load the Realm JNI library 'realm_jni32.dll or realm_jni64.dll" +
                                            "'. Please include the directory to the library in java.library.path.");
             }
         }

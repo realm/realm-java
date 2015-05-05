@@ -19,7 +19,7 @@
 #include "columntypeutil.hpp"
 
 using namespace std;
-using namespace tightdb;
+using namespace realm;
 
 jclass GetClassTableSpec(JNIEnv* env)
 {

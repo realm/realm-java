@@ -28,7 +28,7 @@ public class RealmJSonImplGenerator {
 
     private static final String REALM_PACKAGE_NAME = "io.realm";
     private static final String CLASS_NAME = "RealmJsonImpl";
-    private static final String EXCEPTION_MSG = "\"Could not find the generated proxy class for \" + classQualifiedName";
+    private static final String EXCEPTION_MSG = "Could not find the generated proxy class for ";
 
     public RealmJSonImplGenerator(ProcessingEnvironment processingEnv, Set<ClassMetaData> classesToValidate) {
         this.processingEnvironment = processingEnv;
@@ -69,37 +69,37 @@ public class RealmJSonImplGenerator {
                 "RealmJson");                   // Interfaces to implement
         writer.emitEmptyLine();
 
-        emitPopulateUsingJsonObject(writer);
-        emitPopulateUsingJsonStream(writer);
+        emitCreateOrUpdateUsingJsonObject(writer);
+        emitCreateUsingJsonStream(writer);
 
         writer.endType();
         writer.close();
     }
 
-    private void emitPopulateUsingJsonObject(JavaWriter writer) throws IOException {
+    private void emitCreateOrUpdateUsingJsonObject(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
-                "<E extends RealmObject> void",
-                "populateUsingJsonObject",
+                "<E extends RealmObject> E",
+                "createOrUpdateUsingJsonObject",
                 EnumSet.of(Modifier.PUBLIC),
-                Arrays.asList("E", "obj", "JSONObject", "json"),
+                Arrays.asList("Class<E>", "clazz", "Realm", "realm", "JSONObject", "json", "boolean", "update"),
                 Arrays.asList("JSONException")
         );
-        emitProxySwitch("%s.populateUsingJsonObject((%s) obj, json)", writer);
+        emitProxySwitch("return (E) %s.createOrUpdateUsingJsonObject(realm, json, update)", writer);
         writer.endMethod();
         writer.emitEmptyLine();
     }
 
-    private void emitPopulateUsingJsonStream(JavaWriter writer) throws IOException {
+    private void emitCreateUsingJsonStream(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
-                "<E extends RealmObject> void",
-                "populateUsingJsonStream",
+                "<E extends RealmObject> E",
+                "createUsingJsonStream",
                 EnumSet.of(Modifier.PUBLIC),
-                Arrays.asList("E", "obj", "JsonReader", "reader"),
+                Arrays.asList("Class<E>", "clazz", "Realm", "realm", "JsonReader", "reader"),
                 Arrays.asList("IOException")
         );
-        emitProxySwitch("%s.populateUsingJsonStream((%s) obj, reader)", writer);
+        emitProxySwitch("return (E) %s.createUsingJsonStream(realm, reader)", writer);
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -108,19 +108,19 @@ public class RealmJSonImplGenerator {
     // Currently it is just if..else, which is inefficient for large amounts amounts of model classes.
     // Consider switching to HashMap or similar.
     private void emitProxySwitch(String proxyStatement, JavaWriter writer) throws IOException {
-        writer.emitStatement("String classQualifiedName = (obj.realm != null) ? obj.getClass().getSuperclass().getName() : obj.getClass().getName()");
         if (simpleModelClasses.size() == 0) {
-            writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
+            writer.emitStatement("throw new RealmException(\"%s\" + clazz)", EXCEPTION_MSG);
         } else {
-            writer.beginControlFlow("if (classQualifiedName.equals(%s.class.getName()))", simpleModelClasses.get(0));
-            writer.emitStatement(proxyStatement, proxyClasses.get(0), simpleModelClasses.get(0));
+            writer.beginControlFlow("if (clazz.equals(%s.class))", simpleModelClasses.get(0));
+            writer.emitStatement(proxyStatement, proxyClasses.get(0));
             for (int i = 1; i < simpleModelClasses.size(); i++) {
-                writer.nextControlFlow("else if (classQualifiedName.equals(%s.class.getName()))", simpleModelClasses.get(i));
-                writer.emitStatement(proxyStatement, proxyClasses.get(i), simpleModelClasses.get(i));
+                writer.nextControlFlow("else if (clazz.equals(%s.class))", simpleModelClasses.get(i));
+                writer.emitStatement(proxyStatement, proxyClasses.get(i));
             }
             writer.nextControlFlow("else");
-            writer.emitStatement("throw new RealmException(%s)", EXCEPTION_MSG);
+            writer.emitStatement("throw new RealmException(\"%s\" + clazz)", EXCEPTION_MSG);
             writer.endControlFlow();
         }
     }
+
 }

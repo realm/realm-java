@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import io.realm.exceptions.RealmException;
@@ -76,11 +77,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @param objects Initial objects in the list.
      */
     public RealmList(E... objects) {
-        managedMode = false;
-        nonManagedList = new ArrayList<E>(objects != null ? objects.length : 0);
-        for (int i = 0; i < objects.length; i++) {
-            nonManagedList.add(objects[i]);
+        if (objects == null) {
+            throw new IllegalArgumentException("The objects argument cannot be null");
         }
+        managedMode = false;
+        nonManagedList = new ArrayList<E>(objects.length);
+        Collections.addAll(nonManagedList, objects);
     }
 
     /**

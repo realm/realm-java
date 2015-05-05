@@ -27,7 +27,7 @@
 #include "tablequery.hpp"
 
 using namespace std;
-using namespace tightdb;
+using namespace realm;
 
 // Note: Don't modify spec on a table which has a shared_spec.
 // A spec is shared on subtables that are not in Mixed columns.
@@ -725,7 +725,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr
 
 //--------------------- Indexing methods:
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     Table* pTable = TBL(nativeTablePtr);
@@ -740,7 +740,23 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
     } CATCH_STD()
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasIndex(
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
+        return;
+    if (pTable->get_column_type (S(columnIndex)) != type_String) {
+        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+        return;
+    }
+    try {
+        pTable->remove_search_index( S(columnIndex));
+    } CATCH_STD()
+}
+
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
@@ -1451,7 +1467,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
         // I
         if (columnName == NULL || env->GetStringLength(columnName) == 0) {
             // No primary key set. Remove any previous set keys
-            if (row_index != tightdb::not_found) {
+            if (row_index != realm::not_found) {
                 pk_table->remove(row_index);
             }
             return jlong(io_realm_internal_Table_NO_PRIMARY_KEY);
@@ -1459,7 +1475,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
         else {
             JStringAccessor columnName2(env, columnName);
             size_t primary_key_column_index = table->get_column_index(columnName2);
-            if (row_index == tightdb::not_found) {
+            if (row_index == realm::not_found) {
                 // No primary key is currently set
                 if (check_valid_primary_key_column(env, table, primary_key_column_index)) {
                     row_index = pk_table->add_empty_row();

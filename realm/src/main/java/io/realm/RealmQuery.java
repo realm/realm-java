@@ -74,7 +74,7 @@ public class RealmQuery<E extends RealmObject> {
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
         this.query = table.where();
-        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
+        this.columns = realm.columnIndices.getClassFields(clazz);
     }
 
     /**
@@ -89,7 +89,7 @@ public class RealmQuery<E extends RealmObject> {
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
         this.query = realmList.getTable().where();
-        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
+        this.columns = realm.columnIndices.getClassFields(clazz);
     }
 
     RealmQuery(Realm realm, LinkView view, Class<E> clazz) {
@@ -98,7 +98,7 @@ public class RealmQuery<E extends RealmObject> {
         this.query = view.where();
         this.view = view;
         this.table = realm.getTable(clazz);
-        this.columns = Realm.columnIndices.get(clazz.getSimpleName());
+        this.columns = realm.columnIndices.getClassFields(clazz);
     }
 
     private boolean containsDot(String s) {
@@ -167,6 +167,35 @@ public class RealmQuery<E extends RealmObject> {
             }
             return new long[] {columns.get(fieldName)};
         }
+    }
+
+    /**
+     * Test if a field is null. Only works for relationships and RealmLists.
+     *
+     * @param fieldName - the field name
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
+     */
+    public RealmQuery<E> isNull(String fieldName) {
+        // Currently we only support querying top-level
+        if (containsDot(fieldName)) {
+            throw new IllegalArgumentException("Checking for null in nested objects is not supported.");
+        }
+
+        // checking that fieldName has the correct type is done in C++
+        this.query.isNull(columns.get(fieldName));
+        return this;
+    }
+
+    /**
+     * Test if a field is not null. Only works for relationships and RealmLists.
+     *
+     * @param fieldName - the field name
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
+     */
+    public RealmQuery<E> isNotNull(String fieldName) {
+        return this.beginGroup().not().isNull(fieldName).endGroup();
     }
 
     // Equal

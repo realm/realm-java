@@ -26,6 +26,13 @@ public class PrimaryKeyAsString extends RealmObject {
 
     private long id;
 
+    public PrimaryKeyAsString() {
+    }
+
+    public PrimaryKeyAsString(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }

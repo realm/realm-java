@@ -32,7 +32,7 @@ public class Group implements Closeable {
     private final Context context;
 
     static {
-        TightDB.loadLibrary();
+        RealmCore.loadLibrary();
     }
 
     //
