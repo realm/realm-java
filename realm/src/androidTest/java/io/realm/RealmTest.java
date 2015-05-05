@@ -191,6 +191,8 @@ public class RealmTest extends AndroidTestCase {
 
     public void testInstanceIdForHashCollision() {
         // Ea.hashCode() == FB.hashCode()
+        Realm.deleteRealmFile(getContext(), "Ea");
+        Realm.deleteRealmFile(getContext(), "FB");
         Realm r1 = Realm.getInstance(getContext(), "Ea");
         Realm r2 = Realm.getInstance(getContext(), "FB");
         assertNotSame(r1, r2);
@@ -1184,6 +1186,15 @@ public class RealmTest extends AndroidTestCase {
             return;
         }
         fail();
+    }
+
+    public void testCopyToRealmOrUpdateNullPrimaryKeyThrows() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.copyToRealmOrUpdate(new PrimaryKeyAsString());
+            fail();
+        } catch (RealmException expected) {
+        }
     }
 
     public void testCopyOrUpdateNoPrimaryKeyThrows() {

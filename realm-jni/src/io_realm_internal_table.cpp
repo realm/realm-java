@@ -736,7 +736,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr
 
 //--------------------- Indexing methods:
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     Table* pTable = TBL(nativeTablePtr);
@@ -751,7 +751,23 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
     } CATCH_STD()
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasIndex(
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
+        return;
+    if (pTable->get_column_type (S(columnIndex)) != type_String) {
+        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+        return;
+    }
+    try {
+        pTable->remove_search_index( S(columnIndex));
+    } CATCH_STD()
+}
+
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))

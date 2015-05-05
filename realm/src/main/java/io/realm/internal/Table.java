@@ -1161,13 +1161,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
-
-    public void setIndex(long columnIndex) {
+    public void addSearchIndex(long columnIndex) {
         checkImmutable();
-        if (getColumnType(columnIndex) != ColumnType.STRING) {
-            throw new IllegalArgumentException("Index is only supported on string columns.");
-        }
-        nativeSetIndex(nativePtr, columnIndex);
+        nativeAddSearchIndex(nativePtr, columnIndex);
+    }
+
+    public void removeSearchIndex(long columnIndex) {
+        checkImmutable();
+        nativeRemoveSearchIndex(nativePtr, columnIndex);
     }
 
     /**
@@ -1218,14 +1219,15 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    protected native void nativeSetIndex(long nativePtr, long columnIndex);
+    protected native void nativeAddSearchIndex(long nativePtr, long columnIndex);
 
+    protected native void nativeRemoveSearchIndex(long nativePtr, long columnIndex);
 
-    public boolean hasIndex(long columnIndex) {
-        return nativeHasIndex(nativePtr, columnIndex);
+    public boolean hasSearchIndex(long columnIndex) {
+        return nativeHasSearchIndex(nativePtr, columnIndex);
     }
 
-    protected native boolean nativeHasIndex(long nativePtr, long columnIndex);
+    protected native boolean nativeHasSearchIndex(long nativePtr, long columnIndex);
 
 
     public boolean isNullLink(long columnIndex, long rowIndex) {

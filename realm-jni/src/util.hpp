@@ -58,7 +58,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 
 #define CATCH_FILE(fileName) \
     catch (InvalidDatabase&) { \
-        ThrowException(env, IllegalArgument, "Invalid Group file format."); \
+        ThrowException(env, IllegalArgument, "Invalid format of Realm file."); \
     } \
     catch (util::File::PermissionDenied& e) { \
         ThrowException(env, IOFailed, string(fileName), string("Permission denied. ") + e.what()); \

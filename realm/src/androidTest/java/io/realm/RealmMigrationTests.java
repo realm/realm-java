@@ -117,7 +117,7 @@ public class RealmMigrationTests extends AndroidTestCase {
                 table.addColumn(ColumnType.INTEGER, "id");
                 // Forget to set @PrimaryKey
                 long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.setIndex(columnIndex);
+                table.addSearchIndex(columnIndex);
                 table.addColumn(ColumnType.STRING, "notIndexString");
                 return 1;
             }
@@ -139,7 +139,7 @@ public class RealmMigrationTests extends AndroidTestCase {
                 table.addColumn(ColumnType.INTEGER, "id");
                 table.setPrimaryKey("id");
                 long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.setIndex(columnIndex);
+                table.addSearchIndex(columnIndex);
                 table.addColumn(ColumnType.STRING, "notIndexString");
                 return 1;
             }
@@ -149,6 +149,17 @@ public class RealmMigrationTests extends AndroidTestCase {
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
-        assertTrue(table.hasIndex(table.getColumnIndex("indexString")));
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
+    }
+
+    public void testGetPathFromMigrationException() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default0.realm", Realm.DEFAULT_REALM_NAME);
+        File realm = new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME);
+        try {
+            Realm.getInstance(getContext());
+            fail();
+        } catch (RealmMigrationNeededException expected) {
+            assertEquals(expected.getPath(), realm.getCanonicalPath());
+        }
     }
 }
