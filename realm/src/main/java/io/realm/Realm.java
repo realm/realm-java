@@ -1467,11 +1467,18 @@ public final class Realm implements Closeable {
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();
             String realmPath = handlerIntegerEntry.getValue();
+
+            // Notify at once on thread doing the commit
+            if (handler.equals(this.handler)) {
+                sendNotifications();
+                continue;
+            }
+
+            // For all other threads, use the Handler
             if (
-                    realmPath.equals(canonicalPath)                       // It's the right realm
+                    realmPath.equals(canonicalPath)              // It's the right realm
                     && !handler.hasMessages(REALM_CHANGED)       // The right message
                     && handler.getLooper().getThread().isAlive() // The receiving thread is alive
-                    && !handler.equals(this.handler)             // Don't notify yourself
             ) {
                 handler.sendEmptyMessage(REALM_CHANGED);
             }
