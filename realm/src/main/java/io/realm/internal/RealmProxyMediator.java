@@ -130,13 +130,13 @@ public abstract class RealmProxyMediator {
      */
     public abstract <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws java.io.IOException;
 
-    protected void checkClass(Class<? extends RealmObject> clazz) {
+    protected static void checkClass(Class<? extends RealmObject> clazz) {
         if (clazz == null) {
             throw new NullPointerException("A class extending RealmObject must be provided");
         }
     }
 
-    protected RealmException getMissingProxyClassException(Class<? extends RealmObject> clazz) {
+    protected static RealmException getMissingProxyClassException(Class<? extends RealmObject> clazz) {
         return new RealmException("Could not find the generated proxy class for " + clazz + ". Annotation processor may not have been executed.");
     }
 }
