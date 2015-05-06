@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.android;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
+
+import io.realm.RealmChangeListener;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
 
 /**
  * The RealmBaseAdapter class is an abstract utility class for binding UI elements to Realm data,

@@ -22,7 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import io.realm.RealmBaseAdapter;
+import io.realm.android.RealmBaseAdapter;
 import io.realm.RealmResults;
 import io.realm.examples.realmadapters.models.TimeStamp;
 
