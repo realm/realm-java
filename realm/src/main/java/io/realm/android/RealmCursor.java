@@ -259,12 +259,12 @@ public class RealmCursor implements Cursor {
 
     @Override
     public float getFloat(int columnIndex) {
-        return table.getFloat(rowIndex, columnIndex);
+        return table.getFloat(columnIndex, rowIndex);
     }
 
     @Override
     public double getDouble(int columnIndex) {
-        return table.getDouble(rowIndex, columnIndex);
+        return table.getDouble(columnIndex, rowIndex);
     }
 
     /**

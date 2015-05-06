@@ -372,14 +372,14 @@ public class RealmCursorTest extends AndroidTestCase {
 
     public void testGetFloat() {
         cursor.moveToFirst();
-        float value = cursor.getLong(AllTypes.COL_INDEX_FLOAT);
+        float value = cursor.getFloat(AllTypes.COL_INDEX_FLOAT);
         assertEquals(1.234567f, value);
     }
 
     public void testGetDouble() {
         cursor.moveToFirst();
         double value = cursor.getDouble(AllTypes.COL_INDEX_DOUBLE);
-        assertEquals(3.1415, value);
+        assertEquals(3.1415d, value);
     }
 
     public void testGetTypeInvalidIndexThrows() {
