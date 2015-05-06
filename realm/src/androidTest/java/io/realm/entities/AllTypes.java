@@ -22,6 +22,19 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class AllTypes extends RealmObject {
+
+
+    public static final int COL_COUNT = 9;
+    public static final int COL_INDEX_STRING = 0;
+    public static final int COL_INDEX_LONG = 1;
+    public static final int COL_INDEX_FLOAT = 2;
+    public static final int COL_INDEX_DOUBLE = 3;
+    public static final int COL_INDEX_BOOLEAN = 4;
+    public static final int COL_INDEX_DATE = 5;
+    public static final int COL_INDEX_BINARY = 6;
+    public static final int COL_INDEX_OBJECT_ = 7;
+    public static final int COL_INDEX_LIST = 8;
+
     private String columnString;
     private long columnLong;
     private float columnFloat;

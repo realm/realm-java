@@ -187,8 +187,8 @@ public class RealmCursor implements Cursor {
     public String[] getColumnNames() {
         int columns = (int) table.getColumnCount();
         String[] columnNames = new String[columns];
-        for (long i = 0; i < columns; i++) {
-            columnNames[columns] = table.getColumnName(i);
+        for (int i = 0; i < columns; i++) {
+            columnNames[i] = table.getColumnName(i);
         }
         return columnNames;
     }
@@ -200,12 +200,12 @@ public class RealmCursor implements Cursor {
 
     @Override
     public byte[] getBlob(int columnIndex) {
-        return table.getBinaryByteArray(rowIndex, columnIndex);
+        return table.getBinaryByteArray(columnIndex, rowIndex);
     }
 
     @Override
     public String getString(int columnIndex) {
-        return table.getString(rowIndex, columnIndex);
+        return table.getString(columnIndex, rowIndex);
     }
 
     @Override
@@ -251,20 +251,20 @@ public class RealmCursor implements Cursor {
                     return table.getDate(columnIndex, rowIndex).getTime();
                 }
             default:
-                throw new IllegalArgumentException("Column is not a Boolean or an Integer: "
-                        + columnIndex + ", " +  type);
+                throw new IllegalArgumentException(String.format("Column:  %s is not a Boolean or an Integer: %s",
+                        columnIndex, type));
         }
     }
 
 
     @Override
     public float getFloat(int columnIndex) {
-        return table.getFloat(columnIndex, rowIndex);
+        return table.getFloat(rowIndex, columnIndex);
     }
 
     @Override
     public double getDouble(int columnIndex) {
-        return table.getDouble(columnIndex, rowIndex);
+        return table.getDouble(rowIndex, columnIndex);
     }
 
     /**

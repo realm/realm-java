@@ -16,26 +16,37 @@
 
 package io.realm;
 
+import android.database.CharArrayBuffer;
 import android.database.Cursor;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
 
 import io.realm.android.RealmCursor;
+import io.realm.annotations.Index;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 
+import static io.realm.internal.test.ExtraTests.assertArrayEquals;
+
 public class RealmCursorTest extends AndroidTestCase {
+
+    private static final int SIZE = 10;
+    public static final int NOT_FOUND = -1;
 
     private Realm realm;
     private RealmCursor cursor;
+
+    private enum CursorGetter {
+        STRING, SHORT, INT, LONG, FLOAT, DOUBLE, BLOB;
+    }
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         Realm.deleteRealmFile(getContext());
         realm = Realm.getInstance(getContext());
-        populateTestRealm(realm, 10);
+        populateTestRealm(realm, SIZE);
         cursor = realm.allObjects(AllTypes.class).getCursor();
         cursor.setIdColumn("columnLong");
     }
@@ -67,7 +78,7 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testGetCount() {
-        assertEquals(10, cursor.getColumnCount());
+        assertEquals(AllTypes.COL_COUNT, cursor.getColumnCount());
     }
 
     public void testGetPosition() {
@@ -79,29 +90,29 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testMoveOffsetValid() {
-        assertTrue(cursor.move(5));
+        assertTrue(cursor.move(SIZE / 2));
     }
 
     public void testMoveOffsetInvalid() {
-        assertFalse(cursor.move(20));
-        assertFalse(cursor.move(-20));
+        assertFalse(cursor.move(SIZE * 2));
+        assertFalse(cursor.move(SIZE * -2));
     }
 
     public void testMoveToPositionCapAtStart() {
-        cursor.move(5);
-        assertFalse(cursor.move(-10));
+        cursor.move(SIZE/2);
+        assertFalse(cursor.move(-SIZE));
         assertTrue(cursor.isBeforeFirst());
     }
 
     public void testMoveToPositionCapAtEnd() {
-        cursor.move(5);
-        assertFalse(cursor.move(10));
+        cursor.move(SIZE/2);
+        assertFalse(cursor.move(SIZE));
         assertTrue(cursor.isAfterLast());
     }
 
     public void testMoveToPosition() {
-        assertTrue(cursor.moveToPosition(5));
-        assertEquals(5, cursor.getPosition());
+        assertTrue(cursor.moveToPosition(SIZE / 2));
+        assertEquals(SIZE / 2, cursor.getPosition());
     }
 
     public void testMoveToFirst() {
@@ -123,19 +134,19 @@ public class RealmCursorTest extends AndroidTestCase {
     public void testMoveToNextFailed() {
         cursor.moveToLast();
         assertFalse(cursor.moveToNext());
-        assertEquals(9, cursor.getPosition());
+        assertEquals(SIZE, cursor.getPosition());
     }
 
     public void testMoveToPrevious() {
         cursor.moveToLast();
         assertTrue(cursor.moveToPrevious());
-        assertEquals(8, cursor.getPosition());
+        assertEquals(SIZE - 2, cursor.getPosition());
     }
 
     public void testMoveToPreviousFailed() {
         cursor.moveToFirst();
         assertFalse(cursor.moveToPrevious());
-        assertEquals(0, cursor.getPosition());
+        assertEquals(-1, cursor.getPosition());
     }
 
     public void testIsFirstYes() {
@@ -146,7 +157,7 @@ public class RealmCursorTest extends AndroidTestCase {
     public void testIsFirstNo() {
         cursor.moveToPosition(1);
         assertFalse(cursor.isFirst());
-        cursor.move(-20);
+        cursor.move(SIZE * -2);
         assertFalse(cursor.isFirst());
     }
 
@@ -158,7 +169,7 @@ public class RealmCursorTest extends AndroidTestCase {
     public void testIsLastNo() {
         cursor.moveToPosition(1);
         assertFalse(cursor.isLast());
-        cursor.move(20);
+        cursor.move(SIZE * 2);
         assertFalse(cursor.isLast());
     }
 
@@ -168,7 +179,7 @@ public class RealmCursorTest extends AndroidTestCase {
 
     public void testBeforeFirstNo() {
         cursor.moveToFirst();
-        assertFalse(cursor.isFirst());
+        assertFalse(cursor.isBeforeFirst());
     }
 
     public void testIsAfterLastYes() {
@@ -188,7 +199,7 @@ public class RealmCursorTest extends AndroidTestCase {
 
     public void testGetColumnIndexIdColumnNotFound() {
         Cursor c = realm.where(AllTypes.class).findAll().getCursor();
-        assertEquals(-1, c.getColumnIndex("_id"));
+        assertEquals(NOT_FOUND, c.getColumnIndex("_id"));
     }
 
     public void testGetColumnIndex() {
@@ -238,128 +249,147 @@ public class RealmCursorTest extends AndroidTestCase {
 
     public void testGetColumnNames() {
         String[] names = cursor.getColumnNames();
-        assertEquals(9, names.length);
-        assertEquals("columnString", names[0]);
-        assertEquals("columnRealmList", names[8]);
+        assertEquals(AllTypes.COL_COUNT, names.length);
+        assertEquals("columnString", names[AllTypes.COL_INDEX_STRING]);
+        assertEquals("columnRealmList", names[AllTypes.COL_INDEX_LIST]);
     }
 
     public void testGetColumnCount() {
         assertEquals(9, cursor.getColumnCount());
     }
 
-    public void testGetBlobInvalidIndexThrows() {
+    // Test that all get<type> method throw IndexOutOfBounds properly
+    public void testGetXXXInvalidIndexThrows() {
+        cursor.moveToFirst();
+        for (CursorGetter cursorGetter : CursorGetter.values()) {
+            try {
+                switch (cursorGetter) {
+                    case STRING: cursor.getString(-1); break;
+                    case SHORT: cursor.getShort(-1); break;
+                    case INT: cursor.getInt(-1); break;
+                    case LONG: cursor.getLong(-1); break;
+                    case FLOAT: cursor.getFloat(-1); break;
+                    case DOUBLE: cursor.getDouble(-1); break;
+                    case BLOB: cursor.getBlob(-1); break;
+                }
+                fail(cursorGetter + " should throw an exception");
+            } catch (IndexOutOfBoundsException expected) {
+            } catch (Exception wrongException) {
+                throw new RuntimeException(cursorGetter + " threw the wrong exception: ", wrongException);
+            }
+        }
+    }
+
+    // Test that all get<type> method throw if field type doesn't match getter type
+    public void testGetXXXWrongFieldTypeThrows() {
+        cursor.moveToFirst();
+        for (CursorGetter cursorGetter : CursorGetter.values()) {
+            try {
+                switch (cursorGetter) {
+                    case STRING: cursor.getString(AllTypes.COL_INDEX_LONG); break;
+                    case SHORT: cursor.getShort(AllTypes.COL_INDEX_STRING); break;
+                    case INT: cursor.getInt(AllTypes.COL_INDEX_STRING); break;
+                    case LONG: cursor.getLong(AllTypes.COL_INDEX_STRING); break;
+                    case FLOAT: cursor.getFloat(AllTypes.COL_INDEX_STRING); break;
+                    case DOUBLE: cursor.getDouble(AllTypes.COL_INDEX_STRING); break;
+                    case BLOB: cursor.getBlob(AllTypes.COL_INDEX_STRING); break;
+                }
+                fail(cursorGetter + " should throw an exception");
+            } catch (IllegalArgumentException expected) {
+            } catch (Exception wrongException) {
+                throw new RuntimeException(cursorGetter + " threw the wrong exception: ", wrongException);
+            }
+        }
+    }
+
+    public void testGetBlob() {
+        cursor.moveToFirst();
+        byte[] blob = cursor.getBlob(AllTypes.COL_INDEX_BINARY);
+        assertArrayEquals(new byte[]{1, 2, 3}, blob);
+    }
+
+    public void testGetString() {
+        cursor.moveToFirst();
+        String str = cursor.getString(AllTypes.COL_INDEX_STRING);
+        assertEquals("test data 0", str);
+    }
+
+    public void testCopyStringToBufferInvalidIndexThrows() {
         try {
-            cursor.getBlob(-1);
+            cursor.moveToFirst();
+            cursor.copyStringToBuffer(-1, new CharArrayBuffer(10));
             fail();
         } catch (IndexOutOfBoundsException expected) {
         }
     }
 
-    public void testGetBlobInvalidFieldTypeThrows() {
+    public void testCopyStringToBufferInvalidFieldTypeThrows() {
         try {
-            cursor.getBlob(1);
+            cursor.moveToFirst();
+            cursor.copyStringToBuffer(AllTypes.COL_INDEX_LONG, new CharArrayBuffer(10));
             fail();
         } catch (IllegalArgumentException expected) {
         }
     }
 
-    public void testGetBlob() {
-        byte[] blob = cursor.getBlob(cursor.getColumnIndex("columnBinary"));
-        assertEquals(fail();
+    public void testCopyStringToBufferNullBufferThrows() {
+        try {
+            cursor.moveToFirst();
+            cursor.copyStringToBuffer(AllTypes.COL_INDEX_STRING, null);
+            fail();
+        } catch (NullPointerException expected) {
+        }
     }
-//
-//    public void testGetStringInvalidIndexThrows() {
-//        fail();
-//    }
-//
-//    public void testGetStringInvalidFieldTypeThrows() {
-//        fail();
-//    }
-//
-//    public void testGetString() {
-//        fail();
-//    }
-//
-//    public void testCopyStringToBufferInvalidIndexThrows() {
-//        fail();
-//    }
-//
-//    public void testCopyStringToBufferInvalidFieldTypeThrows() {
-//        fail();
-//    }
-//
-//    public void testCopyStringToBufferNullBufferThrows() {
-//        fail();
-//    }
-//
-//    public void testCopyStringToBuffer() {
-//        fail();
-//    }
-//
-//    public void testGetShortInvalidIndexThrows() {
-//        fail();
-//    }
-//
-//    public void testGetShortInvalidFieldTypeThrows() {
-//        fail();
-//    }
-//
-//    public void testGetShort() {
-//        fail();
-//    }
-//
-//    public void testGetIntInvalidIndexThrows() {
-//        fail();
-//    }
-//
-//    public void testGetIntInvalidFieldTypeThrows() {
-//        fail();
-//    }
-//
-//    public void testGetInt() {
-//        fail();
-//    }
-//
-//    public void testGetLongInvalidIndexThrows() {
-//        fail();
-//    }
-//
-//    public void testGetLongInvalidFieldTypeThrows() {
-//        fail();
-//    }
-//
-//    public void testGetLong() {
-//        fail();
-//    }
-//
-//    public void testGetFloatInvalidIndexThrows() {
-//        fail();
-//    }
-//
-//    public void testGetFloatInvalidFieldTypeThrows() {
-//        fail();
-//    }
-//
-//    public void testGetFloat() {
-//        fail();
-//    }
-//
-//    public void testGetDoubleInvalidIndexThrows() {
-//        fail();
-//    }
-//
-//    public void testGetDoubleInvalidFieldTypeThrows() {
-//        fail();
-//    }
-//
-//    public void testGetDouble() {
-//        fail();
-//    }
-//
-//    public void testGetTypeInvalidIndexThrows() {
-//        fail();
-//    }
-//
+
+    public void testCopyStringToBuffer() {
+        String expectedString = "test data 0";
+        int expectedLength = expectedString.length();
+        cursor.moveToFirst();
+        CharArrayBuffer buffer = new CharArrayBuffer(expectedLength);
+        cursor.copyStringToBuffer(AllTypes.COL_INDEX_STRING, buffer);
+        assertEquals(expectedLength, buffer.sizeCopied);
+        assertEquals(expectedLength, buffer.data.length);
+        assertEquals("test data 0", new String(buffer.data));
+    }
+
+    public void testGetShort() {
+        cursor.moveToFirst();
+        short value = cursor.getShort(AllTypes.COL_INDEX_LONG);
+        assertEquals(0, value);
+    }
+
+    public void testGetInt() {
+        cursor.moveToFirst();
+        int value = cursor.getInt(AllTypes.COL_INDEX_LONG);
+        assertEquals(0, value);
+    }
+
+    public void testGetLong() {
+        cursor.moveToFirst();
+        long value = cursor.getLong(AllTypes.COL_INDEX_LONG);
+        assertEquals(0, value);
+    }
+
+    public void testGetFloat() {
+        cursor.moveToFirst();
+        float value = cursor.getLong(AllTypes.COL_INDEX_FLOAT);
+        assertEquals(1.234567f, value);
+    }
+
+    public void testGetDouble() {
+        cursor.moveToFirst();
+        double value = cursor.getDouble(AllTypes.COL_INDEX_DOUBLE);
+        assertEquals(3.1415, value);
+    }
+
+    public void testGetTypeInvalidIndexThrows() {
+        try {
+            cursor.getType(-1);
+            fail();
+        } catch (IndexOutOfBoundsException expected) {
+        }
+    }
+
 //    public void testGetType() {
 //        fail(); // TODO Test all types
 //    }
