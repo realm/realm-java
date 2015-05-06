@@ -332,7 +332,7 @@ public class NotificationsTest extends AndroidTestCase {
         assertTrue(success.get());
     }
 
-    public void testEmptyCommitTriggerOnChangeHandler() {
+    public void testEmptyCommitTriggerChangeListener() {
         final AtomicBoolean success = new AtomicBoolean(false);
         realm = Realm.getInstance(getContext());
         realm.addChangeListener(new RealmChangeListener() {
