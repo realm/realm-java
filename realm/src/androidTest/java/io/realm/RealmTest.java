@@ -168,8 +168,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    // TODO Disabled due to the build phone keep crashing on this. It might be related to https://github.com/realm/realm-java/issues/1008
-    public void DISABLEtestGetInstanceClearsCacheWhenFailed() {
+    public void testGetInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
         Random random = new Random();
@@ -187,6 +186,15 @@ public class RealmTest extends AndroidTestCase {
             Realm.getInstance(getContext(), REALM_NAME, key);
             realm.close();
         }
+    }
+
+    public void testInstanceIdForHashCollision() {
+        // Ea.hashCode() == FB.hashCode()
+        Realm.deleteRealmFile(getContext(), "Ea");
+        Realm.deleteRealmFile(getContext(), "FB");
+        Realm r1 = Realm.getInstance(getContext(), "Ea");
+        Realm r2 = Realm.getInstance(getContext(), "FB");
+        assertNotSame(r1, r2);
     }
 
     public void testRealmCache() {
@@ -1177,6 +1185,15 @@ public class RealmTest extends AndroidTestCase {
             return;
         }
         fail();
+    }
+
+    public void testCopyToRealmOrUpdateNullPrimaryKeyThrows() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.copyToRealmOrUpdate(new PrimaryKeyAsString());
+            fail();
+        } catch (RealmException expected) {
+        }
     }
 
     public void testCopyOrUpdateNoPrimaryKeyThrows() {

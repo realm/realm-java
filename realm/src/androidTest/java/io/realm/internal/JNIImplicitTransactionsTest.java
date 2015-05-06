@@ -57,6 +57,7 @@ public class JNIImplicitTransactionsTest extends AndroidTestCase {
     }
 
     public void testCannotUseClosedImplicitTransaction() {
+        deleteFile();
         SharedGroup sg = new SharedGroup(testFile, true, null);
         WriteTransaction wt = sg.beginWrite();
         if (!wt.hasTable("test")) {

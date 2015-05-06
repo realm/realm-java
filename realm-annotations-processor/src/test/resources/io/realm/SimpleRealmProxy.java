@@ -100,14 +100,14 @@ public class SimpleRealmProxy extends Simple {
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type Simple");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type Simple");
                 }
                 columnIndices.put(fieldName, index);
             }
             INDEX_NAME = table.getColumnIndex("name");
             INDEX_AGE = table.getColumnIndex("age");
         } else {
-            throw new RealmMigrationNeededException("The Simple class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the schema for this Realm.");
         }
     }
 
@@ -150,7 +150,7 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObject> cache) {
-        if (object.realm != null && object.realm.getId() == realm.getId()) {
+        if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
