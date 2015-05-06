@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,19 @@
 package io.realm;
 
 import android.database.CharArrayBuffer;
+import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.DataSetObserver;
+import android.os.Bundle;
+import android.os.Handler;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.android.RealmCursor;
-import io.realm.annotations.Index;
 import io.realm.entities.AllTypes;
+import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.Dog;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -48,7 +53,6 @@ public class RealmCursorTest extends AndroidTestCase {
         realm = Realm.getInstance(getContext());
         populateTestRealm(realm, SIZE);
         cursor = realm.allObjects(AllTypes.class).getCursor();
-        cursor.setIdColumn("columnLong");
     }
 
     private void populateTestRealm(Realm realm, int objects) {
@@ -194,7 +198,8 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testGetColumnIndexIdColumn() {
-        assertEquals(cursor.getColumnIndex("_id"), cursor.getColumnIndex("columnLong"));
+        cursor.setIdColumn("columnLong");
+        assertEquals(cursor.getColumnIndex("columnLong"), cursor.getColumnIndex("_id"));
     }
 
     public void testGetColumnIndexIdColumnNotFound() {
@@ -211,7 +216,8 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testGetColumnOrThrowIndexIdColumn() {
-        assertEquals(cursor.getColumnIndex("_id"), cursor.getColumnIndex("columnLong"));
+        cursor.setIdColumn("columnLong");
+        assertEquals(cursor.getColumnIndex("columnLong"), cursor.getColumnIndex("_id"));
     }
 
     public void testGetColumnIndexOrThrowIdColumnNotFoundThrows() {
@@ -296,6 +302,28 @@ public class RealmCursorTest extends AndroidTestCase {
                 }
                 fail(cursorGetter + " should throw an exception");
             } catch (IllegalArgumentException expected) {
+            } catch (Exception wrongException) {
+                throw new RuntimeException(cursorGetter + " threw the wrong exception: ", wrongException);
+            }
+        }
+    }
+
+    // Test that all getters fail when the cursor is closed
+    public void testGetXXXFailWhenCursorClosed() {
+        cursor.close();
+        for (CursorGetter cursorGetter : CursorGetter.values()) {
+            try {
+                switch (cursorGetter) {
+                    case STRING: cursor.getString(AllTypes.COL_INDEX_LONG); break;
+                    case SHORT: cursor.getShort(AllTypes.COL_INDEX_STRING); break;
+                    case INT: cursor.getInt(AllTypes.COL_INDEX_STRING); break;
+                    case LONG: cursor.getLong(AllTypes.COL_INDEX_STRING); break;
+                    case FLOAT: cursor.getFloat(AllTypes.COL_INDEX_STRING); break;
+                    case DOUBLE: cursor.getDouble(AllTypes.COL_INDEX_STRING); break;
+                    case BLOB: cursor.getBlob(AllTypes.COL_INDEX_STRING); break;
+                }
+                fail(cursorGetter + " should throw an exception");
+            } catch (NullPointerException expected) {
             } catch (Exception wrongException) {
                 throw new RuntimeException(cursorGetter + " threw the wrong exception: ", wrongException);
             }
@@ -390,83 +418,178 @@ public class RealmCursorTest extends AndroidTestCase {
         }
     }
 
-//    public void testGetType() {
-//        fail(); // TODO Test all types
-//    }
-//
-//    public void testIsNullThrows() {
-//        fail();
-//    }
-//
-//    public void testDeactivateThrows() {
-//        fail();
-//    }
-//
-//    public void testRequeryThrows() {
-//        fail();
-//    }
-//
-//    public void testClose() {
-//        fail(); // TODO and isClose
-//    }
-//
-//    public void testMethodsFailWhenCursorClosed() {
-//        fail(); // Test all methods fail when cursor is closed
-//    }
-//
-//    public void testRegisterContentObserverThrows() {
-//        fail();
-//    }
-//
-//    public void testUnregisterContentObserverThrows() {
-//        fail();
-//    }
-//
-//    public void testRegisterDataSetObserverClosed() {
-//        fail(); // TODO only works with close()
-//    }
-//
-//    public void testRegisterDataSetObserverRealmChanged() {
-//        fail(); // TODO only works with close()
-//    }
-//
-//    public void testUnregisterDataSetObserver() {
-//        fail(); // TODO only works with close()
-//    }
-//
-//    public void testSetNofiticationUriThrows() {
-//        fail();
-//    }
-//
-//    public void testGetNotificationUriThrows() {
-//        fail();
-//    }
-//
-//    public void testGetWantsAllOnMoveCalls() {
-//        fail();
-//    }
-//
-//    public void testGetExtras() {
-//        fail();
-//    }
-//
-//    public void testRespond() {
-//        fail();
-//    }
-//
-//    public void testSetIdAliasFieldNotFoundThrows() {
-//        fail();
-//    }
-//
-//    public void testSetIdAliasWrongTypeThrows() {
-//        fail();
-//    }
-//
-//    public void testSetIdAliasFieldAlreadyExistsThrows() {
-//        fail();
-//    }
-//
-//    public void testSetIdAlias() {
-//        fail();
-//    }
+    public void testGetType() {
+        assertEquals(Cursor.FIELD_TYPE_STRING, cursor.getType(AllTypes.COL_INDEX_STRING));
+        assertEquals(Cursor.FIELD_TYPE_INTEGER, cursor.getType(AllTypes.COL_INDEX_LONG));
+        assertEquals(Cursor.FIELD_TYPE_FLOAT, cursor.getType(AllTypes.COL_INDEX_FLOAT));
+        assertEquals(Cursor.FIELD_TYPE_FLOAT, cursor.getType(AllTypes.COL_INDEX_DOUBLE));
+        assertEquals(Cursor.FIELD_TYPE_INTEGER, cursor.getType(AllTypes.COL_INDEX_BOOLEAN));
+        assertEquals(Cursor.FIELD_TYPE_INTEGER, cursor.getType(AllTypes.COL_INDEX_DATE));
+        assertEquals(-1, cursor.getType(AllTypes.COL_INDEX_OBJECT));
+        assertEquals(-1, cursor.getType(AllTypes.COL_INDEX_LIST));
+    }
+
+    public void testIsNullThrows() {
+        cursor.moveToFirst();
+        try {
+            cursor.isNull(AllTypes.COL_INDEX_STRING);
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+
+    public void testDeactivateThrows() {
+        try {
+            cursor.deactivate();
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+
+    public void testRequeryThrows() {
+        try {
+            cursor.requery();
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+
+    public void testClose() {
+        cursor.close();
+        assertTrue(cursor.isClosed());
+    }
+
+    public void testRegisterContentObserverThrows() {
+        try {
+            cursor.registerContentObserver(new CustomContentObserver(new Handler()));
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+
+    public void testUnregisterContentObserverThrows() {
+        try {
+            cursor.unregisterContentObserver(new CustomContentObserver(new Handler()));
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+
+    public void testRegisterDataSetObserverNullThrows() {
+        try {
+            cursor.registerDataSetObserver(null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testRegisterDataSetObserverClosed() {
+        final AtomicBoolean success = new AtomicBoolean(false);
+        cursor.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onInvalidated() {
+                success.set(true);
+            }
+        });
+        cursor.close();
+        assertTrue(success.get());
+    }
+
+    public void testRegisterDataSetObserverRealmChanged() {
+        RealmResults results = realm.allObjects(AllTypes.class);
+        cursor = results.getCursor();
+        final AtomicBoolean success = new AtomicBoolean(false);
+        cursor.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                success.set(true);
+            }
+        });
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        assertTrue(success.get());
+    }
+
+    public void testUnregisterDataSetObserver() {
+        DataSetObserver observer = new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                fail();
+            }
+        };
+        cursor.registerDataSetObserver(observer);
+        cursor.unregisterDataSetObserver(observer);
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+    }
+
+    public void testSetNofiticationUriThrows() {
+        try {
+            cursor.setNotificationUri(null, null);
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+
+    public void testGetNotificationUriThrows() {
+        try {
+            cursor.getNotificationUri();
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
+    }
+
+    public void testGetWantsAllOnMoveCalls() {
+        assertFalse(cursor.getWantsAllOnMoveCalls());
+    }
+
+    public void testGetExtras() {
+        assertEquals(Bundle.EMPTY, cursor.getExtras());
+    }
+
+    public void testRespond() {
+        assertEquals(Bundle.EMPTY, cursor.respond(new Bundle()));
+    }
+
+    public void testSetIdAliasFieldNotFoundThrows() {
+        try {
+            cursor.setIdColumn("foo");
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testSetIdAliasWrongTypeThrows() {
+        try {
+            cursor.setIdColumn("columnString");
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testSetIdAliasFieldAlreadyExistsThrows() {
+        RealmResults<AnnotationNameConventions> result = realm.where(AnnotationNameConventions.class).findAll();
+        cursor = result.getCursor();
+        try {
+            cursor.setIdColumn("id_object");
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testSetIdAlias() {
+        cursor.setIdColumn("columnLong");
+        assertEquals(cursor.getColumnIndex("_id"), AllTypes.COL_INDEX_LONG);
+        cursor.moveToPosition(1);
+        assertEquals(1l, cursor.getLong(cursor.getColumnIndex("_id")));
+    }
+
+    private class CustomContentObserver extends ContentObserver {
+        public CustomContentObserver(Handler handler) {
+            super(handler);
+        }
+    }
 }

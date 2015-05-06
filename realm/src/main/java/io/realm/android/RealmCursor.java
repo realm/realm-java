@@ -49,18 +49,19 @@ import io.realm.internal.TableOrView;
  */
 public class RealmCursor implements Cursor {
 
+    private static final String DEFAULT_ID_COLUMN = "_id";
+
     private final Realm realm;
     private TableOrView table;
     private int rowIndex;
     private boolean closed;
-    private String idColumnName = "_id";
     private long idColumnIndex = -1; // Column index for the "_id" field. -1 means it hasn't been set
     private final DataSetObservable dataSetObservable = new DataSetObservable();
     private RealmChangeListener changeListener = new RealmChangeListener() {
         @Override
         public void onChange() {
             if (dataSetObservable != null) {
-                dataSetObservable.notifyChanged(); // TODO Should be replaced with something more finegrained.
+                dataSetObservable.notifyChanged(); // TODO Should be replaced with something more fine grained.
             }
         }
     };
@@ -75,7 +76,6 @@ public class RealmCursor implements Cursor {
         this.table = table;
         this.rowIndex = -1;
         this.realm = realm;
-
         realm.addChangeListener(changeListener);
     }
 
@@ -162,7 +162,7 @@ public class RealmCursor implements Cursor {
 
     @Override
     public int getColumnIndex(String columnName) {
-        if (idColumnName.equals(columnName)) {
+        if (idColumnIndex >= 0) {
             return (int) idColumnIndex;
         } else {
             return (int) table.getColumnIndex(columnName);
@@ -251,7 +251,7 @@ public class RealmCursor implements Cursor {
                     return table.getDate(columnIndex, rowIndex).getTime();
                 }
             default:
-                throw new IllegalArgumentException(String.format("Column:  %s is not a Boolean or an Integer: %s",
+                throw new IllegalArgumentException(String.format("Column at index  %s is not a Boolean or an Integer but a %s",
                         columnIndex, type));
         }
     }
@@ -386,16 +386,23 @@ public class RealmCursor implements Cursor {
      * @see http://developer.android.com/reference/android/widget/CursorAdapter.html
      */
     public void setIdColumn(String fieldName) {
+
+        // Check that field name exists
         int idIndex = getColumnIndex(fieldName);
         if (idIndex == TableOrView.NO_MATCH) {
             throw new IllegalArgumentException("Field name doesn't exist: " + fieldName);
         }
+
+        // Check that type is correct
         int idType = getType(idIndex);
         if (idType != Cursor.FIELD_TYPE_INTEGER) {
             throw new IllegalArgumentException(fieldName + " cannot be mapped to a long.");
         }
-        if (getColumnIndex(idColumnName) != TableOrView.NO_MATCH) {
-            throw new IllegalArgumentException(idColumnName + " is already a field name in the model class and cannot be overridden.");
+
+        // Check that _id is not already a field, in which case it is not possible to override it.
+        if (getColumnIndex(DEFAULT_ID_COLUMN) != TableOrView.NO_MATCH) {
+            throw new IllegalArgumentException(String.format("%s is already a field name in the model class '%s' and " +
+                            "cannot be overridden.", DEFAULT_ID_COLUMN, table.getTable().getName()));
         }
 
        this.idColumnIndex = idIndex;

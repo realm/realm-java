@@ -32,7 +32,7 @@ public class AllTypes extends RealmObject {
     public static final int COL_INDEX_BOOLEAN = 4;
     public static final int COL_INDEX_DATE = 5;
     public static final int COL_INDEX_BINARY = 6;
-    public static final int COL_INDEX_OBJECT_ = 7;
+    public static final int COL_INDEX_OBJECT = 7;
     public static final int COL_INDEX_LIST = 8;
 
     private String columnString;
