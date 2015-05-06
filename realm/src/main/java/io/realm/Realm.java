@@ -561,14 +561,6 @@ public final class Realm implements Closeable {
         if (references == null) {
             references = 0;
         }
-        if (references == 0) {
-            AtomicInteger counter = openRealms.get(canonicalPath);
-            if (counter == null) {
-                if (config.shouldDeleteRealmBeforeOpening()) {
-                    deleteRealm(config);
-                }
-			}
-		}
         Map<String, Realm> realms = realmsCache.get();
         Realm realm = realms.get(canonicalPath);
         if (realm != null) {
