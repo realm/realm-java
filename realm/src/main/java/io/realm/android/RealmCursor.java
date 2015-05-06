@@ -33,17 +33,17 @@ import io.realm.internal.TableOrView;
 
 /**
  * This classes exposes {@link io.realm.RealmResults} as a cursor.
- *
+ * <p>
  * It is possible to traverse links using dot notation to access data in referenced objects, ie.
  * {@code cursor.getInt("foo.bar"} will return the integer from the {@code bar} field in the {@code foo} object
  * referenced the class represented by the RealmResult.
- *
+ * <p>
  * Many Android framework classes require the presences of an "_id" field. Instead of adding such a field to your
  * model class it is instead possible to use {@link #setIdColumn(String)}.
- *
+ * <p>
  * A RealmCursor has the same thread restrictions as RealmResults, so it is not possible to move a RealmCursor between
  * threads.
- *
+ * <p>
  * TODO How to handle RealmList? getString("realmList[0].name)"?
  * TODO How to iterate a RealmList?
  */
@@ -79,21 +79,33 @@ public class RealmCursor implements Cursor {
         realm.addChangeListener(changeListener);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getCount() {
         return (int) table.size();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getPosition() {
         return rowIndex;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public final boolean move(int offset) {
         return moveToPosition(rowIndex + offset);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean moveToPosition(int position) {
         // Verify position is not post the end of the cursor.
@@ -113,37 +125,58 @@ public class RealmCursor implements Cursor {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean moveToFirst() {
         return moveToPosition(0);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean moveToLast() {
         return moveToPosition(getCount() - 1);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean moveToNext() {
         return moveToPosition(rowIndex + 1);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean moveToPrevious() {
         return moveToPosition(rowIndex - 1);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isFirst() {
         return rowIndex == 0 && getCount() != 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isLast() {
         int count = getCount();
         return rowIndex == (count - 1) && count != 0;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isBeforeFirst() {
         if (getCount() == 0) {
@@ -152,6 +185,9 @@ public class RealmCursor implements Cursor {
         return rowIndex == -1;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isAfterLast() {
         if (getCount() == 0) {
@@ -160,6 +196,9 @@ public class RealmCursor implements Cursor {
         return rowIndex == getCount();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getColumnIndex(String columnName) {
         if (idColumnIndex >= 0) {
@@ -169,6 +208,9 @@ public class RealmCursor implements Cursor {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getColumnIndexOrThrow(String columnName) throws IllegalArgumentException {
         int index = (int) table.getColumnIndex(columnName);
@@ -178,11 +220,17 @@ public class RealmCursor implements Cursor {
         return index;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getColumnName(int columnIndex) {
         return table.getColumnName(columnIndex);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String[] getColumnNames() {
         int columns = (int) table.getColumnCount();
@@ -193,21 +241,33 @@ public class RealmCursor implements Cursor {
         return columnNames;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getColumnCount() {
         return (int) table.getColumnCount();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public byte[] getBlob(int columnIndex) {
         return table.getBinaryByteArray(columnIndex, rowIndex);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getString(int columnIndex) {
         return table.getString(columnIndex, rowIndex);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void copyStringToBuffer(int columnIndex, CharArrayBuffer buffer) {
         String result = getString(columnIndex);
@@ -224,16 +284,25 @@ public class RealmCursor implements Cursor {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public short getShort(int columnIndex) {
         return (short) mapRealmTypeToCursor(columnIndex, false);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getInt(int columnIndex) {
         return (int) mapRealmTypeToCursor(columnIndex, false);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public long getLong(int columnIndex) {
         return mapRealmTypeToCursor(columnIndex, true);
@@ -256,12 +325,17 @@ public class RealmCursor implements Cursor {
         }
     }
 
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float getFloat(int columnIndex) {
         return table.getFloat(columnIndex, rowIndex);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public double getDouble(int columnIndex) {
         return table.getDouble(columnIndex, rowIndex);
@@ -273,8 +347,8 @@ public class RealmCursor implements Cursor {
      * <p>
      * Some realm types are mapped to conform to the Cursor interface. These mappings are described below:
      * <ol>
-     *   <li>Boolean -> {0 = false, 1 = true}, use getShort()/getInt()/getLong()</li>
-     *   <li>Date -> Time in milliseconds since epoch, use getLong()</li>
+     *   <li>Boolean : {0 = false, 1 = true}, use getShort()/getInt()/getLong()</li>
+     *   <li>Date : Time in milliseconds since epoch, use getLong()</li>
      *</ol>
      *
      * @param columnIndex Get the data type from the this column index.
@@ -300,21 +374,40 @@ public class RealmCursor implements Cursor {
         }
     }
 
+    /**
+     * Realm currently doesn't support null. Calling this method will always throw an exception.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public boolean isNull(int columnIndex) {
         throw new UnsupportedOperationException("Null not yet supported by Realm");
     }
 
+    /**
+     * Realm doesn't support {@link #deactivate()}. Calling this will throw an exception.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public void deactivate() {
         throw new UnsupportedOperationException("As requery() is not supported, neither is deactivate()");
     }
 
+    /**
+     * Realm doesn't support {@link #requery()}. Calling this will throw an exception.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public boolean requery() {
         throw new UnsupportedOperationException("Request a new cursor from the RealmResults or call Realm.refresh() instead");
     }
 
+    /**
+     * Calling this will close this cursor. The original RealmResult will not be affected. Trying to access any data in
+     * the cursor after calling this is illegal an the behavior is undefined.
+     */
     @Override
     public void close() {
         closed = true;
@@ -323,51 +416,96 @@ public class RealmCursor implements Cursor {
         dataSetObservable.notifyInvalidated();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isClosed() {
         return closed;
     }
 
+    /**
+     * Realm doesn't support {@link ContentObserver}. Calling this will throw an exception.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public void registerContentObserver(ContentObserver observer) {
         throw new UnsupportedOperationException("Content observers not supported");
     }
 
+    /**
+     * Realm doesn't support {@link ContentObserver}. Calling this will throw an exception.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public void unregisterContentObserver(ContentObserver observer) {
         throw new UnsupportedOperationException("Content observers not supported");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void registerDataSetObserver(DataSetObserver observer) {
         dataSetObservable.registerObserver(observer);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void unregisterDataSetObserver(DataSetObserver observer) {
         dataSetObservable.unregisterObserver(observer);
     }
 
+    /**
+     * Realm doesn't support {@link ContentResolver}. Calling this will throw an exception.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public void setNotificationUri(ContentResolver cr, Uri uri) {
         throw new UnsupportedOperationException("Notification URI's are not supported by RealmCursor");
     }
 
+    /**
+     * Realm doesn't support {@link ContentResolver}. Calling this will throw an exception.
+     *
+     * @throws UnsupportedOperationException
+     */
     @Override
     public Uri getNotificationUri() {
         throw new UnsupportedOperationException("Notification URI's are not supported by RealmCursor");
     }
 
+    /**
+     * RealmCursors are not accessible across processes. This method will always return false.
+     *
+     * @return Will always return {@code false}.
+     * @see Cursor#getWantsAllOnMoveCalls()
+     */
     @Override
     public boolean getWantsAllOnMoveCalls() {
         return false; // Realm TableViews doesn't support access from multiple processes.
     }
 
+    /**
+     * Realm doesn't support extra metadata in the form a bundle. This method will always return the empty bundle.
+     *
+     * @return {@code Bundle.EMPTY}
+     */
     @Override
     public Bundle getExtras() {
         return Bundle.EMPTY;
     }
 
+    /**
+     * Realm doesn't support extra metadata in the form a bundle. This method will always return the empty bundle.
+     *
+     * @return {@code Bundle.EMPTY}
+     */
     @Override
     public Bundle respond(Bundle extras) {
         return Bundle.EMPTY;
@@ -383,7 +521,7 @@ public class RealmCursor implements Cursor {
      * @throws IllegalArgumentException If the field name doesn't exist, is of the wrong type or a field named
      * {@code _id} already exists.
      *
-     * @see http://developer.android.com/reference/android/widget/CursorAdapter.html
+     * @see <a href="http://developer.android.com/reference/android/widget/CursorAdapter.html">CursorAdapter</a>
      */
     public void setIdColumn(String fieldName) {
 
