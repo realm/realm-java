@@ -29,14 +29,14 @@ import io.realm.internal.migration.SetVersionNumberMigration;
  * A RealmConfiguration is used to setup a specific Realm instance.
  *
  * Instances of a RealmConfiguration can only created by using the {@link io.realm.RealmConfiguration.Builder} and calling
- * its {@link io.realm.RealmConfiguration.Builder#create()} method.
+ * its {@link io.realm.RealmConfiguration.Builder#build()} method.
  *
- * A commonly used RealmConfiguration can be easily accessed by first saving it as
+ * A commonly used RealmConfiguration can easily accessed by first saving it as
  * {@link Realm#setDefaultConfiguration(RealmConfiguration)} and then using {@link io.realm.Realm#getDefaultInstance()}.
  *
  * A minimal configuration can be created using:
  *
- * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext().create())}
+ * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
  *
  * This will create a RealmConfiguration with the following properties
  * - Realm file is called "default.realm"
@@ -47,33 +47,33 @@ public class RealmConfiguration {
 
     private final File realmDir;
     private final String realmName;
+    private final String canonicalPath;
     private final byte[] key;
     private final int schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
-    private final boolean deleteRealmBeforeOpening;
     private final Set<Class<? extends RealmObject>> schema;
 
     private RealmConfiguration(Builder builder) {
         this.realmDir = builder.folder;
         this.realmName = builder.fileName;
+        this.canonicalPath = Realm.getCanonicalPath(new File(realmDir, realmName));
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
-        this.deleteRealmBeforeOpening = builder.deleteRealmBeforeOpening;
         this.migration = (builder.migration != null) ? builder.migration : new SetVersionNumberMigration(schemaVersion);
         this.schema = builder.schema;
     }
 
-    public File getFileDir() {
+    public File getRealmDir() {
         return realmDir;
     }
 
-    public String getFileName() {
+    public String getRealmFileName() {
         return realmName;
     }
 
-    public byte[] getKey() {
+    public byte[] getEncryptionKey() {
         return key;
     }
 
@@ -89,16 +89,12 @@ public class RealmConfiguration {
         return deleteRealmIfMigrationNeeded;
     }
 
-    public boolean shouldDeleteRealmBeforeOpening() {
-        return deleteRealmBeforeOpening;
-    }
-
     public Set<Class<? extends RealmObject>> getSchema() {
         return schema;
     }
 
-    public String getAbsolutePathToRealm() {
-        return new File(realmDir, realmName).getAbsolutePath();
+    public String getPath() {
+        return canonicalPath;
     }
 
     /**
@@ -111,7 +107,6 @@ public class RealmConfiguration {
         private int schemaVersion = 0;
         private RealmMigration migration = null;
         private boolean deleteRealmIfMigrationNeeded = false;
-        private boolean deleteRealmBeforeOpening = false;
         private Set<Class<? extends RealmObject>> schema = new HashSet<Class<? extends RealmObject>>();
 
         /**
@@ -211,21 +206,6 @@ public class RealmConfiguration {
         }
 
         /**
-         * Setting this will cause any previous existing Realm file on the disc to be deleted before a new instance is
-         * opened. As Realm instances are reference counted, the Realm file will only be deleted if the reference count
-         * is zero, ie. the first time {@link io.realm.Realm#getInstance(RealmConfiguration)} is called when starting
-         * the app or after all instances has been closed using {@link Realm#close()} and then reopening the Realm.
-         *
-         * <bold>WARNING!</bold> This will result in loss of data.
-         *
-         * @see {@link io.realm.Realm}
-         */
-        public Builder deleteRealmBeforeOpening() {
-            this.deleteRealmBeforeOpening = true;
-            return this;
-        }
-
-        /**
          * Package private method. Only available for testing until Migrations introduces RealmModules. This restricts
          * the Realm schema to only consist of the provided classes.
          */
@@ -239,9 +219,10 @@ public class RealmConfiguration {
 
         /**
          * Creates the RealmConfiguration based on the builder parameters.
+         *
          * @return The created RealmConfiguration.
          */
-        public RealmConfiguration create() {
+        public RealmConfiguration build() {
             return new RealmConfiguration(this);
         }
     }

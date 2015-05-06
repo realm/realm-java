@@ -118,7 +118,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testGetInstanceNullFolderThrows() {
         try {
-            Realm.getInstance(new RealmConfiguration.Builder((File) null).create());
+            Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
             fail("Parsing null as folder should throw an error");
         } catch (IllegalArgumentException expected) {
         }
@@ -144,7 +144,7 @@ public class RealmTest extends AndroidTestCase {
     public void testGetInstanceFolderNoWritePermissionThrows() {
         File folder = new File("/");
         try {
-            Realm realm = Realm.getInstance(new RealmConfiguration.Builder(folder).create());
+            Realm realm = Realm.getInstance(new RealmConfiguration.Builder(folder).build());
             fail("Pointing to a folder with no write permission should throw an IllegalArgumentException");
         } catch (IllegalArgumentException expected) {
         }
@@ -162,7 +162,7 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).create());
+            Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
             fail("Trying to open a read-only file should fail");
         } catch (RealmIOException expected) {
         }
@@ -1444,13 +1444,13 @@ public class RealmTest extends AndroidTestCase {
             realm1 = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                     .name(ENCRYPTED_REALM)
                     .encryptionKey(key1)
-                    .create()
+                    .build()
             );
             try {
                 realm2 = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                         .name(ENCRYPTED_REALM)
                         .encryptionKey(key2)
-                        .create()
+                        .build()
                 );
             } catch (Exception e) {
                 fail();
@@ -1499,7 +1499,7 @@ public class RealmTest extends AndroidTestCase {
             encryptedRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                     .name(ENCRYPTED_REALM_FILE_NAME)
                     .encryptionKey(key)
-                    .create()
+                    .build()
             );
             assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
 
@@ -1517,7 +1517,7 @@ public class RealmTest extends AndroidTestCase {
                 reEncryptedRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
                                 .name(RE_ENCRYPTED_REALM_FILE_NAME)
                                 .encryptionKey(key)
-                                .create()
+                                .build()
                 );
                 assertEquals(TEST_DATA_SIZE, reEncryptedRealm.where(AllTypes.class).count());
             } finally {
@@ -1599,7 +1599,7 @@ public class RealmTest extends AndroidTestCase {
             Realm.getInstance(new RealmConfiguration.Builder(getContext())
                     .name(WRONG_KEY_REALM)
                     .encryptionKey(new byte[63])
-                    .create()
+                    .build()
             );
             fail();
         } catch (IllegalArgumentException ignored) {
@@ -1611,7 +1611,7 @@ public class RealmTest extends AndroidTestCase {
             Realm.getInstance(new RealmConfiguration.Builder(getContext())
                     .name(WRONG_KEY_REALM)
                     .encryptionKey(new byte[64])
-                    .create()
+                    .build()
             );
             fail();
         } catch (IllegalStateException ignored) {

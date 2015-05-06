@@ -26,7 +26,7 @@ public class IOSRealmTests extends AndroidTestCase {
         defaultConfiguration = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .schema(IOSAllTypes.class, IOSChild.class)
-                .create();
+                .build();
     }
 
     @Override
@@ -107,7 +107,7 @@ public class IOSRealmTests extends AndroidTestCase {
                         .name(REALM_NAME)
                         .encryptionKey(getIOSKey())
                         .schema(IOSAllTypes.class, IOSChild.class)
-                        .create()
+                        .build()
         );
 
         IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();

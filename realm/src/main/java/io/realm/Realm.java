@@ -354,7 +354,6 @@ public final class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     @Deprecated
-    @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, String fileName) {
         return Realm.getInstance(context, fileName, null);
     }
@@ -374,7 +373,6 @@ public final class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     @Deprecated
-    @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, byte[] key) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
     }
@@ -394,13 +392,12 @@ public final class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     @Deprecated
-    @SuppressWarnings("UnusedDeclaration")
     public static Realm getInstance(Context context, String fileName, byte[] key) {
         RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context).name(fileName);
         if (key != null) {
             builder.encryptionKey(key);
         }
-        return create(builder.create());
+        return create(builder.build());
     }
 
     /**
@@ -421,7 +418,7 @@ public final class Realm implements Closeable {
     public static Realm getInstance(File writeableFolder) {
         return create(new RealmConfiguration.Builder(writeableFolder)
                         .name(DEFAULT_REALM_NAME)
-                        .create()
+                        .build()
         );
     }
 
@@ -443,7 +440,7 @@ public final class Realm implements Closeable {
     public static Realm getInstance(File writeableFolder, String fileName) {
         return create(new RealmConfiguration.Builder(writeableFolder)
                         .name(fileName)
-                        .create()
+                        .build()
         );
     }
 
@@ -467,7 +464,7 @@ public final class Realm implements Closeable {
         return create(new RealmConfiguration.Builder(writeableFolder)
                         .name(DEFAULT_REALM_NAME)
                         .encryptionKey(key)
-                        .create()
+                        .build()
         );
     }
 
@@ -492,7 +489,7 @@ public final class Realm implements Closeable {
         return create(new RealmConfiguration.Builder(writeableFolder)
                         .name(fileName)
                         .encryptionKey(key)
-                        .create()
+                        .build()
         );
     }
 
@@ -548,7 +545,7 @@ public final class Realm implements Closeable {
             return createAndValidate(config, true, autoRefresh);
         } catch (RealmMigrationNeededException e) {
             if (config.shouldDeleteRealmIfMigrationNeeded()) {
-                deleteRealmFile(config);
+                deleteRealm(config);
             } else {
                 migrateRealm(config);
             }
@@ -557,8 +554,8 @@ public final class Realm implements Closeable {
     }
 
     private static synchronized Realm createAndValidate(RealmConfiguration config, boolean validateSchema, boolean autoRefresh) {
-        byte[] key = config.getKey();
-        String canonicalPath = config.getAbsolutePathToRealm();
+        byte[] key = config.getEncryptionKey();
+        String canonicalPath = config.getPath();
         Map<String, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(canonicalPath);
         if (references == null) {
@@ -568,7 +565,7 @@ public final class Realm implements Closeable {
             AtomicInteger counter = openRealms.get(canonicalPath);
             if (counter == null) {
                 if (config.shouldDeleteRealmBeforeOpening()) {
-                    deleteRealmFile(config);
+                    deleteRealm(config);
                 }
 			}
 		}
@@ -1694,7 +1691,6 @@ public final class Realm implements Closeable {
         }
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     @Deprecated
     public static void migrateRealmAtPath(String realmPath, RealmMigration migration) {
         migrateRealmAtPath(realmPath, null, migration, true);
@@ -1714,11 +1710,13 @@ public final class Realm implements Closeable {
     public static synchronized void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration,
                                                        boolean autoUpdate) {
         File file = new File(realmPath);
-        migrateRealm(new RealmConfiguration.Builder(file.getParentFile())
+        RealmConfiguration.Builder configuration = new RealmConfiguration.Builder(file.getParentFile())
                 .name(file.getName())
-                .encryptionKey(key)
-                .migration(migration)
-                .create());
+                .migration(migration);
+        if (key != null) {
+            configuration.encryptionKey(key);
+        }
+        migrateRealm(configuration.build());
     }
 
     /**
@@ -1737,6 +1735,8 @@ public final class Realm implements Closeable {
     }
 
     /**
+     * Deprecated: Use {@link #deleteRealm(RealmConfiguration)} instead.
+     *
      * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
      * The Realm must be unused and closed before calling this method.
      * WARNING: Your Realm must not be open (typically when your app launch).
@@ -1751,6 +1751,8 @@ public final class Realm implements Closeable {
     }
 
     /**
+     * Deprecated: Use {@link #deleteRealm(RealmConfiguration)} instead.
+     *
      * Delete the Realm file from the filesystem for a custom named Realm.
      * The Realm must be unused and closed before calling this method.
      *
@@ -1760,9 +1762,9 @@ public final class Realm implements Closeable {
      */
     @Deprecated
     public static boolean deleteRealmFile(Context context, String fileName) {
-        return deleteRealmFile(new RealmConfiguration.Builder(context)
-                .name(fileName)
-                .create()
+        return deleteRealm(new RealmConfiguration.Builder(context)
+                        .name(fileName)
+                        .build()
         );
     }
 
@@ -1773,21 +1775,21 @@ public final class Realm implements Closeable {
      * @param configuration A {@link RealmConfiguration}
      * @return false if a file could not be deleted. The failing file will be logged.
      */
-    public static synchronized boolean deleteRealmFile(RealmConfiguration configuration) {
+    public static synchronized boolean deleteRealm(RealmConfiguration configuration) {
         boolean result = true;
 
-        String id = configuration.getAbsolutePathToRealm();
+        String id = configuration.getPath();
         AtomicInteger counter = openRealms.get(id);
         if (counter != null && counter.get() > 0) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
         }
 
-        List<File> filesToDelete = Arrays.asList(new File(configuration.getAbsolutePathToRealm()),
-                new File(configuration.getFileDir(), configuration.getFileName() + ".lock"),
-                new File(configuration.getFileDir(), configuration.getFileName() + ".lock_a"),
-                new File(configuration.getFileDir(), configuration.getFileName() + ".lock_b"),
-                new File(configuration.getFileDir(), configuration.getFileName() + ".log"));
+        List<File> filesToDelete = Arrays.asList(new File(configuration.getPath()),
+                new File(configuration.getRealmDir(), configuration.getRealmFileName() + ".lock"),
+                new File(configuration.getRealmDir(), configuration.getRealmFileName() + ".lock_a"),
+                new File(configuration.getRealmDir(), configuration.getRealmFileName() + ".lock_b"),
+                new File(configuration.getRealmDir(), configuration.getRealmFileName() + ".log"));
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
@@ -1802,6 +1804,8 @@ public final class Realm implements Closeable {
 
 
     /**
+     * Deprecated: Use {@link #compactRealm(RealmConfiguration)} instead.
+      *
      * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
      * Objects within the Realm files are untouched.
@@ -1819,10 +1823,12 @@ public final class Realm implements Closeable {
      */
     @Deprecated
     public static synchronized boolean compactRealmFile(Context context, String fileName) {
-        return compactRealmFile(new RealmConfiguration.Builder(context).name(fileName).create());
+        return compactRealm(new RealmConfiguration.Builder(context).name(fileName).build());
     }
 
     /**
+     * Deprecated: Use {@link #compactRealm(RealmConfiguration)} instead.
+     *
      * Compact a realm file. A realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
      * Objects within the realm files are untouched.
@@ -1836,7 +1842,7 @@ public final class Realm implements Closeable {
      */
     @Deprecated
     public static boolean compactRealmFile(Context context) {
-        return compactRealmFile(new RealmConfiguration.Builder(context).create());
+        return compactRealm(new RealmConfiguration.Builder(context).build());
     }
 
     /**
@@ -1851,12 +1857,12 @@ public final class Realm implements Closeable {
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return true if successful, false if any file operation failed
      */
-    public static boolean compactRealmFile(RealmConfiguration configuration) {
-        if (configuration.getKey() != null) {
+    public static boolean compactRealm(RealmConfiguration configuration) {
+        if (configuration.getEncryptionKey() != null) {
             throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
         }
 
-        File realmFile = new File(configuration.getFileDir(), configuration.getFileName());
+        File realmFile = new File(configuration.getRealmDir(), configuration.getRealmFileName());
         String canonicalPath = getCanonicalPath(realmFile);
         if (openRealms.get(canonicalPath).get() > 0) {
             throw new IllegalStateException("Cannot compact an open Realm");
@@ -1864,7 +1870,7 @@ public final class Realm implements Closeable {
         SharedGroup sharedGroup = null;
         boolean result = false;
         try {
-            sharedGroup = new SharedGroup(canonicalPath, false, configuration.getKey());
+            sharedGroup = new SharedGroup(canonicalPath, false, configuration.getEncryptionKey());
             result = sharedGroup.compact();
         } finally {
             if (sharedGroup != null) {

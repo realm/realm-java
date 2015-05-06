@@ -34,8 +34,8 @@ public class RealmConfigurationTest extends AndroidTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        defaultConfig = new RealmConfiguration.Builder(getContext()).create();
-        Realm.deleteRealmFile(defaultConfig);
+        defaultConfig = new RealmConfiguration.Builder(getContext()).build();
+        Realm.deleteRealm(defaultConfig);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testNullDirThrows() {
         try {
-            new RealmConfiguration.Builder((File) null).create();
+            new RealmConfiguration.Builder((File) null).build();
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -84,7 +84,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testNullNameThrows() {
         try {
-            new RealmConfiguration.Builder(getContext()).name(null).create();
+            new RealmConfiguration.Builder(getContext()).name(null).build();
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -93,7 +93,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testEmptyNameThrows() {
         try {
-            new RealmConfiguration.Builder(getContext()).name("").create();
+            new RealmConfiguration.Builder(getContext()).name("").build();
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -102,7 +102,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testNullKeyThrows() {
         try {
-            new RealmConfiguration.Builder(getContext()).encryptionKey(null).create();
+            new RealmConfiguration.Builder(getContext()).encryptionKey(null).build();
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -111,7 +111,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testWrongKeyLengthThrows() {
         try {
-            new RealmConfiguration.Builder(getContext()).encryptionKey(new byte[63]).create();
+            new RealmConfiguration.Builder(getContext()).encryptionKey(new byte[63]).build();
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -120,7 +120,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testNegativeVersionThrows() {
         try {
-            new RealmConfiguration.Builder(getContext()).schemaVersion(-1).create();
+            new RealmConfiguration.Builder(getContext()).schemaVersion(-1).build();
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -128,11 +128,11 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testVersionLessThanDiscVersionThrows() {
-        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).create());
+        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
         realm.close();
 
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(1).create());
+            Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(1).build());
         } catch (IllegalArgumentException expected) {
             return;
         }
@@ -152,7 +152,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
             Realm.getInstance(new RealmConfiguration.Builder(getContext())
                     .schemaVersion(42)
                     .schema(AllTypesPrimaryKey.class)
-                    .create());
+                    .build());
             fail("A migration should be required");
         } catch (RealmMigrationNeededException expected) {
         }
@@ -169,7 +169,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testNullMigrationThrows() {
         try {
-            new RealmConfiguration.Builder(getContext()).migration(null).create();
+            new RealmConfiguration.Builder(getContext()).migration(null).build();
             fail();
         } catch (IllegalArgumentException expected) {
         }
@@ -178,12 +178,12 @@ public class RealmConfigurationTest extends AndroidTestCase {
     public void testSetDefaultConfiguration() {
         Realm.setDefaultConfiguration(defaultConfig);
         realm = Realm.getDefaultInstance();
-        assertEquals(realm.getPath(), defaultConfig.getAbsolutePathToRealm());
+        assertEquals(realm.getPath(), defaultConfig.getPath());
     }
 
     public void testGetInstance() {
         realm = Realm.getInstance(defaultConfig);
-        assertEquals(realm.getPath(), defaultConfig.getAbsolutePathToRealm());
+        assertEquals(realm.getPath(), defaultConfig.getPath());
     }
 
     public void testStandardSetup() {
@@ -225,7 +225,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .schema(Owner.class, Dog.class)
                 .schemaVersion(1)
                 .deleteRealmIfMigrationNeeded()
-                .create());
+                .build());
         assertEquals(0, realm.where(Dog.class).count());
     }
 
@@ -247,7 +247,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         assertEquals(0, realm.getVersion());
         realm.close();
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).create());
+            Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
             fail("Upgrading to new version without a migration block should fail");
         } catch (RealmMigrationNeededException expected) {
         }
