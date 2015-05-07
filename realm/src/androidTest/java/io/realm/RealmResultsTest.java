@@ -48,13 +48,6 @@ public class RealmResultsTest extends AndroidTestCase {
     private final static String FIELD_KOREAN_CHAR = "델타";
     private final static String FIELD_GREEK_CHAR = "Δέλτα";
 
-    @Override
-    protected void setUp() throws InterruptedException {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
-        populateTestRealm();
-    }
-
     private void populateTestRealm(int objects) {
         testRealm.beginTransaction();
         testRealm.allObjects(AllTypes.class).clear();
@@ -69,22 +62,26 @@ public class RealmResultsTest extends AndroidTestCase {
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
-            NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
-            nonLatinFieldNames.set델타(i);
-            nonLatinFieldNames.setΔέλτα(i);
         }
         testRealm.commitTransaction();
     }
 
+    @Override
+    protected void setUp() throws InterruptedException {
+        Realm.deleteRealmFile(getContext());
+        testRealm = Realm.getInstance(getContext());
+        populateTestRealm();
+    }
+
     private void populateTestRealm() {
         populateTestRealm(TEST_DATA_SIZE);
+//        TestHelper.populateTestRealm(testRealm, TEST_DATA_SIZE);
     }
 
     @Override
     protected void tearDown() throws Exception {
         testRealm.close();
     }
-
 
     public void testMethodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
         for (Method method : Method.values()) {
@@ -207,6 +204,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSumGivesCorrectValueWithNonLatinColumnNames() {
+        TestHelper.populateTestRealmWithNonLatinData(testRealm, TEST_DATA_SIZE);
         RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).findAll();
 
         Number sum = resultList.sum(FIELD_KOREAN_CHAR);

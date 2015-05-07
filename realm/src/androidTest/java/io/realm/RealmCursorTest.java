@@ -51,26 +51,8 @@ public class RealmCursorTest extends AndroidTestCase {
         super.setUp();
         Realm.deleteRealmFile(getContext());
         realm = Realm.getInstance(getContext());
-        populateTestRealm(realm, SIZE);
+        TestHelper.populateTestRealm(realm, SIZE);
         cursor = realm.allObjects(AllTypes.class).getCursor();
-    }
-
-    private void populateTestRealm(Realm realm, int objects) {
-        realm.beginTransaction();
-        for (int i = 0; i < objects; i++) {
-            AllTypes allTypes = realm.createObject(AllTypes.class);
-            allTypes.setColumnBoolean((i % 3) == 0);
-            allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
-            allTypes.setColumnFloat(1.234567f + i);
-            allTypes.setColumnString("test data " + i);
-            allTypes.setColumnLong(i);
-            Dog dog = realm.createObject(Dog.class);
-            dog.setName("Foo " + i);
-            allTypes.setColumnRealmObject(dog);
-        }
-        realm.commitTransaction();
     }
 
     @Override

@@ -36,35 +36,9 @@ public class RealmQueryTest extends AndroidTestCase{
             testRealm.close();
     }
 
-    private void populateTestRealm(int objects) {
-        testRealm.beginTransaction();
-        testRealm.allObjects(AllTypes.class).clear();
-        testRealm.allObjects(NonLatinFieldNames.class).clear();
-        for (int i = 0; i < objects; ++i) {
-            AllTypes allTypes = testRealm.createObject(AllTypes.class);
-            allTypes.setColumnBoolean((i % 3) == 0);
-            allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
-            allTypes.setColumnFloat(1.234567f + i);
-            allTypes.setColumnString("test data " + i);
-            allTypes.setColumnLong(i);
-            NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
-            nonLatinFieldNames.set델타(i);
-            nonLatinFieldNames.setΔέλτα(i);
-            nonLatinFieldNames.set베타(1.234567f + i);
-            nonLatinFieldNames.setΒήτα(1.234567f + i);
-        }
-        testRealm.commitTransaction();
-    }
-
-    private void populateTestRealm() {
-        populateTestRealm(TEST_DATA_SIZE);
-    }
-
     public void testRealmQueryBetween() {
         final int TEST_OBJECTS_COUNT = 200;
-        populateTestRealm(TEST_OBJECTS_COUNT);
+        TestHelper.populateTestRealm(testRealm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .between(FIELD_LONG, 0, 9).findAll();
@@ -84,7 +58,7 @@ public class RealmQueryTest extends AndroidTestCase{
 
     public void testRealmQueryGreaterThan() {
         final int TEST_OBJECTS_COUNT = 200;
-        populateTestRealm(TEST_OBJECTS_COUNT);
+        TestHelper.populateTestRealm(testRealm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .greaterThan(FIELD_FLOAT, 10.234567f).findAll();
@@ -102,7 +76,7 @@ public class RealmQueryTest extends AndroidTestCase{
 
     public void testRealmQueryGreaterThanOrEqualTo() {
         final int TEST_OBJECTS_COUNT = 200;
-        populateTestRealm(TEST_OBJECTS_COUNT);
+        TestHelper.populateTestRealm(testRealm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .greaterThanOrEqualTo(FIELD_FLOAT, 10.234567f).findAll();
@@ -121,7 +95,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryOr() {
-        populateTestRealm(200);
+        TestHelper.populateTestRealm(testRealm, 200);
 
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f);
         RealmResults<AllTypes> resultList = query.or().between(FIELD_LONG, 1, 20).findAll();
@@ -135,7 +109,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryNot() {
-        populateTestRealm(); // create TEST_DATA_SIZE objects
+        TestHelper.populateTestRealm(testRealm, TEST_DATA_SIZE);
 
         // only one object with value 5 -> TEST_DATA_SIZE-1 object with value "not 5"
         RealmResults<AllTypes> list1 = testRealm.where(AllTypes.class).not().equalTo(FIELD_LONG, 5).findAll();
@@ -174,7 +148,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryImplicitAnd() {
-        populateTestRealm(200);
+        TestHelper.populateTestRealm(testRealm, 200);
 
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f);
         RealmResults<AllTypes> resultList = query.between(FIELD_LONG, 1, 10).findAll();
@@ -186,7 +160,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryLessThan() {
-        populateTestRealm(200);
+        TestHelper.populateTestRealm(testRealm, 200);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).
                 lessThan(FIELD_FLOAT, 31.234567f).findAll();
@@ -197,7 +171,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryLessThanOrEqual() {
-        populateTestRealm(200);
+        TestHelper.populateTestRealm(testRealm, 200);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .lessThanOrEqualTo(FIELD_FLOAT, 31.234567f).findAll();
@@ -208,7 +182,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryEqualTo() {
-        populateTestRealm(200);
+        TestHelper.populateTestRealm(testRealm, 200);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .equalTo(FIELD_FLOAT, 31.234567f).findAll();
@@ -222,7 +196,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryEqualToNonLatinCharacters() {
-        populateTestRealm(200);
+        TestHelper.populateTestRealmWithNonLatinData(testRealm, 200);
 
         RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class)
                 .equalTo(FIELD_LONG_KOREAN_CHAR, 13).findAll();
@@ -251,7 +225,7 @@ public class RealmQueryTest extends AndroidTestCase{
 
     public void testRealmQueryNotEqualTo() {
         final int TEST_OBJECTS_COUNT = 200;
-        populateTestRealm(TEST_OBJECTS_COUNT);
+        TestHelper.populateTestRealm(testRealm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .notEqualTo(FIELD_LONG, 31).findAll();
@@ -268,7 +242,7 @@ public class RealmQueryTest extends AndroidTestCase{
 
     public void testRealmQueryContainsAndCaseSensitive() {
         final int TEST_OBJECTS_COUNT = 200;
-        populateTestRealm(TEST_OBJECTS_COUNT);
+        TestHelper.populateTestRealm(testRealm, TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .contains("columnString", "DaTa 0", RealmQuery.CASE_INSENSITIVE)
@@ -285,7 +259,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryContainsAndCaseSensitiveWithNonLatinCharacters() {
-        populateTestRealm();
+        TestHelper.populateTestRealm(testRealm, TEST_DATA_SIZE);
 
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
@@ -400,7 +374,7 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testSubqueryScope() {
-        populateTestRealm();
+        TestHelper.populateTestRealm(testRealm, TEST_DATA_SIZE);
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).lessThan("columnLong", 5).findAll();
         RealmResults<AllTypes> subQueryResult = result.where().greaterThan("columnLong", 3).findAll();
         assertEquals(1, subQueryResult.size());

@@ -39,7 +39,6 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
-import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
@@ -89,32 +88,9 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    private void populateTestRealm(Realm realm, int objects) {
-        realm.beginTransaction();
-        realm.allObjects(AllTypes.class).clear();
-        realm.allObjects(NonLatinFieldNames.class).clear();
-        for (int i = 0; i < objects; ++i) {
-            AllTypes allTypes = realm.createObject(AllTypes.class);
-            allTypes.setColumnBoolean((i % 3) == 0);
-            allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
-            allTypes.setColumnFloat(1.234567f + i);
-            allTypes.setColumnString("test data " + i);
-            allTypes.setColumnLong(i);
-            NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
-            nonLatinFieldNames.set델타(i);
-            nonLatinFieldNames.setΔέλτα(i);
-            nonLatinFieldNames.set베타(1.234567f + i);
-            nonLatinFieldNames.setΒήτα(1.234567f + i);
-        }
-        realm.commitTransaction();
-    }
-
     private void populateTestRealm() {
-        populateTestRealm(testRealm, TEST_DATA_SIZE);
+        TestHelper.populateTestRealm(testRealm, TEST_DATA_SIZE);
     }
-
 
     public void testGetInstanceNullFolderThrows() {
         try {
@@ -292,7 +268,7 @@ public class RealmTest extends AndroidTestCase {
 
     // Note that this test is relying on the values set while initializing the test dataset
     public void testQueriesResults() throws IOException {
-        populateTestRealm(testRealm, 159);
+        TestHelper.populateTestRealm(testRealm, 159);
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_LONG, 33).findAll();
         assertEquals(1, resultList.size());
 
@@ -972,7 +948,7 @@ public class RealmTest extends AndroidTestCase {
         byte[] key = new byte[64];
         new Random(42).nextBytes(key);
         Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
-        populateTestRealm(realm, 100);
+        TestHelper.populateTestRealm(realm, 100);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
@@ -997,7 +973,7 @@ public class RealmTest extends AndroidTestCase {
         final String REALM_NAME = "test.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
         Realm realm = Realm.getInstance(getContext(), REALM_NAME);
-        populateTestRealm(realm, 100);
+        TestHelper.populateTestRealm(realm, 100);
         realm.close();
         long before = new File(getContext().getFilesDir(), REALM_NAME).length();
         assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME));

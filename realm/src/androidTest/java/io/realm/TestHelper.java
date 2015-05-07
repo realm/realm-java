@@ -26,8 +26,44 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.io.InputStreamReader;
+import java.util.Date;
+
+import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
+import io.realm.entities.NonLatinFieldNames;
 
 public class TestHelper {
+
+    public static void populateTestRealm(Realm realm, int numberOfObjects) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfObjects; i++) {
+            AllTypes allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnBoolean((i % 3) == 0);
+            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnDate(new Date());
+            allTypes.setColumnDouble(3.1415);
+            allTypes.setColumnFloat(1.234567f + i);
+            allTypes.setColumnString("test data " + i);
+            allTypes.setColumnLong(i);
+            Dog dog = realm.createObject(Dog.class);
+            dog.setName("Foo " + i);
+            allTypes.setColumnRealmObject(dog);
+        }
+        realm.commitTransaction();
+    }
+
+    public static void populateTestRealmWithNonLatinData(Realm realm, int objects) {
+        realm.beginTransaction();
+        realm.allObjects(NonLatinFieldNames.class).clear();
+        for (int i = 0; i < objects; ++i) {
+            NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
+            nonLatinFieldNames.set델타(i);
+            nonLatinFieldNames.setΔέλτα(i);
+            nonLatinFieldNames.set베타(1.234567f + i);
+            nonLatinFieldNames.setΒήτα(1.234567f + i);
+        }
+        realm.commitTransaction();
+    }
 
     public static String streamToString(InputStream in) throws IOException {
         BufferedReader br = null;
