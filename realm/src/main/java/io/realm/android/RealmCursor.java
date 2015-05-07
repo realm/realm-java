@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,11 @@ import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
 
 /**
- * This classes exposes {@link io.realm.RealmResults} as a cursor.
+ * This class exposes {@link io.realm.RealmResults} as a cursor.
  * <p>
- * It is possible to traverse links using dot notation to access data in referenced objects, ie.
- * {@code cursor.getInt("foo.bar"} will return the integer from the {@code bar} field in the {@code foo} object
- * referenced the class represented by the RealmResult.
+ * It is possible to traverse links using dot notation to access data in linked objects, ie.
+ * {@code cursor.getInt("foo.bar"} will return the integer from the {@code bar} field in the {@code foo} object.
+ *
  * <p>
  * Many Android framework classes require the presences of an "_id" field. Instead of adding such a field to your
  * model class it is instead possible to use {@link #setIdColumn(String)}.
@@ -467,7 +467,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public void setNotificationUri(ContentResolver cr, Uri uri) {
-        throw new UnsupportedOperationException("Notification URI's are not supported by RealmCursor");
+        throw new UnsupportedOperationException("Notification URIs are not supported by RealmCursor");
     }
 
     /**
@@ -477,7 +477,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public Uri getNotificationUri() {
-        throw new UnsupportedOperationException("Notification URI's are not supported by RealmCursor");
+        throw new UnsupportedOperationException("Notification URIs are not supported by RealmCursor");
     }
 
     /**
@@ -488,7 +488,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean getWantsAllOnMoveCalls() {
-        return false; // Realm TableViews doesn't support access from multiple processes.
+        return false; // Realm TableViews don't support access from multiple processes.
     }
 
     /**

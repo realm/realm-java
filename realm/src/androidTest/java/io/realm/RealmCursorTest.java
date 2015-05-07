@@ -72,7 +72,7 @@ public class RealmCursorTest extends AndroidTestCase {
         cursor.moveToFirst();
         assertEquals(0, cursor.getPosition());
         cursor.moveToLast();
-        assertEquals(9, cursor.getPosition());
+        assertEquals(SIZE - 1, cursor.getPosition());
     }
 
     public void testMoveOffsetValid() {
@@ -80,12 +80,15 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testMoveOffsetInvalid() {
+        cursor.moveToFirst();
         assertFalse(cursor.move(SIZE * 2));
         assertFalse(cursor.move(SIZE * -2));
+        assertFalse(cursor.move(-1));
+        assertFalse(cursor.move(SIZE + 1));
     }
 
     public void testMoveToPositionCapAtStart() {
-        cursor.move(SIZE/2);
+        cursor.move(SIZE / 2);
         assertFalse(cursor.move(-SIZE));
         assertTrue(cursor.isBeforeFirst());
     }
@@ -108,7 +111,7 @@ public class RealmCursorTest extends AndroidTestCase {
 
     public void testMoveToLast() {
         assertTrue(cursor.moveToLast());
-        assertEquals(9, cursor.getPosition());
+        assertEquals(SIZE - 1, cursor.getPosition());
     }
 
     public void testMoveToNext() {
@@ -224,11 +227,8 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testGetColumnNameInvalidIndexThrows() {
-        try {
-            cursor.getColumnName(-1);
-            fail();
-        } catch (IndexOutOfBoundsException expected) {
-        }
+        try { cursor.getColumnName(-1);                 fail(); } catch (IndexOutOfBoundsException expected) {}
+        try { cursor.getColumnName(AllTypes.COL_COUNT); fail(); } catch (IndexOutOfBoundsException expected) {}
     }
 
     public void testGetColumnName() {
@@ -243,27 +243,29 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testGetColumnCount() {
-        assertEquals(9, cursor.getColumnCount());
+        assertEquals(AllTypes.COL_COUNT, cursor.getColumnCount());
     }
 
     // Test that all get<type> method throw IndexOutOfBounds properly
     public void testGetXXXInvalidIndexThrows() {
         cursor.moveToFirst();
+        int[] indexes = new int[] {-1, AllTypes.COL_COUNT};
         for (CursorGetter cursorGetter : CursorGetter.values()) {
-            try {
-                switch (cursorGetter) {
-                    case STRING: cursor.getString(-1); break;
-                    case SHORT: cursor.getShort(-1); break;
-                    case INT: cursor.getInt(-1); break;
-                    case LONG: cursor.getLong(-1); break;
-                    case FLOAT: cursor.getFloat(-1); break;
-                    case DOUBLE: cursor.getDouble(-1); break;
-                    case BLOB: cursor.getBlob(-1); break;
+            for (int i = 0; i < indexes.length; i++) {
+                int index = indexes[i];
+                try {
+                    switch (cursorGetter) {
+                        case STRING: cursor.getString(index); break;
+                        case SHORT: cursor.getShort(index); break;
+                        case INT: cursor.getInt(index); break;
+                        case LONG: cursor.getLong(index); break;
+                        case FLOAT: cursor.getFloat(index); break;
+                        case DOUBLE: cursor.getDouble(index); break;
+                        case BLOB: cursor.getBlob(index); break;
+                    }
+                    fail(String.format("%s (%s) should throw an exception", cursorGetter, i));
+                } catch (IndexOutOfBoundsException expected) {
                 }
-                fail(cursorGetter + " should throw an exception");
-            } catch (IndexOutOfBoundsException expected) {
-            } catch (Exception wrongException) {
-                throw new RuntimeException(cursorGetter + " threw the wrong exception: ", wrongException);
             }
         }
     }
@@ -273,19 +275,9 @@ public class RealmCursorTest extends AndroidTestCase {
         cursor.moveToFirst();
         for (CursorGetter cursorGetter : CursorGetter.values()) {
             try {
-                switch (cursorGetter) {
-                    case STRING: cursor.getString(AllTypes.COL_INDEX_LONG); break;
-                    case SHORT: cursor.getShort(AllTypes.COL_INDEX_STRING); break;
-                    case INT: cursor.getInt(AllTypes.COL_INDEX_STRING); break;
-                    case LONG: cursor.getLong(AllTypes.COL_INDEX_STRING); break;
-                    case FLOAT: cursor.getFloat(AllTypes.COL_INDEX_STRING); break;
-                    case DOUBLE: cursor.getDouble(AllTypes.COL_INDEX_STRING); break;
-                    case BLOB: cursor.getBlob(AllTypes.COL_INDEX_STRING); break;
-                }
+                callGetter(cursorGetter);
                 fail(cursorGetter + " should throw an exception");
             } catch (IllegalArgumentException expected) {
-            } catch (Exception wrongException) {
-                throw new RuntimeException(cursorGetter + " threw the wrong exception: ", wrongException);
             }
         }
     }
@@ -295,20 +287,22 @@ public class RealmCursorTest extends AndroidTestCase {
         cursor.close();
         for (CursorGetter cursorGetter : CursorGetter.values()) {
             try {
-                switch (cursorGetter) {
-                    case STRING: cursor.getString(AllTypes.COL_INDEX_LONG); break;
-                    case SHORT: cursor.getShort(AllTypes.COL_INDEX_STRING); break;
-                    case INT: cursor.getInt(AllTypes.COL_INDEX_STRING); break;
-                    case LONG: cursor.getLong(AllTypes.COL_INDEX_STRING); break;
-                    case FLOAT: cursor.getFloat(AllTypes.COL_INDEX_STRING); break;
-                    case DOUBLE: cursor.getDouble(AllTypes.COL_INDEX_STRING); break;
-                    case BLOB: cursor.getBlob(AllTypes.COL_INDEX_STRING); break;
-                }
+                callGetter(cursorGetter);
                 fail(cursorGetter + " should throw an exception");
             } catch (NullPointerException expected) {
-            } catch (Exception wrongException) {
-                throw new RuntimeException(cursorGetter + " threw the wrong exception: ", wrongException);
             }
+        }
+    }
+
+    private void callGetter(CursorGetter cursorGetter) {
+        switch (cursorGetter) {
+            case STRING: cursor.getString(AllTypes.COL_INDEX_LONG); break;
+            case SHORT: cursor.getShort(AllTypes.COL_INDEX_STRING); break;
+            case INT: cursor.getInt(AllTypes.COL_INDEX_STRING); break;
+            case LONG: cursor.getLong(AllTypes.COL_INDEX_STRING); break;
+            case FLOAT: cursor.getFloat(AllTypes.COL_INDEX_STRING); break;
+            case DOUBLE: cursor.getDouble(AllTypes.COL_INDEX_STRING); break;
+            case BLOB: cursor.getBlob(AllTypes.COL_INDEX_STRING); break;
         }
     }
 
@@ -411,50 +405,21 @@ public class RealmCursorTest extends AndroidTestCase {
         assertEquals(-1, cursor.getType(AllTypes.COL_INDEX_LIST));
     }
 
-    public void testIsNullThrows() {
+    public void testUnsupportedMethods() {
         cursor.moveToFirst();
-        try {
-            cursor.isNull(AllTypes.COL_INDEX_STRING);
-            fail();
-        } catch (UnsupportedOperationException expected) {
-        }
-    }
-
-    public void testDeactivateThrows() {
-        try {
-            cursor.deactivate();
-            fail();
-        } catch (UnsupportedOperationException expected) {
-        }
-    }
-
-    public void testRequeryThrows() {
-        try {
-            cursor.requery();
-            fail();
-        } catch (UnsupportedOperationException expected) {
-        }
+        // TODO We do support isNull for Objects.
+        try { cursor.isNull(AllTypes.COL_INDEX_STRING); fail(); } catch (UnsupportedOperationException expected) {}
+        try { cursor.deactivate();                      fail(); } catch (UnsupportedOperationException expected) {}
+        try { cursor.requery();                         fail(); } catch (UnsupportedOperationException expected) {}
+        try { cursor.registerContentObserver(null);     fail(); } catch (UnsupportedOperationException expected) {}
+        try { cursor.unregisterContentObserver(null);   fail(); } catch (UnsupportedOperationException expected) {}
+        try { cursor.setNotificationUri(null, null);    fail(); } catch (UnsupportedOperationException expected) {}
+        try { cursor.getNotificationUri();              fail(); } catch (UnsupportedOperationException expected) {}
     }
 
     public void testClose() {
         cursor.close();
         assertTrue(cursor.isClosed());
-    }
-
-    public void testRegisterContentObserverThrows() {
-        try {
-            cursor.registerContentObserver(new CustomContentObserver(new Handler()));
-            fail();
-        } catch (UnsupportedOperationException expected) {
-        }
-    }
-
-    public void testUnregisterContentObserverThrows() {
-        try {
-            cursor.unregisterContentObserver(new CustomContentObserver(new Handler()));
-            fail();
-        } catch (UnsupportedOperationException expected) {
-        }
     }
 
     public void testRegisterDataSetObserverNullThrows() {
@@ -506,22 +471,6 @@ public class RealmCursorTest extends AndroidTestCase {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
-    }
-
-    public void testSetNofiticationUriThrows() {
-        try {
-            cursor.setNotificationUri(null, null);
-            fail();
-        } catch (UnsupportedOperationException expected) {
-        }
-    }
-
-    public void testGetNotificationUriThrows() {
-        try {
-            cursor.getNotificationUri();
-            fail();
-        } catch (UnsupportedOperationException expected) {
-        }
     }
 
     public void testGetWantsAllOnMoveCalls() {

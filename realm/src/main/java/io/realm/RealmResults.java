@@ -493,7 +493,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns this result set as a {@link RealmCursor}. All changes done to to this RealmResults afterwards will
+     * Returns this result set as a {@link RealmCursor}. All changes done to this RealmResults afterwards will
      * also be automatically reflected in the Cursor without having to fetch it again.
      *
      * @return A cursor representing the query results.
