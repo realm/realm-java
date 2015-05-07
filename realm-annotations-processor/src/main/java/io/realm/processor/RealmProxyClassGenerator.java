@@ -609,7 +609,7 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine();
 
             } else {
-                if (NULLABLE_JAVA_TYPES.containsKey(fieldType)) {
+                if (NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(fieldName)) {
                     writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
                             metadata.getSetter(fieldName),
                             metadata.getGetter(fieldName),
@@ -677,7 +677,7 @@ public class RealmProxyClassGenerator {
                 }
 
                 String fieldType = field.asType().toString();
-                if (NULLABLE_JAVA_TYPES.containsKey(fieldType)) {
+                if (NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(fieldName)) {
                     writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
                             metadata.getSetter(fieldName),
                             metadata.getGetter(fieldName),

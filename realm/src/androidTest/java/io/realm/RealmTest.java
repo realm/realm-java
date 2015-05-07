@@ -1122,7 +1122,7 @@ public class RealmTest extends AndroidTestCase {
         AllTypes realmTypes = testRealm.copyToRealm(new AllTypes());
         testRealm.commitTransaction();
 
-        assertEquals("", realmTypes.getColumnString());
+        assertNull(realmTypes.getColumnString());
         assertEquals(new Date(0), realmTypes.getColumnDate());
         assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
     }
@@ -1320,7 +1320,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(1, testRealm.allObjects(AllTypesPrimaryKey.class).size());
 
         AllTypesPrimaryKey obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
-        assertEquals("", obj.getColumnString());
+        assertNull(obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
         assertEquals(0.0F, obj.getColumnFloat());
         assertEquals(0.0D, obj.getColumnDouble());

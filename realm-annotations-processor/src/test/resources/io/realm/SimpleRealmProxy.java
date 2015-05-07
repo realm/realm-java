@@ -159,13 +159,13 @@ public class SimpleRealmProxy extends Simple {
     public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObject> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, realmObject);
-        realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
+        realmObject.setName(newObject.getName());
         realmObject.setAge(newObject.getAge());
         return realmObject;
     }
 
     static Simple update(Realm realm, Simple realmObject, Simple newObject, Map<RealmObject, RealmObject> cache) {
-        realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
+        realmObject.setName(newObject.getName());
         realmObject.setAge(newObject.getAge());
         return realmObject;
     }

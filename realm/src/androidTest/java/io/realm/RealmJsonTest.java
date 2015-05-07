@@ -631,4 +631,5 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(2, obj.getColumnRealmList().size());
         assertEquals("Dog5", obj.getColumnRealmList().get(0).getName());
     }
+
 }

@@ -197,11 +197,11 @@ public class AllTypesRealmProxy extends AllTypes {
     public static void validateTable(ImplicitTransaction transaction) {
         if(transaction.hasTable("class_AllTypes")) {
             Table table = transaction.getTable("class_AllTypes");
-            if(table.getColumnCount() != 9) {
+            if (table.getColumnCount() != 9) {
                 throw new IllegalStateException("Column count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for(long i = 0; i < 9; i++) {
+            for (long i = 0; i < 9; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("columnString")) {
@@ -261,10 +261,10 @@ public class AllTypesRealmProxy extends AllTypes {
             if (!transaction.hasTable("class_AllTypes")) {
                 throw new IllegalStateException("Missing table 'class_AllTypes' for column 'columnObject'");
             }
-            if(!columnTypes.containsKey("columnRealmList")) {
+            if (!columnTypes.containsKey("columnRealmList")) {
                 throw new IllegalStateException("Missing column 'columnRealmList'");
             }
-            if(columnTypes.get("columnRealmList") != ColumnType.LINK_LIST) {
+            if (columnTypes.get("columnRealmList") != ColumnType.LINK_LIST) {
                 throw new IllegalStateException("Invalid type 'AllTypes' for column 'columnRealmList'");
             }
             if (!transaction.hasTable("class_AllTypes")) {

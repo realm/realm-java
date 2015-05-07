@@ -99,14 +99,14 @@ public class NullTypesRealmProxy extends NullTypes {
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type NullTypes");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type NullTypes");
                 }
                 columnIndices.put(fieldName, index);
             }
             INDEX_FIELDSTRINGNOTNULL = table.getColumnIndex("fieldStringNotNull");
             INDEX_FIELDSTRINGNULL = table.getColumnIndex("fieldStringNull");
         } else {
-            throw new RealmMigrationNeededException("The NullTypes class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The NullTypes class is missing from the schema for this Realm.");
         }
     }
 
@@ -159,13 +159,13 @@ public class NullTypesRealmProxy extends NullTypes {
         NullTypes realmObject = realm.createObject(NullTypes.class);
         cache.put(newObject, realmObject);
         realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
-        realmObject.setFieldStringNull(newObject.getFieldStringNull() != null ? newObject.getFieldStringNull() : "");
+        realmObject.setFieldStringNull(newObject.getFieldStringNull());
         return realmObject;
     }
 
     static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObject> cache) {
         realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
-        realmObject.setFieldStringNull(newObject.getFieldStringNull() != null ? newObject.getFieldStringNull() : "");
+        realmObject.setFieldStringNull(newObject.getFieldStringNull());
         return realmObject;
     }
 
