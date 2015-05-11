@@ -56,8 +56,6 @@ public class RealmJsonTypeHelper {
                         .nextControlFlow("else")
                             .emitStatement("obj.%s(new Date(json.getLong(\"%s\")))", setter, fieldName)
                         .endControlFlow()
-                    .nextControlFlow("else")
-                        .emitStatement("obj.%s(new Date(0))", setter)
                     .endControlFlow();
             }
 
@@ -77,7 +75,10 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmTypeConverter() {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
-                writer.emitStatement("obj.%s(JsonUtils.stringToBytes(json.isNull(\"%s\") ? null : json.getString(\"%s\")))", setter, fieldName, fieldName);
+                writer
+                    .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
+                        .emitStatement("obj.%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", setter, fieldName)
+                    .endControlFlow();
             }
 
             @Override
