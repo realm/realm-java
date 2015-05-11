@@ -1,5 +1,6 @@
 0.81
  * BREAKING: io.realm.RealmBaseAdapter moved to io.realm.android.RealmBaseAdapter
+ * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
 
 0.80.2
  * Trying to use Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
