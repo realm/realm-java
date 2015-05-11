@@ -1,5 +1,6 @@
 0.81
  * BREAKING: io.realm.RealmBaseAdapter moved to io.realm.android.RealmBaseAdapter
+ * RealmResults.getRealm() has been made public so it is possible to check which Realm file data are from.
  * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
 
 0.80.2

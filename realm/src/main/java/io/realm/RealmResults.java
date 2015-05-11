@@ -77,7 +77,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Return the Realm instance these query results come from.
      *
-     * @return {@link Realm} containing the data shown.
+     * @return {@link Realm} instance that was queried.
      */
     public Realm getRealm() {
         return realm;
