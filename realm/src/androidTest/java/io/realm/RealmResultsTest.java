@@ -21,19 +21,16 @@ import android.test.AndroidTestCase;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
-import trifork.com.gotoguide.model.Event;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
@@ -708,34 +705,21 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
     }
 
+    public void testUnsupportedMethods() {
+        RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
-    public void testClearRealmList() {
+        try { result.add(null);     fail("add() did not throw"); } catch (UnsupportedOperationException expected) {}
+        try { result.set(0, null);  fail("set() did not throw"); } catch (UnsupportedOperationException expected) {}
+    }
 
-        // Clearing the RealmList outside a transaction? Should not be possible?
-        testRealm.where(AllTypes.class).findFirst().getColumnRealmList().clear();
 
-        // Without the background commit, no crash is occurring
-        final CountDownLatch bgDone = new CountDownLatch(1);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(getContext());
-                realm.beginTransaction();
-                realm.commitTransaction();
-                realm.close();
-                bgDone.countDown();
-            }
-        }).start();
+    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideWriteTransactions() {
+        RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
-        try {
-            bgDone.await(2, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        testRealm.beginTransaction();
-        testRealm.where(AllTypes.class).findAll().clear();
-        testRealm.commitTransaction();
+        try { result.clear();       fail("clear() did not throw"); }        catch (IllegalStateException expected) {}
+        try { result.remove(0);     fail("remove(index) did not throw"); }  catch (IllegalStateException expected) {}
+        try { result.removeLast();  fail("removeLast() did not throw"); }   catch (IllegalStateException expected) {}
     }
 
     // TODO: More extended tests of querying all types must be done.
