@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.processor;
+package io.realm.internal;
 
-public class Constants {
-    public static final String REALM_PACKAGE_NAME = "io.realm";
-    public static final String PROXY_SUFFIX = "RealmProxy";
-    public static final String TABLE_PREFIX = "class_";
-    public static final String DEFAULT_MODULE_CLASS_NAME = "DefaultRealmModule";
+/**
+ * Empty interface making it easy to determine if an object is the generated RealmProxy class or the original
+ * class.
+ *
+ * Ideally all the static methods was also present here, but that is not supported before Java 8.
+ */
+public interface RealmObjectProxy {
 }

@@ -280,7 +280,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         assertTrue("contains returns false for newly created table", testRealm.contains(Dog.class));
-        assertFalse("contains returns true for non-existing table", testRealm.contains(RealmTest.class));
+        assertFalse("contains returns true for non-existing table", testRealm.contains(null));
     }
 
     // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
@@ -1141,7 +1141,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealm(new PrimaryKeyAsString());
             fail();
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -1192,7 +1192,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealmOrUpdate(new PrimaryKeyAsString());
             fail();
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 
