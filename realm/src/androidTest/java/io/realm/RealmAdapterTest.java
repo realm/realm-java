@@ -58,12 +58,6 @@ public class RealmAdapterTest extends AndroidTestCase {
             fail("Should throw exception if context is null");
         } catch (IllegalArgumentException ignore) {
         }
-
-        try {
-            RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
-            fail("Should throw exception if RealmResult is null");
-        } catch (IllegalArgumentException ignore) {
-        }
     }
 
     public void testUpdateRealmResultInAdapter() {
@@ -164,5 +158,27 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertNotNull(view);
         assertNotNull(name);
         assertEquals(resultList.get(0).getColumnString(), name.getText());
+    }
+
+    public void testNullResults() {
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
+
+        assertEquals(0, realmAdapter.getCount());
+    }
+
+    public void testNonNullToNullResults() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
+        realmAdapter.updateRealmResults(null);
+
+        assertEquals(0, realmAdapter.getCount());
+    }
+
+    public void testNullToNonNullResults() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
+        realmAdapter.updateRealmResults(resultList);
+
+        assertEquals(TEST_DATA_SIZE, realmAdapter.getCount());
     }
 }
