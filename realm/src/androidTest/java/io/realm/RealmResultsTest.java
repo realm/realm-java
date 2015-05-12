@@ -21,15 +21,19 @@ import android.test.AndroidTestCase;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
+import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import trifork.com.gotoguide.model.Event;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;
@@ -64,11 +68,15 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long) 1000*i));
+            allTypes.setColumnDate(new Date((long) 1000 * i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
+            Dog d = testRealm.createObject(Dog.class);
+            d.setName("Foo " + i);
+            allTypes.setColumnRealmObject(d);
+            allTypes.getColumnRealmList().add(d);
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
@@ -700,6 +708,35 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
     }
 
+
+    public void testClearRealmList() {
+
+        // Clearing the RealmList outside a transaction? Should not be possible?
+        testRealm.where(AllTypes.class).findFirst().getColumnRealmList().clear();
+
+        // Without the background commit, no crash is occurring
+        final CountDownLatch bgDone = new CountDownLatch(1);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(getContext());
+                realm.beginTransaction();
+                realm.commitTransaction();
+                realm.close();
+                bgDone.countDown();
+            }
+        }).start();
+
+        try {
+            bgDone.await(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        testRealm.beginTransaction();
+        testRealm.where(AllTypes.class).findAll().clear();
+        testRealm.commitTransaction();
+    }
 
     // TODO: More extended tests of querying all types must be done.
 }
