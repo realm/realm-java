@@ -1711,7 +1711,7 @@ public final class Realm implements Closeable {
      * @param key Key for opening an encrypted Realm.
      * @return true if successful, false if any file operation failed
      *
-     * @throws IllegalStateException if trying to compact a Realm that is already open.
+     * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName, byte[] key) {
         if (key != null) {
@@ -1748,7 +1748,7 @@ public final class Realm implements Closeable {
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
      *
-     * @throws IllegalStateException if trying to compact a Realm that is already open.
+     * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static boolean compactRealmFile(Context context) {
         return compactRealmFile(context, DEFAULT_REALM_NAME, null);
@@ -1767,7 +1767,7 @@ public final class Realm implements Closeable {
      * @param fileName the name of the file to compact
      * @return true if successful, false if any file operation failed
      *
-     * @throws IllegalStateException if trying to compact a Realm that is already open.
+     * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName) {
         return compactRealmFile(context, fileName, null);
