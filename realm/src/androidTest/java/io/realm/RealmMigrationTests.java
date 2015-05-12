@@ -162,4 +162,15 @@ public class RealmMigrationTests extends AndroidTestCase {
             assertEquals(expected.getPath(), realm.getCanonicalPath());
         }
     }
+
+    // In default-before-migration.realm, CatOwner has a RealmList<Dog> field.
+    // This is changed to RealmList<Cat> and getInstance() must throw an exception.
+    public void testRealmListChanged() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        try {
+            realm = Realm.getInstance(getContext());
+            fail();
+        } catch (RealmMigrationNeededException expected) {
+        }
+    }
 }

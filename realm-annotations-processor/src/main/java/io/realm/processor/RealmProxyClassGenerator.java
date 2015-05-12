@@ -379,21 +379,38 @@ public class RealmProxyClassGenerator {
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
                 "ImplicitTransaction", "transaction"); // Argument type & argument name
 
-        writer.beginControlFlow("if(transaction.hasTable(\"" + Constants.TABLE_PREFIX + this.className + "\"))");
+        writer.beginControlFlow("if (transaction.hasTable(\"" + Constants.TABLE_PREFIX + this.className + "\"))");
         writer.emitStatement("Table table = transaction.getTable(\"%s%s\")", Constants.TABLE_PREFIX, this.className);
 
         // verify number of columns
-        writer.beginControlFlow("if(table.getColumnCount() != " + metadata.getFields().size() + ")");
+        writer.beginControlFlow("if (table.getColumnCount() != " + metadata.getFields().size() + ")");
         writer.emitStatement("throw new IllegalStateException(\"Column count does not match\")");
         writer.endControlFlow();
 
         // create type dictionary for lookup
         writer.emitStatement("Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>()");
-        writer.beginControlFlow("for(long i = 0; i < " + metadata.getFields().size() + "; i++)");
+        writer.beginControlFlow("for (long i = 0; i < " + metadata.getFields().size() + "; i++)");
         writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
         writer.endControlFlow();
 
-        // For each field verify there is a corresponding column
+        // Populate column indices
+        writer.emitEmptyLine();
+        writer.emitStatement("columnIndices = new HashMap<String, Long>()");
+        writer
+                .beginControlFlow("for (String fieldName : getFieldNames())")
+                .emitStatement("long index = table.getColumnIndex(fieldName)")
+                .beginControlFlow("if (index == -1)")
+                .emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
+                .endControlFlow()
+                .emitStatement("columnIndices.put(fieldName, index)")
+                .endControlFlow();
+        for (VariableElement field : metadata.getFields()) {
+            writer.emitStatement("%s = table.getColumnIndex(\"%s\")", staticFieldIndexVarName(field), field.getSimpleName().toString());
+        }
+        writer.emitEmptyLine();
+
+        // For each field verify there is a corresponding
+        long fieldIndex = 0;
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
@@ -435,18 +452,17 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("throw new IllegalStateException(\"Missing table '%s%s' for column '%s'\")",
                         Constants.TABLE_PREFIX, fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
-                // TODO: Replace with a proper comparison
-//                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, fieldTypeName);
-//                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
-//                writer.emitStatement("throw new IllegalStateException(\"Mismatching link tables for column '%s'\")",
-//                        fieldName);
-//                writer.endControlFlow();
+                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, fieldTypeSimpleName);
+                writer.beginControlFlow("if (!table.getLinkTarget(%s).equals(table_%d))", staticFieldIndexVarName(field), fieldIndex);
+                writer.emitStatement("throw new IllegalStateException(\"Mismatching link tables for column '%s'\")",
+                        fieldName);
+                writer.endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) { // Link Lists
                 String genericType = Utils.getGenericType(field);
-                writer.beginControlFlow("if(!columnTypes.containsKey(\"%s\"))", fieldName);
+                writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
                 writer.emitStatement("throw new IllegalStateException(\"Missing column '%s'\")", fieldName);
                 writer.endControlFlow();
-                writer.beginControlFlow("if(columnTypes.get(\"%s\") != ColumnType.LINK_LIST)", fieldName);
+                writer.beginControlFlow("if (columnTypes.get(\"%s\") != ColumnType.LINK_LIST)", fieldName);
                 writer.emitStatement("throw new IllegalStateException(\"Invalid type '%s' for column '%s'\")",
                         genericType, fieldName);
                 writer.endControlFlow();
@@ -454,29 +470,16 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("throw new IllegalStateException(\"Missing table '%s%s' for column '%s'\")",
                         Constants.TABLE_PREFIX, genericType, fieldName);
                 writer.endControlFlow();
-                // TODO: Replace with a proper comparison
-//                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", columnNumber, TABLE_PREFIX, genericType);
-//                writer.beginControlFlow("if (table.getLinkTarget(%d).equals(table_%d))", columnNumber, columnNumber);
-//                writer.emitStatement("throw new IllegalStateException(\"Mismatching link list tables for column '%s'\")",
-//                        fieldName);
-//                writer.endControlFlow();
+
+                writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, genericType);
+                writer.beginControlFlow("if (!table.getLinkTarget(%s).equals(table_%d))", staticFieldIndexVarName(field), fieldIndex);
+                writer.emitStatement("throw new IllegalStateException(\"Mismatching link list tables for column '%s'\")",
+                        fieldName);
+                writer.endControlFlow();
             }
+            fieldIndex++;
         }
 
-        // Populate column indices
-        writer.emitEmptyLine();
-        writer.emitStatement("columnIndices = new HashMap<String, Long>()");
-        writer
-            .beginControlFlow("for (String fieldName : getFieldNames())")
-                .emitStatement("long index = table.getColumnIndex(fieldName)")
-                .beginControlFlow("if (index == -1)")
-                    .emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field '\" + fieldName + \"' not found for type %s\")", metadata.getSimpleClassName())
-                .endControlFlow()
-                .emitStatement("columnIndices.put(fieldName, index)")
-            .endControlFlow();
-        for (VariableElement field : metadata.getFields()) {
-            writer.emitStatement("%s = table.getColumnIndex(\"%s\")", staticFieldIndexVarName(field), field.getSimpleName().toString());
-        }
         writer.nextControlFlow("else");
         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"The %s class is missing from the schema for this Realm.\")", metadata.getSimpleClassName());
         writer.endControlFlow();

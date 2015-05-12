@@ -74,26 +74,16 @@ public class SimpleRealmProxy extends Simple {
     }
 
     public static void validateTable(ImplicitTransaction transaction) {
-        if(transaction.hasTable("class_Simple")) {
+        if (transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            if(table.getColumnCount() != 2) {
+
+            if (table.getColumnCount() != 2) {
                 throw new IllegalStateException("Column count does not match");
             }
+
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for(long i = 0; i < 2; i++) {
+            for (long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
-            }
-            if (!columnTypes.containsKey("name")) {
-                throw new IllegalStateException("Missing column 'name'");
-            }
-            if (columnTypes.get("name") != ColumnType.STRING) {
-                throw new IllegalStateException("Invalid type 'String' for column 'name'");
-            }
-            if (!columnTypes.containsKey("age")) {
-                throw new IllegalStateException("Missing column 'age'");
-            }
-            if (columnTypes.get("age") != ColumnType.INTEGER) {
-                throw new IllegalStateException("Invalid type 'int' for column 'age'");
             }
 
             columnIndices = new HashMap<String, Long>();
@@ -106,6 +96,19 @@ public class SimpleRealmProxy extends Simple {
             }
             INDEX_NAME = table.getColumnIndex("name");
             INDEX_AGE = table.getColumnIndex("age");
+
+            if (!columnTypes.containsKey("name")) {
+                throw new IllegalStateException("Missing column 'name'");
+            }
+            if (columnTypes.get("name") != ColumnType.STRING) {
+                throw new IllegalStateException("Invalid type 'String' for column 'name'");
+            }
+            if (!columnTypes.containsKey("age")) {
+                throw new IllegalStateException("Missing column 'age'");
+            }
+            if (columnTypes.get("age") != ColumnType.INTEGER) {
+                throw new IllegalStateException("Invalid type 'int' for column 'age'");
+            }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the schema for this Realm.");
         }
