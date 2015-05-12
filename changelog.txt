@@ -1,7 +1,8 @@
 0.81.0
  * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
  * RealmBaseAdapter now allow RealmResults to be null (thanks @zaki50).
-
+ * Fixing bug where a change to a model class (RealmList<A> to RealmList<B>) will throw an MigrationNeeded exception.
+ 
 0.80.2
  * Trying to use Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
  * RealmMigrationNeedException can now return the path to the Realm that needs to be migrated.
