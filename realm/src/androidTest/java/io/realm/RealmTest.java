@@ -1667,13 +1667,13 @@ public class RealmTest extends AndroidTestCase {
         try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream);          fail("createObjectFromJson(stream) did not throw"); }           catch (IllegalStateException expected) {}
         try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);        fail("createOrUpdateObjectFromJson(obj) did not throw"); }      catch (IllegalStateException expected) {}
         try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);     fail("createOrUpdateObjectFromJson(str) did not throw"); }      catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2);  fail("createOrUpdateObjectFromJson(stream) did not throw"); }   catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail("createOrUpdateObjectFromJson(stream) did not throw"); }   catch (IllegalStateException expected) {}
 
         try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);                   fail("createAllFromJson(arr) did not throw"); }                 catch (RealmException expected) {}
         try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);                fail("createAllFromJson(str) did not throw"); }                 catch (RealmException expected) {}
         try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStream);             fail("createAllFromJson(stream) did not throw"); }              catch (IllegalStateException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail("createOrUpdateAllFromJson(arr) did not throw"); }         catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail("createOrUpdateAllFromJson(str) did not throw"); }         catch (RealmException expected) {}
-        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);     fail("createOrUpdateAllFromJson(stream) did not throw"); }      catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail("createOrUpdateAllFromJson(stream) did not throw"); }      catch (IllegalStateException expected) {}
     }
 }

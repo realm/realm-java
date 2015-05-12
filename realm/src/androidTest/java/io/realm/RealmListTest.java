@@ -53,7 +53,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Check that all methods work correctly on a empty RealmList
-    private void testMethodsOnEmptyList(Realm realm, RealmList<Dog> list) {
+    private void checkMethodsOnEmptyList(Realm realm, RealmList<Dog> list) {
         realm.beginTransaction();
         for (int i = 0; i < 4; i++) {
             try {
@@ -251,7 +251,7 @@ public class RealmListTest extends AndroidTestCase {
 
     public void testEmptyList_nonManagedMode() {
         RealmList<Dog> list = new RealmList<Dog>();
-        testMethodsOnEmptyList(testRealm, list);
+        checkMethodsOnEmptyList(testRealm, list);
     }
 
     /*********************************************************
@@ -417,7 +417,7 @@ public class RealmListTest extends AndroidTestCase {
         owner.getDogs().clear();
         testRealm.commitTransaction();
 
-        testMethodsOnEmptyList(testRealm, owner.getDogs());
+        checkMethodsOnEmptyList(testRealm, owner.getDogs());
     }
 
     public void testClear() {
