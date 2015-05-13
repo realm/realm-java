@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ public class RealmConfiguration {
         return mediator;
     }
 
-    // Finds the module (if there is one
+    // Finds the default module (if there is one)
     private static Object getDefaultModule() {
         String moduleName = "io.realm.DefaultRealmModule";
         Class<?> clazz;
@@ -154,7 +154,7 @@ public class RealmConfiguration {
             constructor.setAccessible(true);
             return constructor.newInstance();
         } catch (ClassNotFoundException e) {
-            throw new RealmException("Could not find " + moduleName, e);
+            return null;
         } catch (InvocationTargetException e) {
             throw new RealmException("Could not create an instance of " + moduleName, e);
         } catch (InstantiationException e) {
