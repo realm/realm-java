@@ -201,7 +201,7 @@ public class AllTypesRealmProxy extends AllTypes
             Table table = transaction.getTable("class_AllTypes");
 
             if(table.getColumnCount() != 9) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 9",);
             }
 
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
@@ -293,11 +293,6 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnRealmList'");
             }
             if (columnTypes.get("columnRealmList") != ColumnType.LINK_LIST) {
-                throw new IllegalStateException("Invalid type 'AllTypes' for column 'columnRealmList'");
-            if(!columnTypes.containsKey("columnRealmList")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnRealmList'");
-            }
-            if(columnTypes.get("columnRealmList") != ColumnType.LINK_LIST) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'AllTypes' for field 'columnRealmList'");
             }
             if (!transaction.hasTable("class_AllTypes")) {
