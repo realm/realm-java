@@ -19,9 +19,17 @@ package io.realm;
 import android.content.Context;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import io.realm.annotations.RealmModule;
+import io.realm.exceptions.RealmException;
+import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.modules.CompositeMediator;
+import io.realm.internal.modules.FilterableMediator;
 
 /**
  * A RealmConfiguration is used to setup a specific Realm instance.
@@ -43,6 +51,17 @@ import java.util.Set;
  */
 public class RealmConfiguration {
 
+    private static final Object DEFAULT_MODULE;
+    private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+    static {
+        DEFAULT_MODULE = getDefaultModule();
+        if (DEFAULT_MODULE != null) {
+            DEFAULT_MODULE_MEDIATOR = getModuleMediator(DEFAULT_MODULE.getClass().getCanonicalName());
+        } else {
+            DEFAULT_MODULE_MEDIATOR = null;
+        }
+    }
+
     private final File realmFolder;
     private final String realmFileName;
     private final String canonicalPath;
@@ -51,7 +70,7 @@ public class RealmConfiguration {
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
     private final boolean deleteRealmBeforeOpening;
-    private final Set<Class<? extends RealmObject>> schema;
+    private final RealmProxyMediator schemaMediator;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
@@ -62,7 +81,7 @@ public class RealmConfiguration {
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
         this.deleteRealmBeforeOpening = builder.deleteRealmBeforeOpening;
         this.migration = builder.migration;
-        this.schema = builder.schema;
+        this.schemaMediator = createSchemaMediator(builder);
     }
 
     public File getRealmFolder() {
@@ -93,54 +112,138 @@ public class RealmConfiguration {
         return deleteRealmBeforeOpening;
     }
 
-    public Set<Class<? extends RealmObject>> getSchema() {
-        return schema;
+    public RealmProxyMediator getSchemaMediator() {
+        return schemaMediator;
     }
 
     public String getPath() {
         return canonicalPath;
     }
 
+    // Creates the mediator that defines the current schema
+    private RealmProxyMediator createSchemaMediator(Builder builder) {
+
+        Set<Object> modules = builder.modules;
+        Set<Class<? extends RealmObject>> debugSchema = builder.debugSchema;
+
+        // If using debug schema, use special mediator
+        if (debugSchema.size() > 0) {
+            return new FilterableMediator(DEFAULT_MODULE_MEDIATOR, debugSchema);
+        }
+
+        // If only one module, use that mediator directly
+        if (modules.size() == 1) {
+            return getModuleMediator(modules.iterator().next().getClass().getCanonicalName());
+        }
+
+        // Otherwise combine all mediators
+        CompositeMediator mediator = new CompositeMediator();
+        for (Object module : modules) {
+            mediator.addMediator(getModuleMediator(module.getClass().getCanonicalName()));
+        }
+        return mediator;
+    }
+
+    // Finds the module (if there is one
+    private static Object getDefaultModule() {
+        String moduleName = "io.realm.DefaultRealmModule";
+        Class<?> clazz;
+        try {
+            clazz = Class.forName(moduleName);
+            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new RealmException("Could not find " + moduleName, e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Could not create an instance of " + moduleName, e);
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not create an instance of " + moduleName, e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not create an instance of " + moduleName, e);
+        }
+    }
+
+    // Finds the mediator associated with a given module
+    private static RealmProxyMediator getModuleMediator(String canonicalModuleClassName) {
+        String mediatorName = canonicalModuleClassName + "Mediator";
+        Class<?> clazz;
+        try {
+            clazz = Class.forName(mediatorName);
+            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            return (RealmProxyMediator) constructor.newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new RealmException("Could not find " + mediatorName, e);
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Could not create an instance of " + mediatorName, e);
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not create an instance of " + mediatorName, e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not create an instance of " + mediatorName, e);
+        }
+    }
+
     /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
     public static class Builder {
-        private File folder = null;
-        private String fileName = "default.realm";
-        private byte[] key = null;
-        private int schemaVersion = 0;
-        private RealmMigration migration = null;
-        private boolean deleteRealmIfMigrationNeeded = false;
-        private boolean deleteRealmBeforeOpening = false;
-        private Set<Class<? extends RealmObject>> schema = new HashSet<Class<? extends RealmObject>>();
+        private File folder;
+        private String fileName;
+        private byte[] key;
+        private int schemaVersion;
+        private RealmMigration migration;
+        private boolean deleteRealmIfMigrationNeeded;
+        private boolean deleteRealmBeforeOpening;
+        private HashSet<Object> modules = new HashSet<Object>();
+        private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
 
         /**
          * Create an instance of the Builder for the RealmConfiguration.
-         * The Realm file in the provided folder.
+         * The Realm file will be saved in the provided folder.
+         *
+         * @param folder Folder to save Realm file in. Folder must be writable.
+         *
+         * @throws {@link IllegalArgumentException} if folder doesn't exists or isn't writable.
          */
-        public Builder(File writeableFolder) {
-            if (writeableFolder == null || !writeableFolder.isDirectory()) {
-                throw new IllegalArgumentException(("An existing folder must be provided. " +
-                        "Yours was " + (writeableFolder != null ? writeableFolder.getAbsolutePath() : "null")));
-            }
-            if (!writeableFolder.canWrite()) {
-                throw new IllegalArgumentException("Folder is not writeable: " + writeableFolder.getAbsolutePath());
-            }
-
-            this.folder = writeableFolder;
+        public Builder(File folder) {
+            initializeBuilder(folder);
         }
 
         /**
          * Create an instance of the Builder for the RealmConfiguration.
-         * This will use the Apps own internal directory for storing the Realm file. This does not require any
+         *
+         * This will use the apps own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
          * change depending on vendor implementations of Android.
+         *
+         * @param context Android context.
          */
         public Builder(Context context) {
             if (context == null) {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
-            this.folder = context.getFilesDir();
+            initializeBuilder(context.getFilesDir());
+        }
+
+        // Setup builder in its initial state
+        private void initializeBuilder(File folder) {
+            if (folder == null || !folder.isDirectory()) {
+                throw new IllegalArgumentException(("An existing folder must be provided. " +
+                        "Yours was " + (folder != null ? folder.getAbsolutePath() : "null")));
+            }
+            if (!folder.canWrite()) {
+                throw new IllegalArgumentException("Folder is not writable: " + folder.getAbsolutePath());
+            }
+
+            this.folder = folder;
+            this.fileName = Realm.DEFAULT_REALM_NAME;
+            this.key = null;
+            this.schemaVersion = 0;
+            this.migration = null;
+            this.deleteRealmIfMigrationNeeded = false;
+            this.deleteRealmBeforeOpening = false;
+            this.modules.add(DEFAULT_MODULE);
         }
 
         /**
@@ -227,13 +330,51 @@ public class RealmConfiguration {
         }
 
         /**
-         * Package private method. Only available for testing until Migrations introduces RealmModules. This restricts
-         * the Realm schema to only consist of the provided classes.
+         * Add a {@link RealmModule}s to the existing modules. RealmClasses in the new module is added to the schema
+         * for this Realm.
+         *
+         * @param module {@link RealmModule} to add to this Realms schema.
+         *
+         * @throws {@link IllegalArgumentException} if module is {@code null} or doesn't have the {@link RealmModule}
+         * annotation.
+         */
+        public void addModule(Object module) {
+            checkModule(module);
+            modules.add(module);
+        }
+
+        /**
+         * Replace the existing modules with one or more {@link RealmModule}s. Using this method will replace the
+         * current schema for this Realm with the schema defined by the provided modules.
+         *
+         * @param baseModule
+         * @param additionalModules
+         *
+         * @throws {@link IllegalArgumentException} if any of the modules are {@code null} or doesn't have the
+         * {@link RealmModule} annotation.
+         */
+        public void setModule(Object baseModule, Object... additionalModules) {
+            modules.clear();
+            addModule(baseModule);
+            if (additionalModules != null) {
+                for (int i = 0; i < additionalModules.length; i++) {
+                    Object module = additionalModules[i];
+                    checkModule(module);
+                    addModule(module);
+                }
+            }
+        }
+
+        /**
+         * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
+         * create a module. These classes must be available in the default module. Calling this will remove any
+         * previously configured modules.
          */
         Builder schema(Class<? extends RealmObject>... schemaClass) {
-            schema = new HashSet<Class<? extends RealmObject>>();
+            modules.clear();
+            modules.add(DEFAULT_MODULE_MEDIATOR);
             if (schemaClass != null) {
-                Collections.addAll(schema, schemaClass);
+                Collections.addAll(debugSchema, schemaClass);
             }
             return this;
         }
@@ -245,6 +386,13 @@ public class RealmConfiguration {
          */
         public RealmConfiguration build() {
             return new RealmConfiguration(this);
+        }
+
+        private void checkModule(Object module) {
+            if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
+                throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
+                        "Add @RealmModule to the class definition.");
+            }
         }
     }
 }

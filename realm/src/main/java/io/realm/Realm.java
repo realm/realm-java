@@ -145,7 +145,6 @@ public final class Realm implements Closeable {
 
     private static RealmConfiguration defaultConfiguration;
 
-    private static final String APT_NOT_EXECUTED_MESSAGE = "Annotation processor may not have been executed.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
@@ -161,7 +160,7 @@ public final class Realm implements Closeable {
     private final ImplicitTransaction transaction;
 
     private final List<WeakReference<RealmChangeListener>> changeListeners = new ArrayList<WeakReference<RealmChangeListener>>();
-    private static RealmProxyMediator proxyMediator = getDefaultMediator();
+    protected RealmProxyMediator proxyMediator;
 
     private static final long UNVERSIONED = -1;
 
@@ -241,24 +240,6 @@ public final class Realm implements Closeable {
     private void removeHandler(Handler handler) {
         handler.removeCallbacksAndMessages(null);
         handlers.remove(handler);
-    }
-
-    private static RealmProxyMediator getDefaultMediator() {
-        Class<?> clazz;
-        try {
-            clazz = Class.forName("io.realm.DefaultRealmModuleMediator");
-            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-            constructor.setAccessible(true);
-            return (RealmProxyMediator) constructor.newInstance();
-        } catch (ClassNotFoundException e) {
-            throw new RealmException("Could not find io.realm.DefaultRealmModuleMediator", e);
-        } catch (InvocationTargetException e) {
-            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleMediator", e);
-        } catch (InstantiationException e) {
-            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleMediator", e);
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not create an instance of io.realm.DefaultRealmModuleMediator", e);
-        }
     }
 
     private class RealmCallback implements Handler.Callback {
@@ -547,7 +528,6 @@ public final class Realm implements Closeable {
     }
 
     private static synchronized Realm createAndValidate(RealmConfiguration config, boolean validateSchema, boolean autoRefresh) {
-        setSchema(config.getSchema());
         byte[] key = config.getEncryptionKey();
         String canonicalPath = config.getPath();
         Map<String, Integer> localRefCount = referenceCount.get();
@@ -576,6 +556,7 @@ public final class Realm implements Closeable {
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
         // faulty cache data.
         realm = new Realm(canonicalPath, key, autoRefresh);
+        realm.proxyMediator = config.getSchemaMediator();
         realms.put(canonicalPath, realm);
         realmsCache.set(realms);
         localRefCount.put(canonicalPath, references + 1);
@@ -625,13 +606,13 @@ public final class Realm implements Closeable {
                 commitNeeded = true;
                 realm.setVersion(config.getSchemaVersion());
             }
-            for (Class<? extends RealmObject> modelClass : proxyMediator.getModelClasses()) {
+            for (Class<? extends RealmObject> modelClass : realm.proxyMediator.getModelClasses()) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
-                    proxyMediator.createTable(modelClass, realm.transaction);
+                    realm.proxyMediator.createTable(modelClass, realm.transaction);
                 }
-                proxyMediator.validateTable(modelClass, realm.transaction);
-                realm.columnIndices.addClass(modelClass, proxyMediator.getColumnIndices(modelClass));
+                realm.proxyMediator.validateTable(modelClass, realm.transaction);
+                realm.columnIndices.addClass(modelClass, realm.proxyMediator.getColumnIndices(modelClass));
             }
         } finally {
             if (commitNeeded) {
@@ -1717,25 +1698,7 @@ public final class Realm implements Closeable {
         return canonicalPath;
     }
 
-    /**
-     * Override the standard behavior of all classes extended RealmObject being part of the schema.
-     * Use this method to define the schema as only the classes given here.
-     *
-     * This class must be called before calling {@link #getInstance(android.content.Context)}
-     *ø
-     * If {@code null} is given as parameter, the Schema is reset to use all known classes.
-     *
-     */
-    private static void setSchema(Collection<Class<? extends RealmObject>> classes) {
-        if (classes != null && classes.size() > 0) {
-            // Filter default schema
-            proxyMediator = new FilterableMediator(getDefaultMediator(), classes);
-        } else if (proxyMediator instanceof FilterableMediator) {
-            // else reset filter if needed
-            proxyMediator = ((FilterableMediator) proxyMediator).getOriginalMediator();
-        }
-    }
-
+    // Get the canonical path for a given file
     static String getCanonicalPath(File realmFile) {
         try {
             return realmFile.getCanonicalPath();

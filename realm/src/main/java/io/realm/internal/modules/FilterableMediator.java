@@ -52,10 +52,12 @@ public class FilterableMediator extends RealmProxyMediator {
      */
     public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>> allowedClasses) {
         this.originalMediator = originalMediator;
-        List<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
-        for (Class<? extends RealmObject> clazz : allowedClasses) {
-            if (originalClasses.contains(clazz)) {
-                this.allowedClasses.add(clazz);
+        if (originalMediator != null) {
+            List<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
+            for (Class<? extends RealmObject> clazz : allowedClasses) {
+                if (originalClasses.contains(clazz)) {
+                    this.allowedClasses.add(clazz);
+                }
             }
         }
     }
