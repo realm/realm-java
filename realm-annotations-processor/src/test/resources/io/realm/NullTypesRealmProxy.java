@@ -9,6 +9,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -23,10 +24,10 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import some.test.NullTypes;
 
-public class NullTypesRealmProxy extends NullTypes {
+public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
+
     private static long INDEX_FIELDSTRINGNOTNULL;
     private static long INDEX_FIELDSTRINGNULL;
     private static Map<String, Long> columnIndices;
@@ -77,23 +78,23 @@ public class NullTypesRealmProxy extends NullTypes {
         if(transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
             if(table.getColumnCount() != 2) {
-                throw new IllegalStateException("Column count does not match");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match");
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for(long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
             if (!columnTypes.containsKey("fieldStringNotNull")) {
-                throw new IllegalStateException("Missing column 'fieldStringNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNotNull'");
             }
             if (columnTypes.get("fieldStringNotNull") != ColumnType.STRING) {
-                throw new IllegalStateException("Invalid type 'String' for column 'fieldStringNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNotNull'");
             }
             if (!columnTypes.containsKey("fieldStringNull")) {
-                throw new IllegalStateException("Missing column 'fieldStringNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNull'");
             }
             if (columnTypes.get("fieldStringNull") != ColumnType.STRING) {
-                throw new IllegalStateException("Invalid type 'String' for column 'fieldStringNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNull'");
             }
             columnIndices = new HashMap<String, Long>();
             for (String fieldName : getFieldNames()) {
@@ -109,6 +110,8 @@ public class NullTypesRealmProxy extends NullTypes {
             throw new RealmMigrationNeededException(transaction.getPath(), "The NullTypes class is missing from the schema for this Realm.");
         }
     }
+
+    public static String getTableName() { return "class_NullTypes"; }
 
     public static List<String> getFieldNames() {
         return FIELD_NAMES;
@@ -148,22 +151,22 @@ public class NullTypesRealmProxy extends NullTypes {
         return obj;
     }
 
-    public static NullTypes copyOrUpdate(Realm realm, NullTypes object, boolean update, Map<RealmObject,RealmObject> cache) {
+    public static NullTypes copyOrUpdate(Realm realm, NullTypes object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
     }
 
-    public static NullTypes copy(Realm realm, NullTypes newObject, boolean update, Map<RealmObject,RealmObject> cache) {
+    public static NullTypes copy(Realm realm, NullTypes newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         NullTypes realmObject = realm.createObject(NullTypes.class);
-        cache.put(newObject, realmObject);
+        cache.put(newObject, (RealmObjectProxy) realmObject);
         realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
         realmObject.setFieldStringNull(newObject.getFieldStringNull());
         return realmObject;
     }
 
-    static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObject> cache) {
+    static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObjectProxy> cache) {
         realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
         realmObject.setFieldStringNull(newObject.getFieldStringNull());
         return realmObject;

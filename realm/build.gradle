@@ -44,7 +44,7 @@ android.libraryVariants.all { variant ->
         group 'Docs'
         source = variant.javaCompile.source
         source "../realm-annotations/src/main/java"
-        ext.androidJar = files(plugins.findPlugin("com.android.library").getBootClasspath())
+        ext.androidJar = files(project.android.getBootClasspath())
         classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
         exclude '**/internal/**'
         exclude '**/BuildConfig.java'

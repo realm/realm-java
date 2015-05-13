@@ -85,7 +85,7 @@ public class ClassMetaData {
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
-    public boolean generateMetaData(Messager messager) {
+    public boolean generate() {
 
         // Get the package of the class
         Element enclosingElement = classType.getEnclosingElement();
