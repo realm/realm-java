@@ -243,7 +243,9 @@ public class RealmConfiguration {
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
             this.deleteRealmBeforeOpening = false;
-            this.modules.add(DEFAULT_MODULE);
+            if (DEFAULT_MODULE != null) {
+                this.modules.add(DEFAULT_MODULE);
+            }
         }
 
         /**
@@ -338,13 +340,14 @@ public class RealmConfiguration {
          * @throws {@link IllegalArgumentException} if module is {@code null} or doesn't have the {@link RealmModule}
          * annotation.
          */
-        public void addModule(Object module) {
+        public Builder addModule(Object module) {
             checkModule(module);
             modules.add(module);
+            return this;
         }
 
         /**
-         * Replace the existing modules with one or more {@link RealmModule}s. Using this method will replace the
+         * Replace the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
          *
          * @param baseModule
@@ -353,7 +356,7 @@ public class RealmConfiguration {
          * @throws {@link IllegalArgumentException} if any of the modules are {@code null} or doesn't have the
          * {@link RealmModule} annotation.
          */
-        public void setModule(Object baseModule, Object... additionalModules) {
+        public Builder setModules(Object baseModule, Object... additionalModules) {
             modules.clear();
             addModule(baseModule);
             if (additionalModules != null) {
@@ -363,6 +366,7 @@ public class RealmConfiguration {
                     addModule(module);
                 }
             }
+            return this;
         }
 
         /**
@@ -389,6 +393,9 @@ public class RealmConfiguration {
         }
 
         private void checkModule(Object module) {
+            if (module == null) {
+                throw new IllegalArgumentException("Provided RealmModule must not be null.");
+            }
             if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
                 throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
                         "Add @RealmModule to the class definition.");

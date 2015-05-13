@@ -21,6 +21,7 @@ import android.test.AndroidTestCase;
 import java.io.File;
 import java.util.Random;
 
+import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
@@ -164,6 +165,66 @@ public class RealmConfigurationTest extends AndroidTestCase {
             fail();
         } catch (IllegalArgumentException expected) {
         }
+    }
+
+    public void testAddModuleNullThrows() {
+        try {
+            new RealmConfiguration.Builder(getContext()).addModule(null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testAddModuleNonRealmModuleThrows() {
+        try {
+            new RealmConfiguration.Builder(getContext()).addModule(new Object());
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testAddModule() {
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).addModule(new DefaultRealmModule()).build();
+        realm = Realm.getInstance(realmConfig);
+        assertNotNull(realm.getTable(AllTypes.class));
+    }
+
+    public void testSetModulesNullThrows() {
+        // Test first argument
+        try {
+            new RealmConfiguration.Builder(getContext()).setModules(null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+
+        // Test second argument
+        try {
+            new RealmConfiguration.Builder(getContext()).setModules(new DefaultRealmModule(), null, null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testSetModulesNonRealmModulesThrows() {
+        // Test first argument
+        try {
+            new RealmConfiguration.Builder(getContext()).setModules(new Object());
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+
+        // Test second argument
+        try {
+            new RealmConfiguration.Builder(getContext()).setModules(new DefaultRealmModule(), new Object());
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testSetModules() {
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).addModule(new DefaultRealmModule()).build();
+        realm = Realm.getInstance(realmConfig);
+        assertNotNull(realm.getTable(AllTypes.class));
     }
 
     public void testSetDefaultConfiguration() {
