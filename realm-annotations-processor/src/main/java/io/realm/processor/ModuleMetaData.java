@@ -28,7 +28,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 
-import io.realm.annotations.internal.RealmModule;
+import io.realm.annotations.RealmModule;
 
 /**
  * Utility class for holding metadata for the Realm modules.
