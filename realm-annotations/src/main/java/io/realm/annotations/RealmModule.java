@@ -48,7 +48,7 @@ import java.lang.annotation.Target;
  *
  * TODO Reference the example project for library modules
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
 public @interface RealmModule {
