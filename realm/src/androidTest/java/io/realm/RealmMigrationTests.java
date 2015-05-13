@@ -59,6 +59,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         Realm.setSchema(AllTypes.class);
         Realm migratedRealm = Realm.getInstance(getContext(), MIGRATED_REALM);
         migratedRealm.close();
+        Realm.setSchema(AllTypes.class, FieldOrder.class);
         Realm.migrateRealmAtPath(new File(getContext().getFilesDir(), MIGRATED_REALM).getAbsolutePath(), new RealmMigration() {
             @Override
             public long execute(Realm realm, long version) {
