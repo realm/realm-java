@@ -172,11 +172,10 @@ public class RealmTest extends AndroidTestCase {
         String REALM_NAME = "invalid_cache.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
         Random random = new Random();
-        byte[] key = new byte[64];
-        random.nextBytes(key);
+        byte[] key = TestHelper.getRandomKey();
         Realm realm = Realm.getInstance(getContext(), REALM_NAME, key); // Create starting Realm with key1
         realm.close();
-        random.nextBytes(key);
+        key = TestHelper.getRandomKey();
         try {
             Realm.getInstance(getContext(), REALM_NAME, key); // Try to open with key 2
         } catch (IllegalArgumentException expected) {
@@ -952,14 +951,16 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testCompactEncryptedEmptyRealmFile() {
-        RealmConfiguration config = new RealmConfiguration.Builder(getContext())
-                .name("enc.realm").encryptionKey(getRandomKey()).resetRealmBeforeOpening()
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .name("enc.realm")
+                .encryptionKey(TestHelper.getRandomKey())
                 .build();
-        Realm realm = Realm.getInstance(config);
+        Realm.deleteRealm(realmConfig);
+        Realm realm = Realm.getInstance(realmConfig);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
-            assertTrue(Realm.compactRealm(config));
+            assertTrue(Realm.compactRealm(realmConfig));
             fail();
         } catch (IllegalArgumentException expected) {
         }
@@ -967,8 +968,10 @@ public class RealmTest extends AndroidTestCase {
 
     public void testCompactEncryptedPopulatedRealmFile() {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
-                .name("enc.realm").encryptionKey(getRandomKey()).resetRealmBeforeOpening()
+                .name("enc.realm")
+                .encryptionKey(TestHelper.getRandomKey())
                 .build();
+        Realm.deleteRealm(realmConfig);
         Realm realm = Realm.getInstance(realmConfig);
 
         populateTestRealm(realm, 100);
@@ -1245,7 +1248,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnFloat(2.23F);
                 obj2.setColumnDouble(2.234D);
                 obj2.setColumnBoolean(true);
-                obj2.setColumnBinary(new byte[] {2, 3, 4});
+                obj2.setColumnBinary(new byte[]{2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
@@ -1426,10 +1429,8 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testOpeningOfEncryptedRealmWithDifferentKeyInstances() {
-        byte[] key1 = new byte[64];
-        byte[] key2 = new byte[64];
-        new Random(42).nextBytes(key1);
-        new Random(42).nextBytes(key2);
+        byte[] key1 = TestHelper.getRandomKey();
+        byte[] key2 = TestHelper.getRandomKey();
 
         // Make sure the key is the same, but in two different instances
         assertArrayEquals(key1, key2);
@@ -1483,8 +1484,7 @@ public class RealmTest extends AndroidTestCase {
         }
 
         File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
+        byte[] key = TestHelper.getRandomKey();
         try {
             // Unencrypted to encrypted
             testRealm.writeEncryptedCopyTo(destination, key);
@@ -1648,11 +1648,5 @@ public class RealmTest extends AndroidTestCase {
         File tmpFile = new File(getContext().getFilesDir(), "tmp");
         tmpFile.delete();
         assertTrue(tmpFile.createNewFile());
-    }
-
-    private byte[] getRandomKey() {
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
-        return key;
     }
 }

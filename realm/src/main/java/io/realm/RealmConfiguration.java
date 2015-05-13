@@ -69,7 +69,6 @@ public class RealmConfiguration {
     private final int schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
-    private final boolean resetRealmBeforeOpening;
     private final RealmProxyMediator schemaMediator;
 
     private RealmConfiguration(Builder builder) {
@@ -79,7 +78,6 @@ public class RealmConfiguration {
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
-        this.resetRealmBeforeOpening = builder.resetRealmBeforeOpening;
         this.migration = builder.migration;
         this.schemaMediator = createSchemaMediator(builder);
     }
@@ -106,10 +104,6 @@ public class RealmConfiguration {
 
     public boolean shouldDeleteRealmIfMigrationNeeded() {
         return deleteRealmIfMigrationNeeded;
-    }
-
-    public boolean shouldResetRealmBeforeOpening() {
-        return resetRealmBeforeOpening;
     }
 
     public RealmProxyMediator getSchemaMediator() {
@@ -312,22 +306,6 @@ public class RealmConfiguration {
          */
         public Builder deleteRealmIfMigrationNeeded() {
             this.deleteRealmIfMigrationNeeded = true;
-            return this;
-        }
-
-        /**
-         * Setting this will cause any previous existing Realm file on the disc to be reset and all data deleted before
-         * a new instance is opened. As Realm instances are reference counted, the Realm file will only be reset if
-         * the reference count is zero, ie. the first time {@link io.realm.Realm#getInstance(RealmConfiguration)} is
-         * called when starting the app or after all instances has been closed using {@link Realm#close()} and then
-         * reopening the Realm.
-         *
-         * <bold>WARNING!</bold> This will result in loss of data.
-         *
-         * @see {@link io.realm.Realm}
-         */
-        public Builder resetRealmBeforeOpening() {
-            this.resetRealmBeforeOpening = true;
             return this;
         }
 

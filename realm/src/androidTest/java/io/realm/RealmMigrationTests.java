@@ -50,12 +50,13 @@ public class RealmMigrationTests extends AndroidTestCase {
         // Migrate old Realm to proper schema
 
         // V1 config
-        Realm oldRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+        RealmConfiguration v1Config = new RealmConfiguration.Builder(getContext())
                 .name(MIGRATED_REALM)
                 .schema(AllTypes.class)
                 .schemaVersion(1)
-                .resetRealmBeforeOpening()
-                .build());
+                .build();
+        Realm.deleteRealm(v1Config);
+        Realm oldRealm = Realm.getInstance(v1Config);
         oldRealm.close();
 
         // V2 config
@@ -72,16 +73,22 @@ public class RealmMigrationTests extends AndroidTestCase {
             }
         };
 
-        oldRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+        RealmConfiguration v2Config = new RealmConfiguration.Builder(getContext())
                 .name(MIGRATED_REALM)
                 .schema(AllTypes.class, FieldOrder.class)
                 .schemaVersion(2)
                 .migration(migration)
-                .build());
+                .build();
+        oldRealm = Realm.getInstance(v2Config);
 
         // Create new Realm which will cause column indices to be recalculated based on the order in the java file
         // instead of the migration
-        Realm newRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).name(NEW_REALM).schemaVersion(2).build());
+        RealmConfiguration newConfig = new RealmConfiguration.Builder(getContext())
+                .name(NEW_REALM)
+                .schemaVersion(2)
+                .schema(AllTypes.class, FieldOrder.class)
+                .build();
+        Realm newRealm = Realm.getInstance(newConfig);
         newRealm.close();
 
         // Try to query migrated realm. With local column indices this will work. With global it will fail.
@@ -103,7 +110,9 @@ public class RealmMigrationTests extends AndroidTestCase {
             }
         };
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
-                .schema(AnnotationTypes.class).migration(migration).schemaVersion(1)
+                .schemaVersion(1)
+                .schema(AnnotationTypes.class)
+                .migration(migration)
                 .build();
         Realm.deleteRealm(realmConfig);
         Realm.migrateRealm(realmConfig);
@@ -128,9 +137,10 @@ public class RealmMigrationTests extends AndroidTestCase {
                 return 1;
             }
         };
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).schema(AnnotationTypes.class)
-                .migration(migration)
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
+                .schema(AnnotationTypes.class)
+                .migration(migration)
                 .build();
         Realm.deleteRealm(realmConfig);
         Realm.migrateRealm(realmConfig);
@@ -156,13 +166,14 @@ public class RealmMigrationTests extends AndroidTestCase {
             }
         };
 
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).schema(AnnotationTypes.class)
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
+                .schema(AnnotationTypes.class)
                 .migration(migration)
                 .build();
-
         Realm.deleteRealm(realmConfig);
         Realm.migrateRealm(realmConfig);
+
         realm = Realm.getInstance(realmConfig);
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());

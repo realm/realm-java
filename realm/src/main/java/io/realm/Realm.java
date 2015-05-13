@@ -260,9 +260,9 @@ public final class Realm implements Closeable {
     /**
      * Set the auto-refresh status of the Realm instance.
      * <p>
-     * Auto-refresh is a feature that enables automatic update of the current realm instance and all its derived objects
+     * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
      * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
-     * This feature is only available if the realm instance lives is a {@link android.os.Looper} enabled thread.
+     * This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled thread.
      *
      * @param autoRefresh true will turn auto-refresh on, false will turn it off.
      * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
@@ -291,7 +291,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor for the default realm "default.realm".
+     * Realm static constructor for the default Realm "default.realm".
      * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
@@ -509,6 +509,14 @@ public final class Realm implements Closeable {
         defaultConfiguration = configuration;
     }
 
+    /**
+     * Removes the current default configuration (if any). Any futher calls to {@link #getDefaultInstance()} will
+     * fail until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
+     */
+    public static void removeDefaultConfiguration() {
+        defaultConfiguration = null;
+    }
+
     private static Realm create(RealmConfiguration config) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
@@ -531,14 +539,6 @@ public final class Realm implements Closeable {
         Integer references = localRefCount.get(canonicalPath);
         if (references == null) {
             references = 0;
-        }
-        if (references == 0) {
-            AtomicInteger counter = openRealms.get(canonicalPath);
-            if (counter == null) {
-                if (config.shouldResetRealmBeforeOpening()) {
-                    deleteRealm(config);
-                }
-            }
         }
         Map<String, Realm> realms = realmsCache.get();
         Realm realm = realms.get(canonicalPath);
@@ -988,7 +988,7 @@ public final class Realm implements Closeable {
 
 
     /**
-     * Instantiates and adds a new object to the realm
+     * Instantiates and adds a new object to the Realm.
      *
      * @param clazz The Class of the object to create
      * @return The new object
@@ -1103,10 +1103,6 @@ public final class Realm implements Closeable {
         }
 
         return realmObjects;
-    }
-
-    private static String getProxyClassName(String simpleClassName) {
-        return "io.realm." + simpleClassName + "RealmProxy";
     }
 
     boolean contains(Class<? extends RealmObject> clazz) {
@@ -1330,8 +1326,8 @@ public final class Realm implements Closeable {
 
     /**
      * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the
-     * realm reverts back to being read-only. An event is sent to notify all other realm instances
-     * that a change has occurred. When the event is received, the other realms will get their
+     * Realm reverts back to being read-only. An event is sent to notify all other realm instances
+     * that a change has occurred. When the event is received, the other Realms will get their
      * objects and {@link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
      *
@@ -1345,11 +1341,11 @@ public final class Realm implements Closeable {
             Handler handler = handlerIntegerEntry.getKey();
             String realmPath = handlerIntegerEntry.getValue();
             if (
-                    realmPath.equals(canonicalPath)                       // It's the right realm
-                            && !handler.hasMessages(REALM_CHANGED)       // The right message
-                            && handler.getLooper().getThread().isAlive() // The receiving thread is alive
-                            && !handler.equals(this.handler)             // Don't notify yourself
-                    ) {
+                realmPath.equals(canonicalPath)                       // It's the right realm
+                && !handler.hasMessages(REALM_CHANGED)       // The right message
+                && handler.getLooper().getThread().isAlive() // The receiving thread is alive
+                && !handler.equals(this.handler)             // Don't notify yourself
+            ) {
                 handler.sendEmptyMessage(REALM_CHANGED);
             }
         }
@@ -1360,7 +1356,7 @@ public final class Realm implements Closeable {
      * Revert all writes (created, updated, or deleted objects) made in the current write
      * transaction and end the transaction.
      * <br>
-     * The realm reverts back to read-only.
+     * The Realm reverts back to read-only.
      * <br>
      * Calling this when not in a write transaction will throw an exception.
      *
@@ -1531,10 +1527,6 @@ public final class Realm implements Closeable {
         realmsCache.remove();
     }
 
-
-
-
-
     /**
      * Deprecated: Use {@link #deleteRealm(RealmConfiguration)} instead.
      *
@@ -1571,7 +1563,7 @@ public final class Realm implements Closeable {
 
     /**
      * Delete the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
-     * The realm must be unused and closed before calling this method.
+     * The Realm must be unused and closed before calling this method.
      *
      * @param configuration A {@link RealmConfiguration}
      * @return false if a file could not be deleted. The failing file will be logged.
@@ -1586,11 +1578,13 @@ public final class Realm implements Closeable {
                     "Remember to close() all the instances of the Realm before deleting its file.");
         }
 
+        File realmFolder = configuration.getRealmFolder();
+        String realmFileName = configuration.getRealmFileName();
         List<File> filesToDelete = Arrays.asList(new File(configuration.getPath()),
-                new File(configuration.getRealmFolder(), configuration.getRealmFileName() + ".lock"),
-                new File(configuration.getRealmFolder(), configuration.getRealmFileName() + ".lock_a"),
-                new File(configuration.getRealmFolder(), configuration.getRealmFileName() + ".lock_b"),
-                new File(configuration.getRealmFolder(), configuration.getRealmFileName() + ".log"));
+                new File(realmFolder, realmFileName + ".lock"),
+                new File(realmFolder, realmFileName + ".lock_a"),
+                new File(realmFolder, realmFileName + ".lock_b"),
+                new File(realmFolder, realmFileName + ".log"));
         for (File fileToDelete : filesToDelete) {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
@@ -1613,7 +1607,7 @@ public final class Realm implements Closeable {
      * <p>
      * The file must be closed before this method is called.<br>
      * The file system should have free space for at least a copy of the Realm file.<br>
-     * The realm file is left untouched if any file operation fails.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
      * Currently it is not possible to compact an encrypted Realm.<br>
      *
      * @param context an Android {@link android.content.Context}
@@ -1630,13 +1624,13 @@ public final class Realm implements Closeable {
     /**
      * Deprecated: Use {@link #compactRealm(RealmConfiguration)} instead.
      *
-     * Compact a realm file. A realm file usually contain free/unused space.
+     * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
+     * Objects within the Realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
      * The file system should have free space for at least a copy of the realm file.<br>
-     * The realm file is left untouched if any file operation fails.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
@@ -1649,13 +1643,13 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Compact a realm file. A realm file usually contain free/unused space.
+     * Compact a Realm file. A Realm file usually contain free/unused space.
      * This method removes this free space and the file size is thereby reduced.
-     * Objects within the realm files are untouched.
+     * Objects within the Realm files are untouched.
      * <p>
      * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
-     * The realm file is left untouched if any file operation fails.<br>
+     * The file system should have free space for at least a copy of the Realm file.<br>
+     * The Realm file is left untouched if any file operation fails.<br>
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return true if successful, false if any file operation failed

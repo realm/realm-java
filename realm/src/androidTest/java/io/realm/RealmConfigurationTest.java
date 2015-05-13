@@ -130,28 +130,23 @@ public class RealmConfigurationTest extends AndroidTestCase {
         }
     }
 
-    // TODO Should throw IllegalState instead
     public void testVersionEqualWhenSchemaChangesThrows() {
-        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                .schemaVersion(42)
-                .schema(Dog.class)
-                .build());
-        realm.close();
+        // Create initial Realm
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).schemaVersion(42).schema(Dog.class).build();
+        Realm.getInstance(config).close();
 
+        // Create new instance with a configuration containing another schema
         try {
-            Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                    .schemaVersion(42)
-                    .schema(AllTypesPrimaryKey.class)
-                    .build());
+            config = new RealmConfiguration.Builder(getContext()).schemaVersion(42).schema(AllTypesPrimaryKey.class).build();
+            Realm.getInstance(config);
             fail("A migration should be required");
         } catch (RealmMigrationNeededException expected) {
         }
     }
 
     public void testCustomSchemaDontIncludeLinkedClasses() {
-        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                .schema(Dog.class)
-                .build());
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).schema(Dog.class).build();
+        realm = Realm.getInstance(config);
         try {
             assertEquals(3, realm.getTable(Owner.class).getColumnCount());
             fail("Owner should to be part of the schema");
@@ -239,11 +234,9 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testStandardSetup() {
-        byte[] key = new byte[64];
-        new Random().nextBytes(key);
-        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext())
                 .name("foo.realm")
-                .encryptionKey(key)
+                .encryptionKey(TestHelper.getRandomKey())
                 .schemaVersion(42)
                 .migration(new RealmMigration() {
                     @Override
@@ -251,9 +244,11 @@ public class RealmConfigurationTest extends AndroidTestCase {
                         return 0; // no-op
                     }
                 })
-                .resetRealmBeforeOpening()
                 .deleteRealmIfMigrationNeeded()
-                .build());
+                .build();
+
+        Realm.deleteRealm(config);
+        realm = Realm.getInstance(config);
         assertTrue(realm.getPath().endsWith("foo.realm"));
         assertEquals(42, realm.getVersion());
     }
@@ -261,10 +256,10 @@ public class RealmConfigurationTest extends AndroidTestCase {
     public void testDeleteRealmIfMigration() {
         // Populate v0 of a Realm with an object
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
-                .resetRealmBeforeOpening()
                 .schema(Dog.class)
                 .schemaVersion(0)
                 .build();
+        Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.beginTransaction();
         realm.copyToRealm(new Dog("Foo"));
@@ -273,23 +268,11 @@ public class RealmConfigurationTest extends AndroidTestCase {
         realm.close();
 
         // Change schema and verify that Realm has been cleared
-        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+        config = new RealmConfiguration.Builder(getContext())
                 .schema(Owner.class, Dog.class)
                 .schemaVersion(1)
                 .deleteRealmIfMigrationNeeded()
-                .build());
-        assertEquals(0, realm.where(Dog.class).count());
-    }
-
-    public void testDeleteRealmBeforeOpening() {
-        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).resetRealmBeforeOpening().build();
-        realm = Realm.getInstance(config);
-        realm.beginTransaction();
-        realm.copyToRealm(new Dog("Foo"));
-        realm.commitTransaction();
-        assertEquals(1, realm.where(Dog.class).count());
-        realm.close();
-
+                .build();
         realm = Realm.getInstance(config);
         assertEquals(0, realm.where(Dog.class).count());
     }

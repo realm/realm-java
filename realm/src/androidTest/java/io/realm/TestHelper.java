@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.io.InputStreamReader;
+import java.util.Random;
 
 public class TestHelper {
 
@@ -67,6 +68,14 @@ public class TestHelper {
         Realm.deleteRealmFile(context, newName);
         TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
+
+    // Returns a random used used by encrypted Realms.
+    public static byte[] getRandomKey() {
+        byte[] key = new byte[64];
+        new Random(42).nextBytes(key);
+        return key;
+    }
+
 
     public static class StubInputStream extends InputStream {
         @Override
