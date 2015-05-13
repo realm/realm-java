@@ -40,12 +40,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -1589,7 +1587,7 @@ public final class Realm implements Closeable {
      * Use this method to define the schema as only the classes given here.
      *
      * This class must be called before calling {@link #getInstance(android.content.Context)}
-     *ø
+     *
      * If {@code null} is given as parameter, the Schema is reset to use all known classes.
      *
      */
