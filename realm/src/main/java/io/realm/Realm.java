@@ -296,6 +296,8 @@ public final class Realm implements Closeable {
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
+     * This is equivalent to calling {@code Realm.getInstance(new RealmConfiguration(getContext()).build()) }.
+
      * @param context an Android {@link android.content.Context}
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException The model classes have been changed and the Realm
@@ -303,7 +305,6 @@ public final class Realm implements Closeable {
      * @throws RealmIOException              Error when accessing underlying file
      * @throws RealmException                Other errors
      */
-    @Deprecated
     public static Realm getInstance(Context context) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME);
     }
