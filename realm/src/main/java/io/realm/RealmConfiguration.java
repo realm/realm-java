@@ -69,7 +69,7 @@ public class RealmConfiguration {
     private final int schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
-    private final boolean deleteRealmBeforeOpening;
+    private final boolean resetRealmBeforeOpening;
     private final RealmProxyMediator schemaMediator;
 
     private RealmConfiguration(Builder builder) {
@@ -79,7 +79,7 @@ public class RealmConfiguration {
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
-        this.deleteRealmBeforeOpening = builder.deleteRealmBeforeOpening;
+        this.resetRealmBeforeOpening = builder.resetRealmBeforeOpening;
         this.migration = builder.migration;
         this.schemaMediator = createSchemaMediator(builder);
     }
@@ -108,8 +108,8 @@ public class RealmConfiguration {
         return deleteRealmIfMigrationNeeded;
     }
 
-    public boolean shouldDeleteRealmBeforeOpening() {
-        return deleteRealmBeforeOpening;
+    public boolean shouldResetRealmBeforeOpening() {
+        return resetRealmBeforeOpening;
     }
 
     public RealmProxyMediator getSchemaMediator() {
@@ -194,7 +194,7 @@ public class RealmConfiguration {
         private int schemaVersion;
         private RealmMigration migration;
         private boolean deleteRealmIfMigrationNeeded;
-        private boolean deleteRealmBeforeOpening;
+        private boolean resetRealmBeforeOpening;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
 
@@ -242,7 +242,7 @@ public class RealmConfiguration {
             this.schemaVersion = 0;
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
-            this.deleteRealmBeforeOpening = false;
+            this.resetRealmBeforeOpening = false;
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
@@ -317,7 +317,7 @@ public class RealmConfiguration {
 
         /**
          * Setting this will cause any previous existing Realm file on the disc to be reset and all data deleted before
-         * a new instance is opened. As Realm instances are reference counted, the Realm file will only be deleted if
+         * a new instance is opened. As Realm instances are reference counted, the Realm file will only be reset if
          * the reference count is zero, ie. the first time {@link io.realm.Realm#getInstance(RealmConfiguration)} is
          * called when starting the app or after all instances has been closed using {@link Realm#close()} and then
          * reopening the Realm.
@@ -326,8 +326,8 @@ public class RealmConfiguration {
          *
          * @see {@link io.realm.Realm}
          */
-        public Builder deleteRealmBeforeOpening() {
-            this.deleteRealmBeforeOpening = true;
+        public Builder resetRealmBeforeOpening() {
+            this.resetRealmBeforeOpening = true;
             return this;
         }
 

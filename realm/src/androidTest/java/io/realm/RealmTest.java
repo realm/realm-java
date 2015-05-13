@@ -953,7 +953,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testCompactEncryptedEmptyRealmFile() {
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
-                .name("enc.realm").encryptionKey(getRandomKey()).deleteRealmBeforeOpening()
+                .name("enc.realm").encryptionKey(getRandomKey()).resetRealmBeforeOpening()
                 .build();
         Realm realm = Realm.getInstance(config);
         realm.close();
@@ -967,7 +967,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testCompactEncryptedPopulatedRealmFile() {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
-                .name("enc.realm").encryptionKey(getRandomKey()).deleteRealmBeforeOpening()
+                .name("enc.realm").encryptionKey(getRandomKey()).resetRealmBeforeOpening()
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 

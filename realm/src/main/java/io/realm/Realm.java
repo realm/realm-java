@@ -35,11 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -64,7 +61,6 @@ import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
 import io.realm.internal.migration.SetVersionNumberMigration;
-import io.realm.internal.modules.FilterableMediator;
 
 
 /**
@@ -538,7 +534,7 @@ public final class Realm implements Closeable {
         if (references == 0) {
             AtomicInteger counter = openRealms.get(canonicalPath);
             if (counter == null) {
-                if (config.shouldDeleteRealmBeforeOpening()) {
+                if (config.shouldResetRealmBeforeOpening()) {
                     deleteRealm(config);
                 }
             }

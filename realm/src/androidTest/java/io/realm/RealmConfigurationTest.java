@@ -251,7 +251,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
                         return 0; // no-op
                     }
                 })
-                .deleteRealmBeforeOpening()
+                .resetRealmBeforeOpening()
                 .deleteRealmIfMigrationNeeded()
                 .build());
         assertTrue(realm.getPath().endsWith("foo.realm"));
@@ -261,7 +261,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
     public void testDeleteRealmIfMigration() {
         // Populate v0 of a Realm with an object
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
-                .deleteRealmBeforeOpening()
+                .resetRealmBeforeOpening()
                 .schema(Dog.class)
                 .schemaVersion(0)
                 .build();
@@ -282,7 +282,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testDeleteRealmBeforeOpening() {
-        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).deleteRealmBeforeOpening().build();
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).resetRealmBeforeOpening().build();
         realm = Realm.getInstance(config);
         realm.beginTransaction();
         realm.copyToRealm(new Dog("Foo"));
