@@ -93,6 +93,17 @@ public class Utils {
         return genericType;
     }
 
+    /**
+     * Strips the package name from a fully qualified class name.
+     */
+    public static String stripPackage(String fullyQualifiedClassName) {
+        String[] parts = fullyQualifiedClassName.split("\\.");
+        if (parts.length > 0) {
+            return parts[parts.length - 1];
+        } else {
+            return fullyQualifiedClassName;
+        }
+    }
 
     public static void error(String message, Element element) {
         messager.printMessage(Diagnostic.Kind.ERROR, message, element);

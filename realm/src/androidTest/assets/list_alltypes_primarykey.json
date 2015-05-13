@@ -4,7 +4,7 @@
         "columnLong" : 1,
         "columnFloat" : 1.23,
         "columnDouble" : 1.234,
-        "columnBoolean" : true,
+        "columnBoolean" : false,
         "columnBinary" : "AQID",
         "columnDate" : 1000,
         "columnRealmObject" : {
@@ -27,7 +27,7 @@
         "columnLong" : 1,
         "columnFloat" : 2.23,
         "columnDouble" : 2.234,
-        "columnBoolean" : false,
+        "columnBoolean" : true,
         "columnBinary" : "AQID",
         "columnDate" : 2000,
         "columnRealmObject" : {

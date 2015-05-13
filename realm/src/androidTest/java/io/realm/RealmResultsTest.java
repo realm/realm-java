@@ -50,8 +50,7 @@ public class RealmResultsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws InterruptedException {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        testRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).deleteRealmBeforeOpening().build());
         populateTestRealm();
     }
 

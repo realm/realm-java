@@ -280,7 +280,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         assertTrue("contains returns false for newly created table", testRealm.contains(Dog.class));
-        assertFalse("contains returns true for non-existing table", testRealm.contains(RealmTest.class));
+        assertFalse("contains returns true for non-existing table", testRealm.contains(null));
     }
 
     // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
@@ -952,31 +952,30 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testCompactEncryptedEmptyRealmFile() {
-        String REALM_NAME = "enc.realm";
-        Realm.deleteRealmFile(getContext(), REALM_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
-        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext())
+                .name("enc.realm").encryptionKey(getRandomKey()).deleteRealmBeforeOpening()
+                .build();
+        Realm realm = Realm.getInstance(config);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
-            assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            assertTrue(Realm.compactRealm(config));
             fail();
         } catch (IllegalArgumentException expected) {
         }
     }
 
     public void testCompactEncryptedPopulatedRealmFile() {
-        String REALM_NAME = "enc.realm";
-        Realm.deleteRealmFile(getContext(), REALM_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
-        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .name("enc.realm").encryptionKey(getRandomKey()).deleteRealmBeforeOpening()
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+
         populateTestRealm(realm, 100);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
-            assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            assertTrue(Realm.compactRealm(realmConfig));
             fail();
         } catch (IllegalArgumentException expected) {
         }
@@ -1141,7 +1140,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealm(new PrimaryKeyAsString());
             fail();
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -1192,7 +1191,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealmOrUpdate(new PrimaryKeyAsString());
             fail();
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -1649,6 +1648,11 @@ public class RealmTest extends AndroidTestCase {
         File tmpFile = new File(getContext().getFilesDir(), "tmp");
         tmpFile.delete();
         assertTrue(tmpFile.createNewFile());
-        assertTrue(Realm.deleteRealmFile(tmpFile));
+    }
+
+    private byte[] getRandomKey() {
+        byte[] key = new byte[64];
+        new Random(42).nextBytes(key);
+        return key;
     }
 }

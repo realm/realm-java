@@ -49,82 +49,73 @@ public class RealmConfigurationTest extends AndroidTestCase {
     public void testSetNullDefaultConfigurationThrows() {
         try {
             Realm.setDefaultConfiguration(null);
+            fail();
         } catch (NullPointerException expected) {
-            return;
         }
-        fail();
     }
 
     public void testGetNullDefaultInstanceThrows() {
         try {
             Realm.getDefaultInstance();
+            fail();
         } catch (NullPointerException expected) {
-            return;
         }
-        fail();
     }
 
     public void testGetNullInstance() {
         try {
             Realm.getInstance((RealmConfiguration) null);
+            fail();
         } catch (NullPointerException expected) {
-            return;
         }
-        fail();
     }
 
     public void testNullDirThrows() {
         try {
             new RealmConfiguration.Builder((File) null).build();
+            fail();
         } catch (IllegalArgumentException expected) {
-            return;
         }
-        fail();
     }
 
     public void testNullNameThrows() {
         try {
             new RealmConfiguration.Builder(getContext()).name(null).build();
+            fail();
         } catch (IllegalArgumentException expected) {
-            return;
         }
-        fail();
     }
 
     public void testEmptyNameThrows() {
         try {
             new RealmConfiguration.Builder(getContext()).name("").build();
+            fail();
         } catch (IllegalArgumentException expected) {
-            return;
         }
-        fail();
     }
 
     public void testNullKeyThrows() {
         try {
             new RealmConfiguration.Builder(getContext()).encryptionKey(null).build();
+            fail();
         } catch (IllegalArgumentException expected) {
-            return;
         }
-        fail();
     }
 
     public void testWrongKeyLengthThrows() {
         try {
             new RealmConfiguration.Builder(getContext()).encryptionKey(new byte[63]).build();
+            fail();
         } catch (IllegalArgumentException expected) {
-            return;
         }
-        fail();
     }
 
     public void testNegativeVersionThrows() {
         try {
             new RealmConfiguration.Builder(getContext()).schemaVersion(-1).build();
+            fail();
         } catch (IllegalArgumentException expected) {
-            return;
         }
-        fail();
     }
 
     public void testVersionLessThanDiscVersionThrows() {
@@ -133,19 +124,17 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
         try {
             Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(1).build());
+            fail();
         } catch (IllegalArgumentException expected) {
-            return;
         }
-        fail();
     }
 
     // TODO Should throw IllegalState instead
     public void testVersionEqualWhenSchemaChangesThrows() {
         realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                .deleteRealmBeforeOpening()
                 .schemaVersion(42)
                 .schema(Dog.class)
-                .create());
+                .build());
         realm.close();
 
         try {
@@ -158,13 +147,15 @@ public class RealmConfigurationTest extends AndroidTestCase {
         }
     }
 
-    public void testCustomSchemaAlsoIncludeLinkedClasses() {
+    public void testCustomSchemaDontIncludeLinkedClasses() {
         realm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                .deleteRealmBeforeOpening()
                 .schema(Dog.class)
-                .create());
-        assertEquals(3, realm.getTable(Owner.class).getColumnCount());
-        assertEquals(7, realm.getTable(Dog.class).getColumnCount());
+                .build());
+        try {
+            assertEquals(3, realm.getTable(Owner.class).getColumnCount());
+            fail("Owner should to be part of the schema");
+        } catch (IllegalArgumentException expected) {
+        }
     }
 
     public void testNullMigrationThrows() {
@@ -201,7 +192,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 })
                 .deleteRealmBeforeOpening()
                 .deleteRealmIfMigrationNeeded()
-                .create());
+                .build());
         assertTrue(realm.getPath().endsWith("foo.realm"));
         assertEquals(42, realm.getVersion());
     }
@@ -212,7 +203,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .deleteRealmBeforeOpening()
                 .schema(Dog.class)
                 .schemaVersion(0)
-                .create();
+                .build();
         realm = Realm.getInstance(config);
         realm.beginTransaction();
         realm.copyToRealm(new Dog("Foo"));
@@ -230,7 +221,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testDeleteRealmBeforeOpening() {
-        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).deleteRealmBeforeOpening().create();
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).deleteRealmBeforeOpening().build();
         realm = Realm.getInstance(config);
         realm.beginTransaction();
         realm.copyToRealm(new Dog("Foo"));
@@ -242,14 +233,12 @@ public class RealmConfigurationTest extends AndroidTestCase {
         assertEquals(0, realm.where(Dog.class).count());
     }
 
-    public void testUpgradeVersionWithNoMigrationThrows() {
+    public void testUpgradeVersionWithNoMigration() {
         realm = Realm.getInstance(defaultConfig);
         assertEquals(0, realm.getVersion());
         realm.close();
-        try {
-            Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
-            fail("Upgrading to new version without a migration block should fail");
-        } catch (RealmMigrationNeededException expected) {
-        }
+
+        // Version upgrades should happen automatically if possible
+        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
     }
 }

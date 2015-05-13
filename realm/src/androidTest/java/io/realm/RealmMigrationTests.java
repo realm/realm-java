@@ -17,18 +17,11 @@ public class RealmMigrationTests extends AndroidTestCase {
     public Realm realm;
 
     @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        Realm.deleteRealmFile(getContext());
-    }
-
-    @Override
     protected void tearDown() throws Exception {
         super.tearDown();
         if (realm != null) {
             realm.close();
         }
-        Realm.setSchema(null);
     }
 
     public void testRealmClosedAfterMigrationException() throws IOException {
@@ -55,11 +48,18 @@ public class RealmMigrationTests extends AndroidTestCase {
         String NEW_REALM = "new.realm";
 
         // Migrate old Realm to proper schema
-        Realm.deleteRealmFile(getContext(), MIGRATED_REALM);
-        Realm.setSchema(AllTypes.class);
-        Realm migratedRealm = Realm.getInstance(getContext(), MIGRATED_REALM);
-        migratedRealm.close();
-        Realm.migrateRealmAtPath(new File(getContext().getFilesDir(), MIGRATED_REALM).getAbsolutePath(), new RealmMigration() {
+
+        // V1 config
+        Realm oldRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+                .name(MIGRATED_REALM)
+                .schema(AllTypes.class)
+                .schemaVersion(1)
+                .deleteRealmBeforeOpening()
+                .build());
+        oldRealm.close();
+
+        // V2 config
+        RealmMigration migration = new RealmMigration() {
             @Override
             public long execute(Realm realm, long version) {
                 Table languageTable = realm.getTable(FieldOrder.class);
@@ -70,25 +70,27 @@ public class RealmMigrationTests extends AndroidTestCase {
 
                 return version + 1;
             }
-        });
+        };
 
-        // Open migrated Realm and populate column indices based on migration ordering.
-        Realm.setSchema(AllTypes.class, FieldOrder.class);
-        migratedRealm = Realm.getInstance(getContext(), MIGRATED_REALM);
+        oldRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+                .name(MIGRATED_REALM)
+                .schema(AllTypes.class, FieldOrder.class)
+                .schemaVersion(2)
+                .migration(migration)
+                .build());
 
         // Create new Realm which will cause column indices to be recalculated based on the order in the java file
         // instead of the migration
-        Realm.deleteRealmFile(getContext(), NEW_REALM);
-        Realm newRealm = Realm.getInstance(getContext(), NEW_REALM);
+        Realm newRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).name(NEW_REALM).schemaVersion(2).build());
         newRealm.close();
 
         // Try to query migrated realm. With local column indices this will work. With global it will fail.
-        assertEquals(0, migratedRealm.where(FieldOrder.class).equalTo("field1", true).findAll().size());
+        assertEquals(0, oldRealm.where(FieldOrder.class).equalTo("field1", true).findAll().size());
+        oldRealm.close();
     }
 
     public void testNotSettingIndexThrows() {
-        Realm.setSchema(AnnotationTypes.class);
-        Realm.migrateRealmAtPath(new File(getContext().getFilesDir(), "default.realm").getAbsolutePath(), new RealmMigration() {
+        RealmMigration migration = new RealmMigration() {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
@@ -99,18 +101,22 @@ public class RealmMigrationTests extends AndroidTestCase {
                 // Forget to set @Index
                 return 1;
             }
-        });
+        };
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schema(AnnotationTypes.class).migration(migration).schemaVersion(1)
+                .build();
+        Realm.deleteRealm(realmConfig);
+        Realm.migrateRealm(realmConfig);
 
         try {
-            realm = Realm.getInstance(getContext());
+            realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException expected) {
         }
     }
 
     public void testNotSettingPrimaryKeyThrows() {
-        Realm.setSchema(AnnotationTypes.class);
-        Realm.migrateRealmAtPath(new File(getContext().getFilesDir(), "default.realm").getAbsolutePath(), new RealmMigration() {
+        RealmMigration migration = new RealmMigration() {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
@@ -121,18 +127,23 @@ public class RealmMigrationTests extends AndroidTestCase {
                 table.addColumn(ColumnType.STRING, "notIndexString");
                 return 1;
             }
-        });
+        };
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).schema(AnnotationTypes.class)
+                .migration(migration)
+                .schemaVersion(1)
+                .build();
+        Realm.deleteRealm(realmConfig);
+        Realm.migrateRealm(realmConfig);
 
         try {
-            realm = Realm.getInstance(getContext());
+            realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException expected) {
         }
     }
 
     public void testSetAnnotations() {
-        Realm.setSchema(AnnotationTypes.class);
-        Realm.migrateRealmAtPath(new File(getContext().getFilesDir(), "default.realm").getAbsolutePath(), new RealmMigration() {
+        RealmMigration migration = new RealmMigration() {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
@@ -143,9 +154,16 @@ public class RealmMigrationTests extends AndroidTestCase {
                 table.addColumn(ColumnType.STRING, "notIndexString");
                 return 1;
             }
-        });
+        };
 
-        realm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).schema(AnnotationTypes.class)
+                .schemaVersion(1)
+                .migration(migration)
+                .build();
+
+        Realm.deleteRealm(realmConfig);
+        Realm.migrateRealm(realmConfig);
+        realm = Realm.getInstance(realmConfig);
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());

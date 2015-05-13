@@ -23,8 +23,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.realm.internal.migration.SetVersionNumberMigration;
-
 /**
  * A RealmConfiguration is used to setup a specific Realm instance.
  *
@@ -45,32 +43,34 @@ import io.realm.internal.migration.SetVersionNumberMigration;
  */
 public class RealmConfiguration {
 
-    private final File realmDir;
-    private final String realmName;
+    private final File realmFolder;
+    private final String realmFileName;
     private final String canonicalPath;
     private final byte[] key;
     private final int schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
+    private final boolean deleteRealmBeforeOpening;
     private final Set<Class<? extends RealmObject>> schema;
 
     private RealmConfiguration(Builder builder) {
-        this.realmDir = builder.folder;
-        this.realmName = builder.fileName;
-        this.canonicalPath = Realm.getCanonicalPath(new File(realmDir, realmName));
+        this.realmFolder = builder.folder;
+        this.realmFileName = builder.fileName;
+        this.canonicalPath = Realm.getCanonicalPath(new File(realmFolder, realmFileName));
         this.key = builder.key;
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
-        this.migration = (builder.migration != null) ? builder.migration : new SetVersionNumberMigration(schemaVersion);
+        this.deleteRealmBeforeOpening = builder.deleteRealmBeforeOpening;
+        this.migration = builder.migration;
         this.schema = builder.schema;
     }
 
-    public File getRealmDir() {
-        return realmDir;
+    public File getRealmFolder() {
+        return realmFolder;
     }
 
     public String getRealmFileName() {
-        return realmName;
+        return realmFileName;
     }
 
     public byte[] getEncryptionKey() {
@@ -87,6 +87,10 @@ public class RealmConfiguration {
 
     public boolean shouldDeleteRealmIfMigrationNeeded() {
         return deleteRealmIfMigrationNeeded;
+    }
+
+    public boolean shouldDeleteRealmBeforeOpening() {
+        return deleteRealmBeforeOpening;
     }
 
     public Set<Class<? extends RealmObject>> getSchema() {
@@ -107,6 +111,7 @@ public class RealmConfiguration {
         private int schemaVersion = 0;
         private RealmMigration migration = null;
         private boolean deleteRealmIfMigrationNeeded = false;
+        private boolean deleteRealmBeforeOpening = false;
         private Set<Class<? extends RealmObject>> schema = new HashSet<Class<? extends RealmObject>>();
 
         /**
@@ -202,6 +207,22 @@ public class RealmConfiguration {
          */
         public Builder deleteRealmIfMigrationNeeded() {
             this.deleteRealmIfMigrationNeeded = true;
+            return this;
+        }
+
+        /**
+         * Setting this will cause any previous existing Realm file on the disc to be reset and all data deleted before
+         * a new instance is opened. As Realm instances are reference counted, the Realm file will only be deleted if
+         * the reference count is zero, ie. the first time {@link io.realm.Realm#getInstance(RealmConfiguration)} is
+         * called when starting the app or after all instances has been closed using {@link Realm#close()} and then
+         * reopening the Realm.
+         *
+         * <bold>WARNING!</bold> This will result in loss of data.
+         *
+         * @see {@link io.realm.Realm}
+         */
+        public Builder deleteRealmBeforeOpening() {
+            this.deleteRealmBeforeOpening = true;
             return this;
         }
 
