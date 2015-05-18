@@ -1654,10 +1654,10 @@ public class RealmTest extends AndroidTestCase {
 
         // Test all methods that should require a write transaction
         try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealm(t);                 fail(); } catch (RealmException expected) {}
-        try { testRealm.copyToRealm(ts);                fail(); } catch (RealmException expected) {}
-        try { testRealm.copyToRealmOrUpdate(t);         fail(); } catch (RealmException expected) {}
-        try { testRealm.copyToRealmOrUpdate(ts);        fail(); } catch (RealmException expected) {}
+        try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
         try { testRealm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
         try { testRealm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
         try { testRealm.setVersion(42);                 fail(); } catch (IllegalStateException expected) {}
