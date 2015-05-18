@@ -1,4 +1,5 @@
-0.81.0
+0.81
+ * RealmChangedListener now also gets called on the same thread that did the commit.
  * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
  * Fixed a memory leak when using RealmBaseAdapter.
  * RealmBaseAdapter now allow RealmResults to be null (thanks @zaki50).
