@@ -446,11 +446,11 @@ public class RealmListTest extends AndroidTestCase {
         list.add(dog);
         testRealm.commitTransaction();
 
-        try { list.add(dog);    fail("add() did not throw"); }      catch (IllegalStateException expected) {}
-        try { list.add(0, dog); fail("add(index) did not throw"); } catch (IllegalStateException expected) {}
-        try { list.clear();     fail("clear() did not throw"); }    catch (IllegalStateException expected) {}
-        try { list.move(0, 1);  fail("move() did not throw"); }     catch (IllegalStateException expected) {}
-        try { list.remove(0);   fail("remove() did not throw"); }   catch (IllegalStateException expected) {}
-        try { list.set(0, dog); fail("set() did not throw"); }      catch (IllegalStateException expected) {}
+        try { list.add(dog);    fail(); } catch (IllegalStateException expected) {}
+        try { list.add(0, dog); fail(); } catch (IllegalStateException expected) {}
+        try { list.clear();     fail(); } catch (IllegalStateException expected) {}
+        try { list.move(0, 1);  fail(); } catch (IllegalStateException expected) {}
+        try { list.remove(0);   fail(); } catch (IllegalStateException expected) {}
+        try { list.set(0, dog); fail(); } catch (IllegalStateException expected) {}
     }
 }

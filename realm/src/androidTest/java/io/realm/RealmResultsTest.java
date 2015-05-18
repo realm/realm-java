@@ -708,8 +708,8 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testUnsupportedMethods() {
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
-        try { result.add(null);     fail("add() did not throw"); } catch (UnsupportedOperationException expected) {}
-        try { result.set(0, null);  fail("set() did not throw"); } catch (UnsupportedOperationException expected) {}
+        try { result.add(null);     fail(); } catch (UnsupportedOperationException expected) {}
+        try { result.set(0, null);  fail(); } catch (UnsupportedOperationException expected) {}
     }
 
 
@@ -717,9 +717,9 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testMutableMethodsOutsideWriteTransactions() {
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
-        try { result.clear();       fail("clear() did not throw"); }        catch (IllegalStateException expected) {}
-        try { result.remove(0);     fail("remove(index) did not throw"); }  catch (IllegalStateException expected) {}
-        try { result.removeLast();  fail("removeLast() did not throw"); }   catch (IllegalStateException expected) {}
+        try { result.clear();       fail(); } catch (IllegalStateException expected) {}
+        try { result.remove(0);     fail(); } catch (IllegalStateException expected) {}
+        try { result.removeLast();  fail(); } catch (IllegalStateException expected) {}
     }
 
     // TODO: More extended tests of querying all types must be done.
