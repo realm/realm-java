@@ -59,6 +59,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         Realm.setSchema(AllTypes.class);
         Realm migratedRealm = Realm.getInstance(getContext(), MIGRATED_REALM);
         migratedRealm.close();
+        Realm.setSchema(AllTypes.class, FieldOrder.class);
         Realm.migrateRealmAtPath(new File(getContext().getFilesDir(), MIGRATED_REALM).getAbsolutePath(), new RealmMigration() {
             @Override
             public long execute(Realm realm, long version) {
@@ -117,7 +118,7 @@ public class RealmMigrationTests extends AndroidTestCase {
                 table.addColumn(ColumnType.INTEGER, "id");
                 // Forget to set @PrimaryKey
                 long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.setIndex(columnIndex);
+                table.addSearchIndex(columnIndex);
                 table.addColumn(ColumnType.STRING, "notIndexString");
                 return 1;
             }
@@ -139,7 +140,7 @@ public class RealmMigrationTests extends AndroidTestCase {
                 table.addColumn(ColumnType.INTEGER, "id");
                 table.setPrimaryKey("id");
                 long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.setIndex(columnIndex);
+                table.addSearchIndex(columnIndex);
                 table.addColumn(ColumnType.STRING, "notIndexString");
                 return 1;
             }
@@ -149,7 +150,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
-        assertTrue(table.hasIndex(table.getColumnIndex("indexString")));
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
     }
 
     public void testGetPathFromMigrationException() throws IOException {

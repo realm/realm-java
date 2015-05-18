@@ -507,18 +507,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeSetIndex
+ * Method:    nativeAddSearchIndex
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeHasIndex
+ * Method:    nativeRemoveSearchIndex
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeHasSearchIndex
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasIndex
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSearchIndex
   (JNIEnv *, jobject, jlong, jlong);
 
 /*

@@ -18,8 +18,14 @@ package io.realm;
 import android.content.Context;
 import android.test.AndroidTestCase;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -190,6 +196,8 @@ public class RealmTest extends AndroidTestCase {
 
     public void testInstanceIdForHashCollision() {
         // Ea.hashCode() == FB.hashCode()
+        Realm.deleteRealmFile(getContext(), "Ea");
+        Realm.deleteRealmFile(getContext(), "FB");
         Realm r1 = Realm.getInstance(getContext(), "Ea");
         Realm r2 = Realm.getInstance(getContext(), "FB");
         assertNotSame(r1, r2);
@@ -278,7 +286,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         assertTrue("contains returns false for newly created table", testRealm.contains(Dog.class));
-        assertFalse("contains returns true for non-existing table", testRealm.contains(RealmTest.class));
+        assertFalse("contains returns true for non-existing table", testRealm.contains(null));
     }
 
     // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
@@ -1139,7 +1147,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealm(new PrimaryKeyAsString());
             fail();
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -1190,7 +1198,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealmOrUpdate(new PrimaryKeyAsString());
             fail();
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -1624,5 +1632,48 @@ public class RealmTest extends AndroidTestCase {
         tmpFile.delete();
         assertTrue(tmpFile.createNewFile());
         assertTrue(Realm.deleteRealmFile(tmpFile));
+    }
+
+    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideWriteTransactions() throws JSONException, IOException {
+
+        // Prepare standalone object data
+        AllTypesPrimaryKey t = new AllTypesPrimaryKey();
+        List<AllTypesPrimaryKey> ts = Arrays.asList(t, t);
+
+        // Prepare JSON data
+        String jsonObjStr = "{ \"columnLong\" : 1 }";
+        JSONObject jsonObj = new JSONObject(jsonObjStr);
+        InputStream jsonObjStream = TestHelper.stringToStream(jsonObjStr);
+        InputStream jsonObjStream2 = TestHelper.stringToStream(jsonObjStr);
+
+        String jsonArrStr = " [{ \"columnLong\" : 1 }] ";
+        JSONArray jsonArr = new JSONArray(jsonArrStr);
+        InputStream jsonArrStream = TestHelper.stringToStream(jsonArrStr);
+        InputStream jsonArrStream2 = TestHelper.stringToStream(jsonArrStr);
+
+        // Test all methods that should require a write transaction
+        try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.setVersion(42);                 fail(); } catch (IllegalStateException expected) {}
+
+        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (RealmException expected) {}
+        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (RealmException expected) {}
+        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream);          fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);        fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);     fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); } catch (IllegalStateException expected) {}
+
+        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);                   fail(); } catch (RealmException expected) {}
+        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);                fail(); } catch (RealmException expected) {}
+        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStream);             fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (RealmException expected) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
     }
 }
