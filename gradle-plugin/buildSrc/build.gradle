@@ -1,0 +1,7 @@
+repositories {
+    mavenCentral()
+}
+
+rootProject.dependencies {
+    compile project(':plugin')
+}
