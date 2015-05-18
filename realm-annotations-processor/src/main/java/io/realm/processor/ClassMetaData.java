@@ -56,7 +56,7 @@ public class ClassMetaData {
     private List<String> fieldNames = new ArrayList<String>();
     private List<String> ignoreFieldNames = new ArrayList<String>();
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
-    private List<String> nullableFieldNames = new ArrayList<String>(); // list of all fields marked @Nullable
+    private Set<VariableElement> nullableFieldNames = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private Set<String> expectedGetters = new HashSet<String>(); // Set of fieldnames that are expected to have a getter
     private Set<String> expectedSetters = new HashSet<String>(); // Set of fieldnames that are expected to have a setter
     private Set<ExecutableElement> methods = new HashSet<ExecutableElement>(); // List of all methods in the model class
@@ -294,17 +294,17 @@ public class ClassMetaData {
                 if (variableElement.getAnnotation(NotNullable.class) == null) {
                     // The field has not the @NotNullable annotation. It's only valid for:
                     // * String
-                    String elementTypeCanonicalName = variableElement.asType().toString();
-                    if (elementTypeCanonicalName.equals("java.lang.String")) {
-                        nullableFieldNames.add(variableElement.getSimpleName().toString());
+                    if (Utils.isString(variableElement)) {
+                        nullableFieldNames.add(variableElement);
                     }
                 } else {
                     // The field has the @NotNullable annotation. It's only valid for:
                     // * String
                     String elementTypeCanonicalName = variableElement.asType().toString();
                     String variableElementName = variableElement.getSimpleName().toString();
-                    if (elementTypeCanonicalName.equals("java.lang.String") && nullableFieldNames.contains(variableElementName)) {
-                        nullableFieldNames.remove(variableElementName);
+                    if (Utils.isString(variableElement)
+                            && nullableFieldNames.contains(variableElementName)) {
+                        nullableFieldNames.remove(variableElement);
                     }
                 }
 
@@ -319,8 +319,9 @@ public class ClassMetaData {
                     }
 
                     // A field cannot be nullable and primary key. Currently only String can be nullable
-                    if (Utils.isString(variableElement) && nullableFieldNames.contains(variableElement.getSimpleName().toString())) {
-                        nullableFieldNames.remove(variableElement.getSimpleName().toString());
+                    if (Utils.isString(variableElement)
+                            && nullableFieldNames.contains(variableElement)) {
+                        nullableFieldNames.remove(variableElement);
                     }
 
                     TypeMirror fieldType = variableElement.asType();
@@ -410,8 +411,8 @@ public class ClassMetaData {
         return getters.get(primaryKey.getSimpleName().toString());
     }
 
-    public boolean isNullable(String fieldName) {
-        return nullableFieldNames.contains(fieldName);
+    public boolean isNullable(VariableElement variableElement) {
+        return nullableFieldNames.contains(variableElement);
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {

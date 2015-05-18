@@ -335,7 +335,7 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-            boolean isNullable = metadata.isNullable(fieldName);
+            boolean isNullable = metadata.isNullable(field);
 
             if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 writer.emitStatement("table.addColumn(%s, \"%s\", %s)",
@@ -607,7 +607,7 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine();
 
             } else {
-                if (NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(fieldName)) {
+                if (NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(field)) {
                     writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
                             metadata.getSetter(fieldName),
                             metadata.getGetter(fieldName),
@@ -675,7 +675,7 @@ public class RealmProxyClassGenerator {
                 }
 
                 String fieldType = field.asType().toString();
-                if (NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(fieldName)) {
+                if (NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(field)) {
                     writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
                             metadata.getSetter(fieldName),
                             metadata.getGetter(fieldName),
