@@ -64,7 +64,7 @@ public class RealmCursor implements Cursor {
     };
 
     /**
-     * Exposes a RealmResults object as a cursor. Use {@link RealmResults#getCursor()} instead of this
+     * Exposes a query result as a cursor. Use {@link RealmResults#getCursor()} instead of this
      * constructor
      *
      * @param table Table view representing the query results.
@@ -271,11 +271,10 @@ public class RealmCursor implements Cursor {
     @Override
     public int getColumnIndex(String columnName) {
         checkClosed();
-        if (idColumnIndex >= 0) {
+        if (DEFAULT_ID_COLUMN.equals(columnName)) {
             return (int) idColumnIndex;
-        } else {
-            return (int) table.getColumnIndex(columnName);
         }
+        return (int) table.getColumnIndex(columnName);
     }
 
     /**
@@ -348,6 +347,7 @@ public class RealmCursor implements Cursor {
     @Override
     public byte[] getBlob(int columnIndex) {
         checkClosed();
+        checkPosition();
         return table.getBinaryByteArray(columnIndex, rowIndex);
     }
 
@@ -361,6 +361,7 @@ public class RealmCursor implements Cursor {
     @Override
     public String getString(int columnIndex) {
         checkClosed();
+        checkPosition();
         return table.getString(columnIndex, rowIndex);
     }
 
@@ -376,6 +377,7 @@ public class RealmCursor implements Cursor {
     @Override
     public void copyStringToBuffer(int columnIndex, CharArrayBuffer buffer) {
         checkClosed();
+        checkPosition();
         String result = getString(columnIndex);
         if (result != null) {
             char[] data = buffer.data;
@@ -440,7 +442,7 @@ public class RealmCursor implements Cursor {
 
     private long mapRealmTypeToCursor(int columnIndex, boolean acceptLong) {
         ColumnType type = table.getColumnType(columnIndex);
-        switch(type) {
+        switch (type) {
             case BOOLEAN: return table.getBoolean(columnIndex, rowIndex) ? 1 : 0;
             case INTEGER: return table.getLong(columnIndex, rowIndex);
             case DATE:
@@ -488,16 +490,26 @@ public class RealmCursor implements Cursor {
 
     /**
      * Returns the SQLite Cursor type for a column index. Realm has more types than SQLite and some of them cannot be
-     * mapped to any meaningful SQLite type. These will return -1 and are cannot be accessed using a cursor.
+     * mapped to any meaningful SQLite type. These will return -1 and cannot be accessed using a cursor.
+     *
+     * The following types are currently not supported:
+     * <ul>
+     *   <li>{@link ColumnType#TABLE}</li>
+     *   <li>{@link ColumnType#MIXED}</li>
+     *   <li>{@link ColumnType#LINK}</li>
+     *   <li>{@link ColumnType#LINK_LIST}</li>
+     * </ul>
+     *
      * <p>
      * Some realm types are mapped to conform to the Cursor interface. These mappings are described below:
      * <ol>
-     *   <li>Boolean : {0 = false, 1 = true}, use getShort()/getInt()/getLong()</li>
-     *   <li>Date : Time in milliseconds since epoch, use getLong()</li>
+     *   <li>boolean : Will return Cursor.FIELD_TYPE_INTEGER. {0 = false, 1 = true}, use getShort()/getInt()/getLong()</li>
+     *   <li>double : Will return Cursor.FIELD_TYPE_FLOAT, but must be fetched using use getDouble()</li>
+     *   <li>Date : Will return Cursor.FIELD_TYPE_INTEGER. Time in milliseconds since epoch, use getLong()</li>
      *</ol>
      *
-     * @param columnIndex Get the data type from the this column index.
-     * @return One of the {@code FIELD_TYPE_*}'s described in {@link Cursor}
+     * @param columnIndex Get the data type for this column index or -1 if the column isn't accessible.
+     * @return One of the {@code FIELD_TYPE_*}'s described in {@link Cursor}.
      */
     @Override
     public int getType(int columnIndex) {

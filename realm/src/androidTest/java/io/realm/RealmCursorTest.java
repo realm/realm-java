@@ -19,6 +19,7 @@ package io.realm;
 import android.database.CharArrayBuffer;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.os.Handler;
@@ -199,8 +200,12 @@ public class RealmCursorTest extends AndroidTestCase {
         assertEquals(NOT_FOUND, c.getColumnIndex("_id"));
     }
 
+    public void testGetColumnIndexLinkedObjet() {
+        assertEquals(-1, cursor.getColumnIndex("columnRealmObject.name"));
+    }
+
     public void testGetColumnIndex() {
-        assertEquals(1, cursor.getColumnIndex("columnLong"));
+        assertEquals(4, cursor.getColumnIndex("columnBoolean"));
     }
 
     public void testGetColumnIndexNotFound() {
@@ -297,6 +302,47 @@ public class RealmCursorTest extends AndroidTestCase {
                 callGetter(cursorGetter);
                 fail(cursorGetter + " should throw an exception");
             } catch (IllegalStateException expected) {
+            }
+        }
+
+        try { cursor.move(0);                               fail(); } catch (IllegalStateException expected) {}
+        try { cursor.moveToFirst();                         fail(); } catch (IllegalStateException expected) {}
+        try { cursor.moveToLast();                          fail(); } catch (IllegalStateException expected) {}
+        try { cursor.moveToPosition(0);                     fail(); } catch (IllegalStateException expected) {}
+        try { cursor.moveToPrevious();                      fail(); } catch (IllegalStateException expected) {}
+        try { cursor.moveToNext();                          fail(); } catch (IllegalStateException expected) {}
+
+        try { cursor.isAfterLast();                         fail(); } catch (IllegalStateException expected) {}
+        try { cursor.isBeforeFirst();                       fail(); } catch (IllegalStateException expected) {}
+        try { cursor.isFirst();                             fail(); } catch (IllegalStateException expected) {}
+        try { cursor.isLast();                              fail(); } catch (IllegalStateException expected) {}
+
+        try { cursor.getCount();                            fail(); } catch (IllegalStateException expected) {}
+        try { cursor.getColumnCount();                      fail(); } catch (IllegalStateException expected) {}
+        try { cursor.getColumnIndexOrThrow("columnString"); fail(); } catch (IllegalStateException expected) {}
+        try { cursor.getColumnName(0);                      fail(); } catch (IllegalStateException expected) {}
+        try { cursor.getColumnNames();                      fail(); } catch (IllegalStateException expected) {}
+        try { cursor.getPosition();                         fail(); } catch (IllegalStateException expected) {}
+        try { cursor.getType(0);                            fail(); } catch (IllegalStateException expected) {}
+    }
+
+    // Test that all getters fail when the cursor is out of bounds
+    public void testGetXXXFailWhenIfOutOfBounds() {
+        for (CursorGetter cursorGetter : CursorGetter.values()) {
+            try {
+                callGetter(cursorGetter);
+                fail(cursorGetter + " should throw an exception");
+            } catch (CursorIndexOutOfBoundsException expected) {
+            }
+        }
+
+        cursor.moveToLast();
+        cursor.moveToNext();
+        for (CursorGetter cursorGetter : CursorGetter.values()) {
+            try {
+                callGetter(cursorGetter);
+                fail(cursorGetter + " should throw an exception");
+            } catch (CursorIndexOutOfBoundsException expected) {
             }
         }
     }
@@ -512,7 +558,7 @@ public class RealmCursorTest extends AndroidTestCase {
         RealmResults<AnnotationNameConventions> result = realm.where(AnnotationNameConventions.class).findAll();
         cursor = result.getCursor();
         try {
-            cursor.setIdColumn("id_object");
+            cursor.setIdColumn("_id");
             fail();
         } catch (IllegalArgumentException expected) {
         }
@@ -523,11 +569,5 @@ public class RealmCursorTest extends AndroidTestCase {
         assertEquals(cursor.getColumnIndex("_id"), AllTypes.COL_INDEX_LONG);
         cursor.moveToPosition(1);
         assertEquals(1l, cursor.getLong(cursor.getColumnIndex("_id")));
-    }
-
-    private class CustomContentObserver extends ContentObserver {
-        public CustomContentObserver(Handler handler) {
-            super(handler);
-        }
     }
 }
