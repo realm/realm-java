@@ -1511,6 +1511,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
 // - All Realms created by Cocoa and used by Realm-android up to 0.80.1
 // - All Realms created by Realm-Android 0.80.1 and below
 // See https://github.com/realm/realm-java/issues/1059
+// This methods converts the old (wrong) table format (string, integer) to the right (string,string) format.
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
     (JNIEnv* env, jobject, jlong groupNativePtr, jlong privateKeyTableNativePtr)
 {
