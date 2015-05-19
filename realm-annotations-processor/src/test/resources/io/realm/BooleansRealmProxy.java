@@ -94,7 +94,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             Table table = transaction.getTable("class_Booleans");
 
             if (table.getColumnCount() != 3) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 3");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 3 but was " + table.getColumnCount());
             }
 
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();

@@ -387,7 +387,7 @@ public class RealmProxyClassGenerator {
 
         // verify number of columns
         writer.beginControlFlow("if (table.getColumnCount() != " + metadata.getFields().size() + ")");
-        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field count does not match - expected %d\")",
+        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Field count does not match - expected %d but was \" + table.getColumnCount())",
                 metadata.getFields().size());
         writer.endControlFlow();
 
@@ -459,8 +459,8 @@ public class RealmProxyClassGenerator {
 
                 writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, fieldTypeSimpleName);
                 writer.beginControlFlow("if (!table.getLinkTarget(%s).equals(table_%d))", staticFieldIndexVarName(field), fieldIndex);
-                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid RealmObject for field '%s'\")",
-                        fieldName);
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid RealmObject for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
+                        fieldName, staticFieldIndexVarName(field), fieldIndex);
                 writer.endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) { // Link Lists
                 String genericType = Utils.getGenericType(field);
@@ -478,8 +478,8 @@ public class RealmProxyClassGenerator {
 
                 writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, genericType);
                 writer.beginControlFlow("if (!table.getLinkTarget(%s).equals(table_%d))", staticFieldIndexVarName(field), fieldIndex);
-                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid RealmList type for field '%s'\")",
-                        fieldName);
+                writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid RealmList type for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
+                        fieldName, staticFieldIndexVarName(field), fieldIndex);
                 writer.endControlFlow();
             }
             fieldIndex++;

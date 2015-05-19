@@ -201,7 +201,7 @@ public class AllTypesRealmProxy extends AllTypes
             Table table = transaction.getTable("class_AllTypes");
 
             if(table.getColumnCount() != 9) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 9",);
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 9 but was " + table.getColumnCount());
             }
 
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
@@ -287,7 +287,9 @@ public class AllTypesRealmProxy extends AllTypes
 
             Table table_7 = transaction.getTable("class_AllTypes");
             if (!table.getLinkTarget(INDEX_COLUMNOBJECT).equals(table_7)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Mismatching link tables for field 'columnObject'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmObject for field 'columnObject': '" +
+                table.getLinkTarget(INDEX_COLUMNOBJECT).getName() + "' - was '" +
+                table_7.getName() + "'");
             }
             if (!columnTypes.containsKey("columnRealmList")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnRealmList'");
@@ -300,7 +302,9 @@ public class AllTypesRealmProxy extends AllTypes
             }
             Table table_8 = transaction.getTable("class_AllTypes");
             if (!table.getLinkTarget(INDEX_COLUMNREALMLIST).equals(table_8)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Mismatching link list tables for column 'columnRealmList'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmList for field 'columnRealmList'. '" +
+                        table.getLinkTarget(INDEX_COLUMNREALMLIST).getName() + "' expected - was '"
+                        table_8.getName() + "'");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The AllTypes class is missing from the schema for this Realm.");
