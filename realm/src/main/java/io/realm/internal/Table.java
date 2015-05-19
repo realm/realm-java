@@ -674,7 +674,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
             return cachedPrimaryKeyColumnIndex;
         } else {
             Table pkTable = getPrimaryKeyTable();
-            if (pkTable == null) return NO_PRIMARY_KEY; // Free table = No primary key
+            if (pkTable == null) {
+                return NO_PRIMARY_KEY; // Free table = No primary key
+            }
             long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
             if (rowIndex != NO_MATCH) {
                 String pkColumnName = pkTable.getRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);

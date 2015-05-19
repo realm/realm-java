@@ -384,6 +384,7 @@ public class JNITransactions extends AndroidTestCase {
         SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
         ImplicitTransaction tr = db.beginImplicitTransaction();
         Table t = tr.getTable("class_AnnotationTypes");
+        assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertTrue(t.hasPrimaryKey());
         db.close();
     }

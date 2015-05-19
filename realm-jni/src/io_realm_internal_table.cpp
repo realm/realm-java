@@ -1408,6 +1408,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, j
 bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column_name) // throws
 {
     size_t column_index = table->get_column_index(column_name);
+    if (column_index == realm::not_found) {
+        std::ostringstream error_msg;
+        error_msg << table->get_name() << " does not contain the field \"" << column_name << "\"";
+        ThrowException(env, IllegalArgument, error_msg.str());
+    }
     DataType column_type = table->get_column_type(column_index);
     TableView results = table->get_sorted_view(column_index);
 
@@ -1473,14 +1478,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
             return jlong(io_realm_internal_Table_NO_PRIMARY_KEY);
         }
         else {
-            JStringAccessor NewPrimaryKeyColumn(env, columnName);
-            size_t primary_key_column_index = table->get_column_index(NewPrimaryKeyColumn);
+            JStringAccessor new_primary_key_column_name(env, columnName);
+            size_t primary_key_column_index = table->get_column_index(new_primary_key_column_name);
             if (row_index == realm::not_found) {
                 // No primary key is currently set
-                if (check_valid_primary_key_column(env, table, NewPrimaryKeyColumn)) {
+                if (check_valid_primary_key_column(env, table, new_primary_key_column_name)) {
                     row_index = pk_table->add_empty_row();
                     pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_index, table_name);
-                    pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, NewPrimaryKeyColumn);
+                    pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, new_primary_key_column_name);
                 }
             }
             else {
@@ -1488,9 +1493,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
                 // We only wish to check for duplicate values if a column isn't already a primary key
                 Row* row = new Row((*pk_table)[row_index]);
                 StringData current_primary_key = row->get_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
-                if (NewPrimaryKeyColumn != current_primary_key) {
-                    if (check_valid_primary_key_column(env, table, NewPrimaryKeyColumn)) {
-                        pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, NewPrimaryKeyColumn);
+                if (new_primary_key_column_name != current_primary_key) {
+                    if (check_valid_primary_key_column(env, table, new_primary_key_column_name)) {
+                        pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, new_primary_key_column_name);
                     }
                 }
             }
@@ -1502,7 +1507,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
 }
 
 // Fixes interop issue with Cocoa Realm where the Primary Key table had different types.
-// This effects:
+// This affects:
 // - All Realms created by Cocoa and used by Realm-android up to 0.80.1
 // - All Realms created by Realm-Android 0.80.1 and below
 // See https://github.com/realm/realm-java/issues/1059
