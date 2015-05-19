@@ -674,10 +674,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
             return cachedPrimaryKeyColumnIndex;
         } else {
             Table pkTable = getPrimaryKeyTable();
-            if (pkTable == null) return NO_PRIMARY_KEY; // Free table = No primary key
+            if (pkTable == null) {
+                return NO_PRIMARY_KEY; // Free table = No primary key
+            }
             long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
             if (rowIndex != NO_MATCH) {
-                cachedPrimaryKeyColumnIndex = pkTable.getRow(rowIndex).getLong(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                String pkColumnName = pkTable.getRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
             } else {
                 cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
             }
@@ -1193,11 +1196,22 @@ public class Table implements TableOrView, TableSchema, Closeable {
         Table pkTable = group.getTable(PRIMARY_KEY_TABLE_NAME);
         if (pkTable.getColumnCount() == 0) {
             pkTable.addColumn(ColumnType.STRING, PRIMARY_KEY_CLASS_COLUMN_NAME);
-            pkTable.addColumn(ColumnType.INTEGER, PRIMARY_KEY_FIELD_COLUMN_NAME);
+            pkTable.addColumn(ColumnType.STRING, PRIMARY_KEY_FIELD_COLUMN_NAME);
+        } else {
+            migratePrimaryKeyTableIfNeeded(group, pkTable);
         }
 
         return pkTable;
     }
+
+    // Migration required to fix https://github.com/realm/realm-java/issues/1059
+    // This will convert INTEGER column to the corresponding STRING column if needed.
+    // Any database created on Realm-Java 0.80.1 and below will have this error.
+    private void migratePrimaryKeyTableIfNeeded(Group group, Table pkTable) {
+        nativeMigratePrimaryKeyTableIfNeeded(group.nativePtr, pkTable.nativePtr);
+    }
+
+    private native void nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
 
     // Recursively look at parents until either a Group or null is found
     Group getTableGroup() {
