@@ -1518,11 +1518,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     Table* pk_table = TBL(privateKeyTableNativePtr);
     if (pk_table->get_column_type(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX) == type_Int) {
         StringData tmp_col_name = StringData("tmp_field_name");
-        std::size_t tmp_col_ndx = pk_table->add_column(DataType(type_String), tmp_col_name);
+        size_t tmp_col_ndx = pk_table->add_column(DataType(type_String), tmp_col_name);
 
         // Create tmp string column with field name instead of column index
         size_t number_of_rows = pk_table->size();
-        for (int row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
+        for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
             StringData table_name = pk_table->get_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_ndx);
             size_t col_ndx = static_cast<size_t>(pk_table->get_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_ndx));
             StringData col_name = group->get_table(table_name)->get_column_name(col_ndx);
@@ -1530,7 +1530,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         }
 
         // Delete old int column, and rename tmp column to same name
-        // Index should stay the same as we control creation of table
+        // The column index for the renamed column will then be the same as the deleted old column
         pk_table->remove_column(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
     }
