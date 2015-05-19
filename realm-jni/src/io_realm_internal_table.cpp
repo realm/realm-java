@@ -1471,7 +1471,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
         size_t row_index = pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
 
         if (columnName == NULL || env->GetStringLength(columnName) == 0) {
-            // No primary key set => Remove any previous set keys
+            // No primary key provided => remove previous set keys
             if (row_index != realm::not_found) {
                 pk_table->remove(row_index);
             }
