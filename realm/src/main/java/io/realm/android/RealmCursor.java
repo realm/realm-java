@@ -20,6 +20,7 @@ import android.content.ContentResolver;
 import android.database.CharArrayBuffer;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.DataSetObservable;
 import android.database.DataSetObserver;
 import android.net.Uri;
@@ -34,18 +35,14 @@ import io.realm.internal.TableOrView;
 /**
  * This class exposes {@link io.realm.RealmResults} as a cursor.
  * <p>
- * It is possible to traverse links using dot notation to access data in linked objects, ie.
- * {@code cursor.getInt("foo.bar"} will return the integer from the {@code bar} field in the {@code foo} object.
- *
- * <p>
  * Many Android framework classes require the presences of an "_id" field. Instead of adding such a field to your
  * model class it is instead possible to use {@link #setIdColumn(String)}.
  * <p>
  * A RealmCursor has the same thread restrictions as RealmResults, so it is not possible to move a RealmCursor between
  * threads.
  * <p>
- * TODO How to handle RealmList? getString("realmList[0].name)"?
- * TODO How to iterate a RealmList?
+ * A RealmCursor is currently limited to only being able to display data from a single RealmClass, ie. it is not
+ * possible to follow links to other objects.
  */
 public class RealmCursor implements Cursor {
 
@@ -84,6 +81,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public int getCount() {
+        checkClosed();
         return (int) table.size();
     }
 
@@ -92,6 +90,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public int getPosition() {
+        checkClosed();
         return rowIndex;
     }
 
@@ -100,6 +99,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public final boolean move(int offset) {
+        checkClosed();
         return moveToPosition(rowIndex + offset);
     }
 
@@ -108,6 +108,8 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean moveToPosition(int position) {
+        checkClosed();
+
         // Verify position is not post the end of the cursor.
         final int count = getCount();
         if (position >= count) {
@@ -162,6 +164,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean isFirst() {
+        checkClosed();
         return rowIndex == 0 && getCount() != 0;
     }
 
@@ -170,6 +173,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean isLast() {
+        checkClosed();
         int count = getCount();
         return rowIndex == (count - 1) && count != 0;
     }
@@ -179,6 +183,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean isBeforeFirst() {
+        checkClosed();
         if (getCount() == 0) {
             return true;
         }
@@ -190,6 +195,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean isAfterLast() {
+        checkClosed();
         if (getCount() == 0) {
             return true;
         }
@@ -201,6 +207,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public int getColumnIndex(String columnName) {
+        checkClosed();
         if (idColumnIndex >= 0) {
             return (int) idColumnIndex;
         } else {
@@ -213,6 +220,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public int getColumnIndexOrThrow(String columnName) throws IllegalArgumentException {
+        checkClosed();
         int index = (int) table.getColumnIndex(columnName);
         if (index == TableOrView.NO_MATCH) {
             throw new IllegalArgumentException(columnName + " not found in this cursor.");
@@ -225,6 +233,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public String getColumnName(int columnIndex) {
+        checkClosed();
         return table.getColumnName(columnIndex);
     }
 
@@ -233,6 +242,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public String[] getColumnNames() {
+        checkClosed();
         int columns = (int) table.getColumnCount();
         String[] columnNames = new String[columns];
         for (int i = 0; i < columns; i++) {
@@ -246,6 +256,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public int getColumnCount() {
+        checkClosed();
         return (int) table.getColumnCount();
     }
 
@@ -254,6 +265,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public byte[] getBlob(int columnIndex) {
+        checkClosed();
         return table.getBinaryByteArray(columnIndex, rowIndex);
     }
 
@@ -262,6 +274,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public String getString(int columnIndex) {
+        checkClosed();
         return table.getString(columnIndex, rowIndex);
     }
 
@@ -270,6 +283,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public void copyStringToBuffer(int columnIndex, CharArrayBuffer buffer) {
+        checkClosed();
         String result = getString(columnIndex);
         if (result != null) {
             char[] data = buffer.data;
@@ -289,6 +303,8 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public short getShort(int columnIndex) {
+        checkClosed();
+        checkPosition();
         return (short) mapRealmTypeToCursor(columnIndex, false);
     }
 
@@ -297,6 +313,8 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public int getInt(int columnIndex) {
+        checkClosed();
+        checkPosition();
         return (int) mapRealmTypeToCursor(columnIndex, false);
     }
 
@@ -305,6 +323,8 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public long getLong(int columnIndex) {
+        checkClosed();
+        checkPosition();
         return mapRealmTypeToCursor(columnIndex, true);
     }
 
@@ -330,6 +350,8 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public float getFloat(int columnIndex) {
+        checkClosed();
+        checkPosition();
         return table.getFloat(columnIndex, rowIndex);
     }
 
@@ -338,6 +360,8 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public double getDouble(int columnIndex) {
+        checkClosed();
+        checkPosition();
         return table.getDouble(columnIndex, rowIndex);
     }
 
@@ -356,6 +380,7 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public int getType(int columnIndex) {
+        checkClosed();
         ColumnType realmType = table.getColumnType(columnIndex);
         switch (realmType) {
             case BOOLEAN: return Cursor.FIELD_TYPE_INTEGER;
@@ -544,5 +569,18 @@ public class RealmCursor implements Cursor {
         }
 
        this.idColumnIndex = idIndex;
+    }
+
+    private void checkClosed() {
+        if (closed) {
+            throw new IllegalStateException("Trying to access a closed cursor");
+        }
+    }
+
+    private void checkPosition() {
+        int size = getCount();
+        if (-1 == rowIndex || size == rowIndex) {
+            throw new CursorIndexOutOfBoundsException(rowIndex, size);
+        }
     }
 }
