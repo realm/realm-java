@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.android.RealmCursor;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationNameConventions;
+import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -97,6 +98,12 @@ public class RealmCursorTest extends AndroidTestCase {
         cursor.move(SIZE/2);
         assertFalse(cursor.move(SIZE));
         assertTrue(cursor.isAfterLast());
+    }
+
+    public void testMoveToPositionEmptyCursor() {
+        cursor = realm.where(CyclicType.class).findAll().getCursor();
+        assertFalse(cursor.moveToPosition(0));
+        assertEquals(0, cursor.getPosition());
     }
 
     public void testMoveToPosition() {
@@ -289,7 +296,7 @@ public class RealmCursorTest extends AndroidTestCase {
             try {
                 callGetter(cursorGetter);
                 fail(cursorGetter + " should throw an exception");
-            } catch (NullPointerException expected) {
+            } catch (IllegalStateException expected) {
             }
         }
     }

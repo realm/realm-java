@@ -77,7 +77,9 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the numbers of rows in the cursor.
+     *
+     * @return the number of rows in the cursor.
      */
     @Override
     public int getCount() {
@@ -86,7 +88,13 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the current position of the cursor in the row set.
+     * The value is zero-based. When the row set is first returned the cursor
+     * will be at position -1, which is before the first row. After the
+     * last row is returned another call to next() will leave the cursor past
+     * the last entry, at a position of count().
+     *
+     * @return the current cursor position.
      */
     @Override
     public int getPosition() {
@@ -95,7 +103,19 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Move the cursor by a relative amount, forward or backward, from the
+     * current position. Positive offsets move forwards, negative offsets move
+     * backwards. If the final position is outside of the bounds of the result
+     * set then the resultant position will be pinned to -1 or count() depending
+     * on whether the value is off the front or end of the set, respectively.
+     *
+     * <p>This method will return true if the requested destination was
+     * reachable, otherwise, it returns false. For example, if the cursor is at
+     * currently on the second entry in the result set and move(-5) is called,
+     * the position will be pinned at -1, and false will be returned.
+     *
+     * @param offset the offset to be applied from the current position.
+     * @return whether the requested move fully succeeded.
      */
     @Override
     public final boolean move(int offset) {
@@ -104,13 +124,21 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Move the cursor to an absolute position. The valid
+     * range of values is -1 &lt;= position &lt;= count.
+     *
+     * <p>This method will return true if the request destination was reachable,
+     * otherwise, it returns false.
+     *
+     * @param position the zero-based position to move to.
+     * @return whether the requested move fully succeeded.
      */
     @Override
     public boolean moveToPosition(int position) {
         checkClosed();
 
-        // Verify position is not post the end of the cursor.
+        // Verify position is not beyond the end of the cursor.
+        // This also captures moveToPosition(0) for the empty cursor.
         final int count = getCount();
         if (position >= count) {
             rowIndex = count;
@@ -128,7 +156,11 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Move the cursor to the first row.
+     *
+     * <p>This method will return false if the cursor is empty.
+     *
+     * @return whether the move succeeded.
      */
     @Override
     public boolean moveToFirst() {
@@ -136,7 +168,11 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Move the cursor to the last row.
+     *
+     * <p>This method will return false if the cursor is empty.
+     *
+     * @return whether the move succeeded.
      */
     @Override
     public boolean moveToLast() {
@@ -144,7 +180,12 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Move the cursor to the next row.
+     *
+     * <p>This method will return false if the cursor is already past the
+     * last entry in the result set.
+     *
+     * @return whether the move succeeded.
      */
     @Override
     public boolean moveToNext() {
@@ -152,7 +193,12 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Move the cursor to the previous row.
+     *
+     * <p>This method will return false if the cursor is already before the
+     * first entry in the result set.
+     *
+     * @return whether the move succeeded.
      */
     @Override
     public boolean moveToPrevious() {
@@ -160,7 +206,9 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns whether the cursor is pointing to the first row.
+     *
+     * @return whether the cursor is pointing at the first entry.
      */
     @Override
     public boolean isFirst() {
@@ -169,7 +217,9 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns whether the cursor is pointing to the last row.
+     *
+     * @return whether the cursor is pointing at the last entry.
      */
     @Override
     public boolean isLast() {
@@ -179,7 +229,10 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns whether the cursor is pointing to the position before the first
+     * row.
+     *
+     * @return whether the cursor is before the first result.
      */
     @Override
     public boolean isBeforeFirst() {
@@ -191,7 +244,10 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns whether the cursor is pointing to the position after the last
+     * row.
+     *
+     * @return whether the cursor is after the last result.
      */
     @Override
     public boolean isAfterLast() {
@@ -203,7 +259,14 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the zero-based index for the given column name, or -1 if the column doesn't exist.
+     * If you expect the column to exist use {@link #getColumnIndexOrThrow(String)} instead, which
+     * will make the error more clear.
+     *
+     * @param columnName the name of the target column.
+     * @return the zero-based column index for the given column name, or -1 if
+     * the column name does not exist.
+     * @see #getColumnIndexOrThrow(String)
      */
     @Override
     public int getColumnIndex(String columnName) {
@@ -216,7 +279,15 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the zero-based index for the given column name, or throws
+     * {@link IllegalArgumentException} if the column doesn't exist. If you're not sure if
+     * a column will exist or not use {@link #getColumnIndex(String)} and check for -1, which
+     * is more efficient than catching the exceptions.
+     *
+     * @param columnName the name of the target column.
+     * @return the zero-based column index for the given column name
+     * @see #getColumnIndex(String)
+     * @throws IllegalArgumentException if the column does not exist
      */
     @Override
     public int getColumnIndexOrThrow(String columnName) throws IllegalArgumentException {
@@ -229,7 +300,10 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the column name at the given zero-based column index.
+     *
+     * @param columnIndex the zero-based index of the target column.
+     * @return the column name for the given column index.
      */
     @Override
     public String getColumnName(int columnIndex) {
@@ -238,7 +312,10 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns a string array holding the names of all of the columns in the
+     * result set in the order in which they were listed in the result.
+     *
+     * @return the names of the columns returned in this query.
      */
     @Override
     public String[] getColumnNames() {
@@ -252,7 +329,8 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Return total number of columns
+     * @return number of columns
      */
     @Override
     public int getColumnCount() {
@@ -261,7 +339,11 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the value of the requested column as a byte array.
+     *
+     * @param columnIndex the zero-based index of the target column.
+     * @return the value of that column as a byte array.
+     * @throws IllegalArgumentException if the requested column is not a byte array.
      */
     @Override
     public byte[] getBlob(int columnIndex) {
@@ -270,7 +352,11 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the value of the requested column as a String.
+     *
+     * @param columnIndex the zero-based index of the target column.
+     * @return the value of that column as a String.
+     * @throws IllegalArgumentException if the requested column is not a String.
      */
     @Override
     public String getString(int columnIndex) {
@@ -279,7 +365,13 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves the requested column text and stores it in the buffer provided.
+     * If the buffer size is not sufficient, a new char buffer will be allocated
+     * and assigned to CharArrayBuffer.data
+     * @param columnIndex the zero-based index of the target column.
+     *        if the target column is null, return buffer
+     * @param buffer the buffer to copy the text into.
+     * @throws IllegalArgumentException if the requested column is not a String.
      */
     @Override
     public void copyStringToBuffer(int columnIndex, CharArrayBuffer buffer) {
@@ -299,7 +391,14 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the value of the requested column as a short.
+     *
+     * <p>Integer values outside the range [<code>Short.MIN_VALUE</code>,
+     * <code>Short.MAX_VALUE</code>] will overflow.
+     *
+     * @param columnIndex the zero-based index of the target column.
+     * @return the value of that column as a short.
+     * @throws IllegalArgumentException if the requested column is not a short, int or long.
      */
     @Override
     public short getShort(int columnIndex) {
@@ -309,7 +408,14 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the value of the requested column as an int.
+     *
+     * <p>Integer values outside the range [<code>Integer.MIN_VALUE</code>,
+     * <code>Integer.MAX_VALUE</code>] will overflow.
+     *
+     * @param columnIndex the zero-based index of the target column.
+     * @return the value of that column as an int.
+     * @throws IllegalArgumentException if the requested column is not a short, int or long.
      */
     @Override
     public int getInt(int columnIndex) {
@@ -319,7 +425,11 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the value of the requested column as a long.
+     *
+     * @param columnIndex the zero-based index of the target column.
+     * @return the value of that column as a long.
+     * @throws IllegalArgumentException if the requested column is not a short, int or long.
      */
     @Override
     public long getLong(int columnIndex) {
@@ -346,7 +456,13 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the value of the requested column as a float. Note that {@link #getType(int)} will return
+     * {@link Cursor#FIELD_TYPE_FLOAT} for both {@code float} and {@code double} columns.
+     *
+     * @param columnIndex the zero-based index of the target column.
+     * @return the value of that column as a float.
+     *
+     * @throws IllegalArgumentException if the requested column is not a float.
      */
     @Override
     public float getFloat(int columnIndex) {
@@ -356,7 +472,12 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the value of the requested column as a double. Note that {@link #getType(int)} will return
+     * {@link Cursor#FIELD_TYPE_FLOAT} for both {@code float} and {@code double} columns.
+     *
+     * @param columnIndex the zero-based index of the target column.
+     * @return the value of that column as a double.
+     * @throws IllegalArgumentException if the requested column is not a double.
      */
     @Override
     public double getDouble(int columnIndex) {
@@ -442,7 +563,8 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Return true if the cursor is closed
+     * @return true if the cursor is closed.
      */
     @Override
     public boolean isClosed() {
@@ -470,7 +592,12 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Register an observer that is called when changes happen to the contents
+     * of the this cursors data set, for example, when the data set is changed via
+     * {@link #requery()}, {@link #deactivate()}, or {@link #close()}.
+     *
+     * @param observer the object that gets notified when the cursors data set changes.
+     * @see #unregisterDataSetObserver(DataSetObserver)
      */
     @Override
     public void registerDataSetObserver(DataSetObserver observer) {
@@ -478,7 +605,11 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * {@inheritDoc}
+     * Unregister an observer that has previously been registered with this
+     * cursor via {@link #registerContentObserver}.
+     *
+     * @param observer the object to unregister.
+     * @see #registerDataSetObserver(DataSetObserver)
      */
     @Override
     public void unregisterDataSetObserver(DataSetObserver observer) {
