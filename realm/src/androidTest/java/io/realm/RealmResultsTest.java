@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
+import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 
@@ -57,11 +58,15 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long) 1000*i));
+            allTypes.setColumnDate(new Date((long) 1000 * i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
+            Dog d = testRealm.createObject(Dog.class);
+            d.setName("Foo " + i);
+            allTypes.setColumnRealmObject(d);
+            allTypes.getColumnRealmList().add(d);
         }
         testRealm.commitTransaction();
     }
@@ -698,6 +703,22 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
     }
 
+    public void testUnsupportedMethods() {
+        RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
+
+        try { result.add(null);     fail(); } catch (UnsupportedOperationException expected) {}
+        try { result.set(0, null);  fail(); } catch (UnsupportedOperationException expected) {}
+    }
+
+
+    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideWriteTransactions() {
+        RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
+
+        try { result.clear();       fail(); } catch (IllegalStateException expected) {}
+        try { result.remove(0);     fail(); } catch (IllegalStateException expected) {}
+        try { result.removeLast();  fail(); } catch (IllegalStateException expected) {}
+    }
 
     // TODO: More extended tests of querying all types must be done.
 }

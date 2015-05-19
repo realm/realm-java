@@ -1638,6 +1638,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private void throwImmutable() {
-        throw new IllegalStateException("Mutable method call during read transaction.");
+        throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
     }
 }

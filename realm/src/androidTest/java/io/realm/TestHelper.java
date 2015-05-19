@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.content.res.AssetManager;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.BufferedReader;
@@ -31,6 +32,7 @@ import java.util.Date;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import java.nio.charset.Charset;
 
 public class TestHelper {
 
@@ -81,6 +83,10 @@ public class TestHelper {
         }
 
         return sb.toString();
+    }
+
+    public static InputStream stringToStream(String str) {
+        return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
     }
 
     // Copies a Realm file from assets to app files dir
