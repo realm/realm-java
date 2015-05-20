@@ -75,15 +75,28 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     }
 
     public static void validateTable(ImplicitTransaction transaction) {
-        if(transaction.hasTable("class_NullTypes")) {
+        if (transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
-            if(table.getColumnCount() != 2) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match");
+            if (table.getColumnCount() != 2) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for(long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
+
+            columnIndices = new HashMap<String, Long>();
+            for (String fieldName : getFieldNames()) {
+                long index = table.getColumnIndex(fieldName);
+                if (index == -1) {
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type NullTypes");
+                }
+                columnIndices.put(fieldName, index);
+            }
+
+            INDEX_FIELDSTRINGNOTNULL = table.getColumnIndex("fieldStringNotNull");
+            INDEX_FIELDSTRINGNULL = table.getColumnIndex("fieldStringNull");
+
             if (!columnTypes.containsKey("fieldStringNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNotNull'");
             }
@@ -96,16 +109,6 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             if (columnTypes.get("fieldStringNull") != ColumnType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNull'");
             }
-            columnIndices = new HashMap<String, Long>();
-            for (String fieldName : getFieldNames()) {
-                long index = table.getColumnIndex(fieldName);
-                if (index == -1) {
-                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type NullTypes");
-                }
-                columnIndices.put(fieldName, index);
-            }
-            INDEX_FIELDSTRINGNOTNULL = table.getColumnIndex("fieldStringNotNull");
-            INDEX_FIELDSTRINGNULL = table.getColumnIndex("fieldStringNull");
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The NullTypes class is missing from the schema for this Realm.");
         }
