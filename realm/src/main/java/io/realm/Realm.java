@@ -1206,7 +1206,12 @@ public final class Realm implements Closeable {
      */
     public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        changeListeners.remove(new WeakReference<RealmChangeListener>(listener));
+        Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
+        while (iterator.hasNext()) {
+            if (listener == iterator.next().get()) {
+                iterator.remove();
+            }
+        }
     }
 
     /**

@@ -94,6 +94,70 @@ public class NotificationsTest extends AndroidTestCase {
         assertTrue(Realm.realmsCache.get().isEmpty());
     }
 
+    public void testRemoveNotifications () throws InterruptedException, ExecutionException {
+        final AtomicInteger counter = new AtomicInteger(0);
+        final AtomicBoolean isReady = new AtomicBoolean(false);
+        final Looper[] looper = new Looper[1];
+        final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Realm realm = null;
+                try {
+                    Looper.prepare();
+                    looper[0] = Looper.myLooper();
+                    realm = Realm.getInstance(getContext());
+                    RealmChangeListener listener = new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            counter.incrementAndGet();
+                        }
+                    };
+                    realm.addChangeListener(listener);
+                    realm.removeChangeListener(listener);
+                    isReady.set(true);
+                    Looper.loop();
+                } finally {
+                    if (realm != null) {
+                        realm.close();
+                        isRealmOpen.set(false);
+                    }
+                }
+                return true;
+            }
+        });
+
+        // Wait until the looper is started
+        while (!isReady.get()) {
+            Thread.sleep(5);
+        }
+        Thread.sleep(100);
+
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("Rex");
+        realm.commitTransaction();
+        realm.close();
+
+        try {
+            future.get(1, TimeUnit.SECONDS);
+        } catch (TimeoutException ignore) {
+        } finally {
+            looper[0].quit();
+        }
+
+        // Wait until the Looper thread is actually closed
+        while (isRealmOpen.get()) {
+            Thread.sleep(5);
+        }
+
+        assertEquals(0, counter.get());
+        assertTrue(Realm.realmsCache.get().isEmpty());
+    }
+
     public void testNotificationsNumber () throws InterruptedException, ExecutionException {
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
