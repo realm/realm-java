@@ -1158,8 +1158,8 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field name.
      *
-     * Sorting is currently limited to character sets in ‘Latin Basic’, ‘Latin Supplement’, ‘Latin Extended A’,
-     * ‘Latin Extended B’ (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
      * @param sortAscending sort ascending if <code>SORT_ORDER_ASCENDING</code>, sort descending
@@ -1184,8 +1184,8 @@ public class RealmQuery<E extends RealmObject> {
      * Find all objects that fulfill the query conditions and sorted by specific field name in
      * ascending order.
      *
-     * Sorting is currently limited to character sets in ‘Latin Basic’, ‘Latin Supplement’, ‘Latin Extended A’,
-     * ‘Latin Extended B’ (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
      * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition,
@@ -1199,8 +1199,8 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names.
      *
-     * Sorting is currently limited to character sets in ‘Latin Basic’, ‘Latin Supplement’, ‘Latin Extended A’,
-     * ‘Latin Extended B’ (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldNames an array of field names to sort by.
      * @param sortAscending sort ascending if <code>SORT_ORDER_ASCENDING</code>, sort descending
@@ -1246,8 +1246,8 @@ public class RealmQuery<E extends RealmObject> {
      * Find all objects that fulfill the query conditions and sorted by specific field names in
      * ascending order.
      *
-     * Sorting is currently limited to character sets in ‘Latin Basic’, ‘Latin Supplement’, ‘Latin Extended A’,
-     * ‘Latin Extended B’ (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName1 first field name
      * @param sortAscending1 sort order for first field
@@ -1267,8 +1267,8 @@ public class RealmQuery<E extends RealmObject> {
      * Find all objects that fulfill the query conditions and sorted by specific field names in
      * ascending order.
      *
-     * Sorting is currently limited to character sets in ‘Latin Basic’, ‘Latin Supplement’, ‘Latin Extended A’,
-     * ‘Latin Extended B’ (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
+     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName1 first field name
      * @param sortAscending1 sort order for first field
