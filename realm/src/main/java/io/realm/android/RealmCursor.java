@@ -539,7 +539,12 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean isNull(int columnIndex) {
-        throw new UnsupportedOperationException("Null not yet supported by Realm");
+        ColumnType realmType = table.getColumnType(columnIndex);
+        if (realmType == ColumnType.LINK) {
+            return table.isNullLink(columnIndex, rowIndex);
+        } else {
+            throw new UnsupportedOperationException("isNull not yet supported by Realm for this type: " + realmType);
+        }
     }
 
     /**
@@ -660,7 +665,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Realm doesn't support extra metadata in the form a bundle. This method will always return the empty bundle.
+     * Realm doesn't support extra metadata in the form of a bundle. This method will always return the empty bundle.
      *
      * @return {@code Bundle.EMPTY}
      */
@@ -670,7 +675,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Realm doesn't support extra metadata in the form a bundle. This method will always return the empty bundle.
+     * Realm doesn't support extra metadata in the form of a bundle. This method will always return the empty bundle.
      *
      * @return {@code Bundle.EMPTY}
      */
@@ -681,7 +686,7 @@ public class RealmCursor implements Cursor {
 
     /**
      * Map a field name to also act as the "_id" column. Such a column is required by a number of Android framework
-     * classes that uses cursors. The field must be able to mapped to a long so {@link #getLong(int)} can return a
+     * classes that uses cursors. The field must be able to be mapped to a long so {@link #getLong(int)} can return a
      * result. If a field already exists in the model class with the name "_id" calling this method will throw an
      * {@link IllegalArgumentException}.
      *

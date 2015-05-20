@@ -80,7 +80,6 @@ public class RealmResultsTest extends AndroidTestCase {
 
     private void populateTestRealm() {
         populateTestRealm(TEST_DATA_SIZE);
-//        TestHelper.populateTestRealm(testRealm, TEST_DATA_SIZE);
     }
 
     @Override

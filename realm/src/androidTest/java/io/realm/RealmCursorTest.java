@@ -475,6 +475,11 @@ public class RealmCursorTest extends AndroidTestCase {
         assertTrue(cursor.isClosed());
     }
 
+    public void testIsNull() {
+        cursor.moveToFirst();
+        assertFalse(cursor.isNull(AllTypes.COL_INDEX_OBJECT));
+    }
+
     public void testRegisterDataSetObserverNullThrows() {
         try {
             cursor.registerDataSetObserver(null);
