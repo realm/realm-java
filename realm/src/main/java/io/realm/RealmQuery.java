@@ -217,7 +217,8 @@ public class RealmQuery<E extends RealmObject> {
      * Equal-to comparison
      * @param fieldName   The field to compare
      * @param value       The value to compare with
-     * @param caseSensitive if true, substring matching is case sensitive
+     * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for ASCII
+     *                      characters.
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
@@ -339,7 +340,8 @@ public class RealmQuery<E extends RealmObject> {
      * Not-equal-to comparison
      * @param fieldName  The field to compare
      * @param value      The value to compare with
-     * @param caseSensitive if true, substring matching is case sensitive
+     * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for ASCII
+     *                      characters.
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
@@ -880,7 +882,8 @@ public class RealmQuery<E extends RealmObject> {
      * Condition that the value of field begins with the specified substring
      * @param fieldName The field to compare
      * @param value     The substring
-     * @param caseSensitive if true, substring matching is case sensitive
+     * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for ASCII
+     *                      characters.
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
@@ -909,7 +912,8 @@ public class RealmQuery<E extends RealmObject> {
      * Condition that the value of field ends with the specified substring
      * @param fieldName The field to compare
      * @param value     The substring
-     * @param caseSensitive if true, substring matching is case sensitive
+     * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for ASCII
+     *                      characters.
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type
