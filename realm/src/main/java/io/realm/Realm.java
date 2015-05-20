@@ -143,7 +143,7 @@ public final class Realm implements Closeable {
 
     // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
     private static final Map<String, AtomicInteger> openRealms = new ConcurrentHashMap<String, AtomicInteger>();
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
+    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String INVALID_KEY_MESSAGE = "The provided key is invalid. It should either be null or be 64" +
             " bytes long.";
