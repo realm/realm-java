@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <realm.hpp>
+ 
 #include "util.hpp"
 #include "io_realm_internal_TableQuery.h"
 #include "tablequery.hpp"
@@ -23,11 +25,13 @@ using namespace realm;
 #if 1
 #define COL_TYPE_VALID(env,ptr,col, type)           TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)
 #define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)
+#define COL_TYPE_NULLABLE(env,ptr,col)              TBL_AND_COL_NULLABLE(env,ptr,col)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  query_col_type_valid(env, jPtr, col, type)
 #define QUERY_VALID(env, pQuery)                    query_valid(env, pQuery)
 #else
 #define COL_TYPE_VALID(env,ptr,col, type)           (true)
 #define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      (true)
+#define COL_TYPE_NULLABLE(env,ptr,col)              (true)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  (true)
 #define QUERY_VALID(env, pQuery)                    (true)
 #endif
@@ -1180,9 +1184,25 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
     Query* pQuery = Q(nativeQueryPtr);
     try {
         Table* pTable = pQuery->get_table().get();
-        if (!COL_TYPE_LINK_OR_LINKLIST(env, pTable, columnIndex))
+        if (!COL_TYPE_NULLABLE(env, pTable, columnIndex))
             return;
-        Query query = pTable->column<Link>(S(columnIndex)).is_null();
-        pQuery->and_query(query);
+
+        int col_type = pTable->get_column_type(S(columnIndex));
+        switch (col_type) {
+            case type_Link:
+            case type_LinkList: {
+                Query query = pTable->column<Link>(S(columnIndex)).is_null();
+                pQuery->and_query(query);
+                break;
+            }
+            case type_String: {
+                Query query = pTable->column<String>(S(columnIndex)).equal(realm::null());
+                pQuery->and_query(query);
+                break;
+            }
+            default:
+                // this point is inreachable
+                return ;
+        }
     } CATCH_STD()
 }

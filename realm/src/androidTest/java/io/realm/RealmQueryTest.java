@@ -484,6 +484,15 @@ public class RealmQueryTest extends AndroidTestCase{
         }
     }
 
+    public void testQueryNullStringsNotNullableFieldIsNull() {
+        try {
+            RealmResults<NullTypes> nullTypes = testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignore) {
+        }
+    }
+
     public void testQueryNullStringsEqual() {
         populateTestRealmForNullTests();
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
@@ -491,10 +500,20 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").findAll().size());
     }
 
+    public void testQueryNullStringsIsNull() {
+        populateTestRealmForNullTests();
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+    }
+
     public void testQueryNullStringsNotEqual() {
         populateTestRealmForNullTests();
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
-        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String)null).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
+    }
+
+    public void testQueryNullStringsIsNotNull() {
+        populateTestRealmForNullTests();
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_STRING_NULL).findAll().size());
     }
 
     public void testQueryNullStringsBeginsWith() {
