@@ -323,6 +323,8 @@ public class NotificationsTest extends AndroidTestCase {
         realm.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
+                // Listener should only be called once
+                assertFalse(success.get());
                 success.set(true);
             }
         });

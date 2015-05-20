@@ -1524,7 +1524,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
 // See https://github.com/realm/realm-java/issues/1059
 // This methods converts the old (wrong) table format (string, integer) to the right (string,string) format.
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
-    (JNIEnv* env, jobject, jlong groupNativePtr, jlong privateKeyTableNativePtr)
+    (JNIEnv*, jobject, jlong groupNativePtr, jlong privateKeyTableNativePtr)
 {
     Group* group = G(groupNativePtr);
     Table* pk_table = TBL(privateKeyTableNativePtr);
