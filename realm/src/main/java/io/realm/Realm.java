@@ -1520,7 +1520,7 @@ public final class Realm implements Closeable {
      * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName, byte[] key) {
-        if (key != null || key.length > 0) {
+        if (key != null) {
             throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
         }
 
