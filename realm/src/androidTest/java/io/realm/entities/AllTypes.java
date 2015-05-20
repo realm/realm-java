@@ -23,7 +23,6 @@ import io.realm.RealmObject;
 
 public class AllTypes extends RealmObject {
 
-
     public static final int COL_COUNT = 9;
     public static final int COL_INDEX_STRING = 0;
     public static final int COL_INDEX_LONG = 1;
