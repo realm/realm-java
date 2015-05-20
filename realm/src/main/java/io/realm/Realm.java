@@ -1448,6 +1448,8 @@ public final class Realm implements Closeable {
      * @param context an Android {@link android.content.Context}.
      * @return false if a file could not be deleted. The failing file will be logged.
      * @see io.realm.Realm#clear(Class)
+     *
+     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static boolean deleteRealmFile(Context context) {
         return deleteRealmFile(context, DEFAULT_REALM_NAME);
@@ -1460,6 +1462,8 @@ public final class Realm implements Closeable {
      * @param context  an Android {@link android.content.Context}.
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
+     *
+     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static boolean deleteRealmFile(Context context, String fileName) {
         return deleteRealmFile(new File(context.getFilesDir(), fileName));
@@ -1471,6 +1475,8 @@ public final class Realm implements Closeable {
      *
      * @param realmFile The reference to the Realm file.
      * @return false if a file could not be deleted. The failing file will be logged.
+     *
+     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static synchronized boolean deleteRealmFile(File realmFile) {
         boolean result = true;
