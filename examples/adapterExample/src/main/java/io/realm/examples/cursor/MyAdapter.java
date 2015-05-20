@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.realmadapters;
+package io.realm.examples.cursor;
 
 import android.content.Context;
 import android.view.View;
@@ -24,7 +24,7 @@ import android.widget.TextView;
 
 import io.realm.RealmBaseAdapter;
 import io.realm.RealmResults;
-import io.realm.examples.realmadapters.models.TimeStamp;
+import io.realm.examples.cursor.models.TimeStamp;
 
 public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapter {
 

@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.examples.realmadapters;
+package io.realm.examples.cursor;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
 import io.realm.Realm;
-import io.realm.examples.realmadapters.models.TimeStamp;
+import io.realm.examples.cursor.models.TimeStamp;
 
 public class WorkerHandler extends Handler {
 

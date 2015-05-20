@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.examples.realmadapters.models;
+package io.realm.examples.cursor.models;
 
 import io.realm.RealmObject;
 

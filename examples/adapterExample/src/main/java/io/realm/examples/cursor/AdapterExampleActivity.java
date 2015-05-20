@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.realmadapters;
+package io.realm.examples.cursor;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -27,7 +27,7 @@ import android.widget.ListView;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
-import io.realm.examples.realmadapters.models.TimeStamp;
+import io.realm.examples.cursor.models.TimeStamp;
 
 
 public class AdapterExampleActivity extends Activity {
