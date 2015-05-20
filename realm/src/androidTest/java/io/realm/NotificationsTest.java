@@ -32,13 +32,24 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 
 public class NotificationsTest extends AndroidTestCase {
 
+    private Realm realm;
+
     @Override
     protected void setUp() throws Exception {
         Realm.deleteRealmFile(getContext());
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        if (realm != null) {
+            realm.close();
+        }
     }
 
     public void testFailingSetAutoRefreshOnNonLooperThread() throws ExecutionException, InterruptedException {
@@ -116,12 +127,13 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
 
-        // Wait until the looper is started
+        // Wait until the looper in the background thread is started
         while (!isReady.get()) {
             Thread.sleep(5);
         }
         Thread.sleep(100); 
 
+        // Trigger OnRealmChanged on background thread
         Realm realm = Realm.getInstance(getContext());
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
@@ -303,5 +315,34 @@ public class NotificationsTest extends AndroidTestCase {
         assertNotNull(instance1.getHandler());
         instance1.close();
         assertNull(instance1.getHandler());
+    }
+
+    public void testImmediateNotificationsOnSameThread() {
+        final AtomicBoolean success = new AtomicBoolean(false);
+        realm = Realm.getInstance(getContext());
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                success.set(true);
+            }
+        });
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        assertTrue(success.get());
+    }
+
+    public void testEmptyCommitTriggerChangeListener() {
+        final AtomicBoolean success = new AtomicBoolean(false);
+        realm = Realm.getInstance(getContext());
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                success.set(true);
+            }
+        });
+        realm.beginTransaction();
+        realm.commitTransaction();
+        assertTrue(success.get());
     }
 }
