@@ -460,7 +460,6 @@ public class RealmCursorTest extends AndroidTestCase {
 
     public void testUnsupportedMethods() {
         cursor.moveToFirst();
-        // TODO We do support isNull for Objects.
         try { cursor.isNull(AllTypes.COL_INDEX_STRING); fail(); } catch (UnsupportedOperationException expected) {}
         try { cursor.deactivate();                      fail(); } catch (UnsupportedOperationException expected) {}
         try { cursor.requery();                         fail(); } catch (UnsupportedOperationException expected) {}

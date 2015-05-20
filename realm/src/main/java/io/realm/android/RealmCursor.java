@@ -48,6 +48,28 @@ public class RealmCursor implements Cursor {
 
     private static final String DEFAULT_ID_COLUMN = "_id";
 
+    // Needed because constants are only available from API 11
+    private static final int FIELD_TYPE_NULL;
+    private static final int FIELD_TYPE_INTEGER;
+    private static final int FIELD_TYPE_FLOAT;
+    private static final int FIELD_TYPE_STRING;
+    private static final int FIELD_TYPE_BLOB;
+    static {
+        if (android.os.Build.VERSION.SDK_INT >= 11) {
+            FIELD_TYPE_NULL = Cursor.FIELD_TYPE_NULL;
+            FIELD_TYPE_INTEGER = Cursor.FIELD_TYPE_INTEGER;
+            FIELD_TYPE_FLOAT = Cursor.FIELD_TYPE_FLOAT;
+            FIELD_TYPE_STRING = Cursor.FIELD_TYPE_STRING;
+            FIELD_TYPE_BLOB = Cursor.FIELD_TYPE_BLOB;
+        } else {
+            FIELD_TYPE_NULL = 0;
+            FIELD_TYPE_INTEGER = 1;
+            FIELD_TYPE_FLOAT = 2;
+            FIELD_TYPE_STRING = 3;
+            FIELD_TYPE_BLOB = 4;
+        }
+    }
+
     private final Realm realm;
     private TableOrView table;
     private int rowIndex;
@@ -62,6 +84,7 @@ public class RealmCursor implements Cursor {
             }
         }
     };
+
 
     /**
      * Exposes a query result as a cursor. Use {@link RealmResults#getCursor()} instead of this
@@ -516,13 +539,13 @@ public class RealmCursor implements Cursor {
         checkClosed();
         ColumnType realmType = table.getColumnType(columnIndex);
         switch (realmType) {
-            case BOOLEAN: return Cursor.FIELD_TYPE_INTEGER;
-            case INTEGER: return Cursor.FIELD_TYPE_INTEGER;
-            case FLOAT: return Cursor.FIELD_TYPE_FLOAT;
-            case DOUBLE: return Cursor.FIELD_TYPE_FLOAT;
-            case STRING: return Cursor.FIELD_TYPE_STRING;
-            case BINARY: return Cursor.FIELD_TYPE_BLOB;
-            case DATE: return Cursor.FIELD_TYPE_INTEGER;
+            case BOOLEAN: return FIELD_TYPE_INTEGER;
+            case INTEGER: return FIELD_TYPE_INTEGER;
+            case FLOAT: return FIELD_TYPE_FLOAT;
+            case DOUBLE: return FIELD_TYPE_FLOAT;
+            case STRING: return FIELD_TYPE_STRING;
+            case BINARY: return FIELD_TYPE_BLOB;
+            case DATE: return FIELD_TYPE_INTEGER;
             case TABLE:
             case MIXED:
             case LINK:
