@@ -1300,7 +1300,6 @@ public final class Realm implements Closeable {
                 handler.sendEmptyMessage(REALM_CHANGED);
             }
         }
-        sendNotifications();
     }
 
     /**
