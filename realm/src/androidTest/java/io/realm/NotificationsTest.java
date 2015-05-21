@@ -114,6 +114,26 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(0, counter.get());
     }
 
+    public void testAddDuplicatedListener() throws InterruptedException, ExecutionException {
+        final AtomicInteger counter= new AtomicInteger(0);
+        RealmChangeListener listener = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                counter.incrementAndGet();
+            }
+        };
+
+        realm = Realm.getInstance(getContext());
+        realm.addChangeListener(listener);
+        realm.addChangeListener(listener);
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        assertEquals(1, counter.get());
+    }
+
     public void testNotificationsNumber () throws InterruptedException, ExecutionException {
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);

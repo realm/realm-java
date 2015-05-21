@@ -1195,6 +1195,13 @@ public final class Realm implements Closeable {
      */
     public void addChangeListener(RealmChangeListener listener) {
         checkIfValid();
+        for (WeakReference<RealmChangeListener> ref : changeListeners) {
+            if (ref.get() == listener) {
+                // It is already added before
+                return;
+            }
+        }
+
         changeListeners.add(new WeakReference<RealmChangeListener>(listener));
     }
 
@@ -1210,6 +1217,8 @@ public final class Realm implements Closeable {
         while (iterator.hasNext()) {
             if (listener == iterator.next().get()) {
                 iterator.remove();
+                // There won't be duplicated entries, checking is done when adding
+                break;
             }
         }
     }
