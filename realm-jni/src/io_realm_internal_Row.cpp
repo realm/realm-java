@@ -285,11 +285,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeSetString
         return;
 
     try {
-        if (value == NULL) {
-            if (!(ROW(nativeRowPtr)->get_table()->is_nullable( S(columnIndex) ))) {
-                ThrowException(env, IllegalArgument, "Trying to set field to null but field is not nullable.");
-                return;
-            }
+        if ((value == NULL) && !(ROW(nativeRowPtr)->get_table()->is_nullable( S(columnIndex) ))) {
+            ThrowNullValueException(env, ROW(nativeRowPtr)->get_table(), S(columnIndex));
+            return;
         }
         JStringAccessor value2(env, value); // throws
         ROW(nativeRowPtr)->set_string( S(columnIndex), value2);

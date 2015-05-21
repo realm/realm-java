@@ -681,26 +681,26 @@ void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray co
                 return;
             }
         }
-        bool isCaseSensitive = caseSensitive ? true : false;
+        bool is_case_sensitive = caseSensitive ? true : false;
         JStringAccessor value2(env, value); // throws
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_String))
                 return;
             switch (predicate) {
             case StringEqual:
-                Q(nativeQueryPtr)->equal(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->equal(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringNotEqual:
-                Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringContains:
-                Q(nativeQueryPtr)->contains(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->contains(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringBeginsWith:
-                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringEndsWith:
-                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2, is_case_sensitive);
                 break;
             }
         }
@@ -714,19 +714,19 @@ void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray co
             }
             switch (predicate) {
             case StringEqual:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).equal(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).equal(StringData(value2), is_case_sensitive));
                 break;
             case StringNotEqual:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).not_equal(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).not_equal(StringData(value2), is_case_sensitive));
                 break;
             case StringContains:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).contains(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).contains(StringData(value2), is_case_sensitive));
                 break;
             case StringBeginsWith:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).begins_with(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).begins_with(StringData(value2), is_case_sensitive));
                 break;
             case StringEndsWith:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).ends_with(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).ends_with(StringData(value2), is_case_sensitive));
                 break;
             }
         }

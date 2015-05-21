@@ -124,6 +124,7 @@ enum ExceptionKind {
 void ConvertException(JNIEnv* env, const char *file, int line);
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr="");
 void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr);
+void ThrowNullValueException(JNIEnv* env, Table *table, size_t col_ndx);
 
 jclass GetClass(JNIEnv* env, const char* classStr);
 

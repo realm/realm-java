@@ -719,6 +719,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
     }
 
+    // Setting a not-nullable field to null is an error
     public void testNullStringNotNullableField() {
         populateTestRealmForNullTests();
         RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
@@ -727,13 +728,14 @@ public class RealmResultsTest extends AndroidTestCase {
             list.first().setFieldStringNotNull(null);
             fail();
         }
-        catch (IllegalArgumentException ignore) {
+        catch (IllegalArgumentException expected) {
         }
         finally {
             testRealm.cancelTransaction();
         }
     }
 
+    // Setting a nullable field to null is not an error
     public void testSetNullString() {
         populateTestRealmForNullTests();
         RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);

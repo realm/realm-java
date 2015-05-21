@@ -82,24 +82,10 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileSNullTypesFile() {
-        ASSERT.about(javaSource())
-                .that(nullTypesModel)
-                .compilesWithoutError();
-    }
-
-    @Test
     public void compileProcessedNullTypesFile() throws Exception {
         ASSERT.about(javaSource())
                 .that(nullTypesModel)
                 .processedWith(new RealmProcessor())
-                .compilesWithoutError();
-    }
-
-    @Test
-    public void compileNullTypesProxyFile() throws Exception {
-        ASSERT.about(javaSource())
-                .that(nullTypesProxy)
                 .compilesWithoutError();
     }
 

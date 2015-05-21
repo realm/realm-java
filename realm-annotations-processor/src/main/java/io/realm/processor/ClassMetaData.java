@@ -302,8 +302,7 @@ public class ClassMetaData {
                     // * String
                     String elementTypeCanonicalName = variableElement.asType().toString();
                     String variableElementName = variableElement.getSimpleName().toString();
-                    if (Utils.isString(variableElement)
-                            && nullableFieldNames.contains(variableElementName)) {
+                    if (Utils.isString(variableElement) && nullableFieldNames.contains(variableElementName)) {
                         nullableFieldNames.remove(variableElement);
                     }
                 }
@@ -319,8 +318,7 @@ public class ClassMetaData {
                     }
 
                     // A field cannot be nullable and primary key. Currently only String can be nullable
-                    if (Utils.isString(variableElement)
-                            && nullableFieldNames.contains(variableElement)) {
+                    if (Utils.isString(variableElement) && nullableFieldNames.contains(variableElement)) {
                         nullableFieldNames.remove(variableElement);
                     }
 

@@ -171,6 +171,16 @@ void jprint(JNIEnv *env, char *txt)
 #endif
 }
 
+void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx) {
+    std::ostringstream ss;
+    ss << "Trying to set a non-nullable field '"
+       << table->get_column_name(col_ndx)
+       << "' in '"
+       << table->get_name()
+       << "' to null.";
+    ThrowException(env, IllegalArgument, ss.str());
+}
+
 void jprintf(JNIEnv *env, const char *format, ...)
 {
     va_list argptr;
