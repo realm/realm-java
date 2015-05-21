@@ -35,18 +35,37 @@ import io.realm.internal.TableOrView;
 /**
  * This class exposes {@link io.realm.RealmResults} as a cursor.
  * <p>
- * Many Android framework classes require the presences of an "_id" field. Instead of adding such a field to your
- * model class it is instead possible to use {@link #setIdColumn(String)}.
- * <p>
  * A RealmCursor has the same thread restrictions as RealmResults, so it is not possible to move a RealmCursor between
  * threads.
  * <p>
- * A RealmCursor is currently limited to only being able to display data from a single RealmClass, ie. it is not
+ * A RealmCursor is currently limited to only being able to display data from a single RealmClass, i.e. it is not
  * possible to follow links to other objects.
  */
 public class RealmCursor implements Cursor {
 
     private static final String DEFAULT_ID_COLUMN = "_id";
+
+    // Needed because constants are only available from API 11
+    private static final int FIELD_TYPE_NULL;
+    private static final int FIELD_TYPE_INTEGER;
+    private static final int FIELD_TYPE_FLOAT;
+    private static final int FIELD_TYPE_STRING;
+    private static final int FIELD_TYPE_BLOB;
+    static {
+        if (android.os.Build.VERSION.SDK_INT >= 11) {
+            FIELD_TYPE_NULL = Cursor.FIELD_TYPE_NULL;
+            FIELD_TYPE_INTEGER = Cursor.FIELD_TYPE_INTEGER;
+            FIELD_TYPE_FLOAT = Cursor.FIELD_TYPE_FLOAT;
+            FIELD_TYPE_STRING = Cursor.FIELD_TYPE_STRING;
+            FIELD_TYPE_BLOB = Cursor.FIELD_TYPE_BLOB;
+        } else {
+            FIELD_TYPE_NULL = 0;
+            FIELD_TYPE_INTEGER = 1;
+            FIELD_TYPE_FLOAT = 2;
+            FIELD_TYPE_STRING = 3;
+            FIELD_TYPE_BLOB = 4;
+        }
+    }
 
     private final Realm realm;
     private TableOrView table;
@@ -62,6 +81,7 @@ public class RealmCursor implements Cursor {
             }
         }
     };
+
 
     /**
      * Exposes a query result as a cursor. Use {@link RealmResults#getCursor()} instead of this
@@ -91,7 +111,7 @@ public class RealmCursor implements Cursor {
      * Returns the current position of the cursor in the row set.
      * The value is zero-based. When the row set is first returned the cursor
      * will be at position -1, which is before the first row. After the
-     * last row is returned another call to next() will leave the cursor past
+     * last row is returned another call to {@link #moveToNext()} will leave the cursor past
      * the last entry, at a position of count().
      *
      * @return the current cursor position.
@@ -103,15 +123,15 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Move the cursor by a relative amount, forward or backward, from the
+     * Moves the cursor by a relative amount, forward or backward, from the
      * current position. Positive offsets move forwards, negative offsets move
-     * backwards. If the final position is outside of the bounds of the result
-     * set then the resultant position will be pinned to -1 or count() depending
+     * backwards. If the calculated position is outside of the bounds of the result
+     * set then the new position will be pinned to -1 or {@link #getCount()} depending
      * on whether the value is off the front or end of the set, respectively.
      *
-     * <p>This method will return true if the requested destination was
-     * reachable, otherwise, it returns false. For example, if the cursor is at
-     * currently on the second entry in the result set and move(-5) is called,
+     * <p>This method will return true if the requested destination is
+     * reachable, otherwise, it returns false. For example, if the cursor is currently
+     * at the second entry in the result set and move(-5) is called,
      * the position will be pinned at -1, and false will be returned.
      *
      * @param offset the offset to be applied from the current position.
@@ -124,10 +144,10 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Move the cursor to an absolute position. The valid
+     * Moves the cursor to an absolute position. The valid
      * range of values is -1 &lt;= position &lt;= count.
      *
-     * <p>This method will return true if the request destination was reachable,
+     * <p>This method will return true if the request destination is reachable,
      * otherwise, it returns false.
      *
      * @param position the zero-based position to move to.
@@ -156,7 +176,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Move the cursor to the first row.
+     * Moves the cursor to the first row.
      *
      * <p>This method will return false if the cursor is empty.
      *
@@ -168,7 +188,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Move the cursor to the last row.
+     * Moves the cursor to the last row.
      *
      * <p>This method will return false if the cursor is empty.
      *
@@ -180,7 +200,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Move the cursor to the next row.
+     * Moves the cursor to the next row.
      *
      * <p>This method will return false if the cursor is already past the
      * last entry in the result set.
@@ -193,7 +213,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Move the cursor to the previous row.
+     * Moves the cursor to the previous row.
      *
      * <p>This method will return false if the cursor is already before the
      * first entry in the result set.
@@ -259,44 +279,47 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Returns the zero-based index for the given column name, or -1 if the column doesn't exist.
-     * If you expect the column to exist use {@link #getColumnIndexOrThrow(String)} instead, which
+     * Returns the zero-based index for the given field name, or -1 if the field doesn't exist.
+     * If you expect the field to exist use {@link #getColumnIndexOrThrow(String)} instead, which
      * will make the error more clear.
      *
-     * @param columnName the name of the target column.
-     * @return the zero-based column index for the given column name, or -1 if
-     * the column name does not exist.
+     * @param fieldName the name of the target field.
+     * @return the zero-based column index for the given column field, or -1 if
+     * the field name does not exist.
      * @see #getColumnIndexOrThrow(String)
      */
     @Override
-    public int getColumnIndex(String columnName) {
+    public int getColumnIndex(String fieldName) {
         checkClosed();
-        if (DEFAULT_ID_COLUMN.equals(columnName)) {
+        if (DEFAULT_ID_COLUMN.equals(fieldName)) {
             return (int) idColumnIndex;
         }
-        return (int) table.getColumnIndex(columnName);
+        return (int) table.getColumnIndex(fieldName);
     }
 
     /**
-     * Returns the zero-based index for the given column name, or throws
-     * {@link IllegalArgumentException} if the column doesn't exist. If you're not sure if
-     * a column will exist or not use {@link #getColumnIndex(String)} and check for -1, which
+     * Returns the zero-based index for the given field name, or throws
+     * {@link IllegalArgumentException} if the field doesn't exist. If you're not sure if
+     * a field will exist or not, then use {@link #getColumnIndex(String)} and check for -1. This
      * is more efficient than catching the exceptions.
      *
-     * @param columnName the name of the target column.
-     * @return the zero-based column index for the given column name
+     * @param fieldName the name of the target column.
+     * @return the zero-based column index for the given field name
      * @see #getColumnIndex(String)
      * @throws IllegalArgumentException if the column does not exist
      */
     @Override
-    public int getColumnIndexOrThrow(String columnName) throws IllegalArgumentException {
+    public int getColumnIndexOrThrow(String fieldName) throws IllegalArgumentException {
         checkClosed();
-        if (DEFAULT_ID_COLUMN.equals(columnName)) {
-            return (int) idColumnIndex;
+
+        int index;
+        if (DEFAULT_ID_COLUMN.equals(fieldName)) {
+            index = (int) idColumnIndex;
+        } else {
+            index = (int) table.getColumnIndex(fieldName);
         }
-        int index = (int) table.getColumnIndex(columnName);
         if (index == TableOrView.NO_MATCH) {
-            throw new IllegalArgumentException(columnName + " not found in this cursor.");
+            throw new IllegalArgumentException(fieldName + " not found in this cursor.");
         }
         return index;
     }
@@ -519,13 +542,13 @@ public class RealmCursor implements Cursor {
         checkClosed();
         ColumnType realmType = table.getColumnType(columnIndex);
         switch (realmType) {
-            case BOOLEAN: return Cursor.FIELD_TYPE_INTEGER;
-            case INTEGER: return Cursor.FIELD_TYPE_INTEGER;
-            case FLOAT: return Cursor.FIELD_TYPE_FLOAT;
-            case DOUBLE: return Cursor.FIELD_TYPE_FLOAT;
-            case STRING: return Cursor.FIELD_TYPE_STRING;
-            case BINARY: return Cursor.FIELD_TYPE_BLOB;
-            case DATE: return Cursor.FIELD_TYPE_INTEGER;
+            case BOOLEAN: return FIELD_TYPE_INTEGER;
+            case INTEGER: return FIELD_TYPE_INTEGER;
+            case FLOAT: return FIELD_TYPE_FLOAT;
+            case DOUBLE: return FIELD_TYPE_FLOAT;
+            case STRING: return FIELD_TYPE_STRING;
+            case BINARY: return FIELD_TYPE_BLOB;
+            case DATE: return FIELD_TYPE_INTEGER;
             case TABLE:
             case MIXED:
             case LINK:
@@ -542,7 +565,22 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean isNull(int columnIndex) {
-        throw new UnsupportedOperationException("Null not yet supported by Realm");
+        ColumnType realmType = table.getColumnType(columnIndex);
+        switch(realmType) {
+            case LINK: return table.isNullLink(columnIndex, rowIndex);
+            case LINK_LIST:
+            case BOOLEAN:
+            case INTEGER:
+            case FLOAT:
+            case DOUBLE:
+            case STRING:
+            case BINARY:
+            case DATE:
+            case TABLE:
+            case MIXED:
+            default:
+            throw new UnsupportedOperationException("isNull not yet supported by Realm for this type: " + realmType);
+        }
     }
 
     /**
@@ -566,7 +604,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Calling this will close this cursor. The original RealmResult will not be affected. Trying to access any data in
+     * Calling this method will close this cursor. The original RealmResults will not be affected. Trying to access any data in
      * the cursor after calling this is illegal an the behavior is undefined.
      */
     @Override
@@ -607,7 +645,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Register an observer that is called when changes happen to the contents
+     * Registers an observer which is called when changes happen to the contents
      * of the this cursors data set, for example, when the data set is changed via
      * {@link #requery()}, {@link #deactivate()}, or {@link #close()}.
      *
@@ -620,7 +658,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Unregister an observer that has previously been registered with this
+     * Unregisters an observer which has previously been registered with this
      * cursor via {@link #registerContentObserver}.
      *
      * @param observer the object to unregister.
@@ -663,7 +701,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Realm doesn't support extra metadata in the form a bundle. This method will always return the empty bundle.
+     * Realm doesn't support extra metadata in the form of a bundle. This method will always return the empty bundle.
      *
      * @return {@code Bundle.EMPTY}
      */
@@ -673,7 +711,7 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Realm doesn't support extra metadata in the form a bundle. This method will always return the empty bundle.
+     * Realm doesn't support extra metadata in the form of a bundle. This method will always return the empty bundle.
      *
      * @return {@code Bundle.EMPTY}
      */
@@ -683,8 +721,8 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Map a field name to also act as the "_id" column. Such a column is required by a number of Android framework
-     * classes that uses cursors. The field must be able to mapped to a long so {@link #getLong(int)} can return a
+     * MMaps a field name to act as the "_id" column too. Such a column is required by a number of Android framework
+     * classes that uses cursors. The field must be able to be mapped to a long so {@link #getLong(int)} can return a
      * result. If a field already exists in the model class with the name "_id" calling this method will throw an
      * {@link IllegalArgumentException}.
      *

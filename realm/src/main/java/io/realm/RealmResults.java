@@ -493,10 +493,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns this result set as a {@link RealmCursor}. All changes done to this RealmResults afterwards will
-     * also be automatically reflected in the Cursor without having to fetch it again.
+     * Returns the RealmResults as a {@link RealmCursor}. All changes applied to this RealmResults afterwards will
+     * also automatically be reflected in the Cursor without having to fetch it again.
      *
-     * @return A cursor representing the query results.
+     * @return A cursor representing the RealmResults.
      * @see android.database.Cursor
      */
     public RealmCursor getCursor() {

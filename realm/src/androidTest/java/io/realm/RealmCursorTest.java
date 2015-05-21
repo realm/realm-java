@@ -96,7 +96,7 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testMoveToPositionCapAtEnd() {
-        cursor.move(SIZE/2);
+        cursor.move(SIZE / 2);
         assertFalse(cursor.move(SIZE));
         assertTrue(cursor.isAfterLast());
     }
@@ -212,9 +212,9 @@ public class RealmCursorTest extends AndroidTestCase {
         assertEquals(-1, cursor.getColumnIndex("foo"));
     }
 
-    public void testGetColumnOrThrowIndexIdColumn() {
+    public void testGetColumnIndexOrThrowIdColumn() {
         cursor.setIdColumn("columnLong");
-        assertEquals(cursor.getColumnIndex("columnLong"), cursor.getColumnIndex("_id"));
+        assertEquals(cursor.getColumnIndexOrThrow("columnLong"), cursor.getColumnIndexOrThrow("_id"));
     }
 
     public void testGetColumnIndexOrThrowIdColumnNotFoundThrows() {
@@ -460,7 +460,6 @@ public class RealmCursorTest extends AndroidTestCase {
 
     public void testUnsupportedMethods() {
         cursor.moveToFirst();
-        // TODO We do support isNull for Objects.
         try { cursor.isNull(AllTypes.COL_INDEX_STRING); fail(); } catch (UnsupportedOperationException expected) {}
         try { cursor.deactivate();                      fail(); } catch (UnsupportedOperationException expected) {}
         try { cursor.requery();                         fail(); } catch (UnsupportedOperationException expected) {}
@@ -473,6 +472,11 @@ public class RealmCursorTest extends AndroidTestCase {
     public void testClose() {
         cursor.close();
         assertTrue(cursor.isClosed());
+    }
+
+    public void testIsNull() {
+        cursor.moveToFirst();
+        assertFalse(cursor.isNull(AllTypes.COL_INDEX_OBJECT));
     }
 
     public void testRegisterDataSetObserverNullThrows() {
