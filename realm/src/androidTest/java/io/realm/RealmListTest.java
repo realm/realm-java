@@ -18,9 +18,10 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
-import io.realm.entities.AllTypes;
 import io.realm.exceptions.RealmException;
 
 public class RealmListTest extends AndroidTestCase {
@@ -452,5 +453,16 @@ public class RealmListTest extends AndroidTestCase {
         try { list.move(0, 1);  fail(); } catch (IllegalStateException expected) {}
         try { list.remove(0);   fail(); } catch (IllegalStateException expected) {}
         try { list.set(0, dog); fail(); } catch (IllegalStateException expected) {}
+    }
+
+    public void testSettingListClearsOldItems() {
+        testRealm.beginTransaction();
+        CyclicType one = testRealm.copyToRealm(new CyclicType());
+        CyclicType two = testRealm.copyToRealm(new CyclicType());
+        two.setObjects(new RealmList<CyclicType>(one));
+        two.setObjects(new RealmList<CyclicType>(one));
+        testRealm.commitTransaction();
+
+        assertEquals(1, two.getObjects().size());
     }
 }
