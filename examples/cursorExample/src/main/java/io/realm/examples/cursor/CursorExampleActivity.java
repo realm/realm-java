@@ -18,25 +18,36 @@ package io.realm.examples.cursor;
 
 import android.app.Activity;
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Message;
+import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
+import android.view.ViewGroup;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.examples.cursor.models.TimeStamp;
+import io.realm.examples.cursor.models.Score;
 
 
-public class CursorExampleActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+/**
+ * This example project shows how Realm can expose its data as a Cursor which makes it possible to integrate Realm into
+ * an existing app without migrating all existing SQLite database code at once.
+ */
+public class CursorExampleActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final int LOADER_ID = 1;
 
     private Realm realm;
-    private WorkerThread workerThread;
+    private CursorAdapter adapter;
+    private Loader<Cursor> loader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,33 +57,20 @@ public class CursorExampleActivity implements LoaderManager.LoaderCallbacks<Curs
         Realm.deleteRealmFile(this);
 
         realm = Realm.getInstance(this);
-        RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                if (loader != null) {
+                    loader.onContentChanged();
+                }
+            }
+        });
+        adapter = new MyCursorAdapter(this, null, 0);
+        RealmResults<Score> timeStamps = realm.where(Score.class).findAll();
         final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
         ListView listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TimeStamp timeStamp = adapter.getRealmResults().get(i);
-                Message message = buildMessage(WorkerHandler.REMOVE_TIMESTAMP, timeStamp.getTimeStamp());
-
-                workerThread.workerHandler.sendMessage(message);
-                return true;
-            }
-        });
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        workerThread.workerHandler.getLooper().quit();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        workerThread = new WorkerThread(this);
-        workerThread.start();
+        getLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
     @Override
@@ -88,36 +86,53 @@ public class CursorExampleActivity implements LoaderManager.LoaderCallbacks<Curs
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_add) {
-            Message message = buildMessage(WorkerHandler.ADD_TIMESTAMP, Long.toString(System.currentTimeMillis()));
-            workerThread.workerHandler.sendMessage(message);
-        }
-        return true;
-    }
-
-    private static Message buildMessage(int action, String timeStamp) {
-        Bundle bundle = new Bundle(2);
-        bundle.putInt(WorkerHandler.ACTION, action);
-        bundle.putString(WorkerHandler.TIMESTAMP, timeStamp);
-        Message message = new Message();
-        message.setData(bundle);
-        return message;
-    }
-
-    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return null;
+        RealmQuery<Score> query = new RealmQuery<Score>(realm, Score.class);
+        return new RealmLoader(this, query);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
+        this.loader = loader;
+        adapter.changeCursor(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        this.loader = null;
+        adapter.changeCursor(null);
+    }
 
+    // Custom CursorAdapter should continue to work as normal
+    private static class MyCursorAdapter extends CursorAdapter {
+
+        private LayoutInflater inflater;
+
+        public MyCursorAdapter(Context context, Cursor c, int flags) {
+            super(context, c, flags);
+            inflater = LayoutInflater.from(context);
+        }
+
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            View view = inflater.inflate(R.layout.row_simpleitem, parent, false);
+            ViewHolder viewHolder = new ViewHolder();
+            viewHolder.name = (TextView) view.findViewById(R.id.text_left);
+            viewHolder.score = (TextView) view.findViewById(R.id.text_right);
+            view.setTag(viewHolder);
+            return view;
+        }
+
+        @Override
+        public void bindView(View view, Context context, Cursor cursor) {
+            ViewHolder holder = (ViewHolder) view.getTag();
+            holder.score.setText(cursor.getString(cursor.getColumnIndexOrThrow(Score.FIELD_NAME)));
+            holder.score.setText("" + cursor.getInt(cursor.getColumnIndexOrThrow(Score.FIELD_SCORE)));
+        }
+
+        private static class ViewHolder {
+            TextView score;
+            TextView name;
+        }
     }
 }

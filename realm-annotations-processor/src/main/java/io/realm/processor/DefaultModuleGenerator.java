@@ -17,20 +17,16 @@
 package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
-
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import io.realm.annotations.internal.RealmModule;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
-
-import io.realm.annotations.internal.RealmModule;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class is responsible for creating the DefaultRealmModule that contains all known
