@@ -140,6 +140,12 @@ public class NotificationsTest extends AndroidTestCase {
         final AtomicBoolean isReady = new AtomicBoolean(false);
         final Looper[] looper = new Looper[1];
         final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
+        final RealmChangeListener listener = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                counter.incrementAndGet();
+            }
+        };
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -150,12 +156,7 @@ public class NotificationsTest extends AndroidTestCase {
                     Looper.prepare();
                     looper[0] = Looper.myLooper();
                     realm = Realm.getInstance(getContext());
-                    realm.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            counter.incrementAndGet();
-                        }
-                    });
+                    realm.addChangeListener(listener);
                     isReady.set(true);
                     Looper.loop();
                 } finally {
@@ -205,6 +206,7 @@ public class NotificationsTest extends AndroidTestCase {
         final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
         final Map<Integer, Integer> results = new ConcurrentHashMap<Integer, Integer>();
         final Looper[] looper = new Looper[1];
+        final RealmChangeListener listener[] = new RealmChangeListener[1];
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -218,13 +220,14 @@ public class NotificationsTest extends AndroidTestCase {
                     realm = Realm.getInstance(getContext());
                     final RealmResults<Dog> dogs = realm.allObjects(Dog.class);
                     assertEquals(0, dogs.size());
-                    realm.addChangeListener(new RealmChangeListener() {
+                    listener[0] = new RealmChangeListener() {
                         @Override
                         public void onChange() {
                             int c = counter.incrementAndGet();
                             results.put(c, dogs.size());
                         }
-                    });
+                    };
+                    realm.addChangeListener(listener[0]);
                     isReady.set(true);
                     Looper.loop();
                 } finally {
@@ -360,15 +363,17 @@ public class NotificationsTest extends AndroidTestCase {
 
     public void testImmediateNotificationsOnSameThread() {
         final AtomicBoolean success = new AtomicBoolean(false);
+        final RealmChangeListener listener[] = new RealmChangeListener[1];
         realm = Realm.getInstance(getContext());
-        realm.addChangeListener(new RealmChangeListener() {
+        listener[0] = new RealmChangeListener() {
             @Override
             public void onChange() {
                 // Listener should only be called once
                 assertFalse(success.get());
                 success.set(true);
             }
-        });
+        };
+        realm.addChangeListener(listener[0]);
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -377,13 +382,14 @@ public class NotificationsTest extends AndroidTestCase {
 
     public void testEmptyCommitTriggerChangeListener() {
         final AtomicBoolean success = new AtomicBoolean(false);
-        realm = Realm.getInstance(getContext());
-        realm.addChangeListener(new RealmChangeListener() {
+        final RealmChangeListener listener = new RealmChangeListener() {
             @Override
             public void onChange() {
                 success.set(true);
             }
-        });
+        };
+        realm = Realm.getInstance(getContext());
+        realm.addChangeListener(listener);
         realm.beginTransaction();
         realm.commitTransaction();
         assertTrue(success.get());
