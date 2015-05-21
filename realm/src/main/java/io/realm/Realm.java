@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
@@ -159,7 +160,7 @@ public final class Realm implements Closeable {
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
 
-    private final List<WeakReference<RealmChangeListener>> changeListeners = new ArrayList<WeakReference<RealmChangeListener>>();
+    private final List<WeakReference<RealmChangeListener>> changeListeners = new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
     private static RealmProxyMediator proxyMediator = getDefaultMediator();
 
     private static final long UNVERSIONED = -1;
@@ -1221,14 +1222,18 @@ public final class Realm implements Closeable {
 
     void sendNotifications() {
         Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
+        List<WeakReference<RealmChangeListener>> toRemoveList =
+                new ArrayList<WeakReference<RealmChangeListener>>(changeListeners.size());
         while (iterator.hasNext()) {
-            RealmChangeListener listener = iterator.next().get();
+            WeakReference<RealmChangeListener> weakRef = iterator.next();
+            RealmChangeListener listener = weakRef.get();
             if (listener == null) {
-                iterator.remove();
+                toRemoveList.add(weakRef);
             } else {
                 listener.onChange();
             }
         }
+        changeListeners.removeAll(toRemoveList);
     }
 
     @SuppressWarnings("UnusedDeclaration")

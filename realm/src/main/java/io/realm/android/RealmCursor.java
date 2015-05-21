@@ -291,6 +291,9 @@ public class RealmCursor implements Cursor {
     @Override
     public int getColumnIndexOrThrow(String columnName) throws IllegalArgumentException {
         checkClosed();
+        if (DEFAULT_ID_COLUMN.equals(columnName)) {
+            return (int) idColumnIndex;
+        }
         int index = (int) table.getColumnIndex(columnName);
         if (index == TableOrView.NO_MATCH) {
             throw new IllegalArgumentException(columnName + " not found in this cursor.");

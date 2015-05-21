@@ -22,18 +22,21 @@ import android.content.Context;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.Random;
+import java.util.UUID;
+
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmQuery;
-import io.realm.RealmResults;
 import io.realm.examples.cursor.models.Score;
 
 
@@ -47,59 +50,86 @@ public class CursorExampleActivity extends Activity implements LoaderManager.Loa
 
     private Realm realm;
     private CursorAdapter adapter;
-    private Loader<Cursor> loader;
+    private RealmChangeListener listener = new RealmChangeListener() {
+        @Override
+        public void onChange() {
+            getLoaderManager().restartLoader(LOADER_ID, null, CursorExampleActivity.this);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
-
-        Realm.deleteRealmFile(this);
-
         realm = Realm.getInstance(this);
-        realm.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                if (loader != null) {
-                    loader.onContentChanged();
-                }
-            }
-        });
         adapter = new MyCursorAdapter(this, null, 0);
-        RealmResults<Score> timeStamps = realm.where(Score.class).findAll();
-        final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
         ListView listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
         getLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        realm.addChangeListener(listener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        realm.removeChangeListener(listener);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        realm.close(); // Remember to close Realm when done.
+        Cursor c = adapter.swapCursor(null);
+        if (c != null) {
+            c.close();
+        }
+        realm.close();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.my, menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_add) {
+            realm.beginTransaction();
+            Score score = realm.createObject(Score.class);
+            score.setId(PrimaryKeyFactory.nextScoreId());
+            score.setName(getRandomUserName());
+            score.setScore(getRandomScore());
+            realm.commitTransaction();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private int getRandomScore() {
+        return new Random().nextInt(100);
+    }
+
+    private String getRandomUserName() {
+        return UUID.randomUUID().toString().replace("-","").substring(0, 8);
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        RealmQuery<Score> query = new RealmQuery<Score>(realm, Score.class);
-        return new RealmLoader(this, query);
+        return new CustomRealmLoader(this, realm);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        this.loader = loader;
         adapter.changeCursor(data);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        this.loader = null;
         adapter.changeCursor(null);
     }
 
@@ -117,7 +147,8 @@ public class CursorExampleActivity extends Activity implements LoaderManager.Loa
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
             View view = inflater.inflate(R.layout.row_simpleitem, parent, false);
             ViewHolder viewHolder = new ViewHolder();
-            viewHolder.name = (TextView) view.findViewById(R.id.text_left);
+            viewHolder.id = (TextView) view.findViewById(R.id.text_left);
+            viewHolder.name = (TextView) view.findViewById(R.id.text_center);
             viewHolder.score = (TextView) view.findViewById(R.id.text_right);
             view.setTag(viewHolder);
             return view;
@@ -126,11 +157,13 @@ public class CursorExampleActivity extends Activity implements LoaderManager.Loa
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
             ViewHolder holder = (ViewHolder) view.getTag();
-            holder.score.setText(cursor.getString(cursor.getColumnIndexOrThrow(Score.FIELD_NAME)));
+            holder.id.setText("" + cursor.getLong(cursor.getColumnIndexOrThrow("_id")));
+            holder.name.setText(cursor.getString(cursor.getColumnIndexOrThrow(Score.FIELD_NAME)));
             holder.score.setText("" + cursor.getInt(cursor.getColumnIndexOrThrow(Score.FIELD_SCORE)));
         }
 
         private static class ViewHolder {
+            TextView id;
             TextView score;
             TextView name;
         }
