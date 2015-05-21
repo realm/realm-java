@@ -18,9 +18,10 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
-import io.realm.entities.AllTypes;
 import io.realm.exceptions.RealmException;
 
 public class RealmListTest extends AndroidTestCase {
@@ -53,7 +54,8 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Check that all methods work correctly on a empty RealmList
-    private void testMethodsOnEmptyList(RealmList<Dog> list) {
+    private void checkMethodsOnEmptyList(Realm realm, RealmList<Dog> list) {
+        realm.beginTransaction();
         for (int i = 0; i < 4; i++) {
             try {
                 switch(i) {
@@ -67,6 +69,7 @@ public class RealmListTest extends AndroidTestCase {
             } catch (RealmException expected) {
             }
         }
+        realm.cancelTransaction();
 
         assertEquals(0, list.size());
         assertNull(list.first());
@@ -212,21 +215,25 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test move where oldPosition > newPosition
-    public void testMoveDown_nonManagedMode() {
+    public void testMoveDown() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         Dog dog1 = owner.getDogs().get(1);
+        testRealm.beginTransaction();
         owner.getDogs().move(1, 0);
+        testRealm.commitTransaction();
 
         assertEquals(0, owner.getDogs().indexOf(dog1));
     }
 
     // Test move where oldPosition < newPosition
-    public void testMoveUp_nonManagedMode() {
+    public void testMoveUp() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         int oldIndex = TEST_OBJECTS / 2;
         int newIndex = oldIndex + 1;
         Dog dog = owner.getDogs().get(oldIndex);
+        testRealm.beginTransaction();
         owner.getDogs().move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
+        testRealm.commitTransaction();
 
         assertEquals(TEST_OBJECTS, owner.getDogs().size());
         assertEquals(oldIndex, owner.getDogs().indexOf(dog));
@@ -245,7 +252,7 @@ public class RealmListTest extends AndroidTestCase {
 
     public void testEmptyList_nonManagedMode() {
         RealmList<Dog> list = new RealmList<Dog>();
-        testMethodsOnEmptyList(list);
+        checkMethodsOnEmptyList(testRealm, list);
     }
 
     /*********************************************************
@@ -253,7 +260,7 @@ public class RealmListTest extends AndroidTestCase {
      *********************************************************/
 
     // Test move where oldPosition > newPosition
-    public void testMoveDown() {
+    public void testMoveDown_nonManagedMode() {
         RealmList<Dog> dogs = createNonManagedDogList();
         Dog dog1 = dogs.get(1);
         dogs.move(1, 0);
@@ -262,7 +269,7 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test move where oldPosition < newPosition
-    public void testMoveUp() {
+    public void testMoveUp_nonManagedMode() {
         RealmList<Dog> dogs = createNonManagedDogList();
         int oldIndex = TEST_OBJECTS / 2;
         int newIndex = oldIndex + 1;
@@ -275,15 +282,19 @@ public class RealmListTest extends AndroidTestCase {
 
     public void testMoveOutOfBoundsLowerThrows() {
         Owner owner = testRealm.where(Owner.class).findFirst();
+        testRealm.beginTransaction();
         try {
             owner.getDogs().move(0, -1);
             fail("Indexes < 0 should throw an exception");
         } catch (IndexOutOfBoundsException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
         }
     }
 
     public void testMoveOutOfBoundsHigherThrows() {
         Owner owner = testRealm.where(Owner.class).findFirst();
+        testRealm.beginTransaction();
         try {
             int lastIndex = TEST_OBJECTS - 1;
             int outOfBoundsIndex = TEST_OBJECTS;
@@ -291,6 +302,8 @@ public class RealmListTest extends AndroidTestCase {
             fail("Indexes >= size() should throw an exception");
         } catch (IndexOutOfBoundsException ignored) {
             ignored.printStackTrace();
+        } finally {
+            testRealm.cancelTransaction();
         }
     }
 
@@ -405,7 +418,7 @@ public class RealmListTest extends AndroidTestCase {
         owner.getDogs().clear();
         testRealm.commitTransaction();
 
-        testMethodsOnEmptyList(owner.getDogs());
+        checkMethodsOnEmptyList(testRealm, owner.getDogs());
     }
 
     public void testClear() {
@@ -424,5 +437,32 @@ public class RealmListTest extends AndroidTestCase {
         owner.getDogs().clear();
         assertEquals(TEST_OBJECTS, testRealm.allObjects(Dog.class).size());
         testRealm.commitTransaction();
+    }
+
+    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideWriteTransactions() {
+        testRealm.beginTransaction();
+        RealmList<Dog> list = testRealm.createObject(AllTypes.class).getColumnRealmList();
+        Dog dog = testRealm.createObject(Dog.class);
+        list.add(dog);
+        testRealm.commitTransaction();
+
+        try { list.add(dog);    fail(); } catch (IllegalStateException expected) {}
+        try { list.add(0, dog); fail(); } catch (IllegalStateException expected) {}
+        try { list.clear();     fail(); } catch (IllegalStateException expected) {}
+        try { list.move(0, 1);  fail(); } catch (IllegalStateException expected) {}
+        try { list.remove(0);   fail(); } catch (IllegalStateException expected) {}
+        try { list.set(0, dog); fail(); } catch (IllegalStateException expected) {}
+    }
+
+    public void testSettingListClearsOldItems() {
+        testRealm.beginTransaction();
+        CyclicType one = testRealm.copyToRealm(new CyclicType());
+        CyclicType two = testRealm.copyToRealm(new CyclicType());
+        two.setObjects(new RealmList<CyclicType>(one));
+        two.setObjects(new RealmList<CyclicType>(one));
+        testRealm.commitTransaction();
+
+        assertEquals(1, two.getObjects().size());
     }
 }
