@@ -1199,7 +1199,7 @@ public final class Realm implements Closeable {
         checkIfValid();
         for (WeakReference<RealmChangeListener> ref : changeListeners) {
             if (ref.get() == listener) {
-                // It is already added before
+                // It has already been added before
                 return;
             }
         }

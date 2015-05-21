@@ -396,6 +396,8 @@ public class NotificationsTest extends AndroidTestCase {
 
         // At least we need 2 listeners existing in the list to make sure
         // the iterator.next get called
+
+        // This one will be added when listener2's onChange called
         final RealmChangeListener listener1 = new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -403,6 +405,7 @@ public class NotificationsTest extends AndroidTestCase {
             }
         };
 
+        // This one will be existing in the list all the time
         final RealmChangeListener listener2 = new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -411,6 +414,7 @@ public class NotificationsTest extends AndroidTestCase {
             }
         };
 
+        // This one will be removed after first transaction
         RealmChangeListener listener3 = new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -425,11 +429,23 @@ public class NotificationsTest extends AndroidTestCase {
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
+        // [listener2, listener3]
         realm.commitTransaction();
+        // after listener2.onChange
+        // [listener2, listener3, listener1]
+        // after listener3.onChange
+        // [listener2, listener1]
+        assertEquals(0, counter1.get());
+        assertEquals(1, counter2.get());
+        assertEquals(1, counter3.get());
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
+        // [listener2, listener1]
         realm.commitTransaction();
+        // after listener2.onChange
+        // Since duplicated entries will be ignored, we still have:
+        // [listener2, listener1]
 
         assertEquals(1, counter1.get());
         assertEquals(2, counter2.get());
