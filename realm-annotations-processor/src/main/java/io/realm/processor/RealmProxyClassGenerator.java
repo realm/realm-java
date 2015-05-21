@@ -308,6 +308,7 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (value == null)");
                 writer.emitStatement("return"); // TODO: delete all the links instead
                 writer.endControlFlow();
+                writer.emitStatement("links.clear()");
                 writer.beginControlFlow("for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value)");
                 writer.emitStatement("links.add(linkedObject.row.getIndex())");
                 writer.endControlFlow();
