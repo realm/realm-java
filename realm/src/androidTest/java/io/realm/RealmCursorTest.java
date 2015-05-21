@@ -96,7 +96,7 @@ public class RealmCursorTest extends AndroidTestCase {
     }
 
     public void testMoveToPositionCapAtEnd() {
-        cursor.move(SIZE/2);
+        cursor.move(SIZE / 2);
         assertFalse(cursor.move(SIZE));
         assertTrue(cursor.isAfterLast());
     }
@@ -212,9 +212,9 @@ public class RealmCursorTest extends AndroidTestCase {
         assertEquals(-1, cursor.getColumnIndex("foo"));
     }
 
-    public void testGetColumnOrThrowIndexIdColumn() {
+    public void testGetColumnIndexOrThrowIdColumn() {
         cursor.setIdColumn("columnLong");
-        assertEquals(cursor.getColumnIndex("columnLong"), cursor.getColumnIndex("_id"));
+        assertEquals(cursor.getColumnIndexOrThrow("columnLong"), cursor.getColumnIndexOrThrow("_id"));
     }
 
     public void testGetColumnIndexOrThrowIdColumnNotFoundThrows() {
