@@ -1,3 +1,11 @@
+0.81
+ * Introduced RealmModules for working with custom schemas in libraries and apps.
+ * Introduced Realm.getDefaultInstance(), Realm.setDefaultInstance(RealmConfiguration) and Realm.getInstance(RealmConfiguration).
+ * Deprecated most constructors. They have been been replaced by RealmConfiguration objects.
+ * Deprecated Realm.migrateRealmAtPath(). It has been Replaced by Realm.migrateRealm(RealmConfiguration).
+ * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
+ * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
+
 0.80.3
  * Calling Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
  * Fixed a bug making it impossible to open Realms created by Realm-Cocoa if a model had a primary key defined.
