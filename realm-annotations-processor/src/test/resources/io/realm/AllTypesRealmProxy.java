@@ -166,6 +166,7 @@ public class AllTypesRealmProxy extends AllTypes
         if (value == null) {
             return;
         }
+        links.clear();
         for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value) {
             links.add(linkedObject.row.getIndex());
         }

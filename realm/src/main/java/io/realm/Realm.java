@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
@@ -159,7 +160,8 @@ public final class Realm implements Closeable {
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
 
-    private final List<WeakReference<RealmChangeListener>> changeListeners = new ArrayList<WeakReference<RealmChangeListener>>();
+    private final List<WeakReference<RealmChangeListener>> changeListeners =
+            new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
     private static RealmProxyMediator proxyMediator = getDefaultMediator();
 
     private static final long UNVERSIONED = -1;
@@ -1195,6 +1197,13 @@ public final class Realm implements Closeable {
      */
     public void addChangeListener(RealmChangeListener listener) {
         checkIfValid();
+        for (WeakReference<RealmChangeListener> ref : changeListeners) {
+            if (ref.get() == listener) {
+                // It has already been added before
+                return;
+            }
+        }
+
         changeListeners.add(new WeakReference<RealmChangeListener>(listener));
     }
 
@@ -1206,7 +1215,17 @@ public final class Realm implements Closeable {
      */
     public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        changeListeners.remove(new WeakReference<RealmChangeListener>(listener));
+        WeakReference<RealmChangeListener> weakRefToRemove = null;
+        for (WeakReference<RealmChangeListener> weakRef : changeListeners) {
+            if (listener == weakRef.get()) {
+                weakRefToRemove = weakRef;
+                // There won't be duplicated entries, checking is done when adding
+                break;
+            }
+        }
+        if (weakRefToRemove != null) {
+            changeListeners.remove(weakRefToRemove);
+        }
     }
 
     /**
@@ -1219,16 +1238,30 @@ public final class Realm implements Closeable {
         changeListeners.clear();
     }
 
+    /**
+     * Return change listeners
+     * For internal testing purpose only
+     *
+     * @return changeListeners list of this realm instance
+     */
+    protected List<WeakReference<RealmChangeListener>> getChangeListeners() {
+        return changeListeners;
+    }
+
     void sendNotifications() {
         Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
+        List<WeakReference<RealmChangeListener>> toRemoveList =
+                new ArrayList<WeakReference<RealmChangeListener>>(changeListeners.size());
         while (iterator.hasNext()) {
-            RealmChangeListener listener = iterator.next().get();
+            WeakReference<RealmChangeListener> weakRef = iterator.next();
+            RealmChangeListener listener = weakRef.get();
             if (listener == null) {
-                iterator.remove();
+                toRemoveList.add(weakRef);
             } else {
                 listener.onChange();
             }
         }
+        changeListeners.removeAll(toRemoveList);
     }
 
     @SuppressWarnings("UnusedDeclaration")
