@@ -493,7 +493,7 @@ public final class Realm implements Closeable {
      */
     public static Realm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {
-            throw new NullPointerException("A non-null RealmConfiguration must be provided");
+            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
         return create(configuration);
     }
@@ -506,7 +506,7 @@ public final class Realm implements Closeable {
      */
     public static void setDefaultConfiguration(RealmConfiguration configuration) {
         if (configuration == null) {
-            throw new NullPointerException("A non-null RealmConfiguration must be provided");
+            throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
         defaultConfiguration = configuration;
     }

@@ -23,14 +23,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * By default a Realm can stores all RealmClasses in a project. However, if you want to restrict a Realm to contain only
+ * By default a Realm can stores all RealmClasses in a project. However, if you want to restrict a Realm to only contain
  * certain classes or want to share them between a library project and an app project you must use a RealmModule.
  * <p>
  * A RealmModule is a collection of RealmClasses that can be combined with other RealmModules to create the schema for a
  * Realm. This makes it easier to control versioning and migration of those Realms.
  * <p>
  * A RealmModule can either be a library module or an app module. This distinction is made by setting
- * {@code library = true}. As default Realm will automatically create a RealmModule called {@code DefaulRealmModule}
+ * {@code library = true}. A default Realm will automatically create a RealmModule called {@code DefaulRealmModule}
  * that contains all RealmClasses in a project. This module will be an app module and is automatically known by Realm.
  * <p>
  * This behavior is problematic when combining a library project and an app project that both uses Realm as
@@ -40,13 +40,13 @@ import java.lang.annotation.Target;
  * Library authors are reponsible for avoiding this conflict by creating a explicit library module where
  * {@code library = true} is set. This disable the generation of the DefaultRealmModule for the library project and
  * allows the library to be included in the app project that also uses Realm. This means that library projects that uses
- * Realm internally are required to specify a explicit module using {@code RealmConfiguration.setModule()}.
+ * Realm internally are required to specify a explicit module using {@code RealmConfiguration.setModules()}.
  * <p>
  * App developers are not required to specify any modules, as they implicitely use the {@code DefaultRealmModule}, but
  * they now has the option of adding the library project classes to their schema using
  * {@code RealmConfiguration.addModule()}.
  *
- * TODO Reference the example project for library modules
+ * @see <a href="">TODO Example of a project using modules</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
@@ -55,9 +55,9 @@ public @interface RealmModule {
 
     /**
      * Setting this to true will mark this module as a library module. This will prevent Realm from generating the
-     * {@code DefaultRealmModule} containing all classes. This is required by libraries as not to intefer with Realms
-     * running in app code, but also means that all libraries using Realm must explicitly use a module and cannot rely
-     * on the default module being present.
+     * {@code DefaultRealmModule} containing all classes. This is required by libraries so they do notintefer with
+     * Realms running in app code, but it also means that all libraries using Realm must explicitly use a module and
+     * cannot  rely on the default module being present.
      *
      * Creating library modules and normal modules in the same project is not allowed and will result in the annotation
      * processor throwing an error.

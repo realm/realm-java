@@ -37,7 +37,7 @@ import io.realm.internal.modules.FilterableMediator;
  * Instances of a RealmConfiguration can only created by using the {@link io.realm.RealmConfiguration.Builder} and calling
  * its {@link io.realm.RealmConfiguration.Builder#build()} method.
  *
- * A commonly used RealmConfiguration can easily accessed by first saving it as
+ * A commonly used RealmConfiguration can easily be accessed by first saving it as
  * {@link Realm#setDefaultConfiguration(RealmConfiguration)} and then using {@link io.realm.Realm#getDefaultInstance()}.
  *
  * A minimal configuration can be created using:
@@ -47,7 +47,7 @@ import io.realm.internal.modules.FilterableMediator;
  * This will create a RealmConfiguration with the following properties
  * - Realm file is called "default.realm"
  * - It is saved in Context.getFilesDir()
- * - It has it's schema version set to 0.
+ * - It has its schema version set to 0.
  */
 public class RealmConfiguration {
 
@@ -193,7 +193,7 @@ public class RealmConfiguration {
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
 
         /**
-         * Create an instance of the Builder for the RealmConfiguration.
+         * Creates an instance of the Builder for the RealmConfiguration.
          * The Realm file will be saved in the provided folder.
          *
          * @param folder Folder to save Realm file in. Folder must be writable.
@@ -205,7 +205,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Create an instance of the Builder for the RealmConfiguration.
+         * Creates an instance of the Builder for the RealmConfiguration.
          *
          * This will use the apps own internal directory for storing the Realm file. This does not require any
          * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
@@ -243,7 +243,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Set the filename for the Realm.
+         * Sets the filename for the Realm.
          */
         public Builder name(String filename) {
             if (filename == null || filename.isEmpty()) {
@@ -255,7 +255,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Set the 64 bit key used to encrypt and decrypt the Realm file.
+         * Sets the 64 bit key used to encrypt and decrypt the Realm file.
          */
         public Builder encryptionKey(byte[] key) {
             if (key == null) {
@@ -269,7 +269,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Set the schema version of the Realm. This must be equal to or higher than the schema version of the existing
+         * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
          * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
          *
          * If no migration code is provided, Realm will throw a {@link io.realm.exceptions.RealmMigrationNeededException}.
@@ -298,9 +298,9 @@ public class RealmConfiguration {
         }
 
         /**
-         * Setting this will change the behavior of migrations. If a
-         * {@link io.realm.exceptions.RealmMigrationNeededException} should be thrown, instead the on-disc
-         * Realm will be cleared and recreated with the new Realm schema.
+         * Setting this will change the behavior of how migration exceptions are handled. Instead of throwing a
+         * {@link io.realm.exceptions.RealmMigrationNeededException} the on-disc Realm will be cleared and recreated
+         * with the new Realm schema.
          *
          * <bold>WARNING!</bold> This will result in loss of data.
          */

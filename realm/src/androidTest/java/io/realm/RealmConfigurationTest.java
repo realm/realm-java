@@ -51,7 +51,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             Realm.setDefaultConfiguration(null);
             fail();
-        } catch (NullPointerException expected) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -67,7 +67,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             Realm.getInstance((RealmConfiguration) null);
             fail();
-        } catch (NullPointerException expected) {
+        } catch (IllegalArgumentException expected) {
         }
     }
 

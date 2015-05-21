@@ -18,12 +18,10 @@ public class IOSRealmTests extends AndroidTestCase {
     private static final String REALM_NAME = "alltypes.realm";
     private Realm realm;
 
-    private RealmConfiguration defaultConfiguration;
-
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        defaultConfiguration = new RealmConfiguration.Builder(getContext())
+        RealmConfiguration defaultConfiguration = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .schema(IOSAllTypes.class, IOSChild.class)
                 .build();
