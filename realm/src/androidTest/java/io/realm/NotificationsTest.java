@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.test.AndroidTestCase;
 
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -114,7 +115,7 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(0, counter.get());
     }
 
-    public void testAddDuplicatedListener() throws InterruptedException, ExecutionException {
+    public void testAddDuplicatedListener() {
         final AtomicInteger counter= new AtomicInteger(0);
         RealmChangeListener listener = new RealmChangeListener() {
             @Override
@@ -386,5 +387,77 @@ public class NotificationsTest extends AndroidTestCase {
         realm.beginTransaction();
         realm.commitTransaction();
         assertTrue(success.get());
+    }
+
+    public void testAddRemoveListenerConcurrency() {
+        final AtomicInteger counter1 = new AtomicInteger(0);
+        final AtomicInteger counter2 = new AtomicInteger(0);
+        final AtomicInteger counter3 = new AtomicInteger(0);
+
+        // At least we need 2 listeners existing in the list to make sure
+        // the iterator.next get called
+        final RealmChangeListener listener1 = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                counter1.incrementAndGet();
+            }
+        };
+
+        final RealmChangeListener listener2 = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                counter2.incrementAndGet();
+                realm.addChangeListener(listener1);
+            }
+        };
+
+        RealmChangeListener listener3 = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                counter3.incrementAndGet();
+                realm.removeChangeListener(this);
+            }
+        };
+
+        realm = Realm.getInstance(getContext());
+        realm.addChangeListener(listener2);
+        realm.addChangeListener(listener3);
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        assertEquals(1, counter1.get());
+        assertEquals(2, counter2.get());
+        assertEquals(1, counter3.get());
+    }
+
+    public void testWeakReferenceListener() throws InterruptedException {
+        final AtomicInteger counter = new AtomicInteger(0);
+        realm = Realm.getInstance(getContext());
+        RealmChangeListener listener = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                counter.incrementAndGet();
+            }
+        };
+        realm.addChangeListener(listener);
+
+        // There is no guaranteed way to release the WeakReference,
+        // just clear it.
+        for (WeakReference<RealmChangeListener> weakRef: realm.getChangeListeners()) {
+            weakRef.clear();
+        }
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        assertEquals(0, counter.get());
+        assertEquals(0, realm.getChangeListeners().size());
     }
 }
