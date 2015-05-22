@@ -21,7 +21,10 @@ import org.junit.Test;
 
 import javax.tools.JavaFileObject;
 
+import java.util.Arrays;
+
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
+import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static org.truth0.Truth.ASSERT;
 
 public class RealmProcessorTest {
@@ -29,7 +32,6 @@ public class RealmProcessorTest {
     private JavaFileObject simpleModel = JavaFileObjects.forResource("some/test/Simple.java");
     private JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/SimpleRealmProxy.java");
     private JavaFileObject allTypesModel = JavaFileObjects.forResource("some/test/AllTypes.java");
-    private JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/AllTypesRealmProxy.java");
     private JavaFileObject allTypesDefaultModule = JavaFileObjects.forResource("io/realm/RealmDefaultModule.java");
     private JavaFileObject allTypesDefaultMediator = JavaFileObjects.forResource("io/realm/RealmDefaultModuleMediator.java");
     private JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
@@ -109,6 +111,22 @@ public class RealmProcessorTest {
                 .compilesWithoutError()
                 .and()
                 .generatesSources(allTypesDefaultMediator, allTypesDefaultModule, allTypesDefaultMediator);
+    }
+
+    @Test
+    public void compileExplicitModulesClass() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AllTypesModule.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileExplicitModulesClassWithFailures() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAllTypesModule.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 
     @Test
