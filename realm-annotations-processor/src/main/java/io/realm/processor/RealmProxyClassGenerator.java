@@ -71,6 +71,7 @@ public class RealmProxyClassGenerator {
     }
 
     // Types in this array are guarded by if != null and use default value if trying to insert null
+    // when the underlaying column is marked as not-nullable.
     private static final Map<String, String> NULLABLE_JAVA_TYPES;
     static {
         NULLABLE_JAVA_TYPES = new HashMap<String, String>();

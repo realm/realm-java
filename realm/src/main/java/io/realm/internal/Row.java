@@ -221,9 +221,6 @@ public class Row {
 
     public void setBinaryByteArray(long columnIndex, byte[] data) {
         parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null array is not allowed");
-        }
         nativeSetByteArray(nativePtr, columnIndex, data);
     }
 

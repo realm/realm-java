@@ -1116,8 +1116,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         checkImmutable();
-        if (data == null)
-            throw new IllegalArgumentException("Null Array");
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
     }
 

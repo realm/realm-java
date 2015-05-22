@@ -294,15 +294,18 @@ public class ClassMetaData {
                 if (variableElement.getAnnotation(NotNullable.class) == null) {
                     // The field has not the @NotNullable annotation. It's only valid for:
                     // * String
-                    if (Utils.isString(variableElement)) {
+                    // * byte[]
+                    if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
                         nullableFieldNames.add(variableElement);
                     }
                 } else {
                     // The field has the @NotNullable annotation. It's only valid for:
                     // * String
+                    // * byte[]
                     String elementTypeCanonicalName = variableElement.asType().toString();
                     String variableElementName = variableElement.getSimpleName().toString();
-                    if (Utils.isString(variableElement) && nullableFieldNames.contains(variableElementName)) {
+                    if ((Utils.isString(variableElement) || Utils.isByteArray(variableElement))
+                            && nullableFieldNames.contains(variableElementName)) {
                         nullableFieldNames.remove(variableElement);
                     }
                 }

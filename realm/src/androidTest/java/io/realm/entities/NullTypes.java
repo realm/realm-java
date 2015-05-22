@@ -23,11 +23,18 @@ import io.realm.annotations.NotNullable;
 public class NullTypes extends RealmObject {
     public static String FIELD_STRING_NOT_NULL = "fieldStringNotNull";
     public static String FIELD_STRING_NULL = "fieldStringNull";
+    public static String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";
+    public static String FIELD_BYTES_NULL = "fieldBytesNull";
 
     @NotNullable
     private String fieldStringNotNull;
 
     private String fieldStringNull;
+
+    private byte[] fieldBytesNull;
+
+    @NotNullable
+    private byte[] fieldBytesNotNull;
 
     public String getFieldStringNotNull() {
         return fieldStringNotNull;
@@ -43,5 +50,21 @@ public class NullTypes extends RealmObject {
 
     public void setFieldStringNull(String fieldStringNull) {
         this.fieldStringNull = fieldStringNull;
+    }
+
+    public byte[] getFieldBytesNull() {
+        return fieldBytesNull;
+    }
+
+    public void setFieldBytesNull(byte[] fieldBytesNull) {
+        this.fieldBytesNull = fieldBytesNull;
+    }
+
+    public byte[] getFieldBytesNotNull() {
+        return fieldBytesNotNull;
+    }
+
+    public void setFieldBytesNotNull(byte[] fieldBytesNotNull) {
+        this.fieldBytesNotNull = fieldBytesNotNull;
     }
 }

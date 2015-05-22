@@ -547,4 +547,14 @@ public class RealmObjectTest extends AndroidTestCase {
             testRealm.cancelTransaction();
         }
     }
+
+    // store and retrieve null bytes in a nullable fields
+    public void testNullableBytesField() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldBytesNull(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.where(NullTypes.class).findFirst().getFieldBytesNull());
+    }
 }

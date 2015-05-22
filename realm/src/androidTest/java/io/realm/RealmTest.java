@@ -22,7 +22,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1130,7 +1129,7 @@ public class RealmTest extends AndroidTestCase {
 
         assertNull(realmTypes.getColumnString());
         assertEquals(new Date(0), realmTypes.getColumnDate());
-        assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
+        assertNull(realmTypes.getColumnBinary());
     }
 
     // Check that using copyToRealm will set the primary key directly instead of first setting
@@ -1331,7 +1330,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(0.0F, obj.getColumnFloat());
         assertEquals(0.0D, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
-        assertArrayEquals(new byte[0], obj.getColumnBinary());
+        assertNull(obj.getColumnBinary());
         assertEquals(new Date(0), obj.getColumnDate());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());

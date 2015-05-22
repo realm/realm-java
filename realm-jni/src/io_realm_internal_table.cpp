@@ -44,11 +44,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
     }
     try {
         JStringAccessor name2(env, name); // throws
-        bool isColumnNullable = isNullable != 0 ? true : false;
-        if (isColumnNullable && DataType(colType) != type_String) {
-            ThrowException(env, IllegalArgument, "Only string fields can be nullable.");
-        }
-        return TBL(nativeTablePtr)->add_column(DataType(colType), name2, isColumnNullable);
+        bool is_column_nullable = isNullable != 0 ? true : false;
+
+        DataType dataType = DataType(colType);
+        if (is_column_nullable && dataType != type_String && dataType != type_Binary) {
+             ThrowException(env, IllegalArgument, "Only string and byte array fields can be nullable.");   
+        }  
+        return TBL(nativeTablePtr)->add_column(dataType, name2, is_column_nullable);
     } CATCH_STD()
     return 0;
 }
@@ -682,7 +684,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary))
         return;
     try {
-        tbl_nativeDoByteArray(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+        if (dataArray == NULL) {
+            if (!TBL(nativeTablePtr)->is_nullable(S(columnIndex))) {
+                ThrowNullValueException(env, TBL(nativeTablePtr), S(columnIndex));
+                return;
+            }
+            TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), BinaryData());
+        }
+        else {
+            tbl_nativeDoByteArray(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+        }
     } CATCH_STD()
 }
 
@@ -692,7 +703,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertByteArray(
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary))
         return;
     try {
-        tbl_nativeDoByteArray(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+        if (dataArray == NULL) {
+            if (!TBL(nativeTablePtr)->is_nullable(S(columnIndex))) {
+                ThrowNullValueException(env, TBL(nativeTablePtr), S(columnIndex));
+                return;
+            }
+            TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), BinaryData());
+        }
+        else {
+            tbl_nativeDoByteArray(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+        }
     } CATCH_STD()
 }
 

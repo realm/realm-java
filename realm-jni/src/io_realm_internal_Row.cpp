@@ -147,15 +147,20 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_Row_nativeGetByteArray
         return 0;
 
     BinaryData bin = ROW(nativeRowPtr)->get_binary( S(columnIndex) );
-    if (bin.size() <= MAX_JSIZE) {
-        jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
-        if (jresult)
-            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
-        return jresult;
+    if (bin.is_null()) {
+        return NULL;
     }
     else {
-        ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
-        return NULL;
+        if (bin.size() <= MAX_JSIZE) {
+            jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
+            if (jresult)
+                env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
+            return jresult;
+        }
+        else {
+            ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
+            return NULL;
+        }
     }
 }
 
@@ -301,14 +306,23 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeSetByteArray
     if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Binary))
         return;
 
-    jbyte* bytePtr = env->GetByteArrayElements(value, NULL);
-    if (!bytePtr) {
-        ThrowException(env, IllegalArgument, "doByteArray");
-        return;
+    if (value == NULL) {
+        if (!(ROW(nativeRowPtr)->get_table()->is_nullable(S(columnIndex)))) {
+            ThrowNullValueException(env, ROW(nativeRowPtr)->get_table(), S(columnIndex));
+            return;
+        }
+        ROW(nativeRowPtr)->set_binary(S(columnIndex), BinaryData());
     }
-    size_t dataLen = S(env->GetArrayLength(value));
-    ROW(nativeRowPtr)->set_binary( S(columnIndex), BinaryData(reinterpret_cast<char*>(bytePtr), dataLen));
-    env->ReleaseByteArrayElements(value, bytePtr, 0);
+    else {
+        jbyte* bytePtr = env->GetByteArrayElements(value, NULL);
+        if (!bytePtr) {
+            ThrowException(env, IllegalArgument, "doByteArray");
+            return;
+        }
+        size_t dataLen = S(env->GetArrayLength(value));
+        ROW(nativeRowPtr)->set_binary( S(columnIndex), BinaryData(reinterpret_cast<char*>(bytePtr), dataLen));
+        env->ReleaseByteArrayElements(value, bytePtr, 0);
+    }
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Row_nativeSetMixed
