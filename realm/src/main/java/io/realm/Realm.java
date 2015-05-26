@@ -1562,7 +1562,7 @@ public final class Realm implements Closeable {
      * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static synchronized boolean compactRealmFile(Context context, String fileName, byte[] key) {
-        if (key != null) {
+        if (key != null) { // TODO: use proper key in SharedGroup init when encrypted realms are supported
             throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
         }
 
@@ -1574,7 +1574,7 @@ public final class Realm implements Closeable {
         SharedGroup sharedGroup = null;
         boolean result = false;
         try {
-            sharedGroup = new SharedGroup(canonicalPath, false, key);
+            sharedGroup = new SharedGroup(canonicalPath, false, null);
             result = sharedGroup.compact();
         } finally {
             if (sharedGroup != null) {

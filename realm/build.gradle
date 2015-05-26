@@ -296,3 +296,26 @@ task release {
     description 'Release realm-java'
     dependsOn pushTag
 }
+
+apply plugin: 'findbugs'
+
+task findbugs(type: FindBugs) {
+    dependsOn assemble
+    ignoreFailures = false
+    effort = "default"
+    reportLevel = "medium"
+    excludeFilter = new File("${projectDir}/findbugs-filter.xml")
+    classes = files("${projectDir}/build/intermediates/classes")
+    source = fileTree('src/main/java/')
+    classpath = files()
+    reports {
+        xml.enabled = false
+        html.enabled = true
+        xml {
+            destination "$project.buildDir/findbugs/findbugs-output.xml"
+        }
+        html {
+            destination "$project.buildDir/findbugs/findbugs-output.html"
+        }
+    }
+}
