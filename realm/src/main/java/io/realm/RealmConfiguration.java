@@ -159,8 +159,10 @@ public class RealmConfiguration {
     }
 
     // Finds the mediator associated with a given module
-    private static RealmProxyMediator getModuleMediator(String canonicalModuleClassName) {
-        String mediatorName = canonicalModuleClassName + "Mediator";
+    private static RealmProxyMediator getModuleMediator(String fullyQualifiedModuleClassName) {
+        String[] moduleNameParts = fullyQualifiedModuleClassName.split("\\.");
+        String moduleSimpleName = moduleNameParts[moduleNameParts.length - 1];
+        String mediatorName = String.format("io.realm.%s%s", moduleSimpleName, "Mediator");
         Class<?> clazz;
         try {
             clazz = Class.forName(mediatorName);
