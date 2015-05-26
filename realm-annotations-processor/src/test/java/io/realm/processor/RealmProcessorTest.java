@@ -114,17 +114,65 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileExplicitModulesClass() throws Exception {
+    public void compileAppModuleCustomClasses() throws Exception {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AllTypesModule.java")))
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleCustomClasses.java")))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
     }
 
     @Test
-    public void compileExplicitModulesClassWithFailures() throws Exception {
+    public void compileAppModuleAllClasses() throws Exception {
         ASSERT.about(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAllTypesModule.java")))
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleAllClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileLibraryModulesAllClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleAllClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileLibraryModulesCustomClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleCustomClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileAppModuleMixedParametersFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleMixedParameters.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileAppModuleWrongTypeFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleWrongType.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileLibraryModuleMixedParametersFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleMixedParameters.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileLibraryModuleWrongTypeFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleWrongType.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

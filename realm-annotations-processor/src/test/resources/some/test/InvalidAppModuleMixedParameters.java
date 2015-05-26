@@ -23,8 +23,8 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 
-// Object is not a RealmObject which the Annotation Processor should be able to detect.
-@RealmModule(classes = { Object.class, AllTypes.class })
-public class AllTypesModule {
+// Setting both allClasses and classes is not allowed at the same time
+@RealmModule(allClasses = true, classes = { AllTypes.class })
+public class InvalidAllTypesModuleMixedParameters {
 
 }

@@ -24,6 +24,6 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 
 @RealmModule(classes = { AllTypes.class })
-public class AllTypesModule {
+public class AppModuleCustomClasses {
 
 }

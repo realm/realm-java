@@ -81,5 +81,5 @@ public @interface RealmModule {
      * Setting both {@code allClasses = true} and {@code classes()} will result in the annotation processor throwing
      * an error.
      */
-    Class<?>[] classes() default { };
+    Class<?>[] classes() default {};
 }
