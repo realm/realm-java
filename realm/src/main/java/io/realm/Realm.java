@@ -58,6 +58,7 @@ import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
@@ -285,10 +286,7 @@ public final class Realm implements Closeable {
 
     // Public because of migrations
     public Table getTable(Class<? extends RealmObject> clazz) {
-        Class<?> superclass = clazz.getSuperclass();
-        if (!superclass.equals(RealmObject.class)) {
-            clazz = (Class<? extends RealmObject>) superclass;
-        }
+        clazz = Util.getOriginalModelClass(clazz);
         return transaction.getTable(proxyMediator.getTableName(clazz));
     }
 
