@@ -1250,18 +1250,22 @@ public final class Realm implements Closeable {
 
     void sendNotifications() {
         Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
-        List<WeakReference<RealmChangeListener>> toRemoveList =
-                new ArrayList<WeakReference<RealmChangeListener>>(changeListeners.size());
+        List<WeakReference<RealmChangeListener>> toRemoveList = null;
         while (iterator.hasNext()) {
             WeakReference<RealmChangeListener> weakRef = iterator.next();
             RealmChangeListener listener = weakRef.get();
             if (listener == null) {
+                if (toRemoveList == null) {
+                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(changeListeners.size());
+                }
                 toRemoveList.add(weakRef);
             } else {
                 listener.onChange();
             }
         }
-        changeListeners.removeAll(toRemoveList);
+        if (toRemoveList != null) {
+            changeListeners.removeAll(toRemoveList);
+        }
     }
 
     @SuppressWarnings("UnusedDeclaration")
