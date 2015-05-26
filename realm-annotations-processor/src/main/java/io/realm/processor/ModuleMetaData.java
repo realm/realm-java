@@ -63,7 +63,7 @@ public class ModuleMetaData {
 
             // Check that allClasses and classes are not set at the same time
             RealmModule module = classElement.getAnnotation(RealmModule.class);
-            Utils.note("Processing " + classSimpleName);
+            Utils.note("Processing module " + classSimpleName);
             if (module.allClasses() && module.classes().length > 0) {
                 Utils.error("Setting @RealmModule(allClasses=true) will override @RealmModule(classes={...}) in " + classSimpleName);
                 return false;
