@@ -22,6 +22,7 @@ public class Booleans extends RealmObject {
     private boolean done;
     private boolean isReady;
     private boolean mCompleted;
+    private boolean anotherBoolean;
 
     public boolean isDone() {
         return done;
@@ -45,5 +46,13 @@ public class Booleans extends RealmObject {
 
     public void setmCompleted(boolean mCompleted) {
         this.mCompleted = mCompleted;
+    }
+
+    public boolean getAnotherBoolean() {
+        return anotherBoolean;
+    }
+
+    public void setAnotherBoolean(boolean anotherBoolean) {
+        this.anotherBoolean = anotherBoolean;
     }
 }

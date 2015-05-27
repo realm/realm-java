@@ -144,7 +144,7 @@ public final class Realm implements Closeable {
 
     // Maps ids to a boolean set to true if the Realm is open. This is only needed by deleteRealmFile
     private static final Map<String, AtomicInteger> openRealms = new ConcurrentHashMap<String, AtomicInteger>();
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they where created.";
+    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String INVALID_KEY_MESSAGE = "The provided key is invalid. It should either be null or be 64" +
             " bytes long.";
@@ -160,7 +160,8 @@ public final class Realm implements Closeable {
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
 
-    private final List<WeakReference<RealmChangeListener>> changeListeners = new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
+    private final List<WeakReference<RealmChangeListener>> changeListeners =
+            new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
     private static RealmProxyMediator proxyMediator = getDefaultMediator();
 
     private static final long UNVERSIONED = -1;
@@ -1196,6 +1197,13 @@ public final class Realm implements Closeable {
      */
     public void addChangeListener(RealmChangeListener listener) {
         checkIfValid();
+        for (WeakReference<RealmChangeListener> ref : changeListeners) {
+            if (ref.get() == listener) {
+                // It has already been added before
+                return;
+            }
+        }
+
         changeListeners.add(new WeakReference<RealmChangeListener>(listener));
     }
 
@@ -1207,7 +1215,17 @@ public final class Realm implements Closeable {
      */
     public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        changeListeners.remove(new WeakReference<RealmChangeListener>(listener));
+        WeakReference<RealmChangeListener> weakRefToRemove = null;
+        for (WeakReference<RealmChangeListener> weakRef : changeListeners) {
+            if (listener == weakRef.get()) {
+                weakRefToRemove = weakRef;
+                // There won't be duplicated entries, checking is done when adding
+                break;
+            }
+        }
+        if (weakRefToRemove != null) {
+            changeListeners.remove(weakRefToRemove);
+        }
     }
 
     /**
@@ -1220,20 +1238,34 @@ public final class Realm implements Closeable {
         changeListeners.clear();
     }
 
-    void sendNotifications() {
+    /**
+     * Return change listeners
+     * For internal testing purpose only
+     *
+     * @return changeListeners list of this realm instance
+     */
+    protected List<WeakReference<RealmChangeListener>> getChangeListeners() {
+        return changeListeners;
+    }
+
+   void sendNotifications() {
         Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
-        List<WeakReference<RealmChangeListener>> toRemoveList =
-                new ArrayList<WeakReference<RealmChangeListener>>(changeListeners.size());
+        List<WeakReference<RealmChangeListener>> toRemoveList = null;
         while (iterator.hasNext()) {
             WeakReference<RealmChangeListener> weakRef = iterator.next();
             RealmChangeListener listener = weakRef.get();
             if (listener == null) {
+                if (toRemoveList == null) {
+                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(changeListeners.size());
+                }
                 toRemoveList.add(weakRef);
             } else {
                 listener.onChange();
             }
         }
-        changeListeners.removeAll(toRemoveList);
+        if (toRemoveList != null) {
+            changeListeners.removeAll(toRemoveList);
+        }
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -1305,7 +1337,6 @@ public final class Realm implements Closeable {
                 handler.sendEmptyMessage(REALM_CHANGED);
             }
         }
-        sendNotifications();
     }
 
     /**
@@ -1454,6 +1485,8 @@ public final class Realm implements Closeable {
      * @param context an Android {@link android.content.Context}.
      * @return false if a file could not be deleted. The failing file will be logged.
      * @see io.realm.Realm#clear(Class)
+     *
+     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static boolean deleteRealmFile(Context context) {
         return deleteRealmFile(context, DEFAULT_REALM_NAME);
@@ -1466,6 +1499,8 @@ public final class Realm implements Closeable {
      * @param context  an Android {@link android.content.Context}.
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
+     *
+     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static boolean deleteRealmFile(Context context, String fileName) {
         return deleteRealmFile(new File(context.getFilesDir(), fileName));
@@ -1477,6 +1512,8 @@ public final class Realm implements Closeable {
      *
      * @param realmFile The reference to the Realm file.
      * @return false if a file could not be deleted. The failing file will be logged.
+     *
+     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static synchronized boolean deleteRealmFile(File realmFile) {
         boolean result = true;
