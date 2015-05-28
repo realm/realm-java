@@ -80,7 +80,7 @@ public class ModuleMetaData {
                     ClassMetaData metadata = classMetaData.get(fullyQualifiedClassName);
                     if (metadata == null) {
                         Utils.error(Utils.stripPackage(fullyQualifiedClassName) + " could not be added to the module. " +
-                                "Only classes extending RealmObject that are part of this project can be added.");
+                                "Only classes extending RealmObject, which are part of this project, can be added.");
                         return false;
                     }
                     classes.add(metadata);

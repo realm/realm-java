@@ -23,24 +23,31 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * By default a Realm can stores all RealmClasses in a project. However, if you want to restrict a Realm to only contain
- * certain classes or want to share them between a library project and an app project you must use a RealmModule.
+ * By default a Realm can stores all classes extending RealmObject in a project. However, if you want to restrict a
+ * Realm to only contain a subset of classes or want to share them between a library project and an app project you must
+ * use a RealmModule.
  * <p>
- * A RealmModule is a collection of RealmClasses that can be combined with other RealmModules to create the schema for a
- * Realm. This makes it easier to control versioning and migration of those Realms.
+ * A RealmModule is a collection of classes extending RealmObject that can be combined with other RealmModules to create
+ * the schema for a Realm. This makes it easier to control versioning and migration of those Realms.
  * <p>
- * A RealmModule can either be a library module or an app module. This distinction is made by setting
- * {@code library = true}. A default Realm will automatically create a RealmModule called {@code DefaulRealmModule}
- * that contains all RealmClasses in a project. This module will be an app module and is automatically known by Realm.
+ * A RealmModule can either be a library module or an app module. The distinction is made by setting
+ * {@code library = true}. Setting {@code library = true} is normally only relevant for library authors. See below for
+ * futher details.
+ *
+ *
+ * <h2>RealmModules and libraries</h2>
+ *
+ * Realms default behavior is to automatically create a RealmModule called {@code DefaultRealmModule} which contains all
+ * classes extending RealmObject in a project. This module is automatically known by Realm.
  * <p>
- * This behavior is problematic when combining a library project and an app project that both uses Realm as
- * the {@code DefaultRealmModule} will be created for both the library project and the app project causing import
- * conflicts.
+ * This behavior is problematic when combining a library project and an app project that both uses Realm. This is
+ * because the {@code DefaultRealmModule} will be created for both the library project and the app project, which will
+ * cause the project to fail with duplicate class definition errors.
  * <p>
- * Library authors are reponsible for avoiding this conflict by creating a explicit library module where
- * {@code library = true} is set. This disable the generation of the DefaultRealmModule for the library project and
- * allows the library to be included in the app project that also uses Realm. This means that library projects that uses
- * Realm internally are required to specify a explicit module using {@code RealmConfiguration.setModules()}.
+ * Library authors are responsible for avoiding this conflict by using explicit modules where {@code library = true} is
+ * set. This disables the generation of the DefaultRealmModule for the library project and allows the library to be
+ * included in the app project that also uses Realm. This means that library projects that uses Realm internally are
+ * required to specify a specific module using {@code RealmConfiguration.setModules()}.
  * <p>
  * App developers are not required to specify any modules, as they implicitely use the {@code DefaultRealmModule}, but
  * they now has the option of adding the library project classes to their schema using
@@ -60,7 +67,7 @@ public @interface RealmModule {
      * cannot  rely on the default module being present.
      *
      * Creating library modules and normal modules in the same project is not allowed and will result in the annotation
-     * processor throwing an error.
+     * processor throwing an exception.
      */
     boolean library() default false;
 
@@ -70,16 +77,16 @@ public @interface RealmModule {
      * their own module.
      *
      * Setting both {@code allClasses = true} and {@code classes()} will result in the annotation processor throwing
-     * an error.
+     * an exception.
      */
     boolean allClasses() default false;
 
     /**
-     * Specify the Realm classes part of this module. Only classes in this project can be included. Realm classes
-     * from other libraries must be exposed using their own module.
+     * Specifies the classes extending RealmObject that should be part of this module. Only classes in this project can
+     * be included. Classes from other libraries must be exposed using their own module.
      *
      * Setting both {@code allClasses = true} and {@code classes()} will result in the annotation processor throwing
-     * an error.
+     * an exception.
      */
     Class<?>[] classes() default {};
 }
