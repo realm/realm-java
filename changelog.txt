@@ -5,6 +5,7 @@
  * Realm will now throw a RealmError when Realm's underlying storage engine encounters an unrecoverable error.
  * @Index annotation can also be applied to byte/short/int/long/boolean/Date now.
  * Fields with annotation @PrimaryKey are indexed automatically now.
+ * Fixed a bug where RealmQuery objects are prematurely garbage collected.
 
 0.81.1
  * Fixed memory leak causing Realm to never release Realm objects.
