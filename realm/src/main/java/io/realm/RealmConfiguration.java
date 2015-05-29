@@ -354,12 +354,17 @@ public class RealmConfiguration {
          * create a module. These classes must be available in the default module. Calling this will remove any
          * previously configured modules.
          */
-        Builder schema(Class<? extends RealmObject>... schemaClass) {
+        Builder schema(Class<? extends RealmObject> firstClass, Class<? extends RealmObject>... additionalClasses) {
+            if (firstClass == null) {
+                throw new IllegalArgumentException("A non-null class must be provided");
+            }
             modules.clear();
             modules.add(DEFAULT_MODULE_MEDIATOR);
-            if (schemaClass != null) {
-                Collections.addAll(debugSchema, schemaClass);
+            debugSchema.add(firstClass);
+            if (additionalClasses != null) {
+                Collections.addAll(debugSchema, additionalClasses);
             }
+
             return this;
         }
 
