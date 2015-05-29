@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service;
+package io.realm.examples.concurrency;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,20 +28,14 @@ public class BgSpawningService extends Service {
 
     public static final String TAG = BgSpawningService.class.getName();
 
-    private Boolean serviceQuitting = false;
-
     public static final String REALM_FILE_EXTRA = "RealmFileExtra";
 
     private File realmPath = null;
 
     private List<KillableThread> allThreads = null;
 
-    BgWriterThread wT = null;
-    BgReaderThread rT = null;
-
-    public void onCreate() {
-        super.onCreate();
-    }
+    private BgWriterThread wT = null;
+    private BgReaderThread rT = null;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -73,7 +66,6 @@ public class BgSpawningService extends Service {
     }
 
     private void quit() {
-        this.serviceQuitting = true;
         for (KillableThread t : allThreads) {
             t.terminate();
         }

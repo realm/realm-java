@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service.model;
+package io.realm.examples.concurrency.model;
 
 import io.realm.RealmObject;
 
@@ -29,10 +29,4 @@ public class Cat extends RealmObject {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return "Cat{" +
-                "name='" + name + '\'' +
-                '}';
-    }
 }

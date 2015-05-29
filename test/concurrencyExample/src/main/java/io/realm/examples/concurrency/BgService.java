@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service;
+package io.realm.examples.concurrency;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.util.Log;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.examples.service.model.Dog;
-import io.realm.examples.service.model.Person;
+import io.realm.examples.concurrency.model.Person;
 
 public class BgService extends IntentService {
 
     public static final String TAG = BgService.class.getName();
 
-    private Boolean serviceQuitting = false;
+    //This needs to be a volatile, since #onHandleIntent runs on a 'HandlerThread'
+    //and #onDestroy is a a lifecycle callback invoked from the 'main Thread' (avoid liveness pb)
+    private volatile boolean serviceQuitting = false;
 
     public static final String REALM_FILE_EXTRA = "RealmFileExtra";
 

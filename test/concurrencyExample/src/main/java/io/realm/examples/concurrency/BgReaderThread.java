@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service;
+package io.realm.examples.concurrency;
 
 import android.content.Context;
 import android.util.Log;
@@ -23,7 +23,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmQuery;
-import io.realm.examples.service.model.Person;
+import io.realm.examples.concurrency.model.Person;
 
 public class BgReaderThread extends Thread implements KillableThread {
 
@@ -51,7 +51,9 @@ public class BgReaderThread extends Thread implements KillableThread {
         }
     }
 
-    private boolean running = true;
+    //This needs to be volatile since we're exposing a public method that could be invoked
+    //from a different Thread (avoid Liveness pb)
+    private volatile boolean running = true;
 
     @Override
     public void terminate() {

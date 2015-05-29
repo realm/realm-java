@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service;
+package io.realm.examples.concurrency;
 
 import android.content.Context;
 import android.util.Log;
 
 import io.realm.Realm;
-import io.realm.examples.service.model.Dog;
-import io.realm.examples.service.model.Person;
+import io.realm.examples.concurrency.model.Person;
 
 public class BgWriterThread extends Thread implements KillableThread {
 
@@ -46,12 +45,13 @@ public class BgWriterThread extends Thread implements KillableThread {
 
             Person person = realm.createObject(Person.class);
             person.setName("New person");
-//            person.setDog(realm.createObject(Dog.class));
             iterCount++;
         }
         realm.commitTransaction();
     }
 
+    //This needs to be volatile since we're exposing a public method that could be invoked
+    //from a different Thread (avoid Liveness pb)
     private boolean running = true;
 
     @Override

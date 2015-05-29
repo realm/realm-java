@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service;
+package io.realm.examples.concurrency;
 
 public interface KillableThread {
 
-    public void terminate();
+    void terminate();
 
 }

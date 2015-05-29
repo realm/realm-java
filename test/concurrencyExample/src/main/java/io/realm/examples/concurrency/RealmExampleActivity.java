@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service;
+package io.realm.examples.concurrency;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -23,14 +23,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import io.realm.Realm;
-import io.realm.RealmList;
-import io.realm.examples.service.model.Cat;
-import io.realm.examples.service.model.Dog;
-import io.realm.examples.service.model.Person;
+import io.realm.examples.concurrency.model.Person;
 
 public class RealmExampleActivity extends Activity implements View.OnClickListener {
 
@@ -97,18 +93,6 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         person.setName(personName);
         person.setAge(parseAge);
 
-//        int checkedId = ((RadioGroup) findViewById(R.id.petType)).getCheckedRadioButtonId();
-//        if (checkedId == R.id.hasCat) {
-//            Cat cat = realm.createObject(Cat.class);
-//            cat.setName(petName);
-//            RealmList<Cat> cats = person.getCats();
-//            cats.add(cat);
-//        } else if (checkedId == R.id.hasDog) {
-//            Dog dog = realm.createObject(Dog.class);
-//            dog.setName(petName);
-//            person.setDog(dog);
-//        }
-
         realm.commitTransaction();
 
     }
@@ -119,8 +103,6 @@ public class RealmExampleActivity extends Activity implements View.OnClickListen
         Person person = realm.createObject(Person.class);
         person.setName("Human Being");
         person.setAge(32);
-//        Dog dog = realm.createObject(Dog.class);
-//        dog.setName("Fido");
         realm.commitTransaction();
     }
 
