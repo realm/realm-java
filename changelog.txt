@@ -1,3 +1,6 @@
+0.81
+ * RealmList.add(), RealmList.addAt() and RealmList.set() now insert standalone objects transparently into Realm.
+
 0.80.3
  * Calling Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
  * Fixed a bug making it impossible to open Realms created by Realm-Cocoa if a model had a primary key defined.
