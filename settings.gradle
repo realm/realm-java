@@ -9,7 +9,7 @@ include ':introExample',
         ':adapterExample',
         ':threadExample',
 		':jsonExample',
-        ':kotlinExample'
+		':kotlinExample'
 
 
 project(':introExample').projectDir = new File('examples/introExample')
