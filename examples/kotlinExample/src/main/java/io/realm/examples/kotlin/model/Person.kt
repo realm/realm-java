@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,23 +23,18 @@ import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmClass
 
 // Your model has to extend RealmObject and must have the @RealmClass annotation set.
-
 // (Inherited annotations don't work for Kotlin 0.12.213, check
 // https://youtrack.jetbrains.com/issue/KT-7890 for progress on this issue. When this is resolved,
 // the @RealmClass annotation can be omitted)
-
 // Furthermore, the class and all of the properties must be annotated with open
 // (Kotlin classes and methods are final by default).
 @RealmClass
 public open class Person(
         // You can put properties in the constructor as long as all of them are initialized with
         // default values. This ensures that an empty constructor is generated.
-
         // All properties are by default persisted.
-
-        // Properties can be annotated with PrimaryKey or Index
-
-        // If you use non-nullable types, properties must be initialized with non-null values
+        // Properties can be annotated with PrimaryKey or Index.
+        // If you use non-nullable types, properties must be initialized with non-null values.
 
         @PrimaryKey public open var name: String = "",
 
