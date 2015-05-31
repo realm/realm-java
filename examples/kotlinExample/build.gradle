@@ -24,6 +24,10 @@ android {
     }
 }
 
+tasks.preBuild {
+    dependsOn ":realm:androidJar"
+}
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile 'org.jetbrains.anko:anko:0.6.2-19s'
