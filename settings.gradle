@@ -8,8 +8,8 @@ include ':introExample',
         ':migrationExample',
         ':adapterExample',
         ':threadExample',
-		':jsonExample',
-		':kotlinExample'
+        ':jsonExample',
+        ':kotlinExample'
 
 
 project(':introExample').projectDir = new File('examples/introExample')
