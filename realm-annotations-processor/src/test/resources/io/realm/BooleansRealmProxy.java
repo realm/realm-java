@@ -31,6 +31,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     private static long INDEX_DONE;
     private static long INDEX_ISREADY;
     private static long INDEX_MCOMPLETED;
+    private static long INDEX_ANOTHERBOOLEAN;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
@@ -38,6 +39,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         fieldNames.add("done");
         fieldNames.add("isReady");
         fieldNames.add("mCompleted");
+        fieldNames.add("anotherBoolean");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
@@ -77,12 +79,25 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         row.setBoolean(INDEX_MCOMPLETED, (boolean) value);
     }
 
+    @Override
+    public boolean getAnotherBoolean() {
+        realm.checkIfValid();
+        return (boolean) row.getBoolean(INDEX_ANOTHERBOOLEAN);
+    }
+
+    @Override
+    public void setAnotherBoolean(boolean value) {
+        realm.checkIfValid();
+        row.setBoolean(INDEX_ANOTHERBOOLEAN, (boolean) value);
+    }
+
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
             table.addColumn(ColumnType.BOOLEAN, "done");
             table.addColumn(ColumnType.BOOLEAN, "isReady");
             table.addColumn(ColumnType.BOOLEAN, "mCompleted");
+            table.addColumn(ColumnType.BOOLEAN, "anotherBoolean");
             table.setPrimaryKey("");
             return table;
         }
@@ -93,12 +108,12 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         if (transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
 
-            if (table.getColumnCount() != 3) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 3 but was " + table.getColumnCount());
+            if (table.getColumnCount() != 4) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
             }
 
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for (long i = 0; i < 3; i++) {
+            for (long i = 0; i < 4; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
@@ -113,6 +128,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             INDEX_DONE = table.getColumnIndex("done");
             INDEX_ISREADY = table.getColumnIndex("isReady");
             INDEX_MCOMPLETED = table.getColumnIndex("mCompleted");
+            INDEX_ANOTHERBOOLEAN = table.getColumnIndex("anotherBoolean")
 
             if (!columnTypes.containsKey("done")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done'");
@@ -131,6 +147,12 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             }
             if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted'");
+            }
+            if (!columnTypes.containsKey("anotherBoolean")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'anotherBoolean'");
+            }
+            if (columnTypes.get("anotherBoolean") != ColumnType.BOOLEAN) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'anotherBoolean'");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The Booleans class is missing from the schema for this Realm.");
@@ -161,6 +183,9 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         if (!json.isNull("mCompleted")) {
             obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
         }
+        if (!json.isNull("anotherBoolean")) {
+            obj.setAnotherBoolean((boolean) json.getBoolean("anotherBoolean"));
+        }
         return obj;
     }
 
@@ -176,6 +201,8 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
                 obj.setReady((boolean) reader.nextBoolean());
             } else if (name.equals("mCompleted")  && reader.peek() != JsonToken.NULL) {
                 obj.setmCompleted((boolean) reader.nextBoolean());
+            } else if (name.equals("anotherBoolean")  && reader.peek() != JsonToken.NULL) {
+                obj.setAnotherBoolean((boolean) reader.nextBoolean());
             } else {
                 reader.skipValue();
             }
@@ -197,6 +224,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
+        realmObject.setAnotherBoolean(newObject.getAnotherBoolean());
         return realmObject;
     }
 
@@ -204,6 +232,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
+        realmObject.setAnotherBoolean(newObject.getAnotherBoolean());
         return realmObject;
     }
 
@@ -223,6 +252,10 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         stringBuilder.append(",");
         stringBuilder.append("{mCompleted:");
         stringBuilder.append(ismCompleted());
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{anotherBoolean:");
+        stringBuilder.append(getAnotherBoolean());
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();

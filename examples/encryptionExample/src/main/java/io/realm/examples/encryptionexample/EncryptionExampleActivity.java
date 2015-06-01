@@ -20,7 +20,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 import io.realm.Realm;
 
@@ -43,7 +43,7 @@ public class EncryptionExampleActivity extends Activity {
         // * https://developer.android.com/training/articles/keystore.html
         // * http://nelenkov.blogspot.dk/2012/05/storing-application-secrets-in-androids.html
         byte[] key = new byte[64];
-        new Random(365762536).nextBytes(key);
+        new SecureRandom().nextBytes(key);
 
         // Open the Realm with encryption enabled
         realm = Realm.getInstance(this, key);
