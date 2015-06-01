@@ -20,6 +20,7 @@ import io.realm.annotations.PrimaryKey;
 
 public class Score extends RealmObject {
 
+    public static final String _ID = "_id";
     public static final String FIELD_NAME = "name";
     public static final String FIELD_SCORE = "score";
     public static final String FIELD_ID = "id";
