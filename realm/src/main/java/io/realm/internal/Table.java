@@ -136,9 +136,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      */
 
     public boolean isValid() {
-        if (nativePtr == 0)
-            return false;
-        return nativeIsValid(nativePtr);
+        return nativePtr != 0 && nativeIsValid(nativePtr);
     }
 
     protected native boolean nativeIsValid(long nativeTablePtr);
@@ -169,7 +167,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public TableSchema getSubtableSchema(long columnIndex) {
-        if(nativeIsRootTable(nativePtr) == false) {
+        if(!nativeIsRootTable(nativePtr)) {
             throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
         }
 
@@ -427,7 +425,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             case INTEGER:
                 long pkValue;
                 try {
-                    pkValue = new Long(primaryKeyValue.toString());
+                    pkValue = Long.valueOf(primaryKeyValue.toString());
                 } catch (RuntimeException e) {
                     throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
                 }
@@ -529,10 +527,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativeInsertLong(nativePtr, columnIndex, rowIndex, intValue);
                 break;
             case FLOAT:
-                nativeInsertFloat(nativePtr, columnIndex, rowIndex, ((Float)value).floatValue());
+                nativeInsertFloat(nativePtr, columnIndex, rowIndex, (Float) value);
                 break;
             case DOUBLE:
-                nativeInsertDouble(nativePtr, columnIndex, rowIndex, ((Double)value).doubleValue());
+                nativeInsertDouble(nativePtr, columnIndex, rowIndex, (Double) value);
                 break;
             case STRING:
                 String stringValue = (String) value;
@@ -650,12 +648,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     ") does not match the number of columns in the table (" +
                     String.valueOf(columns) + ").");
         }
+
         // Verify type of 'values'
-        ColumnType colTypes[] = new ColumnType[columns];
         for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
             Object value = values[columnIndex];
             ColumnType colType = getColumnType(columnIndex);
-            colTypes[columnIndex] = colType;
             if (!colType.matchObject(value)) {
                 throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
                         ". Expected a value compatible with column type " + colType + ", but got " + value.getClass() + ".");
@@ -707,10 +704,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return              True if column is a primary key, false otherwise.
      */
     public boolean isPrimaryKey(long columnIndex) {
-        if (columnIndex < 0) {
-            return false;
-        }
-        return columnIndex == getPrimaryKey();
+        return columnIndex >= 0 && columnIndex == getPrimaryKey();
     }
 
     /**
@@ -1188,8 +1182,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (pkTable == null) {
             throw new RealmException("Primary keys are only supported if Table is part of a Group");
         }
-        long index = nativeSetPrimaryKey(pkTable.nativePtr, nativePtr, columnName);
-        cachedPrimaryKeyColumnIndex = index;
+        cachedPrimaryKeyColumnIndex = nativeSetPrimaryKey(pkTable.nativePtr, nativePtr, columnName);
     }
 
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
