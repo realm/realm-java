@@ -94,10 +94,10 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-            table.addColumn(ColumnType.BOOLEAN, "done", false);
-            table.addColumn(ColumnType.BOOLEAN, "isReady", false);
-            table.addColumn(ColumnType.BOOLEAN, "mCompleted", false);
-            table.addColumn(ColumnType.BOOLEAN, "anotherBoolean", false);
+            table.addColumn(ColumnType.BOOLEAN, "done", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.BOOLEAN, "isReady", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.BOOLEAN, "mCompleted", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.BOOLEAN, "anotherBoolean", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
             return table;
         }

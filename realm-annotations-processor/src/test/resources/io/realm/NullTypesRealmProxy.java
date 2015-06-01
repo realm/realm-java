@@ -66,8 +66,8 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
-            table.addColumn(ColumnType.STRING, "fieldStringNotNull", false);
-            table.addColumn(ColumnType.STRING, "fieldStringNull", true);
+            table.addColumn(ColumnType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.STRING, "fieldStringNull", Table.NULLABLE);
             table.setPrimaryKey("");
             return table;
         }

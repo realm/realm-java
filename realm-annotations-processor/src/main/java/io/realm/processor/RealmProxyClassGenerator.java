@@ -343,7 +343,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("table.addColumn(%s, \"%s\", %s)",
                         JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
                         fieldName,
-                        isNullable?"true":"false");
+                        isNullable?"Table.NULLABLE":"Table.NOT_NULLABLE");
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
                 writer.emitStatement("%s%s.initTable(transaction)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);

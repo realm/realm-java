@@ -40,6 +40,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
 
+    public static final boolean NULLABLE = true;
+    public static final boolean NOT_NULLABLE = false;
+
     protected long nativePtr;
     
     protected final Object parent;

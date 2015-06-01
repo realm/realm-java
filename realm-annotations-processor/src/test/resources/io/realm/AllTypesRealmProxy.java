@@ -175,13 +175,13 @@ public class AllTypesRealmProxy extends AllTypes
     public static Table initTable(ImplicitTransaction transaction) {
         if(!transaction.hasTable("class_AllTypes")) {
             Table table = transaction.getTable("class_AllTypes");
-            table.addColumn(ColumnType.STRING, "columnString", false);
-            table.addColumn(ColumnType.INTEGER, "columnLong", false);
-            table.addColumn(ColumnType.FLOAT, "columnFloat", false);
-            table.addColumn(ColumnType.DOUBLE, "columnDouble", false);
-            table.addColumn(ColumnType.BOOLEAN, "columnBoolean", false);
-            table.addColumn(ColumnType.DATE, "columnDate", false);
-            table.addColumn(ColumnType.BINARY, "columnBinary", false);
+            table.addColumn(ColumnType.STRING, "columnString", Table.NULLABLE);
+            table.addColumn(ColumnType.INTEGER, "columnLong", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.FLOAT, "columnFloat", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.DOUBLE, "columnDouble", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.BOOLEAN, "columnBoolean", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.DATE, "columnDate", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.BINARY, "columnBinary", Table.NOT_NULLABLE);
             if (!transaction.hasTable("class_AllTypes")) {
                 AllTypesRealmProxy.initTable(transaction);
             }

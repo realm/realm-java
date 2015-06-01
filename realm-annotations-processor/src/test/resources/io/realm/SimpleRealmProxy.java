@@ -67,8 +67,8 @@ public class SimpleRealmProxy extends Simple
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            table.addColumn(ColumnType.STRING, "name", true);
-            table.addColumn(ColumnType.INTEGER, "age", false);
+            table.addColumn(ColumnType.STRING, "name", Table.NULLABLE);
+            table.addColumn(ColumnType.INTEGER, "age", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
             return table;
         }
