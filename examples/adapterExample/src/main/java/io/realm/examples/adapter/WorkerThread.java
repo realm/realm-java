@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.examples.cursor;
+package io.realm.examples.adapter;
 
 import android.content.Context;
 import android.os.Handler;
