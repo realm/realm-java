@@ -46,7 +46,8 @@ def toolchains = [
     new Toolchain( name:'arm', fullName:'arm-linux-androideabi', commandPrefix:'arm-linux-androideabi', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:8 ),
     new Toolchain( name:'arm64', fullName:'aarch64-linux-android', commandPrefix:'aarch64-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:21 ),
     new Toolchain( name:'mips', fullName:'mipsel-linux-android', commandPrefix:'mipsel-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 ),
-    new Toolchain( name:'x86', fullName:'x86', commandPrefix:'i686-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 )
+    new Toolchain( name:'x86', fullName:'x86', commandPrefix:'i686-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 ),
+    new Toolchain( name:'x86_64', fullName:'x86_64', commandPrefix:'x86_64-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:21 )
 ]
 
 def targets = [
@@ -54,7 +55,8 @@ def targets = [
     new Target( name:'arm-v7a', jniFolder:'armeabi-v7a', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
     new Target( name:'arm64', jniFolder:'arm64-v8a', toolchain:toolchains.find{it.name == 'arm64'}, cflags:[] ),
     new Target( name:'mips', jniFolder:'mips', toolchain:toolchains.find{it.name == 'mips'}, cflags:[] ),
-    new Target( name:'x86', jniFolder:'x86', toolchain:toolchains.find{it.name == 'x86'}, cflags:[] )
+    new Target( name:'x86', jniFolder:'x86', toolchain:toolchains.find{it.name == 'x86'}, cflags:[] ),
+    new Target( name:'x86_64', jniFolder:'x86_64', toolchain:toolchains.find{it.name == 'x86_64'}, cflags:[] )
 ]
 
 buildscript {
