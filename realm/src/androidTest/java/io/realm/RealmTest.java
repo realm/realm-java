@@ -1595,34 +1595,6 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testWrongKeyShouldThrow() {
-        final String WRONG_KEY_REALM = "wrong-key-realm.realm";
-        Realm.deleteRealmFile(getContext(), WRONG_KEY_REALM);
-
-        // Wrong key size
-        try {
-            Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                    .name(WRONG_KEY_REALM)
-                    .encryptionKey(new byte[63])
-                    .build()
-            );
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        Realm.getInstance(getContext(), WRONG_KEY_REALM);
-
-        try {
-            Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                    .name(WRONG_KEY_REALM)
-                    .encryptionKey(new byte[64])
-                    .build()
-            );
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-    }
-
     public void testUpdateObjectWithLinks() throws Exception {
         testRealm.beginTransaction();
 

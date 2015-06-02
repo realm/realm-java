@@ -51,6 +51,8 @@ import io.realm.internal.modules.FilterableMediator;
  */
 public class RealmConfiguration {
 
+    public static final int KEY_LENGTH = 64;
+
     private static final Object DEFAULT_MODULE;
     private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
     static {
@@ -263,8 +265,9 @@ public class RealmConfiguration {
             if (key == null) {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
-            if (key.length != 64) {
-                throw new IllegalArgumentException("The provided key must be 64 bytes. Yours was: " + key.length);
+            if (key.length != KEY_LENGTH) {
+                throw new IllegalArgumentException(String.format("The provided key must be %s bytes. Yours was: %s",
+                        KEY_LENGTH, key.length));
             }
             this.key = key;
             return this;
@@ -312,7 +315,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Add a {@link RealmModule}s to the existing modules. RealmClasses in the new module is added to the schema
+         * Adds a {@link RealmModule}s to the existing modules. RealmClasses in the new module is added to the schema
          * for this Realm.
          *
          * @param module {@link RealmModule} to add to this Realms schema.
@@ -327,7 +330,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Replace the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
+         * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
          *
          * @param baseModule

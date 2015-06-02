@@ -75,7 +75,7 @@ public class TestHelper {
         TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
 
-    // Returns a random used used by encrypted Realms.
+    // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
         byte[] key = new byte[64];
         new Random(42).nextBytes(key);

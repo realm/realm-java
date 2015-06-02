@@ -497,7 +497,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Set the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}
+     * Sets the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}
      *
      * @param configuration RealmConfiguration to use as the default configuration
      * @see {@link io.realm.RealmConfiguration} for details on how to configure a Realm
