@@ -1536,3 +1536,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
     }
 }
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
+  (JNIEnv *, jobject, jlong thisTablePtr, jlong otherTablePtr)
+{
+    return *TBL(thisTablePtr)->get_descriptor() == *TBL(otherTablePtr)->get_descriptor();
+}
