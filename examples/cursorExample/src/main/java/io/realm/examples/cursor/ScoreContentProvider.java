@@ -3,48 +3,40 @@ package io.realm.examples.cursor;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.text.TextUtils;
+import android.util.Log;
 
 import java.util.HashMap;
 
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import io.realm.android.RealmCursor;
 import io.realm.examples.cursor.models.Score;
 
 /**
  * Example of a simple content provider backed by Realm
+ * ContentProviders are started when the app is started and live as long as the process.
  */
 public class ScoreContentProvider extends ContentProvider {
 
-    static final String PROVIDER_NAME = "io.realm.example.provider";
-    static final String URL = "content://" + PROVIDER_NAME + "/scores";
-    static final Uri CONTENT_URI = Uri.parse(URL);
+    private static final String TAG = ScoreContentProvider.class.getName();
+    private static final String AUTHORITY = "io.realm.examples.cursor.provider";
+    private static final String URL = "content://" + AUTHORITY + "/scores";
+    private static final Uri CONTENT_URI = Uri.parse(URL);
 
-    private Realm realm;
-    private long id;
-    private String name;
-    private int score;
-
-    private static HashMap<String, String> STUDENTS_PROJECTION_MAP;
-
-    static final int SCORES = 1;
-    static final int SCORES_ID = 2;
-
-    static final UriMatcher uriMatcher;
-
+    private static final int SCORES = 1;
+    private static final int SCORES_ID = 2;
+    private static final UriMatcher uriMatcher;
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(PROVIDER_NAME, "scores", SCORES);
-        uriMatcher.addURI(PROVIDER_NAME, "scores/#", SCORES_ID);
+        uriMatcher.addURI(AUTHORITY, "scores", SCORES);
+        uriMatcher.addURI(AUTHORITY, "scores/#", SCORES_ID);
     }
+
+    private Realm realm;
 
     @Override
     public boolean onCreate() {
@@ -54,6 +46,7 @@ public class ScoreContentProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
+
         // ContentValues is a generic key-value data structure that needs to be manually mapped to the model class.
         realm.beginTransaction();
         Score score = realm.createObject(Score.class);
@@ -69,6 +62,7 @@ public class ScoreContentProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        Log.e(TAG, Thread.currentThread().getName());
         // Map between the ContentProvider query interface and the Realm query interface.
         // Realm is not a SQL database, so normal SQL queries does not work when run on Realm.
         // This means that it is up to the ContentProvider to interpret the input parameters in a sensible manner.
@@ -90,12 +84,12 @@ public class ScoreContentProvider extends ContentProvider {
             String[] sortParts = sortOrder.split("\\.");
             String[] fieldNames = getFieldNames(sortParts);
             boolean[] sortDirections = getSortDirections(sortParts);
-            results = query.findAllSorted(fieldNames, sortDirections).getCursor();
+            results = query.findAllSorted(fieldNames, sortDirections);
         } else {
-            results = query.findAll().getCursor();
+            results = query.findAll();
         }
 
-        Cursor c = results.getCursor();
+        RealmCursor c = results.getCursor();
         c.setIdColumn("id");
         return c;
     }

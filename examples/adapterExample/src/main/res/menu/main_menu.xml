@@ -5,4 +5,11 @@
         android:icon="@android:drawable/ic_menu_add"
         android:title="@string/add"
         android:showAsAction="always"/>
+
+
+    <item android:id="@+id/action_cursorexample"
+          android:icon="@android:drawable/ic_media_play"
+          android:title="@string/cursor"
+          android:showAsAction="always"/>
+
 </menu>
