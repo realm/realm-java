@@ -18,6 +18,7 @@ package io.realm.android;
 
 import android.content.ContentResolver;
 import android.database.CharArrayBuffer;
+import android.database.ContentObservable;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.CursorIndexOutOfBoundsException;
@@ -73,6 +74,7 @@ public class RealmCursor implements Cursor {
     private boolean closed;
     private long idColumnIndex = -1; // Column index for the "_id" field. -1 means it hasn't been set
     private final DataSetObservable dataSetObservable = new DataSetObservable();
+    private final ContentObservable contentObservable = new ContentObservable();
     private RealmChangeListener changeListener = new RealmChangeListener() {
         @Override
         public void onChange() {
@@ -625,23 +627,27 @@ public class RealmCursor implements Cursor {
     }
 
     /**
-     * Realm doesn't support {@link ContentObserver}. Calling this will throw an exception.
+     * Register an observer that is called when changes happen to the content backing this cursor.
      *
-     * @throws UnsupportedOperationException
+     * @param observer the object that gets notified when the content backing the cursor changes.
+     * @see #unregisterContentObserver(ContentObserver)
      */
-    @Override
     public void registerContentObserver(ContentObserver observer) {
-        throw new UnsupportedOperationException("Content observers not supported");
+        contentObservable.registerObserver(observer);
     }
 
     /**
-     * Realm doesn't support {@link ContentObserver}. Calling this will throw an exception.
+     * Unregister an observer that has previously been registered with this
+     * cursor via {@link #registerContentObserver}.
      *
-     * @throws UnsupportedOperationException
+     * @param observer the object to unregister.
+     * @see #registerContentObserver(ContentObserver)
      */
-    @Override
     public void unregisterContentObserver(ContentObserver observer) {
-        throw new UnsupportedOperationException("Content observers not supported");
+        // cursor will unregister all observers when it close
+        if (!closed) {
+            contentObservable.unregisterObserver(observer);
+        }
     }
 
     /**
