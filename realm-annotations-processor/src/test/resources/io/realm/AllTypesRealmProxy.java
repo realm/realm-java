@@ -175,7 +175,7 @@ public class AllTypesRealmProxy extends AllTypes
     public static Table initTable(ImplicitTransaction transaction) {
         if(!transaction.hasTable("class_AllTypes")) {
             Table table = transaction.getTable("class_AllTypes");
-            table.addColumn(ColumnType.STRING, "columnString", Table.NULLABLE);
+            table.addColumn(ColumnType.STRING, "columnString", Table.NOT_NULLABLE);
             table.addColumn(ColumnType.INTEGER, "columnLong", Table.NOT_NULLABLE);
             table.addColumn(ColumnType.FLOAT, "columnFloat", Table.NOT_NULLABLE);
             table.addColumn(ColumnType.DOUBLE, "columnDouble", Table.NOT_NULLABLE);
