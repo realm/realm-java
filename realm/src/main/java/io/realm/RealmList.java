@@ -102,15 +102,15 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * Inserts the specified object into this List at the specified location. The object is inserted before any previous
      * element at the specified location. If the location is equal to the size of this List, the object is added at the
      * end.
-     * <p>
-     * <b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
+     * <ol>
+     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.
-     * <p>
-     * <b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.
+     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
      *
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * </ol>
      * @param location the index at which to insert.
      * @param object the object to add.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}
@@ -128,15 +128,15 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Adds the specified object at the end of this List.
-     * <p>
-     * <b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
+     * <ol>
+     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.
-     * <p>
-     * <b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.
+     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
      *
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * </ol>
      * @param object the object to add.
      * @return true
      */
@@ -155,15 +155,15 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     /**
      * Replaces the element at the specified location in this list with the
      * specified object.
-     * <p>
-     * <b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
+     * <ol>
+     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.
-     * <p>
-     * <b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.
+     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
      *
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * </ol>
      * @param location the index at which to put the specified object.
      * @param object the object to add.
      * @return the previous element at the index.
@@ -183,7 +183,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
-        if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
+        if (object.row != null && object.realm.canonicalPath.equals(realm.canonicalPath)) {
             return object;
         }
         if (realm.getTable(object.getClass()).hasPrimaryKey()) {

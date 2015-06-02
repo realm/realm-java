@@ -156,7 +156,7 @@ public final class Realm implements Closeable {
     private Handler handler;
 
     private final byte[] key;
-    private final String canonicalPath;
+    final String canonicalPath;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
 
