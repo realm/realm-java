@@ -1,10 +1,13 @@
 0.81
  * Introduced RealmModules for working with custom schemas in libraries and apps.
  * Introduced Realm.getDefaultInstance(), Realm.setDefaultInstance(RealmConfiguration) and Realm.getInstance(RealmConfiguration).
- * Deprecated most constructors. They have been been replaced by RealmConfiguration objects.
+ * Deprecated most constructors. They have been been replaced by Realm.getInstance(RealmConfiguration) and Realm.getDefaultInstance().
  * Deprecated Realm.migrateRealmAtPath(). It has been replaced by Realm.migrateRealm(RealmConfiguration).
  * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
  * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
+ * RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
+ * Realm now works with Kotlin (M12+). (thanks @cypressious)
+ * Fix a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
 
 0.80.3
  * Calling Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.

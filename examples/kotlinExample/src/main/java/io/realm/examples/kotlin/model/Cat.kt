@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.annotations;
+package io.realm.examples.kotlin.model
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.realm.RealmObject
+import io.realm.annotations.RealmClass
 
-/**
- * This annotation will add a search index to the field. A search index will make the
- * Realm file larger and inserts slower but queries will be faster. 
- *
- * NOTICE: only String fields can be indexed.
- */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.FIELD)
-public @interface Index {
-
+@RealmClass
+public open class Cat : RealmObject() {
+    public open var name: String = ""
 }

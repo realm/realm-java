@@ -16,8 +16,6 @@
 
 package io.realm.internal;
 
-import java.util.Scanner;
-
 import io.realm.RealmObject;
 
 public class Util {
@@ -42,12 +40,6 @@ public class Util {
         System.out.print(txt);
     }
 
-    public static void waitForEnter() {
-        System.out.println("Press Enter to continue...");
-        Scanner sc = new Scanner(System.in);
-           while(!sc.nextLine().equals(""));
-        sc.close();
-    }
 
     // Testcases run in nativeCode
     public enum Testcase {
