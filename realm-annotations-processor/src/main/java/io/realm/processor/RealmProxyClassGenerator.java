@@ -741,7 +741,14 @@ public class RealmProxyClassGenerator {
                         genericType,
                         metadata.getGetter(fieldName));
             } else {
-                writer.emitStatement("stringBuilder.append(%s())", metadata.getGetter(fieldName));
+                if (metadata.isNullable(field)) {
+                    writer.emitStatement("stringBuilder.append(%s() != null ? %s() : \"null\")",
+                            metadata.getGetter(fieldName),
+                            metadata.getGetter(fieldName)
+                    );
+                } else {
+                    writer.emitStatement("stringBuilder.append(%s())", metadata.getGetter(fieldName));
+                }
             }
             writer.emitStatement("stringBuilder.append(\"}\")");
 

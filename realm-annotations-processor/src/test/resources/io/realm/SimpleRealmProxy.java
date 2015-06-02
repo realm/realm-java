@@ -186,7 +186,7 @@ public class SimpleRealmProxy extends Simple
         }
         StringBuilder stringBuilder = new StringBuilder("Simple = [");
         stringBuilder.append("{name:");
-        stringBuilder.append(getName());
+        stringBuilder.append(getName() != null ? getName() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{age:");

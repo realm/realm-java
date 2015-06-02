@@ -186,7 +186,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldStringNull:");
-        stringBuilder.append(getFieldStringNull());
+        stringBuilder.append(getFieldStringNull() != null ? getFieldStringNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();

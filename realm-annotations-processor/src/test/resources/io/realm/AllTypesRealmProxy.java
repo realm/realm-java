@@ -561,7 +561,7 @@ public class AllTypesRealmProxy extends AllTypes
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnBinary:");
-        stringBuilder.append(getColumnBinary());
+        stringBuilder.append(getColumnBinary() != null ? getColumnBinary() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnObject:");
