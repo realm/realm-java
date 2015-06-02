@@ -291,20 +291,19 @@ public class ClassMetaData {
                 }
 
                 if (variableElement.getAnnotation(NotNullable.class) == null) {
-                    // The field has not the @NotNullable annotation. It's only valid for:
-                    // * String
-                    // * byte[]
+                    // The field has not the @NotNullable annotation
                     if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
                         nullableElements.add(variableElement);
                     }
                 } else {
-                    // The field has the @NotNullable annotation. It's only valid for:
-                    // * String
-                    // * byte[]
+                    // The field has the @NotNullable annotation
                     String elementTypeCanonicalName = variableElement.asType().toString();
-                    if ((Utils.isString(variableElement) || Utils.isByteArray(variableElement))
-                            && nullableElements.contains(variableElement)) {
-                        nullableElements.remove(variableElement);
+                    if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
+                        if (nullableElements.contains(variableElement)) {
+                            nullableElements.remove(variableElement);
+                        }
+                    } else{
+                        Utils.error("@NotNullable is only applicable to String and byte[] fields - got " + element);
                     }
                 }
 
@@ -407,8 +406,8 @@ public class ClassMetaData {
 
     public boolean isNullable(VariableElement variableElement) {
         // primary keys cannot be nullable
-        if (primaryKey != null) {
-            if (variableElement.equals(primaryKey)) {
+        if (hasPrimaryKey()) {
+            if (variableElement.equals(getPrimaryKey())) {
                 return false;
             }
         }

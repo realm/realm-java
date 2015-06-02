@@ -129,7 +129,8 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
-                .generatesSources(allTypesDefaultMediator, allTypesDefaultModule, allTypesDefaultMediator);
+                .generatesSources(allTypesDefaultMediator, allTypesDefaultModule,
+                        allTypesDefaultMediator, allTypesProxy);
     }
 
     @Test

@@ -337,13 +337,17 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
-            boolean isNullable = metadata.isNullable(field);
 
             if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
+                String nullableFlag;
+                if (metadata.isNullable(field)) {
+                    nullableFlag = "Table.NULLABLE";
+                } else {
+                    nullableFlag = "Table.NOT_NULLABLE";
+                }
                 writer.emitStatement("table.addColumn(%s, \"%s\", %s)",
                         JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
-                        fieldName,
-                        isNullable?"Table.NULLABLE":"Table.NOT_NULLABLE");
+                        fieldName, nullableFlag);
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
                 writer.emitStatement("%s%s.initTable(transaction)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
