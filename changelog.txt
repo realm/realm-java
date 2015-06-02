@@ -1,5 +1,6 @@
 0.81
- * RealmList.add(), RealmList.addAt() and RealmList.set() now insert standalone objects transparently into Realm.
+ * RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
+ * Realm now works with Kotlin (M12+). (thanks @cypressious)
 
 0.80.3
  * Calling Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
