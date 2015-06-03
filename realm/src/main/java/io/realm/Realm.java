@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1748,6 +1750,35 @@ public final class Realm implements Closeable {
             throw new RealmException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
         }
     }
+
+    /**
+     * Returns the default Realm module. This module contains all Realm classes in the current project, but not
+     * those from library or project dependencies. Realm classes in these should be exposed using their own module.
+     *
+     * @return The default Realm module or null if no default module exists.
+     * @see io.realm.RealmConfiguration.Builder#setModules(Object, Object...)
+     */
+    public static Object getDefaultModule() {
+        String moduleName = "io.realm.DefaultRealmModule";
+        Class<?> clazz;
+        try {
+            clazz = Class.forName(moduleName);
+            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (ClassNotFoundException e) {
+            return null;
+        } catch (InvocationTargetException e) {
+            throw new RealmException("Could not create an instance of " + moduleName, e);
+        } catch (InstantiationException e) {
+            throw new RealmException("Could not create an instance of " + moduleName, e);
+        } catch (IllegalAccessException e) {
+            throw new RealmException("Could not create an instance of " + moduleName, e);
+        }
+    }
+
+
+
 
     /**
      * Encapsulates a Realm transaction.

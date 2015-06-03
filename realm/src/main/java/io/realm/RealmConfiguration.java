@@ -56,7 +56,7 @@ public class RealmConfiguration {
     private static final Object DEFAULT_MODULE;
     private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
     static {
-        DEFAULT_MODULE = getDefaultModule();
+        DEFAULT_MODULE = Realm.getDefaultModule();
         if (DEFAULT_MODULE != null) {
             DEFAULT_MODULE_MEDIATOR = getModuleMediator(DEFAULT_MODULE.getClass().getCanonicalName());
         } else {
@@ -138,26 +138,6 @@ public class RealmConfiguration {
             mediator.addMediator(getModuleMediator(module.getClass().getCanonicalName()));
         }
         return mediator;
-    }
-
-    // Finds the default module (if there is one)
-    private static Object getDefaultModule() {
-        String moduleName = "io.realm.DefaultRealmModule";
-        Class<?> clazz;
-        try {
-            clazz = Class.forName(moduleName);
-            Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
-            constructor.setAccessible(true);
-            return constructor.newInstance();
-        } catch (ClassNotFoundException e) {
-            return null;
-        } catch (InvocationTargetException e) {
-            throw new RealmException("Could not create an instance of " + moduleName, e);
-        } catch (InstantiationException e) {
-            throw new RealmException("Could not create an instance of " + moduleName, e);
-        } catch (IllegalAccessException e) {
-            throw new RealmException("Could not create an instance of " + moduleName, e);
-        }
     }
 
     // Finds the mediator associated with a given module
@@ -315,29 +295,21 @@ public class RealmConfiguration {
         }
 
         /**
-         * Adds a {@link RealmModule}s to the existing modules. RealmClasses in the new module is added to the schema
-         * for this Realm.
-         *
-         * @param module {@link RealmModule} to add to this Realms schema.
-         *
-         * @throws {@link IllegalArgumentException} if module is {@code null} or doesn't have the {@link RealmModule}
-         * annotation.
-         */
-        public Builder addModule(Object module) {
-            checkModule(module);
-            modules.add(module);
-            return this;
-        }
-
-        /**
          * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
          *
-         * @param baseModule
-         * @param additionalModules
+         * A reference to the default Realm module containing all Realm classes in the project (but not dependencies),
+         * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
+         * dependency is thus done using the following code:
+         *
+         * {@code builder.setModules(Realm.getDefaultMode(), new MyLibraryModule()); }
+         *
+         * @param baseModule        First Realm module (required).
+         * @param additionalModules Additional Realm modules
          *
          * @throws {@link IllegalArgumentException} if any of the modules are {@code null} or doesn't have the
          * {@link RealmModule} annotation.
+         * @see Realm#getDefaultModule()
          */
         public Builder setModules(Object baseModule, Object... additionalModules) {
             modules.clear();
@@ -350,6 +322,11 @@ public class RealmConfiguration {
                 }
             }
             return this;
+        }
+
+        private void addModule(Object module) {
+            checkModule(module);
+            modules.add(module);
         }
 
         /**
