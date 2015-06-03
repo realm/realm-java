@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
 
@@ -52,7 +53,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     // test:
     protected int tableNo;
     protected boolean DEBUG = false;
-    protected static int TableCount = 0;
+    static AtomicInteger tableCount = new AtomicInteger(0);
 
     static {
         RealmCore.loadLibrary();
@@ -75,7 +76,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw new java.lang.OutOfMemoryError("Out of native memory.");
         }
         if (DEBUG) {
-            tableNo = ++TableCount;
+            tableNo = tableCount.incrementAndGet();
             System.err.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
         }
     }
@@ -88,7 +89,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         this.nativePtr = nativePointer;
 
         if (DEBUG) {
-            tableNo = ++TableCount;
+            tableNo = tableCount.incrementAndGet();
             System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
     }
@@ -106,8 +107,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
                 if (DEBUG) {
-                    TableCount--;
-                    System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+                    tableCount.decrementAndGet();
+                    System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + tableCount.get());
                 }
                 
                 nativePtr = 0;
@@ -143,24 +144,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native boolean nativeIsValid(long nativeTablePtr);
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (other == null) {
-            return false;
-        }
-        if (!(other instanceof Table)) {
-            return false; // Has to work for all the typed tables as well
-        }
-
-        Table otherTable = (Table) other;
-        return nativeEquals(nativePtr, otherTable.nativePtr);
-    }
-
-    protected native boolean nativeEquals(long nativeTablePtr, long nativeTableToComparePtr);
 
     private void verifyColumnName(String name) {
         if (name.length() > 63) {
@@ -428,7 +411,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             case INTEGER:
                 long pkValue;
                 try {
-                    pkValue = Long.valueOf(primaryKeyValue.toString());
+                    pkValue = Long.parseLong(primaryKeyValue.toString());
                 } catch (RuntimeException e) {
                     throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
                 }
@@ -1657,4 +1640,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private void throwImmutable() {
         throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
     }
+
+    /**
+     * Compares the schema of the current instance of Table with another instance.
+     * @param table The instance to compare with. It cannot be null.
+     * @return true if the two instances have the same schema (column names and types)
+     */
+    public boolean hasSameSchema(Table table) {
+        if (table == null) {
+            throw new IllegalArgumentException("The argument cannot be null");
+        }
+        return nativeHasSameSchema(this.nativePtr, table.nativePtr);
+    }
+
+    protected native boolean nativeHasSameSchema(long thisTable, long otherTable);
 }

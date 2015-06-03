@@ -69,7 +69,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_io_realm_internal_SharedGroup_nativeGetDefaultReplicationDatabaseFileName
-  (JNIEnv *, jclass);
+  (JNIEnv *, jobject);
 
 /*
  * Class:     io_realm_internal_SharedGroup
@@ -137,6 +137,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate
 
 /*
  * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeCompact
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
  * Method:    nativeClose
  * Signature: (J)V
  */
@@ -149,14 +157,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_SharedGroup
- * Method:    nativeCompact
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

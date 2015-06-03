@@ -514,7 +514,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private class RealmResultsIterator implements Iterator<E> {
 
         int pos = -1;
-        boolean removeUsed = false;
 
         RealmResultsIterator() {
             currentTableViewVersion = table.sync();
@@ -528,7 +527,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         public E next() {
             assertRealmIsStable();
             pos++;
-            removeUsed = false;
             if (pos >= size()) {
                 throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
             }

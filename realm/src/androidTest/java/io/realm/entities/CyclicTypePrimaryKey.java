@@ -19,6 +19,11 @@ public class CyclicTypePrimaryKey extends RealmObject {
         this.id = id;
     }
 
+    public CyclicTypePrimaryKey(long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     public long getId() {
         return id;
     }

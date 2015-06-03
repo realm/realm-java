@@ -466,7 +466,8 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
 
                 writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, fieldTypeSimpleName);
-                writer.beginControlFlow("if (!table.getLinkTarget(%s).equals(table_%d))", staticFieldIndexVarName(field), fieldIndex);
+                writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
+                        staticFieldIndexVarName(field), fieldIndex);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid RealmObject for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
                         fieldName, staticFieldIndexVarName(field), fieldIndex);
                 writer.endControlFlow();
@@ -485,7 +486,8 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
 
                 writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, genericType);
-                writer.beginControlFlow("if (!table.getLinkTarget(%s).equals(table_%d))", staticFieldIndexVarName(field), fieldIndex);
+                writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
+                        staticFieldIndexVarName(field), fieldIndex);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid RealmList type for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
                         fieldName, staticFieldIndexVarName(field), fieldIndex);
                 writer.endControlFlow();
