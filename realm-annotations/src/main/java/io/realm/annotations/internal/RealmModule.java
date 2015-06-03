@@ -23,12 +23,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * By default a Realm can stores all classes that extends RealmClass in a project.
+ * By default a Realm can stores all classes annotated with {@link io.realm.annotations.RealmClass} in a project.
  * However, if you want to restrict a Realm to contain only certain classes or want
  * to share them between a library project and an app project you specify that with
  * a RealmModule.
  * <p>
- * A RealmModule is a collection of RealmClass'es that can be combined with other
+ * A RealmModule is a collection of annotated {@code RealmClass}'es that can be combined with other
  * RealmModules to create the object schema for a Realm. This makes it easier to
  * control versioning and migration of those Realms.
  * <p>
@@ -39,7 +39,7 @@ import java.lang.annotation.Target;
  * <p>
  * This means that library projects are <bold>required</bold> to use library modules
  * to allow the library to work seemlessly with app code. App developers can then
- * reuse the modules exposed by the library if they want to use RealmClass'es from
+ * reuse the modules exposed by the library if they want to use {@code RealmClass}'es from
  * that library.
  */
 @Retention(RetentionPolicy.CLASS)
@@ -48,8 +48,8 @@ import java.lang.annotation.Target;
 public @interface RealmModule {
 
     /**
-     * Setting this to true will mark this module as a library module. This will prevent Realm from generating the
-     * default realm module containing all classes. This is required by libraries as not to intefer with Realms running
+     * Setting this to {@code true} will mark this module as a library module. This will prevent Realm from generating the
+     * default realm module containing all classes. This is required by libraries as not to interfere with Realms running
      * in app code, but also means that all libraries using Realm must explicitly use a module and cannot rely on the
      * default module being present.
      *
@@ -59,8 +59,8 @@ public @interface RealmModule {
     boolean library() default false;
 
     /**
-     * Instead of adding all Realm classes manually to a module, set this boolean to true to automatically include all
-     * Realm classes in this project. This does not include classes from other libraries which must be  exposed using
+     * Instead of adding all Realm classes manually to a module, set this boolean to {@code true} to automatically include all
+     * Realm classes in this project. This does not include classes from other libraries which must be exposed using
      * their own module.
      *
      * Setting both {@code allClasses = true} and {@code classes()} will result in the annotation processor throwing
