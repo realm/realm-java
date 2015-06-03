@@ -286,7 +286,7 @@ public class AllTypesRealmProxy extends AllTypes
             }
 
             Table table_7 = transaction.getTable("class_AllTypes");
-            if (!table.getLinkTarget(INDEX_COLUMNOBJECT).equals(table_7)) {
+            if (!table.getLinkTarget(INDEX_COLUMNOBJECT).hasSameSchema(table_7)) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmObject for field 'columnObject': '" +
                 table.getLinkTarget(INDEX_COLUMNOBJECT).getName() + "' expected - was '" +
                 table_7.getName() + "'");
@@ -301,7 +301,7 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing class 'class_AllTypes' for field 'columnRealmList'");
             }
             Table table_8 = transaction.getTable("class_AllTypes");
-            if (!table.getLinkTarget(INDEX_COLUMNREALMLIST).equals(table_8)) {
+            if (!table.getLinkTarget(INDEX_COLUMNREALMLIST).hasSameSchema(table_8)) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmList type for field 'columnRealmList': '" +
                         table.getLinkTarget(INDEX_COLUMNREALMLIST).getName() + "' expected - was '" +
                         table_8.getName() + "'");
