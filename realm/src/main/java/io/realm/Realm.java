@@ -973,7 +973,8 @@ public final class Realm implements Closeable {
 
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
-     * will not be reflected in the Realm copy.
+     * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
+     * already in this Realm will be ignored.
      *
      * @param object {@link io.realm.RealmObject} to copy to the Realm.
      * @return A managed RealmObject with its properties backed by the Realm.
@@ -987,7 +988,8 @@ public final class Realm implements Closeable {
 
     /**
      * Updates an existing RealmObject that is identified by the same {@link io.realm.annotations.PrimaryKey} or create
-     * a new copy if no existing object could be found.
+     * a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects will be
+     * either copied or updated.
      *
      * @param object    {@link io.realm.RealmObject} to copy or update.
      * @return The new or updated RealmObject with all its properties backed by the Realm.
@@ -1003,7 +1005,8 @@ public final class Realm implements Closeable {
 
     /**
      * Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes
-     * to the original RealmObjects will not be reflected in the Realm copies.
+     * to the original RealmObjects will not be reflected in the Realm copies. This is a deep copy, so all referenced
+     * objects will be copied. Objects already in this Realm will be ignored.
      *
      * @param objects RealmObjects to copy to the Realm.
      * @return A list of the the converted RealmObjects that all has their properties managed by the Realm.
@@ -1026,7 +1029,8 @@ public final class Realm implements Closeable {
 
     /**
      * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or create a
-     * new copy if no existing object could be found.
+     * new copy if no existing object could be found. This is a deep copy or update, so all referenced objects will be
+     * either copied or updated.
      *
      * @param objects   List of objects to update or copy into Realm.
      * @return A list of all the new or updated RealmObjects.
