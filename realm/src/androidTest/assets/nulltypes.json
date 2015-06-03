@@ -1,0 +1,14 @@
+[
+  {
+    "fieldStringNotNull": null,
+    "fieldStringNull": null,
+    "fieldBytesNotNull": null,
+    "fieldBytesNull": null
+  },
+  {
+    "fieldStringNotNull": "",
+    "fieldStringNull": "",
+    "fieldBytesNotNull": "",
+    "fieldBytesNull": ""
+  }
+]

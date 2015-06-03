@@ -25,12 +25,14 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Date;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.NullTypes;
 import io.realm.exceptions.RealmException;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -622,4 +624,49 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals("Dog5", obj.getColumnRealmList().get(0).getName());
     }
 
+    public void testNullTypesJSONwithNulls() throws IOException, JSONException {
+        String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes.json"));
+        JSONArray array = new JSONArray(json);
+        testRealm.beginTransaction();
+        testRealm.createAllFromJson(NullTypes.class, array);
+        testRealm.commitTransaction();
+
+        RealmResults<NullTypes> nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
+
+        assertEquals(2, nullTypesRealmResults.size());
+
+        NullTypes nullTypes1 = nullTypesRealmResults.get(0);
+        assertNull(nullTypes1.getFieldStringNull());
+        assertEquals("", nullTypes1.getFieldStringNotNull());
+        assertNull(nullTypes1.getFieldBytesNull());
+        assertTrue(Arrays.equals(new byte[0], nullTypes1.getFieldBytesNotNull()));
+
+        NullTypes nullTypes2 = nullTypesRealmResults.get(1);
+        assertEquals("", nullTypes2.getFieldStringNull());
+        assertEquals("", nullTypes2.getFieldStringNotNull());
+        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNull()));
+        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNotNull()));
+    }
+
+    public void testNullTypesStreamJSONwithNulls() throws IOException {
+        testRealm.beginTransaction();
+        testRealm.createAllFromJson(NullTypes.class, loadJsonFromAssets("nulltypes.json"));
+        testRealm.commitTransaction();
+
+        RealmResults<NullTypes> nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
+
+        assertEquals(2, nullTypesRealmResults.size());
+
+        NullTypes nullTypes = nullTypesRealmResults.get(0);
+        assertNull(nullTypes.getFieldStringNull());
+        assertEquals("", nullTypes.getFieldStringNotNull());
+        assertNull(nullTypes.getFieldBytesNull());
+        assertTrue(Arrays.equals(new byte[0], nullTypes.getFieldBytesNotNull()));
+
+        NullTypes nullTypes2 = nullTypesRealmResults.get(1);
+        assertEquals("", nullTypes2.getFieldStringNull());
+        assertEquals("", nullTypes2.getFieldStringNotNull());
+        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNull()));
+        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNotNull()));
+    }
 }
