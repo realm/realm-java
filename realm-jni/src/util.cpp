@@ -118,8 +118,8 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             break;
 
         case Unspecified:
-            jExceptionClass = env->FindClass("java/lang/RuntimeException");
-            message = "Unspecified exception. " + classStr;
+            jExceptionClass = env->FindClass("io/realm/exceptions/RealmError");
+            message = "Unrecoverable error condition. " + classStr;
             break;
 
         case RuntimeError:
