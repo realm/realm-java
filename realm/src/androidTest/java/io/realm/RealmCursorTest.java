@@ -463,8 +463,6 @@ public class RealmCursorTest extends AndroidTestCase {
         try { cursor.isNull(AllTypes.COL_INDEX_STRING); fail(); } catch (UnsupportedOperationException expected) {}
         try { cursor.deactivate();                      fail(); } catch (UnsupportedOperationException expected) {}
         try { cursor.requery();                         fail(); } catch (UnsupportedOperationException expected) {}
-        try { cursor.registerContentObserver(null);     fail(); } catch (UnsupportedOperationException expected) {}
-        try { cursor.unregisterContentObserver(null);   fail(); } catch (UnsupportedOperationException expected) {}
         try { cursor.setNotificationUri(null, null);    fail(); } catch (UnsupportedOperationException expected) {}
         try { cursor.getNotificationUri();              fail(); } catch (UnsupportedOperationException expected) {}
     }
