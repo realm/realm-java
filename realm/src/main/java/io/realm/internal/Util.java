@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import io.realm.RealmObject;
+
 public class Util {
 
     static {
@@ -72,4 +74,15 @@ public class Util {
 
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
 
+    /**
+     * Normalize a input class to it's original model class so it is transparent whether or not the input class
+     * was a RealmProxy class.
+     */
+    public static Class<? extends RealmObject> getOriginalModelClass(Class<? extends RealmObject> clazz) {
+        Class<?> superclass = clazz.getSuperclass();
+        if (!superclass.equals(RealmObject.class)) {
+            clazz = (Class<? extends RealmObject>) superclass;
+        }
+        return clazz;
+    }
 }
