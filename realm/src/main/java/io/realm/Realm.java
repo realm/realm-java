@@ -489,7 +489,7 @@ public final class Realm implements Closeable {
      *
      * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
      * model classes or version has has changed so a migration is required.
-     * @see {@link io.realm.RealmConfiguration} for details on how to configure a Realm.
+     * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
         if (configuration == null) {
@@ -499,10 +499,10 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Sets the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}
+     * Sets the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}.
      *
-     * @param configuration RealmConfiguration to use as the default configuration
-     * @see {@link io.realm.RealmConfiguration} for details on how to configure a Realm
+     * @param configuration RealmConfiguration to use as the default configuration.
+     * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static void setDefaultConfiguration(RealmConfiguration configuration) {
         if (configuration == null) {
