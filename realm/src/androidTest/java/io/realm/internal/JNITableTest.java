@@ -49,14 +49,6 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(expected, t.toString());
     }
 
-    public void testGroupEquals() {
-        Table t2 = createTestTable();
-        assertEquals(true, t.equals(t2));
-        t.addEmptyRow();
-        assertEquals(false, t.equals(t2));
-    }
-
-
     public void testRowOperationsOnZeroRow(){
 
         Table t = new Table();
@@ -349,19 +341,19 @@ public class JNITableTest extends AndroidTestCase {
     public void testShouldThrowWhenSetIndexOnWrongColumnType() {
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
 
-            // Check all other column types than String throws exception when using setIndex()/hasIndex()
+            // Check all other column types than String throws exception when using addSearchIndex()/hasSearchIndex()
             boolean exceptionExpected = (t.getColumnType(colIndex) != ColumnType.STRING);
 
-            // Try to setIndex()
+            // Try to addSearchIndex()
             try {
-                t.setIndex(colIndex);
+                t.addSearchIndex(colIndex);
                 if (exceptionExpected)
                     fail("expected exception for colIndex " + colIndex);
             } catch (IllegalArgumentException e) {
             }
 
-            // Try to hasIndex() for all columnTypes
-            t.hasIndex(colIndex);
+            // Try to hasSearchIndex() for all columnTypes
+            t.hasSearchIndex(colIndex);
         }
     }
 
@@ -379,17 +371,6 @@ public class JNITableTest extends AndroidTestCase {
         table.add("val3", 300);
 
         return table;
-    }
-
-    public void testTableEquals() {
-
-        Table table1 = getTableWithSimpleData();
-        Table table2 = getTableWithSimpleData();
-
-        assertEquals(true, table1.equals(table2));
-        assertEquals(true, table1.equals(table1)); // Same table
-        assertEquals(false, table1.equals(null)); // Null object
-        assertEquals(false, table1.equals("String")); // Other object
     }
 
     public void testColumnName() {

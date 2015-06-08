@@ -725,7 +725,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetRowPtr
 
 //--------------------- Indexing methods:
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     Table* pTable = TBL(nativeTablePtr);
@@ -740,7 +740,23 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex(
     } CATCH_STD()
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasIndex(
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex(
+    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table* pTable = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
+        return;
+    if (pTable->get_column_type (S(columnIndex)) != type_String) {
+        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+        return;
+    }
+    try {
+        pTable->remove_search_index( S(columnIndex));
+    } CATCH_STD()
+}
+
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSearchIndex(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
@@ -1389,9 +1405,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_createNative(JNIEnv *env, j
 
 // Checks if the primary key column contains any duplicate values, making it ineligible as a
 // primary key.
-bool check_valid_primary_key_column(JNIEnv* env, Table* table, size_t column_index) // throws
+bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column_name) // throws
 {
-    int column_type = table->get_column_type(column_index);
+    size_t column_index = table->get_column_index(column_name);
+    if (column_index == realm::not_found) {
+        std::ostringstream error_msg;
+        error_msg << table->get_name() << " does not contain the field \"" << column_name << "\"";
+        ThrowException(env, IllegalArgument, error_msg.str());
+    }
+    DataType column_type = table->get_column_type(column_index);
     TableView results = table->get_sorted_view(column_index);
 
     switch(column_type) {
@@ -1448,33 +1470,32 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
         const char* table_name = table->get_name().data();
         size_t row_index = pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
 
-        // I
         if (columnName == NULL || env->GetStringLength(columnName) == 0) {
-            // No primary key set. Remove any previous set keys
+            // No primary key provided => remove previous set keys
             if (row_index != realm::not_found) {
                 pk_table->remove(row_index);
             }
             return jlong(io_realm_internal_Table_NO_PRIMARY_KEY);
         }
         else {
-            JStringAccessor columnName2(env, columnName);
-            size_t primary_key_column_index = table->get_column_index(columnName2);
+            JStringAccessor new_primary_key_column_name(env, columnName);
+            size_t primary_key_column_index = table->get_column_index(new_primary_key_column_name);
             if (row_index == realm::not_found) {
                 // No primary key is currently set
-                if (check_valid_primary_key_column(env, table, primary_key_column_index)) {
+                if (check_valid_primary_key_column(env, table, new_primary_key_column_name)) {
                     row_index = pk_table->add_empty_row();
                     pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_index, table_name);
-                    pk_table->set_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, primary_key_column_index);
+                    pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, new_primary_key_column_name);
                 }
             }
             else {
                 // Primary key already exists
                 // We only wish to check for duplicate values if a column isn't already a primary key
                 Row* row = new Row((*pk_table)[row_index]);
-                size_t current_primary_key = row->get_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
-                if (primary_key_column_index != current_primary_key) {
-                    if (check_valid_primary_key_column(env, table, primary_key_column_index)) {
-                        pk_table->set_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, primary_key_column_index);
+                StringData current_primary_key = row->get_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                if (new_primary_key_column_name != current_primary_key) {
+                    if (check_valid_primary_key_column(env, table, new_primary_key_column_name)) {
+                        pk_table->set_string(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_index, new_primary_key_column_name);
                     }
                 }
             }
@@ -1483,4 +1504,41 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
         }
     } CATCH_STD()
     return 0;
+}
+
+// Fixes interop issue with Cocoa Realm where the Primary Key table had different types.
+// This affects:
+// - All Realms created by Cocoa and used by Realm-android up to 0.80.1
+// - All Realms created by Realm-Android 0.80.1 and below
+// See https://github.com/realm/realm-java/issues/1059
+// This methods converts the old (wrong) table format (string, integer) to the right (string,string) format.
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
+    (JNIEnv*, jobject, jlong groupNativePtr, jlong privateKeyTableNativePtr)
+{
+    Group* group = G(groupNativePtr);
+    Table* pk_table = TBL(privateKeyTableNativePtr);
+    if (pk_table->get_column_type(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX) == type_Int) {
+        StringData tmp_col_name = StringData("tmp_field_name");
+        size_t tmp_col_ndx = pk_table->add_column(DataType(type_String), tmp_col_name);
+
+        // Create tmp string column with field name instead of column index
+        size_t number_of_rows = pk_table->size();
+        for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
+            StringData table_name = pk_table->get_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_ndx);
+            size_t col_ndx = static_cast<size_t>(pk_table->get_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_ndx));
+            StringData col_name = group->get_table(table_name)->get_column_name(col_ndx);
+            pk_table->set_string(tmp_col_ndx, row_ndx, col_name);
+        }
+
+        // Delete old int column, and rename tmp column to same name
+        // The column index for the renamed column will then be the same as the deleted old column
+        pk_table->remove_column(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
+        pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
+    }
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
+  (JNIEnv *, jobject, jlong thisTablePtr, jlong otherTablePtr)
+{
+    return *TBL(thisTablePtr)->get_descriptor() == *TBL(otherTablePtr)->get_descriptor();
 }

@@ -16,7 +16,7 @@
 
 package io.realm.internal;
 
-import java.util.Scanner;
+import io.realm.RealmObject;
 
 public class Util {
 
@@ -40,12 +40,6 @@ public class Util {
         System.out.print(txt);
     }
 
-    public static void waitForEnter() {
-        System.out.println("Press Enter to continue...");
-        Scanner sc = new Scanner(System.in);
-           while(!sc.nextLine().equals(""));
-        sc.close();
-    }
 
     // Testcases run in nativeCode
     public enum Testcase {
@@ -80,4 +74,15 @@ public class Util {
 
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
 
+    /**
+     * Normalize a input class to it's original model class so it is transparent whether or not the input class
+     * was a RealmProxy class.
+     */
+    public static Class<? extends RealmObject> getOriginalModelClass(Class<? extends RealmObject> clazz) {
+        Class<?> superclass = clazz.getSuperclass();
+        if (!superclass.equals(RealmObject.class)) {
+            clazz = (Class<? extends RealmObject>) superclass;
+        }
+        return clazz;
+    }
 }

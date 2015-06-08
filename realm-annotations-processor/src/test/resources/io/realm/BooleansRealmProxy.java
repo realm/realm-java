@@ -9,6 +9,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
@@ -25,11 +26,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.Booleans;
 
-public class BooleansRealmProxy extends Booleans {
+public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
 
     private static long INDEX_DONE;
     private static long INDEX_ISREADY;
     private static long INDEX_MCOMPLETED;
+    private static long INDEX_ANOTHERBOOLEAN;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
@@ -37,6 +39,7 @@ public class BooleansRealmProxy extends Booleans {
         fieldNames.add("done");
         fieldNames.add("isReady");
         fieldNames.add("mCompleted");
+        fieldNames.add("anotherBoolean");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
@@ -76,12 +79,25 @@ public class BooleansRealmProxy extends Booleans {
         row.setBoolean(INDEX_MCOMPLETED, (boolean) value);
     }
 
+    @Override
+    public boolean getAnotherBoolean() {
+        realm.checkIfValid();
+        return (boolean) row.getBoolean(INDEX_ANOTHERBOOLEAN);
+    }
+
+    @Override
+    public void setAnotherBoolean(boolean value) {
+        realm.checkIfValid();
+        row.setBoolean(INDEX_ANOTHERBOOLEAN, (boolean) value);
+    }
+
     public static Table initTable(ImplicitTransaction transaction) {
-        if(!transaction.hasTable("class_Booleans")) {
+        if (!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
             table.addColumn(ColumnType.BOOLEAN, "done");
             table.addColumn(ColumnType.BOOLEAN, "isReady");
             table.addColumn(ColumnType.BOOLEAN, "mCompleted");
+            table.addColumn(ColumnType.BOOLEAN, "anotherBoolean");
             table.setPrimaryKey("");
             return table;
         }
@@ -89,48 +105,62 @@ public class BooleansRealmProxy extends Booleans {
     }
 
     public static void validateTable(ImplicitTransaction transaction) {
-        if(transaction.hasTable("class_Booleans")) {
+        if (transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-            if(table.getColumnCount() != 3) {
-                throw new IllegalStateException("Column count does not match");
+
+            if (table.getColumnCount() != 4) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
             }
+
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for(long i = 0; i < 3; i++) {
+            for (long i = 0; i < 4; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
-            }
-            if (!columnTypes.containsKey("done")) {
-                throw new IllegalStateException("Missing column 'done'");
-            }
-            if (columnTypes.get("done") != ColumnType.BOOLEAN) {
-                throw new IllegalStateException("Invalid type 'boolean' for column 'done'");
-            }
-            if (!columnTypes.containsKey("isReady")) {
-                throw new IllegalStateException("Missing column 'isReady'");
-            }
-            if (columnTypes.get("isReady") != ColumnType.BOOLEAN) {
-                throw new IllegalStateException("Invalid type 'boolean' for column 'isReady'");
-            }
-            if (!columnTypes.containsKey("mCompleted")) {
-                throw new IllegalStateException("Missing column 'mCompleted'");
-            }
-            if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
-                throw new IllegalStateException("Invalid type 'boolean' for column 'mCompleted'");
             }
 
             columnIndices = new HashMap<String, Long>();
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException("Field '" + fieldName + "' not found for type Booleans");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type Booleans");
                 }
                 columnIndices.put(fieldName, index);
             }
             INDEX_DONE = table.getColumnIndex("done");
             INDEX_ISREADY = table.getColumnIndex("isReady");
             INDEX_MCOMPLETED = table.getColumnIndex("mCompleted");
+            INDEX_ANOTHERBOOLEAN = table.getColumnIndex("anotherBoolean")
+
+            if (!columnTypes.containsKey("done")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done'");
+            }
+            if (columnTypes.get("done") != ColumnType.BOOLEAN) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'done'");
+            }
+            if (!columnTypes.containsKey("isReady")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'isReady'");
+            }
+            if (columnTypes.get("isReady") != ColumnType.BOOLEAN) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'isReady'");
+            }
+            if (!columnTypes.containsKey("mCompleted")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'mCompleted'");
+            }
+            if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted'");
+            }
+            if (!columnTypes.containsKey("anotherBoolean")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'anotherBoolean'");
+            }
+            if (columnTypes.get("anotherBoolean") != ColumnType.BOOLEAN) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'anotherBoolean'");
+            }
         } else {
-            throw new RealmMigrationNeededException("The Booleans class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The Booleans class is missing from the schema for this Realm.");
         }
+    }
+
+    public static String getTableName() {
+        return "class_Booleans";
     }
 
     public static List<String> getFieldNames() {
@@ -153,6 +183,9 @@ public class BooleansRealmProxy extends Booleans {
         if (!json.isNull("mCompleted")) {
             obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
         }
+        if (!json.isNull("anotherBoolean")) {
+            obj.setAnotherBoolean((boolean) json.getBoolean("anotherBoolean"));
+        }
         return obj;
     }
 
@@ -168,6 +201,8 @@ public class BooleansRealmProxy extends Booleans {
                 obj.setReady((boolean) reader.nextBoolean());
             } else if (name.equals("mCompleted")  && reader.peek() != JsonToken.NULL) {
                 obj.setmCompleted((boolean) reader.nextBoolean());
+            } else if (name.equals("anotherBoolean")  && reader.peek() != JsonToken.NULL) {
+                obj.setAnotherBoolean((boolean) reader.nextBoolean());
             } else {
                 reader.skipValue();
             }
@@ -176,26 +211,28 @@ public class BooleansRealmProxy extends Booleans {
         return obj;
     }
 
-    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObject> cache) {
-        if (object.realm != null && object.realm.getId() == realm.getId()) {
+    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
     }
 
-    public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject,RealmObject> cache) {
+    public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Booleans realmObject = realm.createObject(Booleans.class);
-        cache.put(newObject, realmObject);
+        cache.put(newObject, (RealmObjectProxy) realmObject);
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
+        realmObject.setAnotherBoolean(newObject.getAnotherBoolean());
         return realmObject;
     }
 
-    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject, Map<RealmObject, RealmObject> cache) {
+    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject, Map<RealmObject, RealmObjectProxy> cache) {
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
+        realmObject.setAnotherBoolean(newObject.getAnotherBoolean());
         return realmObject;
     }
 
@@ -215,6 +252,10 @@ public class BooleansRealmProxy extends Booleans {
         stringBuilder.append(",");
         stringBuilder.append("{mCompleted:");
         stringBuilder.append(ismCompleted());
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{anotherBoolean:");
+        stringBuilder.append(getAnotherBoolean());
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();

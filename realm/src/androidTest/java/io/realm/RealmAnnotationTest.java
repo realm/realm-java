@@ -52,20 +52,20 @@ public class RealmAnnotationTest extends AndroidTestCase {
 
     public void testIndex() {
         Table table = testRealm.getTable(AnnotationTypes.class);
-        assertTrue(table.hasIndex(table.getColumnIndex("indexString")));
-        assertFalse(table.hasIndex(table.getColumnIndex("notIndexString")));
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexString")));
     }
 
     public void testHasPrimaryKeyNoIntIndex() {
         Table table = testRealm.getTable(AnnotationTypes.class);
         assertTrue(table.hasPrimaryKey());
-        assertFalse(table.hasIndex(table.getColumnIndex("id")));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex("id")));
     }
 
     public void testHasPrimaryKeyStringIndex() {
         Table table = testRealm.getTable(PrimaryKeyAsString.class);
         assertTrue(table.hasPrimaryKey());
-        assertTrue(table.hasIndex(table.getColumnIndex("name")));
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("name")));
     }
 
     // Test migrating primary key from string to long with existing data
@@ -182,7 +182,7 @@ public class RealmAnnotationTest extends AndroidTestCase {
     public void testPrimaryKeyIsIndexed() {
         Table table = testRealm.getTable(PrimaryKeyAsString.class);
         assertTrue(table.hasPrimaryKey());
-        assertTrue(table.hasIndex(0));
+        assertTrue(table.hasSearchIndex(0));
     }
 
     // Annotation processor honors common naming conventions

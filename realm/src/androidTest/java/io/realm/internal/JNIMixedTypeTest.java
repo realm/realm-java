@@ -49,8 +49,8 @@ public class JNIMixedTypeTest extends TestCase {
         );
     }
 
-    public JNIMixedTypeTest(ArrayList mixedDataList) {
-        this.mixedDataList = mixedDataList;
+    public JNIMixedTypeTest(ArrayList<MixedData> mixedDataList) {
+        JNIMixedTypeTest.mixedDataList = mixedDataList;
 
     }
 
@@ -78,49 +78,49 @@ public class JNIMixedTypeTest extends TestCase {
                     try {
                         mixed.getBinaryByteArray();
                         fail("Wrong mixed type");
-                    } catch (IllegalMixedTypeException e) {
+                    } catch (IllegalMixedTypeException ignored) {
                     }
                     break;
                 case DATE:
                     try {
                         mixed.getDateValue();
                         fail("Wrong mixed type");
-                    } catch (IllegalMixedTypeException e) {
+                    } catch (IllegalMixedTypeException ignored) {
                     }
                     break;
                 case BOOLEAN:
                     try {
                         mixed.getBooleanValue();
                         fail("Wrong mixed type");
-                    } catch (IllegalMixedTypeException e) {
+                    } catch (IllegalMixedTypeException ignored) {
                     }
                     break;
                 case INTEGER:
                     try {
                         mixed.getLongValue();
                         fail("Wrong mixed type");
-                    } catch (IllegalMixedTypeException e) {
+                    } catch (IllegalMixedTypeException ignored) {
                     }
                     break;
                 case FLOAT:
                     try {
                         mixed.getFloatValue();
                         fail("Wrong mixed type");
-                    } catch (IllegalMixedTypeException e) {
+                    } catch (IllegalMixedTypeException ignored) {
                     }
                     break;
                 case DOUBLE:
                     try {
                         mixed.getDoubleValue();
                         fail("Wrong mixed type");
-                    } catch (IllegalMixedTypeException e) {
+                    } catch (IllegalMixedTypeException ignored) {
                     }
                     break;
                 case STRING:
                     try {
                         mixed.getStringValue();
                         fail("Wrong mixed type");
-                    } catch (IllegalMixedTypeException e) {
+                    } catch (IllegalMixedTypeException ignored) {
                     }
                     break;
                 default:
@@ -163,8 +163,7 @@ public class JNIMixedTypeTest extends TestCase {
         if (columnType == ColumnType.BINARY) {
             if (mixed.getBinaryType() == Mixed.BINARY_TYPE_BYTE_ARRAY) {
                 // NOTE: We never get here because we always "get" a ByteBuffer.
-                byte[] bin = mixed.getBinaryByteArray();
-                assertEquals(Mixed.mixedValue(value), bin);
+                assertEquals(Mixed.mixedValue(value), mixed);
             } else {
                 ByteBuffer binBuf = mixed.getBinaryValue();
                 // TODO: Below is sort of hack to compare the content of the

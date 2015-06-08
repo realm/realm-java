@@ -43,14 +43,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeEquals
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeEquals
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeIsRootTable
  * Signature: (J)Z
  */
@@ -507,18 +499,34 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeSetIndex
+ * Method:    nativeMigratePrimaryKeyTableIfNeeded
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetIndex
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeHasIndex
+ * Method:    nativeAddSearchIndex
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeRemoveSearchIndex
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeHasSearchIndex
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasIndex
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSearchIndex
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -855,6 +863,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToString
  * Signature: (JJ)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeRowToString
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeHasSameSchema
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
   (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus

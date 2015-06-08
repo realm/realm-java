@@ -18,8 +18,14 @@ package io.realm;
 import android.content.Context;
 import android.test.AndroidTestCase;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -118,7 +124,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testGetInstanceNullFolderThrows() {
         try {
-            Realm.getInstance((File) null);
+            Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
             fail("Parsing null as folder should throw an error");
         } catch (IllegalArgumentException expected) {
         }
@@ -144,9 +150,9 @@ public class RealmTest extends AndroidTestCase {
     public void testGetInstanceFolderNoWritePermissionThrows() {
         File folder = new File("/");
         try {
-            Realm realm = Realm.getInstance(folder);
-            fail("Pointing to a folder with no write permission should throw an error");
-        } catch (RealmIOException expected) {
+            Realm realm = Realm.getInstance(new RealmConfiguration.Builder(folder).build());
+            fail("Pointing to a folder with no write permission should throw an IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -162,22 +168,20 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(folder, REALM_FILE);
+            Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
             fail("Trying to open a read-only file should fail");
         } catch (RealmIOException expected) {
         }
     }
 
-    // TODO Disabled due to the build phone keep crashing on this. It might be related to https://github.com/realm/realm-java/issues/1008
-    public void DISABLEtestGetInstanceClearsCacheWhenFailed() {
+    public void testGetInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
         Random random = new Random();
-        byte[] key = new byte[64];
-        random.nextBytes(key);
+        byte[] key = TestHelper.getRandomKey();
         Realm realm = Realm.getInstance(getContext(), REALM_NAME, key); // Create starting Realm with key1
         realm.close();
-        random.nextBytes(key);
+        key = TestHelper.getRandomKey();
         try {
             Realm.getInstance(getContext(), REALM_NAME, key); // Try to open with key 2
         } catch (IllegalArgumentException expected) {
@@ -187,6 +191,15 @@ public class RealmTest extends AndroidTestCase {
             Realm.getInstance(getContext(), REALM_NAME, key);
             realm.close();
         }
+    }
+
+    public void testInstanceIdForHashCollision() {
+        // Ea.hashCode() == FB.hashCode()
+        Realm.deleteRealmFile(getContext(), "Ea");
+        Realm.deleteRealmFile(getContext(), "FB");
+        Realm r1 = Realm.getInstance(getContext(), "Ea");
+        Realm r2 = Realm.getInstance(getContext(), "FB");
+        assertNotSame(r1, r2);
     }
 
     public void testRealmCache() {
@@ -233,7 +246,7 @@ public class RealmTest extends AndroidTestCase {
             realm = Realm.getInstance((Context) null); // throws when c.getDirectory() is called;
             // has nothing to do with Realm
             fail("Should throw an exception");
-        } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException ignore) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -272,7 +285,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         assertTrue("contains returns false for newly created table", testRealm.contains(Dog.class));
-        assertFalse("contains returns true for non-existing table", testRealm.contains(RealmTest.class));
+        assertFalse("contains returns true for non-existing table", testRealm.contains(null));
     }
 
     // <E extends RealmObject> RealmQuery<E> where(Class<E> clazz)
@@ -944,31 +957,34 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testCompactEncryptedEmptyRealmFile() {
-        String REALM_NAME = "enc.realm";
-        Realm.deleteRealmFile(getContext(), REALM_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
-        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .name("enc.realm")
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+        Realm.deleteRealm(realmConfig);
+        Realm realm = Realm.getInstance(realmConfig);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
-            assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            assertTrue(Realm.compactRealm(realmConfig));
             fail();
         } catch (IllegalArgumentException expected) {
         }
     }
 
     public void testCompactEncryptedPopulatedRealmFile() {
-        String REALM_NAME = "enc.realm";
-        Realm.deleteRealmFile(getContext(), REALM_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
-        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .name("enc.realm")
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+        Realm.deleteRealm(realmConfig);
+        Realm realm = Realm.getInstance(realmConfig);
+
         populateTestRealm(realm, 100);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
-            assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            assertTrue(Realm.compactRealm(realmConfig));
             fail();
         } catch (IllegalArgumentException expected) {
         }
@@ -1133,7 +1149,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealm(new PrimaryKeyAsString());
             fail();
-        } catch (RealmException expected) {
+        } catch (IllegalArgumentException expected) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -1177,6 +1193,15 @@ public class RealmTest extends AndroidTestCase {
             return;
         }
         fail();
+    }
+
+    public void testCopyToRealmOrUpdateNullPrimaryKeyThrows() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.copyToRealmOrUpdate(new PrimaryKeyAsString());
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
     }
 
     public void testCopyOrUpdateNoPrimaryKeyThrows() {
@@ -1229,7 +1254,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnFloat(2.23F);
                 obj2.setColumnDouble(2.234D);
                 obj2.setColumnBoolean(true);
-                obj2.setColumnBinary(new byte[] {2, 3, 4});
+                obj2.setColumnBinary(new byte[]{2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
@@ -1410,10 +1435,8 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testOpeningOfEncryptedRealmWithDifferentKeyInstances() {
-        byte[] key1 = new byte[64];
-        byte[] key2 = new byte[64];
-        new Random(42).nextBytes(key1);
-        new Random(42).nextBytes(key2);
+        byte[] key1 = TestHelper.getRandomKey();
+        byte[] key2 = TestHelper.getRandomKey();
 
         // Make sure the key is the same, but in two different instances
         assertArrayEquals(key1, key2);
@@ -1424,9 +1447,17 @@ public class RealmTest extends AndroidTestCase {
         Realm realm1 = null;
         Realm realm2 = null;
         try {
-            realm1 = Realm.getInstance(getContext(), ENCRYPTED_REALM, key1);
+            realm1 = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+                    .name(ENCRYPTED_REALM)
+                    .encryptionKey(key1)
+                    .build()
+            );
             try {
-                realm2 = Realm.getInstance(getContext(), ENCRYPTED_REALM, key2);
+                realm2 = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+                        .name(ENCRYPTED_REALM)
+                        .encryptionKey(key2)
+                        .build()
+                );
             } catch (Exception e) {
                 fail();
             } finally {
@@ -1459,8 +1490,7 @@ public class RealmTest extends AndroidTestCase {
         }
 
         File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
+        byte[] key = TestHelper.getRandomKey();
         try {
             // Unencrypted to encrypted
             testRealm.writeEncryptedCopyTo(destination, key);
@@ -1471,7 +1501,11 @@ public class RealmTest extends AndroidTestCase {
 
         Realm encryptedRealm = null;
         try {
-            encryptedRealm = Realm.getInstance(getContext(), ENCRYPTED_REALM_FILE_NAME, key);
+            encryptedRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+                    .name(ENCRYPTED_REALM_FILE_NAME)
+                    .encryptionKey(key)
+                    .build()
+            );
             assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
 
             destination = new File(getContext().getFilesDir(), RE_ENCRYPTED_REALM_FILE_NAME);
@@ -1485,7 +1519,11 @@ public class RealmTest extends AndroidTestCase {
             }
             Realm reEncryptedRealm = null;
             try {
-                reEncryptedRealm = Realm.getInstance(getContext(), RE_ENCRYPTED_REALM_FILE_NAME, key);
+                reEncryptedRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+                                .name(RE_ENCRYPTED_REALM_FILE_NAME)
+                                .encryptionKey(key)
+                                .build()
+                );
                 assertEquals(TEST_DATA_SIZE, reEncryptedRealm.where(AllTypes.class).count());
             } finally {
                 if (reEncryptedRealm != null) {
@@ -1557,26 +1595,6 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testWrongKeyShouldThrow() {
-        final String WRONG_KEY_REALM = "wrong-key-realm.realm";
-        Realm.deleteRealmFile(getContext(), WRONG_KEY_REALM);
-
-        // Wrong key size
-        try {
-            Realm.getInstance(getContext(), WRONG_KEY_REALM, new byte[63]);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        Realm.getInstance(getContext(), WRONG_KEY_REALM);
-
-        try {
-            Realm.getInstance(getContext(), WRONG_KEY_REALM, new byte[64]);
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-    }
-
     public void testUpdateObjectWithLinks() throws Exception {
         testRealm.beginTransaction();
 
@@ -1608,6 +1626,48 @@ public class RealmTest extends AndroidTestCase {
         File tmpFile = new File(getContext().getFilesDir(), "tmp");
         tmpFile.delete();
         assertTrue(tmpFile.createNewFile());
-        assertTrue(Realm.deleteRealmFile(tmpFile));
+    }
+
+    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideWriteTransactions() throws JSONException, IOException {
+
+        // Prepare standalone object data
+        AllTypesPrimaryKey t = new AllTypesPrimaryKey();
+        List<AllTypesPrimaryKey> ts = Arrays.asList(t, t);
+
+        // Prepare JSON data
+        String jsonObjStr = "{ \"columnLong\" : 1 }";
+        JSONObject jsonObj = new JSONObject(jsonObjStr);
+        InputStream jsonObjStream = TestHelper.stringToStream(jsonObjStr);
+        InputStream jsonObjStream2 = TestHelper.stringToStream(jsonObjStr);
+
+        String jsonArrStr = " [{ \"columnLong\" : 1 }] ";
+        JSONArray jsonArr = new JSONArray(jsonArrStr);
+        InputStream jsonArrStream = TestHelper.stringToStream(jsonArrStr);
+        InputStream jsonArrStream2 = TestHelper.stringToStream(jsonArrStr);
+
+        // Test all methods that should require a write transaction
+        try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.setVersion(42);                 fail(); } catch (IllegalStateException expected) {}
+
+        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (RealmException expected) {}
+        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (RealmException expected) {}
+        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream);          fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);        fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);     fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); } catch (IllegalStateException expected) {}
+
+        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);                   fail(); } catch (RealmException expected) {}
+        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);                fail(); } catch (RealmException expected) {}
+        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStream);             fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (RealmException expected) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
     }
 }

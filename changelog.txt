@@ -1,3 +1,34 @@
+0.81
+ * Introduced RealmModules for working with custom schemas in libraries and apps.
+ * Introduced Realm.getDefaultInstance(), Realm.setDefaultInstance(RealmConfiguration) and Realm.getInstance(RealmConfiguration).
+ * Deprecated most constructors. They have been been replaced by Realm.getInstance(RealmConfiguration) and Realm.getDefaultInstance().
+ * Deprecated Realm.migrateRealmAtPath(). It has been replaced by Realm.migrateRealm(RealmConfiguration).
+ * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
+ * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
+ * RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
+ * Realm now works with Kotlin (M12+). (thanks @cypressious)
+ * Fix a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
+
+0.80.3
+ * Calling Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
+ * Fixed a bug making it impossible to open Realms created by Realm-Cocoa if a model had a primary key defined.
+ * Trying to using Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
+ * RealmChangedListener now also gets called on the same thread that did the commit.
+ * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
+ * Fixed a memory leak when using RealmBaseAdapter.
+ * RealmBaseAdapter now allow RealmResults to be null (thanks @zaki50).
+ * Fixed a bug where a change to a model class (RealmList<A> to RealmList<B>) would not throw a RealmMigrationNeededException.
+ * Fixed a bug where where setting multiple RealmLists didn't remove the previously added objects.
+ * Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (thanks @beeender)
+ * Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now. (thanks @beeender)
+
+0.80.2
+ * Trying to use Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
+ * RealmMigrationNeedException can now return the path to the Realm that needs to be migrated.
+ * Fixed bug where creating a Realm instance with a hashcode collision no longer returned the wrong Realm instance.
+ * Updated Realm Core to version 0.89.2
+   - fixed bug causing a crash when opening an encrypted Realm file on ARM64 devices.
+
 0.80.1
  * Realm.createOrUpdateWithJson() no longer resets fields to their default value if they are not found in the JSON input.
  * Realm.compactRealmFile() now uses Realm Core's compact() method which is more failure resilient.

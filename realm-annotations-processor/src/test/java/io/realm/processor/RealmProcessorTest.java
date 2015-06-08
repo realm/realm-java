@@ -21,7 +21,10 @@ import org.junit.Test;
 
 import javax.tools.JavaFileObject;
 
+import java.util.Arrays;
+
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
+import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static org.truth0.Truth.ASSERT;
 
 public class RealmProcessorTest {
@@ -30,6 +33,8 @@ public class RealmProcessorTest {
     private JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/SimpleRealmProxy.java");
     private JavaFileObject allTypesModel = JavaFileObjects.forResource("some/test/AllTypes.java");
     private JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/AllTypesRealmProxy.java");
+    private JavaFileObject allTypesDefaultModule = JavaFileObjects.forResource("io/realm/RealmDefaultModule.java");
+    private JavaFileObject allTypesDefaultMediator = JavaFileObjects.forResource("io/realm/RealmDefaultModuleMediator.java");
     private JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
     private JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
     private JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
@@ -106,7 +111,71 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
-                .generatesSources(allTypesProxy);
+                .generatesSources(allTypesProxy, allTypesDefaultMediator, allTypesDefaultModule, allTypesDefaultMediator);
+    }
+
+    @Test
+    public void compileAppModuleCustomClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleCustomClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileAppModuleAllClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleAllClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileLibraryModulesAllClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleAllClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileLibraryModulesCustomClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleCustomClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileAppModuleMixedParametersFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleMixedParameters.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileAppModuleWrongTypeFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleWrongType.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileLibraryModuleMixedParametersFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleMixedParameters.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileLibraryModuleWrongTypeFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleWrongType.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 
     @Test

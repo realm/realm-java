@@ -23,24 +23,24 @@ import io.realm.dynamic.RealmSchema;
  * The schema for a Realm is defined by all classes in a project that extend
  * {@link io.realm.RealmObject}, so any changes to these classes will require a migration.
  *
- * To support migrations from any previous version to the newest, the following pattern is
+ * To support migrations from any previous schemaVersion to the newest, the following pattern is
  * recommended when writing a migration:
  *
  * <pre>
  * public class CustomMigration implements RealmMigration {
  *   \@Override
- *   public long execute(Realm realm, long version) {
- *     if (version == 0) {
+ *   public long execute(Realm realm, long schemaVersion) {
+ *     if (schemaVersion == 0) {
  *       // Migrate from v0 to v1
- *       version++;
+ *       schemaVersion++;
  *     }
  *
- *     if (version == 0) {
+ *     if (schemaVersion == 0) {
  *       // Migrate from v0 to v1
- *       version++;
+ *       schemaVersion++;
  *     }
  *
- *     return version;
+ *     return schemaVersion;
  *   }
  * }
  * </pre>
@@ -58,8 +58,8 @@ public interface RealmMigration {
      * Implement this method in your subclass to perform a migration.
      *
      * @param realm The Realm on which to perform the migration.
-     * @param oldVersion The version of the Realm at the start of the migration.
-     * @param newVersion The version of the Realm after executing the migration.
+     * @param oldVersion The scheam version of the Realm at the start of the migration.
+     * @param newVersion The schema version of the Realm after executing the migration.
      */
     public void migrate(RealmSchema schema, long oldVersion, long newVersion);
 }
