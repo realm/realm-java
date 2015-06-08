@@ -182,7 +182,7 @@ public class RealmConfiguration {
          *
          * @param folder Folder to save Realm file in. Folder must be writable.
          *
-         * @throws {@link IllegalArgumentException} if folder doesn't exists or isn't writable.
+         * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
          */
         public Builder(File folder) {
             initializeBuilder(folder);
@@ -287,7 +287,7 @@ public class RealmConfiguration {
          * {@link io.realm.exceptions.RealmMigrationNeededException} the on-disc Realm will be cleared and recreated
          * with the new Realm schema.
          *
-         * <bold>WARNING!</bold> This will result in loss of data.
+         * <b>WARNING!</b> This will result in loss of data.
          */
         public Builder deleteRealmIfMigrationNeeded() {
             this.deleteRealmIfMigrationNeeded = true;
@@ -307,7 +307,7 @@ public class RealmConfiguration {
          * @param baseModule        First Realm module (required).
          * @param additionalModules Additional Realm modules
          *
-         * @throws {@link IllegalArgumentException} if any of the modules are {@code null} or doesn't have the
+         * @throws IllegalArgumentException if any of the modules are {@code null} or doesn't have the
          * {@link RealmModule} annotation.
          * @see Realm#getDefaultModule()
          */
