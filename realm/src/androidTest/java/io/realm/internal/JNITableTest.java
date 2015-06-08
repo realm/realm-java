@@ -127,6 +127,7 @@ public class JNITableTest extends AndroidTestCase {
         for (int i = 0; i < TEST_SIZE; i++) {
             t.add(new byte[]{1,2,3}, true, new Date(1000*i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
         }
+        t.add(new byte[]{1,2,3}, true, new Date(1000*TEST_SIZE), (double)TEST_SIZE, (float)TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
 
         assertEquals(0, t.findFirstBoolean(1, true));
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -137,15 +138,17 @@ public class JNITableTest extends AndroidTestCase {
             assertEquals(i, t.findFirstString(7, "string " + i));
         }
 
+        assertEquals(TEST_SIZE, t.findFirstString(7, ""));
+
         try {
             t.findFirstString(7, null);
             fail();
-        } catch (Exception expected) {}
+        } catch (IllegalArgumentException expected) {}
 
         try {
             t.findFirstDate(2, null);
             fail();
-        } catch (Exception expected) {}
+        } catch (IllegalArgumentException expected) {}
     }
 
 
