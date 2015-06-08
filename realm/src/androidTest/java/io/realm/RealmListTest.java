@@ -20,8 +20,10 @@ import android.test.AndroidTestCase;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
+import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
+import io.realm.entities.OwnerPrimaryKey;
 import io.realm.exceptions.RealmException;
 
 public class RealmListTest extends AndroidTestCase {
@@ -316,6 +318,61 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         assertEquals(1, testRealm.where(Owner.class).findFirst().getDogs().size());
+    }
+
+    // Test that add correctly uses Realm.copyToRealm() on standalone objects.
+    public void testAddUnmanagedObjectToManagedList() {
+        testRealm.beginTransaction();
+        CyclicType parent = testRealm.createObject(CyclicType.class);
+        RealmList<CyclicType> children = parent.getObjects();
+        children.add(new CyclicType());
+        testRealm.commitTransaction();
+        assertEquals(1, testRealm.where(CyclicType.class).findFirst().getObjects().size());
+    }
+
+    // Make sure that standalone objects with a primary key are added using copyToRealmOrUpdate
+    public void testAddUnmanagedPrimaryKeyObjectToManagedList() {
+        testRealm.beginTransaction();
+        testRealm.copyToRealm(new CyclicTypePrimaryKey(2, "original"));
+        RealmList<CyclicTypePrimaryKey> children = testRealm.copyToRealm(new CyclicTypePrimaryKey(1)).getObjects();
+        children.add(new CyclicTypePrimaryKey(2, "new"));
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.where(CyclicTypePrimaryKey.class).equalTo("id", 1).findFirst().getObjects().size());
+        assertEquals("new", testRealm.where(CyclicTypePrimaryKey.class).equalTo("id", 2).findFirst().getName());
+    }
+
+    // Test that set correctly uses Realm.copyToRealm() on standalone objects.
+    public void testSetUnmanagedObjectToManagedList() {
+        testRealm.beginTransaction();
+        CyclicType parent = testRealm.copyToRealm(new CyclicType("Parent"));
+        RealmList<CyclicType> children = parent.getObjects();
+        children.add(new CyclicType());
+        children.add(new CyclicType("original"));
+        children.add(new CyclicType());
+        children.set(1, new CyclicType("updated"));
+        testRealm.commitTransaction();
+
+        RealmList<CyclicType> list = testRealm.where(CyclicType.class).findFirst().getObjects();
+        assertEquals(3, list.size());
+        assertEquals("updated", list.get(1).getName());
+        assertEquals(5, testRealm.where(CyclicType.class).count());
+    }
+
+    // Test that set correctly uses Realm.copyToRealmOrUpdate() on standalone objects with a primary key.
+    public void testSetUnmanagedPrimaryKeyObjectToManagedList() {
+        testRealm.beginTransaction();
+        CyclicTypePrimaryKey parent = testRealm.copyToRealm(new CyclicTypePrimaryKey(1, "Parent"));
+        RealmList<CyclicTypePrimaryKey> children = parent.getObjects();
+        children.add(new CyclicTypePrimaryKey(2));
+        children.add(new CyclicTypePrimaryKey(3, "original"));
+        children.add(new CyclicTypePrimaryKey(4));
+        children.set(1, new CyclicTypePrimaryKey(3, "updated"));
+        testRealm.commitTransaction();
+
+        RealmList<CyclicTypePrimaryKey> list = testRealm.where(CyclicTypePrimaryKey.class).findFirst().getObjects();
+        assertEquals(3, list.size());
+        assertEquals("updated", list.get(1).getName());
     }
 
     public void testAddObjectNullThrows() {
