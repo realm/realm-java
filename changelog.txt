@@ -8,6 +8,7 @@
  * RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
  * Realm now works with Kotlin (M12+). (thanks @cypressious)
  * Fix a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
+ * Fix unchecked cast warnings when building with Realm.
 
 0.80.3
  * Calling Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
