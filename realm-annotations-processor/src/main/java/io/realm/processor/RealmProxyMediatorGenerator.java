@@ -31,7 +31,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.tools.JavaFileObject;
 
-import io.realm.annotations.internal.RealmModule;
+import io.realm.annotations.RealmModule;
 
 public class RealmProxyMediatorGenerator {
     private final String className;

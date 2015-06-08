@@ -16,7 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.AllTypes;
 
-@io.realm.annotations.internal.RealmModule
+@io.realm.annotations.RealmModule
 class DefaultRealmModuleMediator extends RealmProxyMediator {
 
     private static final List<Class<? extends RealmObject>> MODEL_CLASSES;
