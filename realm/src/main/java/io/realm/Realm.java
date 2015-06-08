@@ -48,6 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.examples.junkyard.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -1789,5 +1790,33 @@ public final class Realm implements Closeable {
      */
     public interface Transaction {
         public void execute(Realm realm);
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // PLAYGROUND
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static void getDefaultRealm(Context context) {
+
+    }
+
+    public static void setDefaultRealm(RealmConfiguration config) {
+
+    }
+
+    public static void setNamedRealm(String name, RealmConfiguration config) {
+
+    }
+
+    public static Realm getDefaultRealm() {
+        return null;
+    }
+
+    // Could also be called
+    // getRealmByName
+    // getRealmByTag
+    public static Realm getNamedRealm(String otherstuff) {
+        return null;
     }
 }

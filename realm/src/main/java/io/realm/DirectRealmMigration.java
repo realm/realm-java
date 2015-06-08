@@ -21,56 +21,43 @@ import io.realm.internal.migration.Migration;
 /**
  * The RealmMigration class is used to describe the migration of one Realm schema to another.
  * The schema for a Realm is defined by all classes in a project that extend
- * {@link io.realm.RealmObject}, so any changes to these classes will require a migration.
+ * {@link RealmObject}, so any changes to these classes will require a migration.
  *
- * To support migrations from any previous schemaVersion to the newest, the following pattern is
+ * To support migrations from any previous version to the newest, the following pattern is
  * recommended when writing a migration:
  *
  * <pre>
  * public class CustomMigration implements RealmMigration {
  *   \@Override
- *   public long execute(Realm realm, long schemaVersion) {
- *     if (schemaVersion == 0) {
+ *   public long execute(Realm realm, long version) {
+ *     if (version == 0) {
  *       // Migrate from v0 to v1
- *       schemaVersion++;
+ *       version++;
  *     }
  *
- *     if (schemaVersion == 0) {
+ *     if (version == 0) {
  *       // Migrate from v0 to v1
- *       schemaVersion++;
+ *       version++;
  *     }
  *
- *     return schemaVersion;
+ *     return version;
  *   }
  * }
  * </pre>
  *
  * During development when model classes can change frequently, it is possible to use
- * {@link io.realm.Realm#deleteRealmFile(android.content.Context)}. This will delete the database
+ * {@link Realm#deleteRealmFile(android.content.Context)}. This will delete the database
  * file and eliminate the need for any migrations.
  *
- * @see Realm#migrateRealmAtPath(String, byte[], RealmMigration)
- * @see Realm#migrateRealmAtPath(String, RealmMigration)
+ * @see io.realm.Realm#migrateRealmAtPath(String, byte[], io.realm.DirectRealmMigration)
+ * @see io.realm.Realm#migrateRealmAtPath(String, io.realm.DirectRealmMigration)
  */
-public interface RealmMigration {
-
-    /**
-     * Implement this method in your subclass to perform migration.
-     *
-     * @param realm The Realm on which to perform the migration.
-     * @param version The schemaVersion of the Realm at the start of the migration.
-     * @return The schemaVersion of the Realm after executing the migration.
-     */
-    @Deprecated
-    public long execute(Realm realm, long version);
-
+public interface DirectRealmMigration {
 
     /**
      * Implement this method to perform a migration
      * @return the new RealmSpec that we should migrate to
      */
-    public long migrate(Migration oldRealm, int  version);
-
-
+    public long migrate(int version, Migration currentSpec);
 }
 
