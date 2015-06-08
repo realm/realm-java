@@ -190,7 +190,7 @@ public class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
-        table.setIndex(columnIndex);
+        table.addSearchIndex(columnIndex);
         return this;
     }
 
@@ -198,7 +198,7 @@ public class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
-        if (!table.hasIndex(columnIndex)) {
+        if (!table.hasSearchIndex(columnIndex)) {
             throw new IllegalArgumentException("Field is not indexed: " + fieldName);
         }
         table.removeIndex(columnIndex);
@@ -241,7 +241,7 @@ public class RealmObjectSchema {
     public void setModifiers(long columnIndex, Set<RealmModifier> modifiers) {
         if (modifiers != null && modifiers.size() > 0) {
             if (modifiers.contains(RealmModifier.INDEXED)) {
-                table.setIndex(columnIndex);
+                table.addSearchIndex(columnIndex);
             }
 
             if (modifiers.contains(RealmModifier.PRIMARY_KEY)) {
@@ -285,9 +285,9 @@ public class RealmObjectSchema {
      */
     public interface Iterator {
         /**
-         * Manipulate a given RealmObject. Due to the nature of objects being volatile during migrations, these objects are not typed
-         * but are instead manipulated using a dynamic API, ie. all fields must accessed using their string
-         * representation.
+         * Manipulate a given RealmObject. Due to the nature of objects being volatile during migrations, these objects
+         * are not typed but are instead manipulated using a dynamic API, i.e. all fields must accessed using their
+         * string representation.
          *
          * @param object {@link DynamicRealmObject} representation of a particular object.
          */

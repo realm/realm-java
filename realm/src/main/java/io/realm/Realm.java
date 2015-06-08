@@ -65,7 +65,6 @@ import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
-import io.realm.internal.migration.SetVersionNumberMigration;
 
 
 /**
@@ -1548,21 +1547,7 @@ public final class Realm implements Closeable {
      * @param configuration
      */
     public static synchronized void migrateRealm(RealmConfiguration configuration) {
-        if (configuration.getMigration() == null) {
-            migrateRealm(configuration, new SetVersionNumberMigration(configuration.getSchemaVersion()));
-        } else {
-            migrateRealm(configuration, configuration.getMigration());
-        realm.beginTransaction();
-        try {
-            // TODO Record steps instead of executing?
-            long currentVersion = realm.getVersion();
-            migration.migrate(realm.getSchema(), currentVersion, currentVersion + 1);
-//            realm.setVersion(migration.execute(realm, realm.getVersion()));
-            realm.commitTransaction();
-        } finally {
-            realm.close();
-            realmsCache.remove();
-        }
+        migrateRealm(configuration, null);
     }
 
     /**
@@ -1572,11 +1557,32 @@ public final class Realm implements Closeable {
      * @param migration {@link RealmMigration} to run on the Realm.
      */
     public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
-        if (migration == null) {
-            return;
+        if (configuration == null) {
+            throw new IllegalArgumentException("RealmConfiguration must be provided");
+        }
+        if (migration == null && configuration.getMigration() == null) {
+            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
         }
 
-        Realm realm = Realm.createAndValidate(configuration, false, Looper.myLooper() != null);
+        RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
+        Realm realm = null;
+        try {
+            // TODO Record steps instead of executing?
+            realm = Realm.createAndValidate(configuration, false, Looper.myLooper() != null);
+            realm.beginTransaction();
+            long currentVersion = realm.getVersion();
+            realmMigration.migrate(realm.getSchema(), currentVersion, configuration.getSchemaVersion());
+            realm.setVersion(configuration.getSchemaVersion());
+            // TODO Validate schema before committing, otherwise we might risk saving the versionnumber for a wrong
+            // schema
+            realm.commitTransaction();
+        } finally {
+            if (realm != null) {
+                realm.close();
+                realmsCache.remove();
+            }
+        }
+    }
 
     /**
      * Returns the dynamic schema for this Realm.
@@ -1787,9 +1793,6 @@ public final class Realm implements Closeable {
             throw new RealmException("Could not create an instance of " + moduleName, e);
         }
     }
-
-
-
 
     /**
      * Encapsulates a Realm transaction.

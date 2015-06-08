@@ -35,9 +35,9 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
-        Realm.setSchema(AllJavaTypes.class);
-        realm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).schema(AllJavaTypes.class).build();
+        Realm.deleteRealm(realmConfig);
+        realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
         obj.setColumnString("str");
@@ -59,7 +59,6 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     protected void tearDown() throws Exception {
         super.tearDown();
         realm.close();
-        Realm.setSchema(null);
     }
 
     // Test invalid input: <empty, non-existing field, wrong field type>

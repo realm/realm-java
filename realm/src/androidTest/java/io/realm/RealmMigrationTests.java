@@ -4,7 +4,10 @@ import android.test.AndroidTestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumSet;
 
+import io.realm.dynamic.RealmModifier;
+import io.realm.dynamic.RealmSchema;
 import io.realm.entities.AllTypes;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.AnnotationTypes;
@@ -62,14 +65,10 @@ public class RealmMigrationTests extends AndroidTestCase {
         // V2 config
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table languageTable = realm.getTable(FieldOrder.class);
-                if (languageTable.getColumnCount() == 0) {
-                    languageTable.addColumn(ColumnType.INTEGER, "field2");
-                    languageTable.addColumn(ColumnType.BOOLEAN, "field1");
-                }
-
-                return version + 1;
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.addClass("FieldOrder")
+                        .addInt("field2")
+                        .addBoolean("field1");
             }
         };
 
@@ -99,14 +98,11 @@ public class RealmMigrationTests extends AndroidTestCase {
     public void testNotSettingIndexThrows() {
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                table.addColumn(ColumnType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                table.addColumn(ColumnType.STRING, "indexString");
-                table.addColumn(ColumnType.STRING, "notIndexString");
-                // Forget to set @Index
-                return 1;
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.addClass("AnnotationTypes")
+                        .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
+                        .addString("indexString") // Forget to set @Index
+                        .addString("notIndexString");
             }
         };
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
@@ -115,8 +111,6 @@ public class RealmMigrationTests extends AndroidTestCase {
                 .migration(migration)
                 .build();
         Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
-
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
@@ -127,14 +121,11 @@ public class RealmMigrationTests extends AndroidTestCase {
     public void testNotSettingPrimaryKeyThrows() {
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                table.addColumn(ColumnType.INTEGER, "id");
-                // Forget to set @PrimaryKey
-                long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString");
-                return 1;
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.addClass("AnnotationTypes")
+                        .addLong("id") // Forget to set @PrimaryKey
+                        .addString("columnIndex", EnumSet.of(RealmModifier.INDEXED))
+                        .addString("notIndexString");
             }
         };
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
@@ -143,8 +134,6 @@ public class RealmMigrationTests extends AndroidTestCase {
                 .migration(migration)
                 .build();
         Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
-
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
@@ -155,14 +144,11 @@ public class RealmMigrationTests extends AndroidTestCase {
     public void testSetAnnotations() {
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                table.addColumn(ColumnType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString");
-                return 1;
+            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                schema.addClass("AnnotationTypes")
+                        .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
+                        .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
+                        .addString("notIndexString");
             }
         };
 
