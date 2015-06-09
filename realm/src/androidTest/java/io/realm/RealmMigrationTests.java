@@ -9,10 +9,9 @@ import java.util.EnumSet;
 import io.realm.dynamic.RealmModifier;
 import io.realm.dynamic.RealmSchema;
 import io.realm.entities.AllTypes;
-import io.realm.entities.FieldOrder;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.FieldOrder;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
 public class RealmMigrationTests extends AndroidTestCase {

@@ -22,8 +22,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import io.realm.annotations.Index;
-import io.realm.annotations.PrimaryKey;
 import io.realm.dynamic.DynamicRealmList;
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllJavaTypes;
@@ -312,7 +310,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     public void testGetKeys() {
         String[] expectedKeys = { "columnString", "columnShort", "columnInt", "columnLong", "columnFloat",
                 "columnDouble", "columnBoolean", "columnDate", "columnBinary", "columnObject", "columnList" };
-        String[] keys = dObj.getKeys();
+        String[] keys = dObj.getFieldNames();
         assertArrayEquals(expectedKeys, keys);
     }
 

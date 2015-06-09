@@ -76,21 +76,6 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
         return ((Long)linkView.size()).intValue();
     }
 
-    @Override
-    public Iterator<DynamicRealmObject> iterator() {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public ListIterator<DynamicRealmObject> listIterator() {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public ListIterator<DynamicRealmObject> listIterator(int location) {
-        throw new RuntimeException("Not implemented");
-    }
-
     private void checkIsValidObject(DynamicRealmObject object) {
         if (object == null) {
             throw new IllegalArgumentException("DynamicRealmList does not accept null values");

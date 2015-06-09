@@ -84,8 +84,9 @@ public class DynamicRealmListTest extends AndroidTestCase {
     }
 
     public void testAddWrongRealmThrows() {
-        Realm.deleteRealmFile(getContext(), "Realm2");
-        Realm realm2 = Realm.getInstance(getContext(), "Realm2");
+        RealmConfiguration otherConfig = new RealmConfiguration.Builder(getContext()).name("realm2").build();
+        Realm.deleteRealm(otherConfig);
+        Realm realm2 = Realm.getInstance(otherConfig);
         realm2.beginTransaction();
         AllJavaTypes realm2Object = realm2.createObject(AllJavaTypes.class);
         realm2.commitTransaction();
@@ -169,8 +170,9 @@ public class DynamicRealmListTest extends AndroidTestCase {
     }
 
     public void testSetWrongRealmThrows() {
-        Realm.deleteRealmFile(getContext(), "Realm2");
-        Realm realm2 = Realm.getInstance(getContext(), "Realm2");
+        RealmConfiguration otherConfig = new RealmConfiguration.Builder(getContext()).name("realm2").build();
+        Realm.deleteRealm(otherConfig);
+        Realm realm2 = Realm.getInstance(otherConfig);
         realm2.beginTransaction();
         AllJavaTypes realm2Object = realm2.createObject(AllJavaTypes.class);
         realm2.commitTransaction();
@@ -200,7 +202,4 @@ public class DynamicRealmListTest extends AndroidTestCase {
     public void testSize() {
         assertEquals(1, dynamicList.size());
     }
-
-    // TODO Iterator tests
-    // TODO ListIterator tests
 }

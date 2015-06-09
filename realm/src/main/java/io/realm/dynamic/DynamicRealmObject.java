@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmObject;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -142,7 +143,7 @@ public class DynamicRealmObject {
         return row.getColumnIndex(fieldName) != TableOrView.NO_MATCH;
     }
 
-    public String[] getKeys() {
+    public String[] getFieldNames() {
         String[] keys = new String[(int) row.getColumnCount()];
         for (int i = 0; i < keys.length; i++) {
             keys[i] = row.getColumnName(i);
