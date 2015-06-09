@@ -291,6 +291,6 @@ public class RealmObjectSchema {
          *
          * @param object {@link DynamicRealmObject} representation of a particular object.
          */
-        public void next(DynamicRealmObject object);
+        void next(DynamicRealmObject object);
     }
 }

@@ -49,7 +49,7 @@ public class RealmSchema {
      *
      * @param className Name of the class
      * @return Schema object for that class
-     * @throws {@link RuntimeException} if class isn't in this Realm
+     * @throws RuntimeException if class isn't in this Realm
      */
     public RealmObjectSchema getClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
