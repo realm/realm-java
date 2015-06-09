@@ -8,7 +8,7 @@
  * RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
  * Realm now works with Kotlin (M12+). (thanks @cypressious)
  * Fixed a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
- * Added a check for null values in io.realm.internal.Table.findFirst{String,Date}(). 
+ * Added a check to give a better error message when null is used as value for a primary key. 
  * Fixed unchecked cast warnings when building with Realm.
  * Cleaned up examples (remove old test project).
 
