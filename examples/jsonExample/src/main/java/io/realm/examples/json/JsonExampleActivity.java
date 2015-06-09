@@ -29,14 +29,13 @@ import java.util.List;
 import java.util.Map;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 /**
  * This example demonstrates how to import RealmObjects as JSON. Realm supports JSON represented
  * as Strings, JSONObject, JSONArray or InputStreams (from API 11+)
  */
 public class JsonExampleActivity extends Activity {
-
-    public static final String TAG = JsonExampleActivity.class.getName();
 
     private GridView mGridView;
     private CityAdapter mAdapter;
@@ -47,8 +46,9 @@ public class JsonExampleActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
 
-        Realm.deleteRealmFile(this);
-        realm = Realm.getInstance(this);
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).build();
+        Realm.deleteRealm(realmConfiguration);
+        realm = Realm.getInstance(realmConfiguration);
     }
 
     @Override
@@ -94,8 +94,7 @@ public class JsonExampleActivity extends Activity {
     private void loadJsonFromStream() throws IOException {
         // Use streams if you are worried about the size of the JSON whether it was persisted on disk
         // or received from the network.
-        InputStream stream = null;
-        stream = getAssets().open("cities.json");
+        InputStream stream = getAssets().open("cities.json");
 
         // Open a transaction to store items into the realm
         realm.beginTransaction();

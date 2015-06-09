@@ -23,6 +23,7 @@ import android.util.Log;
 import java.security.SecureRandom;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 public class EncryptionExampleActivity extends Activity {
 
@@ -34,9 +35,6 @@ public class EncryptionExampleActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Start with a clean slate every time
-        Realm.deleteRealmFile(this);
-
         // Generate a key
         // IMPORTANT! This is a silly way to generate a key. It is also never stored.
         // For proper key handling please consult:
@@ -44,10 +42,15 @@ public class EncryptionExampleActivity extends Activity {
         // * http://nelenkov.blogspot.dk/2012/05/storing-application-secrets-in-androids.html
         byte[] key = new byte[64];
         new SecureRandom().nextBytes(key);
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this)
+                .encryptionKey(key)
+                .build();
+
+        // Start with a clean slate every time
+        Realm.deleteRealm(realmConfiguration);
 
         // Open the Realm with encryption enabled
-        realm = Realm.getInstance(this, key);
-
+        realm = Realm.getInstance(realmConfiguration);
 
         // Everything continues to work as normal except for that the file is encrypted on disk
         realm.beginTransaction();

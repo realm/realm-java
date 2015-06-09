@@ -33,8 +33,6 @@ import java.util.List;
 
 public class CityAdapter extends BaseAdapter {
 
-    public static final String TAG = GridViewExampleActivity.class.getName();
-
     private LayoutInflater inflater;
 
     private List<City> cities = null;
