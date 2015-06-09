@@ -30,28 +30,25 @@ class Context {
     private List<Long> abandonedTables = new ArrayList<Long>();
     private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
-    private List<Long> abandonedRows = new ArrayList<Long>();
 
     private boolean isFinalized = false;
 
     public void executeDelayedDisposal() {
         synchronized (this) {
-            for (long nativePointer: abandonedTables) {
+            for (int i = 0; i < abandonedTables.size(); i++) {
+                long nativePointer = abandonedTables.get(i);
                 Table.nativeClose(nativePointer);
             }
             abandonedTables.clear();
 
-            for (long nativePointer: abandonedRows) {
-                Row.nativeClose(nativePointer);
-            }
-            abandonedRows.clear();
-
-            for (long nativePointer: abandonedTableViews) {
+            for (int i = 0; i < abandonedTableViews.size(); i++) {
+                long nativePointer = abandonedTableViews.get(i);
                 TableView.nativeClose(nativePointer);
             }
             abandonedTableViews.clear();
 
-            for (long nativePointer: abandonedQueries) {
+            for (int i = 0; i < abandonedQueries.size(); i++) {
+                long nativePointer = abandonedQueries.get(i);
                 TableQuery.nativeClose(nativePointer);
             }
             abandonedQueries.clear();
@@ -64,15 +61,6 @@ class Context {
         }
         else {
             abandonedTables.add(nativePointer);
-        }
-    }
-
-    public void asyncDisposeRow(long nativePointer) {
-        if (isFinalized) {
-            Row.nativeClose(nativePointer);
-        }
-        else {
-            abandonedRows.add(nativePointer);
         }
     }
 
