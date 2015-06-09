@@ -991,8 +991,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     public Row getRow(long index) {
-        long nativeRowPtr = nativeGetRowPtr(nativePtr, index);
-        return new Row(context, this, nativeRowPtr);
+        return Row.get(context, this, index);
     }
 
     protected native long nativeGetRowPtr(long nativePtr, long index);

@@ -46,6 +46,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
@@ -53,6 +55,7 @@ import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
+import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -123,6 +126,12 @@ import io.realm.internal.migration.SetVersionNumberMigration;
 public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
 
+    // This single thread executor ensures that only one finalizer thread ever exists
+    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    // This does not need to be thread safe since it's only used in a synchronized method
+    private static volatile boolean isFinalizerStarted = false;
+
     protected static final ThreadLocal<Map<String, Realm>> realmsCache = new ThreadLocal<Map<String, Realm>>() {
         @SuppressLint("UseSparseArrays")
         @Override
@@ -144,6 +153,10 @@ public final class Realm implements Closeable {
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
     private static RealmConfiguration defaultConfiguration;
+
+    // Caches Class objects (both model classes and proxy classes) to Realm Tables
+    private final Map<Class<? extends RealmObject>, Table> classToTable =
+            new HashMap<Class<? extends RealmObject>, Table>();
 
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
@@ -288,8 +301,13 @@ public final class Realm implements Closeable {
 
     // Public because of migrations
     public Table getTable(Class<? extends RealmObject> clazz) {
-        clazz = Util.getOriginalModelClass(clazz);
-        return transaction.getTable(proxyMediator.getTableName(clazz));
+        Table table = classToTable.get(clazz);
+        if (table == null) {
+            clazz = Util.getOriginalModelClass(clazz);
+            table = transaction.getTable(proxyMediator.getTableName(clazz));
+            classToTable.put(clazz, table);
+        }
+        return table;
     }
 
     /**
@@ -535,8 +553,16 @@ public final class Realm implements Closeable {
     }
 
     private static synchronized Realm createAndValidate(RealmConfiguration config, boolean validateSchema, boolean autoRefresh) {
+        // Start the finalizer thread if needed
+        if (!isFinalizerStarted) {
+            executorService.submit(new FinalizerRunnable());
+            isFinalizerStarted = true;
+        }
+
         byte[] key = config.getEncryptionKey();
         String canonicalPath = config.getPath();
+
+        // Check thread local cache for existing Realm
         Map<String, Integer> localRefCount = referenceCount.get();
         Integer references = localRefCount.get(canonicalPath);
         if (references == null) {

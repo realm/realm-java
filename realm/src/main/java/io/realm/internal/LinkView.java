@@ -22,9 +22,9 @@ package io.realm.internal;
 public class LinkView {
 
     private final Context context;
-    private final long nativeLinkViewPtr;
-    private final Table parent;
-    private final long columnIndexInParent;
+    final long nativeLinkViewPtr;
+    final Table parent;
+    final long columnIndexInParent;
 
     public LinkView(Context context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
         this.context = context;
@@ -34,8 +34,7 @@ public class LinkView {
     }
 
     public Row get(long pos) {
-        long nativeRowPtr = nativeGetRow(nativeLinkViewPtr, pos);
-        return new Row(context, parent.getLinkTarget(columnIndexInParent), nativeRowPtr);
+        return Row.get(context, this, pos);
     }
 
     public long getTargetRowIndex(long pos) {
@@ -99,7 +98,7 @@ public class LinkView {
     }
 
     protected static native void nativeClose(long nativeLinkViewPtr);
-    private native long nativeGetRow(long nativeLinkViewPtr, long pos);
+    native long nativeGetRow(long nativeLinkViewPtr, long pos);
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
     private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
     private native void nativeInsert(long nativeLinkViewPtr, long pos, long rowIndex);
