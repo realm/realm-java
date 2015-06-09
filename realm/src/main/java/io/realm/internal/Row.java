@@ -18,20 +18,47 @@ package io.realm.internal;
 
 import java.util.Date;
 
-public class Row {
+public class Row extends NativeObject {
 
-    private final Context context;
+    private final Context context; // This is only kept because for now it's needed by the constructor of LinkView
     private final Table parent;
-    protected long nativePtr;
 
-    Row(Context context, Table parent, long nativePtr) {
+    private Row(Context context, Table parent, long nativePtr) {
         this.context = context;
         this.parent = parent;
-        this.nativePtr = nativePtr;
+        this.nativePointer = nativePtr;
+    }
+
+    /**
+     * Get the row object associated to an index in a Table
+     * @param context the Realm context
+     * @param table the Table that holds the row
+     * @param index the index of the row
+     * @return an instance of Row for the table and index specified
+     */
+    public static Row get(Context context, Table table, long index) {
+        long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
+        Row row = new Row(context, table, nativeRowPointer);
+        FinalizerRunnable.references.put(new NativeObjectReference(row, FinalizerRunnable.referenceQueue), Boolean.TRUE);
+        return row;
+    }
+
+    /**
+     * Get the row object associated to an index in a LinkView
+     * @param context the Realm context
+     * @param linkView the LinkView holding the row
+     * @param index the index of the row
+     * @return an instance of Row for the LinkView and index specified
+     */
+    public static Row get(Context context, LinkView linkView, long index) {
+        long nativeRowPointer = linkView.nativeGetRow(linkView.nativeLinkViewPtr, index);
+        Row row = new Row(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent), nativeRowPointer);
+        FinalizerRunnable.references.put(new NativeObjectReference(row, FinalizerRunnable.referenceQueue), Boolean.TRUE);
+        return row;
     }
 
     public long getColumnCount() {
-        return nativeGetColumnCount(nativePtr);
+        return nativeGetColumnCount(nativePointer);
     }
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
@@ -44,7 +71,7 @@ public class Row {
      * @return the name of the column
      */
     public String getColumnName(long columnIndex) {
-        return nativeGetColumnName(nativePtr, columnIndex);
+        return nativeGetColumnName(nativePointer, columnIndex);
     }
 
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
@@ -59,20 +86,20 @@ public class Row {
         if (columnName == null) {
             throw new IllegalArgumentException("Column name can not be null.");
         }
-        return nativeGetColumnIndex(nativePtr, columnName);
+        return nativeGetColumnIndex(nativePointer, columnName);
     }
 
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
 
 
     /**
-     * Get the type of a column identified by the columnIdex.
+     * Get the type of a column identified by the columnIndex.
      *
      * @param columnIndex index of the column.
      * @return Type of the particular column.
      */
     public ColumnType getColumnType(long columnIndex) {
-        return ColumnType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
+        return ColumnType.fromNativeValue(nativeGetColumnType(nativePointer, columnIndex));
     }
 
     protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
@@ -84,62 +111,62 @@ public class Row {
     }
 
     public long getIndex() {
-        return nativeGetIndex(nativePtr);
+        return nativeGetIndex(nativePointer);
     }
 
     protected native long nativeGetIndex(long nativeRowPtr);
 
     public long getLong(long columnIndex) {
-        return nativeGetLong(nativePtr, columnIndex);
+        return nativeGetLong(nativePointer, columnIndex);
     }
 
     protected native long nativeGetLong(long nativeRowPtr, long columnIndex);
 
     public boolean getBoolean(long columnIndex) {
-        return nativeGetBoolean(nativePtr, columnIndex);
+        return nativeGetBoolean(nativePointer, columnIndex);
     }
 
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
 
     public float getFloat(long columnIndex) {
-        return nativeGetFloat(nativePtr, columnIndex);
+        return nativeGetFloat(nativePointer, columnIndex);
     }
 
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
 
     public double getDouble(long columnIndex) {
-        return nativeGetDouble(nativePtr, columnIndex);
+        return nativeGetDouble(nativePointer, columnIndex);
     }
 
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
 
     public Date getDate(long columnIndex) {
-        return new Date(nativeGetDateTime(nativePtr, columnIndex)*1000);
+        return new Date(nativeGetDateTime(nativePointer, columnIndex)*1000);
     }
 
     protected native long nativeGetDateTime(long nativeRowPtr, long columnIndex);
 
 
     public String getString(long columnIndex) {
-        return nativeGetString(nativePtr, columnIndex);
+        return nativeGetString(nativePointer, columnIndex);
     }
 
     protected native String nativeGetString(long nativePtr, long columnIndex);
 
 
     public byte[] getBinaryByteArray(long columnIndex) {
-        return nativeGetByteArray(nativePtr, columnIndex);
+        return nativeGetByteArray(nativePointer, columnIndex);
     }
 
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
 
 
     public Mixed getMixed(long columnIndex) {
-        return nativeGetMixed(nativePtr, columnIndex);
+        return nativeGetMixed(nativePointer, columnIndex);
     }
 
     public ColumnType getMixedType(long columnIndex) {
-        return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex));
+        return ColumnType.fromNativeValue(nativeGetMixedType(nativePointer, columnIndex));
     }
 
     protected native int nativeGetMixedType(long nativePtr, long columnIndex);
@@ -147,19 +174,19 @@ public class Row {
     protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
 
     public long getLink(long columnIndex) {
-        return nativeGetLink(nativePtr, columnIndex);
+        return nativeGetLink(nativePointer, columnIndex);
     }
 
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
 
     public boolean isNullLink(long columnIndex) {
-        return nativeIsNullLink(nativePtr, columnIndex);
+        return nativeIsNullLink(nativePointer, columnIndex);
     }
 
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
 
     public LinkView getLinkList(long columnIndex) {
-        long nativeLinkViewPtr = nativeGetLinkView(nativePtr, columnIndex);
+        long nativeLinkViewPtr = nativeGetLinkView(nativePointer, columnIndex);
         return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
     }
 
@@ -171,28 +198,28 @@ public class Row {
     public void setLong(long columnIndex, long value) {
         parent.checkImmutable();
         getTable().checkIntValueIsLegal(columnIndex, getIndex(), value);
-        nativeSetLong(nativePtr, columnIndex, value);
+        nativeSetLong(nativePointer, columnIndex, value);
     }
 
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
 
     public void setBoolean(long columnIndex, boolean value) {
         parent.checkImmutable();
-        nativeSetBoolean(nativePtr, columnIndex, value);
+        nativeSetBoolean(nativePointer, columnIndex, value);
     }
 
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
 
     public void setFloat(long columnIndex, float value) {
         parent.checkImmutable();
-        nativeSetFloat(nativePtr, columnIndex, value);
+        nativeSetFloat(nativePointer, columnIndex, value);
     }
 
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
 
     public void setDouble(long columnIndex, double value) {
         parent.checkImmutable();
-        nativeSetDouble(nativePtr, columnIndex, value);
+        nativeSetDouble(nativePointer, columnIndex, value);
     }
 
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
@@ -206,7 +233,7 @@ public class Row {
         if (timestamp >= Integer.MAX_VALUE || timestamp <= Integer.MIN_VALUE) {
             throw new IllegalArgumentException("Date/timestamp is outside valid range");
         }
-        nativeSetDate(nativePtr, columnIndex, timestamp);
+        nativeSetDate(nativePointer, columnIndex, timestamp);
     }
 
     protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
@@ -214,14 +241,14 @@ public class Row {
     public void setString(long columnIndex, String value) {
         parent.checkImmutable();
         getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
-        nativeSetString(nativePtr, columnIndex, value);
+        nativeSetString(nativePointer, columnIndex, value);
     }
 
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
 
     public void setBinaryByteArray(long columnIndex, byte[] data) {
         parent.checkImmutable();
-        nativeSetByteArray(nativePtr, columnIndex, data);
+        nativeSetByteArray(nativePointer, columnIndex, data);
     }
 
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
@@ -232,26 +259,26 @@ public class Row {
         if (data == null) {
             throw new IllegalArgumentException("Null data is not allowed");
         }
-        nativeSetMixed(nativePtr, columnIndex, data);
+        nativeSetMixed(nativePointer, columnIndex, data);
     }
 
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
 
     public void setLink(long columnIndex, long value) {
         parent.checkImmutable();
-        nativeSetLink(nativePtr, columnIndex, value);
+        nativeSetLink(nativePointer, columnIndex, value);
     }
 
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
 
     public void nullifyLink(long columnIndex) {
         parent.checkImmutable();
-        nativeNullifyLink(nativePtr, columnIndex);
+        nativeNullifyLink(nativePointer, columnIndex);
     }
 
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
 
-    protected static native void nativeClose(long nativeRowPtr);
+    static native void nativeClose(long nativeRowPtr);
 
     /**
      * Checks if the row is still valid.
@@ -259,20 +286,8 @@ public class Row {
      * data. {@code false} otherwise.
      */
     public boolean isAttached() {
-        return nativePtr != 0 && nativeIsAttached(nativePtr);
+        return nativePointer != 0 && nativeIsAttached(nativePointer);
     }
 
     protected native boolean nativeIsAttached(long nativeRowPtr);
-
-    @Override
-    protected void finalize() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                context.asyncDisposeRow(nativePtr);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
-        }
-        nativeClose(nativePtr);
-        nativePtr = 0;
-    }
 }

@@ -49,7 +49,7 @@ public class KotlinExampleActivity : Activity() {
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
 
-        // Open the default realm ones for the UI thread.
+        // Open the default realm for the UI thread.
         realm = Realm.getInstance(this)
 
         basicCRUD(realm)

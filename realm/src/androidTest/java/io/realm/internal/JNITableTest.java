@@ -133,6 +133,36 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(-1, t.findFirstString(7, "other string"));
     }
 
+    public void testFindFirst() {
+        final int TEST_SIZE = 10;
+        Table t = TestHelper.getTableWithAllColumnTypes();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            t.add(new byte[]{1,2,3}, true, new Date(1000*i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
+        }
+        t.add(new byte[]{1,2,3}, true, new Date(1000*TEST_SIZE), (double)TEST_SIZE, (float)TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
+
+        assertEquals(0, t.findFirstBoolean(1, true));
+        for (int i = 0; i < TEST_SIZE; i++) {
+            assertEquals(i, t.findFirstDate(2, new Date(1000*i)));
+            assertEquals(i, t.findFirstDouble(3, (double) i));
+            assertEquals(i, t.findFirstFloat(4, (float) i));
+            assertEquals(i, t.findFirstLong(5, i));
+            assertEquals(i, t.findFirstString(7, "string " + i));
+        }
+
+        assertEquals(TEST_SIZE, t.findFirstString(7, ""));
+
+        try {
+            t.findFirstString(7, null);
+            fail();
+        } catch (IllegalArgumentException expected) {}
+
+        try {
+            t.findFirstDate(2, null);
+            fail();
+        } catch (IllegalArgumentException expected) {}
+    }
+
 
     public void testGetValuesFromNonExistingColumn() {
         Table t = TestHelper.getTableWithAllColumnTypes();

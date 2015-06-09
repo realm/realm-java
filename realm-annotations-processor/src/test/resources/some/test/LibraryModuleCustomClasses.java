@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package io.realm.examples.service;
+package some.test;
 
-public interface KillableThread {
+import java.util.Date;
 
-    public void terminate();
+import io.realm.RealmList;
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmModule;
+
+@RealmModule(library = true, classes = { AllTypes.class })
+public class LibraryModuleCustomClasses {
 
 }

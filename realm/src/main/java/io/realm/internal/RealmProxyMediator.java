@@ -137,6 +137,6 @@ public abstract class RealmProxyMediator {
     }
 
     protected static RealmException getMissingProxyClassException(Class<? extends RealmObject> clazz) {
-        return new RealmException("Could not find the generated proxy class for " + clazz + ". Annotation processor may not have been executed.");
+        return new RealmException(clazz + " is not part of the schema for this Realm.");
     }
 }

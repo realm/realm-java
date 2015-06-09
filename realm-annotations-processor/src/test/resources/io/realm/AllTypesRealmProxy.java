@@ -173,7 +173,7 @@ public class AllTypesRealmProxy extends AllTypes
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
-        if(!transaction.hasTable("class_AllTypes")) {
+        if (!transaction.hasTable("class_AllTypes")) {
             Table table = transaction.getTable("class_AllTypes");
             table.addColumn(ColumnType.STRING, "columnString", Table.NOT_NULLABLE);
             table.addColumn(ColumnType.INTEGER, "columnLong", Table.NOT_NULLABLE);
@@ -203,7 +203,6 @@ public class AllTypesRealmProxy extends AllTypes
             if (table.getColumnCount() != 9) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 9 but was " + table.getColumnCount());
             }
-
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
             for (long i = 0; i < 9; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
@@ -284,7 +283,6 @@ public class AllTypesRealmProxy extends AllTypes
             if (!transaction.hasTable("class_AllTypes")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing class 'class_AllTypes' for field 'columnObject'");
             }
-
             Table table_7 = transaction.getTable("class_AllTypes");
             if (!table.getLinkTarget(INDEX_COLUMNOBJECT).hasSameSchema(table_7)) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmObject for field 'columnObject': '" +
@@ -608,4 +606,3 @@ public class AllTypesRealmProxy extends AllTypes
     }
 
 }
- 
