@@ -33,7 +33,7 @@ public class DynamicRealmListTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).schema(AllJavaTypes.class).build();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).schema(AllJavaTypes.class, Dog.class).build();
         Realm.deleteRealm(realmConfig);
         realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();

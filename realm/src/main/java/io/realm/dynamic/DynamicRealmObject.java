@@ -171,7 +171,15 @@ public class DynamicRealmObject {
 
     @Override
     public int hashCode() {
-        return super.hashCode(); // TODO
+        String realmName = realm.getPath();
+        String tableName = row.getTable().getName();
+        long rowIndex = row.getIndex();
+
+        int result = 17;
+        result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
+        result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0);
+        result = 31 * result + (int) (rowIndex ^ (rowIndex >>> 32));
+        return result;
     }
 
     @Override
@@ -195,6 +203,6 @@ public class DynamicRealmObject {
 
     @Override
     public String toString() {
-        return super.toString(); // TODO
+        return super.toString(); // TODO How to iterate across all fields?
     }
 }

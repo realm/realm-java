@@ -96,6 +96,13 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testNotSettingIndexThrows() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
+        // Create v1 of the Realm
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -105,12 +112,12 @@ public class RealmMigrationTests extends AndroidTestCase {
                         .addString("notIndexString");
             }
         };
+
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
@@ -119,6 +126,12 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testNotSettingPrimaryKeyThrows() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
@@ -128,12 +141,13 @@ public class RealmMigrationTests extends AndroidTestCase {
                         .addString("notIndexString");
             }
         };
+
+        // Create v1 of the Realm
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
         try {
             realm = Realm.getInstance(realmConfig);
             fail();

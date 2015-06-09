@@ -98,7 +98,7 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
         if (!realm.getPath().equals(object.realm.getPath())) {
             throw new IllegalArgumentException("Cannot add a object belonging already in another Realm");
         }
-        if (!linkView.getTable().equals(object.row.getTable())) {
+        if (!linkView.getTable().hasSameSchema(object.row.getTable())) {
             String expectedClass = linkView.getTable().getName();
             String objectClassName = object.row.getTable().getName();
             throw new IllegalArgumentException("Object is of type " + objectClassName + ". Expected " + expectedClass);

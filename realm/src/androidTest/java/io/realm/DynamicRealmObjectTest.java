@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
 import io.realm.dynamic.DynamicRealmList;
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllJavaTypes;
@@ -308,20 +310,27 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     }
 
     public void testGetKeys() {
+        String[] expectedKeys = { "columnString", "columnShort", "columnInt", "columnLong", "columnFloat",
+                "columnDouble", "columnBoolean", "columnDate", "columnBinary", "columnObject", "columnList" };
         String[] keys = dObj.getKeys();
-        fail();
-
+        assertArrayEquals(expectedKeys, keys);
     }
 
     public void testEquals() {
-        fail();
+        AllJavaTypes obj1 = realm.where(AllJavaTypes.class).findFirst();
+        AllJavaTypes obj2 = realm.where(AllJavaTypes.class).findFirst();
+        DynamicRealmObject dObj1 = new DynamicRealmObject(realm, obj1.row);
+        DynamicRealmObject dObj2 = new DynamicRealmObject(realm, obj2.row);
+        assertTrue(dObj1.equals(dObj2));
     }
 
     public void testHashcode() {
-        fail();
+        AllJavaTypes obj1 = realm.where(AllJavaTypes.class).findFirst();
+        DynamicRealmObject dObj1 = new DynamicRealmObject(realm, obj1.row);
+        assertEquals(obj1.hashCode(), dObj1.hashCode());
     }
 
     public void testToString() {
-        fail();
+        // TODO
     }
 }
