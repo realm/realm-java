@@ -711,6 +711,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         throw new RealmException("Primary key constraint broken. Value already exists: " + value);
     }
 
+    public void removeIndex(long columnIndex) {
+        throw new RuntimeException("Not implemented yet. Awaiting core release");
+    }
+
     //Holds methods that must be publicly available for AbstractClass.
     //Should not be called when using the dynamic interface. The methods can be accessed by calling getInternalMethods() in Table class
     public class InternalMethods{
@@ -1158,6 +1162,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw new RealmException("Primary keys are only supported if Table is part of a Group");
         }
         cachedPrimaryKeyColumnIndex = nativeSetPrimaryKey(pkTable.nativePtr, nativePtr, columnName);
+    }
+
+    public void setPrimaryKey(long columnIndex) {
+        setPrimaryKey(nativeGetColumnName(nativePtr, columnIndex));
     }
 
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);

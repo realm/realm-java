@@ -173,6 +173,9 @@ public class Row extends NativeObject {
 
     protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
 
+    /**
+     * Returns the row index of linked object in the target table.
+     */
     public long getLink(long columnIndex) {
         return nativeGetLink(nativePointer, columnIndex);
     }

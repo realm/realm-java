@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2014 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,8 @@
  * limitations under the License.
  */
 
-package io.realm.internal.migration;
+package io.realm.dynamic;
 
-import io.realm.Realm;
-import io.realm.RealmMigration;
-
-/**
- * Utility migration for automatically upgrading the version number of a Realm.
- */
-public class SetVersionNumberMigration implements RealmMigration {
-
-    private final int newVersion;
-
-    public SetVersionNumberMigration(int newVersion) {
-        this.newVersion = newVersion;
-    }
-
-    @Override
-    public long execute(Realm realm, long version) {
-        return newVersion;
-    }
+public enum RealmModifier {
+    INDEXED, PRIMARY_KEY
 }

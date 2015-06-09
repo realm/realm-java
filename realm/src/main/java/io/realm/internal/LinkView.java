@@ -109,4 +109,11 @@ public class LinkView {
     private native long nativeSize(long nativeLinkViewPtr);
     private native boolean nativeIsEmpty(long nativeLinkViewPtr);
     protected native long nativeWhere(long nativeLinkViewPtr);
+
+    /**
+     * Get the Table data for rows in this LinkView
+     */
+    public Table getTable() {
+        return parent;
+    }
 }

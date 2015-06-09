@@ -21,6 +21,7 @@ import android.test.AndroidTestCase;
 import java.io.File;
 import java.util.Random;
 
+import io.realm.dynamic.RealmSchema;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.Dog;
@@ -228,8 +229,8 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .schemaVersion(42)
                 .migration(new RealmMigration() {
                     @Override
-                    public long execute(Realm realm, long version) {
-                        return 0; // no-op
+                    public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                        // no-op
                     }
                 })
                 .deleteRealmIfMigrationNeeded()
@@ -271,6 +272,10 @@ public class RealmConfigurationTest extends AndroidTestCase {
         realm.close();
 
         // Version upgrades should happen automatically if possible
-        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
+        try {
+            realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
+            fail();
+        } catch (RealmMigrationNeededException expected) {
+        }
     }
 }

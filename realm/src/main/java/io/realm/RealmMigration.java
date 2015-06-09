@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import io.realm.dynamic.RealmSchema;
+
 /**
  * The RealmMigration class is used to describe the migration of one Realm schema to another.
  * The schema for a Realm is defined by all classes in a project that extend
@@ -53,12 +55,12 @@ package io.realm;
 public interface RealmMigration {
 
     /**
-     * Implement this method in your subclass to perform migration.
+     * Implement this method in your subclass to perform a migration.
      *
      * @param realm The Realm on which to perform the migration.
-     * @param version The schemaVersion of the Realm at the start of the migration.
-     * @return The schemaVersion of the Realm after executing the migration.
+     * @param oldVersion The scheam version of the Realm at the start of the migration.
+     * @param newVersion The schema version of the Realm after executing the migration.
      */
-    public long execute(Realm realm, long version);
+    public void migrate(RealmSchema schema, long oldVersion, long newVersion);
 }
 
