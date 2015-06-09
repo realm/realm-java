@@ -270,7 +270,11 @@ public class RealmConfigurationTest extends AndroidTestCase {
         assertEquals(0, realm.getVersion());
         realm.close();
 
-        // Version upgrades should happen automatically if possible
-        realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
+        // Version upgrades should always require a migration.
+        try {
+            realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
+            fail();
+        } catch (RealmMigrationNeededException expected) {
+        }
     }
 }

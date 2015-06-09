@@ -67,7 +67,6 @@ import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
-import io.realm.internal.migration.SetVersionNumberMigration;
 
 
 /**
@@ -1573,31 +1572,37 @@ public final class Realm implements Closeable {
      * @param configuration
      */
     public static synchronized void migrateRealm(RealmConfiguration configuration) {
-        if (configuration.getMigration() == null) {
-            migrateRealm(configuration, new SetVersionNumberMigration(configuration.getSchemaVersion()));
-        } else {
-            migrateRealm(configuration, configuration.getMigration());
-        }
+        migrateRealm(configuration, null);
     }
 
     /**
      * Manually trigger a migration on a RealmMigration.
      *
      * @param configuration {@link RealmConfiguration}
-     * @param migration {@link RealmMigration} to run on the Realm.
+     * @param migration {@link RealmMigration} to run on the Realm. This will override any migration set on the
+     * configuration.
      */
     public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
-        if (migration == null) {
-            return;
+        if (configuration == null) {
+            throw new IllegalArgumentException("RealmConfiguration must be provided");
+        }
+        if (migration == null && configuration.getMigration() == null) {
+            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
         }
 
-        Realm realm = Realm.createAndValidate(configuration, false, Looper.myLooper() != null);
-        realm.beginTransaction();
-        realm.setVersion(migration.execute(realm, realm.getVersion()));
-        realm.commitTransaction();
-        realm.close();
-
-        realmsCache.remove();
+        RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
+        Realm realm = null;
+        try {
+            realm = Realm.createAndValidate(configuration, false, Looper.myLooper() != null);
+            realm.beginTransaction();
+            realm.setVersion(realmMigration.execute(realm, realm.getVersion()));
+            realm.commitTransaction();
+        } finally {
+            if (realm != null) {
+                realm.close();
+                realmsCache.remove();
+            }
+        }
     }
 
     /**
