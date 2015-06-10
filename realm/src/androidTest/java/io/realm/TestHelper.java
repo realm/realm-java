@@ -78,10 +78,16 @@ public class TestHelper {
     // Returns a random key used by encrypted Realms.
     public static byte[] getRandomKey() {
         byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
+        new Random().nextBytes(key);
         return key;
     }
 
+    // Returns a random key from the given seed. Used by encrypted Realms.
+    public static byte[] getRandomKey(long seed) {
+        byte[] key = new byte[64];
+        new Random(seed).nextBytes(key);
+        return key;
+    }
 
     public static class StubInputStream extends InputStream {
         @Override

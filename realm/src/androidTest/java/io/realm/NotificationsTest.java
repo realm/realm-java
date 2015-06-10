@@ -135,7 +135,7 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(1, counter.get());
     }
 
-    public void testNotificationsNumber () throws InterruptedException, ExecutionException {
+    public void testNotificationsNumber() throws InterruptedException, ExecutionException {
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
         final Looper[] looper = new Looper[1];
@@ -173,10 +173,10 @@ public class NotificationsTest extends AndroidTestCase {
         while (!isReady.get()) {
             Thread.sleep(5);
         }
-        Thread.sleep(100); 
+        Thread.sleep(100);
 
         // Trigger OnRealmChanged on background thread
-        Realm realm = Realm.getInstance(getContext());
+        realm = Realm.getInstance(getContext());
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
