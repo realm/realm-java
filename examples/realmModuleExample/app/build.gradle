@@ -42,6 +42,5 @@ tasks.preBuild {
 }
 
 dependencies {
-    compile files("../../../realm/build/libs/realm-${version}.jar")
     compile project(':realmModuleLibraryExample')
 }
