@@ -55,7 +55,7 @@ public class ModulesExampleActivity extends Activity {
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
 
-        // The default Realm instance implicitly know about all classes in the realmModuleAppExample Android Studio
+        // The default Realm instance implicitly knows about all classes in the realmModuleAppExample Android Studio
         // module. This does not include the classes from the realmModuleLibraryExample AS module so a Realm using this
         // configuration would know about the following classes: { Cow, Pig, Snake, Spider }
         RealmConfiguration defaultConfig = new RealmConfiguration.Builder(this).build();
@@ -126,7 +126,7 @@ public class ModulesExampleActivity extends Activity {
         farmRealm.commitTransaction();
         showStatus("Number of pigs on the farm : " + farmRealm.where(Pig.class).count());
 
-        // Each realm is restricted to only accept the classes in their schema.
+        // Each Realm is restricted to only accept the classes in their schema.
         showStatus("Trying to add an unsupported class");
         defaultRealm.beginTransaction();
         try {
