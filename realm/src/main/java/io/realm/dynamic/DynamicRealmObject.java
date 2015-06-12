@@ -38,7 +38,7 @@ public class DynamicRealmObject {
      Row row;
 
     /**
-     * Creates a dynamic Realm object based on a row entry.
+     * Creates a dynamic Realm object based on a typed object.on a row entry.
      */
     public DynamicRealmObject(Realm realm, Row row) {
         this.realm = realm;

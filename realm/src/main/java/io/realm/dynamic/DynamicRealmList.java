@@ -73,7 +73,8 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
 
     @Override
     public int size() {
-        return ((Long)linkView.size()).intValue();
+        long size = linkView.size();
+        return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
     }
 
     private void checkIsValidObject(DynamicRealmObject object) {
