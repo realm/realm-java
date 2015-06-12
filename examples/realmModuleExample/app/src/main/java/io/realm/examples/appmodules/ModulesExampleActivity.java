@@ -40,7 +40,7 @@ import io.realm.examples.librarymodules.modules.ZooAnimalsModule;
 import io.realm.exceptions.RealmException;
 
 /**
-* This example demonstrates how you can use modules to control which objects belong to which Realms and how you can
+* This example demonstrates how you can use modules to control which classes belong to which Realms and how you can
  * work with multiple Realms at the same time.
 */
 public class ModulesExampleActivity extends Activity {
