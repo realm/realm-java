@@ -160,14 +160,20 @@ project.afterEvaluate {
     preBuild.dependsOn(['compileJni', 'compileAnnotations', 'buildApt'])
 }
 
+// exampleDir : [distributionDir, [ exampleSrcParentDir, distibutionSrcParentDir], ...]
+// exampleDir -> Name of example dir
+// distributionDir -> Name of distribution dir
+// [ exampleModuleDir, distModuleDir ] -> where to find module dir to copy. Add one for each submodule.
+// First sub module must be the app module
 def examples = [
-    introExample: "RealmIntroExample",
-    gridViewExample: "RealmGridViewExample",
-    migrationExample: "RealmMigrationExample",
-    adapterExample: "RealmAdapterExample",
-    threadExample: "RealmThreadExample",
-    jsonExample: "RealmJsonExample",
-    encryptionExample: "RealmEncryptionExample"
+    introExample: ["RealmIntroExample", ["" : "app"]],
+    gridViewExample: ["RealmGridViewExample", ["" : "app"]],
+    migrationExample: ["RealmMigrationExample", ["" : "app"]],
+    adapterExample: ["RealmAdapterExample", ["" : "app"]],
+    threadExample: ["RealmThreadExample", ["" : "app"]],
+    jsonExample: ["RealmJsonExample", ["" : "app"]],
+    encryptionExample: ["RealmEncryptionExample", ["" : "app"]],
+    realmModuleExample: ["RealmModuleExample", [ app : "app"], [ library : "library"]]
 ]
 
 def abi = [ 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips', 'x86' ]
@@ -175,12 +181,27 @@ def abi = [ 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips', 'x86' ]
 //for Ant filter
 import org.apache.tools.ant.filters.ReplaceTokens
 
+def private copyGradleBuildFile(String fromDir, String toDir) {
+    println "copy ${fromDir}"
+    println "to ${toDir}"
+    copy {
+        from "${fromDir}/build.gradle"
+        into "${toDir}"
+        filter(ReplaceTokens, tokens: [version: version])
+    }
+}
+
+// Copy build.gradle (if present) from all configured folders
 task generateDistributionExamplesBuildFiles << {
-    examples.each() { src, dest ->
-        copy {
-            from "${rootDir}/tools/templates/${dest}/build.gradle"
-            into "${rootDir}/distribution/${dest}/app"
-            filter(ReplaceTokens, tokens: [version: version])
+    examples.each() { exampleDir, params ->
+        String distDir = params[0];
+        String baseFromDir = "${rootDir}/tools/templates/${distDir}"
+        String baseToDir = "${rootDir}/distribution/${distDir}"
+        copyGradleBuildFile(baseFromDir, baseToDir)
+        for (int i = 1; i < params.size(); i++) {
+            params[i].each() { moduleFolder, destFolder ->
+                copyGradleBuildFile("${baseFromDir}/${destFolder}", "${baseToDir}/${destFolder}")
+            }
         }
     }
 }
@@ -196,10 +217,16 @@ task populateDistributionFolder(dependsOn: ['androidJar', 'bundleJavadocRelease'
         from 'build/docs/javadoc'
         into '../distribution/javadoc'
     }
-    examples.each() { src, dest ->
-        copy {
-            from "../examples/${src}/src"
-            into "../distribution/${dest}/app/src"
+    examples.each() { exampleDir, params ->
+        String distributionDir = params[0];
+        for (int i = 1; i < params.size(); i++) {
+            params[i].each() { moduleFolder, destFolder ->
+                String src = moduleFolder.isEmpty() ? "src" : moduleFolder + "/src"
+                copy {
+                    from "../examples/${exampleDir}/${src}"
+                    into "../distribution/${distributionDir}/${destFolder}/src"
+                }
+            }
         }
     }
 }
@@ -241,42 +268,42 @@ task createDistributionPackage(type: Zip) {
     archiveName = "realm-java-${version}.zip"
 }
 
-examples.each() { src, dest ->
-    task "distributionMonkey${dest}"(type: GradleBuild) {
+examples.each() { exampleDir, params ->
+    String distDir = params[0];
+    String appModule = params[1][1]
+    task "distributionMonkey${distDir}"(type: GradleBuild) {
         dependsOn createDistributionPackage
         //dependsOn bintrayUpload
-        dir = file("${rootDir}/distribution/${dest}")
+        dir = file("${rootDir}/distribution/${distDir}/${appModule}")
         tasks = ['monkeyRelease']
     }
 }
 
-apply plugin: 's3'
+task uploadDistributionPackage(type: Exec) {
+    examples.each { exampleDir, params ->
+        dependsOn "distributionMonkey${params[0]}"
+    }
+    commandLine 's3cmd', 'put', "${rootDir}/realm-java-${version}.zip", 's3://static.realm.io/downloads/java/'
+}
 
-import com.github.skhatri.s3aws.plugin.S3UploadTask
+task createEmptyFile(type: Exec) {
+    dependsOn uploadDistributionPackage
+    commandLine 'touch', 'latest'
+}
 
-// This is an ugly hack because we have two links to the latest version.
-// The right solution here would be to contribute a change to the S3 Gradle plugin
-// to allow link to be a list of strings.
 ['java', 'android'].each() { link ->
-    task "upload${link.capitalize()}DistributionPackage"(type: S3UploadTask) {
-        examples.each { src, dest ->
-            dependsOn "distributionMonkey${dest}"
-        }
-        bucket = 'static.realm.io'
-        file = "${rootDir}/realm-java-${version}.zip"
-        key = 'downloads/java/realm-java-${version}.zip'
-        link = "downloads/${link}/latest"
+    task "upload${link.capitalize()}LatestLink"(type: Exec) {
+        dependsOn createEmptyFile
+        commandLine 's3cmd', 'put', 'latest', "--add-header=x-amz-website-redirect-location:/downloads/java/realm-java-${version}.zip", "s3://static.realm.io/downloads/${link}/latest"
     }
 }
 
-task uploadUpdateVersion(type: S3UploadTask) {
+
+task uploadUpdateVersion(type: Exec) {
     ['java', 'android'].each() { link ->
-        dependsOn "upload${link.capitalize()}DistributionPackage"
+        dependsOn "upload${link.capitalize()}LatestLink"
     }
-    bucket = 'static.realm.io'
-    file = "${rootDir}/version.txt"
-    key = 'update/java'
-    link = 'downloads/temp/update-java'
+    commandLine 's3cmd', 'put', "${rootDir}/version.txt", 's3://static.realm.io/update/java'
 }
 
 task tagRepo(type: Exec) {

@@ -174,7 +174,7 @@ public class ModuleMetaData {
     }
 
     /**
-     * Returns true if the DefaultRealmModule.java file should be created.
+     * Returns {@code true} if the DefaultRealmModule.java file should be created.
      */
     public boolean shouldCreateDefaultModule() {
         return shouldCreateDefaultModule;

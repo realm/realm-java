@@ -19,11 +19,15 @@ package io.realm;
 import android.content.Context;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
@@ -116,6 +120,36 @@ public class RealmConfiguration {
         return canonicalPath;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        RealmConfiguration that = (RealmConfiguration) obj;
+
+        if (schemaVersion != that.schemaVersion) return false;
+        if (deleteRealmIfMigrationNeeded != that.deleteRealmIfMigrationNeeded) return false;
+        if (!realmFolder.equals(that.realmFolder)) return false;
+        if (!realmFileName.equals(that.realmFileName)) return false;
+        if (!canonicalPath.equals(that.canonicalPath)) return false;
+        if (!Arrays.equals(key, that.key)) return false;
+        if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
+        return schemaMediator.equals(that.schemaMediator);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = realmFolder.hashCode();
+        result = 31 * result + realmFileName.hashCode();
+        result = 31 * result + canonicalPath.hashCode();
+        result = 31 * result + (key != null ? Arrays.hashCode(key) : 0);
+        result = 31 * result + schemaVersion;
+        result = 31 * result + (migration != null ? migration.hashCode() : 0);
+        result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
+        result = 31 * result + schemaMediator.hashCode();
+        return result;
+    }
+
     // Creates the mediator that defines the current schema
     private RealmProxyMediator createSchemaMediator(Builder builder) {
 
@@ -172,7 +206,6 @@ public class RealmConfiguration {
         private int schemaVersion;
         private RealmMigration migration;
         private boolean deleteRealmIfMigrationNeeded;
-        private boolean resetRealmBeforeOpening;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
 
@@ -182,7 +215,7 @@ public class RealmConfiguration {
          *
          * @param folder Folder to save Realm file in. Folder must be writable.
          *
-         * @throws {@link IllegalArgumentException} if folder doesn't exists or isn't writable.
+         * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
          */
         public Builder(File folder) {
             initializeBuilder(folder);
@@ -220,7 +253,6 @@ public class RealmConfiguration {
             this.schemaVersion = 0;
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
-            this.resetRealmBeforeOpening = false;
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
@@ -287,7 +319,7 @@ public class RealmConfiguration {
          * {@link io.realm.exceptions.RealmMigrationNeededException} the on-disc Realm will be cleared and recreated
          * with the new Realm schema.
          *
-         * <bold>WARNING!</bold> This will result in loss of data.
+         * <b>WARNING!</b> This will result in loss of data.
          */
         public Builder deleteRealmIfMigrationNeeded() {
             this.deleteRealmIfMigrationNeeded = true;
@@ -307,7 +339,7 @@ public class RealmConfiguration {
          * @param baseModule        First Realm module (required).
          * @param additionalModules Additional Realm modules
          *
-         * @throws {@link IllegalArgumentException} if any of the modules are {@code null} or doesn't have the
+         * @throws IllegalArgumentException if any of the modules are {@code null} or doesn't have the
          * {@link RealmModule} annotation.
          * @see Realm#getDefaultModule()
          */

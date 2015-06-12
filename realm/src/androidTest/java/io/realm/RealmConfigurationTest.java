@@ -24,6 +24,7 @@ import java.util.Random;
 import io.realm.dynamic.RealmSchema;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -271,11 +272,76 @@ public class RealmConfigurationTest extends AndroidTestCase {
         assertEquals(0, realm.getVersion());
         realm.close();
 
-        // Version upgrades should happen automatically if possible
+        // Version upgrades should always require a migration.
         try {
             realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
             fail();
         } catch (RealmMigrationNeededException expected) {
+        }
+    }
+
+    public void testEquals() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).build();
+        assertTrue(config1.equals(config2));
+    }
+
+    public void testHashCode() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).build();
+        assertEquals(config1.hashCode(), config2.hashCode());
+    }
+
+    public void testEqualConfigurationsReturnCachedRealm() {
+        Realm realm1 = Realm.getInstance(getContext());
+        Realm realm2 = Realm.getInstance(getContext());
+        try {
+            assertEquals(realm1, realm2);
+        } finally {
+            realm1.close();
+            realm2.close();
+        }
+    }
+
+    public void testDifferentVersionsThrows() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).schemaVersion(1).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).schemaVersion(2).build();
+
+        Realm realm1 = Realm.getInstance(config1);
+        try {
+            Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm1.close();
+        }
+    }
+
+    public void testDifferentEncryptionKeysThrows() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).encryptionKey(TestHelper.getRandomKey()).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).encryptionKey(TestHelper.getRandomKey()).build();
+
+        Realm realm1 = Realm.getInstance(config1);
+        try {
+            Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm1.close();
+        }
+    }
+
+    public void testDifferentSchemasThrows() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).schema(CyclicType.class).build();
+
+        Realm realm1 = Realm.getInstance(config1);
+        try {
+            Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm1.close();
         }
     }
 }

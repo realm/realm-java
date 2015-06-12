@@ -1435,8 +1435,8 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testOpeningOfEncryptedRealmWithDifferentKeyInstances() {
-        byte[] key1 = TestHelper.getRandomKey();
-        byte[] key2 = TestHelper.getRandomKey();
+        byte[] key1 = TestHelper.getRandomKey(42);
+        byte[] key2 = TestHelper.getRandomKey(42);
 
         // Make sure the key is the same, but in two different instances
         assertArrayEquals(key1, key2);
@@ -1477,80 +1477,85 @@ public class RealmTest extends AndroidTestCase {
         long before = testRealm.where(AllTypes.class).count();
         assertEquals(TEST_DATA_SIZE, before);
 
+        // Configure test realms
         final String ENCRYPTED_REALM_FILE_NAME = "encryptedTestRealm.realm";
         final String RE_ENCRYPTED_REALM_FILE_NAME = "reEncryptedTestRealm.realm";
         final String DECRYPTED_REALM_FILE_NAME = "decryptedTestRealm.realm";
 
-        // Delete files if present
-        for (String fileName : Arrays.asList(ENCRYPTED_REALM_FILE_NAME, RE_ENCRYPTED_REALM_FILE_NAME, DECRYPTED_REALM_FILE_NAME)) {
-            File fileToDelete = new File(getContext().getFilesDir(), fileName);
-            if (fileToDelete.exists() && !fileToDelete.delete()) {
+        RealmConfiguration encryptedRealmConfig = new RealmConfiguration.Builder(getContext())
+                .name(ENCRYPTED_REALM_FILE_NAME)
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+
+        RealmConfiguration reEncryptedRealmConfig = new RealmConfiguration.Builder(getContext())
+                .name(RE_ENCRYPTED_REALM_FILE_NAME)
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+
+        RealmConfiguration decryptedRealmConfig = new RealmConfiguration.Builder(getContext())
+                .name(DECRYPTED_REALM_FILE_NAME)
+                .build();
+
+        // Delete old test Realms if present
+        for (RealmConfiguration realmConfig : Arrays.asList(encryptedRealmConfig, reEncryptedRealmConfig, decryptedRealmConfig)) {
+            if (!Realm.deleteRealm(realmConfig)) {
                 fail();
             }
         }
 
+        // Write encrypted copy from a unencrypted Realm
         File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
-        byte[] key = TestHelper.getRandomKey();
         try {
-            // Unencrypted to encrypted
-            testRealm.writeEncryptedCopyTo(destination, key);
+            testRealm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
         } catch(Exception e) {
-            e.printStackTrace();
-            fail();
+            fail(e.getMessage());
         }
 
         Realm encryptedRealm = null;
         try {
-            encryptedRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                    .name(ENCRYPTED_REALM_FILE_NAME)
-                    .encryptionKey(key)
-                    .build()
-            );
+
+            // Verify encrypted Realm and write new encrypted copy with a new key
+            encryptedRealm = Realm.getInstance(encryptedRealmConfig);
             assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
 
-            destination = new File(getContext().getFilesDir(), RE_ENCRYPTED_REALM_FILE_NAME);
-            new Random(1234321).nextBytes(key);
+            destination = new File(reEncryptedRealmConfig.getPath());
             try {
-                // Encrypted to encrypted
-                encryptedRealm.writeEncryptedCopyTo(destination, key);
+                encryptedRealm.writeEncryptedCopyTo(destination, reEncryptedRealmConfig.getEncryptionKey());
             } catch (Exception e) {
-                e.printStackTrace();
-                fail();
+                fail(e.getMessage());
             }
+
+            // Verify re-encrypted copy
             Realm reEncryptedRealm = null;
             try {
-                reEncryptedRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                                .name(RE_ENCRYPTED_REALM_FILE_NAME)
-                                .encryptionKey(key)
-                                .build()
-                );
+                reEncryptedRealm = Realm.getInstance(reEncryptedRealmConfig);
                 assertEquals(TEST_DATA_SIZE, reEncryptedRealm.where(AllTypes.class).count());
             } finally {
                 if (reEncryptedRealm != null) {
                     reEncryptedRealm.close();
-                    boolean isDeleted = new File(reEncryptedRealm.getPath()).delete();
-                    if (!isDeleted) {
+                    if (!Realm.deleteRealm(reEncryptedRealmConfig)) {
                         fail();
                     }
                 }
             }
 
-            destination = new File(getContext().getFilesDir(), DECRYPTED_REALM_FILE_NAME);
+            // Write non-encrypted copy from the encrypted version
+            destination = new File(decryptedRealmConfig.getPath());
             try {
-                // Encrypted to decrypted
                 encryptedRealm.writeEncryptedCopyTo(destination, null);
             } catch (Exception e) {
-                fail();
+                fail(e.getMessage());
             }
+
+            // Verify decrypted Realm and cleanup
             Realm decryptedRealm = null;
             try {
-                decryptedRealm = Realm.getInstance(getContext(), DECRYPTED_REALM_FILE_NAME);
+                decryptedRealm = Realm.getInstance(decryptedRealmConfig);
                 assertEquals(TEST_DATA_SIZE, decryptedRealm.where(AllTypes.class).count());
             } finally {
                 if (decryptedRealm != null) {
                     decryptedRealm.close();
-                    boolean isDeleted = new File(decryptedRealm.getPath()).delete();
-                    if (!isDeleted) {
+                    if (!Realm.deleteRealm(decryptedRealmConfig)) {
                         fail();
                     }
                 }
@@ -1558,8 +1563,7 @@ public class RealmTest extends AndroidTestCase {
         } finally {
             if (encryptedRealm != null) {
                 encryptedRealm.close();
-                boolean isDeleted = new File(encryptedRealm.getPath()).delete();
-                if (!isDeleted) {
+                if (!Realm.deleteRealm(encryptedRealmConfig)) {
                     fail();
                 }
             }
