@@ -291,7 +291,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public int size() {
         if (managedMode) {
-            return ((Long)view.size()).intValue();
+            long size = view.size();
+            return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
         } else {
             return nonManagedList.size();
         }
