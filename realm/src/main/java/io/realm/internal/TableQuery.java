@@ -493,8 +493,24 @@ public class TableQuery implements Closeable {
         }
     }
 
-    protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
+    public TableView findAllWithHandover(long callerSharedGroupPtr, long bgSharedGroupPtr) {
+        validateQuery();
 
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();
+        long nativeViewPtr = nativeFindAllWithHandover(callerSharedGroupPtr,bgSharedGroupPtr, nativePtr, 0, Table.INFINITE, Table.INFINITE);//nativeViewPtr is created from bg Thread
+        // handover nativeViewPtr to UI Thread
+
+        try {
+            return new TableView(this.context, this.parent, nativeViewPtr);
+        } catch (RuntimeException e) {
+            TableView.nativeClose(nativeViewPtr);
+            throw e;
+        }
+    }
+
+    protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
+    protected native long nativeFindAllWithHandover(long nativeCallerSharedGroupPtr, long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit);
     //
     // Aggregation methods
     //

@@ -63,6 +63,7 @@ import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
 import io.realm.internal.Util;
+import io.realm.internal.android.AsyncRealmQuery;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
@@ -153,6 +154,9 @@ public final class Realm implements Closeable {
     // This is only needed by deleteRealmFile.
     private static final Map<String, AtomicInteger> globalOpenInstanceCounter =
             new ConcurrentHashMap<String, AtomicInteger>();
+
+    // Thread Pool for all async operations (Query & Write transaction)
+    public static final ExecutorService asyncQueryExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2 + 1);
 
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
     private static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
@@ -1198,6 +1202,20 @@ public final class Realm implements Closeable {
     }
 
     /**
+     * Prepare an async query
+     * TODO point to documentation or example about async query
+     * @param clazz The class of the object which is to be queried for
+     * @return A typed RealmQuery, which can be used to query for specific objects of this type
+     * @throws java.lang.RuntimeException Any other error
+     * @see io.realm.RealmQuery
+     * @param callback
+     */
+    public <E extends RealmObject> AsyncRealmQuery<E> asyncWhere(Class<E> clazz, Realm.AsyncCallback<RealmResults<E>> callback) {
+        checkIfValid();
+        return new AsyncRealmQuery<E>(this, clazz, callback);
+    }
+
+    /**
      * Get all objects of a specific Class. If no objects exist, the returned RealmResults will not
      * be null. The RealmResults.size() to check the number of objects instead.
      *
@@ -1872,4 +1890,24 @@ public final class Realm implements Closeable {
         void execute(Realm realm);
     }
 
+    /**
+     * Encapsulates an async {@link RealmQuery}.
+     * <p>
+     * This will run the {@link RealmQuery} on a worker thread, then invoke this callback on the caller thread
+     */
+    public interface AsyncCallback<T extends RealmResults<? extends RealmObject>> {
+        void onSuccess (T results);
+        void onError (Throwable t);
+    }
+
+
+    //FIXME Realm.java being the public API and the implementation.
+    //      we need a Realm interface to be able to separate this kind of call
+    //      (mostly from internal API/tests that need to access private field/method).
+    //      RealmImpl will be accessible to other internal packages
+    //      but not to the user (avoid compromising our exposed public API)
+    //
+    public long getSharedGroupPtr () {
+        return sharedGroup.nativePtr;
+    }
 }

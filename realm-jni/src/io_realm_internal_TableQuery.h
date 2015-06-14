@@ -369,6 +369,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeFindAllWithHandover
+ * Signature: (JJJJJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeSumInt
  * Signature: (JJJJJ)J
  */

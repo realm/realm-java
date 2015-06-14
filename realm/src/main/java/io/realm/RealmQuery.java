@@ -1302,4 +1302,8 @@ public class RealmQuery<E extends RealmObject> {
             return null;
         }
     }
+
+    protected TableQuery getTableQuery () {
+        return this.query;
+    }
 }
