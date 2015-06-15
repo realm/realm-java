@@ -498,7 +498,7 @@ public class TableQuery implements Closeable {
 
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
-        long nativeViewPtr = nativeFindAllWithHandover(callerSharedGroupPtr,bgSharedGroupPtr, nativePtr, 0, Table.INFINITE, Table.INFINITE);//nativeViewPtr is created from bg Thread
+        long nativeViewPtr = nativeFindAllWithHandover(callerSharedGroupPtr,bgSharedGroupPtr, nativePtr, 0, Table.INFINITE, Table.INFINITE);
         // handover nativeViewPtr to UI Thread
 
         try {

@@ -81,6 +81,10 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
+    public long getNativePtr() {
+        return nativePtr;
+    }
+
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, byte[] key);
 
     private native long nativeCreateReplication(String databaseFile, byte[] key);

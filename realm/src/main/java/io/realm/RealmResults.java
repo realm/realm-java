@@ -69,7 +69,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         this.classSpec = classSpec;
     }
 
-    RealmResults(Realm realm, TableOrView table, Class<E> classSpec) {
+    public RealmResults(Realm realm, TableOrView table, Class<E> classSpec) {
         this(realm, classSpec);
         this.table = table;
     }

@@ -1908,6 +1908,6 @@ public final class Realm implements Closeable {
     //      but not to the user (avoid compromising our exposed public API)
     //
     public long getSharedGroupPtr () {
-        return sharedGroup.nativePtr;
+        return sharedGroup.getNativePtr();
     }
 }
