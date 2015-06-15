@@ -21,17 +21,32 @@ import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.internal.TableView;
 
+/**
+ * Adapter for a {@link RealmQuery} that adds new methods to perform operations across
+ * different Realms
+ * @param <E> type of the object which is to be queried for
+ */
 class RealmQueryAdapter<E extends RealmObject> extends RealmQuery<E> {
     public RealmQueryAdapter(Realm realm, Class<E> clazz) {
         super(realm, clazz);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public RealmQueryAdapter<E> between(String fieldName, int from, int to) {
         super.between(fieldName, from, to);
         return this;
     }
 
+    /**
+     * Perform the query on the Realm referenced by #backgroundRealmPtr then handover
+     * the result to the Realm referenced by #callerRealmPtr
+     * @param callerRealmPtr pointer to the caller Realm originally starting this query
+     * @param backgroundRealmPtr pointer to the background Realm used to perform query in a worker thread
+     * @return {@link TableView} ready to be used from the caller Realm
+     */
     public TableView findAll(long callerRealmPtr, long backgroundRealmPtr) {
         return getTableQuery().findAllWithHandover(callerRealmPtr, backgroundRealmPtr);
     }

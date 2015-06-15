@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import io.realm.internal.ColumnType;
 import io.realm.internal.LinkView;
@@ -1303,7 +1304,36 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    /**
+     * Return the current {@code TableQuery}
+     * This is used by any subclass to access the {@code TableQuery} instance. It's not public
+     * since {@code TableQuery} is internal API.
+     *
+     * @return the current {@code TableQuery}
+     */
     protected TableQuery getTableQuery () {
         return this.query;
+    }
+
+    /**
+     * Represents a pending asynchronous Realm query.
+     *
+     * Users are responsible of maintaining a reference to {@code AsyncRequest} in order
+     * to call #cancel in case of a configuration change for example (to avoid memory leak, as the
+     * query will post the result to the caller's thread callback)
+     */
+    public static class AsyncRequest {
+        final Future<?> pendingQuery;
+
+        public AsyncRequest(Future<?> pendingQuery) {
+            this.pendingQuery = pendingQuery;
+        }
+
+        /**
+         * Attempts to cancel execution of this queries.
+         */
+        public void cancel () {
+            pendingQuery.cancel(true);
+        }
     }
 }

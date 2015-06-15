@@ -81,7 +81,7 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public long getNativePtr() {
+    public long getNativePointer () {
         return nativePtr;
     }
 

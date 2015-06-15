@@ -58,8 +58,8 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     populateTestRealm(realm, 10);
 
                     // async query (will run on different thread)
-                    realm.asyncWhere(AllTypes.class,
-                            new Realm.AsyncCallback<RealmResults<AllTypes>>() {
+                    realm.findAsync(AllTypes.class,
+                            new Realm.QueryCallback<RealmResults<AllTypes>>() {
                                 @Override
                                 public void onSuccess(RealmResults<AllTypes> results) {
                                     try {
@@ -116,9 +116,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     // This could be done from #setUp but then we can't control
     // which Looper we want to associate this Realm instance with
     private Realm openRealmInstance() {
-        RealmConfiguration realmConfiguration = new RealmConfiguration.
-                Builder(getInstrumentation()
-                .getTargetContext())
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(getInstrumentation().getTargetContext())
                 .name("test.realm")
                 .deleteRealmIfMigrationNeeded()
                 .build();

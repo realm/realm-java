@@ -21,7 +21,6 @@
 
 using namespace realm;
 
-#define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 #if 1
 #define COL_TYPE_VALID(env,ptr,col, type)           TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)
 #define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)
@@ -1182,8 +1181,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
   {
       Query* pQuery = Q(nativeQueryPtr);
       Table* pTable = pQuery->get_table().get();
-      if (!QUERY_VALID(env, pQuery) ||
-          !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+      if (!QUERY_VALID(env, pQuery) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
           return -1;
       try {
           TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );

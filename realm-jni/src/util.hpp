@@ -100,6 +100,7 @@ std::string num_to_string(T pNumber)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
+#define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
 // Exception handling
 

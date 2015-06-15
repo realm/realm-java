@@ -1205,12 +1205,12 @@ public final class Realm implements Closeable {
      * Prepare an async query
      * TODO point to documentation or example about async query
      * @param clazz The class of the object which is to be queried for
+     * @param callback Communicates results of this asynchronous query
      * @return A typed RealmQuery, which can be used to query for specific objects of this type
      * @throws java.lang.RuntimeException Any other error
      * @see io.realm.RealmQuery
-     * @param callback
      */
-    public <E extends RealmObject> AsyncRealmQuery<E> asyncWhere(Class<E> clazz, Realm.AsyncCallback<RealmResults<E>> callback) {
+    public <E extends RealmObject> AsyncRealmQuery<E> findAsync(Class<E> clazz, QueryCallback<RealmResults<E>> callback) {
         checkIfValid();
         return new AsyncRealmQuery<E>(this, clazz, callback);
     }
@@ -1895,7 +1895,7 @@ public final class Realm implements Closeable {
      * <p>
      * This will run the {@link RealmQuery} on a worker thread, then invoke this callback on the caller thread
      */
-    public interface AsyncCallback<T extends RealmResults<? extends RealmObject>> {
+    public interface QueryCallback<T extends RealmResults<? extends RealmObject>> {
         void onSuccess (T results);
         void onError (Throwable t);
     }
@@ -1907,7 +1907,7 @@ public final class Realm implements Closeable {
     //      RealmImpl will be accessible to other internal packages
     //      but not to the user (avoid compromising our exposed public API)
     //
-    public long getSharedGroupPtr () {
-        return sharedGroup.getNativePtr();
+    public long getSharedGroupPointer() {
+        return sharedGroup.getNativePointer();
     }
 }

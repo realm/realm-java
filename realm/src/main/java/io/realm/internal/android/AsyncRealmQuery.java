@@ -22,7 +22,6 @@ import android.os.Message;
 
 import java.util.concurrent.Future;
 
-import io.realm.AsyncRealmQueryResult;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
@@ -42,7 +41,7 @@ import static io.realm.Realm.asyncQueryExecutor;
 public final class AsyncRealmQuery<E extends RealmObject> {
     private final Realm callerRealm;
     private final Class<E> clazz;
-    private final Realm.AsyncCallback<RealmResults<E>> callback;
+    private final Realm.QueryCallback<RealmResults<E>> callback;
 
     private int from;
     private int to;
@@ -55,9 +54,9 @@ public final class AsyncRealmQuery<E extends RealmObject> {
      *
      * @param realm    The realm to query within.
      * @param clazz    The class to query.
-     * @param callback invoked on the thread {@link Realm#asyncWhere(Class, Realm.AsyncCallback)} was called from, to post results.
+     * @param callback invoked on the thread {@link Realm#findAsync(Class, Realm.QueryCallback)} was called from, to post results.
      */
-    public AsyncRealmQuery(Realm realm, Class<E> clazz, Realm.AsyncCallback<RealmResults<E>> callback) {
+    public AsyncRealmQuery(Realm realm, Class<E> clazz, Realm.QueryCallback<RealmResults<E>> callback) {
         this.callerRealm = realm;
         this.callback = callback;
         this.clazz = clazz;
@@ -80,12 +79,12 @@ public final class AsyncRealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions.
-     * Results will be posted to the callback instance {@link io.realm.Realm.AsyncCallback} asynchronously
+     * Results will be posted to the callback instance {@link Realm.QueryCallback} asynchronously
      * If no objects match the condition, a list with zero objects is returned.
      *
      * @see io.realm.RealmResults
      */
-    public AsyncRealmQueryResult findAll() {
+    public RealmQuery.AsyncRequest findAll() {
         // will use the Looper of the caller thread to post the result
         Looper looper;
         if ((looper = Looper.myLooper()) != null) {
@@ -97,7 +96,7 @@ public final class AsyncRealmQuery<E extends RealmObject> {
         }
 
         // We need a pointer to the caller Realm, to be able to handover the result to it
-        final long callerSharedGroupNativePtr = callerRealm.getSharedGroupPtr();
+        final long callerSharedGroupNativePtr = callerRealm.getSharedGroupPointer();
 
         // We need to use the same configuration to open a background SharedGroup (i.e Realm)
         // to perform the query
@@ -118,7 +117,7 @@ public final class AsyncRealmQuery<E extends RealmObject> {
 
                         TableView tv = new RealmQueryAdapter<E>(bgRealm, clazz)
                                 .between(fieldName, from, to)
-                                .findAll(callerSharedGroupNativePtr, bgRealm.getSharedGroupPtr());
+                                .findAll(callerSharedGroupNativePtr, bgRealm.getSharedGroupPointer());
 
                         bgRealm.close();
 
@@ -138,7 +137,7 @@ public final class AsyncRealmQuery<E extends RealmObject> {
             }
         });
 
-        return new AsyncRealmQueryResult(pendingQuery);
+        return new RealmQuery.AsyncRequest(pendingQuery);
     }
 
     private class EventHandler extends Handler {
