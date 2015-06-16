@@ -16,10 +16,12 @@
 package io.realm.example.sample.models;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 
 public class Person extends RealmObject {
     private String name;
     private int age;
+    @Ignore public String note;
 
     public String getName() {
         return name;
