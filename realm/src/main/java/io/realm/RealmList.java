@@ -183,7 +183,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
-        if (object.row != null && object.realm.canonicalPath.equals(realm.canonicalPath)) {
+        if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         if (realm.getTable(object.getClass()).hasPrimaryKey()) {
@@ -291,7 +291,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public int size() {
         if (managedMode) {
-            return ((Long)view.size()).intValue();
+            long size = view.size();
+            return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
         } else {
             return nonManagedList.size();
         }

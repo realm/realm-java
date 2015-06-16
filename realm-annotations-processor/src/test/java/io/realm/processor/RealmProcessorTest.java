@@ -43,6 +43,7 @@ public class RealmProcessorTest {
     private JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
     private JavaFileObject nullTypesModel = JavaFileObjects.forResource("some/test/NullTypes.java");
     private JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
+    private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
 
     @Test
     public void compileSimpleFile() {
@@ -236,6 +237,14 @@ public class RealmProcessorTest {
     public void compileNoAccessorsFile() {
         ASSERT.about(javaSource())
                 .that(noAccessorsModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileMissingGenericType() {
+        ASSERT.about(javaSource())
+                .that(missingGenericTypeModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

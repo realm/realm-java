@@ -32,6 +32,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
@@ -64,12 +65,14 @@ public class ClassMetaData {
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
+    private DeclaredType realmList;
 
     public ClassMetaData(ProcessingEnvironment env, TypeElement clazz) {
         this.classType = clazz;
         this.className = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
         TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
+        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
         validPrimaryKeyTypes = Arrays.asList(
                 stringType,
                 typeUtils.getPrimitiveType(TypeKind.SHORT),
@@ -103,6 +106,7 @@ public class ClassMetaData {
         packageName = packageElement.getQualifiedName().toString();
 
         if (!categorizeClassElements()) return false;
+        if (!checkListTypes()) return  false;
         if (!checkMethods()) return false;
         if (!checkDefaultConstructor()) return false;
         if (!checkRequiredGetters()) return false;
@@ -142,6 +146,18 @@ public class ClassMetaData {
             }
         }
 
+        return true;
+    }
+
+    private boolean checkListTypes() {
+        for (VariableElement field : fields) {
+            if (typeUtils.isAssignable(field.asType(), realmList)) {
+                if (Utils.getGenericType(field) == null) {
+                    Utils.error("No generic type supplied for field", field);
+                    return false;
+                }
+            }
+        }
         return true;
     }
 

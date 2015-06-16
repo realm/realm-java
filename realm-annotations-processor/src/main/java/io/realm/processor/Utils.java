@@ -1,5 +1,8 @@
 package io.realm.processor;
 
+import java.lang.reflect.ParameterizedType;
+import java.util.List;
+
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -8,6 +11,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
@@ -90,7 +94,12 @@ public class Utils {
      * Returns the generic type for Lists of the form {@code List<type>}
      */
     public static String getGenericType(VariableElement field) {
-        String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
+        TypeMirror fieldType = field.asType();
+        List<? extends TypeMirror> typeArguments = ((DeclaredType) fieldType).getTypeArguments();
+        if (typeArguments.size() == 0) {
+            return null;
+        }
+        String genericCanonicalType = (String) typeArguments.get(0).toString();
         String genericType;
         if (genericCanonicalType.contains(".")) {
             genericType = genericCanonicalType.substring(genericCanonicalType.lastIndexOf('.') + 1);
