@@ -34,8 +34,9 @@ public class LinkView {
     }
 
     /**
-     * Returns a non-checking Row. Incorrect use of this Row will cause a hard Realm Core crash.
-     * If error checking is required, use {@link #getCheckedRow(long)} instead.
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard Realm Core crash (SIGSEGV).
+     * Only use this method if you are sure that input parameters are valid, otherwise use {@link #getCheckedRow(long)}
+     * which will throw appropriate exceptions if used incorrectly.
      *
      * @param index Index of row to fetch.
      * @return Unsafe row wrapper object.
@@ -45,7 +46,7 @@ public class LinkView {
     }
 
     /**
-     * Returns a wrapper around Row access. All access will be error checked in JNI and will throw an
+     * Returns a wrapper for Row access. All access will be error checked at the JNI layer and will throw an
      * appropriate {@link RuntimeException} if used incorrectly.
      *
      * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.

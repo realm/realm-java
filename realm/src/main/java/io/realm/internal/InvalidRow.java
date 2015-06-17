@@ -21,9 +21,9 @@ import java.util.Date;
 
 /**
  * Row wrapper that stubs all access with IllegalStateExceptions. This can be used instead of adding null checks
- * everywhere when the underlying Row accessor is Realm Core is no longer available.
+ * everywhere when the underlying Row accessor in Realm Core is no longer available.
  */
-public class StubRow implements Row {
+public class InvalidRow implements Row {
 
     @Override
     public long getColumnCount() {
@@ -171,6 +171,6 @@ public class StubRow implements Row {
     }
 
     private RuntimeException getStubException() {
-        return new IllegalStateException("Object is no longer manged by Realm. Has it been deleted?");
+        return new IllegalStateException("Object is no longer managed by Realm. Has it been deleted?");
     }
 }

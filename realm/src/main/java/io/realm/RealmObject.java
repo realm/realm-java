@@ -18,7 +18,7 @@ package io.realm;
 
 import io.realm.annotations.RealmClass;
 import io.realm.internal.Row;
-import io.realm.internal.StubRow;
+import io.realm.internal.InvalidRow;
 
 /**
  * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
@@ -92,7 +92,7 @@ public abstract class RealmObject {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
         row.getTable().moveLastOver(row.getIndex());
-        row = new StubRow();
+        row = new InvalidRow();
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Date;
 /**
  * Wrapper around a Row in Realm Core.
  *
- * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the the annotation
+ * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the annotation
  * processor and {@link RealmProxyMediator#validateTable(Class, ImplicitTransaction)} which is called before the typed
  * API can be used.
  *

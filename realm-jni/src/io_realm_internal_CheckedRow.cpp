@@ -214,7 +214,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDouble
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDate
   (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex, jlong value)
 {
-    if(!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_DateTime))
+    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_DateTime))
         return;
 
     Java_io_realm_internal_UncheckedRow_nativeSetDate(env, obj, nativeRowPtr, columnIndex, value);

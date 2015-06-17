@@ -19,9 +19,10 @@ package io.realm.internal;
 
 /**
  * Checked wrapper for Row data in Realm Core. All methods called through this will check that input parameters are
- * valid.
- *
- * For low-level access to a Realm where safety is not a concern use {@link UncheckedRow}.
+ * valid or throw an appropriate exception otherwise.
+ * <p>
+ * For low-level access to a Realm where safety is not a concern use {@link UncheckedRow} instead for improved
+ * performance.
  */
 public class CheckedRow extends UncheckedRow {
 
@@ -41,7 +42,7 @@ public class CheckedRow extends UncheckedRow {
 
     /**
      * Get the row object associated to an index in a Table.
-     * @param context the Realm context.å
+     * @param context the Realm context.
      * @param table the Table that holds the row.
      * @param index the index of the row.
      * @return an instance of Row for the table and index specified.
