@@ -41,14 +41,6 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnType
 
 /*
  * Class:     io_realm_internal_CheckedRow
- * Method:    nativeGetIndex
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetIndex
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_CheckedRow
  * Method:    nativeGetLong
  * Signature: (JJ)J
  */

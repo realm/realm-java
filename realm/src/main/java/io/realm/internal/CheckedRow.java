@@ -21,21 +21,20 @@ package io.realm.internal;
  * Checked wrapper for Row data in Realm Core. All methods called through this will check that input parameters are
  * valid.
  *
- * For low-level access to a Realm where type safety is needed use CheckedRow
- *
+ * For low-level access to a Realm where safety is not a concern use {@link UncheckedRow}.
  */
-public class CheckedRow extends Row {
+public class CheckedRow extends UncheckedRow {
 
-    // Used if created from other row. Keep strong reference to avoid GC'ing the original object, and it's underlying
-    // native data.
+    // Used if created from other row. This keeps a strong reference to avoid GC'ing the original object, and it's
+    // underlying native data.
     @SuppressWarnings("unused")
-    private Row originalRow;
+    private UncheckedRow originalRow;
 
     private CheckedRow(Context context, Table parent, long nativePtr) {
         super(context, parent, nativePtr);
     }
 
-    private CheckedRow(Row row) {
+    private CheckedRow(UncheckedRow row) {
         super(row.context, row.parent, row.nativePointer);
         this.originalRow = row;
     }
@@ -72,10 +71,9 @@ public class CheckedRow extends Row {
      * Convert a unchecked row to a checked row.
      * @return an checked instance of Row.
      */
-    public static CheckedRow getFromRow(Row row) {
+    public static CheckedRow getFromRow(UncheckedRow row) {
         return new CheckedRow(row);
     }
-
 
     @Override
     public boolean isNullLink(long columnIndex) {
@@ -91,7 +89,6 @@ public class CheckedRow extends Row {
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
     protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
-    protected native long nativeGetIndex(long nativeRowPtr);
     protected native long nativeGetLong(long nativeRowPtr, long columnIndex);
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);

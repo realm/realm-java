@@ -40,8 +40,8 @@ public class LinkView {
      * @param index Index of row to fetch.
      * @return Unsafe row wrapper object.
      */
-    public Row getUncheckedRow(long index) {
-        return Row.get(context, this, index);
+    public UncheckedRow getUncheckedRow(long index) {
+        return UncheckedRow.get(context, this, index);
     }
 
     /**

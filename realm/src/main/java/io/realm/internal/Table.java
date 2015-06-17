@@ -377,7 +377,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long primaryKeyColumnIndex = getPrimaryKey();
         ColumnType type = getColumnType(primaryKeyColumnIndex);
         long rowIndex;
-        Row row;
+        UncheckedRow row;
 
         // Add with primary key initially set
         switch (type) {
@@ -996,8 +996,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param index Index of row to fetch.
      * @return Unsafe row wrapper object.
      */
-    public Row getUncheckedRow(long index) {
-        return Row.get(context, this, index);
+    public UncheckedRow getUncheckedRow(long index) {
+        return UncheckedRow.get(context, this, index);
     }
 
     /**
@@ -1006,7 +1006,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *
      * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
      *
-     * @param index Index of row to fetch.
+     * @param index Index of row to fetch./
      * @return Safe row wrapper object.
      */
     public CheckedRow getCheckedRow(long index) {
