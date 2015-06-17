@@ -50,10 +50,10 @@ def toolchains = [
 ]
 
 def targets = [
-//    new Target( name:'arm', jniFolder:'armeabi', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb' ] ),
-//    new Target( name:'arm-v7a', jniFolder:'armeabi-v7a', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-//    new Target( name:'arm64', jniFolder:'arm64-v8a', toolchain:toolchains.find{it.name == 'arm64'}, cflags:[] ),
-//    new Target( name:'mips', jniFolder:'mips', toolchain:toolchains.find{it.name == 'mips'}, cflags:[] ),
+    new Target( name:'arm', jniFolder:'armeabi', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb' ] ),
+    new Target( name:'arm-v7a', jniFolder:'armeabi-v7a', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+    new Target( name:'arm64', jniFolder:'arm64-v8a', toolchain:toolchains.find{it.name == 'arm64'}, cflags:[] ),
+    new Target( name:'mips', jniFolder:'mips', toolchain:toolchains.find{it.name == 'mips'}, cflags:[] ),
     new Target( name:'x86', jniFolder:'x86', toolchain:toolchains.find{it.name == 'x86'}, cflags:[] )
 ]
 
