@@ -58,7 +58,7 @@ import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.Row;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
@@ -1093,7 +1093,7 @@ public final class Realm implements Closeable {
 
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
-        Row row = table.getRow(rowIndex);
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
         E result = configuration.getSchemaMediator().newInstance(clazz);
         result.row = row;
         result.realm = this;
