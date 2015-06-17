@@ -318,19 +318,13 @@ template <class T>
 inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     if (columnIndex < 0) {
-        std::ostringstream error_msg;
-        error_msg << "'" << pTable->get_column_name(S(columnIndex)) << "' doesn't exist.";
-        error_msg << "Column index is " << columnIndex;
-        ThrowException(env, IllegalArgument, error_msg.str());
+        ThrowException(env, IndexOutOfBounds, "columnIndex is less than 0.");
         return false;
     }
     bool colErr = realm::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
-        TR_ERR("columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()));
-        std::ostringstream error_msg;
-        error_msg << "'" << pTable->get_column_name(S(columnIndex)) << "' doesn't exist.";
-        error_msg << "Column index is " << columnIndex << ". Column count is " << pTable->get_column_count() << ".";
-        ThrowException(env, IllegalArgument, error_msg.str());
+        TR_ERR("columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()))
+        ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
     }
     return !colErr;
 }
@@ -392,10 +386,7 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex,
     }
     if (colType != expectColType) {
         TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col))
-        std::ostringstream error_msg;
-        error_msg << "'" << pTable->get_column_name(S(columnIndex)) << "' has the wrong type. ";
-        error_msg << "Expected " << expectColType << ", but was " << pTable->get_column_type(col);
-        ThrowException(env, IllegalArgument, error_msg.str());
+        ThrowException(env, IllegalArgument, "ColumnType invalid.");
         return false;
     }
     return true;

@@ -24,6 +24,7 @@ import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Row;
 import io.realm.internal.TableOrView;
+import io.realm.internal.UncheckedRow;
 
 /**
  * Object for interacting with a RealmObject using dynamic names.
@@ -40,7 +41,7 @@ public class DynamicRealmObject {
      */
     public DynamicRealmObject(Realm realm, Row row) {
         this.realm = realm;
-        this.row = (row instanceof CheckedRow) ? (CheckedRow) row : row.convertToChecked();
+        this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
     }
 
     public boolean getBoolean(String fieldName) {
