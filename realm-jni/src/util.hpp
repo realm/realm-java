@@ -318,13 +318,19 @@ template <class T>
 inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     if (columnIndex < 0) {
-        ThrowException(env, IndexOutOfBounds, "columnIndex is less than 0.");
+        std::ostringstream error_msg;
+        error_msg << "'" << pTable->get_column_name(S(columnIndex)) << "' doesn't exist.";
+        error_msg << "Column index is " << columnIndex;
+        ThrowException(env, IllegalArgument, error_msg.str());
         return false;
     }
     bool colErr = realm::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
-        TR_ERR("columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()))
-        ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
+        TR_ERR("columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()));
+        std::ostringstream error_msg;
+        error_msg << "'" << pTable->get_column_name(S(columnIndex)) << "' doesn't exist.";
+        error_msg << "Column index is " << columnIndex << ". Column count is " << pTable->get_column_count() << ".";
+        ThrowException(env, IllegalArgument, error_msg.str());
     }
     return !colErr;
 }
@@ -386,7 +392,10 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex,
     }
     if (colType != expectColType) {
         TR_ERR("Expected columnType %d, but got %d.", expectColType, pTable->get_column_type(col))
-        ThrowException(env, IllegalArgument, "ColumnType invalid.");
+        std::ostringstream error_msg;
+        error_msg << "'" << pTable->get_column_name(S(columnIndex)) << "' has the wrong type. ";
+        error_msg << "Expected " << expectColType << ", but was " << pTable->get_column_type(col);
+        ThrowException(env, IllegalArgument, error_msg.str());
         return false;
     }
     return true;
@@ -431,7 +440,6 @@ inline bool RowColIndexAndTypeValid(JNIEnv* env, Row* pRow, jlong columnIndex, i
         && ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
 }
 
-
 template <class T>
 inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
 {
@@ -443,7 +451,6 @@ inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlon
 {
     return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
 }
-
 
 template <class T>
 inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)

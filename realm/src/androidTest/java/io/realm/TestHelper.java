@@ -30,6 +30,9 @@ import java.io.InputStreamReader;
 import java.util.Random;
 import java.nio.charset.Charset;
 
+import io.realm.internal.CheckedRow;
+import io.realm.internal.Row;
+
 public class TestHelper {
 
     public static String streamToString(InputStream in) throws IOException {

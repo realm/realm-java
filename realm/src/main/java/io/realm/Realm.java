@@ -1093,7 +1093,7 @@ public final class Realm implements Closeable {
 
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
-        Row row = table.getRow(rowIndex);
+        Row row = table.getUncheckedRow(rowIndex);
         E result = configuration.getSchemaMediator().newInstance(clazz);
         result.row = row;
         result.realm = this;

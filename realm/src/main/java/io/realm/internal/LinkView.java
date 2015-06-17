@@ -33,8 +33,28 @@ public class LinkView {
         this.nativeLinkViewPtr = nativeLinkViewPtr;
     }
 
-    public Row get(long pos) {
-        return Row.get(context, this, pos);
+    /**
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard Realm Core crash.
+     * If error checking is required, use {@link #getCheckedRow(long)} instead.
+     *
+     * @param index Index of row to fetch.
+     * @return Unsafe row wrapper object.
+     */
+    public Row getUncheckedRow(long index) {
+        return Row.get(context, this, index);
+    }
+
+    /**
+     * Returns a wrapper around Row access. All access will be error checked in JNI and will throw an
+     * appropriate {@link RuntimeException} if used incorrectly.
+     *
+     * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
+     *
+     * @param index Index of row to fetch.
+     * @return Safe row wrapper object.
+     */
+    public CheckedRow getCheckedRow(long index) {
+        return CheckedRow.get(context, this, index);
     }
 
     public long getTargetRowIndex(long pos) {
@@ -89,6 +109,13 @@ public class LinkView {
             TableQuery.nativeClose(nativeQueryPtr);
             throw e;
         }
+    }
+
+    /**
+     * Returns the Table which all links point to.
+     */
+    public Table getTable() {
+        return parent;
     }
 
     private void checkImmutable() {
