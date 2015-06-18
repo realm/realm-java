@@ -328,7 +328,7 @@ public class AllTypesRealmProxy extends AllTypes
                 if (rowIndex != TableOrView.NO_MATCH) {
                     obj = new AllTypesRealmProxy();
                     obj.realm = realm;
-                    obj.row = table.getRow(rowIndex);
+                    obj.row = table.getUncheckedRow(rowIndex);
                 }
             }
         }
@@ -437,7 +437,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (rowIndex != TableOrView.NO_MATCH) {
                 realmObject = new AllTypesRealmProxy();
                 realmObject.realm = realm;
-                realmObject.row = table.getRow(rowIndex);
+                realmObject.row = table.getUncheckedRow(rowIndex);
                 cache.put(object, (RealmObjectProxy) realmObject);
             } else {
                 canUpdate = false;
