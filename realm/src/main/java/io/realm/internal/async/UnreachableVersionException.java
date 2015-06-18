@@ -19,7 +19,7 @@ package io.realm.internal.async;
 import io.realm.exceptions.RealmException;
 
 /**
- * Triggered from JNI level to indicate a failing Handover due due to version mismatch
+ * Triggered from JNI level to indicate a failing Handover due to version mismatch
  */
 public class UnreachableVersionException extends RealmException {
 
