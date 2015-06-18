@@ -92,7 +92,7 @@ public abstract class RealmObject {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
         row.getTable().moveLastOver(row.getIndex());
-        row = new InvalidRow();
+        row = InvalidRow.INSTANCE;
     }
 
     /**

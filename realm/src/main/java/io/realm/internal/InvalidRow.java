@@ -23,7 +23,8 @@ import java.util.Date;
  * Row wrapper that stubs all access with IllegalStateExceptions. This can be used instead of adding null checks
  * everywhere when the underlying Row accessor in Realm Core is no longer available.
  */
-public class InvalidRow implements Row {
+public enum InvalidRow implements Row {
+    INSTANCE;
 
     @Override
     public long getColumnCount() {
