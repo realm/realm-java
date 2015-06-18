@@ -134,7 +134,8 @@ public final class AsyncRealmQuery<E extends RealmObject> {
                         //     call Core for each step, we want to limit the overhead by sending one
                         //     single call to Core with all the parameters.
 
-                        long tableViewPtr = new RealmQueryAdapter<>(bgRealm, clazz)
+                        realmQueryAdapter = new RealmQueryAdapter<E>(bgRealm, clazz);
+                        long tableViewPtr = realmQueryAdapter
                                 .between(fieldName, from, to)
                                 .findAll(bgRealm.getSharedGroupPointer());
 
@@ -214,7 +215,7 @@ public final class AsyncRealmQuery<E extends RealmObject> {
                         // This will block the caller Thread from performing any advance_read, commit or rollback
                         // operations on its SharedGroup, until the handover is complete, this will also eliminate the risk
                         // of performing those operations while creating a TableView
-                        RealmResults<E> resultList = new RealmResults<>(callerRealm,
+                        RealmResults<E> resultList = new RealmResults<E>(callerRealm,
                                 realmQueryAdapter.importTableViewToRealm(bundle.getLong(TABLE_VIEW_POINTER_ARG), bundle.getLong(CALLER_SHARED_GROUP_POINTER_ARG)),
                                 clazz);
                         callback.onSuccess(resultList);

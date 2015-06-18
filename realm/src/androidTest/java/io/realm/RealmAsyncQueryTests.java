@@ -59,7 +59,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 looper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
-                    realm = openRealmInstance();
+                    realm = openRealmInstance("test_find_all");
                     populateTestRealm(realm, 10);
 
                     // async query (will run on different thread)
@@ -98,7 +98,10 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();//ready to receive callback
 
-                } finally {
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                finally {
                     if (realm != null) {
                         realm.close();
                     }
@@ -132,7 +135,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 looper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
-                    realm = openRealmInstance();
+                    realm = openRealmInstance("test_should_crash_no_retry");
                     populateTestRealm(realm, 10);
                     // async query (will run on different thread)
                     realm.findAsync(AllTypes.class,
@@ -152,7 +155,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onAdvancedRead(Realm realm) {
+                                public void onBackgroundQueryCompleted(Realm realm) {
                                     //Triggered on the background thread to alter the caller's Realm state
                                     realm.executeTransaction(new Realm.Transaction() {
                                         @Override
@@ -204,7 +207,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 looper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
-                    realm = openRealmInstance();
+                    realm = openRealmInstance("should_converge_after_1_retry");
                     populateTestRealm(realm, 10);
                     // async query (will run on different thread)
                     realm.findAsync(AllTypes.class,
@@ -238,7 +241,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onAdvancedRead(Realm realm) {
+                                public void onBackgroundQueryCompleted(Realm realm) {
                                     //Triggered on the background thread to alter the caller's Realm state
                                     populateTestRealm(realm, 3);//this is already inside a transaction
                                 }
@@ -288,7 +291,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 looper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
-                    realm = openRealmInstance();
+                    realm = openRealmInstance("test_should_crash_after_2_retries");
                     populateTestRealm(realm, 10);
                     // async query (will run on different thread)
                     realm.findAsync(AllTypes.class,
@@ -317,7 +320,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onAdvancedRead(Realm realm) {
+                                public void onBackgroundQueryCompleted(Realm realm) {
                                     //Triggered on the background thread to alter the caller's Realm state
                                     populateTestRealm(realm, 3);//this is already inside a transaction
                                 }
@@ -368,7 +371,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 looper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
-                    realm = openRealmInstance();
+                    realm = openRealmInstance("test_should_converge_after_100_retry");
                     populateTestRealm(realm, numberOfEntries.get());
                     // async query (will run on different thread)
                     realm.findAsync(AllTypes.class,
@@ -406,7 +409,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onAdvancedRead(Realm realm) {
+                                public void onBackgroundQueryCompleted(Realm realm) {
                                     //Triggered on the background thread to alter the caller's Realm state
                                     numberOfEntries.set(random.nextInt(100));
                                     populateTestRealm(realm, numberOfEntries.get());//this is already inside a transaction
@@ -445,12 +448,12 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
     // This could be done from #setUp but then we can't control
     // which Looper we want to associate this Realm instance with
-    private Realm openRealmInstance() {
+    private Realm openRealmInstance(String name) {
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(getInstrumentation().getTargetContext())
-                .name("test.realm")
+                .name(name)
                 .deleteRealmIfMigrationNeeded()
                 .build();
-        Realm.deleteRealm(realmConfiguration, true);
+        Realm.deleteRealm(realmConfiguration);
         return Realm.getInstance(realmConfiguration);
     }
 
