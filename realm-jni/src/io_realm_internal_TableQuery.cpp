@@ -1177,44 +1177,40 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
-  (JNIEnv *env, jobject, jlong callerSharedGrpPtr, jlong bgSharedGroupPtr, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
   {
-      Query* pQuery = Q(nativeQueryPtr);
-      Table* pTable = pQuery->get_table().get();
-      if (!QUERY_VALID(env, pQuery) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-          return -1;
       try {
-          TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
-          std::unique_ptr<SharedGroup::Handover<TableView> > handover;
-          handover.reset(SG(bgSharedGroupPtr)->export_for_handover(*pResultView, ConstSourcePayload::Copy));
-          //TODO reimplement this so the call to 'export_for_handover' is done on a background thread
-          //     and 'import_from_handover' on the caller thread.
-          //
-          // According to core, it's preferable to return first the exported handover
-          // then import it from the calling SharedGroup (Thread).
-          // We need to make sure to check that the version id (version of the shared group used to perform the query)
-          // is the same as the caller SharedGroup, otherwise the import will fail. In this case, we should
-          // either retry the entire query, or call again 'sync_if_needed' on the TableView to re-query, at this point
-          // we need to export again the handover to the caller SharedGroup, until we converge
-          // (i.e the version of the caller SharedGroup matches the version returned by the handover TableView)
-          //
-          // Note: The mode 'ConstSourcePayload::Copy' handover perform a deep copy of the TableView, this means that we copy
-          //       both the Payload (row accessors) & the Query
-          //
-          //       The mode 'ConstSourcePayload::Stay' handover perform a copy of the Query only (no payload)
-          //       The mode 'MutableSourcePayload::Move' handover perform a move of both the Payload & Query
-          //
-          // The expensive operations are in that order
-          //          pQuery->find_all >> export_for_handover >> import_from_handover
-          // so it's recommended to run the 'query' & the 'export' on a background Thread, then
-          // call 'import_from_handover' on the caller thread (most of the time UI thread).
-          // calling 'import_from_handover' on the UI thread has another benefit, it will block the SharedGroup
-          // from modifying it's state (advance_read, promote_write, rollback, commit etc)
-          //
-          // The handover pointer is Thread safe, it can be passed from different Threads (using different SharedGroups)
+          // the background SharedGroup is already positioned at the same version as the caller's SharedGroup
+          Query* pQuery = Q(nativeQueryPtr);
+          Table* pTable = pQuery->get_table().get();
 
-          TableView* tv(SG(callerSharedGrpPtr)->import_from_handover(handover.release()));
-          return reinterpret_cast<jlong>(tv);
+          if (!QUERY_VALID(env, pQuery) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+            return -1;
+
+          TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
+          SharedGroup::Handover<TableView>* handover = SG(bgSharedGroupPtr)->export_for_handover(*pResultView, MutableSourcePayload::Move);
+
+          //will allow the reuse of this background SharedGroup (another query *in the same thread* may call begin_read with a different version)
+          SG(bgSharedGroupPtr)->end_read();
+
+          return reinterpret_cast<jlong>(handover);
+
       } CATCH_STD()
       return -1;
+  }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_importHandoverTableViewIntoSharedGroup
+  (JNIEnv *env, jobject thiz, jlong handoverPtr, jlong callerSharedGrpPtr)
+  {
+    SharedGroup::Handover<TableView>* handover = reinterpret_cast<SharedGroup::Handover<TableView>*>(handoverPtr);
+    try {
+        //import_from_handover will free (delete) the handover
+        TableView* tv(SG(callerSharedGrpPtr)->import_from_handover(handover));
+
+        return reinterpret_cast<jlong>(tv);
+    } catch (...) {
+       ConvertException(env, __FILE__, __LINE__);
+       delete(handover);
+    }
+    return -1;
   }

@@ -1210,7 +1210,7 @@ public final class Realm implements Closeable {
      * @throws java.lang.RuntimeException Any other error
      * @see io.realm.RealmQuery
      */
-    public <E extends RealmObject> AsyncRealmQuery<E> findAsync(Class<E> clazz, QueryCallback<RealmResults<E>> callback) {
+    public <E extends RealmObject> AsyncRealmQuery<E> findAsync(Class<E> clazz, QueryCallback<E> callback) {
         checkIfValid();
         return new AsyncRealmQuery<E>(this, clazz, callback);
     }
@@ -1895,11 +1895,21 @@ public final class Realm implements Closeable {
      * <p>
      * This will run the {@link RealmQuery} on a worker thread, then invoke this callback on the caller thread
      */
-    public interface QueryCallback<T extends RealmResults<? extends RealmObject>> {
-        void onSuccess (T results);
+    public interface QueryCallback<E extends RealmObject> {
+        void onSuccess (RealmResults<E>  results);
         void onError (Throwable t);
     }
 
+    /**
+     * Used for debugging/testing purpose to add any logic (within the caller's thread)
+     * before we return the results
+     */
+    public interface DebugQueryCallback<E extends RealmObject> extends QueryCallback<E> {
+        /**
+         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmResults)}
+         */
+        void onBackgroundQueryCompleted(Realm realm);
+    }
 
     //FIXME Realm.java being the public API and the implementation.
     //      we need a Realm interface to be able to separate this kind of call
@@ -1907,7 +1917,25 @@ public final class Realm implements Closeable {
     //      RealmImpl will be accessible to other internal packages
     //      but not to the user (avoid compromising our exposed public API)
     //
+
     public long getSharedGroupPointer() {
         return sharedGroup.getNativePointer();
     }
+
+    //FIXME this method should be available only within RealmImpl (see above comment)
+    public long[] getSharedGroupVersion() {
+        return sharedGroup.getVersionID();
+    }
+
+    public void setSharedGroupAtVersion(long[] callerSharedGroupVersion) {
+        sharedGroup.beginReadAtVersionID(callerSharedGroupVersion);
+    }
+
+    // needed to be able to reuse the same SharedGroup across different queries
+    // otherwise we gonna receive an exception 'Table is no longer valid to operate on'
+    // because the cached pointer (for the cached Table) may not still be valid
+    public void resetTableCache () {
+        classToTable.clear();
+    }
+
 }

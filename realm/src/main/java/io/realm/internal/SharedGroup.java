@@ -168,6 +168,23 @@ public class SharedGroup implements Closeable {
         activeTransaction = false;
     }
 
+    public void beginReadAtVersionID (long [] versionID) {
+        nativeBeginReadAtVersionID(nativePtr, versionID);
+    }
+
+    private native void nativeBeginReadAtVersionID (long nativePtr, long [] versionID);
+
+    /**
+     * Return the current SharedGroup VersionID, this is called for example
+     * to position a Realm to a specific version.
+     * @return array of size 2, position 0 is the 'uint_fast64_t version' position 1 is the 'uint_fast32_t index'
+     */
+    public long[] getVersionID () {
+        return nativeGetVersionID (nativePtr);
+    }
+
+    private native long[] nativeGetVersionID (long nativePtr);
+
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {

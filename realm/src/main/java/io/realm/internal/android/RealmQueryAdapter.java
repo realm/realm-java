@@ -41,13 +41,22 @@ class RealmQueryAdapter<E extends RealmObject> extends RealmQuery<E> {
     }
 
     /**
-     * Perform the query on the Realm referenced by #backgroundRealmPtr then handover
-     * the result to the Realm referenced by #callerRealmPtr
-     * @param callerRealmPtr pointer to the caller Realm originally starting this query
+     * Perform the query on the Realm referenced by #backgroundRealmPtr
+     * the caller Realm is responsible of
      * @param backgroundRealmPtr pointer to the background Realm used to perform query in a worker thread
-     * @return {@link TableView} ready to be used from the caller Realm
+     * @return pointer to a {@link TableView} that needs to be imported from the caller threadready to be used from the caller Realm
      */
-    public TableView findAll(long callerRealmPtr, long backgroundRealmPtr) {
-        return getTableQuery().findAllWithHandover(callerRealmPtr, backgroundRealmPtr);
+    public long findAll(long backgroundRealmPtr) {
+        return getTableQuery().findAllWithHandover(backgroundRealmPtr);
+    }
+
+    /**
+     * Importing the result of a query run by {@link #findAll(long)}. must be called from caller's thread
+     * @param hanoverPtr Handover pointer to a {@link TableView} that needs to be imported
+     * @param callerSharedGroupPtr pointer to the caller Realm used to perform query in a worker thread
+     * @return
+     */
+    public TableView importTableViewToRealm(long hanoverPtr, long callerSharedGroupPtr) {
+        return getTableQuery().importHandoverTableView(hanoverPtr, callerSharedGroupPtr);
     }
 }

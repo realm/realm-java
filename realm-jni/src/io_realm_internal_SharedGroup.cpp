@@ -28,8 +28,6 @@
 using namespace std;
 using namespace realm;
 
-#define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
-
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
     JNIEnv* env, jobject, jstring jfile_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
@@ -280,3 +278,36 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact(
     CATCH_STD()
     return false;
 }
+
+
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeBeginReadAtVersionID
+  (JNIEnv *env, jobject, jlong native_ptr, jlongArray arr)
+  {
+    TR_ENTER()
+
+    jlong *data = env->GetLongArrayElements(arr, 0);
+
+    SharedGroup::VersionID versionID(static_cast<uint_fast64_t> (data[0]), static_cast<uint_fast32_t> (data[1]));
+
+    SG(native_ptr)->begin_read(versionID);
+
+    env->ReleaseLongArrayElements(arr, data, 0);
+
+  }
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
+  (JNIEnv *env, jobject, jlong native_ptr)
+  {
+      TR_ENTER()
+
+      SharedGroup::VersionID versionID = SG(native_ptr)->get_version_of_current_transaction();
+
+      jlong data [2];
+      data[0] = static_cast<jlong>(versionID.version);
+      data[1] = static_cast<jlong>(versionID.index);
+
+      jlongArray result = env->NewLongArray(2);
+      env->SetLongArrayRegion(result, 0, 2, data);
+
+      return result;
+  }

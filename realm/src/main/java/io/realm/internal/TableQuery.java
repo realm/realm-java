@@ -493,24 +493,34 @@ public class TableQuery implements Closeable {
         }
     }
 
-    public TableView findAllWithHandover(long callerSharedGroupPtr, long bgSharedGroupPtr) {
+    // Suppose to be called from the a background SharedGroup thread
+    public long findAllWithHandover(long bgSharedGroupPtr) {
         validateQuery();
 
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
-        long nativeViewPtr = nativeFindAllWithHandover(callerSharedGroupPtr,bgSharedGroupPtr, nativePtr, 0, Table.INFINITE, Table.INFINITE);
+        return nativeFindAllWithHandover(bgSharedGroupPtr, nativePtr, 0, Table.INFINITE, Table.INFINITE);
         // handover nativeViewPtr to UI Thread
 
+    }
+
+    // Suppose to be called from the caller SharedGroup thread
+    public TableView importHandoverTableView(long handoverPtr, long callerSharedGroupPtr) {
+        long nativeTvPtr = 0;
         try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
+            nativeTvPtr = importHandoverTableViewIntoSharedGroup(handoverPtr, callerSharedGroupPtr);
+            return new TableView(this.context, this.parent, nativeTvPtr);
         } catch (RuntimeException e) {
-            TableView.nativeClose(nativeViewPtr);
+            if (nativeTvPtr != 0) {
+                TableView.nativeClose(nativeTvPtr);
+            }
             throw e;
         }
     }
 
     private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
-    private native long nativeFindAllWithHandover(long nativeCallerSharedGroupPtr, long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit);
+    private native long nativeFindAllWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit);
+    private native long importHandoverTableViewIntoSharedGroup (long handoverTableViewPtr, long callerSharedGroupPtr);
     //
     // Aggregation methods
     //

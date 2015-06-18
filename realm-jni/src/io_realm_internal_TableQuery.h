@@ -370,10 +370,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeFindAllWithHandover
- * Signature: (JJJJJJ)J
+ * Signature: (JJJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    importHandoverTableViewIntoSharedGroup
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_importHandoverTableViewIntoSharedGroup
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
