@@ -33,6 +33,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.internal.android.AsyncRealmQuery;
 import io.realm.internal.async.RetryPolicy;
+import io.realm.internal.async.UnreachableVersionException;
 
 public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
@@ -186,8 +187,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinishedLatch.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0]) {
-           //TODO use explicit exception from Core, so we can check for type safety
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof UnreachableVersionException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }
@@ -348,8 +348,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinishedLatch.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0]) {
-            //TODO use explicit exception from Core, so we can check for type safety
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof UnreachableVersionException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }

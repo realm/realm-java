@@ -1208,6 +1208,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_importHandoverTableVie
         TableView* tv(SG(callerSharedGrpPtr)->import_from_handover(handover));
 
         return reinterpret_cast<jlong>(tv);
+
+    } catch (SharedGroup::UnreachableVersion& e) {
+        ThrowException(env, UnreachableVersion, " please retry");
+
     } catch (...) {
        ConvertException(env, __FILE__, __LINE__);
        delete(handover);

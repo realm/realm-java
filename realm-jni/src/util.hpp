@@ -119,7 +119,8 @@ enum ExceptionKind {
     OutOfMemory = 10,
     Unspecified = 11,
     RuntimeError = 12,
-    RowInvalid = 13
+    RowInvalid = 13,
+    UnreachableVersion = 14
 };
 
 void ConvertException(JNIEnv* env, const char *file, int line);

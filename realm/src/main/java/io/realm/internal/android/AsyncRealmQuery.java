@@ -30,6 +30,7 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.internal.async.RetryPolicy;
 import io.realm.internal.async.RetryPolicyFactory;
+import io.realm.internal.async.UnreachableVersionException;
 
 import static io.realm.Realm.asyncQueryExecutor;
 
@@ -220,12 +221,14 @@ public final class AsyncRealmQuery<E extends RealmObject> {
                                 clazz);
                         callback.onSuccess(resultList);
 
-                    } catch (Exception e) {//TODO use the type safe exception from Core
+                    } catch (UnreachableVersionException e) {
                         if (retryPolicy.shouldRetry()) {
                             findAll();
                         } else {
                             callback.onError(e);
                         }
+                    } catch (Exception e) {
+                        callback.onError(e);
                     }
                     break;
 
