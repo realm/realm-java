@@ -103,21 +103,97 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
-    // Test all simple getters
-    public void testGetXXX() {
+    // Test that all getters fail if given invalid field name
+    public void testSetXXXIllegalArgumentsThrows() {
+
+        // Set arguments
+        String linkedField = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING;
+        List<String> arguments = Arrays.asList(null, "foo", AllJavaTypes.FIELD_STRING, linkedField);
+        List<String> stringArguments = Arrays.asList(null, "foo", AllJavaTypes.FIELD_BOOLEAN, linkedField);
+
+        // Test all getters
+        for (SupportedType type : SupportedType.values()) {
+            List<String> args = (type == SupportedType.STRING) ? stringArguments : arguments;
+            try {
+                callSetter(type, args);
+                fail();
+            } catch(IllegalArgumentException expected) {
+            }
+        }
+    }
+
+    private void callSetter(SupportedType type, List<String> arguments) {
+        for (String fieldName : arguments) {
+            switch(type) {
+                case BOOLEAN: dObj.setBoolean(fieldName, false); break;
+                case SHORT: dObj.setShort(fieldName, (short) 1); break;
+                case INT: dObj.setInt(fieldName, 1); break;
+                case LONG: dObj.setLong(fieldName, 1L); break;
+                case FLOAT: dObj.setFloat(fieldName, 1.23f); break;
+                case DOUBLE: dObj.setDouble(fieldName, 1.23d); break;
+                case STRING: dObj.setString(fieldName, "foo"); break;
+                case BINARY: dObj.setBinary(fieldName, new byte[]{}); break;
+                case DATE: dObj.getDate(fieldName); break;
+                case OBJECT: dObj.setObject(fieldName, null); break;
+                case LIST: dObj.setList(fieldName, null); break;
+                default:
+                    fail();
+            }
+        }
+    }
+
+    // Test all simple setters/setters
+    public void testGetterSettersXXX() {
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        DynamicRealmObject dObj = new DynamicRealmObject(realm, obj.row);
+        realm.commitTransaction();
+
         for (SupportedType type : SupportedType.values()) {
             switch(type) {
-                case BOOLEAN: assertTrue(dObj.getBoolean(AllJavaTypes.FIELD_BOOLEAN)); break;
-                case SHORT: assertEquals(1, dObj.getShort(AllJavaTypes.FIELD_SHORT)); break;
-                case INT: assertEquals(1, dObj.getInt(AllJavaTypes.FIELD_INT)); break;
-                case LONG: assertEquals(1, dObj.getLong(AllJavaTypes.FIELD_LONG)); break;
-                case FLOAT: assertEquals(1.23f, dObj.getFloat(AllJavaTypes.FIELD_FLOAT)); break;
-                case DOUBLE: assertEquals(1.234d, dObj.getDouble(AllJavaTypes.FIELD_DOUBLE)); break;
-                case STRING: assertEquals("str", dObj.getString(AllJavaTypes.FIELD_STRING)); break;
-                case BINARY: assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBytes(AllJavaTypes.FIELD_BINARY)); break;
-                case DATE: assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE)); break;
-                case OBJECT: assertEquals(dObj, dObj.getRealmObject(AllJavaTypes.FIELD_OBJECT)); break;
-                case LIST: /* ignore */ break;
+                case BOOLEAN:
+                    dObj.setBoolean(AllJavaTypes.FIELD_BOOLEAN, true);
+                    assertTrue(dObj.getBoolean(AllJavaTypes.FIELD_BOOLEAN));
+                    break;
+                case SHORT:
+                    dObj.setShort(AllJavaTypes.FIELD_SHORT, (short) 42);
+                    assertEquals(42, dObj.getShort(AllJavaTypes.FIELD_SHORT));
+                    break;
+                case INT:
+                    dObj.setInt(AllJavaTypes.FIELD_INT, 42);
+                    assertEquals(42, dObj.getInt(AllJavaTypes.FIELD_INT));
+                    break;
+                case LONG:
+                    dObj.setLong(AllJavaTypes.FIELD_LONG, 42L);
+                    assertEquals(42, dObj.getLong(AllJavaTypes.FIELD_LONG));
+                    break;
+                case FLOAT:
+                    dObj.setFloat(AllJavaTypes.FIELD_FLOAT, 1.23f);
+                    assertEquals(1.23f, dObj.getFloat(AllJavaTypes.FIELD_FLOAT));
+                    break;
+                case DOUBLE:
+                    dObj.setDouble(AllJavaTypes.FIELD_DOUBLE, 1.234d);
+                    assertEquals(1.234d, dObj.getDouble(AllJavaTypes.FIELD_DOUBLE));
+                    break;
+                case STRING:
+                    dObj.setString(AllJavaTypes.FIELD_STRING, "str");
+                    assertEquals("str", dObj.getString(AllJavaTypes.FIELD_STRING));
+                    break;
+                case BINARY:
+                    dObj.setBinary(AllJavaTypes.FIELD_BINARY, new byte[] {1,2,3});
+                    assertArrayEquals(new byte[]{1,2,3}, dObj.getBytes(AllJavaTypes.FIELD_BINARY));
+                    break;
+                case DATE:
+                    dObj.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
+                    assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE));
+                    break;
+                case OBJECT:
+                    dObj.setObject(AllJavaTypes.FIELD_OBJECT, dObj);
+                    assertEquals(dObj, dObj.getRealmObject(AllJavaTypes.FIELD_OBJECT));
+                    break;
+                case LIST:
+                    /* ignore, see testGetList/testSetList */
+                    break;
                 default:
                     fail();
             }
