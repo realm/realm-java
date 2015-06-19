@@ -19,19 +19,17 @@ package io.realm;
 import android.content.Context;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.SharedGroup;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 
@@ -75,6 +73,7 @@ public class RealmConfiguration {
     private final int schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
+    private final SharedGroup.Durability durability;
     private final RealmProxyMediator schemaMediator;
 
     private RealmConfiguration(Builder builder) {
@@ -85,6 +84,7 @@ public class RealmConfiguration {
         this.schemaVersion = builder.schemaVersion;
         this.deleteRealmIfMigrationNeeded = builder.deleteRealmIfMigrationNeeded;
         this.migration = builder.migration;
+        this.durability = builder.durability;
         this.schemaMediator = createSchemaMediator(builder);
     }
 
@@ -112,6 +112,10 @@ public class RealmConfiguration {
         return deleteRealmIfMigrationNeeded;
     }
 
+    public SharedGroup.Durability getDurability() {
+        return durability;
+    }
+
     public RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
     }
@@ -133,6 +137,7 @@ public class RealmConfiguration {
         if (!realmFileName.equals(that.realmFileName)) return false;
         if (!canonicalPath.equals(that.canonicalPath)) return false;
         if (!Arrays.equals(key, that.key)) return false;
+        if (durability.value != that.durability.value) return false;
         if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
         return schemaMediator.equals(that.schemaMediator);
     }
@@ -147,6 +152,7 @@ public class RealmConfiguration {
         result = 31 * result + (migration != null ? migration.hashCode() : 0);
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
         result = 31 * result + schemaMediator.hashCode();
+        result = 31 * result + durability.value;
         return result;
     }
 
@@ -206,6 +212,7 @@ public class RealmConfiguration {
         private int schemaVersion;
         private RealmMigration migration;
         private boolean deleteRealmIfMigrationNeeded;
+        private SharedGroup.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
 
@@ -253,6 +260,7 @@ public class RealmConfiguration {
             this.schemaVersion = 0;
             this.migration = null;
             this.deleteRealmIfMigrationNeeded = false;
+            this.durability = SharedGroup.Durability.FULL;
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
@@ -323,6 +331,11 @@ public class RealmConfiguration {
          */
         public Builder deleteRealmIfMigrationNeeded() {
             this.deleteRealmIfMigrationNeeded = true;
+            return this;
+        }
+
+        public Builder durability(SharedGroup.Durability durability) {
+            this.durability = durability;
             return this;
         }
 

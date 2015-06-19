@@ -19,7 +19,6 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.io.File;
-import java.util.Random;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -27,6 +26,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.SharedGroup;
 
 public class RealmConfigurationTest extends AndroidTestCase {
 
@@ -333,6 +333,20 @@ public class RealmConfigurationTest extends AndroidTestCase {
     public void testDifferentSchemasThrows() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).schema(CyclicType.class).build();
+
+        Realm realm1 = Realm.getInstance(config1);
+        try {
+            Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm1.close();
+        }
+    }
+
+    public void testDifferentDurabilityThrows() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).durability(SharedGroup.Durability.FULL).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).durability(SharedGroup.Durability.MEM_ONLY).build();
 
         Realm realm1 = Realm.getInstance(config1);
         try {

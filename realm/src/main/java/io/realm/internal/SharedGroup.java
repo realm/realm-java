@@ -40,9 +40,9 @@ public class SharedGroup implements Closeable {
         MEM_ONLY(1);
         //ASYNC(2); // TODO: re-enable when possible
 
-        final int value;
+        public final int value;
 
-        private Durability(int value) {
+        Durability(int value) {
             this.value = value;
         }
     }
@@ -54,10 +54,10 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, byte[] key) {
+    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, Durability durability, byte[] key) {
         if (enableImplicitTransactions) {
             nativeReplicationPtr = nativeCreateReplication(databaseFile, key);
-            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, key);
+            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, key);
@@ -81,7 +81,7 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, byte[] key);
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
 
     private native long nativeCreateReplication(String databaseFile, byte[] key);
 

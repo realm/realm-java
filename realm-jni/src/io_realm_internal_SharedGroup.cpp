@@ -83,15 +83,32 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
-  (JNIEnv* env, jobject, jlong native_replication_ptr, jbyteArray keyArray)
+  (JNIEnv* env, jobject, jlong native_replication_ptr, jint durability, jbyteArray keyArray)
 {
     TR_ENTER()
+
+    SharedGroup::DurabilityLevel level;
+    if (durability == 0)
+        level = SharedGroup::durability_Full;
+    else if (durability == 1)
+        level = SharedGroup::durability_MemOnly;
+    else if (durability == 2)
+#ifdef _WIN32
+        level = SharedGroup::durability_Full;   // For Windows, use Full instead of Async
+#else
+        level = SharedGroup::durability_Async;
+#endif
+    else {
+        ThrowException(env, UnsupportedOperation, "Unsupported durability.");
+           return 0;
+    }
+
     try {
         KeyBuffer key(env, keyArray);
-#ifdef REALM_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), SharedGroup::durability_Full, key.data());
+#ifdef REALM_ENABLE_REPLICATION
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), level, key.data());
 #else
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr));
+    #error "REALM_ENABLE_REPLICATION must be defined for compiling realm-java!"
 #endif
 
         return reinterpret_cast<jlong>(db);
