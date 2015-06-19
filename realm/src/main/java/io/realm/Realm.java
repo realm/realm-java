@@ -205,7 +205,8 @@ public final class Realm implements Closeable {
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
-        this.sharedGroup = new SharedGroup(configuration.getPath(), true, configuration.getEncryptionKey());
+        this.sharedGroup = new SharedGroup(configuration.getPath(), true, configuration.getDurability(),
+                configuration.getEncryptionKey());
         this.transaction = sharedGroup.beginImplicitTransaction();
         setAutoRefresh(autoRefresh);
     }
@@ -669,6 +670,14 @@ public final class Realm implements Closeable {
             if (!cachedSchema.equals(schema)) {
                 throw new IllegalArgumentException("Two configurations with different schemas are trying to open " +
                         "the same Realm file. Their schema must be the same: " + newConfiguration.getPath());
+            }
+
+            // Check if the durability is the same
+            SharedGroup.Durability cachedDurability = cachedConfiguration.getDurability();
+            SharedGroup.Durability newDurability = newConfiguration.getDurability();
+            if (!cachedDurability.equals(newDurability)) {
+                throw new IllegalArgumentException("A Realm cannot be both in-memory and persisted. Two conflicting " +
+                        "configurations pointing to " + newConfiguration.getPath() + " are being used.");
             }
         }
 
@@ -1812,7 +1821,7 @@ public final class Realm implements Closeable {
         SharedGroup sharedGroup = null;
         boolean result = false;
         try {
-            sharedGroup = new SharedGroup(canonicalPath, false, configuration.getEncryptionKey());
+            sharedGroup = new SharedGroup(canonicalPath, false, SharedGroup.Durability.FULL, configuration.getEncryptionKey());
             result = sharedGroup.compact();
         } finally {
             if (sharedGroup != null) {
