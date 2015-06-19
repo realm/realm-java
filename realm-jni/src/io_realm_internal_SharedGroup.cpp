@@ -30,6 +30,30 @@ using namespace realm;
 
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
+#ifndef REALM_ENABLE_REPLICATION
+// TODO: REPLICATION is needed for android java bindings, but not For the normal java bindings.
+//       Clean this up when support normal java bindings.
+#error "REALM_ENABLE_REPLICATION must be defined for compiling realm-java!"
+#endif
+
+static bool jintToDurabilityLevel(jint durability, SharedGroup::DurabilityLevel &level) {
+    if (durability == 0)
+        level = SharedGroup::durability_Full;
+    else if (durability == 1)
+        level = SharedGroup::durability_MemOnly;
+    else if (durability == 2)
+#ifdef _WIN32
+        level = SharedGroup::durability_Full;   // For Windows, use Full instead of Async
+#else
+        level = SharedGroup::durability_Async;
+#endif
+    else {
+        return false;
+    }
+
+    return true;
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
     JNIEnv* env, jobject, jstring jfile_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
@@ -53,17 +77,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
         }
         else {
             SharedGroup::DurabilityLevel level;
-            if (durability == 0)
-                level = SharedGroup::durability_Full;
-            else if (durability == 1)
-                level = SharedGroup::durability_MemOnly;
-            else if (durability == 2)
-#ifdef _WIN32
-                level = SharedGroup::durability_Full;   // For Windows, use Full instead of Async
-#else
-                level = SharedGroup::durability_Async;
-#endif
-            else {
+            if (!jintToDurabilityLevel(durability, level)) {
                 ThrowException(env, UnsupportedOperation, "Unsupported durability.");
                 return 0;
             }
@@ -83,16 +97,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
-  (JNIEnv* env, jobject, jlong native_replication_ptr, jbyteArray keyArray)
+  (JNIEnv* env, jobject, jlong native_replication_ptr, jint durability, jbyteArray keyArray)
 {
     TR_ENTER()
+
+    SharedGroup::DurabilityLevel level;
+    if (!jintToDurabilityLevel(durability, level)) {
+        ThrowException(env, UnsupportedOperation, "Unsupported durability.");
+        return 0;
+    }
+
     try {
         KeyBuffer key(env, keyArray);
-#ifdef REALM_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), SharedGroup::durability_Full, key.data());
-#else
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr));
-#endif
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), level, key.data());
 
         return reinterpret_cast<jlong>(db);
     }
