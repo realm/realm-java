@@ -48,7 +48,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnIndex
         return 0;
 
     jlong ndx = Java_io_realm_internal_UncheckedRow_nativeGetColumnIndex(env, obj, nativeRowPtr, columnName);
-    if (ndx == realm::not_found) {
+    if (ndx == to_jlong_or_not_found(realm::not_found)) {
         JStringAccessor column_name(env, columnName);
         ThrowException(env, IllegalArgument, concat_stringdata("Field not found: ", column_name));
         return 0;
@@ -214,7 +214,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDouble
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDate
   (JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnIndex, jlong value)
 {
-    if(!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_DateTime))
+    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_DateTime))
         return;
 
     Java_io_realm_internal_UncheckedRow_nativeSetDate(env, obj, nativeRowPtr, columnIndex, value);
