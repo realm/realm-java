@@ -254,6 +254,11 @@ public class UncheckedRow extends NativeObject implements Row {
         return nativePointer != 0 && nativeIsAttached(nativePointer);
     }
 
+    @Override
+    public boolean hasField(String fieldName) {
+        return getColumnIndex(fieldName) != Table.NO_MATCH;
+    }
+
     protected native long nativeGetColumnCount(long nativeTablePtr);
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);

@@ -147,12 +147,23 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertFalse(dObj.isNull(AllJavaTypes.FIELD_OBJECT));
     }
 
-    public void testGetKeys() {
+    public void testGetFieldNames() {
         String[] expectedKeys = { AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT,
                 AllJavaTypes.FIELD_LONG, AllJavaTypes.FIELD_FLOAT, AllJavaTypes.FIELD_DOUBLE, AllJavaTypes.FIELD_BOOLEAN,
                 AllJavaTypes.FIELD_DATE, AllJavaTypes.FIELD_BINARY, AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST };
         String[] keys = dObj.getFieldNames();
         assertArrayEquals(expectedKeys, keys);
+    }
+
+    public void testHasFieldFalse() {
+        assertFalse(dObj.hasField(null));
+        assertFalse(dObj.hasField(""));
+        assertFalse(dObj.hasField("foo"));
+        assertFalse(dObj.hasField("foo.bar"));
+    }
+
+    public void testHasFieldTrue() {
+        assertTrue(dObj.hasField(AllJavaTypes.FIELD_STRING));
     }
 
 //    public void testEquals() {

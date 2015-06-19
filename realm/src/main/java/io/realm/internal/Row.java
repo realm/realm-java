@@ -105,4 +105,6 @@ public interface Row {
      * data. {@code false} otherwise.
      */
     boolean isAttached();
+
+    boolean hasField(String fieldName);
 }

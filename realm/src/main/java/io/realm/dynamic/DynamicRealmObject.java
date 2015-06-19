@@ -15,21 +15,15 @@
  */
 package io.realm.dynamic;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import io.realm.Realm;
 import io.realm.internal.CheckedRow;
-import io.realm.internal.ColumnType;
 import io.realm.internal.Row;
-import io.realm.internal.TableOrView;
 import io.realm.internal.UncheckedRow;
 
 /**
- * Object for interacting with a RealmObject using dynamic names.
- *
- * @see io.realm.RealmMigration
+ * Class that wraps a normal RealmObject which enables interaction using dynamic names.
  */
 public class DynamicRealmObject {
 
@@ -44,97 +38,167 @@ public class DynamicRealmObject {
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
     }
 
+    /**
+     * Returns the objects {@code boolean} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The boolean value.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain booleans.
+     */
     public boolean getBoolean(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
         return row.getBoolean(columnIndex);
     }
 
+    /**
+     * Returns the objects {@code int} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The int value. Integer values exceeding {@code Integer.MAX_VALUE} will wrap.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     */
     public int getInt(String fieldName) {
         return (int) getLong(fieldName);
     }
 
+    /**
+     * Returns the objects {@code short} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The short value. Integer values exceeding {@code Short.MAX_VALUE} will wrap.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     */
     public short getShort(String fieldName) {
         return (short) getLong(fieldName);
     }
 
+    /**
+     * Returns the objects {@code long} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The long value. Integer values exceeding {@code Long.MAX_VALUE} will wrap.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     */
     public long getLong(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
         return row.getLong(columnIndex);
     }
 
+    /**
+     * Returns the objects {@code float} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The float value.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain floats.
+     */
     public float getFloat(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
         return row.getFloat(columnIndex);
     }
 
+    /**
+     * Returns the objects {@code double} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The double value.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain doubles.
+     */
     public double getDouble(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
         return row.getDouble(columnIndex);
     }
 
+    /**
+     * Returns the objects {@code byte[]} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The byte[] value.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
+     */
     public byte[] getBytes(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
         return row.getBinaryByteArray(columnIndex);
     }
 
+    /**
+     * Returns the objects {@code String} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The String value.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain Strings.
+     */
     public String getString(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
         return row.getString(columnIndex);
     }
 
+    /**
+     * Returns the objects {@code Date} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The Date value.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain Dates.
+     */
     public Date getDate(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
         return row.getDate(columnIndex);
+    }
+
+    /**
+     * Returns the object being linked to from this field..
+     *
+     * @param fieldName Name of field.
+     * @return The {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is linked.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain links to other objects.
+     */
+    public DynamicRealmObject getRealmObject(String fieldName) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        long linkRowIndex = row.getLink(columnIndex);
+        CheckedRow linkRow = row.getTable().getCheckedRow(linkRowIndex);
+        return new DynamicRealmObject(realm, linkRow);
+    }
+
+    /**
+     * Returns the {@link io.realm.RealmList} of objects being linked to from this field.
+     *
+     * @param fieldName Name of field.
+     * @return The {@link DynamicRealmList} representation of the RealmList.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain a list of links.
+     */
+    public DynamicRealmList getRealmList(String fieldName) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        return new DynamicRealmList(row.getLinkList(columnIndex), realm);
     }
 
     /**
      * Checks if the value of a given is {@code null}.
      *
-     * @param fieldName Name of field. Use "." as separator to access fields in linked objects.
+     * @param fieldName Name of field.
      * @return {@code true} if field value is null, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exists.
      */
     public boolean isNull(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         return row.isNullLink(columnIndex); // TODO Add support for other types
     }
 
-    public DynamicRealmObject getRealmObject(String fieldName) {
-        long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
-        long linkRowIndex = row.getLink(columnIndex);
-        CheckedRow linkRow = row.getTable().getCheckedRow(linkRowIndex);
-        return new DynamicRealmObject(realm, linkRow);
-    }
-
-    public DynamicRealmList getRealmList(String fieldName) {
-        long columnIndex = row.getColumnIndex(fieldName);
-        checkLinkedField(fieldName);
-        return new DynamicRealmList(row.getLinkList(columnIndex), realm);
-    }
-
-    public List<String> getFields() {
-        List<String> fields = new ArrayList<String>();
-        long columns = row.getColumnCount();
-        for (int i = 0; i < columns; i++) {
-            fields.add(row.getColumnName(i));
-        }
-        return fields;
-    }
-
+    /**
+     * Checks whether an object has the given field or not.
+     * @param fieldName Field name to check.
+     * @return {@code true} if the object has a field with the given name, {@code false} otherwise.
+     */
     public boolean hasField(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
             return false;
         }
-        return row.getColumnIndex(fieldName) != TableOrView.NO_MATCH;
+        return row.hasField(fieldName);
     }
 
+    /**
+     * Returns the list of field names on this object.
+     *
+     * @return List of field names on this objects or the empty list if the object doesn't have any fields.
+     */
     public String[] getFieldNames() {
         String[] keys = new String[(int) row.getColumnCount()];
         for (int i = 0; i < keys.length; i++) {
@@ -143,10 +207,127 @@ public class DynamicRealmObject {
         return keys;
     }
 
-    private void checkLinkedField(String fieldName) {
-        if (fieldName.contains("\\.")) {
-            throw new IllegalArgumentException("Fetching data across links not supported yet.");
-        }
+    /**
+     * Sets the boolean value of the given field on the object.
+     *
+     * @param fieldName Field name to update.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't a boolean field.
+     */
+    public void setBoolean(String fieldName, boolean value) {
+
+    }
+
+    /**
+     * Sets the short value of the given field on the object.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     */
+    public void setShort(String fieldName, short value) {
+
+    }
+
+    /**
+     * Sets the integer value of the given field on the object.
+     *
+     * @param fieldName Field name to update.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     */
+    public void setInt(String fieldName, int value) {
+
+    }
+
+    /**
+     * Sets the long value of the given field on the object.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     */
+    public void setLong(String fieldName, long value) {
+
+    }
+
+    /**
+     * Sets the float value of the given field on the object.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     */
+    public void setFloat(String fieldName, float value) {
+
+    }
+
+    /**
+     * Sets the double value of the given field on the object.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't a double field.
+     */
+    public void setDouble(String fieldName, double value) {
+
+    }
+
+    /**
+     * Sets the String value of the given field on the object.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't a String field.
+     */
+    public void setString(String fieldName, String value) {
+
+    }
+
+    /**
+     * Sets the binary value of the given field on the object.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't a binary field.
+     */
+    public void setBinary(String fieldName, byte[] value) {
+
+    }
+
+    /**
+     * Sets the date value of the given field on the object.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't a Date field.
+     */
+    public void setDate(String fieldName, Date value) {
+
+    }
+
+    /**
+     * Sets the reference to another object on the given field.
+     *
+     * @param fieldName Field name.
+     * @param value Object to link to.
+     * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, or the type
+     * of DynamicRealmObject doesn't match.
+     */
+    public void setObject(String fieldName, DynamicRealmObject value) {
+
+    }
+
+    /**
+     * Sets the RealmList on the object.
+     *
+     * @param fieldName Field name.
+     * @param value List of references.
+     * @throws IllegalArgumentException if field name doesn't exists, it doesn't contain a list of links or the type
+     * of the object represented by the DynamicRealmObject doesn't match.
+     */
+    public void setList(String fieldName, DynamicRealmList value) {
+
     }
 
     @Override
@@ -189,14 +370,6 @@ public class DynamicRealmObject {
         }
 
         return true;
-    }
-
-    public void setInt(int i) {
-
-    }
-
-    public void setInt(Integer j) {
-
     }
 
     @Override
