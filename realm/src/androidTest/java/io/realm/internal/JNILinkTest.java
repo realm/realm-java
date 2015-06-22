@@ -59,7 +59,7 @@ public class JNILinkTest extends TestCase {
 
         table2.insertLinkList(0,0);
 
-        LinkView links = table2.getRow(0).getLinkList(0);
+        LinkView links = table2.getUncheckedRow(0).getLinkList(0);
 
         assertEquals(links.isEmpty(), true);
         assertEquals(links.size(), 0);
@@ -70,17 +70,17 @@ public class JNILinkTest extends TestCase {
         assertEquals(links.isEmpty(), false);
         assertEquals(links.size(), 2);
 
-        assertEquals(links.get(0).getColumnName(1), "string");
+        assertEquals(links.getUncheckedRow(0).getColumnName(1), "string");
 
-        assertEquals(links.get(0).getString(1), "a");
+        assertEquals(links.getUncheckedRow(0).getString(1), "a");
 
         links.move(1, 0);
 
-        assertEquals(links.get(0).getString(1), "b");
+        assertEquals(links.getUncheckedRow(0).getString(1), "b");
 
         links.remove(0);
 
-        assertEquals(links.get(0).getString(1), "a");
+        assertEquals(links.getUncheckedRow(0).getString(1), "a");
         assertEquals(links.size(), 1);
 
 
