@@ -16,20 +16,23 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.Reference;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -54,6 +57,7 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
+import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -1673,5 +1677,33 @@ public class RealmTest extends AndroidTestCase {
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
+    }
+
+    // Check that FinalizerRunnable can free native resources (phantom refs)
+    public void testFinalizerThread() throws NoSuchFieldException, IllegalAccessException {
+        Field fieldReferences = FinalizerRunnable.class.getDeclaredField("references");
+        fieldReferences.setAccessible(true);
+        Map<Reference<?>, Boolean> references = (Map<Reference<?>, Boolean>) fieldReferences.get(null);
+        assertNotNull(references);
+
+        Field fieldIsFinalizerStarted = Realm.class.getDeclaredField("isFinalizerStarted");
+        fieldIsFinalizerStarted.setAccessible(true);
+        boolean isFinalizerStarted = fieldIsFinalizerStarted.getBoolean(null);
+        assertTrue(isFinalizerStarted);
+
+        //insert some rows, then give the FinalizerRunnable some time to cleanup
+        populateTestRealm(testRealm, 20);
+
+        final int MAX_WAITING_RETRY = 5;
+        int nbRetry = 0;
+        while (references.size() > 0 && nbRetry < MAX_WAITING_RETRY) {
+            SystemClock.sleep(5);//5ms
+            nbRetry++;
+            System.gc();
+        }
+
+        if (nbRetry >= MAX_WAITING_RETRY) {
+            fail("FinalizerRunnable didn't close all native resources :(");
+        }
     }
 }
