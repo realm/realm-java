@@ -343,13 +343,27 @@ public class RealmConfigurationTest extends AndroidTestCase {
         }
     }
 
+    // Creating Realm instances with same name but different durabilities is not allowed.
     public void testDifferentDurabilityThrows() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).inMemory().build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).inMemory().build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).build();
 
+        // Create In-memory Realm first.
         Realm realm1 = Realm.getInstance(config1);
         try {
+            // On-disk Realm then. Not allowed!
             Realm.getInstance(config2);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        } finally {
+            realm1.close();
+        }
+
+        // Create on-disk Realm first.
+        realm1 = Realm.getInstance(config2);
+        try {
+            // In-memory Realm then. Not allowed!
+            Realm.getInstance(config1);
             fail();
         } catch (IllegalArgumentException expected) {
         } finally {

@@ -137,7 +137,7 @@ public class RealmConfiguration {
         if (!realmFileName.equals(that.realmFileName)) return false;
         if (!canonicalPath.equals(that.canonicalPath)) return false;
         if (!Arrays.equals(key, that.key)) return false;
-        if (durability.value != that.durability.value) return false;
+        if (!durability.equals(that.durability)) return false;
         if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
         return schemaMediator.equals(that.schemaMediator);
     }
@@ -152,7 +152,8 @@ public class RealmConfiguration {
         result = 31 * result + (migration != null ? migration.hashCode() : 0);
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
         result = 31 * result + schemaMediator.hashCode();
-        result = 31 * result + durability.value;
+        result = 31 * result + durability.hashCode();
+
         return result;
     }
 
@@ -335,8 +336,12 @@ public class RealmConfiguration {
         }
 
         /**
-         * Settings this will create a in-memory Realm instance.
-         * See {@link Realm#getInMemoryInstance(Context, String)} for more details.
+         * Setting this will create an in-memory Realm instead of of saving it to disk. In-memory Realms might still use
+         * disk space if memory is running low, but all files created by a in-memory Realm will be deleted when the
+         * Realm is closed.
+         * <p></p>
+         * Note that Because in-memory Realms are not persisted, you must be sure to hold on to at least one non-closed
+         * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {
             this.durability = SharedGroup.Durability.MEM_ONLY;

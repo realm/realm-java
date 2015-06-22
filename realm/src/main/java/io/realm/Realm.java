@@ -397,36 +397,6 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor that returns an un-persisted in-memory Realm instance.
-     * The identifier used to create this instance can be used to access the same in-memory Realm from multiple threads.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     * <p>
-     * Note that Because in-memory Realms are not persisted, you must be sure to hold on to a non-closed reference to the
-     * Realm object returned from this (or from {@link #getInstance(RealmConfiguration)} with
-     * {@link RealmConfiguration.Builder#inMemory()} and a same identifier) for as long as you want the data
-     * to last. If all in-memory Realms with the same identifier have been closed, the in-memory Realm database will be
-     * released.
-     *
-     * @param context an Android {@link android.content.Context}
-     * @param identifier A string used to identify a particular in-memory Realm.
-     * @return an instance of the Realm class
-     *
-     * @throws IllegalArgumentException      An realm instance with same identifier/filename and different
-     *                                       {@link io.realm.internal.SharedGroup.Durability} has been created already.
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    public static Realm getInMemoryInstance(Context context, String identifier) {
-        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context).name(identifier).inMemory();
-
-        return create(builder.build());
-    }
-
-    /**
      * Realm static constructor.
      * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
@@ -691,10 +661,9 @@ public final class Realm implements Closeable {
             // Check if the durability is the same
             SharedGroup.Durability cachedDurability = cachedConfiguration.getDurability();
             SharedGroup.Durability newDurability = newConfiguration.getDurability();
-            if (cachedDurability.value != newDurability.value) {
-                throw new IllegalArgumentException("Configurations cannot have different durabilities for the " +
-                        "same realm filename/identifier: " + newConfiguration.getRealmFileName() + " " +
-                        cachedConfiguration.getDurability().toString() + " vs " + newDurability.toString());
+            if (!cachedDurability.equals(newDurability)) {
+                throw new IllegalArgumentException("A Realm cannot be both in-memory and persisted. Two conflicting " +
+                        "configurations pointing to " + newConfiguration.getRealmFileName() + " are being used.");
             }
         }
 
