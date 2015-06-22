@@ -1697,15 +1697,15 @@ public class RealmTest extends AndroidTestCase {
         final int numberOfPopulateTest = 10000;
         final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
 
-        for (int i=0; i<numberOfPopulateTest; i++) {
+        for (int i = 0; i < numberOfPopulateTest; i++) {
             populateTestRealm(testRealm, 20);
         }
 
         final int MAX_GC_RETRIES = 5;
-        int numberbRetries = 0;
-        while (references.size() > 0 && numberbRetries < MAX_GC_RETRIES) {
+        int numberOfRetries = 0;
+        while (references.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
             SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
-            numberbRetries++;
+            numberOfRetries++;
             System.gc();
         }
 
@@ -1718,6 +1718,5 @@ public class RealmTest extends AndroidTestCase {
             android.util.Log.d(RealmTest.class.getName(), "FinalizerRunnable freed : "
                     + (totalNumberOfReferences - references.size()) + " out of " + totalNumberOfReferences);
         }
-
     }
 }
