@@ -57,15 +57,32 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
     // Testing the in-memory Realm by Creating one instance, adding a record, then close the instance.
     // By the next time in-memory Realm instance with the same name created, it should be empty.
+    // Two in-memory Realms with different names should not affect each other.
     public void testInMemoryRealm() {
         testRealm.beginTransaction();
         Dog dog = testRealm.createObject(Dog.class);
         dog.setName("DinoDog");
         testRealm.commitTransaction();
 
+        // Create the 2nd in-memory Realm with different name. To make sure they are not affecting each other.
+        RealmConfiguration inMemConf2 = new RealmConfiguration.Builder(getContext())
+                        .name(IDENTIFIER + "2")
+                        .inMemory()
+                        .build();
+        Realm testRealm2 = Realm.getInstance(inMemConf2);
+        testRealm2.beginTransaction();
+        Dog dog2 = testRealm2.createObject(Dog.class);
+        dog2.setName("UFODog");
+        testRealm2.commitTransaction();
+
         assertEquals(testRealm.allObjects(Dog.class).size(), 1);
         assertEquals(testRealm.allObjects(Dog.class).first().getName(), "DinoDog");
+
+        assertEquals(testRealm2.allObjects(Dog.class).size(), 1);
+        assertEquals(testRealm2.allObjects(Dog.class).first().getName(), "UFODog");
+
         testRealm.close();
+        testRealm2.close();
 
         // After all references to the in-mem-realm destroyed,
         // in-mem-realm with same identifier should create a fresh new instance.
