@@ -40,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -1692,18 +1693,31 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(isFinalizerStarted);
 
         //insert some rows, then give the FinalizerRunnable some time to cleanup
-        populateTestRealm(testRealm, 20);
+        // we have 8 reference so far let's add more
+        final int numberOfPopulateTest = 10000;
+        final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
 
-        final int MAX_WAITING_RETRY = 5;
-        int nbRetry = 0;
-        while (references.size() > 0 && nbRetry < MAX_WAITING_RETRY) {
-            SystemClock.sleep(5);//5ms
-            nbRetry++;
+        for (int i=0; i<numberOfPopulateTest; i++) {
+            populateTestRealm(testRealm, 20);
+        }
+
+        final int MAX_GC_RETRIES = 5;
+        int numberbRetries = 0;
+        while (references.size() > 0 && numberbRetries < MAX_GC_RETRIES) {
+            SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
+            numberbRetries++;
             System.gc();
         }
 
-        if (nbRetry >= MAX_WAITING_RETRY) {
-            fail("FinalizerRunnable didn't close all native resources :(");
+        // we can't guarantee that all references have been GC'd but we should detect a decrease
+        boolean isDecreasing = references.size() < totalNumberOfReferences;
+        if (!isDecreasing) {
+            fail("FinalizerRunnable is not closing all native resources");
+
+        } else {
+            android.util.Log.d(RealmTest.class.getName(), "FinalizerRunnable freed : "
+                    + (totalNumberOfReferences - references.size()) + " out of " + totalNumberOfReferences);
         }
+
     }
 }
