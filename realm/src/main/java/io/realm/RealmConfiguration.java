@@ -334,8 +334,12 @@ public class RealmConfiguration {
             return this;
         }
 
-        public Builder durability(SharedGroup.Durability durability) {
-            this.durability = durability;
+        /**
+         * Settings this will create a in-memory Realm instance.
+         * See {@link Realm#getInMemoryInstance(Context, String)} for more details.
+         */
+        public Builder inMemory() {
+            this.durability = SharedGroup.Durability.MEM_ONLY;
             return this;
         }
 

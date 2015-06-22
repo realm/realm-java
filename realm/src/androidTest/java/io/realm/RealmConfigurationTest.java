@@ -26,7 +26,6 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.SharedGroup;
 
 public class RealmConfigurationTest extends AndroidTestCase {
 
@@ -345,8 +344,8 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testDifferentDurabilityThrows() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).durability(SharedGroup.Durability.FULL).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).durability(SharedGroup.Durability.MEM_ONLY).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).inMemory().build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).inMemory().build();
 
         Realm realm1 = Realm.getInstance(config1);
         try {

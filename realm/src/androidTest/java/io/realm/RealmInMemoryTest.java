@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.Dog;
-import io.realm.internal.SharedGroup;
 
 public class RealmInMemoryTest extends AndroidTestCase {
 
@@ -143,7 +142,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         RealmConfiguration configuration = new RealmConfiguration.Builder(getContext())
-                .name(IDENTIFIER).durability(SharedGroup.Durability.MEM_ONLY).build();
+                .name(IDENTIFIER).inMemory().build();
         Realm realm = Realm.getInstance(configuration);
 
         assertEquals(realm.allObjects(Dog.class).first().getName(), "DinoDog");

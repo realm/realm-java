@@ -403,9 +403,9 @@ public final class Realm implements Closeable {
      * <p>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      * <p>
-     * Note that Because in-memory Realms are not persisted, you must be sure to hold on to a reference to the Realm object
-     * returned from this (or from {@link #getInstance(RealmConfiguration)} with
-     * {@link io.realm.internal.SharedGroup.Durability}.MEM_ONLY and same identifier) for as long as you want the data
+     * Note that Because in-memory Realms are not persisted, you must be sure to hold on to a non-closed reference to the
+     * Realm object returned from this (or from {@link #getInstance(RealmConfiguration)} with
+     * {@link RealmConfiguration.Builder#inMemory()} and a same identifier) for as long as you want the data
      * to last. If all in-memory Realms with the same identifier have been closed, the in-memory Realm database will be
      * released.
      *
@@ -421,8 +421,7 @@ public final class Realm implements Closeable {
      * @throws RealmException                Other errors
      */
     public static Realm getInMemoryInstance(Context context, String identifier) {
-        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context)
-                .name(identifier).durability(SharedGroup.Durability.MEM_ONLY);
+        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context).name(identifier).inMemory();
 
         return create(builder.build());
     }
