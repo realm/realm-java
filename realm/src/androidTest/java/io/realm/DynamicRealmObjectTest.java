@@ -288,13 +288,13 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertTrue(dObj.hasField(AllJavaTypes.FIELD_STRING));
     }
 
-//    public void testEquals() {
-//        AllJavaTypes obj1 = realm.where(AllJavaTypes.class).findFirst();
-//        AllJavaTypes obj2 = realm.where(AllJavaTypes.class).findFirst();
-//        DynamicRealmObject dObj1 = new DynamicRealmObject(realm, obj1.row);
-//        DynamicRealmObject dObj2 = new DynamicRealmObject(realm, obj2.row);
-//        assertTrue(dObj1.equals(dObj2));
-//    }
+    public void testEquals() {
+        AllJavaTypes obj1 = realm.where(AllJavaTypes.class).findFirst();
+        AllJavaTypes obj2 = realm.where(AllJavaTypes.class).findFirst();
+        DynamicRealmObject dObj1 = new DynamicRealmObject(realm, obj1.row);
+        DynamicRealmObject dObj2 = new DynamicRealmObject(realm, obj2.row);
+        assertTrue(dObj1.equals(dObj2));
+    }
 
     public void testHashcode() {
         AllJavaTypes obj1 = realm.where(AllJavaTypes.class).findFirst();
@@ -302,7 +302,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertEquals(obj1.hashCode(), dObj1.hashCode());
     }
 
-//    public void testToString() {
-//        // TODO
-//    }
+    public void testToString() {
+        // TODO
+    }
 }
