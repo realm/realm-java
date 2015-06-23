@@ -172,6 +172,7 @@ public final class Realm implements Closeable {
     private boolean autoRefresh;
     private Handler handler;
 
+    private long threadId;
     private RealmConfiguration configuration;
     private SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
@@ -194,14 +195,14 @@ public final class Realm implements Closeable {
         }
 
         // Check if we are in the right thread
-        Realm currentRealm = realmsCache.get().get(configuration);
-        if (currentRealm != this) {
+        if (threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
     }
 
     // The constructor in private to enforce the use of the static one
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
+        this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.sharedGroup = new SharedGroup(configuration.getPath(), true, configuration.getDurability(),
                 configuration.getEncryptionKey());
