@@ -24,6 +24,7 @@ import java.util.List;
 import io.realm.dynamic.DynamicRealmList;
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.Dog;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -34,7 +35,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).schema(AllJavaTypes.class).build();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
         Realm.deleteRealm(realmConfig);
         realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
@@ -65,7 +66,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     }
 
     // Test that all getters fail if given invalid field name
-    public void testGetXXXIllegalArgumentsThrows() {
+    public void testGetXXXIllegalFieldNameThrows() {
 
         // Set arguments
         String linkedField = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING;
@@ -104,7 +105,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     }
 
     // Test that all getters fail if given invalid field name
-    public void testSetXXXIllegalArgumentsThrows() {
+    public void testSetXXXIllegalFieldnameThrows() {
 
         // Set arguments
         String linkedField = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING;
@@ -147,56 +148,101 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
         DynamicRealmObject dObj = new DynamicRealmObject(realm, obj.row);
-        realm.commitTransaction();
-
-        for (SupportedType type : SupportedType.values()) {
-            switch(type) {
-                case BOOLEAN:
-                    dObj.setBoolean(AllJavaTypes.FIELD_BOOLEAN, true);
-                    assertTrue(dObj.getBoolean(AllJavaTypes.FIELD_BOOLEAN));
-                    break;
-                case SHORT:
-                    dObj.setShort(AllJavaTypes.FIELD_SHORT, (short) 42);
-                    assertEquals(42, dObj.getShort(AllJavaTypes.FIELD_SHORT));
-                    break;
-                case INT:
-                    dObj.setInt(AllJavaTypes.FIELD_INT, 42);
-                    assertEquals(42, dObj.getInt(AllJavaTypes.FIELD_INT));
-                    break;
-                case LONG:
-                    dObj.setLong(AllJavaTypes.FIELD_LONG, 42L);
-                    assertEquals(42, dObj.getLong(AllJavaTypes.FIELD_LONG));
-                    break;
-                case FLOAT:
-                    dObj.setFloat(AllJavaTypes.FIELD_FLOAT, 1.23f);
-                    assertEquals(1.23f, dObj.getFloat(AllJavaTypes.FIELD_FLOAT));
-                    break;
-                case DOUBLE:
-                    dObj.setDouble(AllJavaTypes.FIELD_DOUBLE, 1.234d);
-                    assertEquals(1.234d, dObj.getDouble(AllJavaTypes.FIELD_DOUBLE));
-                    break;
-                case STRING:
-                    dObj.setString(AllJavaTypes.FIELD_STRING, "str");
-                    assertEquals("str", dObj.getString(AllJavaTypes.FIELD_STRING));
-                    break;
-                case BINARY:
-                    dObj.setBinary(AllJavaTypes.FIELD_BINARY, new byte[] {1,2,3});
-                    assertArrayEquals(new byte[]{1,2,3}, dObj.getBytes(AllJavaTypes.FIELD_BINARY));
-                    break;
-                case DATE:
-                    dObj.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
-                    assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE));
-                    break;
-                case OBJECT:
-                    dObj.setObject(AllJavaTypes.FIELD_OBJECT, dObj);
-                    assertEquals(dObj, dObj.getRealmObject(AllJavaTypes.FIELD_OBJECT));
-                    break;
-                case LIST:
+        try {
+            for (SupportedType type : SupportedType.values()) {
+                switch (type) {
+                    case BOOLEAN:
+                        dObj.setBoolean(AllJavaTypes.FIELD_BOOLEAN, true);
+                        assertTrue(dObj.getBoolean(AllJavaTypes.FIELD_BOOLEAN));
+                        break;
+                    case SHORT:
+                        dObj.setShort(AllJavaTypes.FIELD_SHORT, (short) 42);
+                        assertEquals(42, dObj.getShort(AllJavaTypes.FIELD_SHORT));
+                        break;
+                    case INT:
+                        dObj.setInt(AllJavaTypes.FIELD_INT, 42);
+                        assertEquals(42, dObj.getInt(AllJavaTypes.FIELD_INT));
+                        break;
+                    case LONG:
+                        dObj.setLong(AllJavaTypes.FIELD_LONG, 42L);
+                        assertEquals(42, dObj.getLong(AllJavaTypes.FIELD_LONG));
+                        break;
+                    case FLOAT:
+                        dObj.setFloat(AllJavaTypes.FIELD_FLOAT, 1.23f);
+                        assertEquals(1.23f, dObj.getFloat(AllJavaTypes.FIELD_FLOAT));
+                        break;
+                    case DOUBLE:
+                        dObj.setDouble(AllJavaTypes.FIELD_DOUBLE, 1.234d);
+                        assertEquals(1.234d, dObj.getDouble(AllJavaTypes.FIELD_DOUBLE));
+                        break;
+                    case STRING:
+                        dObj.setString(AllJavaTypes.FIELD_STRING, "str");
+                        assertEquals("str", dObj.getString(AllJavaTypes.FIELD_STRING));
+                        break;
+                    case BINARY:
+                        dObj.setBinary(AllJavaTypes.FIELD_BINARY, new byte[]{1, 2, 3});
+                        assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBytes(AllJavaTypes.FIELD_BINARY));
+                        break;
+                    case DATE:
+                        dObj.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
+                        assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE));
+                        break;
+                    case OBJECT:
+                        dObj.setObject(AllJavaTypes.FIELD_OBJECT, dObj);
+                        assertEquals(dObj, dObj.getRealmObject(AllJavaTypes.FIELD_OBJECT));
+                        break;
+                    case LIST:
                     /* ignore, see testGetList/testSetList */
-                    break;
-                default:
-                    fail();
+                        break;
+                    default:
+                        fail();
+                }
             }
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    public void testSetXXXNullValues() {
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        DynamicRealmObject dObj = new DynamicRealmObject(realm, obj.row);
+        try {
+            for (SupportedType type : SupportedType.values()) {
+                switch (type) {
+                    case OBJECT:
+                        dObj.setObject(AllJavaTypes.FIELD_OBJECT, null);
+                        assertNull(dObj.getRealmObject(AllJavaTypes.FIELD_OBJECT));
+                        break;
+                    case LIST:
+                    case BOOLEAN:
+                    case SHORT:
+                    case INT:
+                    case LONG:
+                    case FLOAT:
+                    case DOUBLE:
+                    case STRING:
+                    case BINARY:
+                    case DATE:
+                    default:
+                        continue; // Ignore other types for now
+                }
+            }
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    public void testSetObjectWrongTypeThrows() {
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        Dog otherObj = realm.createObject(Dog.class);
+        DynamicRealmObject dynamicObj = new DynamicRealmObject(realm, obj.row);
+        DynamicRealmObject dynamicWrongType = new DynamicRealmObject(realm, otherObj.row);
+        try {
+            dynamicObj.setObject(AllJavaTypes.FIELD_OBJECT, dynamicWrongType);
+            fail();
+        } catch (IllegalArgumentException ignore) {
         }
     }
 
