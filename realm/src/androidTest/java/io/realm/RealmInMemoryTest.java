@@ -33,7 +33,6 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-
         RealmConfiguration onDiskConf = new RealmConfiguration.Builder(getContext())
                 .name(IDENTIFIER)
                 .build();
@@ -44,7 +43,6 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
         // Delete the same name Realm file just in case
         Realm.deleteRealm(onDiskConf);
-
         testRealm = Realm.getInstance(inMemConf);
     }
 
@@ -57,18 +55,34 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
     // Testing the in-memory Realm by Creating one instance, adding a record, then close the instance.
     // By the next time in-memory Realm instance with the same name created, it should be empty.
-    // Two in-memory Realms with different names should not affect each other.
     public void testInMemoryRealm() {
         testRealm.beginTransaction();
         Dog dog = testRealm.createObject(Dog.class);
         dog.setName("DinoDog");
         testRealm.commitTransaction();
 
-        // Create the 2nd in-memory Realm with different name. To make sure they are not affecting each other.
+        assertEquals(testRealm.allObjects(Dog.class).size(), 1);
+        assertEquals(testRealm.allObjects(Dog.class).first().getName(), "DinoDog");
+
+        testRealm.close();
+        // After all references to the in-mem-realm closed,
+        // in-mem-realm with same identifier should create a fresh new instance.
+        testRealm = Realm.getInstance(inMemConf);
+        assertEquals(testRealm.allObjects(Dog.class).size(), 0);
+    }
+
+    // Two in-memory Realms with different names should not affect each other.
+    public void testInMemoryRealmWithDifferntNames() {
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("DinoDog");
+        testRealm.commitTransaction();
+
+        // Create the 2nd in-memory Realm with a different name. To make sure they are not affecting each other.
         RealmConfiguration inMemConf2 = new RealmConfiguration.Builder(getContext())
-                        .name(IDENTIFIER + "2")
-                        .inMemory()
-                        .build();
+                .name(IDENTIFIER + "2")
+                .inMemory()
+                .build();
         Realm testRealm2 = Realm.getInstance(inMemConf2);
         testRealm2.beginTransaction();
         Dog dog2 = testRealm2.createObject(Dog.class);
@@ -77,17 +91,10 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
         assertEquals(testRealm.allObjects(Dog.class).size(), 1);
         assertEquals(testRealm.allObjects(Dog.class).first().getName(), "DinoDog");
-
         assertEquals(testRealm2.allObjects(Dog.class).size(), 1);
         assertEquals(testRealm2.allObjects(Dog.class).first().getName(), "UFODog");
 
-        testRealm.close();
         testRealm2.close();
-
-        // After all references to the in-mem-realm destroyed,
-        // in-mem-realm with same identifier should create a fresh new instance.
-        testRealm = Realm.getInstance(inMemConf);
-        assertEquals(testRealm.allObjects(Dog.class).size(), 0);
     }
 
     // Test deleteRealm called on a in-memory Realm instance
@@ -96,7 +103,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
         try {
             Realm.deleteRealm(configuration);
             fail("Realm.deleteRealm should fail with illegal state");
-        } catch (IllegalStateException iae) { //NOPMD
+        } catch (IllegalStateException ignored) {
         }
 
         // Nothing should happen when delete a closed in-mem-realm.
@@ -145,15 +152,15 @@ public class RealmInMemoryTest extends AndroidTestCase {
                     .build();
             Realm.getInstance(wrongKeyConf);
             fail("Realm.getInstance should fail with illegal argument");
-        } catch (IllegalArgumentException iae) { //NOPMD
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
     // Test below scenario:
     // 1. Create a in-memory Realm instance in the main thread.
     // 2. Create a in-memory Realm with same name in another thread.
-    // 3. Close the in-memory Realm instance in then main thread and the Realm data should not be released since
-    //    another instance is still hold by the other thread.
+    // 3. Close the in-memory Realm instance in the main thread and the Realm data should not be released since
+    //    another instance is still held by the other thread.
     // 4. Close the in-memory Realm instance and the Realm data should be released since no more instance with the
     //    specific name exists.
     public void testMultiThread() throws InterruptedException, ExecutionException {
@@ -180,7 +187,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
                         Thread.sleep(5);
                     }
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    fail("Worker thread was interrupted.");
                 }
 
                 realm.close();
@@ -215,7 +222,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
             try {
                 Thread.sleep(5);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                fail("Worker thread was interrupted");
             }
         }
         // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance

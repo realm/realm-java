@@ -340,7 +340,7 @@ public class RealmConfiguration {
          * disk space if memory is running low, but all files created by a in-memory Realm will be deleted when the
          * Realm is closed.
          * <p></p>
-         * Note that Because in-memory Realms are not persisted, you must be sure to hold on to at least one non-closed
+         * Note that because in-memory Realms are not persisted, you must be sure to hold on to at least one non-closed
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
         public Builder inMemory() {

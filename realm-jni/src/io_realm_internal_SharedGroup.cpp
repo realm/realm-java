@@ -83,11 +83,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
             }
 
             KeyBuffer key(env, keyArray);
-#ifdef REALM_ENABLE_ENCRYPTION
             db = new SharedGroup(file_name, no_create!=0, level, key.data());
-#else
-            db = new SharedGroup(file_name, no_create!=0, level);
-#endif
         }
         return reinterpret_cast<jlong>(db);
     }

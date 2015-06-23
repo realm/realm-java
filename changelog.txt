@@ -1,4 +1,4 @@
-0.81.1
+0.82.0-SNAPSHOT
  * Added in-memory Realm suport.
 
 0.81
