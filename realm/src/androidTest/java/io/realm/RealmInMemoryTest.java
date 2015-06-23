@@ -42,7 +42,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
                 .inMemory()
                 .build();
 
-        // Delete the same name realm file just in case
+        // Delete the same name Realm file just in case
         Realm.deleteRealm(onDiskConf);
 
         testRealm = Realm.getInstance(inMemConf);
@@ -126,18 +126,18 @@ public class RealmInMemoryTest extends AndroidTestCase {
         dog.setName("DinoDog");
         testRealm.commitTransaction();
 
-        // Test a normal realm file
+        // Test a normal Realm file
         testRealm.writeCopyTo(new File(getContext().getFilesDir(), fileName));
         Realm onDiskRealm = Realm.getInstance(conf);
         assertEquals(onDiskRealm.allObjects(Dog.class).size(), 1);
         onDiskRealm.close();
 
-        // Test a encrypted realm file
+        // Test a encrypted Realm file
         testRealm.writeEncryptedCopyTo(new File(getContext().getFilesDir(), encFileName), key);
         onDiskRealm = Realm.getInstance(encConf);
         assertEquals(onDiskRealm.allObjects(Dog.class).size(), 1);
         onDiskRealm.close();
-        // Test with a wrong key to see if it is encrypted successfully
+        // Test with a wrong key to see if it fails as expected.
         try {
             RealmConfiguration wrongKeyConf = new RealmConfiguration.Builder(getContext())
                     .name(encFileName)
@@ -174,7 +174,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
                 assertEquals(realm.allObjects(Dog.class).size(), 1);
 
-                // Wait until realm instance closed in main thread
+                // Wait until Realm instance closed in main thread
                 try {
                     while (!isRealmInMainThreadClosed.get()) {
                         Thread.sleep(5);
@@ -200,12 +200,12 @@ public class RealmInMemoryTest extends AndroidTestCase {
         assertEquals(testRealm.allObjects(Dog.class).size(), 1);
 
         // Step 3.
-        // Release the main thread realm reference, and the worker thread hold the reference still
+        // Release the main thread Realm reference, and the worker thread hold the reference still
         testRealm.close();
         // Step 4.
         isRealmInMainThreadClosed.set(true);
 
-        // Create a new realm reference in main thread and checking the data.
+        // Create a new Realm reference in main thread and checking the data.
         testRealm = Realm.getInstance(inMemConf);
         assertEquals(testRealm.allObjects(Dog.class).size(), 1);
         testRealm.close();
@@ -218,7 +218,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
                 e.printStackTrace();
             }
         }
-        // Since all previous realm instances has been closed before, below will create a fresh new in-mem-realm instance
+        // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance
         testRealm = Realm.getInstance(inMemConf);
         assertEquals(testRealm.allObjects(Dog.class).size(), 0);
     }
