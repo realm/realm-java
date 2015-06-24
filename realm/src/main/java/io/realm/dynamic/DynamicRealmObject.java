@@ -15,14 +15,9 @@
  */
 package io.realm.dynamic;
 
-import android.util.Log;
-
 import java.util.Date;
 
 import io.realm.Realm;
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
 import io.realm.internal.LinkView;

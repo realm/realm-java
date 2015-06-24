@@ -16,13 +16,14 @@
 package io.realm.dynamic;
 
 import java.util.AbstractList;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.internal.LinkView;
 
 /**
- * RealmList exposed using a dynamic API. All objects in the list must have the same schema even though they are accessed
- * dynamically.
+ * {@link io.realm.RealmList} exposed using a dynamic API. All objects in the list must have the same schema even though
+ * they are accessed dynamically. Null values are not allowed in this list.
  */
 public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
 
@@ -34,6 +35,13 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
         this.realm = realm;
     }
 
+    /**
+     * Adds the specified object at the end of this List.
+     *
+     * @param object the object to add.
+     * @return true
+     * @throws IllegalArgumentException if object is either {@code null} or has the wrong type.
+     */
     @Override
     public boolean add(DynamicRealmObject object) {
         checkIsValidObject(object);
@@ -41,32 +49,67 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
         return true;
     }
 
+    /**
+     * Removes all elements from this list, leaving it empty.
+     *
+     * @see List#isEmpty
+     * @see List#size
+     */
     @Override
     public void clear() {
         linkView.clear();
     }
 
+    /**
+     * Returns the element at the specified location in this list.
+     *
+     * @param location the index of the element to return.
+     * @return the element at the specified index.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     */
     @Override
-    public DynamicRealmObject get(int index) {
-        checkValidIndex(index);
-        return new DynamicRealmObject(realm, linkView.getCheckedRow(index));
+    public DynamicRealmObject get(int location) {
+        checkValidIndex(location);
+        return new DynamicRealmObject(realm, linkView.getCheckedRow(location));
     }
 
+    /**
+     * Removes the object at the specified location from this list.
+     *
+     * @param location the index of the object to remove.
+     * @return the removed object.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     */
     @Override
-    public DynamicRealmObject remove(int index) {
-        DynamicRealmObject removedItem = get(index);
-        linkView.remove(index);
+    public DynamicRealmObject remove(int location) {
+        DynamicRealmObject removedItem = get(location);
+        linkView.remove(location);
         return removedItem;
     }
 
+    /**
+     * Replaces the element at the specified location in this list with the
+     * specified object.
+     *
+     * @param location the index at which to put the specified object.
+     * @param object the object to add.
+     * @return the previous element at the index.
+     * @throws IllegalArgumentException if object is either {@code null} or has the wrong type.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     */
     @Override
-    public DynamicRealmObject set(int index, DynamicRealmObject object) {
+    public DynamicRealmObject set(int location, DynamicRealmObject object) {
         checkIsValidObject(object);
-        checkValidIndex(index);
-        linkView.set(index, object.row.getIndex());
+        checkValidIndex(location);
+        linkView.set(location, object.row.getIndex());
         return object;
     }
 
+    /**
+     * Returns the number of elements in this list.
+     *
+     * @return the number of elements in this list.
+     */
     @Override
     public int size() {
         long size = linkView.size();
@@ -93,6 +136,4 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
             throw new IndexOutOfBoundsException(String.format("Invalid index: %s. Valid range is [%s, %s]", index, 0, size - 1));
         }
     }
-
-
 }
