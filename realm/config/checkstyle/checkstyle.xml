@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+
+<module name="Checker">
+    <!-- Files to ignore -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${proj.module.dir}/config/checkstyle/checkstyle-suppressions.xml"/>
+    </module>
+
+    <!-- TODO: UNCOMMENT
+    <module name="NewlineAtEndOfFile">
+        <property name="lineSeparator" value="lf"/>
+    </module>
+    <module name="FileLength"/>
+    <module name="FileTabCharacter"/> -->
+
+    <!-- Trailing spaces -->
+    <!-- TODO: UNCOMMENT
+    <module name="RegexpSingleline">
+        <property name="format" value="\s+$"/>
+        <property name="message" value="Line has trailing spaces."/>
+    </module> -->
+
+    <!-- Space after 'for' and 'if' -->
+    <module name="RegexpSingleline">
+        <property name="format" value="^\s*(for|if)[^ ]"/>
+        <property name="message" value="Space needed before opening parenthesis."/>
+    </module>
+
+    <!-- For each spacing -->
+    <module name="RegexpSingleline">
+        <property name="format" value="^\s*for \(.*?([^ ]:|:[^ ])"/>
+        <property name="message" value="Space needed around ':' character."/>
+    </module>
+
+    <module name="TreeWalker">
+        <property name="cacheFile" value="bin/cachefile"/>
+
+        <!-- Checks for Javadoc comments.                     -->
+        <!-- See http://checkstyle.sf.net/config_javadoc.html -->
+        <!--module name="JavadocMethod"/-->
+        <!--module name="JavadocType"/-->
+        <!--module name="JavadocVariable"/-->
+        <!-- TODO: UNCOMMENT
+        <module name="JavadocStyle"/> -->
+
+
+        <!-- Checks for Naming Conventions.                  -->
+        <!-- See http://checkstyle.sf.net/config_naming.html -->
+        <!-- TODO: UNCOMMENT
+        <module name="ConstantName"/>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName"/> -->
+
+
+        <!-- Checks for imports                              -->
+        <!-- See http://checkstyle.sf.net/config_import.html -->
+        <!--<module name="AvoidStarImport"/>-->
+        <!--<module name="IllegalImport"/>--> <!-- defaults to sun.* packages -->
+        <!--<module name="RedundantImport"/>-->
+        <!--<module name="UnusedImports"/>-->
+
+
+        <!-- Checks for Size Violations.                    -->
+        <!-- See http://checkstyle.sf.net/config_sizes.html -->
+        <module name="LineLength">
+            <property name="max" value="120"/>
+            <property name="severity" value="warning"/>
+        </module>
+        <!--<module name="MethodLength"/>-->
+        <!--<module name="ParameterNumber"/>-->
+
+
+        <!-- Checks for whitespace                               -->
+        <!-- See http://checkstyle.sf.net/config_whitespace.html -->
+        <!-- TODO: UNCOMMENT
+        <module name="GenericWhitespace"/>
+        <module name="EmptyForIteratorPad"/>
+        <module name="MethodParamPad"/>
+        <module name="NoWhitespaceAfter"/>
+        <module name="NoWhitespaceBefore"/>
+        <module name="OperatorWrap"/>
+        <module name="ParenPad"/>
+        <module name="TypecastParenPad"/>
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround"/> -->
+
+
+        <!-- Modifier Checks                                    -->
+        <!-- See http://checkstyle.sf.net/config_modifiers.html -->
+        <!-- TODO: UNCOMMENT
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/> -->
+
+
+        <!-- Checks for blocks. You know, those {}'s         -->
+        <!-- See http://checkstyle.sf.net/config_blocks.html -->
+        <!-- <module name="AvoidNestedBlocks"/> -->
+        <!--module name="EmptyBlock"/-->
+        <!-- <module name="LeftCurly"/> -->
+        <!--module name="NeedBraces"/-->
+        <!-- <module name="RightCurly"/> -->
+
+
+        <!-- Checks for common coding problems               -->
+        <!-- See http://checkstyle.sf.net/config_coding.html -->
+        <!--module name="AvoidInlineConditionals"/-->
+        <!-- TODO: UNCOMMENT
+        <module name="CovariantEquals"/>
+        <module name="EmptyStatement"/>
+        <module name="EqualsAvoidNull"/>
+        <module name="EqualsHashCode"/>
+        <module name="HiddenField"/>
+        <module name="IllegalInstantiation"/>
+        <module name="InnerAssignment"/>
+        <module name="MagicNumber">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="MissingSwitchDefault"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/> -->
+
+        <!-- Checks for class design                         -->
+        <!-- See http://checkstyle.sf.net/config_design.html -->
+        <!--module name="DesignForExtension"/-->
+        <!-- TODO: UNCOMMENT
+        <module name="FinalClass">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="HideUtilityClassConstructor"/>
+        <module name="InterfaceIsType"/> -->
+        <!--module name="VisibilityModifier"/-->
+
+
+        <!-- Miscellaneous other checks.                   -->
+        <!-- See http://checkstyle.sf.net/config_misc.html -->
+        <!-- TODO: UNCOMMENT <module name="ArrayTypeStyle"/> -->
+        <!--module name="FinalParameters"/-->
+        <!--module name="TodoComment"/-->
+        <!-- TODO: UNCOMMENT <module name="UpperEll"/> -->
+    </module>
+</module>

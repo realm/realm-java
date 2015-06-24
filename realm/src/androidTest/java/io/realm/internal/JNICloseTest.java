@@ -46,7 +46,7 @@ public class JNICloseTest extends AndroidTestCase {
         } catch(Throwable t) {
             wt.rollback();
         } finally {
-            for(Closeable c : resources) {
+            for (Closeable c : resources) {
                 try {
                     c.close();
                 } catch(java.io.IOException e) {
