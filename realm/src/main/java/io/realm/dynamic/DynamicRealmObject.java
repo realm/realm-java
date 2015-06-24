@@ -26,7 +26,8 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 
 /**
- * Class that wraps a normal RealmObject which enables interaction using dynamic names.
+ * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
+ * Using a DynamicRealmObject is slower than using the regular model class.
  */
 public class DynamicRealmObject {
 
@@ -34,15 +35,18 @@ public class DynamicRealmObject {
      Row row;
 
     /**
-     * Creates a dynamic Realm object based on a row entry.
+     * Creates a dynamic Realm object based on a existing object.
      */
     public DynamicRealmObject(Realm realm, Row row) {
+        if (row == null) {
+            throw new IllegalArgumentException("A row must be provided");
+        }
         this.realm = realm;
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
     }
 
     /**
-     * Returns the objects {@code boolean} value for a given field.
+     * Returns the {@code boolean} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The boolean value.
@@ -54,7 +58,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the objects {@code int} value for a given field.
+     * Returns the {@code int} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The int value. Integer values exceeding {@code Integer.MAX_VALUE} will wrap.
@@ -65,7 +69,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the objects {@code short} value for a given field.
+     * Returns the {@code short} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The short value. Integer values exceeding {@code Short.MAX_VALUE} will wrap.
@@ -76,7 +80,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the objects {@code long} value for a given field.
+     * Returns the {@code long} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The long value. Integer values exceeding {@code Long.MAX_VALUE} will wrap.
@@ -88,7 +92,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the objects {@code float} value for a given field.
+     * Returns the {@code float} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The float value.
@@ -100,7 +104,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the objects {@code double} value for a given field.
+     * Returns the {@code double} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The double value.
@@ -112,7 +116,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the objects {@code byte[]} value for a given field.
+     * Returns the {@code byte[]} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The byte[] value.
@@ -124,7 +128,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the objects {@code String} value for a given field.
+     * Returns the {@code String} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The String value.
@@ -136,7 +140,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the objects {@code Date} value for a given field.
+     * Returns the {@code Date} value for a given field.
      *
      * @param fieldName Name of field.
      * @return The Date value.
@@ -148,13 +152,13 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the object being linked to from this field..
+     * Returns the object being linked to from this field.
      *
      * @param fieldName Name of field.
      * @return The {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is linked.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain links to other objects.
      */
-    public DynamicRealmObject getRealmObject(String fieldName) {
+    public DynamicRealmObject getObject(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         if (row.isNullLink(columnIndex)) {
             return null;
@@ -166,19 +170,20 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Returns the {@link io.realm.RealmList} of objects being linked to from this field.
+     * Returns the {@link io.realm.RealmList} of objects being linked to from this field. This list is returned
+     * as a {@link DynamicRealmList}.
      *
      * @param fieldName Name of field.
      * @return The {@link DynamicRealmList} representation of the RealmList.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain a list of links.
      */
-    public DynamicRealmList getRealmList(String fieldName) {
+    public DynamicRealmList getList(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         return new DynamicRealmList(row.getLinkList(columnIndex), realm);
     }
 
     /**
-     * Checks if the value of a given is {@code null}.
+     * Checks if the value of a given field is {@code null}.
      *
      * @param fieldName Name of field.
      * @return {@code true} if field value is null, {@code false} otherwise.
@@ -186,7 +191,23 @@ public class DynamicRealmObject {
      */
     public boolean isNull(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        return row.isNullLink(columnIndex); // TODO Add support for other types
+        ColumnType type = row.getColumnType(columnIndex);
+        switch (type) {
+            case LINK:
+            case LINK_LIST:
+                return row.isNullLink(columnIndex);
+            case BOOLEAN:
+            case INTEGER:
+            case FLOAT:
+            case DOUBLE:
+            case STRING:
+            case BINARY:
+            case DATE:
+            case TABLE:
+            case MIXED:
+            default:
+                return false;
+        }
     }
 
     /**
@@ -215,7 +236,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the boolean value of the given field on the object.
+     * Sets the {@code boolean} value of the given field.
      *
      * @param fieldName Field name to update.
      * @param value Value to insert.
@@ -227,7 +248,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the short value of the given field on the object.
+     * Sets the {@code short} value of the given field.
      *
      * @param fieldName Field name.
      * @param value Value to insert.
@@ -239,7 +260,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the integer value of the given field on the object.
+     * Sets the {@code int} value of the given field.
      *
      * @param fieldName Field name to update.
      * @param value Value to insert.
@@ -251,7 +272,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the long value of the given field on the object.
+     * Sets the {@code long} value of the given field.
      *
      * @param fieldName Field name.
      * @param value Value to insert.
@@ -263,7 +284,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the float value of the given field on the object.
+     * Sets the {@code float} value of the given field.
      *
      * @param fieldName Field name.
      * @param value Value to insert.
@@ -275,7 +296,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the double value of the given field on the object.
+     * Sets the {@code double} value of the given field.
      *
      * @param fieldName Field name.
      * @param value Value to insert.
@@ -287,7 +308,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the String value of the given field on the object.
+     * Sets the {@code String} value of the given field.
      *
      * @param fieldName Field name.
      * @param value Value to insert.
@@ -299,7 +320,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the binary value of the given field on the object.
+     * Sets the binary value of the given field.
      *
      * @param fieldName Field name.
      * @param value Value to insert.
@@ -311,7 +332,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the date value of the given field on the object.
+     * Sets the {@code Date} value of the given field.
      *
      * @param fieldName Field name.
      * @param value Value to insert.
@@ -323,7 +344,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the reference to another object on the given field.
+     * Sets a reference to another object on the given field.
      *
      * @param fieldName Field name.
      * @param value Object to link to.
@@ -352,7 +373,7 @@ public class DynamicRealmObject {
     }
 
     /**
-     * Sets the RealmList on the object.
+     * Sets the reference to a {@link DynamicRealmList} on the given field.
      *
      * @param fieldName Field name.
      * @param list List of references.
@@ -403,11 +424,7 @@ public class DynamicRealmObject {
             return false;
         }
 
-        if (row.getIndex() != other.row.getIndex()) {
-            return false;
-        }
-
-        return true;
+        return row.getIndex() == other.row.getIndex();
     }
 
     @Override

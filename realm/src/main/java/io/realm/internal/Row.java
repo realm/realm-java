@@ -112,10 +112,4 @@ public interface Row {
      * @return {@code true} if field name exists, {@code false} otherwise.
      */
     boolean hasField(String fieldName);
-
-    /**
-     * Returns the native pointer for the row object in Realm-Core.
-     * @return Native pointer for the Row object.
-     */
-    long getNativePointer();
 }

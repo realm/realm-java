@@ -49,7 +49,7 @@ public class DynamicRealmListTest extends AndroidTestCase {
         obj.setFieldObject(obj);
         obj.getFieldList().add(obj);
         dynamicObject = new DynamicRealmObject(realm, obj.row);
-        dynamicList = dynamicObject.getRealmList(AllJavaTypes.FIELD_LIST);
+        dynamicList = dynamicObject.getList(AllJavaTypes.FIELD_LIST);
         realm.commitTransaction();
     }
 

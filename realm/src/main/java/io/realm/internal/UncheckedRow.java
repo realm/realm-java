@@ -259,14 +259,6 @@ public class UncheckedRow extends NativeObject implements Row {
         return nativeHasField(nativePointer, fieldName);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getNativePointer() {
-        return nativePointer;
-    }
-
     protected native long nativeGetColumnCount(long nativeTablePtr);
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);

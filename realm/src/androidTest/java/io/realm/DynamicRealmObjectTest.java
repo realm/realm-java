@@ -96,8 +96,8 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                 case STRING: dObj.getString(fieldName); break;
                 case BINARY: dObj.getBytes(fieldName); break;
                 case DATE: dObj.getDate(fieldName); break;
-                case OBJECT: dObj.getRealmObject(fieldName); break;
-                case LIST: dObj.getRealmList(fieldName); break;
+                case OBJECT: dObj.getObject(fieldName); break;
+                case LIST: dObj.getList(fieldName); break;
                 default:
                     fail();
             }
@@ -189,7 +189,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         break;
                     case OBJECT:
                         dObj.setObject(AllJavaTypes.FIELD_OBJECT, dObj);
-                        assertEquals(dObj, dObj.getRealmObject(AllJavaTypes.FIELD_OBJECT));
+                        assertEquals(dObj, dObj.getObject(AllJavaTypes.FIELD_OBJECT));
                         break;
                     case LIST:
                     /* ignore, see testGetList/testSetList */
@@ -212,7 +212,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                 switch (type) {
                     case OBJECT:
                         dObj.setObject(AllJavaTypes.FIELD_OBJECT, null);
-                        assertNull(dObj.getRealmObject(AllJavaTypes.FIELD_OBJECT));
+                        assertNull(dObj.getObject(AllJavaTypes.FIELD_OBJECT));
                         break;
                     case LIST:
                     case BOOLEAN:
@@ -248,7 +248,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     // List is not a simple getter, test separately.
     public void testGetList() {
-        DynamicRealmList list = dObj.getRealmList(AllJavaTypes.FIELD_LIST);
+        DynamicRealmList list = dObj.getList(AllJavaTypes.FIELD_LIST);
         assertEquals(1, list.size());
         assertEquals(dObj, list.get(0));
     }
