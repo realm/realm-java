@@ -24,6 +24,7 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
+import io.realm.internal.ColumnType;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -416,7 +417,43 @@ public class DynamicRealmObject {
 
     @Override
     public String toString() {
-        return super.toString(); // TODO How to iterate across all fields?
+        if (row == null || !row.isAttached()) {
+            return "Invalid object";
+        }
+        StringBuilder sb = new StringBuilder(row.getTable().getName() + " = [");
+        String[] fields = getFieldNames();
+        for (String field : fields) {
+            long columnIndex = row.getColumnIndex(field);
+            ColumnType type = row.getColumnType(columnIndex);
+            sb.append("{");
+            switch (type) {
+                case BOOLEAN: sb.append(field + ": " + row.getBoolean(columnIndex)); break;
+                case INTEGER: sb.append(field + ": " + row.getLong(columnIndex)); break;
+                case FLOAT: sb.append(field + ": " + row.getFloat(columnIndex)); break;
+                case DOUBLE: sb.append(field + ": " + row.getDouble(columnIndex)); break;
+                case STRING: sb.append(field + ": " + row.getString(columnIndex)); break;
+                case BINARY: sb.append(field + ": " + row.getBinaryByteArray(columnIndex)); break;
+                case DATE: sb.append(field + ": " + row.getDate(columnIndex)); break;
+                case LINK:
+                    if (row.isNullLink(columnIndex)) {
+                        sb.append("null");
+                    } else {
+                        sb.append(field + ": " + row.getTable().getLinkTarget(columnIndex).getName());
+                    }
+                    break;
+                case LINK_LIST:
+                    String targetType = row.getTable().getLinkTarget(columnIndex).getName();
+                    sb.append(String.format("%s: RealmList<%s>[%s]", field, targetType, row.getLinkList(columnIndex).size()));
+                    break;
+                case TABLE:
+                case MIXED:
+                default:
+                    sb.append(field + ": ?");
+            }
+            sb.append("}, ");
+        }
+        sb.replace(sb.length() - 2, sb.length(), "");
+        sb.append("]");
+        return sb.toString();
     }
-    
 }

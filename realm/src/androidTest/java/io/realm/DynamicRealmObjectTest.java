@@ -296,13 +296,23 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertTrue(dObj1.equals(dObj2));
     }
 
-    public void testHashcode() {
-        AllJavaTypes obj1 = realm.where(AllJavaTypes.class).findFirst();
-        DynamicRealmObject dObj1 = new DynamicRealmObject(realm, obj1.row);
-        assertEquals(obj1.hashCode(), dObj1.hashCode());
+    public void testStandardAndDynamicObjectsNotEqual() {
+        AllJavaTypes standardObj = realm.where(AllJavaTypes.class).findFirst();
+        assertFalse(dObj.equals(standardObj));
     }
 
+    public void testHashcode() {
+        AllJavaTypes standardObj = realm.where(AllJavaTypes.class).findFirst();
+        DynamicRealmObject dObj1 = new DynamicRealmObject(realm, standardObj.row);
+        assertEquals(standardObj.hashCode(), dObj1.hashCode());
+    }
+
+
     public void testToString() {
-        // TODO
+        // Check that toString() doesn't crash. And do simple formatting checks. We cannot compare to a set String as
+        // eg. the byte array will be allocated each time it is accessed.
+        String str = dObj.toString();
+        assertTrue(str.startsWith("class_AllJavaTypes = ["));
+        assertTrue(str.endsWith("}]"));
     }
 }
