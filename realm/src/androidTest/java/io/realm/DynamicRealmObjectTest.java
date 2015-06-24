@@ -51,7 +51,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         obj.setFieldDate(new Date(1000));
         obj.setFieldObject(obj);
         obj.getFieldList().add(obj);
-        dObj = new DynamicRealmObject(realm, obj.row);
+        dObj = new DynamicRealmObject(obj);
         realm.commitTransaction();
     }
 
@@ -147,7 +147,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     public void testGetterSettersXXX() {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
-        DynamicRealmObject dObj = new DynamicRealmObject(realm, obj.row);
+        DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
                 switch (type) {
@@ -206,7 +206,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     public void testSetXXXNullValues() {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
-        DynamicRealmObject dObj = new DynamicRealmObject(realm, obj.row);
+        DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
                 switch (type) {
@@ -237,8 +237,8 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
         Dog otherObj = realm.createObject(Dog.class);
-        DynamicRealmObject dynamicObj = new DynamicRealmObject(realm, obj.row);
-        DynamicRealmObject dynamicWrongType = new DynamicRealmObject(realm, otherObj.row);
+        DynamicRealmObject dynamicObj = new DynamicRealmObject(obj);
+        DynamicRealmObject dynamicWrongType = new DynamicRealmObject(otherObj);
         try {
             dynamicObj.setObject(AllJavaTypes.FIELD_OBJECT, dynamicWrongType);
             fail();
@@ -262,7 +262,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
         realm.commitTransaction();
 
-        assertTrue(new DynamicRealmObject(obj.realm, obj.row).isNull(AllJavaTypes.FIELD_OBJECT));
+        assertTrue(new DynamicRealmObject(obj).isNull(AllJavaTypes.FIELD_OBJECT));
     }
 
     public void testIsNullFalse() {
@@ -291,8 +291,8 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     public void testEquals() {
         AllJavaTypes obj1 = realm.where(AllJavaTypes.class).findFirst();
         AllJavaTypes obj2 = realm.where(AllJavaTypes.class).findFirst();
-        DynamicRealmObject dObj1 = new DynamicRealmObject(realm, obj1.row);
-        DynamicRealmObject dObj2 = new DynamicRealmObject(realm, obj2.row);
+        DynamicRealmObject dObj1 = new DynamicRealmObject(obj1);
+        DynamicRealmObject dObj2 = new DynamicRealmObject(obj2);
         assertTrue(dObj1.equals(dObj2));
     }
 
@@ -303,10 +303,9 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     public void testHashcode() {
         AllJavaTypes standardObj = realm.where(AllJavaTypes.class).findFirst();
-        DynamicRealmObject dObj1 = new DynamicRealmObject(realm, standardObj.row);
+        DynamicRealmObject dObj1 = new DynamicRealmObject(standardObj);
         assertEquals(standardObj.hashCode(), dObj1.hashCode());
     }
-
 
     public void testToString() {
         // Check that toString() doesn't crash. And do simple formatting checks. We cannot compare to a set String as

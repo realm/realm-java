@@ -18,6 +18,7 @@ package io.realm.dynamic;
 import java.util.Date;
 
 import io.realm.Realm;
+import io.realm.RealmObject;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
 import io.realm.internal.LinkView;
@@ -29,7 +30,7 @@ import io.realm.internal.UncheckedRow;
  * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
  * Using a DynamicRealmObject is slower than using the regular model class.
  */
-public class DynamicRealmObject {
+public class DynamicRealmObject extends RealmObject {
 
      Realm realm;
      Row row;
@@ -37,12 +38,19 @@ public class DynamicRealmObject {
     /**
      * Creates a dynamic Realm object based on a existing object.
      */
-    public DynamicRealmObject(Realm realm, Row row) {
-        if (row == null) {
-            throw new IllegalArgumentException("A row must be provided");
+    public DynamicRealmObject(RealmObject obj) {
+        Row row = RealmObject.getRow(obj);
+        if (obj == null || row == null) {
+            throw new IllegalArgumentException("A non-null object that is already in Realm must be provided");
         }
-        this.realm = realm;
+        this.realm = RealmObject.getRealm(obj);
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
+    }
+
+    // Create a dynamic object. Only used internally
+    DynamicRealmObject(Realm realm, CheckedRow row) {
+        this.realm = realm;
+        this.row = row;
     }
 
     /**
