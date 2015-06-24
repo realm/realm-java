@@ -336,10 +336,10 @@ public class RealmConfiguration {
         }
 
         /**
-         * Setting this will create an in-memory Realm instead of of saving it to disk. In-memory Realms might still use
-         * disk space if memory is running low, but all files created by a in-memory Realm will be deleted when the
+         * Setting this will create an in-memory Realm instead of saving it to disk. In-memory Realms might still use
+         * disk space if memory is running low, but all files created by an in-memory Realm will be deleted when the
          * Realm is closed.
-         * <p></p>
+         * <p>
          * Note that because in-memory Realms are not persisted, you must be sure to hold on to at least one non-closed
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */

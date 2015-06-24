@@ -15,6 +15,7 @@
  */
 package io.realm;
 
+import android.os.StrictMode;
 import android.test.AndroidTestCase;
 
 import java.io.File;
@@ -55,7 +56,14 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
     // Testing the in-memory Realm by Creating one instance, adding a record, then close the instance.
     // By the next time in-memory Realm instance with the same name created, it should be empty.
+    // Use StrictMode to check no disk IO would happen in VM to this thread.
     public void testInMemoryRealm() {
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .penaltyDeath()
+                .build());
+
         testRealm.beginTransaction();
         Dog dog = testRealm.createObject(Dog.class);
         dog.setName("DinoDog");
@@ -69,10 +77,12 @@ public class RealmInMemoryTest extends AndroidTestCase {
         // in-mem-realm with same identifier should create a fresh new instance.
         testRealm = Realm.getInstance(inMemConf);
         assertEquals(testRealm.allObjects(Dog.class).size(), 0);
+
+        StrictMode.enableDefaults();
     }
 
     // Two in-memory Realms with different names should not affect each other.
-    public void testInMemoryRealmWithDifferntNames() {
+    public void testInMemoryRealmWithDifferentNames() {
         testRealm.beginTransaction();
         Dog dog = testRealm.createObject(Dog.class);
         dog.setName("DinoDog");

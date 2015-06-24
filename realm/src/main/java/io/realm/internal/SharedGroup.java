@@ -40,7 +40,7 @@ public class SharedGroup implements Closeable {
         MEM_ONLY(1);
         //ASYNC(2); // TODO: re-enable when possible
 
-        int value;
+        final int value;
 
         Durability(int value) {
             this.value = value;
