@@ -107,12 +107,16 @@ public class RealmObjectSchema {
         return this;
     }
 
-
+    /**
+     * Adds a {@code int} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addInt(String fieldName) {
         return addInt(fieldName, Collections.EMPTY_SET);
     }
-
-
 
     /**
      * Adds a {@code int} field.
@@ -129,6 +133,13 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Adds a {@code long} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addLong(String fieldName) {
         return addLong(fieldName, Collections.EMPTY_SET);
     }
@@ -148,6 +159,13 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Adds a {@code boolean} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addBoolean(String fieldName) {
         return addBoolean(fieldName, Collections.EMPTY_SET);
     }
@@ -167,7 +185,13 @@ public class RealmObjectSchema {
         return this;
     }
 
-
+    /**
+     * Adds a {@code byte[]} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addByteArray(String fieldName) {
         return addByteArray(fieldName, Collections.EMPTY_SET);
     }
@@ -187,6 +211,13 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Adds a {@code float} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addFloat(String fieldName) {
         return addFloat(fieldName, Collections.EMPTY_SET);
     }
@@ -207,6 +238,13 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Adds a {@code double} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addDouble(String fieldName) {
         return addDouble(fieldName, Collections.EMPTY_SET);
     }
@@ -226,6 +264,13 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Adds a {@code Date} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addDate(String fieldName) {
         return addDate(fieldName, Collections.EMPTY_SET);
     }
@@ -370,6 +415,13 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Creates an object with default values. Classes with a primary key defined must use {@link #createObject(Object)}
+     * instead.
+     *
+     * @return The new object. All fields will have default values for their type.
+     * @throws IllegalStateException if the class have a primary key defined.
+     */
     public DynamicRealmObject createObject() {
         if (table.hasPrimaryKey()) {
             throw new IllegalStateException("Class requires a primary key value. Use createObject(primaryKeyValue) instead.");
@@ -378,6 +430,15 @@ public class RealmObjectSchema {
         return new DynamicRealmObject(realm, table.getCheckedRow(rowIndex));
     }
 
+    /**
+     * Creates an object with a given primary key. Classes without a primary key defined must use {@link #createObject()}
+     * instead.
+     *
+     * @return The new object. All fields will have default values for their type, except for the primary key field which
+     * will have the provided value.
+     * @throws IllegalArgumentException if the primary key value is of the wrong type.
+     * @throws IllegalStateException if the class doesn't have a primary key defined.
+     */
     public DynamicRealmObject createObject(Object primaryKeyValue) {
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return new DynamicRealmObject(realm, table.getCheckedRow(index));
