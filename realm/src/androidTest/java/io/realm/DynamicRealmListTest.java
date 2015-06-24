@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.realm;
 
 import android.test.AndroidTestCase;
@@ -38,19 +37,19 @@ public class DynamicRealmListTest extends AndroidTestCase {
         realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
-        obj.setColumnString("str");
-        obj.setColumnShort((short) 1);
-        obj.setColumnInt(1);
-        obj.setColumnLong(1);
-        obj.setColumnFloat(1.23f);
-        obj.setColumnDouble(1.234d);
-        obj.setColumnBinary(new byte[]{1, 2, 3});
-        obj.setColumnBoolean(true);
-        obj.setColumnDate(new Date(1000));
-        obj.setColumnObject(obj);
-        obj.getColumnList().add(obj);
+        obj.setFieldString("str");
+        obj.setFieldShort((short) 1);
+        obj.setFieldInt(1);
+        obj.setFieldLong(1);
+        obj.setFieldFloat(1.23f);
+        obj.setFieldDouble(1.234d);
+        obj.setFieldBinary(new byte[]{1, 2, 3});
+        obj.setFieldBoolean(true);
+        obj.setFieldDate(new Date(1000));
+        obj.setFieldObject(obj);
+        obj.getFieldList().add(obj);
         dynamicObject = new DynamicRealmObject(realm, obj.row);
-        dynamicList = dynamicObject.getRealmList("columnList");
+        dynamicList = dynamicObject.getList(AllJavaTypes.FIELD_LIST);
         realm.commitTransaction();
     }
 
@@ -65,7 +64,7 @@ public class DynamicRealmListTest extends AndroidTestCase {
         try {
             dynamicList.add(null);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
         }
@@ -77,13 +76,13 @@ public class DynamicRealmListTest extends AndroidTestCase {
         try {
             dynamicList.add(new DynamicRealmObject(realm, dog.row));
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
         }
     }
 
-    public void testAddWrongRealmThrows() {
+    public void testAddFromWrongRealmThrows() {
         RealmConfiguration otherConfig = new RealmConfiguration.Builder(getContext()).name("realm2").build();
         Realm.deleteRealm(otherConfig);
         Realm realm2 = Realm.getInstance(otherConfig);
@@ -95,7 +94,7 @@ public class DynamicRealmListTest extends AndroidTestCase {
         try {
             dynamicList.add(new DynamicRealmObject(realm2, realm2Object.row));
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
             realm2.close();
@@ -121,11 +120,11 @@ public class DynamicRealmListTest extends AndroidTestCase {
 
     public void testGetIllegalIndexThrows() {
         int[] indexes = new int[] { -1, 1 };
-        for (int i = 0; i < indexes.length; i++) {
+        for (int i : indexes) {
             try {
-                dynamicList.get(indexes[i]);
-                fail("Could retrieve from index" + indexes[i]);
-            } catch (IndexOutOfBoundsException expected){
+                dynamicList.get(i);
+                fail("Could retrieve from index" + i);
+            } catch (IndexOutOfBoundsException ignored) {
             }
         }
     }
@@ -137,11 +136,11 @@ public class DynamicRealmListTest extends AndroidTestCase {
 
     public void testSetIllegalLocationThrows() {
         int[] indexes = new int[] { -1, 1 };
-        for (int i = 0; i < indexes.length; i++) {
+        for (int i : indexes) {
             try {
-                dynamicList.set(indexes[i], dynamicObject);
-                fail("Could set index out of bounds " + indexes[i]);
-            } catch (IndexOutOfBoundsException expected){
+                dynamicList.set(i, dynamicObject);
+                fail("Could set index out of bounds " + i);
+            } catch (IndexOutOfBoundsException ignored) {
             }
         }
     }
@@ -151,19 +150,19 @@ public class DynamicRealmListTest extends AndroidTestCase {
         try {
             dynamicList.set(0, null);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
         }
     }
 
-    public void testSetInvalidTypeThrows() {
+    public void testSetWrongTableClassThrows() {
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         try {
             dynamicList.set(0, new DynamicRealmObject(realm, dog.row));
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
         }
@@ -181,7 +180,7 @@ public class DynamicRealmListTest extends AndroidTestCase {
         try {
             dynamicList.set(0, new DynamicRealmObject(realm2, realm2Object.row));
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
             realm2.close();
@@ -191,7 +190,7 @@ public class DynamicRealmListTest extends AndroidTestCase {
     public void testSet() {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
-        obj.setColumnLong(2);
+        obj.setFieldLong(2);
         dynamicList.set(0, new DynamicRealmObject(realm, obj.row));
         realm.commitTransaction();
 

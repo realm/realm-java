@@ -86,6 +86,7 @@ public class RealmMigrationTests extends AndroidTestCase {
                 .schemaVersion(2)
                 .schema(AllTypes.class, FieldOrder.class)
                 .build();
+        Realm.deleteRealm(newConfig);
         Realm newRealm = Realm.getInstance(newConfig);
         newRealm.close();
 

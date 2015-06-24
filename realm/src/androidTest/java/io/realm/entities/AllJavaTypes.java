@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,112 +26,125 @@ import io.realm.annotations.PrimaryKey;
 
 public class AllJavaTypes extends RealmObject{
 
-    @Ignore private String columnIgnored;
-    @Index private String columnString;
-    private short columnShort;
-    private int columnInt;
-    @PrimaryKey private long columnLong;
-    private float columnFloat;
-    private double columnDouble;
-    private boolean columnBoolean;
-    private Date columnDate;
-    private byte[] columnBinary;
-    private AllJavaTypes columnObject;
-    private RealmList<AllJavaTypes> columnList;
+    public static String FIELD_IGNORED = "fieldIgnored";
+    public static String FIELD_STRING = "fieldString";
+    public static String FIELD_SHORT = "fieldShort";
+    public static String FIELD_INT = "fieldInt";
+    public static String FIELD_LONG = "fieldLong";
+    public static String FIELD_FLOAT = "fieldFloat";
+    public static String FIELD_DOUBLE = "fieldDouble";
+    public static String FIELD_BOOLEAN = "fieldBoolean";
+    public static String FIELD_DATE = "fieldDate";
+    public static String FIELD_BINARY = "fieldBinary";
+    public static String FIELD_OBJECT = "fieldObject";
+    public static String FIELD_LIST = "fieldList";
 
-    public String getColumnIgnored() {
-        return columnIgnored;
+    @Ignore private String fieldIgnored;
+    @Index private String fieldString;
+    private short fieldShort;
+    private int fieldInt;
+    @PrimaryKey private long fieldLong;
+    private float fieldFloat;
+    private double fieldDouble;
+    private boolean fieldBoolean;
+    private Date fieldDate;
+    private byte[] fieldBinary;
+    private AllJavaTypes fieldObject;
+    private RealmList<AllJavaTypes> fieldList;
+
+    public String getFieldIgnored() {
+        return fieldIgnored;
     }
 
-    public void setColumnIgnored(String columnIgnored) {
-        this.columnIgnored = columnIgnored;
+    public void setFieldIgnored(String fieldIgnored) {
+        this.fieldIgnored = fieldIgnored;
     }
 
-    public String getColumnString() {
-        return columnString;
+    public String getFieldString() {
+        return fieldString;
     }
 
-    public void setColumnString(String columnString) {
-        this.columnString = columnString;
+    public void setFieldString(String fieldString) {
+        this.fieldString = fieldString;
     }
 
-    public short getColumnShort() {
-        return columnShort;
+    public short getFieldShort() {
+        return fieldShort;
     }
 
-    public void setColumnShort(short columnShort) {
-        this.columnShort = columnShort;
+    public void setFieldShort(short fieldShort) {
+        this.fieldShort = fieldShort;
     }
 
-    public int getColumnInt() {
-        return columnInt;
+    public int getFieldInt() {
+        return fieldInt;
     }
 
-    public void setColumnInt(int columnInt) {
-        this.columnInt = columnInt;
+    public void setFieldInt(int fieldInt) {
+        this.fieldInt = fieldInt;
     }
 
-    public long getColumnLong() {
-        return columnLong;
+    public long getFieldLong() {
+        return fieldLong;
     }
 
-    public void setColumnLong(long columnLong) {
-        this.columnLong = columnLong;
+    public void setFieldLong(long fieldLong) {
+        this.fieldLong = fieldLong;
     }
 
-    public float getColumnFloat() {
-        return columnFloat;
+    public float getFieldFloat() {
+        return fieldFloat;
     }
 
-    public void setColumnFloat(float columnFloat) {
-        this.columnFloat = columnFloat;
+    public void setFieldFloat(float fieldFloat) {
+        this.fieldFloat = fieldFloat;
     }
 
-    public double getColumnDouble() {
-        return columnDouble;
+    public double getFieldDouble() {
+        return fieldDouble;
     }
 
-    public void setColumnDouble(double columnDouble) {
-        this.columnDouble = columnDouble;
+    public void setFieldDouble(double fieldDouble) {
+        this.fieldDouble = fieldDouble;
     }
 
-    public boolean isColumnBoolean() {
-        return columnBoolean;
+    public boolean isFieldBoolean() {
+        return fieldBoolean;
     }
 
-    public void setColumnBoolean(boolean columnBoolean) {
-        this.columnBoolean = columnBoolean;
+    public void setFieldBoolean(boolean fieldBoolean) {
+        this.fieldBoolean = fieldBoolean;
     }
 
-    public Date getColumnDate() {
-        return columnDate;
+    public Date getFieldDate() {
+        return fieldDate;
     }
 
-    public void setColumnDate(Date columnDate) {
-        this.columnDate = columnDate;
+    public void setFieldDate(Date fieldDate) {
+        this.fieldDate = fieldDate;
     }
 
-    public byte[] getColumnBinary() {
-        return columnBinary;
+    public byte[] getFieldBinary() {
+        return fieldBinary;
     }
 
-    public void setColumnBinary(byte[] columnBinary) {
-        this.columnBinary = columnBinary;
+    public void setFieldBinary(byte[] fieldBinary) {
+        this.fieldBinary = fieldBinary;
     }
 
-    public AllJavaTypes getColumnObject() {
-        return columnObject;
+    public AllJavaTypes getFieldObject() {
+        return fieldObject;
     }
 
-    public void setColumnObject(AllJavaTypes columnRealmObject) {
-        this.columnObject = columnRealmObject;
+    public void setFieldObject(AllJavaTypes columnRealmObject) {
+        this.fieldObject = columnRealmObject;
     }
 
-    public RealmList<AllJavaTypes> getColumnList() {
-        return columnList;
+    public RealmList<AllJavaTypes> getFieldList() {
+        return fieldList;
     }
 
-    public void setColumnList(RealmList<AllJavaTypes> columnRealmList) {
-        this.columnList = columnRealmList;
+    public void setFieldList(RealmList<AllJavaTypes> columnRealmList) {
+        this.fieldList = columnRealmList;
     }
 }
