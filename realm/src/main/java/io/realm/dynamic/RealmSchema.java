@@ -23,7 +23,7 @@ import io.realm.internal.Table;
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
- * to add, delete and change the types of RealmObjects known to this Realm.
+ * to add, delete and change the classes in the Relm.
  *
  * All changes must happen inside a write transaction for that Realm.
  *
@@ -45,7 +45,7 @@ public class RealmSchema {
     }
 
     /**
-     * Returns the RealmClass schema for a given class.
+     * Returns the Realm schema for a given class.
      *
      * @param className Name of the class
      * @return Schema object for that class
@@ -65,7 +65,7 @@ public class RealmSchema {
      * Add a new class to the Realm.
      *
      * @param className Name of the class.
-     * @return A schema object for that class.
+     * @return A Realm schema object for that class.
      */
     public RealmObjectSchema addClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);

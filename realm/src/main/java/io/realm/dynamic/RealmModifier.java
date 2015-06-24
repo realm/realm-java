@@ -16,6 +16,35 @@
 
 package io.realm.dynamic;
 
+/**
+ * This class contains all modifiers for a Realm field.
+ * These will usually match the annotations found in the {@code io.realm.annotation} package. See the relevant
+ * annotation for further information on each modifier.
+ */
 public enum RealmModifier {
-    INDEXED, PRIMARY_KEY
+    /**
+     * Mark a field as index.
+     * @see io.realm.annotations.Index
+     */
+    INDEXED,
+
+    /**
+     * Mark a field as a primary key.
+     * @see io.realm.annotations.PrimaryKey
+     */
+    PRIMARY_KEY,
+
+    /**
+     * Mark a field as explicitly being able to contain {@code null} values. The default behavior for
+     * allowing {@code null} depends on the type of the field.
+     * @see io.realm.NonNullable
+     */
+    NULLABLE,
+
+    /**
+     * Mark a field as explicitly not allowing null values. The default behavior for allowing {@code
+     * null} depends on the type of the field.
+     * @see io.realm.NonNullable
+     */
+    NON_NULLABLE
 }

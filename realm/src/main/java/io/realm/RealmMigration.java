@@ -29,18 +29,17 @@ import io.realm.dynamic.RealmSchema;
  * <pre>
  * public class CustomMigration implements RealmMigration {
  *   \@Override
- *   public long execute(Realm realm, long schemaVersion) {
- *     if (schemaVersion == 0) {
+ *   public long execute(RealmSchema schema, long oldVersion, long newVersion) {
+
+ *     if (oldVersion == 0) {
  *       // Migrate from v0 to v1
- *       schemaVersion++;
+ *       oldVersion++;
  *     }
  *
- *     if (schemaVersion == 0) {
- *       // Migrate from v0 to v1
- *       schemaVersion++;
+ *     if (oldVersion == 1) {
+ *       // Migrate from v1 to v2
+ *       oldVersion++;
  *     }
- *
- *     return schemaVersion;
  *   }
  * }
  * </pre>
@@ -49,18 +48,19 @@ import io.realm.dynamic.RealmSchema;
  * {@link io.realm.Realm#deleteRealmFile(android.content.Context)}. This will delete the database
  * file and eliminate the need for any migrations.
  *
- * @see Realm#migrateRealmAtPath(String, byte[], RealmMigration)
- * @see Realm#migrateRealmAtPath(String, RealmMigration)
+ * @see io.realm.RealmConfiguration.Builder#schemaVersion(int)
+ * @see io.realm.RealmConfiguration.Builder#migration(RealmMigration)
+ * @see io.realm.RealmConfiguration.Builder#deleteRealmIfMigrationNeeded()
  */
 public interface RealmMigration {
 
     /**
      * Implement this method in your subclass to perform a migration.
      *
-     * @param realm The Realm on which to perform the migration.
-     * @param oldVersion The scheam version of the Realm at the start of the migration.
+     * @param schema The Realm schema on which to perform the migration.
+     * @param oldVersion The schema version of the Realm at the start of the migration.
      * @param newVersion The schema version of the Realm after executing the migration.
      */
-    public void migrate(RealmSchema schema, long oldVersion, long newVersion);
+    void migrate(RealmSchema schema, long oldVersion, long newVersion);
 }
 

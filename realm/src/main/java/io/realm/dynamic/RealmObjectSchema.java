@@ -19,6 +19,7 @@ package io.realm.dynamic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
 import io.realm.Realm;
@@ -52,14 +53,25 @@ public class RealmObjectSchema {
         this.table = table;
     }
 
-    private String getClassName() {
-        return table.getName().substring(TABLE_PREFIX.length());
-    }
-
+    /**
+     * Adds a {@code String} field that is allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addString(String fieldName) {
         return addString(fieldName, Collections.EMPTY_SET);
     }
 
+    /**
+     * Adds a {@code String} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addString(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
@@ -68,11 +80,26 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Adds a {@code short} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addShort(String fieldName) {
         checkEmpty(fieldName);
         return addShort(fieldName, Collections.EMPTY_SET);
     }
 
+    /**
+     * Adds a {@code short} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addShort(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
@@ -80,10 +107,21 @@ public class RealmObjectSchema {
         return this;
     }
 
+
     public RealmObjectSchema addInt(String fieldName) {
         return addInt(fieldName, Collections.EMPTY_SET);
     }
 
+
+
+    /**
+     * Adds a {@code int} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addInt(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
@@ -95,6 +133,14 @@ public class RealmObjectSchema {
         return addLong(fieldName, Collections.EMPTY_SET);
     }
 
+    /**
+     * Adds a {@code long} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addLong(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
@@ -106,6 +152,14 @@ public class RealmObjectSchema {
         return addBoolean(fieldName, Collections.EMPTY_SET);
     }
 
+    /**
+     * Adds a {@code boolean} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addBoolean(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.BOOLEAN, fieldName);
@@ -113,10 +167,19 @@ public class RealmObjectSchema {
         return this;
     }
 
+
     public RealmObjectSchema addByteArray(String fieldName) {
         return addByteArray(fieldName, Collections.EMPTY_SET);
     }
 
+    /**
+     * Adds a {@code byte[]} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addByteArray(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.BINARY, fieldName);
@@ -128,6 +191,15 @@ public class RealmObjectSchema {
         return addFloat(fieldName, Collections.EMPTY_SET);
     }
 
+
+    /**
+     * Adds a {@code float} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addFloat(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.FLOAT, fieldName);
@@ -139,6 +211,14 @@ public class RealmObjectSchema {
         return addDouble(fieldName, Collections.EMPTY_SET);
     }
 
+    /**
+     * Adds a {@code double} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addDouble(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.DOUBLE, fieldName);
@@ -150,6 +230,14 @@ public class RealmObjectSchema {
         return addDate(fieldName, Collections.EMPTY_SET);
     }
 
+    /**
+     * Adds a {@code Date} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
     public RealmObjectSchema addDate(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.DATE, fieldName);
@@ -157,18 +245,41 @@ public class RealmObjectSchema {
         return this;
     }
 
-    public RealmObjectSchema addObject(String fieldName, RealmObjectSchema schema) {
+    /**
+     * Adds a field that links to another Realm object.
+     *
+     * @param fieldName Name of field to add.
+     * @param objectSchema {@link RealmObjectSchema} for the object to link to.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
+    public RealmObjectSchema addObject(String fieldName, RealmObjectSchema objectSchema) {
         checkEmpty(fieldName);
-        table.addColumnLink(ColumnType.LINK, fieldName, transaction.getTable(TABLE_PREFIX + schema.getClassName()));
+        table.addColumnLink(ColumnType.LINK, fieldName, transaction.getTable(TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 
-    public RealmObjectSchema addList(String fieldName, RealmObjectSchema schema) {
+    /**
+     * Adds a field that links to a {@link io.realm.RealmList} of other Realm objects.
+     *
+     * @param fieldName Name of field to add
+     * @param objectSchema {@link RealmObjectSchema} for the object to link to.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
+    public RealmObjectSchema addList(String fieldName, RealmObjectSchema objectSchema) {
         checkEmpty(fieldName);
-        table.addColumnLink(ColumnType.LINK_LIST, fieldName, transaction.getTable(TABLE_PREFIX + schema.getClassName()));
+        table.addColumnLink(ColumnType.LINK_LIST, fieldName, transaction.getTable(TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 
+    /**
+     * Removes a field from the class.
+     *
+     * @param fieldName Field name to remove
+     * @return The updated schema
+     * @throws IllegalArgumentException if field name doesn't exists.
+     */
     public RealmObjectSchema removeField(String fieldName) {
         checkEmpty(fieldName);
         long columnIndex = getColumnIndex(fieldName);
@@ -176,16 +287,33 @@ public class RealmObjectSchema {
         return this;
     }
 
-    public RealmObjectSchema renameField(String oldFieldName, String newFieldName) {
-        checkEmpty(oldFieldName);
-        checkFieldExists(oldFieldName);
+    /**
+     * Renames a field from one name to another.
+     *
+     * @param currentFieldName Field name to rename.
+     * @param newFieldName The new field name.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name doesn't exists or if the new field name already
+     * exists.
+     */
+    public RealmObjectSchema renameField(String currentFieldName, String newFieldName) {
+        checkEmpty(currentFieldName);
+        checkFieldExists(currentFieldName);
         checkEmpty(newFieldName);
         checkFieldNameIsAvailable(newFieldName);
-        long columnIndex = getColumnIndex(oldFieldName);
+        long columnIndex = getColumnIndex(currentFieldName);
         table.renameColumn(columnIndex, newFieldName);
         return this;
     }
 
+    /**
+     * Adds a index to a given field. This is the same as adding the {@code @Index} annotation on the field.
+     *
+     * @param fieldName Field to add name to rename.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name doesn't exists, the field cannot be indexed or it already has a
+     * index defined.
+     */
     public RealmObjectSchema addIndex(String fieldName) {
         checkEmpty(fieldName);
         checkFieldExists(fieldName);
@@ -194,6 +322,13 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Removes an index from a given field. This is the same as removing the {@code @Index} annotation on the field.
+     *
+     * @param fieldName Field to remove index from.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name doesn't exists or the field doesn't have an index.
+     */
     public RealmObjectSchema removeIndex(String fieldName) {
         checkEmpty(fieldName);
         checkFieldExists(fieldName);
@@ -205,6 +340,14 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Adds a primary key to a given field. This is the same as adding the {@code @PrimaryKey} annotation on the field.
+     *
+     * @param fieldName Field to add name to rename.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name doesn't exists, the field cannot be a primary key or it already
+     * has a primary key defined.
+     */
     public RealmObjectSchema addPrimaryKey(String fieldName) {
         checkEmpty(fieldName);
         checkFieldExists(fieldName);
@@ -212,6 +355,13 @@ public class RealmObjectSchema {
         return this;
     }
 
+    /**
+     * Removes the primary key from this class. This is the same as removing the {@code @PrimaryKey} annotation from the
+     * class.
+     *
+     * @return The updated schema.
+     * @throws IllegalArgumentException if the class doesn't have a primary key defined.
+     */
     public RealmObjectSchema removePrimaryKey() {
         if (!table.hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
@@ -225,20 +375,15 @@ public class RealmObjectSchema {
             throw new IllegalStateException("Class requires a primary key value. Use createObject(primaryKeyValue) instead.");
         }
         long rowIndex = table.addEmptyRow();
-        return new DynamicRealmObject(realm, table.getRow(rowIndex));
+        return new DynamicRealmObject(realm, table.getCheckedRow(rowIndex));
     }
 
-//    TODO Require merge of primary key fix which adds support for this
-//    public DynamicRealmObject createObject(Object primaryKeyValue) {
-//        table.
-//        return null;
-//    }
-
-    public RealmObjectSchema forEach(Iterator iterator) {
-        return this;
+    public DynamicRealmObject createObject(Object primaryKeyValue) {
+        long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
+        return new DynamicRealmObject(realm, table.getCheckedRow(index));
     }
 
-    public void setModifiers(long columnIndex, Set<RealmModifier> modifiers) {
+    private void setModifiers(long columnIndex, Set<RealmModifier> modifiers) {
         if (modifiers != null && modifiers.size() > 0) {
             if (modifiers.contains(RealmModifier.INDEXED)) {
                 table.addSearchIndex(columnIndex);
@@ -279,18 +424,7 @@ public class RealmObjectSchema {
         return columnIndex;
     }
 
-    /**
-     * Iterator used to traverse all objects with a given schema.
-     * Objects are unsorted.
-     */
-    public interface Iterator {
-        /**
-         * Manipulate a given RealmObject. Due to the nature of objects being volatile during migrations, these objects
-         * are not typed but are instead manipulated using a dynamic API, i.e. all fields must accessed using their
-         * string representation.
-         *
-         * @param object {@link DynamicRealmObject} representation of a particular object.
-         */
-        void next(DynamicRealmObject object);
+    private String getClassName() {
+        return table.getName().substring(TABLE_PREFIX.length());
     }
 }
