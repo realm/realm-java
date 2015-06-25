@@ -108,7 +108,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
         file_name = StringData(file_name_tmp);
         KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-        std::unique_ptr<ClientHistory> hist = make_client_history(file_name, false, key.data());
+        std::unique_ptr<ClientHistory> hist = make_client_history(file_name, key.data());
 #else
         std::unique_ptr<ClientHistory> hist = make_client_history(file_name);
 #endif
