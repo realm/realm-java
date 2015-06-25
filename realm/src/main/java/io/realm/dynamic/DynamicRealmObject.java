@@ -33,7 +33,7 @@ import io.realm.internal.UncheckedRow;
 public class DynamicRealmObject extends RealmObject {
 
      Realm realm;
-     Row row;
+     CheckedRow row;
 
     /**
      * Creates a dynamic Realm object based on a existing object.
