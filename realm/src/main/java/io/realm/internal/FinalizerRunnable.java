@@ -37,8 +37,9 @@ public class FinalizerRunnable implements Runnable {
     static final ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
 
 
-@Override
+    @Override
     public void run() {
+
         NativeObjectReference reference;
         while (true) {
             try {

@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
 import org.json.JSONArray;
@@ -25,10 +26,13 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.Reference;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -36,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -53,6 +58,7 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
+import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -1672,5 +1678,45 @@ public class RealmTest extends AndroidTestCase {
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
+    }
+
+    // Check that FinalizerRunnable can free native resources (phantom refs)
+    public void testFinalizerThread() throws NoSuchFieldException, IllegalAccessException {
+        Field fieldReferences = FinalizerRunnable.class.getDeclaredField("references");
+        fieldReferences.setAccessible(true);
+        Map<Reference<?>, Boolean> references = (Map<Reference<?>, Boolean>) fieldReferences.get(null);
+        assertNotNull(references);
+
+        Field fieldIsFinalizerStarted = Realm.class.getDeclaredField("isFinalizerStarted");
+        fieldIsFinalizerStarted.setAccessible(true);
+        boolean isFinalizerStarted = fieldIsFinalizerStarted.getBoolean(null);
+        assertTrue(isFinalizerStarted);
+
+        //insert some rows, then give the FinalizerRunnable some time to cleanup
+        // we have 8 reference so far let's add more
+        final int numberOfPopulateTest = 10000;
+        final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
+
+        for (int i = 0; i < numberOfPopulateTest; i++) {
+            populateTestRealm(testRealm, 20);
+        }
+
+        final int MAX_GC_RETRIES = 5;
+        int numberOfRetries = 0;
+        while (references.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
+            SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
+            numberOfRetries++;
+            System.gc();
+        }
+
+        // we can't guarantee that all references have been GC'd but we should detect a decrease
+        boolean isDecreasing = references.size() < totalNumberOfReferences;
+        if (!isDecreasing) {
+            fail("FinalizerRunnable is not closing all native resources");
+
+        } else {
+            android.util.Log.d(RealmTest.class.getName(), "FinalizerRunnable freed : "
+                    + (totalNumberOfReferences - references.size()) + " out of " + totalNumberOfReferences);
+        }
     }
 }

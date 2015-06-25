@@ -1,3 +1,6 @@
+0.81.1
+ * Fixed memory leak causing Realm to never release Realm objects.
+
 0.81
  * Introduced RealmModules for working with custom schemas in libraries and apps.
  * Introduced Realm.getDefaultInstance(), Realm.setDefaultInstance(RealmConfiguration) and Realm.getInstance(RealmConfiguration).
