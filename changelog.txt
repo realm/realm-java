@@ -1,5 +1,5 @@
 0.82
- * Added in-memory Realm suport.
+ * Added in-memory Realm support.
 
 0.81.1
  * Fixed memory leak causing Realm to never release Realm objects.

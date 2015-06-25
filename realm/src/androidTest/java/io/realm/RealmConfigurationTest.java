@@ -370,4 +370,18 @@ public class RealmConfigurationTest extends AndroidTestCase {
             realm1.close();
         }
     }
+
+    // It is allowed to create multiple Realm with same name but in different directory
+    public void testDifferentDirSameName() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext().getCacheDir()).build();
+
+        Realm.deleteRealm(config1);
+        Realm.deleteRealm(config2);
+
+        Realm realm1 = Realm.getInstance(config1);
+        Realm realm2 = Realm.getInstance(config2);
+        realm1.close();
+        realm2.close();
+    }
 }

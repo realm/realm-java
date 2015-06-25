@@ -664,7 +664,7 @@ public final class Realm implements Closeable {
             SharedGroup.Durability newDurability = newConfiguration.getDurability();
             if (!cachedDurability.equals(newDurability)) {
                 throw new IllegalArgumentException("A Realm cannot be both in-memory and persisted. Two conflicting " +
-                        "configurations pointing to " + newConfiguration.getRealmFileName() + " are being used.");
+                        "configurations pointing to " + newConfiguration.getPath() + " are being used.");
             }
         }
 
