@@ -1177,23 +1177,26 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
-  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit)
   {
       try {
-          // the background SharedGroup is already positioned at the same version as the caller's SharedGroup
-          Query* pQuery = Q(nativeQueryPtr);
+           // cast the pointer
+           SharedGroup::Handover<Query>* handoverQuery = reinterpret_cast<SharedGroup::Handover<Query>*>(handoverQueryPtr);
+
+          // import the handover query pointer using the background SharedGroup
+          Query* pQuery (SG(bgSharedGroupPtr)->import_from_handover(handoverQuery));
           Table* pTable = pQuery->get_table().get();
 
           if (!QUERY_VALID(env, pQuery) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-            return -1;
+              return -1;
 
-          TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
-          SharedGroup::Handover<TableView>* handover = SG(bgSharedGroupPtr)->export_for_handover(*pResultView, MutableSourcePayload::Move);
+            // run the query
+            TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
 
-          //will allow the reuse of this background SharedGroup (another query *in the same thread* may call begin_read with a different version)
-          SG(bgSharedGroupPtr)->end_read();
+            // handover the result
+            SharedGroup::Handover<TableView>* handover = SG(bgSharedGroupPtr)->export_for_handover(*pResultView, MutableSourcePayload::Move);
 
-          return reinterpret_cast<jlong>(handover);
+            return reinterpret_cast<jlong>(handover);
 
       } CATCH_STD()
       return -1;
@@ -1204,13 +1207,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_importHandoverTableVie
   {
     SharedGroup::Handover<TableView>* handover = reinterpret_cast<SharedGroup::Handover<TableView>*>(handoverPtr);
     try {
-        //import_from_handover will free (delete) the handover
+        // import_from_handover will free (delete) the handover
         TableView* tv(SG(callerSharedGrpPtr)->import_from_handover(handover));
 
         return reinterpret_cast<jlong>(tv);
 
     } catch (SharedGroup::UnreachableVersion& e) {
-        ThrowException(env, UnreachableVersion, " please retry");
+        ThrowException(env, UnreachableVersion, " import handover failed");
 
     } catch (...) {
        ConvertException(env, __FILE__, __LINE__);
@@ -1218,3 +1221,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_importHandoverTableVie
     }
     return -1;
   }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
+   (JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong nativeQueryPtr)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return -1;
+    try {
+        SharedGroup::Handover<Query>* handover = SG(bgSharedGroupPtr)->export_for_handover(*pQuery, MutableSourcePayload::Move);
+        return reinterpret_cast<jlong>(handover);
+    } CATCH_STD()
+}

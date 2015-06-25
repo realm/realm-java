@@ -58,12 +58,11 @@ import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
-import io.realm.internal.android.AsyncRealmQuery;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
@@ -1203,20 +1202,6 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Prepare an async query
-     * TODO point to documentation or example about async query
-     * @param clazz The class of the object which is to be queried for
-     * @param callback Communicates results of this asynchronous query
-     * @return A typed RealmQuery, which can be used to query for specific objects of this type
-     * @throws java.lang.RuntimeException Any other error
-     * @see io.realm.RealmQuery
-     */
-    public <E extends RealmObject> AsyncRealmQuery<E> findAsync(Class<E> clazz, QueryCallback<E> callback) {
-        checkIfValid();
-        return new AsyncRealmQuery<E>(this, clazz, callback);
-    }
-
-    /**
      * Get all objects of a specific Class. If no objects exist, the returned RealmResults will not
      * be null. The RealmResults.size() to check the number of objects instead.
      *
@@ -1931,12 +1916,4 @@ public final class Realm implements Closeable {
     public void setSharedGroupAtVersion(long[] callerSharedGroupVersion) {
         sharedGroup.beginReadAtVersionID(callerSharedGroupVersion);
     }
-
-    // needed to be able to reuse the same SharedGroup across different queries
-    // otherwise we gonna receive an exception 'Table is no longer valid to operate on'
-    // because the cached pointer (for the cached Table) may not still be valid
-    public void resetTableCache () {
-        classToTable.clear();
-    }
-
 }

@@ -519,6 +519,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeHandoverQuery
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
+  (JNIEnv *, jobject, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

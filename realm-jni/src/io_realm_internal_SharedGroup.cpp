@@ -19,7 +19,6 @@
 #include "util.hpp"
 
 #include <realm/group_shared.hpp>
-#include <realm/replication.hpp>
 #include <realm/commit_log.hpp>
 
 #include "util.hpp"
@@ -87,9 +86,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
     try {
         KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), SharedGroup::durability_Full, key.data());
+        SharedGroup* db = new SharedGroup(*CH(native_replication_ptr), SharedGroup::durability_Full, key.data());
 #else
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr));
+        SharedGroup* db = new SharedGroup(*CH(native_replication_ptr));
 #endif
 
         return reinterpret_cast<jlong>(db);
@@ -109,11 +108,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
         file_name = StringData(file_name_tmp);
         KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-        std::unique_ptr<Replication> repl = makeWriteLogCollector(file_name, false, key.data());
+        std::unique_ptr<ClientHistory> hist = make_client_history(file_name, false, key.data());
 #else
-        std::unique_ptr<Replication> repl = makeWriteLogCollector(file_name);
+        std::unique_ptr<ClientHistory> hist = make_client_history(file_name);
 #endif
-        return reinterpret_cast<jlong>(repl.release());
+        return reinterpret_cast<jlong>(hist.release());
     }
     CATCH_FILE(file_name)
     CATCH_STD()
@@ -133,21 +132,21 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
-(JNIEnv *env, jobject, jlong native_ptr)
+(JNIEnv *env, jobject, jlong native_ptr, jlong native_replication_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
-        LangBindHelper::advance_read( *SG(native_ptr) );
+        LangBindHelper::advance_read( *SG(native_ptr), *CH(native_replication_ptr) );
     }
     CATCH_STD()
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
-  (JNIEnv *env, jobject, jlong native_ptr)
+  (JNIEnv *env, jobject, jlong native_ptr, jlong native_replication_ptr)
 {
     TR_ENTER_PTR(native_ptr) 
     try {
-        LangBindHelper::promote_to_write( *SG(native_ptr) );
+        LangBindHelper::promote_to_write( *SG(native_ptr), *CH(native_replication_ptr) );
     }
     CATCH_STD()
 }
@@ -166,7 +165,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
   (JNIEnv *, jobject, jlong native_replication_ptr)
 {
     TR_ENTER_PTR(native_replication_ptr)
-    delete reinterpret_cast<Replication*>(native_replication_ptr);
+    delete CH(native_replication_ptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose(
@@ -237,10 +236,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollback(
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndContinueAsRead(
-    JNIEnv *, jobject, jlong native_ptr)
+    JNIEnv *, jobject, jlong native_ptr, jlong native_replication_ptr)
 {
     TR_ENTER_PTR(native_ptr)
-    LangBindHelper::rollback_and_continue_as_read(*SG(native_ptr));
+    LangBindHelper::rollback_and_continue_as_read(*SG(native_ptr), *CH(native_replication_ptr));
 }
 
 
@@ -281,18 +280,25 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact(
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeBeginReadAtVersionID
-  (JNIEnv *env, jobject, jlong native_ptr, jlongArray arr)
+  (JNIEnv *env, jobject, jlong native_ptr, jlongArray versionData)
   {
+    // begin_read is not guarantee to succeed, because the version specified
+    // may no longer be available. (will throw an UnreachableVersion)
     TR_ENTER()
+    try {
+        // When opening a Realm, we start implicitly a read transaction
+        // we need to close it before calling begin_read
+        SG(native_ptr)->end_read();
 
-    jlong *data = env->GetLongArrayElements(arr, 0);
+        jlong *versionArray = env->GetLongArrayElements(versionData, 0);
+        SharedGroup::VersionID versionID(static_cast<uint_fast64_t> (versionArray[0]), static_cast<uint_fast32_t> (versionArray[1]));
+        env->ReleaseLongArrayElements(versionData, versionArray, 0);
 
-    SharedGroup::VersionID versionID(static_cast<uint_fast64_t> (data[0]), static_cast<uint_fast32_t> (data[1]));
+        SG(native_ptr)->begin_read(versionID); // throws
 
-    SG(native_ptr)->begin_read(versionID);
-
-    env->ReleaseLongArrayElements(arr, data, 0);
-
+    } catch (SharedGroup::UnreachableVersion& e) {
+       ThrowException(env, UnreachableVersion, " begin_read failed");
+    }
   }
 
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
@@ -302,12 +308,12 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersion
 
       SharedGroup::VersionID versionID = SG(native_ptr)->get_version_of_current_transaction();
 
-      jlong data [2];
-      data[0] = static_cast<jlong>(versionID.version);
-      data[1] = static_cast<jlong>(versionID.index);
+      jlong versionArray [2];
+      versionArray[0] = static_cast<jlong>(versionID.version);
+      versionArray[1] = static_cast<jlong>(versionID.index);
 
-      jlongArray result = env->NewLongArray(2);
-      env->SetLongArrayRegion(result, 0, 2, data);
+      jlongArray versionData = env->NewLongArray(2);
+      env->SetLongArrayRegion(versionData, 0, 2, versionArray);
 
-      return result;
+      return versionData;
   }

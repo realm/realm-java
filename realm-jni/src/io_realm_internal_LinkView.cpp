@@ -157,11 +157,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
   (JNIEnv *env, jobject, jlong nativeLinkViewPtr)
 {
     TR_ENTER_PTR(nativeLinkViewPtr)
-    try {
-        LinkView *lv = LV(nativeLinkViewPtr); 
-        Query query = lv->get_target_table().where(lv);
-        TableQuery* queryPtr = new TableQuery(query);
-        return reinterpret_cast<jlong>(queryPtr);
-    } CATCH_STD()
+//    try {
+//        LinkView *lv = LV(nativeLinkViewPtr);
+//        Query query = lv->get_target_table().where(lv);
+//        TableQuery* queryPtr = new TableQuery(query);
+//        return reinterpret_cast<jlong>(queryPtr);
+//    } CATCH_STD()
     return 0;
 }

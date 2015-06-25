@@ -43,6 +43,7 @@ public class FinalizerRunnable implements Runnable {
         while (true) {
             try {
                 reference = (NativeObjectReference) referenceQueue.remove();
+                references.remove(reference);
                 UncheckedRow.nativeClose(reference.nativePointer);
             } catch (InterruptedException e) {
                 //restore interrupted exception

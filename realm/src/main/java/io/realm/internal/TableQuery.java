@@ -504,6 +504,21 @@ public class TableQuery implements Closeable {
 
     }
 
+    /**
+     * This will use the background shared group to import the query pointer from the handover one
+     * then run the query and export the table view result with handover
+     * @param bgSharedGroupPtr Background shared group native pointer
+     * @param ptrQuery handover pointer to the query (coming from the caller SharedGroup)
+     * @return handover pointer to the table view results
+     */
+    public long findAllWithHandover(long bgSharedGroupPtr, long ptrQuery) {
+        validateQuery();
+
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();// TODO bottleneck. when freeing tables become thread safe in core use FinalizerRunnable
+        return nativeFindAllWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE);
+    }
+
     // Suppose to be called from the caller SharedGroup thread
     public TableView importHandoverTableView(long handoverPtr, long callerSharedGroupPtr) {
         long nativeTvPtr = 0;
@@ -518,9 +533,19 @@ public class TableQuery implements Closeable {
         }
     }
 
+    /**
+     * Handover the query, so it can be used by other SharedGroup (in different thread)
+     * @param callerSharedGroupPtr native pointer to the SharedGroup holding the query
+     * @return native pointer to the handover query
+     */
+    public long handoverQuery(long callerSharedGroupPtr) {
+        return nativeHandoverQuery(callerSharedGroupPtr, nativePtr);
+    }
+
     private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
     private native long nativeFindAllWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit);
-    private native long importHandoverTableViewIntoSharedGroup (long handoverTableViewPtr, long callerSharedGroupPtr);
+    private native long importHandoverTableViewIntoSharedGroup(long handoverTableViewPtr, long callerSharedGroupPtr);
+    private native long nativeHandoverQuery(long callerSharedGroupPtr, long nativeQueryPtr);
     //
     // Aggregation methods
     //

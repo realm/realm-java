@@ -101,6 +101,7 @@ std::string num_to_string(T pNumber)
 #define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
+#define CH(ptr) reinterpret_cast<realm::ClientHistory*>(ptr)
 
 // Exception handling
 
@@ -225,7 +226,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     bool valid = (objPtr != NULL);
     if (valid) {
         // Check if Table is valid
-        if (realm::util::SameType<realm::Table, T>::value) {
+        if (std::is_same<realm::Table, T>::value) {
             valid = TBL(objPtr)->is_attached();
         }
         // TODO: Add check for TableView
@@ -309,7 +310,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=fa
 template <class T>
 inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
-    if (realm::util::SameType<realm::Table, T>::value) {
+    if (std::is_same<realm::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
@@ -334,7 +335,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 template <class T>
 inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
-    if (realm::util::SameType<realm::Table, T>::value) {
+    if (std::is_same<realm::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
