@@ -19,7 +19,6 @@ package io.realm.dynamic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Set;
 
 import io.realm.Realm;
@@ -36,7 +35,7 @@ import io.realm.internal.TableOrView;
  *
  * @see io.realm.RealmMigration
  */
-public class RealmObjectSchema {
+public final class RealmObjectSchema {
 
     private static final String TABLE_PREFIX = "class_";
     private final Realm realm;
@@ -45,6 +44,8 @@ public class RealmObjectSchema {
 
     /**
      * Creates a schema object for a given Realm class.
+     * @param realm Realm holding the objects.
+     * @param transaction Transaction object for the current Realm.
      * @param table Table representation of the Realm class
      */
     RealmObjectSchema(Realm realm, ImplicitTransaction transaction, Table table) {
@@ -160,6 +161,33 @@ public class RealmObjectSchema {
     }
 
     /**
+     * Adds a {@code byte} field that is not allowed to contain {@code null} values.
+     *
+     * @param fieldName Name of field to add
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
+    public RealmObjectSchema addByte(String fieldName) {
+        return addByte(fieldName, Collections.EMPTY_SET);
+    }
+
+    /**
+     * Adds a {@code byte} field.
+     *
+     * @param fieldName Name of field to add
+     * @param modifiers Set of modifiers for this field.
+     * @return The updated schema.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
+     */
+    public RealmObjectSchema addByte(String fieldName, Set<RealmModifier> modifiers) {
+        checkEmpty(fieldName);
+        long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
+        setModifiers(columnIndex, modifiers);
+        return this;
+    }
+
+
+    /**
      * Adds a {@code boolean} field that is not allowed to contain {@code null} values.
      *
      * @param fieldName Name of field to add
@@ -192,8 +220,8 @@ public class RealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addByteArray(String fieldName) {
-        return addByteArray(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addBlob(String fieldName) {
+        return addBlob(fieldName, Collections.EMPTY_SET);
     }
 
     /**
@@ -204,7 +232,7 @@ public class RealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addByteArray(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addBlob(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
         long columnIndex = table.addColumn(ColumnType.BINARY, fieldName);
         setModifiers(columnIndex, modifiers);

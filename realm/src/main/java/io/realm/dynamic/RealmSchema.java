@@ -29,7 +29,7 @@ import io.realm.internal.Table;
  *
  * @see io.realm.RealmMigration
  */
-public class RealmSchema {
+public final class RealmSchema {
 
     private static final String TABLE_PREFIX = "class_"; // TODO Move to JNI Object store layer
     public static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
