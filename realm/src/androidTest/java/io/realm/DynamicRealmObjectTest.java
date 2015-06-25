@@ -44,6 +44,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         obj.setFieldShort((short) 1);
         obj.setFieldInt(1);
         obj.setFieldLong(1);
+        obj.setFieldByte((byte) 4);
         obj.setFieldFloat(1.23f);
         obj.setFieldDouble(1.234d);
         obj.setFieldBinary(new byte[]{1, 2, 3});
@@ -62,7 +63,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     }
 
     public enum SupportedType {
-        BOOLEAN, SHORT, INT, LONG, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, LIST;
+        BOOLEAN, SHORT, INT, LONG, BYTE, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, LIST;
     }
 
     // Test that all getters fail if given invalid field name
@@ -91,6 +92,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                 case SHORT: dObj.getShort(fieldName); break;
                 case INT: dObj.getInt(fieldName); break;
                 case LONG: dObj.getLong(fieldName); break;
+                case BYTE: dObj.getByte(fieldName); break;
                 case FLOAT: dObj.getFloat(fieldName); break;
                 case DOUBLE: dObj.getDouble(fieldName); break;
                 case STRING: dObj.getString(fieldName); break;
@@ -130,6 +132,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                 case SHORT: dObj.setShort(fieldName, (short) 1); break;
                 case INT: dObj.setInt(fieldName, 1); break;
                 case LONG: dObj.setLong(fieldName, 1L); break;
+                case BYTE: dObj.setByte(fieldName, (byte) 4); break;
                 case FLOAT: dObj.setFloat(fieldName, 1.23f); break;
                 case DOUBLE: dObj.setDouble(fieldName, 1.23d); break;
                 case STRING: dObj.setString(fieldName, "foo"); break;
@@ -166,6 +169,10 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     case LONG:
                         dObj.setLong(AllJavaTypes.FIELD_LONG, 42L);
                         assertEquals(42, dObj.getLong(AllJavaTypes.FIELD_LONG));
+                        break;
+                    case BYTE:
+                        dObj.setByte(AllJavaTypes.FIELD_BYTE, (byte) 4);
+                        assertEquals(4, dObj.getByte(AllJavaTypes.FIELD_BYTE));
                         break;
                     case FLOAT:
                         dObj.setFloat(AllJavaTypes.FIELD_FLOAT, 1.23f);

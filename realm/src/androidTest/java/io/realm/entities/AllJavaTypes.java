@@ -31,6 +31,7 @@ public class AllJavaTypes extends RealmObject{
     public static String FIELD_SHORT = "fieldShort";
     public static String FIELD_INT = "fieldInt";
     public static String FIELD_LONG = "fieldLong";
+    public static String FIELD_BYTE = "fieldByte";
     public static String FIELD_FLOAT = "fieldFloat";
     public static String FIELD_DOUBLE = "fieldDouble";
     public static String FIELD_BOOLEAN = "fieldBoolean";
@@ -44,6 +45,7 @@ public class AllJavaTypes extends RealmObject{
     private short fieldShort;
     private int fieldInt;
     @PrimaryKey private long fieldLong;
+    private byte fieldByte;
     private float fieldFloat;
     private double fieldDouble;
     private boolean fieldBoolean;
@@ -90,6 +92,14 @@ public class AllJavaTypes extends RealmObject{
 
     public void setFieldLong(long fieldLong) {
         this.fieldLong = fieldLong;
+    }
+
+    public byte getFieldByte() {
+        return fieldByte;
+    }
+
+    public void setFieldByte(byte fieldByte) {
+        this.fieldByte = fieldByte;
     }
 
     public float getFieldFloat() {

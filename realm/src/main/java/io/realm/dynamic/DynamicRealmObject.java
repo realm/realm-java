@@ -100,6 +100,18 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
+     * Returns the {@code byte} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The byte value.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     */
+    public byte getByte(String fieldName) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        return (byte) row.getLong(columnIndex);
+    }
+
+    /**
      * Returns the {@code float} value for a given field.
      *
      * @param fieldName Name of field.
@@ -287,6 +299,18 @@ public class DynamicRealmObject extends RealmObject {
      * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
      */
     public void setLong(String fieldName, long value) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        row.setLong(columnIndex, value);
+    }
+
+    /**
+     * Sets the {@code byte} value of the given field.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     */
+    public void setByte(String fieldName, byte value) {
         long columnIndex = row.getColumnIndex(fieldName);
         row.setLong(columnIndex, value);
     }
