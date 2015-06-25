@@ -104,6 +104,7 @@ public class DynamicRealmListTest extends AndroidTestCase {
     public void testAddObject() {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        assertEquals(1, dynamicList.size());
         dynamicList.add(new DynamicRealmObject(obj));
         realm.commitTransaction();
 

@@ -80,7 +80,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
             try {
                 callGetter(type, args);
                 fail();
-            } catch(IllegalArgumentException expected) {
+            } catch(IllegalArgumentException ignored) {
             }
         }
     }
@@ -120,7 +120,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
             try {
                 callSetter(type, args);
                 fail();
-            } catch(IllegalArgumentException expected) {
+            } catch(IllegalArgumentException ignored) {
             }
         }
     }
@@ -249,7 +249,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         try {
             dynamicObj.setObject(AllJavaTypes.FIELD_OBJECT, dynamicWrongType);
             fail();
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -278,8 +278,9 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     public void testGetFieldNames() {
         String[] expectedKeys = { AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT,
-                AllJavaTypes.FIELD_LONG, AllJavaTypes.FIELD_FLOAT, AllJavaTypes.FIELD_DOUBLE, AllJavaTypes.FIELD_BOOLEAN,
-                AllJavaTypes.FIELD_DATE, AllJavaTypes.FIELD_BINARY, AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST };
+                AllJavaTypes.FIELD_LONG, AllJavaTypes.FIELD_BYTE, AllJavaTypes.FIELD_FLOAT, AllJavaTypes.FIELD_DOUBLE,
+                AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE, AllJavaTypes.FIELD_BINARY,
+                AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST };
         String[] keys = dObj.getFieldNames();
         assertArrayEquals(expectedKeys, keys);
     }
