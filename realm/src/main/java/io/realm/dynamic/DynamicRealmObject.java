@@ -21,6 +21,7 @@ import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
+import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -33,7 +34,7 @@ import io.realm.internal.UncheckedRow;
 public class DynamicRealmObject extends RealmObject {
 
      Realm realm;
-     CheckedRow row;
+     Row row;
 
     /**
      * Creates a dynamic Realm object based on a existing object.
@@ -142,7 +143,7 @@ public class DynamicRealmObject extends RealmObject {
      * @return The byte[] value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
      */
-    public byte[] getBytes(String fieldName) {
+    public byte[] getBlob (String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         return row.getBinaryByteArray(columnIndex);
     }
@@ -358,7 +359,7 @@ public class DynamicRealmObject extends RealmObject {
      * @param value Value to insert.
      * @throws IllegalArgumentException if field name doesn't exists or isn't a binary field.
      */
-    public void setBinary(String fieldName, byte[] value) {
+    public void setBlob(String fieldName, byte[] value) {
         long columnIndex = row.getColumnIndex(fieldName);
         row.setBinaryByteArray(columnIndex, value);
     }
@@ -419,6 +420,15 @@ public class DynamicRealmObject extends RealmObject {
         for (DynamicRealmObject obj : list) {
             links.add(obj.row.getIndex());
         }
+    }
+
+    /**
+     * Deletes this object from the Realm. Accessing any fields after removing the object will throw a
+     * {@link IllegalStateException}.
+     */
+    public void removeFromRealm() {
+        row.getTable().moveLastOver(row.getIndex());
+        row = InvalidRow.INSTANCE;
     }
 
     @Override

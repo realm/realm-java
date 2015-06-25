@@ -96,7 +96,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                 case FLOAT: dObj.getFloat(fieldName); break;
                 case DOUBLE: dObj.getDouble(fieldName); break;
                 case STRING: dObj.getString(fieldName); break;
-                case BINARY: dObj.getBytes(fieldName); break;
+                case BINARY: dObj.getBlob(fieldName); break;
                 case DATE: dObj.getDate(fieldName); break;
                 case OBJECT: dObj.getObject(fieldName); break;
                 case LIST: dObj.getList(fieldName); break;
@@ -136,7 +136,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                 case FLOAT: dObj.setFloat(fieldName, 1.23f); break;
                 case DOUBLE: dObj.setDouble(fieldName, 1.23d); break;
                 case STRING: dObj.setString(fieldName, "foo"); break;
-                case BINARY: dObj.setBinary(fieldName, new byte[]{}); break;
+                case BINARY: dObj.setBlob(fieldName, new byte[]{}); break;
                 case DATE: dObj.getDate(fieldName); break;
                 case OBJECT: dObj.setObject(fieldName, null); break;
                 case LIST: dObj.setList(fieldName, null); break;
@@ -187,8 +187,8 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         assertEquals("str", dObj.getString(AllJavaTypes.FIELD_STRING));
                         break;
                     case BINARY:
-                        dObj.setBinary(AllJavaTypes.FIELD_BINARY, new byte[]{1, 2, 3});
-                        assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBytes(AllJavaTypes.FIELD_BINARY));
+                        dObj.setBlob(AllJavaTypes.FIELD_BINARY, new byte[]{1, 2, 3});
+                        assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBlob(AllJavaTypes.FIELD_BINARY));
                         break;
                     case DATE:
                         dObj.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
