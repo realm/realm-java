@@ -1,3 +1,6 @@
+0.81.2
+ * Closing realm on another thread different from which it was created on throws an exception.
+
 0.81.1
  * Fixed memory leak causing Realm to never release Realm objects.
 

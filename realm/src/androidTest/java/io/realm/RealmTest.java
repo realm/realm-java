@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -1718,5 +1719,30 @@ public class RealmTest extends AndroidTestCase {
             android.util.Log.d(RealmTest.class.getName(), "FinalizerRunnable freed : "
                     + (totalNumberOfReferences - references.size()) + " out of " + totalNumberOfReferences);
         }
+    }
+
+    // Test close Realm in another thread different from where it is created.
+    public void testCloseRealmInDifferentThread() throws InterruptedException {
+        final AtomicBoolean threadReady = new AtomicBoolean(false);
+
+        final Thread thatThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testRealm.close();
+                    fail("Close realm in a different thread should throw IllegalStateException.");
+                } catch (IllegalStateException ignored){
+                }
+                threadReady.set(true);
+            }
+        });
+        thatThread.start();
+
+        while (!threadReady.get()) {
+            Thread.sleep(5);
+        }
+        // After exception thrown in another thread, nothing should be changed to the realm in this thread.
+        testRealm.checkIfValid();
+        testRealm.close();
     }
 }
