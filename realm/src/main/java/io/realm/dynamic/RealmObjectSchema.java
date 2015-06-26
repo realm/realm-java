@@ -16,8 +16,6 @@
 
 package io.realm.dynamic;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collections;
 import java.util.Set;
 
@@ -89,7 +87,6 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addShort(String fieldName) {
-        checkEmpty(fieldName);
         return addShort(fieldName, Collections.EMPTY_SET);
     }
 
@@ -103,6 +100,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addShort(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -129,6 +127,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addInt(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -155,6 +154,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addLong(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -181,6 +181,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addByte(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -208,6 +209,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addBoolean(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.BOOLEAN, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -234,6 +236,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addBlob(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.BINARY, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -261,6 +264,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addFloat(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.FLOAT, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -287,6 +291,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addDouble(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.DOUBLE, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -313,6 +318,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addDate(String fieldName, Set<RealmModifier> modifiers) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.DATE, fieldName);
         setModifiers(columnIndex, modifiers);
         return this;
@@ -328,6 +334,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addObject(String fieldName, RealmObjectSchema objectSchema) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(ColumnType.LINK, fieldName, transaction.getTable(TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
@@ -342,6 +349,7 @@ public final class RealmObjectSchema {
      */
     public RealmObjectSchema addList(String fieldName, RealmObjectSchema objectSchema) {
         checkEmpty(fieldName);
+        checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(ColumnType.LINK_LIST, fieldName, transaction.getTable(TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
@@ -377,6 +385,15 @@ public final class RealmObjectSchema {
         long columnIndex = getColumnIndex(currentFieldName);
         table.renameColumn(columnIndex, newFieldName);
         return this;
+    }
+
+    /**
+     * Tests if the schema has field defined with the given name.
+     * @param fieldName Field name to test.
+     * @return {@code true} if the field exists, {@code false} otherwise.
+     */
+    public boolean hasField(String fieldName) {
+        return table.getColumnIndex(fieldName) != TableOrView.NO_MATCH;
     }
 
     /**
@@ -490,7 +507,7 @@ public final class RealmObjectSchema {
         }
     }
 
-    private void checkFieldNameIsAvailable(@NotNull String fieldName) {
+    private void checkFieldNameIsAvailable(String fieldName) {
         if (table.getColumnIndex(fieldName) != TableOrView.NO_MATCH) {
             throw new IllegalArgumentException("Field already exist in '" + getClassName() + "': " + fieldName);
         }
