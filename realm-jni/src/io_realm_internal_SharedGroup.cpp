@@ -36,8 +36,7 @@ using namespace realm;
 #error "REALM_ENABLE_REPLICATION must be defined for compiling realm-java!"
 #endif
 
-inline static SharedGroup::DurabilityLevel jint_to_durability_level(JNIEnv* env, jint durability) {
-    SharedGroup::DurabilityLevel level;
+inline static bool jint_to_durability_level(JNIEnv* env, jint durability, SharedGroup::DurabilityLevel &level) {
     if (durability == 0)
         level = SharedGroup::durability_Full;
     else if (durability == 1)
@@ -50,9 +49,10 @@ inline static SharedGroup::DurabilityLevel jint_to_durability_level(JNIEnv* env,
 #endif
     else {
         ThrowException(env, UnsupportedOperation, "Unsupported durability.");
+        return false;
     }
 
-    return level;
+    return true;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
@@ -77,8 +77,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
 #endif
         }
         else {
+            SharedGroup::DurabilityLevel level;
             // Exception thrown for wrong durability value
-            SharedGroup::DurabilityLevel level = jint_to_durability_level(env, durability);
+            if (!jint_to_durability_level(env, durability, level)) {
+                return 0;
+            }
 
             KeyBuffer key(env, keyArray);
             db = new SharedGroup(file_name, no_create!=0, level, key.data());
@@ -95,8 +98,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 {
     TR_ENTER()
 
+    SharedGroup::DurabilityLevel level;
     // Exception thrown for wrong durability value
-    SharedGroup::DurabilityLevel level = jint_to_durability_level(env, durability);
+    if(!jint_to_durability_level(env, durability, level)) {
+        return 0;
+    }
 
     try {
         KeyBuffer key(env, keyArray);
