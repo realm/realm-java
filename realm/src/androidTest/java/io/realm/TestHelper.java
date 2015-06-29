@@ -19,19 +19,15 @@ package io.realm;
 import android.content.Context;
 import android.content.res.AssetManager;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.io.InputStreamReader;
-import java.util.Random;
 import java.nio.charset.Charset;
-
-import io.realm.internal.CheckedRow;
-import io.realm.internal.Row;
+import java.util.Random;
 
 public class TestHelper {
 

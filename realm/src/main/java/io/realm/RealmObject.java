@@ -110,7 +110,7 @@ public abstract class RealmObject {
     /**
      * Returns the Realm instance this object belongs to. Internal use only.
      *
-     * @return The Realm this object belongs to or {code null} if it is a standalone object.
+     * @return The Realm this object belongs to or {@code null} if it is a standalone object.
      */
     protected static Realm getRealm(RealmObject obj) {
         return obj.realm;
@@ -119,7 +119,7 @@ public abstract class RealmObject {
     /**
      * Returns the {@link Row} representing this object. Internal use only.
      *
-     * @return The {@link Row} his object belongs to or {code null} if it is a standalone object.
+     * @return The {@link Row} this object belongs to or {@code null} if it is a standalone object.
      */
     protected static Row getRow(RealmObject obj) {
         return obj.row;
