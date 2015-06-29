@@ -24,7 +24,9 @@ import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
-public class AllJavaTypes extends RealmObject implements IAllJavaTypes {
+public class AllJavaTypes extends RealmObject {
+
+
 
     public static String FIELD_IGNORED = "fieldIgnored";
     public static String FIELD_STRING = "fieldString";
@@ -53,122 +55,98 @@ public class AllJavaTypes extends RealmObject implements IAllJavaTypes {
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 
-    @Override
     public String getFieldIgnored() {
         return fieldIgnored;
     }
 
-    @Override
     public void setFieldIgnored(String fieldIgnored) {
         this.fieldIgnored = fieldIgnored;
     }
 
-    @Override
     public String getFieldString() {
         return fieldString;
     }
 
-    @Override
     public void setFieldString(String fieldString) {
         this.fieldString = fieldString;
     }
 
-    @Override
     public short getFieldShort() {
         return fieldShort;
     }
 
-    @Override
     public void setFieldShort(short fieldShort) {
         this.fieldShort = fieldShort;
     }
 
-    @Override
     public int getFieldInt() {
         return fieldInt;
     }
 
-    @Override
     public void setFieldInt(int fieldInt) {
         this.fieldInt = fieldInt;
     }
 
-    @Override
     public long getFieldLong() {
         return fieldLong;
     }
 
-    @Override
     public void setFieldLong(long fieldLong) {
         this.fieldLong = fieldLong;
     }
 
-    @Override
     public float getFieldFloat() {
         return fieldFloat;
     }
 
-    @Override
     public void setFieldFloat(float fieldFloat) {
         this.fieldFloat = fieldFloat;
     }
 
-    @Override
     public double getFieldDouble() {
         return fieldDouble;
     }
 
-    @Override
     public void setFieldDouble(double fieldDouble) {
         this.fieldDouble = fieldDouble;
     }
 
-    @Override
     public boolean isFieldBoolean() {
         return fieldBoolean;
     }
 
-    @Override
     public void setFieldBoolean(boolean fieldBoolean) {
         this.fieldBoolean = fieldBoolean;
     }
 
-    @Override
     public Date getFieldDate() {
         return fieldDate;
     }
 
-    @Override
     public void setFieldDate(Date fieldDate) {
         this.fieldDate = fieldDate;
     }
 
-    @Override
     public byte[] getFieldBinary() {
         return fieldBinary;
     }
 
-    @Override
     public void setFieldBinary(byte[] fieldBinary) {
         this.fieldBinary = fieldBinary;
     }
 
-    @Override
     public AllJavaTypes getFieldObject() {
         return fieldObject;
     }
 
-    @Override
     public void setFieldObject(AllJavaTypes columnRealmObject) {
         this.fieldObject = columnRealmObject;
     }
 
-    @Override
     public RealmList<AllJavaTypes> getFieldList() {
         return fieldList;
     }
 
-    @Override
     public void setFieldList(RealmList<AllJavaTypes> columnRealmList) {
         this.fieldList = columnRealmList;
     }
