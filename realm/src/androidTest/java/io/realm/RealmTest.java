@@ -19,6 +19,8 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
+import junit.framework.AssertionFailedError;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,12 +38,12 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -1723,23 +1725,27 @@ public class RealmTest extends AndroidTestCase {
 
     // Test close Realm in another thread different from where it is created.
     public void testCloseRealmInDifferentThread() throws InterruptedException {
-        final AtomicBoolean threadReady = new AtomicBoolean(false);
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AssertionFailedError threadAssertionError[] = new AssertionFailedError[1];
 
         final Thread thatThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     testRealm.close();
-                    fail("Close realm in a different thread should throw IllegalStateException.");
-                } catch (IllegalStateException ignored){
+                    threadAssertionError[0] = new AssertionFailedError(
+                            "Close realm in a different thread should throw IllegalStateException.");
+                } catch (IllegalStateException ignored) {
                 }
-                threadReady.set(true);
+                latch.countDown();
             }
         });
         thatThread.start();
 
-        while (!threadReady.get()) {
-            Thread.sleep(5);
+        // Timeout should never happen
+        latch.await();
+        if (threadAssertionError[0] != null) {
+            throw threadAssertionError[0];
         }
         // After exception thrown in another thread, nothing should be changed to the realm in this thread.
         testRealm.checkIfValid();
