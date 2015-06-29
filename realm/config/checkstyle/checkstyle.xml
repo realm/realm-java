@@ -9,12 +9,11 @@
         <property name="file" value="${proj.module.dir}/config/checkstyle/checkstyle-suppressions.xml"/>
     </module>
 
-    <!-- TODO: UNCOMMENT
     <module name="NewlineAtEndOfFile">
         <property name="lineSeparator" value="lf"/>
     </module>
     <module name="FileLength"/>
-    <module name="FileTabCharacter"/> -->
+    <module name="FileTabCharacter"/>
 
     <!-- Trailing spaces -->
     <!-- TODO: UNCOMMENT
@@ -23,9 +22,9 @@
         <property name="message" value="Line has trailing spaces."/>
     </module> -->
 
-    <!-- Space after 'for' and 'if' -->
+    <!-- Space after 'for', 'if', 'while' -->
     <module name="RegexpSingleline">
-        <property name="format" value="^\s*(for|if)[^ ]"/>
+        <property name="format" value="^\s*(for|if|while)[^ ]"/>
         <property name="message" value="Space needed before opening parenthesis."/>
     </module>
 
@@ -71,10 +70,11 @@
 
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
+        <!-- TODO: UNCOMMENT
         <module name="LineLength">
             <property name="max" value="120"/>
             <property name="severity" value="warning"/>
-        </module>
+        </module> -->
         <!--<module name="MethodLength"/>-->
         <!--<module name="ParameterNumber"/>-->
 
@@ -90,8 +90,10 @@
         <module name="OperatorWrap"/>
         <module name="ParenPad"/>
         <module name="TypecastParenPad"/>
-        <module name="WhitespaceAfter"/>
-        <module name="WhitespaceAround"/> -->
+        <module name="WhitespaceAfter"/> -->
+        <module name="WhitespaceAround">
+            <property name="tokens" value="LITERAL_DO"/>
+        </module>
 
 
         <!-- Modifier Checks                                    -->
