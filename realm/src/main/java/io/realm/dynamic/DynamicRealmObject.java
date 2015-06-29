@@ -40,6 +40,9 @@ public class DynamicRealmObject extends RealmObject {
      * Creates a dynamic Realm object based on a existing object.
      */
     public DynamicRealmObject(RealmObject obj) {
+        if (obj == null) {
+            throw new IllegalArgumentException("Non-null object must be provided.");
+        }
         Row row = RealmObject.getRow(obj);
         if (obj == null || row == null) {
             throw new IllegalArgumentException("A non-null object that is already in Realm must be provided");
@@ -392,7 +395,7 @@ public class DynamicRealmObject extends RealmObject {
             if (value.realm == null || value.row == null) {
                 throw new IllegalArgumentException("Cannot link to objects that are not part of the Realm.");
             }
-            if (value.realm != null && !realm.getPath().equals(value.realm.getPath())) {
+            if (value.realm != null && !realm.getConfiguration().equals(value.realm.getConfiguration())) {
                 throw new IllegalArgumentException("Cannot add an object from another Realm");
             }
             Table table = row.getTable();
