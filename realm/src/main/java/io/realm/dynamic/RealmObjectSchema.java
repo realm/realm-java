@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.STRING, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -102,7 +102,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -129,7 +129,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -156,7 +156,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -183,7 +183,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -211,7 +211,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.BOOLEAN, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -238,7 +238,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.BINARY, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -266,7 +266,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.FLOAT, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -293,7 +293,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.DOUBLE, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -320,7 +320,7 @@ public final class RealmObjectSchema {
         checkEmpty(fieldName);
         checkFieldNameIsAvailable(fieldName);
         long columnIndex = table.addColumn(ColumnType.DATE, fieldName);
-        setModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, modifiers);
         return this;
     }
 
@@ -489,7 +489,7 @@ public final class RealmObjectSchema {
         return new DynamicRealmObject(realm, table.getCheckedRow(index));
     }
 
-    private void setModifiers(long columnIndex, Set<RealmModifier> modifiers) {
+    private void addModifiers(long columnIndex, Set<RealmModifier> modifiers) {
         if (modifiers != null && modifiers.size() > 0) {
             if (modifiers.contains(RealmModifier.INDEXED)) {
                 table.addSearchIndex(columnIndex);

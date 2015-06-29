@@ -227,7 +227,7 @@ public class DynamicRealmObject extends RealmObject {
         if (fieldName == null || fieldName.isEmpty()) {
             return false;
         }
-        return row.hasField(fieldName);
+        return row.hasColumn(fieldName);
     }
 
     /**

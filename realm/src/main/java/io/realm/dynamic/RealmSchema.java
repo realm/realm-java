@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public final class RealmSchema {
     }
 
     /**
-     * Add a new class to the Realm.
+     * Adds a new class to the Realm.
      *
      * @param className Name of the class.
      * @return A Realm schema object for that class.
