@@ -19,12 +19,14 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.lang.reflect.Modifier;
 import java.util.EnumSet;
 
 import io.realm.dynamic.RealmModifier;
 import io.realm.dynamic.RealmObjectSchema;
 import io.realm.dynamic.RealmSchema;
 import io.realm.entities.AllJavaTypes;
+import io.realm.exceptions.RealmException;
 
 public class RealmObjectSchemaTests extends AndroidTestCase {
 
@@ -62,6 +64,14 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public enum PrimaryKeyFieldType {
         STRING, SHORT, INT, LONG // TODO Enable these once added by @mc: BOOLEAN, BYTE, DATE
+    }
+
+    public enum NullableFieldType {
+        OBJECT, LIST
+    }
+
+    public enum NonNullableFieldType {
+        STRING, SHORT, INT, LONG, BYTE, BOOLEAN, FLOAT, DOUBLE, BLOB, DATE
     }
 
     public void testAddRemoveField() {
@@ -362,30 +372,40 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                 }
             }
         }
-
     }
 
     public void testAddPrimaryKeyFieldModifier_alreadyExistsThrows() {
-        String[] fieldNames = new String[] { null, "", "foo.bar" };
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
-            for (String fieldName : fieldNames) {
-                switch(fieldType) {
-                    case STRING: schema.addString(fieldName); break;
-                    case SHORT: schema.addShort(fieldName); break;
-                    case INT: schema.addInt(fieldName); break;
-                    case LONG: schema.addLong(fieldName); break;
+            String fieldName = null;
+            switch (fieldType) {
+                case STRING:
+                    fieldName = AllJavaTypes.FIELD_STRING;
+                    schema.addString(fieldName);
+                    break;
+                case SHORT:
+                    fieldName = AllJavaTypes.FIELD_SHORT;
+                    schema.addShort(fieldName);
+                    break;
+                case INT:
+                    fieldName = AllJavaTypes.FIELD_INT;
+                    schema.addInt(fieldName);
+                    break;
+                case LONG:
+                    fieldName = AllJavaTypes.FIELD_LONG;
+                    schema.addLong(fieldName);
+                    break;
 //                        case BYTE: schema.addByte(fieldName); break;
 //                        case BOOLEAN: schema.addBoolean(fieldName); break;
 //                        case DATE: schema.addDate(fieldName); break;
-                    default:
-                        fail();
-                }
-                schema.addPrimaryKey(fieldName);
-                try {
-                    schema.addPrimaryKey(fieldName);
+                default:
                     fail();
-                } catch (IllegalArgumentException ignored) {
-                }
+            }
+            schema.addPrimaryKey(fieldName);
+            try {
+                schema.addPrimaryKey(fieldName);
+                fail();
+            } catch (IllegalStateException ignored) {
+                schema.removePrimaryKey();
             }
         }
     }
@@ -411,106 +431,182 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     }
 
     public void testAddIndexFieldModifier_alreadyIndexedThrows() {
-        String[] fieldNames = new String[] { null, "", "foo.bar" };
-        for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
-            for (String fieldName : fieldNames) {
-                switch(fieldType) {
-                    case STRING: schema.addString(fieldName); break;
-                    case SHORT: schema.addShort(fieldName); break;
-                    case INT: schema.addInt(fieldName); break;
-                    case LONG: schema.addLong(fieldName); break;
-//                        case BYTE: schema.addByte(fieldName); break;
-//                        case BOOLEAN: schema.addBoolean(fieldName); break;
-//                        case DATE: schema.addDate(fieldName); break;
-                    default:
-                        fail();
-                }
-                schema.addPrimaryKey(fieldName);
-                try {
-                    schema.addPrimaryKey(fieldName);
+        for (IndexFieldType fieldType : IndexFieldType.values()) {
+            String fieldName = null;
+            switch (fieldType) {
+                case STRING:
+                    fieldName = AllJavaTypes.FIELD_STRING;
+                    schema.addString(fieldName);
+                    break;
+//                case SHORT:
+//                    fieldName = AllJavaTypes.FIELD_SHORT;
+//                    schema.addShort(fieldName);
+//                    break;
+//                case INT:
+//                    fieldName = AllJavaTypes.FIELD_INT;
+//                    schema.addInt(fieldName);
+//                    break;
+//                case LONG:
+//                    fieldName = AllJavaTypes.FIELD_LONG;
+//                    schema.addLong(fieldName);
+//                    break;
+//                case BOOLEAN:
+//                    fieldName = AllJavaTypes.FIELD_BOOLEAN;
+//                    schema.addBoolean(fieldName);
+//                    break;
+//                case DATE:
+//                    fieldName = AllJavaTypes.FIELD_DATE;
+//                    schema.addDate(fieldName);
+//                    break;
+                default:
                     fail();
-                } catch (IllegalArgumentException ignored) {
-                }
+            }
+            schema.addIndex(fieldName);
+            try {
+                schema.addIndex(fieldName);
+                fail();
+            } catch (IllegalStateException ignored) {
             }
         }
     }
 
     public void testAddNullableFieldModifier_fieldNotNullableThrows() {
-
+        for (NonNullableFieldType fieldType : NonNullableFieldType.values()) {
+            EnumSet<RealmModifier> modifiers = EnumSet.of(RealmModifier.NULLABLE);
+            try {
+                switch (fieldType) {
+                    case STRING: schema.addString(AllJavaTypes.FIELD_STRING, modifiers); break;
+                    case SHORT: schema.addShort(AllJavaTypes.FIELD_SHORT, modifiers); break;
+                    case INT: schema.addInt(AllJavaTypes.FIELD_INT, modifiers); break;
+                    case LONG: schema.addLong(AllJavaTypes.FIELD_LONG, modifiers); break;
+                    case BYTE: schema.addByte(AllJavaTypes.FIELD_BYTE, modifiers); break;
+                    case BOOLEAN: schema.addBoolean(AllJavaTypes.FIELD_BOOLEAN, modifiers); break;
+                    case FLOAT: schema.addFloat(AllJavaTypes.FIELD_FLOAT, modifiers); break;
+                    case DOUBLE: schema.addDouble(AllJavaTypes.FIELD_DOUBLE, modifiers); break;
+                    case BLOB: schema.addBlob(AllJavaTypes.FIELD_BLOB, modifiers); break;
+                    case DATE: schema.addDate(AllJavaTypes.FIELD_DATE, modifiers); break;
+                    default:
+                        fail();
+                }
+                fail();
+            } catch (RealmException ignored) {
+                // This should fail until we add Null support. Disable the API completely if we are going to release
+                // this before Null.
+            }
+        }
     }
 
     public void testAddNonNullableFieldModifier_fieldNotNonNullableThrows() {
-
+        for (NullableFieldType fieldType : NullableFieldType.values()) {
+            EnumSet<RealmModifier> modifiers = EnumSet.of(RealmModifier.NON_NULLABLE);
+            try {
+                switch (fieldType) {
+                    case OBJECT:
+                        schema.addObject(AllJavaTypes.FIELD_OBJECT, DOG_SCHEMA);
+                        schema.setNotNullable(AllJavaTypes.FIELD_OBJECT);
+                        break;
+                    case LIST:
+                        schema.addList(AllJavaTypes.FIELD_LIST, DOG_SCHEMA);
+                        schema.setNotNullable(AllJavaTypes.FIELD_LIST);
+                        break;
+                    default:
+                        fail();
+                }
+                fail();
+            } catch (RealmException ignored) {
+                // This should fail until we add Null support. Disable the API completely if we are going to release
+                // this before Null.
+            }
+        }
     }
 
     public void testRemovePrimaryKey() {
-
+        String fieldName = AllJavaTypes.FIELD_STRING;
+        schema.addString(fieldName);
+        schema.addPrimaryKey(fieldName);
+        assertTrue(schema.hasPrimaryKey());
+        schema.removePrimaryKey();
+        assertFalse(schema.hasPrimaryKey());
     }
 
     public void testRemoveNonExistingPrimaryKeyThrows() {
-
+        String fieldName = AllJavaTypes.FIELD_STRING;
+        schema.addString(fieldName);
+        try {
+            schema.removePrimaryKey();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     public void testRemoveIndex() {
-
+        String fieldName = AllJavaTypes.FIELD_STRING;
+        schema.addString(fieldName, EnumSet.of(RealmModifier.INDEXED));
+        assertTrue(schema.hasIndex(fieldName));
+        schema.removeIndex(fieldName);
+        assertFalse(schema.hasIndex(fieldName));
     }
 
     public void testRemoveNonExistingIndexThrows() {
-
+        String fieldName = AllJavaTypes.FIELD_STRING;
+        schema.addString(fieldName);
+        try {
+            schema.removeIndex(fieldName);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     public void testRemoveField() {
-
+        String fieldName = AllJavaTypes.FIELD_STRING;
+        schema.addString(fieldName);
+        assertTrue(schema.hasField(fieldName));
+        schema.removeField(fieldName);
+        assertFalse(schema.hasField(fieldName));
     }
 
     public void testRemoveNonExistingFieldThrows() {
-
+        String fieldName = AllJavaTypes.FIELD_STRING;
+        try {
+            schema.removeField(fieldName);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     public void testRenameField() {
-
+        String oldFieldName = "old";
+        String newFieldName = "new";
+        schema.addString(oldFieldName);
+        assertTrue(schema.hasField(oldFieldName));
+        assertFalse(schema.hasField(newFieldName));
+        schema.renameField(oldFieldName, newFieldName);
+        assertFalse(schema.hasField(oldFieldName));
+        assertTrue(schema.hasField(newFieldName));
     }
 
     public void testRenameNonExistingFieldThrows() {
-
+        String oldFieldName = "old";
+        String newFieldName = "new";
+        try {
+            schema.renameField(oldFieldName, newFieldName);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testRenameFieldToIllegalNameThrows() {
-
+        String oldFieldName = "old";
+        String newFieldName = "";
+        schema.addString(oldFieldName);
+        try {
+            schema.renameField(oldFieldName, newFieldName);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     private interface FieldRunnable {
         void run(String fieldName);
     }
-
-
-
-
-
-    // DIFFERENT APPROACH - Each type tested as a whole
-//    public void testStringField() {
-//        String fieldName = AllJavaTypes.FIELD_STRING;
-//        String newFieldName = "new";
-//
-//        // Add
-//        schema.addString(fieldName);
-//        checkAddedAndRemovable(fieldName);
-//
-//        // Rename
-//        schema.addString(fieldName);
-//        schema.renameField(fieldName, newFieldName);
-//        checkAddedAndRemovable(newFieldName);
-//
-//        // Indexed
-//        schema.addString(fieldName, EnumSet.of(RealmModifier.INDEXED));
-//        assertTrue(schema.hasIndex(fieldName));
-//        schema.removeIndex(fieldName);
-//        checkAddedAndRemovable(fieldName);
-//
-//        // Primary key
-//    }
-//
-//
-//
-
 }
