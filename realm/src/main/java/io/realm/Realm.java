@@ -244,12 +244,17 @@ public final class Realm implements Closeable {
         }
         if (sharedGroup != null && references == 1) {
             realmsCache.get().remove(configuration);
-            globalPathConfigurationCache.get(canonicalPath).remove(configuration);
             sharedGroup.close();
             sharedGroup = null;
-            AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
-            if (counter.decrementAndGet() == 0) {
-                globalOpenInstanceCounter.remove(canonicalPath);
+
+            // It is necessary to be synchronized here since there is a chance that before the counter removed,
+            // the other thread could get the counter and increase it in createAndValidate.
+            synchronized (Realm.class) {
+                globalPathConfigurationCache.get(canonicalPath).remove(configuration);
+                AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
+                if (counter.decrementAndGet() == 0) {
+                    globalOpenInstanceCounter.remove(canonicalPath);
+                }
             }
         }
 
