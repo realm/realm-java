@@ -18,10 +18,13 @@ package io.realm;
 import android.os.StrictMode;
 import android.test.AndroidTestCase;
 
+import junit.framework.AssertionFailedError;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.Dog;
 
@@ -174,9 +177,10 @@ public class RealmInMemoryTest extends AndroidTestCase {
     // 4. Close the in-memory Realm instance and the Realm data should be released since no more instance with the
     //    specific name exists.
     public void testMultiThread() throws InterruptedException, ExecutionException {
-        final AtomicBoolean isWorkerThreadReady = new AtomicBoolean(false);
-        final AtomicBoolean isWorkerThreadFinished = new AtomicBoolean(false);
-        final AtomicBoolean isRealmInMainThreadClosed = new AtomicBoolean(false);
+        final CountDownLatch workerReadyLatch = new CountDownLatch(1);
+        final CountDownLatch workerFinishedLatch = new CountDownLatch(1);
+        final CountDownLatch realmInMainClosedLatch = new CountDownLatch(1);
+        final AssertionFailedError threadError[] = new AssertionFailedError[1];
 
         // Step 2.
         Thread workerThread = new Thread(new Runnable() {
@@ -187,30 +191,35 @@ public class RealmInMemoryTest extends AndroidTestCase {
                 Dog dog = realm.createObject(Dog.class);
                 dog.setName("DinoDog");
                 realm.commitTransaction();
-                isWorkerThreadReady.set(true);
 
-                assertEquals(realm.allObjects(Dog.class).size(), 1);
+                try {
+                    assertEquals(realm.allObjects(Dog.class).size(), 1);
+                } catch (AssertionFailedError afe) {
+                    threadError[0] = afe;
+                    realm.close();
+                    return;
+                }
+                workerReadyLatch.countDown();
 
                 // Wait until Realm instance closed in main thread
                 try {
-                    while (!isRealmInMainThreadClosed.get()) {
-                        Thread.sleep(5);
-                    }
+                    realmInMainClosedLatch.await(3, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
-                    fail("Worker thread was interrupted.");
+                    threadError[0] = new AssertionFailedError("Worker thread was interrupted.");
+                    realm.close();
+                    return;
                 }
 
                 realm.close();
-                isWorkerThreadFinished.set(true);
+                workerFinishedLatch.countDown();
             }
         });
         workerThread.start();
 
 
         // Wait until the worker thread started
-        while (!isWorkerThreadReady.get()) {
-            Thread.sleep(5);
-        }
+        workerReadyLatch.await(3, TimeUnit.SECONDS);
+        if (threadError[0] != null) { throw threadError[0]; }
 
         // refresh will be ran in the next loop, manually refresh it here.
         testRealm.refresh();
@@ -219,22 +228,20 @@ public class RealmInMemoryTest extends AndroidTestCase {
         // Step 3.
         // Release the main thread Realm reference, and the worker thread hold the reference still
         testRealm.close();
-        // Step 4.
-        isRealmInMainThreadClosed.set(true);
 
+        // Step 4.
         // Create a new Realm reference in main thread and checking the data.
         testRealm = Realm.getInstance(inMemConf);
         assertEquals(testRealm.allObjects(Dog.class).size(), 1);
         testRealm.close();
 
+        // Let the worker thread continue.
+        realmInMainClosedLatch.countDown();
+
         // Wait until the worker thread finished
-        while (!isWorkerThreadFinished.get()) {
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                fail("Worker thread was interrupted");
-            }
-        }
+        workerFinishedLatch.await(3, TimeUnit.SECONDS);
+        if (threadError[0] != null) { throw threadError[0]; }
+
         // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance
         testRealm = Realm.getInstance(inMemConf);
         assertEquals(testRealm.allObjects(Dog.class).size(), 0);
