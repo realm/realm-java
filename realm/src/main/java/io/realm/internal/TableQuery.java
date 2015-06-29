@@ -493,20 +493,9 @@ public class TableQuery implements Closeable {
         }
     }
 
-    // Suppose to be called from the a background SharedGroup thread
-    public long findAllWithHandover(long bgSharedGroupPtr) {
-        validateQuery();
-
-        // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();
-        return nativeFindAllWithHandover(bgSharedGroupPtr, nativePtr, 0, Table.INFINITE, Table.INFINITE);
-        // handover nativeViewPtr to UI Thread
-
-    }
-
     /**
-     * This will use the background shared group to import the query pointer from the handover one
-     * then run the query and export the table view result with handover
+     * This will use the background SharedGroup to import the query (using the handover object)
+     * run the query, and return the table view to the caller SharedGroup using the handover object.
      * @param bgSharedGroupPtr Background shared group native pointer
      * @param ptrQuery handover pointer to the query (coming from the caller SharedGroup)
      * @return handover pointer to the table view results

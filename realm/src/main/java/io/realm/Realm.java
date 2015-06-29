@@ -1883,14 +1883,14 @@ public final class Realm implements Closeable {
      */
     public interface QueryCallback<E extends RealmObject> {
         void onSuccess (RealmResults<E>  results);
-        void onError (Throwable t);
+        void onError (Exception t);
     }
 
     /**
      * Used for debugging/testing purpose to add any logic (within the caller's thread)
      * before we return the results
      */
-    public interface DebugQueryCallback<E extends RealmObject> extends QueryCallback<E> {
+    interface DebugQueryCallback<E extends RealmObject> extends QueryCallback<E> {
         /**
          * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmResults)}
          */

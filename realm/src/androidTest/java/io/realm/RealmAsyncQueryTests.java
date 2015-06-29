@@ -56,7 +56,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         // as the async query callback will not run (because the Handler is sending Runnables to a Looper
         // that didn't loop.
         //
-        // In the other hand, using a dedicated 'ExecutorService' will allow us to fine grain control the
+        // On the other hand, using a dedicated 'ExecutorService' will allow us to fine grain control the
         // desired behaviour
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Looper[] looper = new Looper[1];
@@ -96,7 +96,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onError(Throwable t) {
+                                public void onError(Exception t) {
                                     try {
                                         threadAssertionError[0] = t;
                                         t.printStackTrace();
@@ -161,7 +161,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onError(Throwable t) {
+                                public void onError(Exception t) {
                                     try {
                                         threadAssertionError[0] = t;
                                     } finally {
@@ -246,7 +246,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onError(Throwable t) {
+                                public void onError(Exception t) {
                                     try {
                                         threadAssertionError[0] = t;
                                     } finally {
@@ -321,7 +321,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onError(Throwable t) {
+                                public void onError(Exception t) {
                                     try {
                                         threadAssertionError[0] = t;
                                     } finally {
@@ -405,7 +405,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onError(Throwable t) {
+                                public void onError(Exception t) {
                                     try {
                                         threadAssertionError[0] = t;
                                     } finally {
@@ -453,7 +453,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         final Looper[] looper = new Looper[1];
         final Throwable[] threadAssertionError = new Throwable[1];
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        final RealmQuery.AsyncRequest[] asyncRequest = new RealmQuery.AsyncRequest[1];
+        final RealmQuery.Request[] asyncRequest = new RealmQuery.Request[1];
         executorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -473,7 +473,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 }
 
                                 @Override
-                                public void onError(Throwable t) {
+                                public void onError(Exception t) {
                                     threadAssertionError[0] = new AssertionFailedError("onError called on a cancelled query");
                                 }
 

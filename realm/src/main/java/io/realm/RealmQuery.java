@@ -74,10 +74,8 @@ public class RealmQuery<E extends RealmObject> {
     public static final boolean CASE_SENSITIVE = true;
     public static final boolean CASE_INSENSITIVE = false;
 
-    private RealmQuery.AsyncRequest asyncRequest;
-    private Future<?> pendingQuery;
+    private Request asyncRequest;
     private final RetryPolicy retryPolicy;
-    // FIXME: move above as instance attributes if we want to expose the retry policy to the user
     private static int RETRY_POLICY_MODE = RetryPolicy.MODE_INDEFINITELY;
     private static int MAX_NUMBER_RETRIES_POLICY = 0;
 
@@ -1181,11 +1179,11 @@ public class RealmQuery<E extends RealmObject> {
      * Find all objects that fulfill the query conditions.
      * Results will be posted to the callback instance {@link Realm.QueryCallback} asynchronously
      *
-     * @return An {@link io.realm.RealmQuery.AsyncRequest} representing a cancellable, pending asynchronous query
+     * @return An {@link Request} representing a cancellable, pending asynchronous query
      * @see io.realm.RealmResults
      * @throws java.lang.RuntimeException Any other error
      */
-    public AsyncRequest findAll(Realm.QueryCallback<E> callback) {
+    public Request findAll(Realm.QueryCallback<E> callback) {
         // will use the Looper of the caller thread to post the result
         final Handler handler = new EventHandler(callback);
 
@@ -1202,10 +1200,10 @@ public class RealmQuery<E extends RealmObject> {
         // This call needs to be done on the caller's thread, since SG()->get_version_of_current_transaction is not thread safe
         final long[] callerSharedGroupVersion = realm.getSharedGroupVersion();
 
-        pendingQuery = asyncQueryExecutor.submit(new Runnable() {
+        Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                if (!Thread.currentThread().isInterrupted() && (null == asyncRequest || !asyncRequest.isCancelled())) {
+                if (!Thread.currentThread().isInterrupted() && (asyncRequest == null || !asyncRequest.isCancelled())) {
                     Realm bgRealm = null;
 
                     try {
@@ -1259,7 +1257,7 @@ public class RealmQuery<E extends RealmObject> {
             asyncRequest.setPendingQuery(pendingQuery);
 
         } else { //First run
-            asyncRequest = new RealmQuery.AsyncRequest(pendingQuery);
+            asyncRequest = new Request(pendingQuery);
         }
         return asyncRequest;
     }
@@ -1415,15 +1413,15 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Represents a pending asynchronous Realm query.
      *
-     * Users are responsible of maintaining a reference to {@code AsyncRequest} in order
+     * Users are responsible of maintaining a reference to {@code Request} in order
      * to call #cancel in case of a configuration change for example (to avoid memory leak, as the
      * query will post the result to the caller's thread callback)
      */
-    public class AsyncRequest {
+    public class Request {
         private Future<?> pendingQuery;
         private volatile boolean isCancelled = false;
 
-        public AsyncRequest(Future<?> pendingQuery) {
+        public Request(Future<?> pendingQuery) {
             this.pendingQuery = pendingQuery;
         }
 
@@ -1441,7 +1439,7 @@ public class RealmQuery<E extends RealmObject> {
 
         /**
          * Whether an attempt to cancel the query was performed
-         * @return {@code true} if we already called {@link #cancel()} {@code false} otherwise
+         * @return {@code true} if {@link #cancel()} has already been called, {@code false} otherwise
          */
         public boolean isCancelled() {
             return isCancelled;
@@ -1505,7 +1503,7 @@ public class RealmQuery<E extends RealmObject> {
                         }
                         break;
                     case MSG_ERROR:
-                        callback.onError((Throwable) msg.obj);
+                        callback.onError((Exception) msg.obj);
                         break;
 
                     case MSG_ADVANCE_READ:

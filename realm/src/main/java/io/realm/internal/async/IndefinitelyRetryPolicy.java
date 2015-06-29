@@ -17,7 +17,8 @@
 package io.realm.internal.async;
 
 /**
- * Keep retrying the query until both background Realm & caller's Realm converge
+ * Keep retrying the query until both background Realm & caller's Realm converge (i.e have the
+ * same {@code VersionID})
  * this corresponds to the mode {@link RetryPolicy#MODE_INDEFINITELY}
  */
 class IndefinitelyRetryPolicy implements RetryPolicy {

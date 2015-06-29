@@ -17,18 +17,18 @@
 package io.realm.internal.async;
 
 /**
- * Retry the query a number of times (at most #maxNbrOfRetries times)
+ * Retry the query a number of times (at most #maxNumberOfRetries times)
  * this corresponds to {@link RetryPolicy#MODE_MAX_RETRY} mode
  */
 class MaxRetryPolicy implements RetryPolicy {
-    int maxNbrOfRetries;
+    int maxNumberOfRetries;
 
     MaxRetryPolicy(int maxNbrOfRetries) {
-        this.maxNbrOfRetries = maxNbrOfRetries;
+        this.maxNumberOfRetries = maxNbrOfRetries;
     }
 
     @Override
     public boolean shouldRetry() {
-        return this.maxNbrOfRetries-- > 0;
+        return this.maxNumberOfRetries-- > 0;
     }
 }

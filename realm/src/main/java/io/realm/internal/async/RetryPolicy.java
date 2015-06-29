@@ -17,9 +17,9 @@
 package io.realm.internal.async;
 
 /**
- * Define a retry policy in case an {@link io.realm.internal.android.AsyncRealmQuery} fails to
- * import the result of the query to the caller Realm. (usually because in the meantime, the caller
- * Realm has advanced the transaction) failing to retry will throw an exception 'Handover failed due to version mismatch'
+ * Define a retry policy in case an {@link io.realm.RealmQuery} fails to
+ * import the result to the caller Realm. (usually because in the meantime, the caller
+ * Realm has advanced the transaction) failing to retry will throw an exception
  */
 public interface RetryPolicy {
     /**
@@ -31,14 +31,14 @@ public interface RetryPolicy {
      */
     int MODE_MAX_RETRY = MODE_NO_RETRY + 1;
     /**
-     *
+     * Retry indefinitely
      */
     int MODE_INDEFINITELY = MODE_MAX_RETRY + 1;
 
     /**
      * Given the selected mode, this return {@code true} or {@code false} indicating
-     * whether the {@link io.realm.internal.android.AsyncRealmQuery} should keep retrying or not
-     * @return retry or stop retrying
+     * whether the {@link io.realm.RealmQuery} should keep retrying or not
+     * @return {@code true} if query should be retried, {@code false} otherwise.
      */
     boolean shouldRetry ();
 }
