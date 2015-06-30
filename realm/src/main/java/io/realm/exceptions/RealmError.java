@@ -17,9 +17,9 @@
 package io.realm.exceptions;
 
 /**
- * RealmError is Realm specific unrecoverable errors.
+ * RealmError is Realm specific unrecoverable errors. An RealmError should never be
+ * caught or ignored. By doing so, the Realm file is likely to be corrupted.
  */
-
 public class RealmError extends Error {
     public RealmError() {
     }
