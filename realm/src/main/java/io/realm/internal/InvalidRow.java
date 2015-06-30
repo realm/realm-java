@@ -172,7 +172,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public boolean hasField(String fieldName) {
+    public boolean hasColumn(String fieldName) {
         throw getStubException();
     }
 

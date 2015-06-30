@@ -111,5 +111,5 @@ public interface Row {
      * @param fieldName Field name to check.
      * @return {@code true} if field name exists, {@code false} otherwise.
      */
-    boolean hasField(String fieldName);
+    boolean hasColumn(String fieldName);
 }

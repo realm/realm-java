@@ -243,7 +243,7 @@ public class DynamicRealmObject extends RealmObject {
         if (fieldName == null || fieldName.isEmpty()) {
             return false;
         }
-        return row.hasField(fieldName);
+        return row.hasColumn(fieldName);
     }
 
     /**
@@ -426,7 +426,7 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Deletes this object from the Realm. Accessing any fields after removing the object will throw a
+     * Deletes this object from the Realm. Accessing any fields after removing the object will throw an
      * {@link IllegalStateException}.
      */
     public void removeFromRealm() {

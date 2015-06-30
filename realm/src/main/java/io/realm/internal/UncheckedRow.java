@@ -255,7 +255,7 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     @Override
-    public boolean hasField(String fieldName) {
+    public boolean hasColumn(String fieldName) {
         return nativeHasField(nativePointer, fieldName);
     }
 
