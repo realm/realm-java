@@ -434,6 +434,16 @@ public class DynamicRealmObject extends RealmObject {
         row = InvalidRow.INSTANCE;
     }
 
+    /**
+     * Return the type of object. This will normally correspond to the name of a model class that is extending
+     * {@link RealmObject}.
+     *
+     * @return This objects type.
+     */
+    public String getType() {
+        return row.getTable().getName().substring(Table.TABLE_PREFIX.length());
+    }
+
     @Override
     public int hashCode() {
         String realmName = realm.getPath();

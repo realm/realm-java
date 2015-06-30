@@ -36,7 +36,6 @@ import io.realm.internal.TableOrView;
  */
 public final class RealmObjectSchema {
 
-    private static final String TABLE_PREFIX = "class_";
     private final Realm realm;
     private final Table table;
     private final ImplicitTransaction transaction;
@@ -336,7 +335,7 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addObject(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(ColumnType.LINK, fieldName, transaction.getTable(TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(ColumnType.LINK, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 
@@ -351,7 +350,7 @@ public final class RealmObjectSchema {
     public RealmObjectSchema addList(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(ColumnType.LINK_LIST, fieldName, transaction.getTable(TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(ColumnType.LINK_LIST, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 
@@ -530,6 +529,24 @@ public final class RealmObjectSchema {
         return table.hasSearchIndex(columnIndex);
     }
 
+    /**
+     * Iterate each object with the current schema. Order is undefined.
+     *
+     * @return The updated schema
+     */
+    public RealmObjectSchema forEach(Iterator iterator) {
+        if (iterator != null) {
+            long size = table.size();
+            for (long i = 0; i < size; i++) {
+                // TODO Consider reusing the object. Benchmark difference
+                iterator.next(new DynamicRealmObject(realm, table.getCheckedRow(i)));
+            }
+        }
+
+        return this;
+    }
+
+
     // Invariant: Field was just added
     // TODO: Refactor to avoid 4xsearches.
     private void addModifiers(long columnIndex, Set<RealmModifier> modifiers) {
@@ -581,6 +598,17 @@ public final class RealmObjectSchema {
     }
 
     private String getClassName() {
-        return table.getName().substring(TABLE_PREFIX.length());
+        return table.getName().substring(Table.TABLE_PREFIX.length());
+    }
+
+    /**
+     * Iterator interface for traversing all objects with the current schema.
+     *
+     * @see #forEach(Iterator)
+     */
+    public interface Iterator {
+        void next(DynamicRealmObject obj);
     }
 }
+
+

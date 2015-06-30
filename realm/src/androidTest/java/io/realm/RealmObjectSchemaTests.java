@@ -21,7 +21,9 @@ import android.test.AndroidTestCase;
 
 import java.lang.reflect.Modifier;
 import java.util.EnumSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.dynamic.DynamicRealmObject;
 import io.realm.dynamic.RealmModifier;
 import io.realm.dynamic.RealmObjectSchema;
 import io.realm.dynamic.RealmSchema;
@@ -604,6 +606,33 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             fail();
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    public void testCreateObject() {
+        DynamicRealmObject obj = DOG_SCHEMA.createObject();
+        assertEquals("Dog", obj.getType());
+    }
+
+    public void testCreateObjectWithPrimaryKey() {
+        DOG_SCHEMA.addPrimaryKey("name");
+        DynamicRealmObject dog = DOG_SCHEMA.createObject("Foo");
+        assertEquals("Foo", dog.getString("name"));
+    }
+
+    public void testForEach() {
+        DynamicRealmObject dog1 = DOG_SCHEMA.createObject();
+        dog1.setInt("age", 1);
+        DynamicRealmObject dog2 = DOG_SCHEMA.createObject();
+        dog2.setInt("age", 2);
+
+        final AtomicInteger totalAge = new AtomicInteger(0);
+        DOG_SCHEMA.forEach(new RealmObjectSchema.Iterator() {
+            @Override
+            public void next(DynamicRealmObject obj) {
+                totalAge.addAndGet(obj.getInt("age"));
+            }
+        });
+        assertEquals(3, totalAge.get());
     }
 
     private interface FieldRunnable {
