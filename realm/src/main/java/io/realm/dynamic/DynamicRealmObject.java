@@ -44,7 +44,7 @@ public class DynamicRealmObject extends RealmObject {
             throw new IllegalArgumentException("Non-null object must be provided.");
         }
         Row row = RealmObject.getRow(obj);
-        if (obj == null || row == null) {
+        if (row == null) {
             throw new IllegalArgumentException("A non-null object that is already in Realm must be provided");
         }
         this.realm = RealmObject.getRealm(obj);
@@ -395,7 +395,7 @@ public class DynamicRealmObject extends RealmObject {
             if (value.realm == null || value.row == null) {
                 throw new IllegalArgumentException("Cannot link to objects that are not part of the Realm.");
             }
-            if (value.realm != null && !realm.getConfiguration().equals(value.realm.getConfiguration())) {
+            if (!realm.getConfiguration().equals(value.realm.getConfiguration())) {
                 throw new IllegalArgumentException("Cannot add an object from another Realm");
             }
             Table table = row.getTable();
@@ -432,6 +432,16 @@ public class DynamicRealmObject extends RealmObject {
     public void removeFromRealm() {
         row.getTable().moveLastOver(row.getIndex());
         row = InvalidRow.INSTANCE;
+    }
+
+    /**
+     * Return the type of object. This will normally correspond to the name of a model class that is extending
+     * {@link RealmObject}.
+     *
+     * @return This objects type.
+     */
+    public String getType() {
+        return row.getTable().getName().substring(Table.TABLE_PREFIX.length());
     }
 
     @Override

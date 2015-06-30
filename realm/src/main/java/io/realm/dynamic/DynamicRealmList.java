@@ -133,7 +133,7 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
     private void checkValidIndex(int index) {
         long size = linkView.size();
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException(String.format("Invalid index: %s. Valid range is [%s, %s]", index, 0, size - 1));
+            throw new IndexOutOfBoundsException(String.format("Invalid index: %d. Valid range is [%d, %d]", index, 0, size - 1));
         }
     }
 }

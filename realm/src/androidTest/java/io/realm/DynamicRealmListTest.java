@@ -41,6 +41,7 @@ public class DynamicRealmListTest extends AndroidTestCase {
         obj.setFieldShort((short) 1);
         obj.setFieldInt(1);
         obj.setFieldLong(1);
+        obj.setFieldByte((byte) 4);
         obj.setFieldFloat(1.23f);
         obj.setFieldDouble(1.234d);
         obj.setFieldBinary(new byte[]{1, 2, 3});

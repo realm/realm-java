@@ -244,7 +244,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached
  * Method:    nativeHasField
  * Signature: (JLjava/lang/String;)Z
  */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasField
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasColumn
   (JNIEnv *, jobject, jlong, jstring);
 
 
