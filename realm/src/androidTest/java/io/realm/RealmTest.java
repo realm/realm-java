@@ -19,6 +19,8 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
+import junit.framework.AssertionFailedError;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,6 +38,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1728,5 +1731,34 @@ public class RealmTest extends AndroidTestCase {
             fail();
         } catch (RealmException ignored) {
         }
+    }
+
+    // Test close Realm in another thread different from where it is created.
+    public void testCloseRealmInDifferentThread() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AssertionFailedError threadAssertionError[] = new AssertionFailedError[1];
+
+        final Thread thatThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testRealm.close();
+                    threadAssertionError[0] = new AssertionFailedError(
+                            "Close realm in a different thread should throw IllegalStateException.");
+                } catch (IllegalStateException ignored) {
+                }
+                latch.countDown();
+            }
+        });
+        thatThread.start();
+
+        // Timeout should never happen
+        latch.await();
+        if (threadAssertionError[0] != null) {
+            throw threadAssertionError[0];
+        }
+        // After exception thrown in another thread, nothing should be changed to the realm in this thread.
+        testRealm.checkIfValid();
+        testRealm.close();
     }
 }
