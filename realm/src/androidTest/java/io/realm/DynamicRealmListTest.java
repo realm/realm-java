@@ -140,9 +140,12 @@ public class DynamicRealmListTest extends AndroidTestCase {
         int[] indexes = new int[] { -1, 1 };
         for (int i : indexes) {
             try {
+                realm.beginTransaction();
                 dynamicList.set(i, dynamicObject);
                 fail("Could set index out of bounds " + i);
             } catch (IndexOutOfBoundsException ignored) {
+            } finally {
+                realm.cancelTransaction();
             }
         }
     }
