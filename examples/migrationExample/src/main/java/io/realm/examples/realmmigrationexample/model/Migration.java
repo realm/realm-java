@@ -16,23 +16,21 @@
 
 package io.realm.examples.realmmigrationexample.model;
 
-import io.realm.Realm;
 import io.realm.RealmMigration;
+import io.realm.dynamic.DynamicRealmObject;
+import io.realm.dynamic.RealmObjectSchema;
+import io.realm.dynamic.RealmSchema;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
-/***************************** NOTE: *********************************************
- * The API for migration is currently using internal lower level classes that will
- * be replaced by a new API very soon! Until then you will have to explore and use
- * below example as inspiration.
- *********************************************************************************
+/**
+ * Migration code used to migrate a previous schema to the newest one
+ * TODO Show how to set Indexed, Primary key as well
  */
-
-
 public class Migration implements RealmMigration {
-    @Override
-    public long execute(Realm realm, long version) {
 
+    @Override
+    public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
         /*
             // Version 0
             class Person
@@ -45,92 +43,90 @@ public class Migration implements RealmMigration {
                 String fullName;        // combine firstName and lastName into single field
                 int age;
         */
-
-        // Migrate from version 0 to version 1
-        if (version == 0) {
-            Table personTable = realm.getTable(Person.class);
-
-            long fistNameIndex = getIndexForProperty(personTable, "firstName");
-            long lastNameIndex = getIndexForProperty(personTable, "lastName");
-            long fullNameIndex = personTable.addColumn(ColumnType.STRING, "fullName");
-            for (int i = 0; i < personTable.size(); i++) {
-                personTable.setString(fullNameIndex, i, personTable.getString(fistNameIndex, i) + " " +
-                        personTable.getString(lastNameIndex, i));
-            }
-            personTable.removeColumn(getIndexForProperty(personTable, "firstName"));
-            personTable.removeColumn(getIndexForProperty(personTable, "lastName"));
-            version++;
+        if (oldVersion == 0) {
+            schema.getClass("Person")
+                    .addString("fullName")
+                    .forEach(new RealmObjectSchema.Iterator() {
+                        @Override
+                        public void next(DynamicRealmObject obj) {
+                            obj.setString("fullName", obj.getString("firstName") + " " + obj.getString("lastName"));
+                        }
+                    })
+                    .removeField("firstName")
+                    .removeField("lastName");
+            oldVersion++;
         }
 
         /*
             // Version 2
-                class Pet                   // add a new model class
-                    String name;
-                    String type;
+            class Pet                   // add a new model class
+                String name;
+                String type;
 
-                class Person
-                    String fullName;
-                    int age;
-                    RealmList<Pet> pets;    // add an array property
-
+            class Person
+                String fullName;
+                int age;
+                RealmList<Pet> pets;    // add a RealmList field
         */
-        // Migrate from version 1 to version 2
-        if (version == 1) {
-            Table personTable = realm.getTable(Person.class);
-            Table petTable = realm.getTable(Pet.class);
-            petTable.addColumn(ColumnType.STRING, "name");
-            petTable.addColumn(ColumnType.STRING, "type");
-            long petsIndex = personTable.addColumnLink(ColumnType.LINK_LIST, "pets", petTable);
-            long fullNameIndex = getIndexForProperty(personTable, "fullName");
+        if (oldVersion == 1) {
 
-            for (int i = 0; i < personTable.size(); i++) {
-                if (personTable.getString(fullNameIndex, i).equals("JP McDonald")) {
-                    personTable.getUncheckedRow(i).getLinkList(petsIndex).add(petTable.add("Jimbo", "dog"));
-                }
-            }
-            version++;
+            final RealmObjectSchema petSchema = schema.addClass("Pet")
+                    .addString("name")
+                    .addString("type");
+
+            schema.getClass("Person")
+                    .addList("pets", petSchema)
+                    .forEach(new RealmObjectSchema.Iterator() { // TODO Should we add query support now?
+                        @Override
+                        public void next(DynamicRealmObject obj) {
+                            if (obj.getString("fullName").equals("JP McDonald")) {
+                                DynamicRealmObject pet = petSchema.createObject();
+                                pet.setString("name", "Jimbo");
+                                pet.setString("type", "dog");
+                                obj.getList("pets").add(pet);
+                            }
+                        }
+                    });
+            oldVersion++;
         }
 
         /*
             // Version 3
-                class Pet
-                    String name;
-                    int type;               // type becomes int
+            class Pet
+                @Index
+                String name;            // name is indexed
+                int type;               // type becomes int
 
-                class Person
-                    String fullName;
-                    RealmList<Pet> pets;    // age and pets re-ordered
-                    int age;
+            class Person
+                String fullName;
+                RealmList<Pet> pets;    // age and pets re-ordered
+                int age;
         */
-        // Migrate from version 2 to version 3
-        if (version == 2) {
-            Table petTable = realm.getTable(Pet.class);
-            long oldTypeIndex = getIndexForProperty(petTable, "type");
-            long typeIndex = petTable.addColumn(ColumnType.INTEGER, "type");
-            for (int i = 0; i < petTable.size(); i++) {
-                String type = petTable.getString(oldTypeIndex, i);
-                if (type.equals("dog")) {
-                    petTable.setLong(typeIndex, i, 1);
-                }
-                else if (type.equals("cat")) {
-                    petTable.setLong(typeIndex, i, 2);
-                }
-                else if (type.equals("hamster")) {
-                    petTable.setLong(typeIndex, i, 3);
-                }
-            }
-            petTable.removeColumn(oldTypeIndex);
-            version++;
-        }
-        return version;
-    }
+        if (oldVersion == 2) {
+            schema.getClass("Pet")
+                    .addIndex("name")
+                    .addInt("typeTmp")
+                    .forEach(new RealmObjectSchema.Iterator() {
+                        @Override
+                        public void next(DynamicRealmObject obj) {
+                            String type = obj.getString("type");
+                            if (type.equals("dog")) {
+                                obj.setInt("typeTmp", 1);
+                            } else if (type.equals("cat")) {
+                                obj.setInt("typeTmp", 2);
+                            } else if (type.equals("hamster")) {
+                                obj.setInt("typeTmp", 3);
+                            }
+                        }
+                    })
+                    .removeField("type")
+                    .renameField("typeTmp", "type");
 
-    private long getIndexForProperty(Table table, String name) {
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            if (table.getColumnName(i).equals(name)) {
-                return i;
-            }
+            // TODO 4 instructions to change a type, is that acceptable? But the alternative would be an
+            // API explosion or to expose something like a "RealmField" which would mean we would have to expose
+            // the internal Realm types
+            // schema.addField(new RealmField("type", ColumnType.INTEGER))
+            oldVersion++;
         }
-        return -1;
     }
 }

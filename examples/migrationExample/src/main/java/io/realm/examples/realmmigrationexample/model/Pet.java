@@ -17,8 +17,10 @@
 package io.realm.examples.realmmigrationexample.model;
 
 import io.realm.RealmObject;
+import io.realm.annotations.Index;
 
 public class Pet extends RealmObject {
+    @Index
     private String name;
     private int type;
 

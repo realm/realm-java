@@ -116,7 +116,7 @@ public class LinkView {
      * Returns the Table which all links point to.
      */
     public Table getTable() {
-        return parent;
+        return parent.getLinkTarget(columnIndexInParent);
     }
 
     private void checkImmutable() {
