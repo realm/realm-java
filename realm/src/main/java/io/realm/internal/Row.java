@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,29 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package io.realm.internal;
 
 import java.util.Date;
 
-public class Row {
+/**
+ * Interface for Row objects that act as wrappers around the Realm Core Row object.
+ */
+public interface Row {
 
-    private final Context context;
-    private final Table parent;
-    protected long nativePtr;
-
-    Row(Context context, Table parent, long nativePtr) {
-        this.context = context;
-        this.parent = parent;
-        this.nativePtr = nativePtr;
-    }
-
-    public long getColumnCount() {
-        return nativeGetColumnCount(nativePtr);
-    }
-
-    protected native long nativeGetColumnCount(long nativeTablePtr);
+    long getColumnCount();
 
     /**
      * Returns the name of a column identified by columnIndex. Notice that the
@@ -43,11 +33,7 @@ public class Row {
      * @param columnIndex the column index
      * @return the name of the column
      */
-    public String getColumnName(long columnIndex) {
-        return nativeGetColumnName(nativePtr, columnIndex);
-    }
-
-    protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+    String getColumnName(long columnIndex);
 
     /**
      * Returns the 0-based index of a column based on the name.
@@ -55,227 +41,68 @@ public class Row {
      * @param columnName column name
      * @return the index, -1 if not found
      */
-    public long getColumnIndex(String columnName) {
-        if (columnName == null) {
-            throw new IllegalArgumentException("Column name can not be null.");
-        }
-        return nativeGetColumnIndex(nativePtr, columnName);
-    }
-
-    protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
-
+    long getColumnIndex(String columnName);
 
     /**
-     * Get the type of a column identified by the columnIdex.
+     * Get the type of a column identified by the columnIndex.
      *
      * @param columnIndex index of the column.
      * @return Type of the particular column.
      */
-    public ColumnType getColumnType(long columnIndex) {
-        return ColumnType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
-    }
+    ColumnType getColumnType(long columnIndex);
 
-    protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+    Table getTable();
 
-    // Getters
+    long getIndex();
 
-    public Table getTable() {
-        return parent;
-    }
+    long getLong(long columnIndex);
 
-    public long getIndex() {
-        return nativeGetIndex(nativePtr);
-    }
+    boolean getBoolean(long columnIndex);
 
-    protected native long nativeGetIndex(long nativeRowPtr);
+    float getFloat(long columnIndex);
 
-    public long getLong(long columnIndex) {
-        return nativeGetLong(nativePtr, columnIndex);
-    }
+    double getDouble(long columnIndex);
 
-    protected native long nativeGetLong(long nativeRowPtr, long columnIndex);
+    Date getDate(long columnIndex);
 
-    public boolean getBoolean(long columnIndex) {
-        return nativeGetBoolean(nativePtr, columnIndex);
-    }
+    String getString(long columnIndex);
 
-    protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
+    byte[] getBinaryByteArray(long columnIndex);
 
-    public float getFloat(long columnIndex) {
-        return nativeGetFloat(nativePtr, columnIndex);
-    }
+    Mixed getMixed(long columnIndex);
 
-    protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
+    ColumnType getMixedType(long columnIndex);
 
-    public double getDouble(long columnIndex) {
-        return nativeGetDouble(nativePtr, columnIndex);
-    }
+    long getLink(long columnIndex);
 
-    protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
+    boolean isNullLink(long columnIndex);
 
-    public Date getDate(long columnIndex) {
-        return new Date(nativeGetDateTime(nativePtr, columnIndex)*1000);
-    }
+    LinkView getLinkList(long columnIndex);
 
-    protected native long nativeGetDateTime(long nativeRowPtr, long columnIndex);
+    void setLong(long columnIndex, long value);
 
+    void setBoolean(long columnIndex, boolean value);
 
-    public String getString(long columnIndex) {
-        return nativeGetString(nativePtr, columnIndex);
-    }
+    void setFloat(long columnIndex, float value);
 
-    protected native String nativeGetString(long nativePtr, long columnIndex);
+    void setDouble(long columnIndex, double value);
 
+    void setDate(long columnIndex, Date date);
 
-    public byte[] getBinaryByteArray(long columnIndex) {
-        return nativeGetByteArray(nativePtr, columnIndex);
-    }
+    void setString(long columnIndex, String value);
 
-    protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
+    void setBinaryByteArray(long columnIndex, byte[] data);
 
+    void setMixed(long columnIndex, Mixed data);
 
-    public Mixed getMixed(long columnIndex) {
-        return nativeGetMixed(nativePtr, columnIndex);
-    }
+    void setLink(long columnIndex, long value);
 
-    public ColumnType getMixedType(long columnIndex) {
-        return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex));
-    }
-
-    protected native int nativeGetMixedType(long nativePtr, long columnIndex);
-
-    protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
-
-    public long getLink(long columnIndex) {
-        return nativeGetLink(nativePtr, columnIndex);
-    }
-
-    protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
-
-    public boolean isNullLink(long columnIndex) {
-        return nativeIsNullLink(nativePtr, columnIndex);
-    }
-
-    protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
-
-    public LinkView getLinkList(long columnIndex) {
-        long nativeLinkViewPtr = nativeGetLinkView(nativePtr, columnIndex);
-        return new LinkView(context, parent, columnIndex, nativeLinkViewPtr);
-    }
-
-    private native long nativeGetLinkView(long nativePtr, long columnIndex);
-
-
-    // Setters
-
-    public void setLong(long columnIndex, long value) {
-        parent.checkImmutable();
-        getTable().checkIntValueIsLegal(columnIndex, getIndex(), value);
-        nativeSetLong(nativePtr, columnIndex, value);
-    }
-
-    protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
-
-    public void setBoolean(long columnIndex, boolean value) {
-        parent.checkImmutable();
-        nativeSetBoolean(nativePtr, columnIndex, value);
-    }
-
-    protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
-
-    public void setFloat(long columnIndex, float value) {
-        parent.checkImmutable();
-        nativeSetFloat(nativePtr, columnIndex, value);
-    }
-
-    protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
-
-    public void setDouble(long columnIndex, double value) {
-        parent.checkImmutable();
-        nativeSetDouble(nativePtr, columnIndex, value);
-    }
-
-    protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
-
-    public void setDate(long columnIndex, Date date) {
-        parent.checkImmutable();
-        if (date == null) {
-            throw new IllegalArgumentException("Null Date is not allowed.");
-        }
-        long timestamp = date.getTime() / 1000;
-        if (timestamp >= Integer.MAX_VALUE || timestamp <= Integer.MIN_VALUE) {
-            throw new IllegalArgumentException("Date/timestamp is outside valid range");
-        }
-        nativeSetDate(nativePtr, columnIndex, timestamp);
-    }
-
-    protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
-
-    public void setString(long columnIndex, String value) {
-        parent.checkImmutable();
-        getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
-        nativeSetString(nativePtr, columnIndex, value);
-    }
-
-    protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
-
-    public void setBinaryByteArray(long columnIndex, byte[] data) {
-        parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null array is not allowed");
-        }
-        nativeSetByteArray(nativePtr, columnIndex, data);
-    }
-
-    protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
-
-
-    public void setMixed(long columnIndex, Mixed data) {
-        parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null data is not allowed");
-        }
-        nativeSetMixed(nativePtr, columnIndex, data);
-    }
-
-    protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
-
-    public void setLink(long columnIndex, long value) {
-        parent.checkImmutable();
-        nativeSetLink(nativePtr, columnIndex, value);
-    }
-
-    protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
-
-    public void nullifyLink(long columnIndex) {
-        parent.checkImmutable();
-        nativeNullifyLink(nativePtr, columnIndex);
-    }
-
-    protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
-
-    protected static native void nativeClose(long nativeRowPtr);
+    void nullifyLink(long columnIndex);
 
     /**
      * Checks if the row is still valid.
      * @return Returns true {@code true} if the row is still valid and attached to the underlying
      * data. {@code false} otherwise.
      */
-    public boolean isAttached() {
-        return nativePtr != 0 && nativeIsAttached(nativePtr);
-    }
-
-    protected native boolean nativeIsAttached(long nativeRowPtr);
-
-    @Override
-    protected void finalize() {
-        synchronized (context) {
-            if (nativePtr != 0) {
-                context.asyncDisposeRow(nativePtr);
-                nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
-            }
-        }
-        nativeClose(nativePtr);
-        nativePtr = 0;
-    }
+    boolean isAttached();
 }

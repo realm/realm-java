@@ -21,7 +21,10 @@ import org.junit.Test;
 
 import javax.tools.JavaFileObject;
 
+import java.util.Arrays;
+
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
+import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static org.truth0.Truth.ASSERT;
 
 public class RealmProcessorTest {
@@ -38,6 +41,7 @@ public class RealmProcessorTest {
     private JavaFileObject noAccessorsModel = JavaFileObjects.forResource("some/test/NoAccessors.java");
     private JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
     private JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
+    private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
 
     @Test
     public void compileSimpleFile() {
@@ -108,7 +112,71 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
-                .generatesSources(allTypesDefaultMediator, allTypesDefaultModule, allTypesDefaultMediator);
+                .generatesSources(allTypesProxy, allTypesDefaultMediator, allTypesDefaultModule, allTypesDefaultMediator);
+    }
+
+    @Test
+    public void compileAppModuleCustomClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleCustomClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileAppModuleAllClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleAllClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileLibraryModulesAllClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleAllClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileLibraryModulesCustomClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleCustomClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileAppModuleMixedParametersFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleMixedParameters.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileAppModuleWrongTypeFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleWrongType.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileLibraryModuleMixedParametersFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleMixedParameters.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileLibraryModuleWrongTypeFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleWrongType.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 
     @Test
@@ -147,6 +215,14 @@ public class RealmProcessorTest {
     public void compileNoAccessorsFile() {
         ASSERT.about(javaSource())
                 .that(noAccessorsModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileMissingGenericType() {
+        ASSERT.about(javaSource())
+                .that(missingGenericTypeModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

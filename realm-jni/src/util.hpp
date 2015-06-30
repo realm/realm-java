@@ -190,7 +190,7 @@ extern const char *log_tag;
 
 #define ROW_INDEXES_VALID(env,ptr,start,end, range)             (true)
 #define ROW_INDEX_VALID(env,ptr,row)                            (true)
-#defibe ROW_INDEX_VALID_OFFSET(env,ptr,row)                     (true)
+#define ROW_INDEX_VALID_OFFSET(env,ptr,row)                     (true)
 #define TBL_AND_ROW_INDEX_VALID(env,ptr,row)                    (true)
 #define TBL_AND_ROW_INDEX_VALID_OFFSET(env,ptr,row, offset)     (true)
 #define COL_INDEX_VALID(env,ptr,col)                            (true)
@@ -431,7 +431,6 @@ inline bool RowColIndexAndTypeValid(JNIEnv* env, Row* pRow, jlong columnIndex, i
         && ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
 }
 
-
 template <class T>
 inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
 {
@@ -443,7 +442,6 @@ inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlon
 {
     return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
 }
-
 
 template <class T>
 inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)

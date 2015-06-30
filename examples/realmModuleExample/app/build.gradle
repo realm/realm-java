@@ -1,0 +1,46 @@
+apply plugin: 'com.android.application'
+apply plugin: 'android-command'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "20.0.0"
+    defaultConfig {
+        applicationId 'io.realm.examples.appmodules'
+        minSdkVersion 15
+        targetSdkVersion 19
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("keystore/release.keystore")
+            storePassword "realm1234"
+            keyAlias "realm-introexample"
+            keyPassword "realm1234"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    productFlavors {
+    }
+
+    command {
+        events 2000
+    }
+}
+
+tasks.preBuild {
+    dependsOn ":realm:androidJar"
+}
+
+dependencies {
+    compile project(':realmModuleLibraryExample')
+}

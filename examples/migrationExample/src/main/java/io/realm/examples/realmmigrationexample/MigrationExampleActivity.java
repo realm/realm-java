@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.examples.realmmigrationexample.model.Migration;
 import io.realm.examples.realmmigrationexample.model.Person;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -41,6 +42,7 @@ public class MigrationExampleActivity extends Activity {
     public static final String TAG = MigrationExampleActivity.class.getName();
 
     private LinearLayout rootLayout = null;
+    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,35 +53,47 @@ public class MigrationExampleActivity extends Activity {
         rootLayout.removeAllViews();
 
         // 3 versions of the databases for testing. Normally you would only have one.
-        String path3 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0");
-        String path1 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default1), "default1");
-        String path2 = copyBundledRealmFile(this.getResources().openRawResource(R.raw.default2), "default2");
+        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default0), "default0");
+        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default1), "default1");
+        copyBundledRealmFile(this.getResources().openRawResource(R.raw.default2), "default2");
 
-        // If you try to open a file that doesn't match your model an exception is thrown:
-        try {
-            // should throw as migration is required
-            Realm.getInstance(this, "default1");
-        } catch (RealmMigrationNeededException ex) {
-            Log.i(TAG, "Excellent! This is expected.");
-        }
+        // When you create a RealmConfiguration you can specify the version of the schema.
+        // If the schema does not have that version a RealmMigrationNeededException will be thrown.
+        RealmConfiguration config0 = new RealmConfiguration.Builder(this)
+                .name("default0")
+                .schemaVersion(3)
+                .build();
 
-        Realm realm;
-
-        // So you migrate your data
-        Realm.migrateRealmAtPath(path1, new Migration());
-        realm = Realm.getInstance(this, "default1");
+        // You can then manually call Realm.migrateRealm().
+        Realm.migrateRealm(config0, new Migration());
+        realm = Realm.getInstance(config0);
+        showStatus("Default0");
         showStatus(realm);
         realm.close();
 
-        // Another migration test
-        Realm.migrateRealmAtPath(path2, new Migration());
-        realm = Realm.getInstance(this, "default2");
+        // Or you can add the migration code to the configuration. This will run the migration code without throwing
+        // a RealmMigrationNeededException.
+        RealmConfiguration config1 = new RealmConfiguration.Builder(this)
+                .name("default1")
+                .schemaVersion(3)
+                .migration(new Migration())
+                .build();
+
+        realm = Realm.getInstance(config1); // Automatically run migration if needed
+        showStatus("Default1");
         showStatus(realm);
         realm.close();
 
-        // and a third:
-        Realm.migrateRealmAtPath(path3, new Migration());
-        realm = Realm.getInstance(this, "default3");
+        // or you can set .deleteRealmIfMigrationNeeded() if you don't want to bother with migrations.
+        // WARNING: This will delete all data in the Realm though.
+        RealmConfiguration config2 = new RealmConfiguration.Builder(this)
+                .name("default2")
+                .schemaVersion(3)
+                .deleteRealmIfMigrationNeeded()
+                .build();
+
+        realm = Realm.getInstance(config2);
+        showStatus("default2");
         showStatus(realm);
         realm.close();
     }
@@ -106,11 +120,15 @@ public class MigrationExampleActivity extends Activity {
         for (Person person : realm.allObjects(Person.class)) {
             stringBuilder.append(person.toString()).append("\n");
         }
-        return stringBuilder.toString();
+
+        return (stringBuilder.length() == 0) ? "<empty>" : stringBuilder.toString();
     }
 
     private void showStatus(Realm realm) {
-        String txt = realmString(realm);
+        showStatus(realmString(realm));
+    }
+
+    private void showStatus(String txt) {
         Log.i(TAG, txt);
         TextView tv = new TextView(this);
         tv.setText(txt);

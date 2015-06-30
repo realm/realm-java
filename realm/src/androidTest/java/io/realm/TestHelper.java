@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.io.InputStreamReader;
+import java.util.Random;
 import java.nio.charset.Charset;
 
 public class TestHelper {
@@ -72,6 +73,20 @@ public class TestHelper {
     public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
         Realm.deleteRealmFile(context, newName);
         TestHelper.copyRealmFromAssets(context, realmPath, newName);
+    }
+
+    // Returns a random key used by encrypted Realms.
+    public static byte[] getRandomKey() {
+        byte[] key = new byte[64];
+        new Random().nextBytes(key);
+        return key;
+    }
+
+    // Returns a random key from the given seed. Used by encrypted Realms.
+    public static byte[] getRandomKey(long seed) {
+        byte[] key = new byte[64];
+        new Random(seed).nextBytes(key);
+        return key;
     }
 
     public static class StubInputStream extends InputStream {

@@ -45,8 +45,9 @@ public class RealmObjectTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
     }
 
     @Override
@@ -91,73 +92,73 @@ public class RealmObjectTest extends AndroidTestCase {
 
     // removing original object and see if has been removed
     public void testRemoveFromRealm() {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        Dog rex = realm.createObject(Dog.class);
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        Dog rex = testRealm.createObject(Dog.class);
         rex.setName("Rex");
-        Dog fido = realm.createObject(Dog.class);
+        Dog fido = testRealm.createObject(Dog.class);
         fido.setName("Fido");
-        realm.commitTransaction();
+        testRealm.commitTransaction();
 
-        RealmResults<Dog> allDogsBefore = realm.where(Dog.class).equalTo("name", "Rex").findAll();
+        RealmResults<Dog> allDogsBefore = testRealm.where(Dog.class).equalTo("name", "Rex").findAll();
         assertEquals(1, allDogsBefore.size());
 
-        realm.beginTransaction();
+        testRealm.beginTransaction();
         rex.removeFromRealm();
-        realm.commitTransaction();
+        testRealm.commitTransaction();
 
-        RealmResults<Dog> allDogsAfter = realm.where(Dog.class).equalTo("name", "Rex").findAll();
+        RealmResults<Dog> allDogsAfter = testRealm.where(Dog.class).equalTo("name", "Rex").findAll();
         assertEquals(0  , allDogsAfter.size());
 
         fido.getName();
         try {
             rex.getName();
-            realm.close();
+            testRealm.close();
             fail();
         } catch (IllegalStateException ignored) {}
 
         // deleting rex twice should fail
-        realm.beginTransaction();
+        testRealm.beginTransaction();
         try {
             rex.removeFromRealm();
-            realm.close();
+            testRealm.close();
             fail();
         } catch (IllegalStateException ignored) {}
-        realm.commitTransaction();
-        realm.close();
+        testRealm.commitTransaction();
+        testRealm.close();
     }
 
     // query for an object, remove it and see it has been removed from realm
     public void testRemoveResultFromRealm() {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        realm.clear(Dog.class);
-        Dog dogToAdd = realm.createObject(Dog.class);
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        testRealm.clear(Dog.class);
+        Dog dogToAdd = testRealm.createObject(Dog.class);
         dogToAdd.setName("Rex");
-        realm.commitTransaction();
+        testRealm.commitTransaction();
 
-        assertEquals(1, realm.allObjects(Dog.class).size());
+        assertEquals(1, testRealm.allObjects(Dog.class).size());
 
-        Dog dogToRemove = realm.where(Dog.class).findFirst();
+        Dog dogToRemove = testRealm.where(Dog.class).findFirst();
         assertNotNull(dogToRemove);
-        realm.beginTransaction();
+        testRealm.beginTransaction();
         dogToRemove.removeFromRealm();
-        realm.commitTransaction();
+        testRealm.commitTransaction();
 
-        assertEquals(0, realm.allObjects(Dog.class).size());
+        assertEquals(0, testRealm.allObjects(Dog.class).size());
         try {
             dogToAdd.getName();
-            realm.close();
+            testRealm.close();
             fail();
         }
         catch (IllegalStateException ignored) {}
         try {
             dogToRemove.getName();
-            realm.close();
+            testRealm.close();
             fail();
         }
         catch (IllegalStateException ignored) {}
-        realm.close();
+        testRealm.close();
     }
 
     public void removeOneByOne(boolean atFirst) {
@@ -209,11 +210,11 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public boolean methodWrongThread(final boolean callGetter) throws ExecutionException, InterruptedException {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();
-        final AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        final AllTypes allTypes = testRealm.where(AllTypes.class).findFirst();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
@@ -232,7 +233,7 @@ public class RealmObjectTest extends AndroidTestCase {
         });
 
         Boolean result = future.get();
-        realm.close();
+        testRealm.close();
         return result;
     }
 
@@ -484,8 +485,9 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public void testIsValidClosedRealm() {
-        Realm.deleteRealmFile(getContext(), "other-realm");
-        Realm testRealm = Realm.getInstance(getContext(), "other-realm");
+        RealmConfiguration otherConfig = new RealmConfiguration.Builder(getContext()).name("other-realm").build();
+        Realm.deleteRealm(otherConfig);
+        Realm testRealm = Realm.getInstance(otherConfig);
         testRealm.beginTransaction();
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
         assertTrue(allTypes.isValid());

@@ -16,27 +16,34 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.test.AndroidTestCase;
+
+import junit.framework.AssertionFailedError;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.Reference;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -54,6 +61,7 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
+import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -124,7 +132,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testGetInstanceNullFolderThrows() {
         try {
-            Realm.getInstance((File) null);
+            Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
             fail("Parsing null as folder should throw an error");
         } catch (IllegalArgumentException expected) {
         }
@@ -150,9 +158,9 @@ public class RealmTest extends AndroidTestCase {
     public void testGetInstanceFolderNoWritePermissionThrows() {
         File folder = new File("/");
         try {
-            Realm realm = Realm.getInstance(folder);
-            fail("Pointing to a folder with no write permission should throw an error");
-        } catch (RealmIOException expected) {
+            Realm realm = Realm.getInstance(new RealmConfiguration.Builder(folder).build());
+            fail("Pointing to a folder with no write permission should throw an IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
         }
     }
 
@@ -168,7 +176,7 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(realmFile.setWritable(false));
 
         try {
-            Realm.getInstance(folder, REALM_FILE);
+            Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
             fail("Trying to open a read-only file should fail");
         } catch (RealmIOException expected) {
         }
@@ -178,11 +186,10 @@ public class RealmTest extends AndroidTestCase {
         String REALM_NAME = "invalid_cache.realm";
         Realm.deleteRealmFile(getContext(), REALM_NAME);
         Random random = new Random();
-        byte[] key = new byte[64];
-        random.nextBytes(key);
+        byte[] key = TestHelper.getRandomKey();
         Realm realm = Realm.getInstance(getContext(), REALM_NAME, key); // Create starting Realm with key1
         realm.close();
-        random.nextBytes(key);
+        key = TestHelper.getRandomKey();
         try {
             Realm.getInstance(getContext(), REALM_NAME, key); // Try to open with key 2
         } catch (IllegalArgumentException expected) {
@@ -247,7 +254,7 @@ public class RealmTest extends AndroidTestCase {
             realm = Realm.getInstance((Context) null); // throws when c.getDirectory() is called;
             // has nothing to do with Realm
             fail("Should throw an exception");
-        } catch (NullPointerException ignore) {
+        } catch (IllegalArgumentException ignore) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -958,31 +965,34 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testCompactEncryptedEmptyRealmFile() {
-        String REALM_NAME = "enc.realm";
-        Realm.deleteRealmFile(getContext(), REALM_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
-        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .name("enc.realm")
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+        Realm.deleteRealm(realmConfig);
+        Realm realm = Realm.getInstance(realmConfig);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
-            assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            assertTrue(Realm.compactRealm(realmConfig));
             fail();
         } catch (IllegalArgumentException expected) {
         }
     }
 
     public void testCompactEncryptedPopulatedRealmFile() {
-        String REALM_NAME = "enc.realm";
-        Realm.deleteRealmFile(getContext(), REALM_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
-        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .name("enc.realm")
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+        Realm.deleteRealm(realmConfig);
+        Realm realm = Realm.getInstance(realmConfig);
+
         populateTestRealm(realm, 100);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
         try {
-            assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME, key));
+            assertTrue(Realm.compactRealm(realmConfig));
             fail();
         } catch (IllegalArgumentException expected) {
         }
@@ -1252,7 +1262,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnFloat(2.23F);
                 obj2.setColumnDouble(2.234D);
                 obj2.setColumnBoolean(true);
-                obj2.setColumnBinary(new byte[] {2, 3, 4});
+                obj2.setColumnBinary(new byte[]{2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
@@ -1433,10 +1443,8 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testOpeningOfEncryptedRealmWithDifferentKeyInstances() {
-        byte[] key1 = new byte[64];
-        byte[] key2 = new byte[64];
-        new Random(42).nextBytes(key1);
-        new Random(42).nextBytes(key2);
+        byte[] key1 = TestHelper.getRandomKey(42);
+        byte[] key2 = TestHelper.getRandomKey(42);
 
         // Make sure the key is the same, but in two different instances
         assertArrayEquals(key1, key2);
@@ -1447,9 +1455,17 @@ public class RealmTest extends AndroidTestCase {
         Realm realm1 = null;
         Realm realm2 = null;
         try {
-            realm1 = Realm.getInstance(getContext(), ENCRYPTED_REALM, key1);
+            realm1 = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+                    .name(ENCRYPTED_REALM)
+                    .encryptionKey(key1)
+                    .build()
+            );
             try {
-                realm2 = Realm.getInstance(getContext(), ENCRYPTED_REALM, key2);
+                realm2 = Realm.getInstance(new RealmConfiguration.Builder(getContext())
+                        .name(ENCRYPTED_REALM)
+                        .encryptionKey(key2)
+                        .build()
+                );
             } catch (Exception e) {
                 fail();
             } finally {
@@ -1469,73 +1485,85 @@ public class RealmTest extends AndroidTestCase {
         long before = testRealm.where(AllTypes.class).count();
         assertEquals(TEST_DATA_SIZE, before);
 
+        // Configure test realms
         final String ENCRYPTED_REALM_FILE_NAME = "encryptedTestRealm.realm";
         final String RE_ENCRYPTED_REALM_FILE_NAME = "reEncryptedTestRealm.realm";
         final String DECRYPTED_REALM_FILE_NAME = "decryptedTestRealm.realm";
 
-        // Delete files if present
-        for (String fileName : Arrays.asList(ENCRYPTED_REALM_FILE_NAME, RE_ENCRYPTED_REALM_FILE_NAME, DECRYPTED_REALM_FILE_NAME)) {
-            File fileToDelete = new File(getContext().getFilesDir(), fileName);
-            if (fileToDelete.exists() && !fileToDelete.delete()) {
+        RealmConfiguration encryptedRealmConfig = new RealmConfiguration.Builder(getContext())
+                .name(ENCRYPTED_REALM_FILE_NAME)
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+
+        RealmConfiguration reEncryptedRealmConfig = new RealmConfiguration.Builder(getContext())
+                .name(RE_ENCRYPTED_REALM_FILE_NAME)
+                .encryptionKey(TestHelper.getRandomKey())
+                .build();
+
+        RealmConfiguration decryptedRealmConfig = new RealmConfiguration.Builder(getContext())
+                .name(DECRYPTED_REALM_FILE_NAME)
+                .build();
+
+        // Delete old test Realms if present
+        for (RealmConfiguration realmConfig : Arrays.asList(encryptedRealmConfig, reEncryptedRealmConfig, decryptedRealmConfig)) {
+            if (!Realm.deleteRealm(realmConfig)) {
                 fail();
             }
         }
 
+        // Write encrypted copy from a unencrypted Realm
         File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
-        byte[] key = new byte[64];
-        new Random(42).nextBytes(key);
         try {
-            // Unencrypted to encrypted
-            testRealm.writeEncryptedCopyTo(destination, key);
+            testRealm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
         } catch(Exception e) {
-            e.printStackTrace();
-            fail();
+            fail(e.getMessage());
         }
 
         Realm encryptedRealm = null;
         try {
-            encryptedRealm = Realm.getInstance(getContext(), ENCRYPTED_REALM_FILE_NAME, key);
+
+            // Verify encrypted Realm and write new encrypted copy with a new key
+            encryptedRealm = Realm.getInstance(encryptedRealmConfig);
             assertEquals(TEST_DATA_SIZE, encryptedRealm.where(AllTypes.class).count());
 
-            destination = new File(getContext().getFilesDir(), RE_ENCRYPTED_REALM_FILE_NAME);
-            new Random(1234321).nextBytes(key);
+            destination = new File(reEncryptedRealmConfig.getPath());
             try {
-                // Encrypted to encrypted
-                encryptedRealm.writeEncryptedCopyTo(destination, key);
+                encryptedRealm.writeEncryptedCopyTo(destination, reEncryptedRealmConfig.getEncryptionKey());
             } catch (Exception e) {
-                e.printStackTrace();
-                fail();
+                fail(e.getMessage());
             }
+
+            // Verify re-encrypted copy
             Realm reEncryptedRealm = null;
             try {
-                reEncryptedRealm = Realm.getInstance(getContext(), RE_ENCRYPTED_REALM_FILE_NAME, key);
+                reEncryptedRealm = Realm.getInstance(reEncryptedRealmConfig);
                 assertEquals(TEST_DATA_SIZE, reEncryptedRealm.where(AllTypes.class).count());
             } finally {
                 if (reEncryptedRealm != null) {
                     reEncryptedRealm.close();
-                    boolean isDeleted = new File(reEncryptedRealm.getPath()).delete();
-                    if (!isDeleted) {
+                    if (!Realm.deleteRealm(reEncryptedRealmConfig)) {
                         fail();
                     }
                 }
             }
 
-            destination = new File(getContext().getFilesDir(), DECRYPTED_REALM_FILE_NAME);
+            // Write non-encrypted copy from the encrypted version
+            destination = new File(decryptedRealmConfig.getPath());
             try {
-                // Encrypted to decrypted
                 encryptedRealm.writeEncryptedCopyTo(destination, null);
             } catch (Exception e) {
-                fail();
+                fail(e.getMessage());
             }
+
+            // Verify decrypted Realm and cleanup
             Realm decryptedRealm = null;
             try {
-                decryptedRealm = Realm.getInstance(getContext(), DECRYPTED_REALM_FILE_NAME);
+                decryptedRealm = Realm.getInstance(decryptedRealmConfig);
                 assertEquals(TEST_DATA_SIZE, decryptedRealm.where(AllTypes.class).count());
             } finally {
                 if (decryptedRealm != null) {
                     decryptedRealm.close();
-                    boolean isDeleted = new File(decryptedRealm.getPath()).delete();
-                    if (!isDeleted) {
+                    if (!Realm.deleteRealm(decryptedRealmConfig)) {
                         fail();
                     }
                 }
@@ -1543,8 +1571,7 @@ public class RealmTest extends AndroidTestCase {
         } finally {
             if (encryptedRealm != null) {
                 encryptedRealm.close();
-                boolean isDeleted = new File(encryptedRealm.getPath()).delete();
-                if (!isDeleted) {
+                if (!Realm.deleteRealm(encryptedRealmConfig)) {
                     fail();
                 }
             }
@@ -1580,26 +1607,6 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testWrongKeyShouldThrow() {
-        final String WRONG_KEY_REALM = "wrong-key-realm.realm";
-        Realm.deleteRealmFile(getContext(), WRONG_KEY_REALM);
-
-        // Wrong key size
-        try {
-            Realm.getInstance(getContext(), WRONG_KEY_REALM, new byte[63]);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        Realm.getInstance(getContext(), WRONG_KEY_REALM);
-
-        try {
-            Realm.getInstance(getContext(), WRONG_KEY_REALM, new byte[64]);
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-    }
-
     public void testUpdateObjectWithLinks() throws Exception {
         testRealm.beginTransaction();
 
@@ -1631,7 +1638,6 @@ public class RealmTest extends AndroidTestCase {
         File tmpFile = new File(getContext().getFilesDir(), "tmp");
         tmpFile.delete();
         assertTrue(tmpFile.createNewFile());
-        assertTrue(Realm.deleteRealmFile(tmpFile));
     }
 
     // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
@@ -1675,5 +1681,74 @@ public class RealmTest extends AndroidTestCase {
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
+    }
+
+    // Check that FinalizerRunnable can free native resources (phantom refs)
+    public void testFinalizerThread() throws NoSuchFieldException, IllegalAccessException {
+        Field fieldReferences = FinalizerRunnable.class.getDeclaredField("references");
+        fieldReferences.setAccessible(true);
+        Map<Reference<?>, Boolean> references = (Map<Reference<?>, Boolean>) fieldReferences.get(null);
+        assertNotNull(references);
+
+        Field fieldIsFinalizerStarted = Realm.class.getDeclaredField("isFinalizerStarted");
+        fieldIsFinalizerStarted.setAccessible(true);
+        boolean isFinalizerStarted = fieldIsFinalizerStarted.getBoolean(null);
+        assertTrue(isFinalizerStarted);
+
+        //insert some rows, then give the FinalizerRunnable some time to cleanup
+        // we have 8 reference so far let's add more
+        final int numberOfPopulateTest = 10000;
+        final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
+
+        for (int i = 0; i < numberOfPopulateTest; i++) {
+            populateTestRealm(testRealm, 20);
+        }
+
+        final int MAX_GC_RETRIES = 5;
+        int numberOfRetries = 0;
+        while (references.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
+            SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
+            numberOfRetries++;
+            System.gc();
+        }
+
+        // we can't guarantee that all references have been GC'd but we should detect a decrease
+        boolean isDecreasing = references.size() < totalNumberOfReferences;
+        if (!isDecreasing) {
+            fail("FinalizerRunnable is not closing all native resources");
+
+        } else {
+            android.util.Log.d(RealmTest.class.getName(), "FinalizerRunnable freed : "
+                    + (totalNumberOfReferences - references.size()) + " out of " + totalNumberOfReferences);
+        }
+    }
+
+    // Test close Realm in another thread different from where it is created.
+    public void testCloseRealmInDifferentThread() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AssertionFailedError threadAssertionError[] = new AssertionFailedError[1];
+
+        final Thread thatThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testRealm.close();
+                    threadAssertionError[0] = new AssertionFailedError(
+                            "Close realm in a different thread should throw IllegalStateException.");
+                } catch (IllegalStateException ignored) {
+                }
+                latch.countDown();
+            }
+        });
+        thatThread.start();
+
+        // Timeout should never happen
+        latch.await();
+        if (threadAssertionError[0] != null) {
+            throw threadAssertionError[0];
+        }
+        // After exception thrown in another thread, nothing should be changed to the realm in this thread.
+        testRealm.checkIfValid();
+        testRealm.close();
     }
 }

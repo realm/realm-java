@@ -84,7 +84,7 @@ public class AsyncTaskFragment extends Fragment {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            Realm realm = Realm.getInstance(getActivity());
+            Realm realm = Realm.getDefaultInstance();
 
             realm.beginTransaction();
             realm.clear(Score.class);

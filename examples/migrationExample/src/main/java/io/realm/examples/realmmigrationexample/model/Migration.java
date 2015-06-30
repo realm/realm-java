@@ -85,7 +85,7 @@ public class Migration implements RealmMigration {
 
             for (int i = 0; i < personTable.size(); i++) {
                 if (personTable.getString(fullNameIndex, i).equals("JP McDonald")) {
-                    personTable.getRow(i).getLinkList(petsIndex).add(petTable.add("Jimbo", "dog"));
+                    personTable.getUncheckedRow(i).getLinkList(petsIndex).add(petTable.add("Jimbo", "dog"));
                 }
             }
             version++;
