@@ -120,8 +120,8 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
         if (object == null) {
             throw new IllegalArgumentException("DynamicRealmList does not accept null values");
         }
-        if (!realm.getPath().equals(object.realm.getPath())) {
-            throw new IllegalArgumentException("Cannot add an object already belonging to another Realm");
+        if (!realm.getConfiguration().equals(object.realm.getConfiguration())) {
+            throw new IllegalArgumentException("Cannot add an object belonging to another Realm");
         }
         if (!linkView.getTable().hasSameSchema(object.row.getTable())) {
             String expectedClass = linkView.getTable().getName();

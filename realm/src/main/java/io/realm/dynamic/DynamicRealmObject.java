@@ -21,6 +21,7 @@ import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
+import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -39,6 +40,9 @@ public class DynamicRealmObject extends RealmObject {
      * Creates a dynamic Realm object based on a existing object.
      */
     public DynamicRealmObject(RealmObject obj) {
+        if (obj == null) {
+            throw new IllegalArgumentException("Non-null object must be provided.");
+        }
         Row row = RealmObject.getRow(obj);
         if (obj == null || row == null) {
             throw new IllegalArgumentException("A non-null object that is already in Realm must be provided");
@@ -100,6 +104,18 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
+     * Returns the {@code byte} value for a given field.
+     *
+     * @param fieldName Name of field.
+     * @return The byte value.
+     * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     */
+    public byte getByte(String fieldName) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        return (byte) row.getLong(columnIndex);
+    }
+
+    /**
      * Returns the {@code float} value for a given field.
      *
      * @param fieldName Name of field.
@@ -130,7 +146,7 @@ public class DynamicRealmObject extends RealmObject {
      * @return The byte[] value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
      */
-    public byte[] getBytes(String fieldName) {
+    public byte[] getBlob (String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         return row.getBinaryByteArray(columnIndex);
     }
@@ -292,6 +308,18 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
+     * Sets the {@code byte} value of the given field.
+     *
+     * @param fieldName Field name.
+     * @param value Value to insert.
+     * @throws IllegalArgumentException if field name doesn't exists or isn't an integer field.
+     */
+    public void setByte(String fieldName, byte value) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        row.setLong(columnIndex, value);
+    }
+
+    /**
      * Sets the {@code float} value of the given field.
      *
      * @param fieldName Field name.
@@ -334,7 +362,7 @@ public class DynamicRealmObject extends RealmObject {
      * @param value Value to insert.
      * @throws IllegalArgumentException if field name doesn't exists or isn't a binary field.
      */
-    public void setBinary(String fieldName, byte[] value) {
+    public void setBlob(String fieldName, byte[] value) {
         long columnIndex = row.getColumnIndex(fieldName);
         row.setBinaryByteArray(columnIndex, value);
     }
@@ -367,7 +395,7 @@ public class DynamicRealmObject extends RealmObject {
             if (value.realm == null || value.row == null) {
                 throw new IllegalArgumentException("Cannot link to objects that are not part of the Realm.");
             }
-            if (value.realm != null && !realm.getPath().equals(value.realm.getPath())) {
+            if (value.realm != null && !realm.getConfiguration().equals(value.realm.getConfiguration())) {
                 throw new IllegalArgumentException("Cannot add an object from another Realm");
             }
             Table table = row.getTable();
@@ -395,6 +423,15 @@ public class DynamicRealmObject extends RealmObject {
         for (DynamicRealmObject obj : list) {
             links.add(obj.row.getIndex());
         }
+    }
+
+    /**
+     * Deletes this object from the Realm. Accessing any fields after removing the object will throw an
+     * {@link IllegalStateException}.
+     */
+    public void removeFromRealm() {
+        row.getTable().moveLastOver(row.getIndex());
+        row = InvalidRow.INSTANCE;
     }
 
     @Override
