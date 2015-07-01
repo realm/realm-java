@@ -16,13 +16,11 @@
 package io.realm;
 
 import android.test.AndroidTestCase;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.RealmAdapter;
-import io.realm.exceptions.RealmException;
 
 public class RealmAdapterTest extends AndroidTestCase {
 

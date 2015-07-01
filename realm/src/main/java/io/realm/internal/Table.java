@@ -153,7 +153,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public TableSchema getSubtableSchema(long columnIndex) {
-        if(!nativeIsRootTable(nativePtr)) {
+        if (!nativeIsRootTable(nativePtr)) {
             throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
         }
 
@@ -778,7 +778,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
         public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
             checkImmutable();
-            if(data != null)
+            if (data != null)
                 nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
             else
                 throw new IllegalArgumentException("byte[] must not be null. Alternatively insert empty array.");
