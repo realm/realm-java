@@ -38,6 +38,9 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Creates a dynamic Realm object based on a existing object.
+     *
+     * @param obj Realm object to convert to a dynamic object. Only objects managed by Realm can be used.
+     * @throws IllegalArgumentException if object isn't managed by a Realm.
      */
     public DynamicRealmObject(RealmObject obj) {
         if (obj == null) {
@@ -45,7 +48,7 @@ public class DynamicRealmObject extends RealmObject {
         }
         Row row = RealmObject.getRow(obj);
         if (row == null) {
-            throw new IllegalArgumentException("A non-null object that is already in Realm must be provided");
+            throw new IllegalArgumentException("A object manged by Realm must be provided. This is a standalone object.");
         }
         this.realm = RealmObject.getRealm(obj);
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
@@ -198,7 +201,7 @@ public class DynamicRealmObject extends RealmObject {
      * as a {@link DynamicRealmList}.
      *
      * @param fieldName Name of field.
-     * @return The {@link DynamicRealmList} representation of the RealmList.
+     * @return the {@link DynamicRealmList} representation of the RealmList.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain a list of links.
      */
     public DynamicRealmList getList(String fieldName) {
@@ -249,7 +252,7 @@ public class DynamicRealmObject extends RealmObject {
     /**
      * Returns the list of field names on this object.
      *
-     * @return List of field names on this objects or the empty list if the object doesn't have any fields.
+     * @return list of field names on this objects or the empty list if the object doesn't have any fields.
      */
     public String[] getFieldNames() {
         String[] keys = new String[(int) row.getColumnCount()];
