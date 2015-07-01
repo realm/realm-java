@@ -369,14 +369,14 @@ public class JNITransactions extends AndroidTestCase {
         Table t = getTableWithStringPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey("Foo");
         assertEquals(1, t.size());
-        assertEquals("Foo", t.getUncheckedRow(rowIndex).getString(0));
+        assertEquals("Foo", t.getUncheckedRowByIndex(rowIndex).getString(0));
     }
 
     public void testAddEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey(42);
         assertEquals(1, t.size());
-        assertEquals(42, t.getUncheckedRow(rowIndex).getLong(0));
+        assertEquals(42, t.getUncheckedRowByIndex(rowIndex).getLong(0));
     }
 
     public void testPrimaryKeyTableMigration() throws IOException {

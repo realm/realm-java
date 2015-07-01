@@ -106,4 +106,14 @@ public abstract class RealmObject {
     public boolean isValid() {
         return row != null && row.isAttached();
     }
+
+    /**
+     * Encapsulates an async {@link RealmQuery}.
+     * <p>
+     * This will run the {@link RealmQuery} on a worker thread, then invoke this callback on the caller thread
+     */
+    public interface QueryCallback<E extends RealmObject> {
+        void onSuccess (E result);
+        void onError (Exception t);
+    }
 }

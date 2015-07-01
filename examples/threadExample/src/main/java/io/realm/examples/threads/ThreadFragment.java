@@ -16,7 +16,6 @@
 
 package io.realm.examples.threads;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -56,14 +55,6 @@ public class ThreadFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        // Create Realm instance for the UI thread
-        realm = Realm.getDefaultInstance();
     }
 
     @Override
@@ -115,6 +106,13 @@ public class ThreadFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        // Create Realm instance for the UI thread
+        realm = Realm.getDefaultInstance();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
@@ -161,8 +159,8 @@ public class ThreadFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStop() {
+        super.onStop();
         // Remember to close the Realm instance when done with it.
         realm.close();
     }

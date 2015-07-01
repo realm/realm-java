@@ -272,7 +272,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("return null");
                 writer.endControlFlow();
                 writer.emitStatement(
-                        "return realm.get(%s.class, row.getLink(%s))",
+                        "return realm.getByIndex(%s.class, row.getLink(%s))",
                         fieldTypeCanonicalName, staticFieldIndexVarName(field));
                 writer.endMethod();
                 writer.emitEmptyLine();
@@ -554,7 +554,7 @@ public class RealmProxyClassGenerator {
                 .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                     .emitStatement("realmObject = new %s()", Utils.getProxyClassName(className))
                     .emitStatement("realmObject.realm = realm")
-                    .emitStatement("realmObject.row = table.getUncheckedRow(rowIndex)")
+                    .emitStatement("realmObject.row = table.getUncheckedRowByIndex(rowIndex)")
                     .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                 .nextControlFlow("else")
                     .emitStatement("canUpdate = false")
@@ -814,7 +814,7 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                             .emitStatement("obj = new %s()", Utils.getProxyClassName(className))
                             .emitStatement("obj.realm = realm")
-                            .emitStatement("obj.row = table.getUncheckedRow(rowIndex)")
+                            .emitStatement("obj.row = table.getUncheckedRowByIndex(rowIndex)")
                         .endControlFlow()
                     .endControlFlow()
                 .endControlFlow()

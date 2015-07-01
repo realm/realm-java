@@ -107,9 +107,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(rowIndex));
+            obj = realm.getByIndex(classSpec, ((TableView) table).getSourceRowIndex(rowIndex));
         } else {
-            obj = realm.get(classSpec, rowIndex);
+            obj = realm.getByIndex(classSpec, rowIndex);
         }
 
         return obj;
@@ -614,5 +614,15 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
          */
         @Override
         public void remove() { throw new RealmException("Removing elements not supported."); }
+    }
+
+    /**
+     * Encapsulates an async {@link RealmQuery}.
+     * <p>
+     * This will run the {@link RealmQuery} on a worker thread, then invoke this callback on the caller thread
+     */
+    public interface QueryCallback<E extends RealmObject> {
+        void onSuccess (RealmResults<E>  results);
+        void onError (Exception t);
     }
 }

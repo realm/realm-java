@@ -389,7 +389,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
+                row = getUncheckedRowByIndex(rowIndex);
                 row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
                 break;
 
@@ -404,7 +404,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(pkValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
+                row = getUncheckedRowByIndex(rowIndex);
                 row.setLong(primaryKeyColumnIndex, pkValue);
                 break;
 
@@ -659,7 +659,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
             long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
             if (rowIndex != NO_MATCH) {
-                String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                String pkColumnName = pkTable.getUncheckedRowByIndex(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
             } else {
                 cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
@@ -996,15 +996,26 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param index Index of row to fetch.
      * @return Unsafe row wrapper object.
      */
-    public UncheckedRow getUncheckedRow(long index) {
-        return UncheckedRow.get(context, this, index);
+    public UncheckedRow getUncheckedRowByIndex(long index) {
+        return UncheckedRow.getByRowIndex(context, this, index);
+    }
+
+    /**
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
+     * If error checking is required, use {@link #getCheckedRow(long)} instead.
+     *
+     * @param nativeRowPointer Pointer to the row to fetch.
+     * @return Unsafe row wrapper object.
+     */
+    public UncheckedRow getUncheckedRowByPointer(long nativeRowPointer) {
+        return UncheckedRow.getByRowPointer(context, this, nativeRowPointer);
     }
 
     /**
      * Returns a wrapper around Row access. All access will be error checked in JNI and will throw an
      * appropriate {@link RuntimeException} if used incorrectly.
      *
-     * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
+     * If error checking is done elsewhere, consider using {@link #getUncheckedRowByIndex(long)} for better performance.
      *
      * @param index Index of row to fetch./
      * @return Safe row wrapper object.

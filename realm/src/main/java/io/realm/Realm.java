@@ -1072,7 +1072,7 @@ public final class Realm implements Closeable {
     public <E extends RealmObject> E createObject(Class<E> clazz) {
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        return getByIndex(clazz, rowIndex);
     }
 
     /**
@@ -1088,16 +1088,25 @@ public final class Realm implements Closeable {
     <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return get(clazz, rowIndex);
+        return getByIndex(clazz, rowIndex);
     }
 
     void remove(Class<? extends RealmObject> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
-    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
+    <E extends RealmObject> E getByIndex(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
-        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        UncheckedRow row = table.getUncheckedRowByIndex(rowIndex);
+        E result = configuration.getSchemaMediator().newInstance(clazz);
+        result.row = row;
+        result.realm = this;
+        return result;
+    }
+
+    <E extends RealmObject> E getByPointer(Class<E> clazz, long nativeRowPointer) {
+        Table table = getTable(clazz);
+        UncheckedRow row = table.getUncheckedRowByPointer(nativeRowPointer);
         E result = configuration.getSchemaMediator().newInstance(clazz);
         result.row = row;
         result.realm = this;
@@ -1877,22 +1886,23 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Encapsulates an async {@link RealmQuery}.
-     * <p>
-     * This will run the {@link RealmQuery} on a worker thread, then invoke this callback on the caller thread
+     * Used for debugging/testing purpose to add any logic (within the caller's thread)
+     * before we return the results
      */
-    public interface QueryCallback<E extends RealmObject> {
-        void onSuccess (RealmResults<E>  results);
-        void onError (Exception t);
+    interface DebugRealmResultsQueryCallback<E extends RealmObject> extends RealmResults.QueryCallback<E> {
+        /**
+         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmResults)}
+         */
+        void onBackgroundQueryCompleted(Realm realm);
     }
 
     /**
      * Used for debugging/testing purpose to add any logic (within the caller's thread)
      * before we return the results
      */
-    interface DebugQueryCallback<E extends RealmObject> extends QueryCallback<E> {
+    interface DebugRealmObjectQueryCallback<E extends RealmObject> extends RealmObject.QueryCallback<E> {
         /**
-         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmResults)}
+         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmObject)}
          */
         void onBackgroundQueryCompleted(Realm realm);
     }
