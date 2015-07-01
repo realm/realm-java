@@ -140,7 +140,7 @@
   * Bug fixed in Exception text when field names was not matching the database
   * Bug fixed so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented sub-querying
-  * The Date type does not support millisecond resolution, and dates before 1900-12-13
+  * The Date type does not support millisecond resolution, and dates before 1901-12-13
     and dates after 2038-01-19 are not supported on 32 bit systems
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying
