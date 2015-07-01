@@ -84,7 +84,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
             }
 
             KeyBuffer key(env, keyArray);
-            db = new SharedGroup(file_name, no_create!=0, level, key.data());
+            db = new SharedGroup(file_name, no_create != 0, level, key.data());
         }
         return reinterpret_cast<jlong>(db);
     }
@@ -100,7 +100,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 
     SharedGroup::DurabilityLevel level;
     // Exception thrown for wrong durability value
-    if(!jint_to_durability_level(env, durability, level)) {
+    if (!jint_to_durability_level(env, durability, level)) {
         return 0;
     }
 

@@ -354,7 +354,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
             // On-disk Realm then. Not allowed!
             Realm.getInstance(config2);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm1.close();
         }
@@ -365,7 +365,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
             // In-memory Realm then. Not allowed!
             Realm.getInstance(config1);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm1.close();
         }
