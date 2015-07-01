@@ -165,6 +165,7 @@ public final class Realm implements Closeable {
             new HashMap<Class<? extends RealmObject>, Table>();
 
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
+    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
 
@@ -226,9 +227,16 @@ public final class Realm implements Closeable {
      * <p>
      * It's important to always remember to close Realm instances when you're done with it in order
      * not to leak memory, file descriptors or grow the size of Realm file out of measure.
+     *
+     * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the
+     * one it was created on.
      */
     @Override
     public void close() {
+        if (this.threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
+        }
+
         Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
         String canonicalPath = configuration.getPath();
         Integer references = localRefCount.get(configuration);
@@ -237,12 +245,17 @@ public final class Realm implements Closeable {
         }
         if (sharedGroup != null && references == 1) {
             realmsCache.get().remove(configuration);
-            globalPathConfigurationCache.get(canonicalPath).remove(configuration);
             sharedGroup.close();
             sharedGroup = null;
-            AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
-            if (counter.decrementAndGet() == 0) {
-                globalOpenInstanceCounter.remove(canonicalPath);
+
+            // It is necessary to be synchronized here since there is a chance that before the counter removed,
+            // the other thread could get the counter and increase it in createAndValidate.
+            synchronized (Realm.class) {
+                globalPathConfigurationCache.get(canonicalPath).remove(configuration);
+                AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
+                if (counter.decrementAndGet() == 0) {
+                    globalOpenInstanceCounter.remove(canonicalPath);
+                }
             }
         }
 

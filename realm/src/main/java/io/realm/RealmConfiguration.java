@@ -72,7 +72,7 @@ public class RealmConfiguration {
     private final String realmFileName;
     private final String canonicalPath;
     private final byte[] key;
-    private final int schemaVersion;
+    private final long schemaVersion;
     private final RealmMigration migration;
     private final boolean deleteRealmIfMigrationNeeded;
     private final RealmProxyMediator schemaMediator;
@@ -100,7 +100,7 @@ public class RealmConfiguration {
         return key;
     }
 
-    public int getSchemaVersion() {
+    public long getSchemaVersion() {
         return schemaVersion;
     }
 
@@ -143,7 +143,7 @@ public class RealmConfiguration {
         result = 31 * result + realmFileName.hashCode();
         result = 31 * result + canonicalPath.hashCode();
         result = 31 * result + (key != null ? Arrays.hashCode(key) : 0);
-        result = 31 * result + schemaVersion;
+        result = 31 * result + (int)schemaVersion;
         result = 31 * result + (migration != null ? migration.hashCode() : 0);
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
         result = 31 * result + schemaMediator.hashCode();
@@ -203,7 +203,7 @@ public class RealmConfiguration {
         private File folder;
         private String fileName;
         private byte[] key;
-        private int schemaVersion;
+        private long schemaVersion;
         private RealmMigration migration;
         private boolean deleteRealmIfMigrationNeeded;
         private HashSet<Object> modules = new HashSet<Object>();
@@ -293,7 +293,7 @@ public class RealmConfiguration {
          *
          * @see #migration(RealmMigration)
          */
-        public Builder schemaVersion(int schemaVersion) {
+        public Builder schemaVersion(long schemaVersion) {
             if (schemaVersion < 0) {
                 throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
             }
