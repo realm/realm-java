@@ -48,7 +48,7 @@ public class DynamicRealmObject extends RealmObject {
         }
         Row row = RealmObject.getRow(obj);
         if (row == null) {
-            throw new IllegalArgumentException("A object manged by Realm must be provided. This is a standalone object.");
+            throw new IllegalArgumentException("A object managed by Realm must be provided. This is a standalone object.");
         }
         this.realm = RealmObject.getRealm(obj);
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
