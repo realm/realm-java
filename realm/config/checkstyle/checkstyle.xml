@@ -4,6 +4,8 @@
     "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 
 <module name="Checker">
+    <!-- There are non-ascii test cases -->
+    <property name="charset" value="UTF-8"/>
     <!-- Files to ignore -->
     <module name="SuppressionFilter">
         <property name="file" value="${proj.module.dir}/config/checkstyle/checkstyle-suppressions.xml"/>
