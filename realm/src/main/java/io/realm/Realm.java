@@ -620,7 +620,7 @@ public final class Realm implements Closeable {
         if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && validateSchema) {
             realm.close();
             throw new IllegalArgumentException(String.format("Realm on disc is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
-		}
+        }
 
         // Initialize Realm schema if needed
         if (validateSchema) {
