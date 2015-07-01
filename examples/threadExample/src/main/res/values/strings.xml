@@ -8,7 +8,6 @@
     <string name="title_section3">Async Query</string>
     <string name="add_dot">Add blue dot</string>
     <string name="clear_dots">Clear dots</string>
-    <string name="clear">Clear</string>
     <string name="start">Start</string>
 
 </resources>

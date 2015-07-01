@@ -61,16 +61,6 @@ public class ThreadFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_thread, container, false);
         dotsView = (DotsView) rootView.findViewById(R.id.dots);
-
-        // Create a RealmQuery on the UI thread and send the results to the custom view. The
-        // RealmResults will automatically be updated whenever the Realm data is changed.
-        // We still need to invalidate the UI to show the changes however. See the RealmChangeListener.
-        //
-        // Note that the query gets updated by rerunning it on the thread it was
-        // created. This can negatively effect frame rates if it is a complicated query or a very
-        // large data set.
-        dotsView.setRealmResults(realm.allObjects(Dot.class));
-
         return rootView;
     }
 
@@ -110,6 +100,15 @@ public class ThreadFragment extends Fragment {
         super.onStart();
         // Create Realm instance for the UI thread
         realm = Realm.getDefaultInstance();
+
+        // Create a RealmQuery on the UI thread and send the results to the custom view. The
+        // RealmResults will automatically be updated whenever the Realm data is changed.
+        // We still need to invalidate the UI to show the changes however. See the RealmChangeListener.
+        //
+        // Note that the query gets updated by rerunning it on the thread it was
+        // created. This can negatively effect frame rates if it is a complicated query or a very
+        // large data set.
+        dotsView.setRealmResults(realm.allObjects(Dot.class));
     }
 
     @Override
