@@ -30,12 +30,6 @@ using namespace realm;
 
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 
-#ifndef REALM_ENABLE_REPLICATION
-// TODO: REPLICATION is needed for android java bindings, but not For the normal java bindings.
-//       Clean this up when support normal java bindings.
-#error "REALM_ENABLE_REPLICATION must be defined for compiling realm-java!"
-#endif
-
 inline static bool jint_to_durability_level(JNIEnv* env, jint durability, SharedGroup::DurabilityLevel &level) {
     if (durability == 0)
         level = SharedGroup::durability_Full;
@@ -84,7 +78,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
             }
 
             KeyBuffer key(env, keyArray);
+#ifdef REALM_ENABLE_ENCRYPTION
             db = new SharedGroup(file_name, no_create != 0, level, key.data());
+#else
+            db = new SharedGroup(file_name, no_create != 0, level);
+#endif
         }
         return reinterpret_cast<jlong>(db);
     }
@@ -106,8 +104,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
 
     try {
         KeyBuffer key(env, keyArray);
+#ifdef REALM_ENABLE_ENCRYPTION
         SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), level, key.data());
-
+#else
+        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), level);
+#endif
         return reinterpret_cast<jlong>(db);
     }
     CATCH_FILE()
