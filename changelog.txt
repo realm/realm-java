@@ -1,5 +1,6 @@
-0.81.2
+0.82
  * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
+ * Added in-memory Realm support.
  * Closing realm on another thread different from where it was created now throws an exception.
 
 0.81.1

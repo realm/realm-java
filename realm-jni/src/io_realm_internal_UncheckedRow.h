@@ -239,6 +239,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeClose
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached
   (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     io_realm_internal_UncheckedRow
+ * Method:    nativeHasField
+ * Signature: (JLjava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasColumn
+  (JNIEnv *, jobject, jlong, jstring);
+
+
 #ifdef __cplusplus
 }
 #endif

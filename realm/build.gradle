@@ -46,6 +46,7 @@ android.libraryVariants.all { variant ->
         source "../realm-annotations/src/main/java"
         ext.androidJar = files(project.android.getBootClasspath())
         classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
+        options.memberLevel = JavadocMemberLevel.PUBLIC
         exclude '**/internal/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
