@@ -99,24 +99,30 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the element at the specified location in this list.
+     *
+     * @param location the index of the element to return.
+     * @return the element at the specified index.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
-    public E get(int rowIndex) {
+    public E get(int location) {
         E obj;
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(rowIndex));
+            obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(location));
         } else {
-            obj = realm.get(classSpec, rowIndex);
+            obj = realm.get(classSpec, location);
         }
 
         return obj;
     }
 
     /**
-     * {@inheritDoc}
+     * This method is not supported.
+     *
+     * @throws NoSuchMethodError always.
      */
     @Override
     public int indexOf(Object o) {
@@ -266,7 +272,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
-
     /**
      * Sort existing {@link io.realm.RealmResults} using two fields.
      *
@@ -298,7 +303,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Aggregates
 
     /**
-     * {@inheritDoc}
+     * Returns the number of elements in this query result.
+     *
+     * @return the number of elements in this query result.
      */
     @Override
     public int size() {

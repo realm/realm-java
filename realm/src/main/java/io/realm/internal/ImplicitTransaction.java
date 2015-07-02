@@ -68,7 +68,7 @@ public class ImplicitTransaction extends Group {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the absolute path to the Realm file backing this transaction.
      */
     public String getPath() {
         return parent.getPath();
