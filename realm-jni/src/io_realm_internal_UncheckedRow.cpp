@@ -288,3 +288,10 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached
     TR_ENTER_PTR(nativeRowPtr)
     return ROW(nativeRowPtr)->is_attached();
 }
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasColumn
+  (JNIEnv* env, jobject obj, jlong nativeRowPtr, jstring columnName)
+{
+    jlong ndx = Java_io_realm_internal_UncheckedRow_nativeGetColumnIndex(env, obj, nativeRowPtr, columnName);
+    return ndx != to_jlong_or_not_found(realm::not_found);
+}

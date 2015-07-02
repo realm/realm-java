@@ -231,6 +231,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeClose
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsAttached
   (JNIEnv *, jobject, jlong);
 
+
 #ifdef __cplusplus
 }
 #endif
