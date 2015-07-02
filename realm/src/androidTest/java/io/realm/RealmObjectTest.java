@@ -23,10 +23,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
@@ -38,6 +40,7 @@ import io.realm.internal.Row;
 public class RealmObjectTest extends AndroidTestCase {
 
     private Realm testRealm;
+    private RealmConfiguration realmConfig;
 
     private static final int TEST_SIZE = 5;
     private static final boolean REMOVE_FIRST = true;
@@ -45,7 +48,7 @@ public class RealmObjectTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
+        realmConfig = new RealmConfiguration.Builder(getContext()).build();
         Realm.deleteRealm(realmConfig);
         testRealm = Realm.getInstance(realmConfig);
     }
@@ -511,5 +514,33 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(allTypes.isValid());
         testRealm.commitTransaction();
         assertTrue(allTypes.isValid());
+    }
+
+    public void testAccessObjectRemovalThrows() throws InterruptedException {
+
+        testRealm.beginTransaction();
+        AllTypes obj = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+
+        final CountDownLatch objectDeletedInBackground = new CountDownLatch(1);
+        new java.lang.Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                realm.beginTransaction();
+                realm.clear(AllTypes.class);
+                realm.commitTransaction();
+                realm.close();
+                objectDeletedInBackground.countDown();
+            }
+        }).start();
+        objectDeletedInBackground.await(2, TimeUnit.SECONDS);
+        testRealm.refresh(); // Move to version where underlying object is deleted.
+
+        try {
+            obj.getColumnLong();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
     }
 }
