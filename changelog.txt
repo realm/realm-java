@@ -1,4 +1,5 @@
-0.81.2
+0.82
+ * Added in-memory Realm support.
  * Closing realm on another thread different from where it was created now throws an exception.
 
 0.81.1
