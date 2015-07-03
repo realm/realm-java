@@ -52,7 +52,7 @@ public class ClassMetaData {
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
     private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class
-    // except those @Ignored.
+                                                                             // except those @Ignored.
     private List<String> fieldNames = new ArrayList<String>();
     private List<String> ignoreFieldNames = new ArrayList<String>();
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
