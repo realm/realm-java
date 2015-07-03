@@ -21,11 +21,10 @@ import io.realm.RealmMigration;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
-/*****************************
- * NOTE: ********************************************* The API for migration is currently using internal lower level
- * classes that will be replaced by a new API very soon! Until then you will have to explore and use below example as
- * inspiration. ********************************************************************************
- */
+/***************************** NOTE: *********************************************
+ * The API for migration is currently using internal lower level classes that will be replaced by a new API very soon!
+ * Until then you will have to explore and use below example as inspiration.
+ *********************************************************************************/
 
 public class Migration implements RealmMigration {
     @Override

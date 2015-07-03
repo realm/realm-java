@@ -146,8 +146,8 @@ public class ModuleMetaData {
         if (annotationValue == null) {
             return false;
         } else {
-            List<? extends AnnotationValue> moduleClasses = (List<? extends AnnotationValue>) annotationValue
-                    .getValue();
+            List<? extends AnnotationValue> moduleClasses =
+            (List<? extends AnnotationValue>) annotationValue.getValue();
             return moduleClasses.size() > 0;
         }
     }

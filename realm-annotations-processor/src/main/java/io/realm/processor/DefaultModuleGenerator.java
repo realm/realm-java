@@ -43,8 +43,8 @@ public class DefaultModuleGenerator {
     }
 
     public void generate() throws IOException {
-        String qualifiedGeneratedClassName = String.format("%s.%s", Constants.REALM_PACKAGE_NAME, Constants
-                .DEFAULT_MODULE_CLASS_NAME);
+        String qualifiedGeneratedClassName = String.format(
+            "%s.%s", Constants.REALM_PACKAGE_NAME, Constants.DEFAULT_MODULE_CLASS_NAME);
         JavaFileObject sourceFile = env.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
         writer.setIndent("    ");
