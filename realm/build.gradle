@@ -47,7 +47,7 @@ android.libraryVariants.all { variant ->
         ext.androidJar = files(project.android.getBootClasspath())
         classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
         options.memberLevel = JavadocMemberLevel.PUBLIC
-        options.addStringOption('Xdoclint:none')
+        options.addStringOption('Xdoclint:none', '-quiet')
         exclude '**/internal/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
