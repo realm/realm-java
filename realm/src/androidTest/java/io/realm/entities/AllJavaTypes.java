@@ -24,9 +24,7 @@ import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
-public class AllJavaTypes extends RealmObject {
-
-
+public class AllJavaTypes extends RealmObject{
 
     public static String FIELD_IGNORED = "fieldIgnored";
     public static String FIELD_STRING = "fieldString";
@@ -38,7 +36,7 @@ public class AllJavaTypes extends RealmObject {
     public static String FIELD_DOUBLE = "fieldDouble";
     public static String FIELD_BOOLEAN = "fieldBoolean";
     public static String FIELD_DATE = "fieldDate";
-    public static String FIELD_BLOB = "fieldBinary";
+    public static String FIELD_BINARY = "fieldBinary";
     public static String FIELD_OBJECT = "fieldObject";
     public static String FIELD_LIST = "fieldList";
 

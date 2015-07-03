@@ -187,8 +187,8 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         assertEquals("str", dObj.getString(AllJavaTypes.FIELD_STRING));
                         break;
                     case BINARY:
-                        dObj.setBlob(AllJavaTypes.FIELD_BLOB, new byte[]{1, 2, 3});
-                        assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBlob(AllJavaTypes.FIELD_BLOB));
+                        dObj.setBlob(AllJavaTypes.FIELD_BINARY, new byte[]{1, 2, 3});
+                        assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBlob(AllJavaTypes.FIELD_BINARY));
                         break;
                     case DATE:
                         dObj.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
@@ -279,7 +279,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     public void testGetFieldNames() {
         String[] expectedKeys = { AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT,
                 AllJavaTypes.FIELD_LONG, AllJavaTypes.FIELD_BYTE, AllJavaTypes.FIELD_FLOAT, AllJavaTypes.FIELD_DOUBLE,
-                AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE, AllJavaTypes.FIELD_BLOB,
+                AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE, AllJavaTypes.FIELD_BINARY,
                 AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST };
         String[] keys = dObj.getFieldNames();
         assertArrayEquals(expectedKeys, keys);

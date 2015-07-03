@@ -471,7 +471,7 @@ public class NotificationsTest extends AndroidTestCase {
 
         // There is no guaranteed way to release the WeakReference,
         // just clear it.
-        for (WeakReference<RealmChangeListener> weakRef: realm.getChangeListeners()) {
+        for (WeakReference<RealmChangeListener> weakRef : realm.getChangeListeners()) {
             weakRef.clear();
         }
 
