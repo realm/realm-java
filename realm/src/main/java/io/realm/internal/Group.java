@@ -68,8 +68,6 @@ public class Group implements Closeable {
         }
     }
 
-    ;
-
     public Group(String filepath, OpenMode mode) {
         this.immutable = mode.equals(OpenMode.READ_ONLY);
 
