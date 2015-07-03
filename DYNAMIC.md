@@ -3,7 +3,7 @@
 This contains a description of how a combined Dynamic/Migration could look like:
 
 
-*Design goals*
+*Design goals
 
 - Should support stepwise migration.
 
@@ -12,7 +12,7 @@ This contains a description of how a combined Dynamic/Migration could look like:
 - Keep terminology as close to familiar concepts as possible.
 
 
-*Secondary design goals*
+*Secondary design goals
 
 - Migrations should just feel like switching to dynamic mode.
 
@@ -20,11 +20,18 @@ This contains a description of how a combined Dynamic/Migration could look like:
 
 * Why *
 
-Currently Cococa uses automatic migrations. This concept is great at first, as it tries to hide the schema concept as much as possible, but it also has a lot of maintainability issues. The general consensus is we should migrate to stepwise migration, ie. specify all changes between each version.
+Currently Cococa uses automatic migrations. This concept is great at first, as
+it tries to hide the schema concept as much as possible, but it also has a lot
+of maintainability issues. The general consensus is we should migrate to
+stepwise migration, ie. specify all changes between each version.
 
-This will increase the burden on the developer for simple changes like adding new classes or fields, but it is code that can be written once and then forgotten. Automatic migration code has to be maintained always.
+This will increase the burden on the developer for simple changes like adding
+new classes or fields, but it is code that can be written once and then
+forgotten. Automatic migration code has to be maintained always.
 
-At least Android is also going to create a IntelliJ plugin for the Realm Browser. Adding functionality for automatically creating migration code that can be pasted in would be fairly straight forward.
+At least Android is also going to create a IntelliJ plugin for the Realm
+Browser. Adding functionality for automatically creating migration code that can
+be pasted in would be fairly straight forward.
 
 
 * New API *
@@ -38,10 +45,14 @@ DynamicRealmObject // Wrapper for all current model classes
 
 io.realm.schmea
 
-RealmSchema        // Object for controlling Realm-Core tables
-RealmObjectSchema  // Object for controlling Realm-Core columns
+RealmSchema        // Object for controlling Realm-Core tables RealmObjectSchema
+// Object for controlling Realm-Core columns
 
-It looks like we can reuse our current RealmList, RealmQuery and RealmResults classes as they are. It would propably require adding new dynamic constructors. This would probably be an acceptable tradeoff compared to introducing a whole new class? This might change if we decide to remove the RealmObject class at one point. This should be investigated.
+It looks like we can reuse our current RealmList, RealmQuery and RealmResults
+classes as they are. It would propably require adding new dynamic constructors.
+This would probably be an acceptable tradeoff compared to introducing a whole
+new class? This might change if we decide to remove the RealmObject class at one
+point. This should be investigated.
 
 
 ## Examples
@@ -132,7 +143,8 @@ new MyMigration implements Migration {
 
 ## Naming
 
-We have two new concepts. Right now we are calling them Dynamic And Schema, is that accidential or is it the names we want for it?
+We have two new concepts. Right now we are calling them Dynamic And Schema, is
+that accidential or is it the names we want for it?
 
 * Suggestions for 1*
 Dynamic 
