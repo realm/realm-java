@@ -1,24 +1,29 @@
 package io.realm;
 
+
 import android.util.JsonReader;
 import android.util.JsonToken;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import io.realm.RealmObject;
+import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
+import io.realm.internal.android.JsonUtils;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import some.test.Booleans;
 
 public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
@@ -29,7 +34,6 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     private static long INDEX_ANOTHERBOOLEAN;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
-
     static {
         List<String> fieldNames = new ArrayList<String>();
         fieldNames.add("done");
@@ -105,8 +109,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             Table table = transaction.getTable("class_Booleans");
 
             if (table.getColumnCount() != 4) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected" +
-                        " 4 but was " + table.getColumnCount());
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
             }
 
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
@@ -118,8 +121,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not " +
-                            "found for type Booleans");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type Booleans");
                 }
                 columnIndices.put(fieldName, index);
             }
@@ -132,33 +134,28 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done'");
             }
             if (columnTypes.get("done") != ColumnType.BOOLEAN) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field " +
-                        "'done'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'done'");
             }
             if (!columnTypes.containsKey("isReady")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'isReady'");
             }
             if (columnTypes.get("isReady") != ColumnType.BOOLEAN) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field " +
-                        "'isReady'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'isReady'");
             }
             if (!columnTypes.containsKey("mCompleted")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'mCompleted'");
             }
             if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field " +
-                        "'mCompleted'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted'");
             }
             if (!columnTypes.containsKey("anotherBoolean")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'anotherBoolean'");
             }
             if (columnTypes.get("anotherBoolean") != ColumnType.BOOLEAN) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field " +
-                        "'anotherBoolean'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'anotherBoolean'");
             }
         } else {
-            throw new RealmMigrationNeededException(transaction.getPath(), "The Booleans class is missing from the " +
-                    "schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The Booleans class is missing from the schema for this Realm.");
         }
     }
 
@@ -170,7 +167,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         return FIELD_NAMES;
     }
 
-    public static Map<String, Long> getColumnIndices() {
+    public static Map<String,Long> getColumnIndices() {
         return columnIndices;
     }
 
@@ -200,11 +197,11 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             String name = reader.nextName();
             if (name.equals("done") && reader.peek() != JsonToken.NULL) {
                 obj.setDone((boolean) reader.nextBoolean());
-            } else if (name.equals("isReady") && reader.peek() != JsonToken.NULL) {
+            } else if (name.equals("isReady")  && reader.peek() != JsonToken.NULL) {
                 obj.setReady((boolean) reader.nextBoolean());
-            } else if (name.equals("mCompleted") && reader.peek() != JsonToken.NULL) {
+            } else if (name.equals("mCompleted")  && reader.peek() != JsonToken.NULL) {
                 obj.setmCompleted((boolean) reader.nextBoolean());
-            } else if (name.equals("anotherBoolean") && reader.peek() != JsonToken.NULL) {
+            } else if (name.equals("anotherBoolean")  && reader.peek() != JsonToken.NULL) {
                 obj.setAnotherBoolean((boolean) reader.nextBoolean());
             } else {
                 reader.skipValue();
@@ -214,16 +211,14 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         return obj;
     }
 
-    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,
-            RealmObjectProxy> cache) {
+    public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
     }
 
-    public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject, RealmObjectProxy>
-            cache) {
+    public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Booleans realmObject = realm.createObject(Booleans.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
         realmObject.setDone(newObject.isDone());
@@ -233,8 +228,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         return realmObject;
     }
 
-    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject, Map<RealmObject, RealmObjectProxy>
-            cache) {
+    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject, Map<RealmObject, RealmObjectProxy> cache) {
         realmObject.setDone(newObject.isDone());
         realmObject.setReady(newObject.isReady());
         realmObject.setmCompleted(newObject.ismCompleted());
@@ -284,12 +278,11 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BooleansRealmProxy aBooleans = (BooleansRealmProxy) o;
+        BooleansRealmProxy aBooleans = (BooleansRealmProxy)o;
 
         String path = realm.getPath();
         String otherPath = aBooleans.realm.getPath();
-        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
-        ;
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
 
         String tableName = row.getTable().getName();
         String otherTableName = aBooleans.row.getTable().getName();
