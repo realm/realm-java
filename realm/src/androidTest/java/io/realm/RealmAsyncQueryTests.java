@@ -35,7 +35,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.internal.async.RetryPolicy;
-import io.realm.internal.async.UnreachableVersionException;
+import io.realm.internal.async.BadVersionException;
 
 public class RealmAsyncQueryTests extends InstrumentationTestCase {
     private final static int NO_RETRY = 0;
@@ -207,7 +207,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinished.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof UnreachableVersionException)) {
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof BadVersionException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }
@@ -359,7 +359,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinishedLatch.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof UnreachableVersionException)) {
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof BadVersionException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }
@@ -712,7 +712,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinished.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof UnreachableVersionException)) {
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof BadVersionException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }
@@ -1079,7 +1079,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinished.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof UnreachableVersionException)) {
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof BadVersionException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }

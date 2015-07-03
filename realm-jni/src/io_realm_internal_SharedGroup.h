@@ -65,22 +65,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
 
 /*
  * Class:     io_realm_internal_SharedGroup
- * Method:    nativeBeginReadAtVersionID
- * Signature: (J[J)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeBeginReadAtVersionID
-  (JNIEnv *, jobject, jlong, jlongArray);
-
-/*
- * Class:     io_realm_internal_SharedGroup
- * Method:    nativeGetVersionID
- * Signature: (J)[J
- */
-JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_SharedGroup
  * Method:    nativeGetDefaultReplicationDatabaseFileName
  * Signature: ()Ljava/lang/String;
  */

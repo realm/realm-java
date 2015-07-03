@@ -23,13 +23,13 @@ import io.realm.exceptions.RealmException;
  * which might be more up-to-date than the provided results
  */
 // Triggered from JNI level to indicate a failing Handover due to version mismatch
-public class UnreachableVersionException extends RealmException {
+public class BadVersionException extends RealmException {
 
-    public UnreachableVersionException(String detailMessage) {
+    public BadVersionException(String detailMessage) {
         super(detailMessage);
     }
 
-    public UnreachableVersionException(String detailMessage, Throwable exception) {
+    public BadVersionException(String detailMessage, Throwable exception) {
         super(detailMessage, exception);
     }
 }

@@ -36,7 +36,7 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.RetryPolicy;
 import io.realm.internal.async.RetryPolicyFactory;
-import io.realm.internal.async.UnreachableVersionException;
+import io.realm.internal.async.BadVersionException;
 
 import static io.realm.Realm.asyncQueryExecutor;
 
@@ -1205,9 +1205,6 @@ public class RealmQuery<E extends RealmObject> {
         // to perform the query
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
-        // This call needs to be done on the caller's thread, since SG()->get_version_of_current_transaction is not thread safe
-        final long[] callerSharedGroupVersion = realm.getSharedGroupVersion();
-
         Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -1219,10 +1216,6 @@ public class RealmQuery<E extends RealmObject> {
                         //     of a worker Realm to avoid the cost of opening/closing a SharedGroup
                         //     for each query
                         bgRealm = Realm.getInstance(realmConfiguration);
-
-                        // begin_read may throw an UnreachableVersionException if the provided version
-                        // is no longer available, we fail fast
-                        bgRealm.setSharedGroupAtVersion(callerSharedGroupVersion);
 
                         // Run the query & handover the table view for the caller thread
                         long tableViewPtr = query.findAllWithHandover(bgRealm.getSharedGroupPointer(), ptrQuery);
@@ -1246,7 +1239,7 @@ public class RealmQuery<E extends RealmObject> {
                         message.setData(bundle);
                         handler.sendMessage(message);
 
-                    } catch (UnreachableVersionException e) {
+                    } catch (BadVersionException e) {
                         handler.sendMessage(handler.obtainMessage(
                                 EventHandler.MSG_UNREACHABLE_VERSION,
                                 EventHandler.FIND_ALL_QUERY));
@@ -1329,9 +1322,6 @@ public class RealmQuery<E extends RealmObject> {
         // to perform the query
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
-        // This call needs to be done on the caller's thread, since SG()->get_version_of_current_transaction is not thread safe
-        final long[] callerSharedGroupVersion = realm.getSharedGroupVersion();
-
         final TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
         final Long columnIndex = columns.get(fieldName);
         if (columnIndex == null || columnIndex < 0) {
@@ -1349,10 +1339,6 @@ public class RealmQuery<E extends RealmObject> {
                         //     of a worker Realm to avoid the cost of opening/closing a SharedGroup
                         //     for each query
                         bgRealm = Realm.getInstance(realmConfiguration);
-
-                        // begin_read may throw an UnreachableVersionException if the provided version
-                        // is no longer available, we fail fast
-                        bgRealm.setSharedGroupAtVersion(callerSharedGroupVersion);
 
                         // Run the query & handover the table view for the caller thread
                         long tableViewPtr = query.findAllSortedWithHandover(bgRealm.getSharedGroupPointer(), ptrQuery, columnIndex, (order == TableView.Order.ascending));
@@ -1377,7 +1363,7 @@ public class RealmQuery<E extends RealmObject> {
                         message.setData(bundle);
                         handler.sendMessage(message);
 
-                    } catch (UnreachableVersionException e) {
+                    } catch (BadVersionException e) {
                         handler.sendMessage(handler.obtainMessage(
                                 EventHandler.MSG_UNREACHABLE_VERSION,
                                 EventHandler.FIND_ALL_SORTED_QUERY, 0));
@@ -1519,9 +1505,6 @@ public class RealmQuery<E extends RealmObject> {
             // to perform the query
             final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
-            // This call needs to be done on the caller's thread, since SG()->get_version_of_current_transaction is not thread safe
-            final long[] callerSharedGroupVersion = realm.getSharedGroupVersion();
-
             final long indices[] = new long[fieldNames.length];
 
             for (int i = 0; i < fieldNames.length; i++) {
@@ -1545,10 +1528,6 @@ public class RealmQuery<E extends RealmObject> {
                             //     for each query
                             bgRealm = Realm.getInstance(realmConfiguration);
 
-                            // begin_read may throw an UnreachableVersionException if the provided version
-                            // is no longer available, we fail fast
-                            bgRealm.setSharedGroupAtVersion(callerSharedGroupVersion);
-
                             // Run the query & handover the table view for the caller thread
                             long tableViewPtr = query.findAllMultiSortedWithHandover(bgRealm.getSharedGroupPointer(), ptrQuery, indices, sortAscendings);
 
@@ -1571,7 +1550,7 @@ public class RealmQuery<E extends RealmObject> {
                             message.setData(bundle);
                             handler.sendMessage(message);
 
-                        } catch (UnreachableVersionException e) {
+                        } catch (BadVersionException e) {
                             handler.sendMessage(handler.obtainMessage(
                                     EventHandler.MSG_UNREACHABLE_VERSION,
                                     EventHandler.FIND_ALL_SORTED_MULTI_QUERY, 0));
@@ -1723,9 +1702,6 @@ public class RealmQuery<E extends RealmObject> {
         // to perform the query
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
-        // This call needs to be done on the caller's thread, since SG()->get_version_of_current_transaction is not thread safe
-        final long[] callerSharedGroupVersion = realm.getSharedGroupVersion();
-
         Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
@@ -1737,10 +1713,6 @@ public class RealmQuery<E extends RealmObject> {
                         //     of a worker Realm to avoid the cost of opening/closing a SharedGroup
                         //     for each query
                         bgRealm = Realm.getInstance(realmConfiguration);
-
-                        // begin_read may throw an UnreachableVersionException if the provided version
-                        // is no longer available, we fail fast
-                        bgRealm.setSharedGroupAtVersion(callerSharedGroupVersion);
 
                         // Run the query & handover the table view for the caller thread
                         long rowPtr = query.findWithHandover(bgRealm.getSharedGroupPointer(), ptrQuery);
@@ -1764,7 +1736,7 @@ public class RealmQuery<E extends RealmObject> {
                         message.setData(bundle);
                         handler.sendMessage(message);
 
-                    } catch (UnreachableVersionException e) {
+                    } catch (BadVersionException e) {
                         handler.sendMessage(handler.obtainMessage(
                                 EventHandler.MSG_UNREACHABLE_VERSION,
                                 EventHandler.FIND_FIRST_QUERY, 0));
@@ -1914,7 +1886,7 @@ public class RealmQuery<E extends RealmObject> {
 
                         callbackRealmObject.onSuccess(realmObject);
 
-                    } catch (UnreachableVersionException e) {
+                    } catch (BadVersionException e) {
                         if (retryPolicy.shouldRetry()) {
                             findFirst(callbackRealmObject);
                         } else {
@@ -1931,7 +1903,7 @@ public class RealmQuery<E extends RealmObject> {
 
                         callbackRealmResults.onSuccess(resultList);
 
-                    } catch (UnreachableVersionException e) {
+                    } catch (BadVersionException e) {
                         if (retryPolicy.shouldRetry()) {
                             findAll(callbackRealmResults);
                         } else {
@@ -1948,7 +1920,7 @@ public class RealmQuery<E extends RealmObject> {
 
                         callbackRealmResults.onSuccess(resultList);
 
-                    } catch (UnreachableVersionException e) {
+                    } catch (BadVersionException e) {
                         if (retryPolicy.shouldRetry()) {
                             findAllSorted(fieldName, sortAscending, callbackRealmResults);
                         } else {
@@ -1965,7 +1937,7 @@ public class RealmQuery<E extends RealmObject> {
 
                         callbackRealmResults.onSuccess(resultList);
 
-                    } catch (UnreachableVersionException e) {
+                    } catch (BadVersionException e) {
                         if (retryPolicy.shouldRetry()) {
                             findAllSorted(fieldNames, sortAscendings, callbackRealmResults);
                         } else {
