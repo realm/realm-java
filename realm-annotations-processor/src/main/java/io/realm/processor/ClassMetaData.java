@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -294,13 +293,17 @@ public class ClassMetaData {
                 }
 
                 if (variableElement.getAnnotation(Index.class) != null) {
-                    // The field has the @Index annotation. It's only valid for:
-                    // * String
+                    // The field has the @Index annotation. It's only valid for column types:
+                    // STRING, DATE, INTEGER, BOOLEAN
                     String elementTypeCanonicalName = variableElement.asType().toString();
-                    if (elementTypeCanonicalName.equals("java.lang.String")) {
+                    String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
+                    if (columnType != null && (columnType.equals("ColumnType.STRING") ||
+                            columnType.equals("ColumnType.DATE") ||
+                            columnType.equals("ColumnType.INTEGER") ||
+                            columnType.equals("ColumnType.BOOLEAN"))) {
                         indexedFields.add(variableElement);
                     } else {
-                        Utils.error("@Index is only applicable to String fields - got " + element);
+                        Utils.error("@Index is not applicable to this field " + element + ".");
                         return false;
                     }
                 }
