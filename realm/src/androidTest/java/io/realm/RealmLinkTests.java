@@ -185,8 +185,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date
-                (10000)).findAll();
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between(
+                "cat.birthday", new Date(1), new Date(10000)).findAll();
         assertEquals(1, owners7.size());
         assertEquals(12, owners7.first().getCat().getAge());
     }
@@ -273,8 +273,8 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> owners5 = testRealm.where(Owner.class).contains("cat.name", "Blackie").findAll();
         assertEquals(1, owners5.size());
 
-        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", RealmQuery
-                .CASE_INSENSITIVE).findAll();
+        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo(
+                "cat.name", "blackIE", RealmQuery.CASE_INSENSITIVE).findAll();
         assertEquals(1, owners6.size());
     }
 
@@ -434,19 +434,19 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat..hasTail", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException ignored) {
 
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail.", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException ignored) {
 
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("not.there", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException ignored) {
 
         }
     }
@@ -521,7 +521,7 @@ public class RealmLinkTests extends AndroidTestCase {
             // Owner.name is a String
             RealmResults<Owner> owners = testRealm.where(Owner.class).isNull("name").findAll();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 }
