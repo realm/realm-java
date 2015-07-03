@@ -18,28 +18,32 @@ package io.realm.internal;
 
 import io.realm.RealmObject;
 
-public class Util {
+public final class Util {
 
     static {
         RealmCore.loadLibrary();
     }
 
+    // Enforce non-instantiability
+    private Util() {}
+
     public static long getNativeMemUsage() {
         return nativeGetMemUsage();
     }
+
     static native long nativeGetMemUsage();
 
     // Set to level=1 to get some trace from JNI native part.
     public static void setDebugLevel(int level) {
         nativeSetDebugLevel(level);
     }
+
     static native void nativeSetDebugLevel(int level);
 
     // Called by JNI. Do not remove
     static void javaPrint(String txt) {
         System.out.print(txt);
     }
-
 
     // Testcases run in nativeCode
     public enum Testcase {
@@ -59,14 +63,15 @@ public class Util {
         Exception_RowInvalid(13);
 
         private final int nativeTestcase;
-        private Testcase(int nativeValue)
-        {
+
+        private Testcase(int nativeValue) {
             this.nativeTestcase = nativeValue;
         }
 
         public String expectedResult(long parm1) {
             return nativeTestcase(nativeTestcase, false, parm1);
         }
+
         public String execute(long parm1) {
             return nativeTestcase(nativeTestcase, true, parm1);
         }
@@ -75,8 +80,8 @@ public class Util {
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
 
     /**
-     * Normalize a input class to it's original model class so it is transparent whether or not the input class
-     * was a RealmProxy class.
+     * Normalize a input class to it's original model class so it is transparent whether or not the input class was a
+     * RealmProxy class.
      */
     public static Class<? extends RealmObject> getOriginalModelClass(Class<? extends RealmObject> clazz) {
         //This cast is correct because 'clazz' is either the type

@@ -14,11 +14,11 @@ buildscript {
 }
 
 allprojects {
-  apply plugin: 'android-sdk-manager'
+    apply plugin: 'android-sdk-manager'
 
-  group = 'io.realm'
-  version = new File("${rootDir}/version.txt").text.trim();
-  repositories {
-    jcenter()
-  }
+    group = 'io.realm'
+    version = new File("${rootDir}/version.txt").text.trim();
+    repositories {
+        jcenter()
+    }
 }

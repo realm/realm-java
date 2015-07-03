@@ -16,19 +16,21 @@
 
 package io.realm.internal;
 
-public class Version {
+public final class Version {
 
     static final int CORE_MIN_MAJOR = 0;
     static final int CORE_MIN_MINOR = 1;
     static final int CORE_MIN_PATCH = 6;
     static final int REQUIRED_JNI_VERSION = 23;
 
+    // Enforce non-instantiability
+    private Version() {}
+
     public enum Feature {
         Feature_Debug(0),
         Feature_Replication(1);
 
-        private Feature(int nativeValue)
-        {
+        private Feature(int nativeValue) {
             this.nativeFeature = nativeValue;
         }
 
@@ -65,16 +67,19 @@ public class Version {
         compatible = (nativeGetAPIVersion() == REQUIRED_JNI_VERSION);
         if (!compatible) {
             errTxt = "Native lib API is version " + nativeGetAPIVersion()
-                     + " != " +  REQUIRED_JNI_VERSION + " which is expected by the jar.";
+                    + " != " + REQUIRED_JNI_VERSION + " which is expected by the jar.";
             if (throwIfNot)
                 throw new RuntimeException(errTxt);
-            System.err.println(errTxt);                    
+            System.err.println(errTxt);
         }
         return compatible;
     }
 
     static native String nativeGetVersion();
-    static native boolean nativeHasFeature(int feature);    
-    static native boolean nativeIsAtLeast(int major, int minor, int patch);    
+
+    static native boolean nativeHasFeature(int feature);
+
+    static native boolean nativeIsAtLeast(int major, int minor, int patch);
+
     static native int nativeGetAPIVersion();
 }

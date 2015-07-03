@@ -1,29 +1,24 @@
 package io.realm;
 
-
 import android.util.JsonReader;
 import android.util.JsonToken;
-import io.realm.RealmObject;
-import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
-import io.realm.internal.ImplicitTransaction;
-import io.realm.internal.LinkView;
-import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.Table;
-import io.realm.internal.TableOrView;
-import io.realm.internal.android.JsonUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+
+import io.realm.RealmObject;
+import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnType;
+import io.realm.internal.ImplicitTransaction;
+import io.realm.internal.RealmObjectProxy;
+import io.realm.internal.Table;
 import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple
@@ -33,6 +28,7 @@ public class SimpleRealmProxy extends Simple
     private static long INDEX_AGE;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
+
     static {
         List<String> fieldNames = new ArrayList<String>();
         fieldNames.add("name");
@@ -80,7 +76,8 @@ public class SimpleRealmProxy extends Simple
             Table table = transaction.getTable("class_Simple");
 
             if (table.getColumnCount() != 2) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected" +
+                        " 2 but was " + table.getColumnCount());
             }
 
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
@@ -92,7 +89,8 @@ public class SimpleRealmProxy extends Simple
             for (String fieldName : getFieldNames()) {
                 long index = table.getColumnIndex(fieldName);
                 if (index == -1) {
-                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type Simple");
+                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not " +
+                            "found for type Simple");
                 }
                 columnIndices.put(fieldName, index);
             }
@@ -103,7 +101,8 @@ public class SimpleRealmProxy extends Simple
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name'");
             }
             if (columnTypes.get("name") != ColumnType.STRING) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field " +
+                        "'name'");
             }
             if (!columnTypes.containsKey("age")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age'");
@@ -112,7 +111,8 @@ public class SimpleRealmProxy extends Simple
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age'");
             }
         } else {
-            throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the schema for this Realm.");
+            throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the " +
+                    "schema for this Realm.");
         }
     }
 
@@ -124,7 +124,7 @@ public class SimpleRealmProxy extends Simple
         return FIELD_NAMES;
     }
 
-    public static Map<String,Long> getColumnIndices() {
+    public static Map<String, Long> getColumnIndices() {
         return columnIndices;
     }
 
@@ -148,7 +148,7 @@ public class SimpleRealmProxy extends Simple
             String name = reader.nextName();
             if (name.equals("name") && reader.peek() != JsonToken.NULL) {
                 obj.setName((String) reader.nextString());
-            } else if (name.equals("age")  && reader.peek() != JsonToken.NULL) {
+            } else if (name.equals("age") && reader.peek() != JsonToken.NULL) {
                 obj.setAge((int) reader.nextInt());
             } else {
                 reader.skipValue();
@@ -158,14 +158,15 @@ public class SimpleRealmProxy extends Simple
         return obj;
     }
 
-    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject, RealmObjectProxy>
+            cache) {
         if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
     }
 
-    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
         realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
@@ -213,11 +214,12 @@ public class SimpleRealmProxy extends Simple
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SimpleRealmProxy aSimple = (SimpleRealmProxy)o;
+        SimpleRealmProxy aSimple = (SimpleRealmProxy) o;
 
         String path = realm.getPath();
         String otherPath = aSimple.realm.getPath();
-        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;
+        ;
 
         String tableName = row.getTable().getName();
         String otherTableName = aSimple.row.getTable().getName();

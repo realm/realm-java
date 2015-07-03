@@ -42,24 +42,40 @@ public class JNITableTest extends AndroidTestCase {
         t.add("s2", 2, false);
 
         String expected =
-"    stringCol  intCol  boolCol\n" +
-"0:  s1              1     true\n" +
-"1:  s2              2    false\n" ;
+                "    stringCol  intCol  boolCol\n" +
+                        "0:  s1              1     true\n" +
+                        "1:  s2              2    false\n";
 
         assertEquals(expected, t.toString());
     }
 
-    public void testRowOperationsOnZeroRow(){
+    public void testRowOperationsOnZeroRow() {
 
         Table t = new Table();
         // Remove rows without columns
-        try { t.remove(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { t.remove(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try {
+            t.remove(0);
+            fail("No rows in table");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.remove(10);
+            fail("No rows in table");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
         // Column added, remove rows again
         t.addColumn(ColumnType.STRING, "");
-        try { t.remove(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { t.remove(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try {
+            t.remove(0);
+            fail("No rows in table");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.remove(10);
+            fail("No rows in table");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
     }
 
@@ -67,24 +83,51 @@ public class JNITableTest extends AndroidTestCase {
         Table tableZeroCols = new Table();
 
         // Add rows
-        try { tableZeroCols.add("val");         fail("No columns in table"); } catch (IllegalArgumentException e) {}
-        try { tableZeroCols.addEmptyRow();      fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
-        try { tableZeroCols.addEmptyRows(10);   fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
-
+        try {
+            tableZeroCols.add("val");
+            fail("No columns in table");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            tableZeroCols.addEmptyRow();
+            fail("No columns in table");
+        } catch (IndexOutOfBoundsException e) {
+        }
+        try {
+            tableZeroCols.addEmptyRows(10);
+            fail("No columns in table");
+        } catch (IndexOutOfBoundsException e) {
+        }
 
         // Col operations
-        try { tableZeroCols.removeColumn(0);                fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { tableZeroCols.renameColumn(0, "newName");     fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { tableZeroCols.removeColumn(10);               fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { tableZeroCols.renameColumn(10, "newName");    fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try {
+            tableZeroCols.removeColumn(0);
+            fail("No columns in table");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            tableZeroCols.renameColumn(0, "newName");
+            fail("No columns in table");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            tableZeroCols.removeColumn(10);
+            fail("No columns in table");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            tableZeroCols.renameColumn(10, "newName");
+            fail("No columns in table");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
     }
 
     public void testTableBinaryTest() {
         Table t = new Table();
         t.addColumn(ColumnType.BINARY, "binary");
 
-        byte[] row0 = new byte[] { 1, 2, 3 };
-        byte[] row1 = new byte[] { 10, 20, 30 };
+        byte[] row0 = new byte[] {1, 2, 3};
+        byte[] row1 = new byte[] {10, 20, 30};
 
         t.getInternalMethods().insertBinary(0, 0, row0);
         t.getInternalMethods().insertDone();
@@ -93,28 +136,35 @@ public class JNITableTest extends AndroidTestCase {
 
         byte[] nullByte = null;
 
-        try { t.getInternalMethods().insertBinary(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
+        try {
+            t.getInternalMethods().insertBinary(0, 2, nullByte);
+            fail("Inserting null array");
+        } catch (IllegalArgumentException e) {
+        }
 
+        MoreAsserts.assertEquals(new byte[] {1, 2, 3}, t.getBinaryByteArray(0, 0));
+        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] {1, 2, 3});
 
-        MoreAsserts.assertEquals(new byte[]{1, 2, 3}, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[]{1, 2, 3});
-
-        byte[] newRow0 = new byte[] { 7, 77, 77 };
+        byte[] newRow0 = new byte[] {7, 77, 77};
         t.setBinaryByteArray(0, 0, newRow0);
 
-        MoreAsserts.assertEquals(new byte[]{7, 77, 77}, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
+        MoreAsserts.assertEquals(new byte[] {7, 77, 77}, t.getBinaryByteArray(0, 0));
+        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] {1, 2, 3});
 
-        try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
+        try {
+            t.setBinaryByteArray(0, 2, nullByte);
+            fail("Inserting null array");
+        } catch (IllegalArgumentException e) {
+        }
     }
-
 
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
-        t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        t.add(new byte[] {1, 2, 3}, true, new Date(1384423149761L), 4.5d, 5.7f, 100, new Mixed("mixed"), "string",
+                null);
 
         assertEquals(-1, t.findFirstBoolean(1, false));
-        assertEquals(-1, t.findFirstDate(2, new Date(138442314986l)));
+        assertEquals(-1, t.findFirstDate(2, new Date(138442314986L)));
         assertEquals(-1, t.findFirstDouble(3, 1.0d));
         assertEquals(-1, t.findFirstFloat(4, 1.0f));
         assertEquals(-1, t.findFirstLong(5, 50));
@@ -125,13 +175,15 @@ public class JNITableTest extends AndroidTestCase {
         final int TEST_SIZE = 10;
         Table t = TestHelper.getTableWithAllColumnTypes();
         for (int i = 0; i < TEST_SIZE; i++) {
-            t.add(new byte[]{1,2,3}, true, new Date(1000*i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
+            t.add(new byte[] {1, 2, 3}, true, new Date(1000 * i), (double) i, (float) i, i, new Mixed("mixed " + i),
+                    "string " + i, null);
         }
-        t.add(new byte[]{1,2,3}, true, new Date(1000*TEST_SIZE), (double)TEST_SIZE, (float)TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
+        t.add(new byte[] {1, 2, 3}, true, new Date(1000 * TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE,
+                TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
 
         assertEquals(0, t.findFirstBoolean(1, true));
         for (int i = 0; i < TEST_SIZE; i++) {
-            assertEquals(i, t.findFirstDate(2, new Date(1000*i)));
+            assertEquals(i, t.findFirstDate(2, new Date(1000 * i)));
             assertEquals(i, t.findFirstDouble(3, (double) i));
             assertEquals(i, t.findFirstFloat(4, (float) i));
             assertEquals(i, t.findFirstLong(5, i));
@@ -143,54 +195,163 @@ public class JNITableTest extends AndroidTestCase {
         try {
             t.findFirstString(7, null);
             fail();
-        } catch (IllegalArgumentException expected) {}
+        } catch (IllegalArgumentException expected) {
+        }
 
         try {
             t.findFirstDate(2, null);
             fail();
-        } catch (IllegalArgumentException expected) {}
+        } catch (IllegalArgumentException expected) {
+        }
     }
-
 
     public void testGetValuesFromNonExistingColumn() {
         Table t = TestHelper.getTableWithAllColumnTypes();
         t.addEmptyRows(10);
 
-        try { t.getBinaryByteArray(-1, 0);          fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getBinaryByteArray(-10, 0);         fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getBinaryByteArray(9, 0);           fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getBinaryByteArray(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getBinaryByteArray(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getBinaryByteArray(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
-        try { t.getBoolean(-1, 0);                  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getBoolean(-10, 0);                 fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getBoolean(9, 0);                   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getBoolean(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getBoolean(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getBoolean(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
-        try { t.getDate(-1, 0);                     fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getDate(-10, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getDate(9, 0);                      fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getDate(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getDate(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getDate(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
-        try { t.getDouble(-1, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getDouble(-10, 0);                  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getDouble(9, 0);                    fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getDouble(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getDouble(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getDouble(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
-        try { t.getFloat(-1, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getFloat(-10, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getFloat(9, 0);                     fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getFloat(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getFloat(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getFloat(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
-        try { t.getLong(-1, 0);                     fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getLong(-10, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getLong(9, 0);                      fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getLong(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getLong(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getLong(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
-        try { t.getMixed(-1, 0);                    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getMixed(-10, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getMixed(9, 0);                     fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getMixed(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getMixed(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getMixed(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
-        try { t.getString(-1, 0);                   fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getString(-10, 0);                  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getString(9, 0);                    fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getString(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getString(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getString(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
-        try { t.getSubtable(-1, 0);                 fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSubtable(-10, 0);                fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSubtable(9, 0);                  fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getSubtable(-1, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getSubtable(-10, 0);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getSubtable(9, 0);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
     }
 
@@ -199,9 +360,12 @@ public class JNITableTest extends AndroidTestCase {
         t.addColumn(ColumnType.INTEGER, "int");
 
         assertEquals(-1, t.getColumnIndex("non-existing column"));
-        try { t.getColumnIndex(null); fail("column name null"); } catch (IllegalArgumentException e) { }
+        try {
+            t.getColumnIndex(null);
+            fail("column name null");
+        } catch (IllegalArgumentException e) {
+        }
     }
-
 
     public void testGetSortedView() {
         Table t = new Table();
@@ -210,9 +374,8 @@ public class JNITableTest extends AndroidTestCase {
         t.addColumn(ColumnType.DOUBLE, "");
 
         t.add(1, "s", 1000d);
-        t.add(3,"sss", 10d);
+        t.add(3, "sss", 10d);
         t.add(2, "ss", 100d);
-
 
         // Check the order is as it is added
         assertEquals(1, t.getLong(0, 0));
@@ -254,9 +417,21 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(1000d, v.getDouble(2, 2));
 
         // Some out of bounds test cases
-        try { t.getSortedView(-1, TableView.Order.descending);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSortedView(-100, TableView.Order.descending);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSortedView(100, TableView.Order.descending);   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try {
+            t.getSortedView(-1, TableView.Order.descending);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getSortedView(-100, TableView.Order.descending);
+            fail("Column is less than 0");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
+        try {
+            t.getSortedView(100, TableView.Order.descending);
+            fail("Column does not exist");
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
 
     }
 
@@ -265,9 +440,12 @@ public class JNITableTest extends AndroidTestCase {
         t.addColumn(ColumnType.STRING, "colName");
         t.add("String val");
 
-        try { t.set(1, "new string val"); fail("Row 1 does not exist"); } catch (IllegalArgumentException e) { }
+        try {
+            t.set(1, "new string val");
+            fail("Row 1 does not exist");
+        } catch (IllegalArgumentException e) {
+        }
     }
-
 
     public void testSetNulls() {
         Table t = new Table();
@@ -275,10 +453,18 @@ public class JNITableTest extends AndroidTestCase {
         t.addColumn(ColumnType.DATE, "");
         t.addColumn(ColumnType.MIXED, "");
         t.addColumn(ColumnType.BINARY, "");
-        t.add("String val", new Date(), new Mixed(""), new byte[] { 1,2,3} );
+        t.add("String val", new Date(), new Mixed(""), new byte[] {1, 2, 3});
 
-        try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (IllegalArgumentException e) { }
-        try { t.setDate(1, 0, null);    fail("null Date not allowed"); } catch (IllegalArgumentException e) { }
+        try {
+            t.setString(0, 0, null);
+            fail("null string not allowed");
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            t.setDate(1, 0, null);
+            fail("null Date not allowed");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     public void testSetDataWithWrongColumnAmountParameters() {
@@ -286,14 +472,22 @@ public class JNITableTest extends AndroidTestCase {
         t.addColumn(ColumnType.STRING, "colName");
         t.add("String val");
 
-        try { t.set(0, "new string val", "This column does not exist"); fail("Table only has 1 column"); } catch (IllegalArgumentException e) { }
+        try {
+            t.set(0, "new string val", "This column does not exist");
+            fail("Table only has 1 column");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     public void testAddNegativeEmptyRows() {
         Table t = new Table();
         t.addColumn(ColumnType.STRING, "colName");
 
-        try { t.addEmptyRows(-1); fail("Argument is negative"); } catch (IllegalArgumentException e ) { }
+        try {
+            t.addEmptyRows(-1);
+            fail("Argument is negative");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     public void testAddNullInMixedColumn() {
@@ -301,7 +495,11 @@ public class JNITableTest extends AndroidTestCase {
         t.addColumn(ColumnType.MIXED, "mixed");
         t.add(new Mixed(true));
 
-        try { t.setMixed(0, 0, null); fail("Argument is null"); } catch (IllegalArgumentException e) { }
+        try {
+            t.setMixed(0, 0, null);
+            fail("Argument is null");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     public void testSetDataWithWrongColumnTypes() {
@@ -309,7 +507,11 @@ public class JNITableTest extends AndroidTestCase {
         t.addColumn(ColumnType.STRING, "colName");
         t.add("String val");
 
-        try { t.set(0, 100); fail("Table has string column, and here an integer is inserted"); } catch (IllegalArgumentException e) { }
+        try {
+            t.set(0, 100);
+            fail("Table has string column, and here an integer is inserted");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     public void testImmutableInsertNotAllowed() {
@@ -318,7 +520,7 @@ public class JNITableTest extends AndroidTestCase {
         String TABLENAME = "tableName";
 
         new File(FILENAME).delete();
-        new File(FILENAME+".lock").delete();
+        new File(FILENAME + ".lock").delete();
         SharedGroup group = new SharedGroup(FILENAME);
 
         // Write transaction must be run so we are sure a db exists with the correct table
@@ -339,7 +541,11 @@ public class JNITableTest extends AndroidTestCase {
         try {
             Table table = rt.getTable(TABLENAME);
 
-            try {  table.addAt(1, "NewValue"); fail("Exception expected when inserting in read transaction"); } catch (IllegalStateException e) { }
+            try {
+                table.addAt(1, "NewValue");
+                fail("Exception expected when inserting in read transaction");
+            } catch (IllegalStateException e) {
+            }
 
         } finally {
             rt.endRead();
@@ -351,7 +557,7 @@ public class JNITableTest extends AndroidTestCase {
         String TABLENAME = "tableName";
 
         new File(FILENAME).delete();
-        new File(FILENAME+".lock").delete();
+        new File(FILENAME + ".lock").delete();
         SharedGroup group = new SharedGroup(FILENAME);
 
         // Write transaction must be run so we are sure a db exists with the correct table
@@ -403,13 +609,11 @@ public class JNITableTest extends AndroidTestCase {
         }
     }
 
-
     /**
-     * Returns a table with a few columns and values
-     * @return
+     * Returns a table with a few columns and values.
      */
-    private Table getTableWithSimpleData(){
-        Table table =  new Table();
+    private Table getTableWithSimpleData() {
+        Table table = new Table();
         table.addColumn(ColumnType.STRING, "col");
         table.addColumn(ColumnType.INTEGER, "int");
         table.add("val1", 100);
@@ -421,7 +625,11 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testColumnName() {
         Table t = new Table();
-        try { t.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
+        try {
+            t.addColumn(ColumnType.STRING, "I am 64 chracters...............................................");
+            fail("Only 63 chracters supported");
+        } catch (IllegalArgumentException e) {
+        }
         t.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
     }
 

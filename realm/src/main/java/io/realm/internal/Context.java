@@ -23,8 +23,8 @@ class Context {
 
     // Each group of related Realm objects will have a Context object in the root.
     // The root can be a table, a group, or a shared group.
-    // The Context object is used to store a list of native pointers 
-    // whose disposal need to be handed over from the garbage 
+    // The Context object is used to store a list of native pointers
+    // whose disposal need to be handed over from the garbage
     // collection thread to the users thread.
 
     private List<Long> abandonedTables = new ArrayList<Long>();
@@ -58,8 +58,7 @@ class Context {
     public void asyncDisposeTable(long nativePointer, boolean isRoot) {
         if (isRoot || isFinalized) {
             Table.nativeClose(nativePointer);
-        }
-        else {
+        } else {
             abandonedTables.add(nativePointer);
         }
     }
@@ -67,8 +66,7 @@ class Context {
     public void asyncDisposeTableView(long nativePointer) {
         if (isFinalized) {
             TableView.nativeClose(nativePointer);
-        }
-        else {
+        } else {
             abandonedTableViews.add(nativePointer);
         }
     }
@@ -76,8 +74,7 @@ class Context {
     public void asyncDisposeQuery(long nativePointer) {
         if (isFinalized) {
             TableQuery.nativeClose(nativePointer);
-        }
-        else {
+        } else {
             abandonedQueries.add(nativePointer);
         }
     }

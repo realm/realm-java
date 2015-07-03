@@ -29,7 +29,6 @@ import io.realm.examples.intro.model.Cat;
 import io.realm.examples.intro.model.Dog;
 import io.realm.examples.intro.model.Person;
 
-
 public class IntroExampleActivity extends Activity {
 
     public static final String TAG = IntroExampleActivity.class.getName();
@@ -182,14 +181,15 @@ public class IntroExampleActivity extends Activity {
             // The field tempReference is annotated with @Ignore
             // Though we initially set its value to 42, it has
             // not been saved as part of the Person RealmObject:
-            assert(pers.getTempReference() == 0);
+            assert (pers.getTempReference() == 0);
         }
 
         // Sorting
         RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
         sortedPersons.sort("age", false);
-        assert(realm.allObjects(Person.class).last().getName() == sortedPersons.first().getName());
-        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first().getName();
+        assert (realm.allObjects(Person.class).last().getName() == sortedPersons.first().getName());
+        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first()
+                .getName();
 
         realm.close();
         return status;

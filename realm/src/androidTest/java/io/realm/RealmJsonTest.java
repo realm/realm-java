@@ -76,11 +76,11 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testCreateObjectFromJson_allSimpleObjectAllTypes() throws JSONException {
         JSONObject json = new JSONObject();
         json.put("columnString", "String");
-        json.put("columnLong", 1l);
+        json.put("columnLong", 1L);
         json.put("columnFloat", 1.23f);
         json.put("columnDouble", 1.23d);
         json.put("columnBoolean", true);
-        json.put("columnBinary", new String(Base64.encode(new byte[] {1,2,3}, Base64.DEFAULT)));
+        json.put("columnBinary", new String(Base64.encode(new byte[] {1, 2, 3}, Base64.DEFAULT)));
 
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, json);
@@ -89,11 +89,11 @@ public class RealmJsonTest extends AndroidTestCase {
 
         // Check that all primitive types are imported correctly
         assertEquals("String", obj.getColumnString());
-        assertEquals(1l, obj.getColumnLong());
+        assertEquals(1L, obj.getColumnLong());
         assertEquals(1.23f, obj.getColumnFloat());
         assertEquals(1.23d, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertArrayEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
+        assertArrayEquals(new byte[] {1, 2, 3}, obj.getColumnBinary());
     }
 
     public void testCreateObjectFromJson_dateAsLong() throws JSONException {
@@ -136,9 +136,12 @@ public class RealmJsonTest extends AndroidTestCase {
 
     public void testCreateObjectFromJson_childObjectList() throws JSONException {
         JSONObject allTypesObject = new JSONObject();
-        JSONObject dog1 = new JSONObject(); dog1.put("name", "Fido-1");
-        JSONObject dog2 = new JSONObject(); dog2.put("name", "Fido-2");
-        JSONObject dog3 = new JSONObject(); dog3.put("name", "Fido-3");
+        JSONObject dog1 = new JSONObject();
+        dog1.put("name", "Fido-1");
+        JSONObject dog2 = new JSONObject();
+        dog2.put("name", "Fido-2");
+        JSONObject dog3 = new JSONObject();
+        dog3.put("name", "Fido-3");
         JSONArray dogList = new JSONArray();
         dogList.put(dog1);
         dogList.put(dog2);
@@ -172,12 +175,11 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testCreateObjectFromJsonString_simpleObject() {
         testRealm.beginTransaction();
         Dog dog = testRealm.createObjectFromJson(Dog.class, "{ name: \"Foo\" }");
-        testRealm. commitTransaction();
+        testRealm.commitTransaction();
 
         assertEquals("Foo", dog.getName());
         assertEquals("Foo", testRealm.allObjects(Dog.class).first().getName());
     }
-
 
     public void testCreateObjectFromJsonString_faultyJsonThrows() {
         testRealm.beginTransaction();
@@ -191,7 +193,6 @@ public class RealmJsonTest extends AndroidTestCase {
 
         fail("Faulty JSON should result in a RealmException");
     }
-
 
     public void testCreateObjectFromJsonString_null() {
         testRealm.beginTransaction();
@@ -212,9 +213,12 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateAllFromJsonArray() throws JSONException {
-        JSONObject dog1 = new JSONObject(); dog1.put("name", "Fido-1");
-        JSONObject dog2 = new JSONObject(); dog2.put("name", "Fido-2");
-        JSONObject dog3 = new JSONObject(); dog3.put("name", "Fido-3");
+        JSONObject dog1 = new JSONObject();
+        dog1.put("name", "Fido-1");
+        JSONObject dog2 = new JSONObject();
+        dog2.put("name", "Fido-2");
+        JSONObject dog3 = new JSONObject();
+        dog3.put("name", "Fido-3");
         JSONArray dogList = new JSONArray();
         dogList.put(dog1);
         dogList.put(dog2);
@@ -295,7 +299,7 @@ public class RealmJsonTest extends AndroidTestCase {
     public void testCreateAllFromJsonStringArray_simpleArray() {
         testRealm.beginTransaction();
         testRealm.createAllFromJson(Dog.class, "[{ name: \"Foo\" }, { name: \"Bar\" }]");
-        testRealm. commitTransaction();
+        testRealm.commitTransaction();
 
         assertEquals(2, testRealm.allObjects(Dog.class).size());
     }
@@ -313,7 +317,6 @@ public class RealmJsonTest extends AndroidTestCase {
         fail("Faulty JSON should result in a RealmException");
     }
 
-
     public void testCreateAllFromJsonStringArray_null() {
         testRealm.beginTransaction();
         testRealm.createAllFromJson(Dog.class, (String) null);
@@ -322,10 +325,10 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(0, testRealm.allObjects(Dog.class).size());
     }
 
-   public void testCreateAllFromJsonStream_null() throws IOException {
+    public void testCreateAllFromJsonStream_null() throws IOException {
         testRealm.createAllFromJson(AllTypes.class, (InputStream) null);
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
-   }
+    }
 
     public void testCreateObjectFromJsonStream_allSimpleTypes() throws IOException {
         InputStream in = loadJsonFromAssets("all_simple_types.json");
@@ -337,11 +340,11 @@ public class RealmJsonTest extends AndroidTestCase {
         // Check that all primitive types are imported correctly
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
         assertEquals("String", obj.getColumnString());
-        assertEquals(1l, obj.getColumnLong());
+        assertEquals(1L, obj.getColumnLong());
         assertEquals(1.23f, obj.getColumnFloat());
         assertEquals(1.23d, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertArrayEquals(new byte[]{1, 2, 3}, obj.getColumnBinary());
+        assertArrayEquals(new byte[] {1, 2, 3}, obj.getColumnBinary());
     }
 
     public void testCreateObjectFromJsonStream_dateAsLong() throws IOException {
@@ -411,7 +414,6 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(3, testRealm.allObjects(Dog.class).size());
         assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
-
 
     public void testCreateObjectFromJsonStream_nullValues() throws IOException {
         InputStream in = loadJsonFromAssets("all_types_null.json");
@@ -503,12 +505,14 @@ public class RealmJsonTest extends AndroidTestCase {
 
     public void testCreateOrUpdateJsonStream_ignoreUnsetProperties() throws IOException {
         testRealm.beginTransaction();
-        testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, loadJsonFromAssets("list_alltypes_primarykey.json"));
+        testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, loadJsonFromAssets("list_alltypes_primarykey" +
+                ".json"));
         testRealm.commitTransaction();
 
         // No-op as no properties should be updated
         testRealm.beginTransaction();
-        testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, TestHelper.stringToStream("{ \"columnLong\":1 }"));
+        testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, TestHelper.stringToStream("{ " +
+                "\"columnLong\":1 }"));
         testRealm.commitTransaction();
 
         assertAllTypesPrimaryKeyUpdated();
@@ -536,13 +540,13 @@ public class RealmJsonTest extends AndroidTestCase {
         obj.setColumnString("Foo");
         testRealm.copyToRealm(obj);
 
-        AllTypesPrimaryKey newObj = testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ \"columnLong\" : 1, \"columnString\" : \"bar\" }");
+        AllTypesPrimaryKey newObj = testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{ " +
+                "\"columnLong\" : 1, \"columnString\" : \"bar\" }");
         testRealm.commitTransaction();
 
         assertEquals(1, testRealm.allObjects(AllTypesPrimaryKey.class).size());
         assertEquals("bar", newObj.getColumnString());
     }
-
 
     public void testCreateOrUpdateAll_noPrimaryKeyThrows() {
         try {
@@ -592,7 +596,8 @@ public class RealmJsonTest extends AndroidTestCase {
 
     public void testCreateOrUpdateAllInputStream() throws IOException {
         testRealm.beginTransaction();
-        testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, loadJsonFromAssets("list_alltypes_primarykey.json"));
+        testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, loadJsonFromAssets("list_alltypes_primarykey" +
+                ".json"));
         testRealm.commitTransaction();
 
         assertAllTypesPrimaryKeyUpdated();
@@ -615,7 +620,7 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(2.23F, obj.getColumnFloat());
         assertEquals(2.234D, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertArrayEquals(new byte[] {1,2,3}, obj.getColumnBinary());
+        assertArrayEquals(new byte[] {1, 2, 3}, obj.getColumnBinary());
         assertEquals(new Date(2000), obj.getColumnDate());
         assertEquals("Dog4", obj.getColumnRealmObject().getName());
         assertEquals(2, obj.getColumnRealmList().size());

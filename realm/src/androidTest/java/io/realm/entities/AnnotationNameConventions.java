@@ -16,7 +16,6 @@
 
 package io.realm.entities;
 
-
 import io.realm.RealmObject;
 
 public class AnnotationNameConventions extends RealmObject {

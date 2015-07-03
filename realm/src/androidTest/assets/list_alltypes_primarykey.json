@@ -1,48 +1,48 @@
 [
-    {
-    	"columnString" : "Foo",
-        "columnLong" : 1,
-        "columnFloat" : 1.23,
-        "columnDouble" : 1.234,
-        "columnBoolean" : false,
-        "columnBinary" : "AQID",
-        "columnDate" : 1000,
-        "columnRealmObject" : {
-            "id" : 1,
-            "name" : "Dog1"
-        },
-        "columnRealmList" : [
-            {
-                "id" : 2,
-                "name" : "Dog2"
-            },
-            {
-                "id" : 3,
-                "name" : "Dog3"
-            }
-        ]
+  {
+    "columnString": "Foo",
+    "columnLong": 1,
+    "columnFloat": 1.23,
+    "columnDouble": 1.234,
+    "columnBoolean": false,
+    "columnBinary": "AQID",
+    "columnDate": 1000,
+    "columnRealmObject": {
+      "id": 1,
+      "name": "Dog1"
     },
-    {
-        "columnString" : "Bar",
-        "columnLong" : 1,
-        "columnFloat" : 2.23,
-        "columnDouble" : 2.234,
-        "columnBoolean" : true,
-        "columnBinary" : "AQID",
-        "columnDate" : 2000,
-        "columnRealmObject" : {
-            "id" : 4,
-            "name" : "Dog4"
-        },
-        "columnRealmList" : [
-            {
-                "id" : 5,
-                "name" : "Dog5"
-            },
-            {
-                "id" : 6,
-                "name" : "Dog6"
-            }
-        ]
-    }
+    "columnRealmList": [
+      {
+        "id": 2,
+        "name": "Dog2"
+      },
+      {
+        "id": 3,
+        "name": "Dog3"
+      }
+    ]
+  },
+  {
+    "columnString": "Bar",
+    "columnLong": 1,
+    "columnFloat": 2.23,
+    "columnDouble": 2.234,
+    "columnBoolean": true,
+    "columnBinary": "AQID",
+    "columnDate": 2000,
+    "columnRealmObject": {
+      "id": 4,
+      "name": "Dog4"
+    },
+    "columnRealmList": [
+      {
+        "id": 5,
+        "name": "Dog5"
+      },
+      {
+        "id": 6,
+        "name": "Dog6"
+      }
+    ]
+  }
 ]

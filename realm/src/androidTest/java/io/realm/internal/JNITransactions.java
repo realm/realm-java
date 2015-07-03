@@ -1,6 +1,5 @@
 package io.realm.internal;
 
-
 import android.test.AndroidTestCase;
 
 import java.io.File;
@@ -13,7 +12,7 @@ import io.realm.TestHelper;
 import io.realm.exceptions.RealmException;
 
 public class JNITransactions extends AndroidTestCase {
-    
+
     String testFile;
 
     @Override
@@ -56,7 +55,7 @@ public class JNITransactions extends AndroidTestCase {
         return t;
     }
 
-    private void createDBFileName(){
+    private void createDBFileName() {
         testFile = new File(
                 this.getContext().getFilesDir(),
                 System.currentTimeMillis() + "_transact.realm").toString();
@@ -68,8 +67,7 @@ public class JNITransactions extends AndroidTestCase {
         tbl.addColumn(ColumnType.STRING, "name");
         tbl.addColumn(ColumnType.INTEGER, "number");
 
-
-        for (long row=0; row < rows; row++)
+        for (long row = 0; row < rows; row++)
             tbl.add("Hi", 1);
         assertEquals(rows, tbl.size());
         trans.commit();
@@ -107,7 +105,6 @@ public class JNITransactions extends AndroidTestCase {
         checkRead(db, 10);
     }
 
-
     public void testShouldThrowExceptionAfterClosedReadTransaction() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 10);
@@ -120,14 +117,13 @@ public class JNITransactions extends AndroidTestCase {
                 tbl.getColumnCount(); //Should throw exception, the table is invalid when transaction has been closed
                 fail();
             } catch (IllegalStateException e) {
-                assert(false);
+                assert (false);
                 //assertNotNull(e);
             }
         } finally {
             rt.endRead();
         }
     }
-
 
     public void testShouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
@@ -138,7 +134,8 @@ public class JNITransactions extends AndroidTestCase {
             Table tbl = rt.getTable("EmployeeTable");
             rt.endRead();
             try {
-                tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
+                tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not
+                // allowed in read transaction
                 fail();
             } catch (IllegalStateException e) {
                 //assertNotNull(e);
@@ -148,14 +145,14 @@ public class JNITransactions extends AndroidTestCase {
         }
     }
 
-
     public void testShouldThrowExceptionWhenWritingInReadTrans() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         ReadTransaction rt = db.beginRead();
 
         try {
             try {
-                rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table does not exists, thereby making it a mutable operation
+                rt.getTable("newTable");  //Should throw exception, as this method creates a new table, if the table
+                // does not exists, thereby making it a mutable operation
                 fail();
             } catch (IllegalStateException e) {
                 assertNotNull(e);
@@ -164,7 +161,6 @@ public class JNITransactions extends AndroidTestCase {
             rt.endRead();
         }
     }
-
 
     public void testOnlyOneCommit() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
@@ -177,11 +173,11 @@ public class JNITransactions extends AndroidTestCase {
             try {
                 trans.commit(); // should throw
                 fail();
-            } catch (IllegalStateException e){
+            } catch (IllegalStateException e) {
                 assertNotNull(e);
             }
 
-        } catch (Throwable t){
+        } catch (Throwable t) {
             trans.rollback();
         }
     }
@@ -201,34 +197,31 @@ public class JNITransactions extends AndroidTestCase {
 
     public void testMustAllowDoubleCommitAndRollback() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
-        {
-            WriteTransaction trans = db.beginWrite();
-            Table tbl = trans.getTable("EmployeeTable");
-            tbl.addColumn(ColumnType.STRING, "name");
-            tbl.addColumn(ColumnType.INTEGER, "number");
 
-            // allow commit before any changes
-            assertEquals(0, tbl.size());
-            tbl.add("Hello", 1);
-            trans.commit();
-        }
-        {
-            WriteTransaction trans = db.beginWrite();
-            Table tbl = trans.getTable("EmployeeTable");
-            // allow double rollback
-            tbl.add("Hello", 2);
-            assertEquals(2, tbl.size());
-            trans.rollback();
-            trans.rollback();
-            trans.rollback();
-            trans.rollback();
-        }
-        {
-            ReadTransaction trans = db.beginRead();
-            Table tbl = trans.getTable("EmployeeTable");
-            assertEquals(1, tbl.size());
-            trans.endRead();
-        }
+        WriteTransaction trans1 = db.beginWrite();
+        Table tbl1 = trans1.getTable("EmployeeTable");
+        tbl1.addColumn(ColumnType.STRING, "name");
+        tbl1.addColumn(ColumnType.INTEGER, "number");
+
+        // allow commit before any changes
+        assertEquals(0, tbl1.size());
+        tbl1.add("Hello", 1);
+        trans1.commit();
+
+        WriteTransaction trans2 = db.beginWrite();
+        Table tbl2 = trans2.getTable("EmployeeTable");
+        // allow double rollback
+        tbl2.add("Hello", 2);
+        assertEquals(2, tbl2.size());
+        trans2.rollback();
+        trans2.rollback();
+        trans2.rollback();
+        trans2.rollback();
+
+        ReadTransaction trans3 = db.beginRead();
+        Table tbl3 = trans3.getTable("EmployeeTable");
+        assertEquals(1, tbl3.size());
+        trans3.endRead();
     }
 
     // TODO:
@@ -244,41 +237,196 @@ public class JNITransactions extends AndroidTestCase {
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.addAt(0, 0, false);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.add(0, false);                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.addEmptyRow();                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.addEmptyRows(1);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.adjust(0,0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.clear();                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.clearSubtable(0,0);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.optimize();                     fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.remove(0);                      fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.removeLast();                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setBinaryByteArray(0,0,null);   fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setBoolean(0,0,false);          fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setDate(0,0,new Date(0));       fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.addSearchIndex(0);              fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setLong(0,0,0);                 fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setMixed(0,0,null);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.setString(0,0,"");              fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.updateFromSpec(null);           fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try {
+            table.addAt(0, 0, false);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.add(0, false);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.addEmptyRow();
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.addEmptyRows(1);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.adjust(0, 0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.clear();
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.clearSubtable(0, 0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.optimize();
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.remove(0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.removeLast();
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.setBinaryByteArray(0, 0, null);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.setBoolean(0, 0, false);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.setDate(0, 0, new Date(0));
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.addSearchIndex(0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.setLong(0, 0, 0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.setMixed(0, 0, null);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.setString(0, 0, "");
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            table.updateFromSpec(null);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
 
         TableQuery q = table.where();
-        try { q.remove();                           fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { q.remove(0,0);                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try {
+            q.remove();
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            q.remove(0, 0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
 
         TableView v = q.findAll();
-        try { v.adjust(0, 0);                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.clear();                            fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.clearSubtable(0, 0);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.remove(0);                          fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.removeLast();                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setBinaryByteArray(0, 0, null);     fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setBoolean(0, 0, false);            fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setDate(0, 0, new Date());          fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setLong(0, 0, 0);                   fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setString(0,0,"");                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { v.setMixed(0, 0, null);               fail();} catch (IllegalStateException e) {assertNotNull(e);}
+        try {
+            v.adjust(0, 0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.clear();
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.clearSubtable(0, 0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.remove(0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.removeLast();
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.setBinaryByteArray(0, 0, null);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.setBoolean(0, 0, false);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.setDate(0, 0, new Date());
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.setLong(0, 0, 0);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.setString(0, 0, "");
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
+        try {
+            v.setMixed(0, 0, null);
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotNull(e);
+        }
 
         t.endRead();
     }
@@ -381,7 +529,9 @@ public class JNITransactions extends AndroidTestCase {
 
     public void testPrimaryKeyTableMigration() throws IOException {
         TestHelper.copyRealmFromAssets(getContext(), "080_annotationtypes.realm", "default.realm");
-        SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
+        SharedGroup db = new SharedGroup(
+                new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME).getAbsolutePath(),
+                SharedGroup.Durability.FULL, null);
         ImplicitTransaction tr = db.beginImplicitTransaction();
         Table t = tr.getTable("class_AnnotationTypes");
         assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());

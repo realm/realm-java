@@ -49,7 +49,7 @@ public class JNISubtableTest extends TestCase {
         table.add("Foo", null, 123456);
         table.getSubtable(1, 0).add(123);
         assertEquals(1, table.getSubtable(1, 0).size());
-        assertEquals(123, table.getSubtable(1, 0).getLong(0,0));
+        assertEquals(123, table.getSubtable(1, 0).getLong(0, 0));
 
         assertEquals(1, table.size());
     }
@@ -62,7 +62,7 @@ public class JNISubtableTest extends TestCase {
         long subtableColIndex = table.addColumn(ColumnType.TABLE, "table");
 
         table.add("val", null);
-        assertEquals(0,  table.getSubtable(subtableColIndex, 0).getColumnCount());
+        assertEquals(0, table.getSubtable(subtableColIndex, 0).getColumnCount());
     }
 
     public void testGetSubtableOutOfRange() {
@@ -72,25 +72,25 @@ public class JNISubtableTest extends TestCase {
         table.addColumn(ColumnType.TABLE, "table");
 
         // No rows added
-        try { 
-            table.getSubtable(0, 0); 
-            fail("rowIndex > available rows."); 
+        try {
+            table.getSubtable(0, 0);
+            fail("rowIndex > available rows.");
         } catch (ArrayIndexOutOfBoundsException e) {
             assertNotNull(e);
         }
 
-        try { 
-            table.getSubtable(1, 0); 
-            fail("columnIndex > available columns."); 
+        try {
+            table.getSubtable(1, 0);
+            fail("columnIndex > available columns.");
         } catch (ArrayIndexOutOfBoundsException e) {
             assertNotNull(e);
         }
 
         table.addEmptyRow();
 
-        try { 
-            table.getSubtable(1, 0); 
-            fail("columnIndex > available columns."); 
+        try {
+            table.getSubtable(1, 0);
+            fail("columnIndex > available columns.");
         } catch (ArrayIndexOutOfBoundsException e) {
             assertNotNull(e);
         }
@@ -138,18 +138,17 @@ public class JNISubtableTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }});
+        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{"X Street", 1234, new Object[][] {{12345678}}}});
 
         // Assertions
         assertEquals(persons.getColumnName(2), "addresses");
-        assertEquals(persons.getSubtable(2,0).getColumnName(2), "phone_numbers");
-        assertEquals(persons.getSubtable(2,0).getSubtable(2,0).getColumnName(0), "number");
+        assertEquals(persons.getSubtable(2, 0).getColumnName(2), "phone_numbers");
+        assertEquals(persons.getSubtable(2, 0).getSubtable(2, 0).getColumnName(0), "number");
 
-        assertEquals(persons.getString(1,0), "xx@xxxx.com");
-        assertEquals(persons.getSubtable(2,0).getString(0,0), "X Street");
-        assertEquals(persons.getSubtable(2,0).getSubtable(2,0).getLong(0,0), 12345678);
+        assertEquals(persons.getString(1, 0), "xx@xxxx.com");
+        assertEquals(persons.getSubtable(2, 0).getString(0, 0), "X Street");
+        assertEquals(persons.getSubtable(2, 0).getSubtable(2, 0).getLong(0, 0), 12345678);
     }
-
 
     public void testSubtableAddColumnsCheckNames() {
 
@@ -161,8 +160,8 @@ public class JNISubtableTest extends TestCase {
         TableSchema addresses = persons.getSubtableSchema(0);
         try {
             addresses.addColumn(ColumnType.STRING, "I am 64 chracters...............................................");
-            fail("Only 63 chracters supported"); }
-        catch (IllegalArgumentException e) {
+            fail("Only 63 chracters supported");
+        } catch (IllegalArgumentException e) {
             assertNotNull(e);
         }
 
@@ -186,12 +185,12 @@ public class JNISubtableTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }});
+        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{"X Street", 1234, new Object[][] {{12345678}}}});
 
         // Assertions
-        assertEquals(persons.getSubtable(2,0).getColumnCount(), 3);
+        assertEquals(persons.getSubtable(2, 0).getColumnCount(), 3);
         addresses.removeColumn(1);
-        assertEquals(persons.getSubtable(2,0).getColumnCount(), 2);
+        assertEquals(persons.getSubtable(2, 0).getColumnCount(), 2);
     }
 
     public void testRenameColumnInSubtable() {
@@ -212,12 +211,12 @@ public class JNISubtableTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }});
+        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{"X Street", 1234, new Object[][] {{12345678}}}});
 
         // Assertions
-        assertEquals("zipcode", persons.getSubtable(2,0).getColumnName(1));
+        assertEquals("zipcode", persons.getSubtable(2, 0).getColumnName(1));
         addresses.renameColumn(1, "zip");
-        assertEquals("zip", persons.getSubtable(2,0).getColumnName(1));
+        assertEquals("zip", persons.getSubtable(2, 0).getColumnName(1));
     }
 
     public void testShouldThrowOnGetSubtableDefinitionFromSubtable() {
@@ -236,11 +235,11 @@ public class JNISubtableTest extends TestCase {
         phone_numbers.addColumn(ColumnType.INTEGER, "number");
 
         // Inserting data
-        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{ "X Street", 1234, new Object[][] {{ 12345678 }} }});
+        persons.add("Mr X", "xx@xxxx.com", new Object[][] {{"X Street", 1234, new Object[][] {{12345678}}}});
 
         try {
             // Should throw
-            persons.getSubtable(2,0).addColumn(ColumnType.INTEGER, "i");
+            persons.getSubtable(2, 0).addColumn(ColumnType.INTEGER, "i");
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {
             assertNotNull(e);
@@ -248,7 +247,7 @@ public class JNISubtableTest extends TestCase {
 
         try {
             // Should throw
-            persons.getSubtable(2,0).getSubtableSchema(2);
+            persons.getSubtable(2, 0).getSubtableSchema(2);
             fail("expected exception.");
         } catch (UnsupportedOperationException e) {
             assertNotNull(e);

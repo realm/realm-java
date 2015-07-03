@@ -1,8 +1,8 @@
 {
-	"columnString" : "String",
-	"columnLong" : 1,
-	"columnFloat" : 1.23,
-	"columnDouble" : 1.23,
-	"columnBoolean" : true,
-	"columnBinary" : "AQID"
+  "columnString": "String",
+  "columnLong": 1,
+  "columnFloat": 1.23,
+  "columnDouble": 1.23,
+  "columnBoolean": true,
+  "columnBinary": "AQID"
 }

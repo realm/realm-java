@@ -167,17 +167,17 @@ project.afterEvaluate {
 // [ exampleModuleDir, distModuleDir ] -> where to find module dir to copy. Add one for each submodule.
 // First sub module must be the app module
 def examples = [
-    introExample: ["RealmIntroExample", ["" : "app"]],
-    gridViewExample: ["RealmGridViewExample", ["" : "app"]],
-    migrationExample: ["RealmMigrationExample", ["" : "app"]],
-    adapterExample: ["RealmAdapterExample", ["" : "app"]],
-    threadExample: ["RealmThreadExample", ["" : "app"]],
-    jsonExample: ["RealmJsonExample", ["" : "app"]],
-    encryptionExample: ["RealmEncryptionExample", ["" : "app"]],
-    realmModuleExample: ["RealmModuleExample", [ app : "app"], [ library : "library"]]
+        introExample      : ["RealmIntroExample", ["": "app"]],
+        gridViewExample   : ["RealmGridViewExample", ["": "app"]],
+        migrationExample  : ["RealmMigrationExample", ["": "app"]],
+        adapterExample    : ["RealmAdapterExample", ["": "app"]],
+        threadExample     : ["RealmThreadExample", ["": "app"]],
+        jsonExample       : ["RealmJsonExample", ["": "app"]],
+        encryptionExample : ["RealmEncryptionExample", ["": "app"]],
+        realmModuleExample: ["RealmModuleExample", [app: "app"], [library: "library"]]
 ]
 
-def abi = [ 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips', 'x86' ]
+def abi = ['armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips', 'x86']
 
 //for Ant filter
 import org.apache.tools.ant.filters.ReplaceTokens

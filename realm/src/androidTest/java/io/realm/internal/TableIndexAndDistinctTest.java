@@ -36,12 +36,13 @@ public class TableIndexAndDistinctTest extends TestCase {
         assertEquals(4, view.getLong(0, 3));
     }
 
-// TODO: parametric test
-/*    *//**
-     * Should throw exception if trying to get distinct on columns where index has not been set
-     * @param index
-     *//*
+    // TODO: parametric test
+/*    */
 
+    /**
+     * Should throw exception if trying to get distinct on columns where index has not been set.
+     */
+    /*
     @Test(expectedExceptions = UnsupportedOperationException.class, dataProvider = "columnIndex")
     public void shouldTestDistinctErrorWhenNoIndex(Long index) {
 
@@ -50,7 +51,6 @@ public class TableIndexAndDistinctTest extends TestCase {
 
         TableView view = table.getDistinctView(1);
     }*/
-
     public void testShouldTestDistinctErrorWhenIndexOutOfBounds() {
         init();
 
@@ -63,8 +63,7 @@ public class TableIndexAndDistinctTest extends TestCase {
     }
 
     /**
-     * Check that Index can be set on multiple columns, with the String
-     * @param
+     * Check that Index can be set on multiple columns, with the String.
      */
     public void testShouldTestSettingIndexOnMultipleColumns() {
 
@@ -81,17 +80,17 @@ public class TableIndexAndDistinctTest extends TestCase {
         t.add("row1", "row2", "row3", "row4", "row5");
         t.add("row1", "row2", "row3", "row4", "row5");
 
-        for (long c=0;c<t.getColumnCount();c++){
+        for (long c = 0; c < t.getColumnCount(); c++) {
             t.addSearchIndex(c);
             assertEquals(true, t.hasSearchIndex(c));
         }
     }
 
+    // TODO: parametric test
+/*    */
 
-// TODO: parametric test
-/*    *//**
+    /**
      * Checks that all other column types than String throws exception.
-     * @param o
      *//*
 
     @Test(expectedExceptions = IllegalArgumentException.class, dataProvider = "columnIndex")
@@ -107,7 +106,6 @@ public class TableIndexAndDistinctTest extends TestCase {
 
         t.addSearchIndex(index);
     }*/
-
     public void testShouldCheckIndexIsOkOnColumn() {
         init();
         table.addSearchIndex(1);
@@ -125,13 +123,11 @@ public class TableIndexAndDistinctTest extends TestCase {
     }
 
     /**
-     * Is used to run a test multiple times,
-     * that corresponds to the number of columns in the Table generated
-     * in TestHelper.getTableWithAllColumnTypes
-     * @return
+     * Is used to run a test multiple times, that corresponds to the number of columns in the Table generated in
+     * TestHelper.getTableWithAllColumnTypes
      */
 
-// TODO: parametric test
+    // TODO: parametric test
 /*    @DataProvider(name = "columnIndex")
     public Iterator<Object[]> mixedValuesProvider() {
         Long[] values = {
@@ -141,7 +137,6 @@ public class TableIndexAndDistinctTest extends TestCase {
         List<?> mixedValues = Arrays.asList(values);
         return DataProviderUtil.allCombinations(mixedValues);
     }*/
-
     public void testRemoveSearchIndex() {
         init();
         table.addSearchIndex(1);

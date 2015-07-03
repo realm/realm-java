@@ -31,18 +31,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Utility methods for Realm Core.
  */
-public class RealmCore {
+public final class RealmCore {
 
-///*
     private static final String FILE_SEP = File.separator;
     private static final String PATH_SEP = File.pathSeparator;          // On Windows ";"
     private static final String BINARIES_PATH = "lib" + PATH_SEP + ".." + FILE_SEP + "lib";
     private static final String JAVA_LIBRARY_PATH = "java.library.path";
-//*/
-
     private static AtomicBoolean libraryIsLoaded = new AtomicBoolean(false);
 
-/*
+    // Enforce non-instantiability
+    private RealmCore() {}
+
+    /*
     private static String getJniFileName()
     {
         String os = System.getProperty("os.name").toLowerCase();
@@ -56,8 +56,7 @@ public class RealmCore {
     }
 */
 
-    public static boolean osIsWindows()
-    {
+    public static boolean osIsWindows() {
         String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
         return (os.contains("win"));
     }
@@ -94,24 +93,25 @@ public class RealmCore {
         System.out.println(caption + ": " + cursor);
     }
 */
+
     /**
      * Guarantee gc is done.
      */
-    public static void gcGuaranteed(){
+    public static void gcGuaranteed() {
         Object obj = new Object();
         WeakReference<Object> ref = new WeakReference<Object>(obj);
         obj = null;
-        while (ref.get()!=null)
+        while (ref.get() != null)
             System.gc();
     }
 
     /**
      * Guarantee gc is done after JVM shutdown.
      */
-    public static void gcOnExit(){
-        Runtime.getRuntime().addShutdownHook(new Thread(){
+    public static void gcOnExit() {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
-            public void run(){
+            public void run() {
                 gcGuaranteed();
             }
         });
@@ -131,14 +131,12 @@ public class RealmCore {
 
         if (osIsWindows()) {
             loadLibraryWindows();
-        }
-        else {
+        } else {
             String jnilib;
             String debug = System.getenv("REALM_JAVA_DEBUG");
             if (debug == null || debug.isEmpty()) {
                 jnilib = "realm-jni";
-            }
-            else {
+            } else {
                 jnilib = "realm-jni-dbg";
             }
             System.loadLibrary(jnilib);
@@ -149,27 +147,25 @@ public class RealmCore {
     }
 
     private static String loadLibraryWindows() {
-///*
+        ///*
         try {
             addNativeLibraryPath(BINARIES_PATH);
             resetLibraryPath();
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             // Above can't be used on Android.
         }
-//*/
+        //*/
         // Load debug library first - if available
         String jnilib;
         jnilib = loadCorrectLibrary("realm_jni32d", "realm_jni64d");
         if (jnilib != null) {
             System.out.println("!!! Realm debug version loaded. !!!\n");
-        }
-        else {
+        } else {
             jnilib = loadCorrectLibrary("realm_jni32", "realm_jni64");
             if (jnilib == null) {
                 System.err.println("Searched java.library.path=" + System.getProperty("java.library.path"));
                 throw new RuntimeException("Couldn't load the Realm JNI library 'realm_jni32.dll or realm_jni64.dll" +
-                                           "'. Please include the directory to the library in java.library.path.");
+                        "'. Please include the directory to the library in java.library.path.");
             }
         }
         return jnilib;
@@ -186,7 +182,7 @@ public class RealmCore {
         return null;
     }
 
-// /*
+    // /*
     public static void addNativeLibraryPath(String path) {
         try {
             String libraryPath = System.getProperty(JAVA_LIBRARY_PATH) + PATH_SEP + path + PATH_SEP;
@@ -212,5 +208,5 @@ public class RealmCore {
             throw new RuntimeException("Cannot reset the library path!", e);
         }
     }
-// */
+    // */
 }

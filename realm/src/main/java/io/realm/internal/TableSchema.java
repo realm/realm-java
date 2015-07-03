@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-
 public interface TableSchema {
 
     TableSchema getSubtableSchema(long columnIndex);
@@ -29,7 +28,8 @@ public interface TableSchema {
 
     /*
     // FIXME the column information classes should be here as well.
-    // There is currently no path based implementation in core, so we should consider adding them with Spec, or wait for a core implementation.
+    // There is currently no path based implementation in core, so we should consider adding them with Spec, or wait
+    for a core implementation.
 
     long getColumnCount();
 

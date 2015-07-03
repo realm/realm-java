@@ -33,21 +33,20 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 
 public class RealmResultsTest extends AndroidTestCase {
-    protected final static int TEST_DATA_SIZE = 2516;
-    protected final static int TEST_DATA_FIRST_HALF = 2 * (TEST_DATA_SIZE / 4) - 1;
-    protected final static int TEST_DATA_LAST_HALF = 2 * (TEST_DATA_SIZE / 4) + 1;
-
+    protected static final int TEST_DATA_SIZE = 2516;
+    protected static final int TEST_DATA_FIRST_HALF = 2 * (TEST_DATA_SIZE / 4) - 1;
+    protected static final int TEST_DATA_LAST_HALF = 2 * (TEST_DATA_SIZE / 4) + 1;
 
     protected Realm testRealm;
 
-    private final static String FIELD_STRING = "columnString";
-    private final static String FIELD_LONG = "columnLong";
-    private final static String FIELD_FLOAT = "columnFloat";
-    private final static String FIELD_DOUBLE = "columnDouble";
-    private final static String FIELD_BOOLEAN = "columnBoolean";
-    private final static String FIELD_DATE = "columnDate";
-    private final static String FIELD_KOREAN_CHAR = "델타";
-    private final static String FIELD_GREEK_CHAR = "Δέλτα";
+    private static final String FIELD_STRING = "columnString";
+    private static final String FIELD_LONG = "columnLong";
+    private static final String FIELD_FLOAT = "columnFloat";
+    private static final String FIELD_DOUBLE = "columnDouble";
+    private static final String FIELD_BOOLEAN = "columnBoolean";
+    private static final String FIELD_DATE = "columnDate";
+    private static final String FIELD_KOREAN_CHAR = "델타";
+    private static final String FIELD_GREEK_CHAR = "Δέλτα";
 
     @Override
     protected void setUp() throws InterruptedException {
@@ -65,7 +64,7 @@ public class RealmResultsTest extends AndroidTestCase {
         for (int i = 0; i < objects; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
-            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnBinary(new byte[] {1, 2, 3});
             allTypes.setColumnDate(new Date((long) 1000 * i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
@@ -90,7 +89,6 @@ public class RealmResultsTest extends AndroidTestCase {
     protected void tearDown() throws Exception {
         testRealm.close();
     }
-
 
     public void testMethodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
         for (Method method : Method.values()) {
@@ -132,6 +130,10 @@ public class RealmResultsTest extends AndroidTestCase {
                             break;
                         case METHOD_WHERE:
                             allTypeses.where();
+                            break;
+                        default:
+                            throw new UnsupportedOperationException();
+
                     }
                     return false;
                 } catch (IllegalStateException ignored) {
@@ -296,12 +298,14 @@ public class RealmResultsTest extends AndroidTestCase {
         sortedList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DESCENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
-        assertEquals("First excepted to be last", resultList.first().getColumnLong(), sortedList.last().getColumnLong());
+        assertEquals("First excepted to be last", resultList.first().getColumnLong(), sortedList.last().getColumnLong
+                ());
 
         RealmResults<AllTypes> reverseList = sortedList;
         reverseList.sort(FIELD_LONG, RealmResults.SORT_ORDER_ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
-        assertEquals("First excepted to be first", resultList.first().getColumnLong(), reverseList.first().getColumnLong());
+        assertEquals("First excepted to be first", resultList.first().getColumnLong(), reverseList.first()
+                .getColumnLong());
         assertEquals("Last excepted to be last", resultList.last().getColumnLong(), reverseList.last().getColumnLong());
 
         RealmResults<AllTypes> reserveSortedList = reverseList;
@@ -589,12 +593,12 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testSortWithNullThrows() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
         try {
-            result.sort((String)null);
+            result.sort((String) null);
             fail("Sorting with a null field name should throw an IllegalArgumentException");
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            result.sort((String[])null, (boolean[])null);
+            result.sort((String[]) null, (boolean[]) null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -613,7 +617,7 @@ public class RealmResultsTest extends AndroidTestCase {
 
     public void testSortSingleField() {
         RealmResults<AllTypes> sortedList = testRealm.allObjects(AllTypes.class);
-        sortedList.sort(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+        sortedList.sort(new String[] {FIELD_LONG}, new boolean[] {RealmResults.SORT_ORDER_DESCENDING});
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());
@@ -681,7 +685,8 @@ public class RealmResultsTest extends AndroidTestCase {
             RealmResults<AllTypes> none = testRealm.where(AllTypes.class).findAllSorted("invalid",
                     RealmResults.SORT_ORDER_DESCENDING);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testQueryDateField() {
@@ -696,7 +701,8 @@ public class RealmResultsTest extends AndroidTestCase {
             RealmResults<AllTypes> all = testRealm.allObjects(AllTypes.class);
             int index = all.indexOf(all.first());
             fail();
-        } catch (NoSuchMethodError e) {}
+        } catch (NoSuchMethodError e) {
+        }
     }
 
     public void testSubList() {
@@ -709,18 +715,37 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testUnsupportedMethods() {
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
-        try { result.add(null);     fail(); } catch (UnsupportedOperationException expected) {}
-        try { result.set(0, null);  fail(); } catch (UnsupportedOperationException expected) {}
+        try {
+            result.add(null);
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
+        try {
+            result.set(0, null);
+            fail();
+        } catch (UnsupportedOperationException expected) {
+        }
     }
-
 
     // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
     public void testMutableMethodsOutsideWriteTransactions() {
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
-        try { result.clear();       fail(); } catch (IllegalStateException expected) {}
-        try { result.remove(0);     fail(); } catch (IllegalStateException expected) {}
-        try { result.removeLast();  fail(); } catch (IllegalStateException expected) {}
+        try {
+            result.clear();
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            result.remove(0);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            result.removeLast();
+            fail();
+        } catch (IllegalStateException expected) {
+        }
     }
 
     // TODO: More extended tests of querying all types must be done.

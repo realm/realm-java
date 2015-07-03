@@ -1,6 +1,5 @@
 package io.realm.processor;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import javax.annotation.processing.Messager;
@@ -27,7 +26,8 @@ public class Utils {
     public static void initialize(ProcessingEnvironment env) {
         typeUtils = env.getTypeUtils();
         messager = env.getMessager();
-        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils
+                .getWildcardType(null, null));
     }
 
     /**

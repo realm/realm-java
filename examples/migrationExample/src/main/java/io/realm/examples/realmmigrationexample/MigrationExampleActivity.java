@@ -31,7 +31,6 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.examples.realmmigrationexample.model.Migration;
 import io.realm.examples.realmmigrationexample.model.Person;
-import io.realm.exceptions.RealmMigrationNeededException;
 
 /*
 ** This example demonstrates how you can migrate your data through different updates

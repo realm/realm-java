@@ -34,5 +34,6 @@ public class ReadTransaction extends Group {
         db.endRead();
     }
 
-    protected void finalize() {} // Nullify the actions of Group.finalize()
+    protected void finalize() {
+    } // Nullify the actions of Group.finalize()
 }

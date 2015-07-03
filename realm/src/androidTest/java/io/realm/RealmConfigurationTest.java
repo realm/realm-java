@@ -130,7 +130,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
         realm.close();
 
-        int[] wrongVersions = new int[] { 0, 1, 41 };
+        int[] wrongVersions = new int[] {0, 1, 41};
         for (int version : wrongVersions) {
             try {
                 Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(version).build());
@@ -142,12 +142,14 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
     public void testVersionEqualWhenSchemaChangesThrows() {
         // Create initial Realm
-        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).schemaVersion(42).schema(Dog.class).build();
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).schemaVersion(42).schema(Dog.class)
+                .build();
         Realm.getInstance(config).close();
 
         // Create new instance with a configuration containing another schema
         try {
-            config = new RealmConfiguration.Builder(getContext()).schemaVersion(42).schema(AllTypesPrimaryKey.class).build();
+            config = new RealmConfiguration.Builder(getContext()).schemaVersion(42).schema(AllTypesPrimaryKey.class)
+                    .build();
             Realm.getInstance(config);
             fail("A migration should be required");
         } catch (RealmMigrationNeededException expected) {
@@ -205,7 +207,8 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testSetModules() {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).setModules(Realm.getDefaultModule()).build();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).setModules(Realm
+                .getDefaultModule()).build();
         realm = Realm.getInstance(realmConfig);
         assertNotNull(realm.getTable(AllTypes.class));
     }
@@ -316,8 +319,10 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testDifferentEncryptionKeysThrows() {
-        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).encryptionKey(TestHelper.getRandomKey()).build();
-        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).encryptionKey(TestHelper.getRandomKey()).build();
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).encryptionKey(TestHelper
+                .getRandomKey()).build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).encryptionKey(TestHelper
+                .getRandomKey()).build();
 
         Realm realm1 = Realm.getInstance(config1);
         try {

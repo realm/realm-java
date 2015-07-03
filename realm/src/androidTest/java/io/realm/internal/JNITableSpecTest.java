@@ -33,14 +33,14 @@ public class JNITableSpecTest extends TestCase {
     public static Collection<Object[]> parameters() {
 
         return Arrays.asList(
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.INTEGER)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.FLOAT)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.DOUBLE)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.BOOLEAN)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.STRING)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.BINARY)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.MIXED)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.TABLE)}
+                new Object[] {new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.INTEGER)},
+                new Object[] {new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.FLOAT)},
+                new Object[] {new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.DOUBLE)},
+                new Object[] {new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.BOOLEAN)},
+                new Object[] {new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.STRING)},
+                new Object[] {new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.BINARY)},
+                new Object[] {new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.MIXED)},
+                new Object[] {new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.TABLE)}
         );
     }
 
@@ -105,11 +105,11 @@ public class JNITableSpecTest extends TestCase {
         Date date = new Date();
         table.add(55, 55.5f, -55.5, false, "55", date);
         table.addColumn(ColumnType.BINARY, "6");
-        table.add(66, 66.6f, -66.6, false, "66", date, new byte[]{6});
+        table.add(66, 66.6f, -66.6, false, "66", date, new byte[] {6});
         table.addColumn(ColumnType.MIXED, "7");
-        table.add(77, 77.7f, -77.7, true, "77", date, new byte[]{7, 7}, "mix");
+        table.add(77, 77.7f, -77.7, true, "77", date, new byte[] {7, 7}, "mix");
         table.addColumn(ColumnType.TABLE, "8");
-        table.add(88, 88.8f, -88.8, false, "88", date, new byte[]{8, 8, 8}, "mixed", null);
+        table.add(88, 88.8f, -88.8, false, "88", date, new byte[] {8, 8, 8}, "mixed", null);
 
         table.addEmptyRows(10);
         assertEquals(9 + 10, table.size());
@@ -181,7 +181,7 @@ public class JNITableSpecTest extends TestCase {
         addresses.addColumn(ColumnType.INTEGER, "zipcode");
         addresses.addColumn(ColumnType.TABLE, "phone_numbers");
 
-        persons.add(new Object[]{"Mr X", "xx@xxxx.com", new Object[][]{{"X Street", 1234, null}}});
+        persons.add(new Object[] {"Mr X", "xx@xxxx.com", new Object[][] {{"X Street", 1234, null}}});
 
         Table address = persons.getSubtable(2, 0);
 

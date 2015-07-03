@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.io.IOError;
-import java.lang.*;
 
 import io.realm.exceptions.RealmIOException;
 
@@ -206,7 +205,6 @@ public class SharedGroup implements Closeable {
         activeTransaction = false;
     }
 
-
     boolean isClosed() {
         return nativePtr == 0;
     }
@@ -223,12 +221,12 @@ public class SharedGroup implements Closeable {
      * Compacts a shared group. This will block access to the shared group until done.
      *
      * @return True if compaction succeeded, false otherwise.
+     *
      * @throws RuntimeException if using this within either a read or or write transaction.
      */
     public boolean compact() {
         return nativeCompact(nativePtr);
     }
-
 
     /**
      * Returns the absolute path to the file backing this SharedGroup.

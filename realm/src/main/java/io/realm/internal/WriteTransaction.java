@@ -25,8 +25,7 @@ public class WriteTransaction extends Group {
         if (!committed) {
             db.commit();
             committed = true;
-        }
-        else {
+        } else {
             throw new IllegalStateException("You can only commit once after a WriteTransaction has been made.");
         }
     }
@@ -42,11 +41,12 @@ public class WriteTransaction extends Group {
         }
     }
 
-    WriteTransaction(Context context,SharedGroup db, long nativePtr) {
+    WriteTransaction(Context context, SharedGroup db, long nativePtr) {
         super(context, nativePtr, false);    // Group is mutable
         this.db = db;
         committed = false;
     }
 
-    protected void finalize() {} // Nullify the actions of Group.finalize()
+    protected void finalize() {
+    } // Nullify the actions of Group.finalize()
 }

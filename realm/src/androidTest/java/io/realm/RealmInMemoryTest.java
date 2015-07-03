@@ -30,7 +30,7 @@ import io.realm.entities.Dog;
 
 public class RealmInMemoryTest extends AndroidTestCase {
 
-    private final static String IDENTIFIER = "InMemRealmTest";
+    private static final String IDENTIFIER = "InMemRealmTest";
 
     private Realm testRealm;
     private RealmConfiguration inMemConf;
@@ -180,7 +180,7 @@ public class RealmInMemoryTest extends AndroidTestCase {
         final CountDownLatch workerReadyLatch = new CountDownLatch(1);
         final CountDownLatch workerFinishedLatch = new CountDownLatch(1);
         final CountDownLatch realmInMainClosedLatch = new CountDownLatch(1);
-        final AssertionFailedError threadError[] = new AssertionFailedError[1];
+        final AssertionFailedError[] threadError = new AssertionFailedError[1];
 
         // Step 2.
         Thread workerThread = new Thread(new Runnable() {
@@ -216,10 +216,11 @@ public class RealmInMemoryTest extends AndroidTestCase {
         });
         workerThread.start();
 
-
         // Wait until the worker thread started
         workerReadyLatch.await(3, TimeUnit.SECONDS);
-        if (threadError[0] != null) { throw threadError[0]; }
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
 
         // refresh will be ran in the next loop, manually refresh it here.
         testRealm.refresh();
@@ -240,9 +241,12 @@ public class RealmInMemoryTest extends AndroidTestCase {
 
         // Wait until the worker thread finished
         workerFinishedLatch.await(3, TimeUnit.SECONDS);
-        if (threadError[0] != null) { throw threadError[0]; }
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
 
-        // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance
+        // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm
+        // instance
         testRealm = Realm.getInstance(inMemConf);
         assertEquals(testRealm.allObjects(Dog.class).size(), 0);
     }

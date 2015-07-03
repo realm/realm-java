@@ -36,7 +36,8 @@ public class ImplicitTransaction extends Group {
             immutable = false;
             parent.promoteToWrite();
         } else {
-            throw new IllegalStateException("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().");
+            throw new IllegalStateException("Nested transactions are not allowed. Use commitTransaction() after each " +
+                    "beginTransaction().");
         }
     }
 
@@ -74,5 +75,6 @@ public class ImplicitTransaction extends Group {
         return parent.getPath();
     }
 
-    protected void finalize() {} // Nullify the actions of Group.finalize()
+    protected void finalize() {
+    } // Nullify the actions of Group.finalize()
 }

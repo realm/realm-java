@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-
 public class SubtableSchema implements TableSchema {
 
     private long[] path;
@@ -29,7 +28,7 @@ public class SubtableSchema implements TableSchema {
 
     @Override
     public SubtableSchema getSubtableSchema(long columnIndex) {
-        long[] newPath = new long[this.path.length+1];
+        long[] newPath = new long[this.path.length + 1];
         for (int i = 0; i < this.path.length; i++) {
             newPath[i] = path[i];
         }

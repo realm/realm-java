@@ -17,20 +17,22 @@
 package io.realm.internal.android;
 
 import android.util.Base64;
+
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class JsonUtils {
+public final class JsonUtils {
 
     private static Pattern jsonDate = Pattern.compile("/Date\\((\\d*)\\)/");
 
+    // Enforce non-instantiability
+    private JsonUtils() {}
+
     /**
-     * Converts a Json string to a Java Date object. Currently supports 2 types:
-     * - "<long>"
-     * - "/Date(<long>)/"
+     * Converts a Json string to a Java Date object. Currently supports 2 types: - "<long>" - "/Date(<long>)/"
      *
-     * @param date   String input of date of the the supported types.
+     * @param date String input of date of the the supported types.
      * @return Date object or null if invalid input.
      *
      * @throws NumberFormatException If date is not a proper long or has an illegal format.
@@ -48,7 +50,7 @@ public class JsonUtils {
     /**
      * Converts a Json string to byte[]. String must be Base64 encoded.
      *
-     * @param str   Base 64 encoded bytes.
+     * @param str Base 64 encoded bytes.
      * @return Byte array or empty byte array
      */
     public static byte[] stringToBytes(String str) {

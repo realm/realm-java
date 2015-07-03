@@ -54,9 +54,10 @@ public class IOSRealmTests extends AndroidTestCase {
 
     // Test relationships and that data in general can be retrieved from an iOS realm
     public void testIOSDatatypes() throws IOException {
-        TestHelper.prepareDatabaseFromAssets(getContext(),  "ios/0.90.4-alltypes.realm", REALM_NAME);
+        TestHelper.prepareDatabaseFromAssets(getContext(), "ios/0.90.4-alltypes.realm", REALM_NAME);
         realm = Realm.getDefaultInstance();
-        RealmResults<IOSAllTypes> result = realm.allObjectsSorted(IOSAllTypes.class, "longCol", RealmResults.SORT_ORDER_ASCENDING);
+        RealmResults<IOSAllTypes> result = realm.allObjectsSorted(IOSAllTypes.class, "longCol", RealmResults
+                .SORT_ORDER_ASCENDING);
 
         IOSAllTypes obj = result.get(1);
         assertTrue(obj.isBoolCol());
@@ -65,7 +66,7 @@ public class IOSRealmTests extends AndroidTestCase {
         assertEquals(101L, obj.getLongCol());
         assertEquals(2.23F, obj.getFloatCol());
         assertEquals(2.234D, obj.getDoubleCol());
-        assertArrayEquals(new byte[] {1,2,3}, obj.getByteCol());
+        assertArrayEquals(new byte[] {1, 2, 3}, obj.getByteCol());
         assertEquals("String 1", obj.getStringCol());
         assertEquals(new Date(1001 * 1000), obj.getDateCol());
         assertEquals("Foo", result.get(1).getChild().getName());
@@ -75,7 +76,7 @@ public class IOSRealmTests extends AndroidTestCase {
     }
 
     public void testIOSDatatypesDefaultValues() throws IOException {
-        TestHelper.prepareDatabaseFromAssets(getContext(),  "ios/0.90.4-alltypes-default.realm", REALM_NAME);
+        TestHelper.prepareDatabaseFromAssets(getContext(), "ios/0.90.4-alltypes-default.realm", REALM_NAME);
         realm = Realm.getDefaultInstance();
 
         IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
@@ -93,7 +94,7 @@ public class IOSRealmTests extends AndroidTestCase {
     }
 
     public void testIOSDatatypesMinimumValues() throws IOException {
-        TestHelper.prepareDatabaseFromAssets(getContext(),  "ios/0.90.4-alltypes-min.realm", REALM_NAME);
+        TestHelper.prepareDatabaseFromAssets(getContext(), "ios/0.90.4-alltypes-min.realm", REALM_NAME);
         realm = Realm.getDefaultInstance();
 
         IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
@@ -105,7 +106,7 @@ public class IOSRealmTests extends AndroidTestCase {
     }
 
     public void testIOSDatatypesMaximumValues() throws IOException {
-        TestHelper.prepareDatabaseFromAssets(getContext(),  "ios/0.90.4-alltypes-max.realm", REALM_NAME);
+        TestHelper.prepareDatabaseFromAssets(getContext(), "ios/0.90.4-alltypes-max.realm", REALM_NAME);
         realm = Realm.getDefaultInstance();
 
         IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
@@ -117,7 +118,7 @@ public class IOSRealmTests extends AndroidTestCase {
     }
 
     public void testIOSEncryptedRealm() throws IOException {
-        TestHelper.prepareDatabaseFromAssets(getContext(),  "ios/0.90.5-alltypes-default-encrypted.realm", REALM_NAME);
+        TestHelper.prepareDatabaseFromAssets(getContext(), "ios/0.90.5-alltypes-default-encrypted.realm", REALM_NAME);
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(getIOSKey())

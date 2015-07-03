@@ -69,18 +69,18 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
 public class RealmTest extends AndroidTestCase {
 
-    protected final static int TEST_DATA_SIZE = 10;
+    protected static final int TEST_DATA_SIZE = 10;
 
     protected Realm testRealm;
 
     protected List<String> columnData = new ArrayList<String>();
 
-    private final static String FIELD_STRING = "columnString";
-    private final static String FIELD_LONG = "columnLong";
-    private final static String FIELD_FLOAT = "columnFloat";
-    private final static String FIELD_DOUBLE = "columnDouble";
-    private final static String FIELD_BOOLEAN = "columnBoolean";
-    private final static String FIELD_DATE = "columnDate";
+    private static final String FIELD_STRING = "columnString";
+    private static final String FIELD_LONG = "columnLong";
+    private static final String FIELD_FLOAT = "columnFloat";
+    private static final String FIELD_DOUBLE = "columnDouble";
+    private static final String FIELD_BOOLEAN = "columnBoolean";
+    private static final String FIELD_DATE = "columnDate";
 
     protected void setColumnData() {
         columnData.add(0, FIELD_BOOLEAN);
@@ -111,7 +111,7 @@ public class RealmTest extends AndroidTestCase {
         for (int i = 0; i < objects; ++i) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
-            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnBinary(new byte[] {1, 2, 3});
             allTypes.setColumnDate(new Date());
             allTypes.setColumnDouble(3.1415);
             allTypes.setColumnFloat(1.234567f + i);
@@ -129,7 +129,6 @@ public class RealmTest extends AndroidTestCase {
     private void populateTestRealm() {
         populateTestRealm(testRealm, TEST_DATA_SIZE);
     }
-
 
     public void testGetInstanceNullFolderThrows() {
         try {
@@ -316,10 +315,12 @@ public class RealmTest extends AndroidTestCase {
         resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0", RealmQuery
+                .CASE_INSENSITIVE).findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Test data 0", RealmQuery.CASE_SENSITIVE)
+                .findAll();
         assertEquals(0, resultList.size());
     }
 
@@ -427,16 +428,19 @@ public class RealmTest extends AndroidTestCase {
 
     public void testAllObjectsSorted() {
         populateTestRealm();
-        RealmResults<AllTypes> sortedList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, RealmResults.SORT_ORDER_ASCENDING);
+        RealmResults<AllTypes> sortedList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, RealmResults
+                .SORT_ORDER_ASCENDING);
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("test data 0", sortedList.first().getColumnString());
 
-        RealmResults<AllTypes> reverseList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        RealmResults<AllTypes> reverseList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, RealmResults
+                .SORT_ORDER_DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("test data 0", reverseList.last().getColumnString());
 
         try {
-            RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", RealmResults.SORT_ORDER_ASCENDING);
+            RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", RealmResults
+                    .SORT_ORDER_ASCENDING);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -446,8 +450,8 @@ public class RealmTest extends AndroidTestCase {
         io.realm.internal.test.TestHelper.populateForMultiSort(testRealm);
 
         RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
-                new String[]{FIELD_STRING, FIELD_LONG},
-                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                new String[] {FIELD_STRING, FIELD_LONG},
+                new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
         assertEquals(3, results1.size());
 
@@ -461,8 +465,8 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(4, results1.get(2).getColumnLong());
 
         RealmResults<AllTypes> results2 = testRealm.allObjectsSorted(AllTypes.class,
-                new String[]{FIELD_LONG, FIELD_STRING},
-                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                new String[] {FIELD_LONG, FIELD_STRING},
+                new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
 
         assertEquals(3, results2.size());
 
@@ -481,7 +485,7 @@ public class RealmTest extends AndroidTestCase {
 
         // zero fields specified
         try {
-            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
+            testRealm.allObjectsSorted(AllTypes.class, new String[] {}, new boolean[] {});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -489,8 +493,8 @@ public class RealmTest extends AndroidTestCase {
         // number of fields and sorting orders don't match
         try {
             testRealm.allObjectsSorted(AllTypes.class,
-                    new String[]{FIELD_STRING},
-                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                    new String[] {FIELD_STRING},
+                    new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -502,7 +506,7 @@ public class RealmTest extends AndroidTestCase {
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            testRealm.allObjectsSorted(AllTypes.class, new String[]{FIELD_STRING}, null);
+            testRealm.allObjectsSorted(AllTypes.class, new String[] {FIELD_STRING}, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -510,8 +514,8 @@ public class RealmTest extends AndroidTestCase {
         // non-existing field name
         try {
             testRealm.allObjectsSorted(AllTypes.class,
-                    new String[]{FIELD_STRING, "dont-exist"},
-                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                    new String[] {FIELD_STRING, "dont-exist"},
+                    new boolean[] {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -520,8 +524,8 @@ public class RealmTest extends AndroidTestCase {
     public void testSortSingleField() {
         populateTestRealm();
         RealmResults<AllTypes> sortedList = testRealm.allObjectsSorted(AllTypes.class,
-                new String[]{FIELD_LONG},
-                new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+                new String[] {FIELD_LONG},
+                new boolean[] {RealmResults.SORT_ORDER_DESCENDING});
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());
@@ -552,7 +556,8 @@ public class RealmTest extends AndroidTestCase {
             testRealm.beginTransaction();
             fail();
         } catch (IllegalStateException e) {
-            assertEquals("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().", e.getMessage());
+            assertEquals("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction()" +
+                    ".", e.getMessage());
         }
         testRealm.commitTransaction();
     }
@@ -585,6 +590,8 @@ public class RealmTest extends AndroidTestCase {
                         case METHOD_CANCEL:
                             testRealm.cancelTransaction();
                             break;
+                        default:
+                            throw new UnsupportedOperationException();
                     }
                     return false;
                 } catch (IllegalStateException ignored) {
@@ -619,7 +626,6 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE + 1, resultList.size());
     }
 
-
     public void testCancelTransaction() {
         populateTestRealm();
 
@@ -634,7 +640,6 @@ public class RealmTest extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
     }
-
 
     public void testExecuteTransactionNull() {
         testRealm.executeTransaction(null); // Nothing happens
@@ -668,7 +673,6 @@ public class RealmTest extends AndroidTestCase {
         }
         assertEquals(0, testRealm.allObjects(Owner.class).size());
     }
-
 
     // void clear(Class<?> classSpec)
     public void testClear() {
@@ -956,7 +960,6 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-
     public void testCompactRealmFileThrowsIfOpen() throws IOException {
         try {
             Realm.compactRealmFile(getContext());
@@ -1073,12 +1076,12 @@ public class RealmTest extends AndroidTestCase {
 
         AllTypes allTypes = new AllTypes();
         allTypes.setColumnString("String");
-        allTypes.setColumnLong(1l);
+        allTypes.setColumnLong(1L);
         allTypes.setColumnFloat(1f);
         allTypes.setColumnDouble(1d);
         allTypes.setColumnBoolean(true);
         allTypes.setColumnDate(date);
-        allTypes.setColumnBinary(new byte[]{1, 2, 3});
+        allTypes.setColumnBinary(new byte[] {1, 2, 3});
         allTypes.setColumnRealmObject(dog);
         allTypes.setColumnRealmList(list);
 
@@ -1251,7 +1254,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnFloat(1.23F);
                 obj.setColumnDouble(1.234D);
                 obj.setColumnBoolean(false);
-                obj.setColumnBinary(new byte[]{1, 2, 3});
+                obj.setColumnBinary(new byte[] {1, 2, 3});
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
@@ -1263,7 +1266,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnFloat(2.23F);
                 obj2.setColumnDouble(2.234D);
                 obj2.setColumnBoolean(true);
-                obj2.setColumnBinary(new byte[]{2, 3, 4});
+                obj2.setColumnBinary(new byte[] {2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
@@ -1280,7 +1283,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(2.23F, obj.getColumnFloat());
         assertEquals(2.234D, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertArrayEquals(new byte[]{2, 3, 4}, obj.getColumnBinary());
+        assertArrayEquals(new byte[] {2, 3, 4}, obj.getColumnBinary());
         assertEquals(new Date(2000), obj.getColumnDate());
         assertEquals("Dog3", obj.getColumnRealmObject().getName());
         assertEquals(1, obj.getColumnRealmList().size());
@@ -1309,7 +1312,6 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Three", testRealm.where(CyclicTypePrimaryKey.class).equalTo("id", 1).findFirst().getName());
     }
 
-
     // Checks that a standalone object with only default values can override data
     public void testCopyOrUpdateWithStandaloneDefaultObject() {
         testRealm.executeTransaction(new Realm.Transaction() {
@@ -1321,7 +1323,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnFloat(1.23F);
                 obj.setColumnDouble(1.234D);
                 obj.setColumnBoolean(false);
-                obj.setColumnBinary(new byte[]{1, 2, 3});
+                obj.setColumnBinary(new byte[] {1, 2, 3});
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
@@ -1346,7 +1348,6 @@ public class RealmTest extends AndroidTestCase {
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
-
 
     // Tests that if references to objects are removed, the objects are still in the Realm
     public void testCopyOrUpdateReferencesNotDeleted() {
@@ -1399,7 +1400,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Dog", realmObject.getDogOwner().getDog().getName());
     }
 
-   public void testCopyOrUpdateIterable() {
+    public void testCopyOrUpdateIterable() {
         testRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -1457,15 +1458,15 @@ public class RealmTest extends AndroidTestCase {
         Realm realm2 = null;
         try {
             realm1 = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                    .name(ENCRYPTED_REALM)
-                    .encryptionKey(key1)
-                    .build()
+                            .name(ENCRYPTED_REALM)
+                            .encryptionKey(key1)
+                            .build()
             );
             try {
                 realm2 = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                        .name(ENCRYPTED_REALM)
-                        .encryptionKey(key2)
-                        .build()
+                                .name(ENCRYPTED_REALM)
+                                .encryptionKey(key2)
+                                .build()
                 );
             } catch (Exception e) {
                 fail();
@@ -1506,7 +1507,8 @@ public class RealmTest extends AndroidTestCase {
                 .build();
 
         // Delete old test Realms if present
-        for (RealmConfiguration realmConfig : Arrays.asList(encryptedRealmConfig, reEncryptedRealmConfig, decryptedRealmConfig)) {
+        for (RealmConfiguration realmConfig : Arrays.asList(encryptedRealmConfig, reEncryptedRealmConfig,
+                decryptedRealmConfig)) {
             if (!Realm.deleteRealm(realmConfig)) {
                 fail();
             }
@@ -1516,7 +1518,7 @@ public class RealmTest extends AndroidTestCase {
         File destination = new File(getContext().getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
         try {
             testRealm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
-        } catch(Exception e) {
+        } catch (Exception e) {
             fail(e.getMessage());
         }
 
@@ -1660,28 +1662,108 @@ public class RealmTest extends AndroidTestCase {
         InputStream jsonArrStream2 = TestHelper.stringToStream(jsonArrStr);
 
         // Test all methods that should require a write transaction
-        try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.setVersion(42);                 fail(); } catch (IllegalStateException expected) {}
+        try {
+            testRealm.createObject(AllTypes.class);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.copyToRealm(t);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.copyToRealm(ts);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.copyToRealmOrUpdate(t);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.copyToRealmOrUpdate(ts);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.remove(AllTypes.class, 0);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.clear(AllTypes.class);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.setVersion(42);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
 
-        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (RealmException expected) {}
-        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (RealmException expected) {}
-        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream);          fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);        fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);     fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); } catch (IllegalStateException expected) {}
+        try {
+            testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);
+            fail();
+        } catch (RealmException expected) {
+        }
+        try {
+            testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);
+            fail();
+        } catch (RealmException expected) {
+        }
+        try {
+            testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
 
-        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);                   fail(); } catch (RealmException expected) {}
-        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);                fail(); } catch (RealmException expected) {}
-        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStream);             fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (RealmException expected) {}
-        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
-        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
+        try {
+            testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);
+            fail();
+        } catch (RealmException expected) {
+        }
+        try {
+            testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);
+            fail();
+        } catch (RealmException expected) {
+        }
+        try {
+            testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStream);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);
+            fail();
+        } catch (RealmException expected) {
+        }
+        try {
+            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);
+            fail();
+        } catch (RealmException expected) {
+        }
+        try {
+            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
     }
 
     // Check that FinalizerRunnable can free native resources (phantom refs)
@@ -1736,7 +1818,7 @@ public class RealmTest extends AndroidTestCase {
     // Test close Realm in another thread different from where it is created.
     public void testCloseRealmInDifferentThread() throws InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
-        final AssertionFailedError threadAssertionError[] = new AssertionFailedError[1];
+        final AssertionFailedError[] threadAssertionError = new AssertionFailedError[1];
 
         final Thread thatThread = new Thread(new Runnable() {
             @Override

@@ -16,15 +16,10 @@
 
 package some.test;
 
-import java.util.Date;
-
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 
 // Setting both allClasses and classes is not allowed at the same time
-@RealmModule(library = true, allClasses = true, classes = { AllTypes.class })
+@RealmModule(library = true, allClasses = true, classes = {AllTypes.class})
 public class InvalidLibraryModuleMixedParameters {
 
 }

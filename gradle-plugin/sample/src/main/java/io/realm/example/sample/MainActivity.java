@@ -26,7 +26,6 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.example.sample.models.Person;
 
-
 public class MainActivity extends ActionBarActivity {
 
     @Override

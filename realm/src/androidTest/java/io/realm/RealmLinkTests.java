@@ -99,7 +99,6 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals("Tim", cats.first().getOwner().getName());
     }
 
-
     public void testReamListQuery() {
         RealmResults<Owner> owners = testRealm.where(Owner.class).findAll();
         RealmResults<Dog> dogs = owners.get(0).getDogs().where().contains("name", "o").findAll();
@@ -172,7 +171,8 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners3.size());
         assertEquals(12, owners3.first().getCat().getAge());
 
-        RealmResults<Owner> owners4 = testRealm.where(Owner.class).greaterThanOrEqualTo("cat.birthday", new Date(5)).findAll();
+        RealmResults<Owner> owners4 = testRealm.where(Owner.class).greaterThanOrEqualTo("cat.birthday", new Date(5))
+                .findAll();
         assertEquals(1, owners4.size());
         assertEquals(12, owners4.first().getCat().getAge());
 
@@ -180,11 +180,13 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners5.size());
         assertEquals(12, owners5.first().getCat().getAge());
 
-        RealmResults<Owner> owners6 = testRealm.where(Owner.class).lessThanOrEqualTo("cat.birthday", new Date(10000)).findAll();
+        RealmResults<Owner> owners6 = testRealm.where(Owner.class).lessThanOrEqualTo("cat.birthday", new Date(10000))
+                .findAll();
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date(10000)).findAll();
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date
+                (10000)).findAll();
         assertEquals(1, owners7.size());
         assertEquals(12, owners7.first().getCat().getAge());
     }
@@ -249,7 +251,6 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(12, owners7.first().getCat().getAge());
     }
 
-
     public void testQuerySingleRelationString() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).equalTo("cat.name", "Blackie").findAll();
         assertEquals(1, owners1.size());
@@ -272,7 +273,8 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> owners5 = testRealm.where(Owner.class).contains("cat.name", "Blackie").findAll();
         assertEquals(1, owners5.size());
 
-        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", RealmQuery.CASE_INSENSITIVE).findAll();
+        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", RealmQuery
+                .CASE_INSENSITIVE).findAll();
         assertEquals(1, owners6.size());
     }
 
@@ -329,16 +331,19 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> owners3 = testRealm.where(Owner.class).greaterThan("dogs.birthday", new Date(9)).findAll();
         assertEquals(1, owners3.size());
 
-        RealmResults<Owner> owners4 = testRealm.where(Owner.class).greaterThanOrEqualTo("dogs.birthday", new Date(9)).findAll();
+        RealmResults<Owner> owners4 = testRealm.where(Owner.class).greaterThanOrEqualTo("dogs.birthday", new Date(9))
+                .findAll();
         assertEquals(1, owners4.size());
 
         RealmResults<Owner> owners5 = testRealm.where(Owner.class).lessThan("dogs.birthday", new Date(10000)).findAll();
         assertEquals(1, owners5.size());
 
-        RealmResults<Owner> owners6 = testRealm.where(Owner.class).lessThanOrEqualTo("dogs.birthday", new Date(10000)).findAll();
+        RealmResults<Owner> owners6 = testRealm.where(Owner.class).lessThanOrEqualTo("dogs.birthday", new Date(10000)
+        ).findAll();
         assertEquals(1, owners6.size());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date(3000)).findAll();
+        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date
+                (3000)).findAll();
         assertEquals(1, owners7.size());
     }
 
@@ -401,7 +406,6 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners7.size());
         assertEquals(12, owners7.first().getCat().getAge());
     }
-
 
     public void testQueryMultipleRelationsString() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).equalTo("dogs.name", "Pluto").findAll();

@@ -20,11 +20,11 @@ import java.util.Date;
 
 /**
  * Wrapper around a Row in Realm Core.
- *
+ * <p/>
  * IMPORTANT: All access to methods using this class are non-checking. Safety guarantees are given by the annotation
  * processor and {@link RealmProxyMediator#validateTable(Class, ImplicitTransaction)} which is called before the typed
  * API can be used.
- *
+ * <p/>
  * For low-level access to Row data where error checking is required, use {@link CheckedRow}.
  */
 public class UncheckedRow extends NativeObject implements Row {
@@ -39,7 +39,8 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     /**
-     * Get the row object associated to an index in a Table
+     * Get the row object associated to an index in a Table.
+     *
      * @param context the Realm context
      * @param table the Table that holds the row
      * @param index the index of the row
@@ -48,12 +49,14 @@ public class UncheckedRow extends NativeObject implements Row {
     public static UncheckedRow get(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
         UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
-        FinalizerRunnable.references.put(new NativeObjectReference(row, FinalizerRunnable.referenceQueue), Boolean.TRUE);
+        FinalizerRunnable.references.put(new NativeObjectReference(row, FinalizerRunnable.referenceQueue), Boolean
+                .TRUE);
         return row;
     }
 
     /**
-     * Get the row object associated to an index in a LinkView
+     * Get the row object associated to an index in a LinkView.
+     *
      * @param context the Realm context
      * @param linkView the LinkView holding the row
      * @param index the index of the row
@@ -61,8 +64,10 @@ public class UncheckedRow extends NativeObject implements Row {
      */
     public static UncheckedRow get(Context context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.nativeLinkViewPtr, index);
-        UncheckedRow row = new UncheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent), nativeRowPointer);
-        FinalizerRunnable.references.put(new NativeObjectReference(row, FinalizerRunnable.referenceQueue), Boolean.TRUE);
+        UncheckedRow row = new UncheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent),
+                nativeRowPointer);
+        FinalizerRunnable.references.put(new NativeObjectReference(row, FinalizerRunnable.referenceQueue), Boolean
+                .TRUE);
         return row;
     }
 
@@ -75,7 +80,6 @@ public class UncheckedRow extends NativeObject implements Row {
     public String getColumnName(long columnIndex) {
         return nativeGetColumnName(nativePointer, columnIndex);
     }
-
 
     @Override
     public long getColumnIndex(String columnName) {
@@ -124,7 +128,7 @@ public class UncheckedRow extends NativeObject implements Row {
 
     @Override
     public Date getDate(long columnIndex) {
-        return new Date(nativeGetDateTime(nativePointer, columnIndex)*1000);
+        return new Date(nativeGetDateTime(nativePointer, columnIndex) * 1000);
     }
 
     @Override
@@ -260,33 +264,62 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     protected native long nativeGetColumnCount(long nativeTablePtr);
+
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+
     protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+
     protected native long nativeGetIndex(long nativeRowPtr);
+
     protected native long nativeGetLong(long nativeRowPtr, long columnIndex);
+
     protected native boolean nativeGetBoolean(long nativeRowPtr, long columnIndex);
+
     protected native float nativeGetFloat(long nativeRowPtr, long columnIndex);
+
     protected native double nativeGetDouble(long nativeRowPtr, long columnIndex);
+
     protected native long nativeGetDateTime(long nativeRowPtr, long columnIndex);
+
     protected native String nativeGetString(long nativePtr, long columnIndex);
+
     protected native boolean nativeIsNullLink(long nativeRowPtr, long columnIndex);
+
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex);
+
     protected native int nativeGetMixedType(long nativePtr, long columnIndex);
+
     protected native Mixed nativeGetMixed(long nativeRowPtr, long columnIndex);
+
     protected native long nativeGetLinkView(long nativePtr, long columnIndex);
+
     protected native void nativeSetLong(long nativeRowPtr, long columnIndex, long value);
+
     protected native void nativeSetBoolean(long nativeRowPtr, long columnIndex, boolean value);
+
     protected native void nativeSetFloat(long nativeRowPtr, long columnIndex, float value);
+
     protected native long nativeGetLink(long nativeRowPtr, long columnIndex);
+
     protected native void nativeSetDouble(long nativeRowPtr, long columnIndex, double value);
+
     protected native void nativeSetDate(long nativeRowPtr, long columnIndex, long dateTimeValue);
+
     protected native void nativeSetString(long nativeRowPtr, long columnIndex, String value);
+
     protected native void nativeSetByteArray(long nativePtr, long columnIndex, byte[] data);
+
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
+
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
+
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
+
     protected static native void nativeClose(long nativeRowPtr);
+
     protected native boolean nativeIsAttached(long nativeRowPtr);
+
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
 }

@@ -18,7 +18,6 @@ package io.realm.examples.realmmigrationexample.model;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.annotations.Ignore;
 
 public class Person extends RealmObject {
 

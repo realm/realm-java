@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import io.realm.RealmObject;
 
@@ -27,10 +26,11 @@ import io.realm.RealmObject;
  */
 public class ColumnIndices {
 
-    private Map<Class<? extends RealmObject>, Map<String, Long>> classes = new HashMap<Class<? extends RealmObject>, Map<String, Long>>();
+    private Map<Class<? extends RealmObject>, Map<String, Long>> classes = new HashMap<Class<? extends RealmObject>,
+            Map<String, Long>>();
 
     /**
-     * Add column indices from a given model class
+     * Add column indices from a given model class.
      */
     public void addClass(Class<? extends RealmObject> clazz, Map<String, Long> indicies) {
         classes.put(clazz, indicies);

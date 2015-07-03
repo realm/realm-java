@@ -44,7 +44,7 @@ public class TestTableModel {
 
     @DefineTable
     class AllTypes {
-        boolean  boolCol;
+        boolean boolCol;
         java.util.Date dateCol;
         double doubleCol;
         int intCol;
@@ -58,8 +58,8 @@ public class TestTableModel {
 
     @DefineTable
     class Car {
-        String  brand;
-        String  model;
+        String brand;
+        String model;
         int year;
     }
 }
