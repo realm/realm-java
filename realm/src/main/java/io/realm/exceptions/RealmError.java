@@ -17,8 +17,9 @@
 package io.realm.exceptions;
 
 /**
- * RealmError is Realm specific Error used when unrecoverable problems in the underlying storage engine. An RealmError
- * should never be caught or ignored. By doing so, the Realm file could possibly get corrupted.
+ * RealmError is Realm specific Error used when unrecoverable problems happen in the underlying
+ * storage engine. An RealmError should never be caught or ignored. By doing so, the Realm
+ * could possibly get corrupted.
  */
 public class RealmError extends Error {
     public RealmError(String detailMessage) {
