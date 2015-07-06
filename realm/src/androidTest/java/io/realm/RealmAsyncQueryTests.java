@@ -135,6 +135,67 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         }
     }
 
+    // async query on closed Realm
+    public void testFindAllOnClosedRealm() throws Throwable {
+        setDebugModeForAsyncRealmQuery(ADVANCE_ONE_READ, RetryPolicy.MODE_INDEFINITELY, RETRY_NUMBER_NOT_APPLICABLE);
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final Looper[] looper = new Looper[1];
+        final Throwable[] threadAssertionError = new Throwable[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                looper[0] = Looper.myLooper();
+                Realm realm = null;
+                try {
+                    realm = openRealmInstance("test_find_all_closed_realm");
+                    populateTestRealm(realm, 10);
+
+                    // async query (will run on different thread)
+                    realm.where(AllTypes.class)
+                            .between("columnLong", 0, 9)
+                            .findAll(new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                                @Override
+                                public void onSuccess(RealmResults<AllTypes> results) {
+                                    signalCallbackFinished.countDown();
+                                }
+
+                                @Override
+                                public void onError(Exception t) {
+                                    t.printStackTrace();
+                                    threadAssertionError[0] = t;
+                                    signalCallbackFinished.countDown();
+                                }
+
+                                @Override
+                                public void onBackgroundQueryCompleted(Realm realm) {
+                                    realm.close();
+                                }
+                            });
+
+                    Looper.loop();// ready to receive callback
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm != null) {
+                        realm.close();
+                    }
+                }
+            }
+        });
+
+        // wait until the callback of our async query proceed
+        signalCallbackFinished.await();
+        looper[0].quit();
+        executorService.shutdownNow();
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof RuntimeException)) {
+            fail("Expecting RuntimeException: Unspecified exception. Detached accessor in io_realm_internal_TableQuery.cpp");
+        }
+    }
+
     // async query that should fail, because the caller thread has advanced
     // the version of the Realm, which is different from the one used by
     // the background thread. Since no retry policy was defined, we should fail.
@@ -168,11 +229,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                                 @Override
                                 public void onError(Exception t) {
-                                    try {
-                                        threadAssertionError[0] = t;
-                                    } finally {
-                                        signalCallbackFinished.countDown();
-                                    }
+                                    threadAssertionError[0] = t;
                                 }
 
                                 @Override

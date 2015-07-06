@@ -1846,7 +1846,7 @@ public class RealmQuery<E extends RealmObject> {
 
         @Override
         public void handleMessage(Message msg) {
-            if (!asyncRequest.isCancelled()) {
+            if (!asyncRequest.isCancelled()) { // FIXME check if realm is still open/valid
                 try {
                     switch (msg.what) {
                         case MSG_SUCCESS:

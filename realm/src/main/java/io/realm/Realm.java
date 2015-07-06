@@ -1917,13 +1917,4 @@ public final class Realm implements Closeable {
     public long getSharedGroupPointer() {
         return sharedGroup.getNativePointer();
     }
-
-    //FIXME this method should be available only within RealmImpl (see above comment)
-    public long[] getSharedGroupVersion() {
-        return sharedGroup.getVersionID();
-    }
-
-    public void setSharedGroupAtVersion(long[] callerSharedGroupVersion) {
-        sharedGroup.beginReadAtVersionID(callerSharedGroupVersion);
-    }
 }
