@@ -32,6 +32,5 @@ tasks.preBuild {
 }
 
 dependencies {
-//    compile files("../../realm/build/libs/realm-${version}.jar")
-    compile 'io.realm:realm-android:0.81.1'
+    compile files("../../realm/build/libs/realm-${version}.jar")
 }
