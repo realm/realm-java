@@ -116,7 +116,7 @@ enum ExceptionKind {
     TableInvalid = 8,
     UnsupportedOperation = 9,
     OutOfMemory = 10,
-    Unspecified = 11,
+    FatalError = 11,
     RuntimeError = 12,
     RowInvalid = 13
 };
