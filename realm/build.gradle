@@ -46,6 +46,7 @@ android.libraryVariants.all { variant ->
         source "../realm-annotations/src/main/java"
         ext.androidJar = files(project.android.getBootClasspath())
         classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
+        options.memberLevel = JavadocMemberLevel.PUBLIC
         exclude '**/internal/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
@@ -345,4 +346,20 @@ task findbugs(type: FindBugs) {
             destination "$project.buildDir/findbugs/findbugs-output.html"
         }
     }
+}
+
+apply plugin: 'checkstyle'
+
+task checkstyle(type: Checkstyle) {
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
+
+    def configProps = ['proj.module.dir': projectDir.absolutePath]
+    configProperties configProps
+
+    // empty classpath
+    classpath = files()
 }

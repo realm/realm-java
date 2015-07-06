@@ -170,6 +170,7 @@ public final class Realm implements Closeable {
             new HashMap<Class<? extends RealmObject>, Table>();
 
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
+    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
 
@@ -210,7 +211,8 @@ public final class Realm implements Closeable {
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
-        this.sharedGroup = new SharedGroup(configuration.getPath(), true, configuration.getEncryptionKey());
+        this.sharedGroup = new SharedGroup(configuration.getPath(), true, configuration.getDurability(),
+                configuration.getEncryptionKey());
         this.transaction = sharedGroup.beginImplicitTransaction();
         setAutoRefresh(autoRefresh);
     }
@@ -231,9 +233,16 @@ public final class Realm implements Closeable {
      * <p>
      * It's important to always remember to close Realm instances when you're done with it in order
      * not to leak memory, file descriptors or grow the size of Realm file out of measure.
+     *
+     * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the
+     * one it was created on.
      */
     @Override
     public void close() {
+        if (this.threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
+        }
+
         Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
         String canonicalPath = configuration.getPath();
         Integer references = localRefCount.get(configuration);
@@ -242,12 +251,17 @@ public final class Realm implements Closeable {
         }
         if (sharedGroup != null && references == 1) {
             realmsCache.get().remove(configuration);
-            globalPathConfigurationCache.get(canonicalPath).remove(configuration);
             sharedGroup.close();
             sharedGroup = null;
-            AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
-            if (counter.decrementAndGet() == 0) {
-                globalOpenInstanceCounter.remove(canonicalPath);
+
+            // It is necessary to be synchronized here since there is a chance that before the counter removed,
+            // the other thread could get the counter and increase it in createAndValidate.
+            synchronized (Realm.class) {
+                globalPathConfigurationCache.get(canonicalPath).remove(configuration);
+                AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
+                if (counter.decrementAndGet() == 0) {
+                    globalOpenInstanceCounter.remove(canonicalPath);
+                }
             }
         }
 
@@ -613,7 +627,7 @@ public final class Realm implements Closeable {
         if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && validateSchema) {
             realm.close();
             throw new IllegalArgumentException(String.format("Realm on disc is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
-		}
+        }
 
         // Initialize Realm schema if needed
         if (validateSchema) {
@@ -662,6 +676,14 @@ public final class Realm implements Closeable {
             if (!cachedSchema.equals(schema)) {
                 throw new IllegalArgumentException("Two configurations with different schemas are trying to open " +
                         "the same Realm file. Their schema must be the same: " + newConfiguration.getPath());
+            }
+
+            // Check if the durability is the same
+            SharedGroup.Durability cachedDurability = cachedConfiguration.getDurability();
+            SharedGroup.Durability newDurability = newConfiguration.getDurability();
+            if (!cachedDurability.equals(newDurability)) {
+                throw new IllegalArgumentException("A Realm cannot be both in-memory and persisted. Two conflicting " +
+                        "configurations pointing to " + newConfiguration.getPath() + " are being used.");
             }
         }
 
@@ -1879,7 +1901,7 @@ public final class Realm implements Closeable {
         SharedGroup sharedGroup = null;
         boolean result = false;
         try {
-            sharedGroup = new SharedGroup(canonicalPath, false, configuration.getEncryptionKey());
+            sharedGroup = new SharedGroup(canonicalPath, false, SharedGroup.Durability.FULL, configuration.getEncryptionKey());
             result = sharedGroup.compact();
         } finally {
             if (sharedGroup != null) {

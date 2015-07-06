@@ -13,7 +13,7 @@ extern "C" {
  * Signature: (J[B)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
-  (JNIEnv *, jobject, jlong, jbyteArray);
+  (JNIEnv *, jobject, jlong, jint, jbyteArray);
 
 /*
  * Class:     io_realm_internal_SharedGroup

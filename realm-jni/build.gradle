@@ -1,4 +1,4 @@
-ext.coreVersion = '0.89.5'
+ext.coreVersion = '0.90.0'
 ext.clang = false // gcc is default for the NDK. It also produces smaller binaries
 
 def commonCflags = [ '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -50,10 +50,10 @@ def toolchains = [
 ]
 
 def targets = [
-    new Target( name:'arm', jniFolder:'armeabi', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb' ] ),
-    new Target( name:'arm-v7a', jniFolder:'armeabi-v7a', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-    new Target( name:'arm64', jniFolder:'arm64-v8a', toolchain:toolchains.find{it.name == 'arm64'}, cflags:[] ),
-    new Target( name:'mips', jniFolder:'mips', toolchain:toolchains.find{it.name == 'mips'}, cflags:[] ),
+//    new Target( name:'arm', jniFolder:'armeabi', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb' ] ),
+//    new Target( name:'arm-v7a', jniFolder:'armeabi-v7a', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
+//    new Target( name:'arm64', jniFolder:'arm64-v8a', toolchain:toolchains.find{it.name == 'arm64'}, cflags:[] ),
+//    new Target( name:'mips', jniFolder:'mips', toolchain:toolchains.find{it.name == 'mips'}, cflags:[] ),
     new Target( name:'x86', jniFolder:'x86', toolchain:toolchains.find{it.name == 'x86'}, cflags:[] )
 ]
 
@@ -93,11 +93,11 @@ task checkProperties(group: 'check', description: 'Check the user provided gradl
 task downloadCore(group: 'build setup', description: 'Download the latest version of realm core', dependsOn: checkProperties) {
     outputs.dir "../core-${project.coreVersion}"
     doLast {
-        download {
-            src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
-            dest new File(buildDir, "core-android-${project.coreVersion}.tar.gz")
-            onlyIfNewer true
-        }
+//        download {
+//            src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
+//            dest new File(buildDir, "core-android-${project.coreVersion}.tar.gz")
+//            onlyIfNewer true
+//        }
         copy {
             from tarTree(new File(buildDir, "core-android-${project.coreVersion}.tar.gz"))
             into "../core-${project.coreVersion}"

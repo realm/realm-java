@@ -105,4 +105,11 @@ public interface Row {
      * data. {@code false} otherwise.
      */
     boolean isAttached();
+
+    /**
+     * Returns {@code true} if the field name exists.
+     * @param fieldName Field name to check.
+     * @return {@code true} if field name exists, {@code false} otherwise.
+     */
+    boolean hasColumn(String fieldName);
 }

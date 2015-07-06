@@ -42,7 +42,7 @@ public class SharedGroup implements Closeable {
 
         final int value;
 
-        private Durability(int value) {
+        Durability(int value) {
             this.value = value;
         }
     }
@@ -54,10 +54,10 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, byte[] key) {
+    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, Durability durability, byte[] key) {
         if (enableImplicitTransactions) {
             nativeReplicationPtr = nativeCreateReplication(databaseFile, key);
-            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, key);
+            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, key);
@@ -81,11 +81,11 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
+    
     public long getNativePointer () {
         return nativePtr;
     }
-
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, byte[] key);
 
     private native long nativeCreateReplication(String databaseFile, byte[] key);
 
@@ -167,24 +167,6 @@ public class SharedGroup implements Closeable {
         nativeEndRead(nativePtr);
         activeTransaction = false;
     }
-
-    public void beginReadAtVersionID (long [] versionID) {
-        nativeBeginReadAtVersionID(nativePtr, versionID);
-    }
-
-    private native void nativeBeginReadAtVersionID (long nativePtr, long [] versionID);
-
-    /**
-     * Return the current SharedGroup VersionID, this is called for example
-     * to position a Realm to a specific version.
-     * @return array of size 2, position 0 is the 'uint_fast64_t version' position 1 is the 'uint_fast32_t index'
-     * both needed by Core to build a valid instance of VersionID
-     */
-    public long[] getVersionID () {
-        return nativeGetVersionID (nativePtr);
-    }
-
-    private native long[] nativeGetVersionID (long nativePtr);
 
     public void close() {
         synchronized (context) {

@@ -27,6 +27,25 @@
 using namespace std;
 using namespace realm;
 
+inline static bool jint_to_durability_level(JNIEnv* env, jint durability, SharedGroup::DurabilityLevel &level) {
+    if (durability == 0)
+        level = SharedGroup::durability_Full;
+    else if (durability == 1)
+        level = SharedGroup::durability_MemOnly;
+    else if (durability == 2)
+#ifdef _WIN32
+        level = SharedGroup::durability_Full;   // For Windows, use Full instead of Async
+#else
+        level = SharedGroup::durability_Async;
+#endif
+    else {
+        ThrowException(env, UnsupportedOperation, "Unsupported durability.");
+        return false;
+    }
+
+    return true;
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
     JNIEnv* env, jobject, jstring jfile_name, jint durability, jboolean no_create, jboolean enable_replication, jbyteArray keyArray)
 {
@@ -50,26 +69,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
         }
         else {
             SharedGroup::DurabilityLevel level;
-            if (durability == 0)
-                level = SharedGroup::durability_Full;
-            else if (durability == 1)
-                level = SharedGroup::durability_MemOnly;
-            else if (durability == 2)
-#ifdef _WIN32
-                level = SharedGroup::durability_Full;   // For Windows, use Full instead of Async
-#else
-                level = SharedGroup::durability_Async;
-#endif
-            else {
-                ThrowException(env, UnsupportedOperation, "Unsupported durability.");
+            // Exception thrown for wrong durability value
+            if (!jint_to_durability_level(env, durability, level)) {
                 return 0;
             }
 
             KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-            db = new SharedGroup(file_name, no_create!=0, level, key.data());
+            db = new SharedGroup(file_name, no_create != 0, level, key.data());
 #else
-            db = new SharedGroup(file_name, no_create!=0, level);
+            db = new SharedGroup(file_name, no_create != 0, level);
 #endif
         }
         return reinterpret_cast<jlong>(db);
@@ -80,17 +89,23 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreate(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
-  (JNIEnv* env, jobject, jlong native_replication_ptr, jbyteArray keyArray)
+  (JNIEnv* env, jobject, jlong native_replication_ptr, jint durability, jbyteArray keyArray)
 {
     TR_ENTER()
+
+    SharedGroup::DurabilityLevel level;
+    // Exception thrown for wrong durability value
+    if (!jint_to_durability_level(env, durability, level)) {
+        return 0;
+    }
+
     try {
         KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*CH(native_replication_ptr), SharedGroup::durability_Full, key.data());
+        SharedGroup* db = new SharedGroup(*CH(native_replication_ptr), level, key.data());
 #else
-        SharedGroup* db = new SharedGroup(*CH(native_replication_ptr));
+        SharedGroup* db = new SharedGroup(*CH(native_replication_ptr), level);
 #endif
-
         return reinterpret_cast<jlong>(db);
     }
     CATCH_FILE()

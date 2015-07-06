@@ -246,7 +246,7 @@ inline bool RowIsValid(JNIEnv* env, Row* rowPtr)
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
         TR_ERR("Row %p is no longer attached!", VOID_PTR(rowPtr))
-        ThrowException(env, RowInvalid, "Row/Object is no longer valid to operate on. Was it deleted?");
+        ThrowException(env, RowInvalid, "Object is no longer valid to operate on. Was it deleted by another thread?");
     }
     return valid;
 }
