@@ -1974,6 +1974,9 @@ public final class Realm implements Closeable {
     public interface Transaction {
         void execute(Realm realm);
 
+        /**
+         * Callback invoked after a {#Transaction} call, to notify the caller thread
+         */
         class Callback {
             public void onSuccess() {}
             public void onError(Throwable e) {}
