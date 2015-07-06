@@ -230,6 +230,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 @Override
                                 public void onError(Exception t) {
                                     threadAssertionError[0] = t;
+                                    signalCallbackFinished.countDown();
                                 }
 
                                 @Override
@@ -1356,6 +1357,74 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     }
                     if (realm != null) {
                         realm.close();
+                    }
+                }
+            }
+        });
+
+        // wait until the callback of our async query proceed
+        signalCallbackFinished.await();
+        looper[0].quit();
+        executorService.shutdownNow();
+        if (null != threadAssertionError[0]) {
+            // throw any assertion errors happened in the background thread
+            throw threadAssertionError[0];
+        }
+    }
+
+    // *** Async write transaction *** //
+
+    public void testAsyncWriteTransaction() throws Throwable {
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final Looper[] looper = new Looper[1];
+        final Realm[] realm = new Realm[1];
+        final Throwable[] threadAssertionError = new Throwable[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                looper[0] = Looper.myLooper();
+                try {
+                    realm[0] = openRealmInstance("test_async_write_transaction");
+                    realm[0].executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            Owner owner = realm.createObject(Owner.class);
+                            owner.setName("Owner");
+                        }
+                    }, new Realm.Transaction.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            try {
+                                assertEquals(1, realm[0].allObjects(Owner.class).size());
+                                assertEquals("Owner", realm[0].where(Owner.class).findFirst().getName());
+                            } catch (AssertionFailedError e) {
+                                threadAssertionError[0] = e;
+
+                            } finally {
+                                signalCallbackFinished.countDown();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            signalCallbackFinished.countDown();
+                        }
+                    });
+
+                    Looper.loop();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm.length > 0 && realm[0] != null) {
+                        realm[0].close();
                     }
                 }
             }

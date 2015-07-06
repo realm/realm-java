@@ -24,6 +24,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.JsonReader;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,6 +49,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
@@ -1507,7 +1510,8 @@ public final class Realm implements Closeable {
      */
     public void executeTransaction(Transaction transaction) {
         if (transaction == null)
-            return;
+            throw new IllegalArgumentException("transaction should not be null");
+
         beginTransaction();
         try {
             transaction.execute(this);
@@ -1519,6 +1523,70 @@ public final class Realm implements Closeable {
             cancelTransaction();
             throw e;
         }
+    }
+
+    /**
+     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously from a worker thread
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param callback optional, to receive the result of this query
+     * @return A {@link io.realm.RealmQuery.Request} representing a cancellable task
+     */
+    public RealmQuery.Request executeTransaction(final Transaction transaction, @Nullable final Transaction.Callback callback) {
+        if (transaction == null)
+            throw new IllegalArgumentException("transaction should not be null");
+
+        // will use the Looper of the caller thread to post the result
+        final Handler handler = new Handler();
+
+        // We need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // to perform the transaction
+        final RealmConfiguration realmConfiguration = getConfiguration();
+
+        final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (!Thread.currentThread().isInterrupted()) {
+                    Realm bgRealm = Realm.getInstance(realmConfiguration);
+                    bgRealm.beginTransaction();
+                    try {
+                        transaction.execute(bgRealm);
+                        bgRealm.commitTransaction();
+                        if (callback != null) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onSuccess();
+                                }
+                            });
+                        }
+                    } catch (final RuntimeException e) {
+                        bgRealm.cancelTransaction();
+                        if (callback != null) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onError(e);
+                                }
+                            });
+                        }
+                    } catch (final Error e) {
+                        bgRealm.cancelTransaction();
+                        if (callback != null) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onError(e);
+                                }
+                            });
+                        }
+                    } finally {
+                        bgRealm.close();
+                    }
+                }
+            }
+        });
+
+        return new RealmQuery.Request(pendingQuery);
     }
 
     /**
@@ -1883,6 +1951,11 @@ public final class Realm implements Closeable {
      */
     public interface Transaction {
         void execute(Realm realm);
+
+        class Callback {
+            public void onSuccess() {}
+            public void onError(Throwable e) {}
+        }
     }
 
     /**

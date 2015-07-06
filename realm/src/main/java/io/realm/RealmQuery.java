@@ -1773,7 +1773,7 @@ public class RealmQuery<E extends RealmObject> {
      * to call #cancel in case of a configuration change for example (to avoid memory leak, as the
      * query will post the result to the caller's thread callback)
      */
-    public class Request {
+    public static class Request {
         private Future<?> pendingQuery;
         private volatile boolean isCancelled = false;
 
