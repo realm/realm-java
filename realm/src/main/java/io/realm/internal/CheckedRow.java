@@ -82,7 +82,7 @@ public class CheckedRow extends UncheckedRow {
         if (columnType == ColumnType.LINK || columnType == ColumnType.LINK_LIST) {
             return super.isNullLink(columnIndex);
         } else {
-            return false; // Unsupported types are never null
+            return false; // Unsupported types always return false
         }
     }
 

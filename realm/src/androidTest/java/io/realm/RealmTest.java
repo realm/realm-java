@@ -45,6 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.Cat;
@@ -1720,6 +1721,15 @@ public class RealmTest extends AndroidTestCase {
         } else {
             android.util.Log.d(RealmTest.class.getName(), "FinalizerRunnable freed : "
                     + (totalNumberOfReferences - references.size()) + " out of " + totalNumberOfReferences);
+        }
+    }
+
+    public void testCannotCreateDynamicRealmObject() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.createObject(DynamicRealmObject.class);
+            fail();
+        } catch (RealmException ignored) {
         }
     }
 
