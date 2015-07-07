@@ -36,7 +36,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.Util;
 import io.realm.internal.async.RetryPolicy;
 
 public class RealmAsyncQueryTests extends InstrumentationTestCase {
@@ -49,7 +48,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     private static final int ADVANCE_ONE_READ = 1;
     private static final int ADVANCE_THREE_READ = 3;
     private static final int ADVANCE_HUNDRED_READ = 100;
-static {Util.setDebugLevel(100);}
+
     // async query without any conflicts strategy
     public void testFindAll() throws Throwable {
         setDebugModeForAsyncRealmQuery(NO_ADVANCED_READ, RetryPolicy.MODE_NO_RETRY, NO_RETRY);
