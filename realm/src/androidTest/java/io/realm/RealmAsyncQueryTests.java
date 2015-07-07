@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.os.Looper;
+import android.os.SystemClock;
 import android.test.InstrumentationTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -34,8 +35,9 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.exceptions.RealmException;
+import io.realm.internal.Util;
 import io.realm.internal.async.RetryPolicy;
-import io.realm.internal.async.BadVersionException;
 
 public class RealmAsyncQueryTests extends InstrumentationTestCase {
     private final static int NO_RETRY = 0;
@@ -47,7 +49,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     private static final int ADVANCE_ONE_READ = 1;
     private static final int ADVANCE_THREE_READ = 3;
     private static final int ADVANCE_HUNDRED_READ = 100;
-
+static {Util.setDebugLevel(100);}
     // async query without any conflicts strategy
     public void testFindAll() throws Throwable {
         setDebugModeForAsyncRealmQuery(NO_ADVANCED_READ, RetryPolicy.MODE_NO_RETRY, NO_RETRY);
@@ -176,12 +178,13 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();// ready to receive callback
 
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
                 } finally {
                     if (signalCallbackFinished.getCount() > 0) {
                         signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
                     }
                 }
             }
@@ -265,7 +268,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinished.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof BadVersionException)) {
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof RealmException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }
@@ -417,7 +420,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinishedLatch.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof BadVersionException)) {
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof RealmException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }
@@ -570,7 +573,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
         signalQueryRunning.await();
         executorService.shutdown();
-        executorService.awaitTermination(10, TimeUnit.SECONDS);
+        executorService.awaitTermination(5, TimeUnit.SECONDS);
 
         assertTrue(asyncRequest[0].isCancelled());
 
@@ -660,6 +663,9 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
                 } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
                     if (realm != null) {
                         realm.close();
                     }
@@ -770,7 +776,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinished.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof BadVersionException)) {
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof RealmException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }
@@ -1137,7 +1143,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         signalCallbackFinished.await();
         looper[0].quit();
         executorService.shutdownNow();
-        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof BadVersionException)) {
+        if (null == threadAssertionError[0] || !(threadAssertionError[0] instanceof RealmException)) {
             fail("Expecting RuntimeException: Unspecified exception." +
                     " Handover failed due to version mismatch in io_realm_internal_TableQuery.cpp");
         }
@@ -1432,6 +1438,81 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
         // wait until the callback of our async query proceed
         signalCallbackFinished.await();
+        looper[0].quit();
+        executorService.shutdownNow();
+        if (null != threadAssertionError[0]) {
+            // throw any assertion errors happened in the background thread
+            throw threadAssertionError[0];
+        }
+    }
+
+    public void testCancelAsyncWriteTransaction() throws Throwable {
+        final CountDownLatch signalTransactionStarted = new CountDownLatch(1);
+        final Looper[] looper = new Looper[1];
+        final Realm[] realm = new Realm[1];
+        final RealmQuery.Request[] request = new RealmQuery.Request[1];
+        final Throwable[] threadAssertionError = new Throwable[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                looper[0] = Looper.myLooper();
+                try {
+                    realm[0] = openRealmInstance("test_cancel_async_write_transaction");
+                    request[0] = realm[0].executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            signalTransactionStarted.countDown();
+                            for (int i = 0; i < 10000; i++) {
+                                Owner owner = realm.createObject(Owner.class);
+                                owner.setName("Owner " + i);
+                            }
+                            SystemClock.sleep(100);
+
+                        }
+                    }, new Realm.Transaction.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            threadAssertionError[0] = new AssertionFailedError("Transaction should not be completed");
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            threadAssertionError[0] = new AssertionFailedError("Transaction should not call onError");
+                            e.printStackTrace();
+                        }
+                    });
+
+                    Looper.loop();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalTransactionStarted.getCount() > 0) {
+                        signalTransactionStarted.countDown();
+                    }
+                    if (realm.length > 0 && realm[0] != null) {
+                        realm[0].close();
+                    }
+                }
+            }
+        });
+
+        // wait until the async transaction starts
+        signalTransactionStarted.await();
+        request[0].cancel();
+        executorService.shutdown();
+        executorService.awaitTermination(5, TimeUnit.SECONDS);
+
+        assertTrue(request[0].isCancelled());
+        // nothing was committed
+        Realm ownerRealm = Realm.getInstance(realm[0].getConfiguration());
+        assertEquals(0, ownerRealm.allObjects(Owner.class).size());
+        ownerRealm.close();
+
         looper[0].quit();
         executorService.shutdownNow();
         if (null != threadAssertionError[0]) {

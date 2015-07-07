@@ -29,11 +29,11 @@ public interface RetryPolicy {
     /**
      * Retry the query a number of times
      */
-    int MODE_MAX_RETRY = MODE_NO_RETRY + 1;
+    int MODE_MAX_RETRY = 1;
     /**
      * Retry indefinitely
      */
-    int MODE_INDEFINITELY = MODE_MAX_RETRY + 1;
+    int MODE_INDEFINITELY = 2;
 
     /**
      * Given the selected mode, this return {@code true} or {@code false} indicating

@@ -367,7 +367,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
-
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeFindAll
@@ -400,7 +399,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlongArray, jbooleanArray);
 
-
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeImportHandoverTableViewIntoSharedGroup
@@ -416,6 +414,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTa
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRowIntoSharedGroup
   (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeHandoverQuery
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
+  (JNIEnv *, jobject, jlong, jlong);
+
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeSumInt
@@ -554,11 +561,27 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove
 
 /*
  * Class:     io_realm_internal_TableQuery
- * Method:    nativeHandoverQuery
- * Signature: (JJ)J
+ * Method:    nativeCloseRowHandover
+ * Signature: (J)V
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
-  (JNIEnv *, jobject, jlong, jlong);
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseRowHandover
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeCloseQueryHandover
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandover
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeCloseTableHandover
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseTableHandover
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

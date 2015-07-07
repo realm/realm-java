@@ -1572,8 +1572,11 @@ public final class Realm implements Closeable {
                     bgRealm.beginTransaction();
                     try {
                         transaction.execute(bgRealm);
-                        bgRealm.commitTransaction();
-                        if (callback != null) {
+
+                        if (!Thread.currentThread().isInterrupted()) {
+                            bgRealm.commitTransaction();
+                        }
+                        if (callback != null && !Thread.currentThread().isInterrupted()) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1583,7 +1586,7 @@ public final class Realm implements Closeable {
                         }
                     } catch (final RuntimeException e) {
                         bgRealm.cancelTransaction();
-                        if (callback != null) {
+                        if (callback != null && !Thread.currentThread().isInterrupted()) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1593,7 +1596,7 @@ public final class Realm implements Closeable {
                         }
                     } catch (final Error e) {
                         bgRealm.cancelTransaction();
-                        if (callback != null) {
+                        if (callback != null && !Thread.currentThread().isInterrupted()) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {

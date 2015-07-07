@@ -10,7 +10,7 @@ extern "C" {
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    createNativeWithImplicitTransactions
- * Signature: (J[B)J
+ * Signature: (JI[B)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImplicitTransactions
   (JNIEnv *, jobject, jlong, jint, jbyteArray);

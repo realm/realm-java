@@ -772,4 +772,27 @@ public class TableQuery implements Closeable {
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
+
+    // Handover
+    public void closeRowHandover (long nativePtr) {
+        if (nativePtr != -1) {
+            nativeCloseRowHandover(nativePtr);
+        }
+    }
+    private native void nativeCloseRowHandover (long nativePtr);// closed from bg realm
+
+    public void closeQueryHandover (long nativePtr) {
+        if (nativePtr != -1) {
+            nativeCloseQueryHandover (nativePtr);
+        }
+    }
+    private native void nativeCloseQueryHandover (long nativePtr);
+
+    public void closeTableViewHandover (long nativePtr) {
+        if (nativePtr != -1) {
+            nativeCloseTableHandover (nativePtr);
+        }
+    }
+    private native void nativeCloseTableHandover (long nativePtr);
+
 }
