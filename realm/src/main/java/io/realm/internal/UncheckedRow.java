@@ -251,6 +251,11 @@ public class UncheckedRow extends NativeObject implements Row {
         return nativePointer != 0 && nativeIsAttached(nativePointer);
     }
 
+    @Override
+    public boolean hasColumn(String fieldName) {
+        return nativeHasColumn(nativePointer, fieldName);
+    }
+
     protected native long nativeGetColumnCount(long nativeTablePtr);
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
@@ -280,4 +285,5 @@ public class UncheckedRow extends NativeObject implements Row {
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
     protected static native void nativeClose(long nativeRowPtr);
     protected native boolean nativeIsAttached(long nativeRowPtr);
+    protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
 }

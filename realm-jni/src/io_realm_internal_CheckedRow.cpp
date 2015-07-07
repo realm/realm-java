@@ -226,7 +226,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetString
     if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_String))
         return;
 
-    Java_io_realm_internal_CheckedRow_nativeSetString(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetString(env, obj, nativeRowPtr, columnIndex, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetByteArray

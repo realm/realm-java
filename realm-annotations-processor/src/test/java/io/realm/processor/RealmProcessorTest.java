@@ -17,11 +17,13 @@
 package io.realm.processor;
 
 import com.google.testing.compile.JavaFileObjects;
+
 import org.junit.Test;
 
-import javax.tools.JavaFileObject;
-
+import java.io.IOException;
 import java.util.Arrays;
+
+import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
@@ -263,5 +265,37 @@ public class RealmProcessorTest {
                 .that(customAccessorModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
+    }
+
+    // Supported "Index" annotation types
+    @Test
+    public void compileIndexTypes() throws IOException {
+        // TODO: Test "Byte", "Short", "Integer", "Long", "Boolean" when they are supported
+        final String validIndexFieldTypes[] = {"byte", "short", "int", "long", "boolean", "String", "java.util.Date"};
+
+        for (String fieldType : validIndexFieldTypes) {
+            TestRealmObjectFileObject javaFileObject =
+                    TestRealmObjectFileObject.getSingleFieldInstance("ValidIndexType", "Index", fieldType, "testField");
+            ASSERT.about(javaSource())
+                    .that(javaFileObject)
+                    .processedWith(new RealmProcessor())
+                    .compilesWithoutError();
+        }
+    }
+
+    // Unsupported "Index" annotation types
+    @Test
+    public void compileInvalidIndexTypes() throws IOException {
+        // TODO: Test "Float", "Double", when they are supported
+        final String invalidIndexFieldTypes[] = {"float", "double", "byte[]", "Simple", "RealmList"};
+
+        for (String fieldType : invalidIndexFieldTypes) {
+            TestRealmObjectFileObject javaFileObject =
+                    TestRealmObjectFileObject.getSingleFieldInstance("InvalidIndexType", "Index", fieldType, "testField");
+            ASSERT.about(javaSource())
+                    .that(javaFileObject)
+                    .processedWith(new RealmProcessor())
+                    .failsToCompile();
+        }
     }
 }

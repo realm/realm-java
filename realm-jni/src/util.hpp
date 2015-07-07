@@ -116,7 +116,7 @@ enum ExceptionKind {
     TableInvalid = 8,
     UnsupportedOperation = 9,
     OutOfMemory = 10,
-    Unspecified = 11,
+    FatalError = 11,
     RuntimeError = 12,
     RowInvalid = 13
 };
@@ -244,7 +244,7 @@ inline bool RowIsValid(JNIEnv* env, Row* rowPtr)
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
         TR_ERR("Row %p is no longer attached!", VOID_PTR(rowPtr))
-        ThrowException(env, RowInvalid, "Row/Object is no longer valid to operate on. Was it deleted?");
+        ThrowException(env, RowInvalid, "Object is no longer valid to operate on. Was it deleted by another thread?");
     }
     return valid;
 }

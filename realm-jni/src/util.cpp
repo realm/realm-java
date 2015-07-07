@@ -39,14 +39,9 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     }
     catch (std::exception& e) {
         ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, Unspecified, ss.str());
+        ThrowException(env, FatalError, ss.str());
     }
-    catch (...) { \
-        REALM_ASSERT(false);
-        ss << "Exception in " << file << " line " << line;
-        ThrowException(env, RuntimeError, ss.str());
-    }
-    /* above (...) is not needed if we only throw exceptions derived from std::exception */
+    /* catch (...) is not needed if we only throw exceptions derived from std::exception */
 }
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr)
@@ -117,9 +112,9 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = classStr + " " + itemStr;
             break;
 
-        case Unspecified:
-            jExceptionClass = env->FindClass("java/lang/RuntimeException");
-            message = "Unspecified exception. " + classStr;
+        case FatalError:
+            jExceptionClass = env->FindClass("io/realm/exceptions/RealmError");
+            message = "Unrecoverable error. " + classStr;
             break;
 
         case RuntimeError:

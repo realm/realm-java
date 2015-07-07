@@ -29,6 +29,19 @@
 using namespace std;
 using namespace realm;
 
+inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type) {
+    if (!(column_type == type_String ||
+                column_type == type_Int ||
+                column_type == type_Bool ||
+                column_type == type_DateTime)) {
+        ThrowException(env, IllegalArgument,
+                "This field cannot be indexed - "
+                "Only String/byte/short/int/long/boolean/Date fields are supported.");
+        return false;
+    }
+    return true;
+}
+
 // Note: Don't modify spec on a table which has a shared_spec.
 // A spec is shared on subtables that are not in Mixed columns.
 //
@@ -761,10 +774,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return;
-    if (pTable->get_column_type (S(columnIndex)) != type_String) {
-        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+
+    DataType column_type = pTable->get_column_type (S(columnIndex));
+    if (!is_allowed_to_index(env, column_type)) {
         return;
     }
+
     try {
         pTable->add_search_index( S(columnIndex));
     } CATCH_STD()
@@ -776,8 +791,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex(
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return;
-    if (pTable->get_column_type (S(columnIndex)) != type_String) {
-        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+    DataType column_type = pTable->get_column_type (S(columnIndex));
+    if (!is_allowed_to_index(env, column_type)) {
         return;
     }
     try {

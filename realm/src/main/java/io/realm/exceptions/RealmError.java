@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package io.realm.annotations;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package io.realm.exceptions;
 
 /**
- * This annotation will add a search index to the field. A search index will make the
- * Realm file larger and inserts slower but queries will be faster. 
- * <p>
- * NOTICE: Only String, int, byte, short, long, boolean and Date fields can be indexed.
+ * RealmError is Realm specific Error used when unrecoverable problems happen in the underlying
+ * storage engine. An RealmError should never be caught or ignored. By doing so, the Realm
+ * could possibly get corrupted.
  */
-@Retention(RetentionPolicy.CLASS)
-@Target(ElementType.FIELD)
-public @interface Index {
-
+public class RealmError extends Error {
+    public RealmError(String detailMessage) {
+        super(detailMessage);
+    }
 }
