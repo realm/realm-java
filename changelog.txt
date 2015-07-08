@@ -1,9 +1,9 @@
 0.82
- * Support async queries & transaction 
+ * Support async queries & transactions.
  * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
  * Added in-memory Realm support.
  * Closing realm on another thread different from where it was created now throws an exception.
- * @Index annotation can also be applied to byte/short/int/long/boolean/Date
+ * @Index annotation can also be applied to byte/short/int/long/boolean/Date.
  now.
 
 0.81.1

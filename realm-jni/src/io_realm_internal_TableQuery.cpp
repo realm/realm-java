@@ -891,11 +891,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
 
       if (!QUERY_VALID(env, pQuery.get()))
            return -1;
+
        // It's valid to go 1 past the end index
       if ((fromTableRow < 0) || (S(fromTableRow) > pTable->size())) {
-           // below check will fail with appropriate exception
-           (void) ROW_INDEX_VALID(env, pTable, fromTableRow);
-           return -1;
+        // below check will fail with appropriate exception
+        (void) ROW_INDEX_VALID(env, pTable, fromTableRow);
+        return -1;
       }
 
       size_t r = pQuery->find( S(fromTableRow) );

@@ -17,16 +17,11 @@
 package io.realm.examples.threads;
 
 import android.app.Application;
-import android.content.Context;
-
-import com.squareup.leakcanary.LeakCanary;
-import com.squareup.leakcanary.RefWatcher;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 public class MyApplication extends Application {
-    private RefWatcher refWatcher;
 
     @Override
     public void onCreate() {
@@ -36,12 +31,5 @@ public class MyApplication extends Application {
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).build();
         Realm.deleteRealm(realmConfiguration); // Clean slate
         Realm.setDefaultConfiguration(realmConfiguration); // Make this Realm the default
-
-        refWatcher = LeakCanary.install(this);
-    }
-
-    public static RefWatcher getRefWatcher(Context context) {
-        MyApplication application = (MyApplication) context.getApplicationContext();
-        return application.refWatcher;
     }
 }

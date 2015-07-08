@@ -1886,6 +1886,7 @@ public class RealmQuery<E extends RealmObject> {
      * to deliver result or error to a {@link io.realm.RealmResults.QueryCallback} or
      * a {@link io.realm.RealmObject.QueryCallback}
      */
+    // this handler is private & lives within the scope of the retained RealmQuery instance only
     @SuppressLint("HandlerLeak")
     private class EventHandler extends Handler {
         private final static int FIND_FIRST_QUERY = 1;

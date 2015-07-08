@@ -18,18 +18,14 @@ package io.realm.examples.threads;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.squareup.leakcanary.RefWatcher;
 
 import java.util.Collections;
 import java.util.List;
@@ -78,13 +74,6 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        RefWatcher refWatcher = MyApplication.getRefWatcher(getActivity());
-        refWatcher.watch(this);
-    }
-
-    @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.start_button: {
@@ -118,6 +107,8 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
                                             public void execute(Realm realm) {
                                                 // query for all points
                                                 RealmResults<Dot> dots = realm.where(Dot.class).findAll();
+
+                                                // Iterating backwards to avoid https://github.com/realm/realm-java/issues/640
                                                 for (int i = dots.size()-1; i>=0; i--) {
                                                     Dot dot = dots.get(i);
                                                     if (dot.isValid()) {
@@ -126,7 +117,6 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
                                                         dot.setX(y);
                                                         dot.setY(x);
                                                     }
-                                                    SystemClock.sleep(60);
                                                 }
                                             }
                                         }, new Realm.Transaction.Callback() {
