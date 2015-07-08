@@ -27,7 +27,6 @@ import android.support.v7.app.ActionBarActivity;
 
 import java.util.Locale;
 
-
 public class ThreadExampleActivity extends ActionBarActivity implements android.support.v7.app.ActionBar.TabListener {
 
     private SectionsPagerAdapter pageAdapter;
@@ -75,7 +74,6 @@ public class ThreadExampleActivity extends ActionBarActivity implements android.
 
     }
 
-
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public SectionsPagerAdapter(FragmentManager fm) {
@@ -84,10 +82,13 @@ public class ThreadExampleActivity extends ActionBarActivity implements android.
 
         @Override
         public Fragment getItem(int position) {
-            switch(position) {
-                case 0: return new ThreadFragment();
-                case 1: return new AsyncTaskFragment();
-                default: return null;
+            switch (position) {
+                case 0:
+                    return new ThreadFragment();
+                case 1:
+                    return new AsyncTaskFragment();
+                default:
+                    return null;
             }
         }
 
@@ -100,9 +101,12 @@ public class ThreadExampleActivity extends ActionBarActivity implements android.
         public CharSequence getPageTitle(int position) {
             Locale l = Locale.getDefault();
             switch (position) {
-                case 0: return getString(R.string.title_section1).toUpperCase(l);
-                case 1: return getString(R.string.title_section2).toUpperCase(l);
-                default: return null;
+                case 0:
+                    return getString(R.string.title_section1).toUpperCase(l);
+                case 1:
+                    return getString(R.string.title_section2).toUpperCase(l);
+                default:
+                    return null;
             }
         }
     }

@@ -51,7 +51,8 @@ public class ClassMetaData {
     private String packageName; // package name for model class.
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
-    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
+    private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class
+                                                                             // except those @Ignored.
     private List<String> fieldNames = new ArrayList<String>();
     private List<String> ignoreFieldNames = new ArrayList<String>();
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
@@ -70,7 +71,8 @@ public class ClassMetaData {
         this.className = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
         TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
-        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils
+                .getWildcardType(null, null));
         validPrimaryKeyTypes = Arrays.asList(
                 stringType,
                 typeUtils.getPrimitiveType(TypeKind.SHORT),
@@ -80,8 +82,7 @@ public class ClassMetaData {
     }
 
     /**
-     * Build the meta data structures for this class. Any errors or messages will be
-     * posted on the provided Messager.
+     * Build the meta data structures for this class. Any errors or messages will be posted on the provided Messager.
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
@@ -104,7 +105,7 @@ public class ClassMetaData {
         packageName = packageElement.getQualifiedName().toString();
 
         if (!categorizeClassElements()) return false;
-        if (!checkListTypes()) return  false;
+        if (!checkListTypes()) return false;
         if (!checkMethods()) return false;
         if (!checkDefaultConstructor()) return false;
         if (!checkRequiredGetters()) return false;
@@ -130,12 +131,14 @@ public class ClassMetaData {
             // Check that getters and setters are valid
             if (methodName.startsWith("get") || methodName.startsWith("is")) {
                 if (!checkGetterMethod(methodName)) {
-                    Utils.error(String.format("Getter %s is not associated to any field", methodName), executableElement);
+                    Utils.error(String.format("Getter %s is not associated to any field", methodName),
+                            executableElement);
                     return false;
                 }
             } else if (methodName.startsWith("set")) {
                 if (!checkSetterMethod(methodName)) {
-                    Utils.error(String.format("Setter %s is not associated to any field", methodName), executableElement);
+                    Utils.error(String.format("Setter %s is not associated to any field", methodName),
+                            executableElement);
                     return false;
                 }
             } else {
@@ -262,7 +265,8 @@ public class ClassMetaData {
     // Report if the default constructor is missing
     private boolean checkDefaultConstructor() {
         if (!hasDefaultConstructor) {
-            Utils.error("A default public constructor with no argument must be declared if a custom constructor is declared.");
+            Utils.error("A default public constructor with no argument must be declared if a custom constructor is " +
+                    "declared.");
             return false;
         } else {
             return true;
@@ -312,7 +316,8 @@ public class ClassMetaData {
                     // The field has the @PrimaryKey annotation. It is only valid for
                     // String, short, int, long and must only be present one time
                     if (primaryKey != null) {
-                        Utils.error(String.format("@PrimaryKey cannot be defined more than once. It was found here \"%s\" and here \"%s\"",
+                        Utils.error(String.format("@PrimaryKey cannot be defined more than once. It was found here " +
+                                        "\"%s\" and here \"%s\"",
                                 primaryKey.getSimpleName().toString(),
                                 variableElement.getSimpleName().toString()));
                         return false;
@@ -320,7 +325,8 @@ public class ClassMetaData {
 
                     TypeMirror fieldType = variableElement.asType();
                     if (!isValidPrimaryKeyType(fieldType)) {
-                        Utils.error("\"" + variableElement.getSimpleName().toString() + "\" is not allowed as primary key. See @PrimaryKey for allowed types.");
+                        Utils.error("\"" + variableElement.getSimpleName().toString() + "\" is not allowed as primary" +
+                                " key. See @PrimaryKey for allowed types.");
                         return false;
                     }
 
@@ -341,7 +347,7 @@ public class ClassMetaData {
                 expectedGetters.add(fieldName);
                 expectedSetters.add(fieldName);
             } else if (elementKind.equals(ElementKind.CONSTRUCTOR)) {
-                hasDefaultConstructor =  hasDefaultConstructor || Utils.isDefaultConstructor(element);
+                hasDefaultConstructor = hasDefaultConstructor || Utils.isDefaultConstructor(element);
 
             } else if (elementKind.equals(ElementKind.METHOD)) {
                 ExecutableElement executableElement = (ExecutableElement) element;
@@ -365,9 +371,8 @@ public class ClassMetaData {
     }
 
     /**
-     * Returns true if the model class is considered to be a true model class.
-     * RealmObject and Proxy classes also has the the @RealmClass annotation but is not considered true
-     * model classes.
+     * Returns true if the model class is considered to be a true model class. RealmObject and Proxy classes also has
+     * the the @RealmClass annotation but is not considered true model classes.
      */
     public boolean isModelClass() {
         String type = classType.toString();

@@ -18,16 +18,15 @@ package io.realm;
 
 /**
  * Using RealmChangeListener, it is possible to be notified when a Realm instance has been updated.
- * <p>
- * Realm instances on a thread without an {@link android.os.Looper} (almost all background threads)
- * don't get updated automatically, but have to call {@link Realm#refresh()} manually. This will
- * in turn trigger the RealmChangeListener for that background thread.
- * <p>
- * All {@link io.realm.RealmObject} and {@link io.realm.RealmResults} will automatically contain
- * their new values when the {@link #onChange()} method is called. Normally this means that it
- * isn't necessary to query again for those objects, but just invalidate any UI elements that are
- * using them. If there is a chance that a object has been been deleted, it can be verified
- * by using {@link RealmObject#isValid()}.
+ * <p/>
+ * Realm instances on a thread without an {@link android.os.Looper} (almost all background threads) don't get updated
+ * automatically, but have to call {@link Realm#refresh()} manually. This will in turn trigger the RealmChangeListener
+ * for that background thread.
+ * <p/>
+ * All {@link io.realm.RealmObject} and {@link io.realm.RealmResults} will automatically contain their new values when
+ * the {@link #onChange()} method is called. Normally this means that it isn't necessary to query again for those
+ * objects, but just invalidate any UI elements that are using them. If there is a chance that a object has been been
+ * deleted, it can be verified by using {@link RealmObject#isValid()}.
  *
  * @see Realm#addChangeListener(RealmChangeListener)
  * @see Realm#removeAllChangeListeners()
@@ -36,8 +35,8 @@ package io.realm;
 public interface RealmChangeListener {
 
     /**
-     * Called when a transaction is committed
+     * Called when a transaction is committed.
      */
-    public void onChange();
+    void onChange();
 
 }

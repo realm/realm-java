@@ -27,8 +27,7 @@ public interface Row {
     long getColumnCount();
 
     /**
-     * Returns the name of a column identified by columnIndex. Notice that the
-     * index is zero based.
+     * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
      *
      * @param columnIndex the column index
      * @return the name of the column
@@ -101,13 +100,15 @@ public interface Row {
 
     /**
      * Checks if the row is still valid.
-     * @return Returns true {@code true} if the row is still valid and attached to the underlying
-     * data. {@code false} otherwise.
+     *
+     * @return Returns true {@code true} if the row is still valid and attached to the underlying data. {@code false}
+     * otherwise.
      */
     boolean isAttached();
 
     /**
      * Returns {@code true} if the field name exists.
+     *
      * @param fieldName Field name to check.
      * @return {@code true} if field name exists, {@code false} otherwise.
      */

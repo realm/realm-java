@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-
 package io.realm.entities;
 
 import java.util.Date;
 
 import io.realm.RealmObject;
-import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
 public class DogPrimaryKey extends RealmObject {
@@ -47,7 +45,6 @@ public class DogPrimaryKey extends RealmObject {
     public DogPrimaryKey(String name) {
         this.name = name;
     }
-
 
     public long getId() {
         return id;

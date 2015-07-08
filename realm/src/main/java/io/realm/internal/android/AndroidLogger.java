@@ -13,6 +13,7 @@ public class AndroidLogger implements Logger {
 
     /**
      * Manually set a logging tag.
+     *
      * @param tag Logging tag to use for all subsequent logging calls.
      */
     public void setTag(String tag) {
@@ -21,6 +22,7 @@ public class AndroidLogger implements Logger {
 
     /**
      * Override the provided logger behavior and only log if log entry has a level equal or higher.
+     *
      * @param logLevel Minimum log level to report.
      */
     public void setMinimumLogLevel(int logLevel) {
@@ -42,18 +44,18 @@ public class AndroidLogger implements Logger {
             message += "\n" + Log.getStackTraceString(t);
         }
 
-       if (message.length() < 4000) {
+        if (message.length() < 4000) {
             Log.println(logLevel, logTag, message);
         } else {
-           logMessageIgnoringLimit(logLevel, logTag, message);
+            logMessageIgnoringLimit(logLevel, logTag, message);
         }
     }
 
-    /**
-     * Inspired by:
-     * http://stackoverflow.com/questions/8888654/android-set-max-length-of-logcat-messages
-     * https://github.com/jakubkrolewski/timber/blob/feature/logging_long_messages/timber/src/main/java/timber/log/Timber.java
-     */
+    /*
+     * Inspired by: http://stackoverflow.com/questions/8888654/android-set-max-length-of-logcat-messages
+     * https://github.com/jakubkrolewski/timber/blob/feature/logging_long_messages/timber/src/main/java/timber/log
+     * /Timber.java
+    */
     private void logMessageIgnoringLimit(int logLevel, String tag, String message) {
         while (message.length() != 0) {
             int nextNewLineIndex = message.indexOf('\n');

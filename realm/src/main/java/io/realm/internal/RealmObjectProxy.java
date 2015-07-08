@@ -17,9 +17,8 @@
 package io.realm.internal;
 
 /**
- * Empty interface making it easy to determine if an object is the generated RealmProxy class or the original
- * class.
- *
+ * Empty interface making it easy to determine if an object is the generated RealmProxy class or the original class.
+ * <p/>
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
 public interface RealmObjectProxy {

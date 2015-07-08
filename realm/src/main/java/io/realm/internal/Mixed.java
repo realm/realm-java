@@ -41,7 +41,7 @@ public class Mixed {
 
     public Mixed(ColumnType columnType) {
         // It's actually ok to call with any columnType - it will however be assumed to be a ColumnTypeTable.
-        if (columnType == null  || columnType == ColumnType.TABLE) {
+        if (columnType == null || columnType == ColumnType.TABLE) {
             throw new AssertionError();
         }
         this.value = null;
@@ -133,7 +133,7 @@ public class Mixed {
         } else if (value instanceof Long) {
             return new Mixed((Long) value);
         } else if (value instanceof Integer) {
-            return new Mixed(((Integer)value).longValue());
+            return new Mixed(((Integer) value).longValue());
         } else if (value instanceof Boolean) {
             return new Mixed((Boolean) value);
         } else if (value instanceof Float) {
@@ -147,7 +147,7 @@ public class Mixed {
         } else if (value instanceof byte[]) {
             return new Mixed((byte[]) value);
         } else if (value instanceof Mixed) {
-            return ((Mixed)(value));
+            return ((Mixed) (value));
         } else {
             throw new IllegalArgumentException("The value is of unsupported type: " + value.getClass());
         }
@@ -227,24 +227,26 @@ public class Mixed {
         ColumnType type = getType();
         try {
             switch (type) {
-            case BINARY:
-                return "Binary";
-            case BOOLEAN:
-                return String.valueOf(getBooleanValue());
-            case DATE:
-                return String.valueOf(getDateValue());
-            case DOUBLE:
-                return String.valueOf(getDoubleValue());
-            case FLOAT:
-                return String.valueOf(getFloatValue());
-            case INTEGER:
-                return String.valueOf(getLongValue());
-            case STRING:
-                return String.valueOf(getStringValue());
-            case TABLE:
-                return "Subtable";
-            case MIXED:
-                break; // error
+                case BINARY:
+                    return "Binary";
+                case BOOLEAN:
+                    return String.valueOf(getBooleanValue());
+                case DATE:
+                    return String.valueOf(getDateValue());
+                case DOUBLE:
+                    return String.valueOf(getDoubleValue());
+                case FLOAT:
+                    return String.valueOf(getFloatValue());
+                case INTEGER:
+                    return String.valueOf(getLongValue());
+                case STRING:
+                    return String.valueOf(getStringValue());
+                case TABLE:
+                    return "Subtable";
+                case MIXED:
+                    break; // error
+                default:
+                    throw new UnsupportedOperationException();
             }
         } catch (Exception e) {
         }

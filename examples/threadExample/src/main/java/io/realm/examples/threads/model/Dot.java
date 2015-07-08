@@ -18,7 +18,7 @@ package io.realm.examples.threads.model;
 
 import io.realm.RealmObject;
 
-public class Dot extends RealmObject{
+public class Dot extends RealmObject {
 
     private int x;
     private int y;

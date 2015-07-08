@@ -38,14 +38,14 @@ public class JNIMixedTypeTest extends TestCase {
         mixedDataList.add(2, new MixedData(ColumnType.DOUBLE, 1234567.898d));
         mixedDataList.add(3, new MixedData(ColumnType.BOOLEAN, true));
         mixedDataList.add(4, new MixedData(ColumnType.STRING, "abc"));
-        mixedDataList.add(5, new MixedData(ColumnType.BINARY, new byte[]{1, 2, 3, 4, 5}));
+        mixedDataList.add(5, new MixedData(ColumnType.BINARY, new byte[] {1, 2, 3, 4, 5}));
         mixedDataList.add(6, new MixedData(ColumnType.DATE, new Date(645342)));
 
         return Arrays.asList(
-                new Object[]{mixedDataList},
-                new Object[]{mixedDataList},
-                new Object[]{mixedDataList},
-                new Object[]{mixedDataList}
+                new Object[] {mixedDataList},
+                new Object[] {mixedDataList},
+                new Object[] {mixedDataList},
+                new Object[] {mixedDataList}
         );
     }
 
@@ -155,7 +155,8 @@ public class JNIMixedTypeTest extends TestCase {
         }
     }
 
-    private void checkMixedCell(Table table, long col, long row, ColumnType columnType, Object value) throws IllegalMixedTypeException {
+    private void checkMixedCell(Table table, long col, long row, ColumnType columnType, Object value) throws
+            IllegalMixedTypeException {
         ColumnType mixedType = table.getMixedType(col, row);
         assertEquals(columnType, mixedType);
 

@@ -24,14 +24,16 @@ import io.realm.internal.TableView;
 public class SortTest extends AndroidTestCase {
     private Realm testRealm = null;
 
-    private final static String FIELD_STRING = "columnString";
-    private final static String FIELD_LONG = "columnLong";
+    private static final String FIELD_STRING = "columnString";
+    private static final String FIELD_LONG = "columnLong";
 
-    private final static String[] ORDER_STRING_INT = {FIELD_STRING, FIELD_LONG};
-    private final static String[] ORDER_INT_STRING = {FIELD_LONG, FIELD_STRING};
+    private static final String[] ORDER_STRING_INT = {FIELD_STRING, FIELD_LONG};
+    private static final String[] ORDER_INT_STRING = {FIELD_LONG, FIELD_STRING};
 
-    private final static boolean[] ORDER_ASC_ASC = {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING};
-    private final static boolean[] ORDER_ASC_DES = {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_DESCENDING};
+    private static final boolean[] ORDER_ASC_ASC = {RealmResults.SORT_ORDER_ASCENDING, RealmResults
+            .SORT_ORDER_ASCENDING};
+    private static final boolean[] ORDER_ASC_DES = {RealmResults.SORT_ORDER_ASCENDING, RealmResults
+            .SORT_ORDER_DESCENDING};
 
     @Override
     public void setUp() {
@@ -73,14 +75,14 @@ public class SortTest extends AndroidTestCase {
 
         // zero fields specified
         try {
-            allTypes.sort(new String[]{}, new boolean[]{});
+            allTypes.sort(new String[] {}, new boolean[] {});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // number of fields and sorting orders don't match
         try {
-            allTypes.sort(new String[]{FIELD_STRING}, ORDER_ASC_ASC);
+            allTypes.sort(new String[] {FIELD_STRING}, ORDER_ASC_ASC);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -92,14 +94,14 @@ public class SortTest extends AndroidTestCase {
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            allTypes.sort(new String[]{FIELD_STRING}, null);
+            allTypes.sort(new String[] {FIELD_STRING}, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // non-existing field name
         try {
-            allTypes.sort(new String[]{FIELD_STRING, "dont-exist"}, ORDER_ASC_ASC);
+            allTypes.sort(new String[] {FIELD_STRING, "dont-exist"}, ORDER_ASC_ASC);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -116,19 +118,19 @@ public class SortTest extends AndroidTestCase {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(0));
+        assertEquals(2, ((TableView) results.getTable()).getSourceRowIndex(0));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(1));
+        assertEquals(0, ((TableView) results.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(2));
+        assertEquals(3, ((TableView) results.getTable()).getSourceRowIndex(2));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(3));
+        assertEquals(1, ((TableView) results.getTable()).getSourceRowIndex(3));
     }
 
     private void checkSortTwoFieldsIntString(RealmResults<AllTypes> results) {
@@ -142,19 +144,19 @@ public class SortTest extends AndroidTestCase {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(0));
+        assertEquals(2, ((TableView) results.getTable()).getSourceRowIndex(0));
 
         assertEquals("Brian", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(1));
+        assertEquals(1, ((TableView) results.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(2));
+        assertEquals(0, ((TableView) results.getTable()).getSourceRowIndex(2));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(3));
+        assertEquals(3, ((TableView) results.getTable()).getSourceRowIndex(3));
     }
 
     private void checkSortTwoFieldsIntAscendingStringDescending(RealmResults<AllTypes> results) {
@@ -168,19 +170,19 @@ public class SortTest extends AndroidTestCase {
 
         assertEquals("Brian", results.get(0).getColumnString());
         assertEquals(4, results.get(0).getColumnLong());
-        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(0));
+        assertEquals(1, ((TableView) results.getTable()).getSourceRowIndex(0));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(4, results.get(1).getColumnLong());
-        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(1));
+        assertEquals(2, ((TableView) results.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(5, results.get(2).getColumnLong());
-        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(2));
+        assertEquals(0, ((TableView) results.getTable()).getSourceRowIndex(2));
 
         assertEquals("Adam", results.get(3).getColumnString());
         assertEquals(5, results.get(3).getColumnLong());
-        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(3));
+        assertEquals(3, ((TableView) results.getTable()).getSourceRowIndex(3));
     }
 
     private void checkSortTwoFieldsStringAscendingIntDescending(RealmResults<AllTypes> results) {
@@ -194,19 +196,19 @@ public class SortTest extends AndroidTestCase {
 
         assertEquals("Adam", results.get(0).getColumnString());
         assertEquals(5, results.get(0).getColumnLong());
-        assertEquals(0, ((TableView)results.getTable()).getSourceRowIndex(0));
+        assertEquals(0, ((TableView) results.getTable()).getSourceRowIndex(0));
 
         assertEquals("Adam", results.get(1).getColumnString());
         assertEquals(5, results.get(1).getColumnLong());
-        assertEquals(3, ((TableView)results.getTable()).getSourceRowIndex(1));
+        assertEquals(3, ((TableView) results.getTable()).getSourceRowIndex(1));
 
         assertEquals("Adam", results.get(2).getColumnString());
         assertEquals(4, results.get(2).getColumnLong());
-        assertEquals(2, ((TableView)results.getTable()).getSourceRowIndex(2));
+        assertEquals(2, ((TableView) results.getTable()).getSourceRowIndex(2));
 
         assertEquals("Brian", results.get(3).getColumnString());
         assertEquals(4, results.get(3).getColumnLong());
-        assertEquals(1, ((TableView)results.getTable()).getSourceRowIndex(3));
+        assertEquals(1, ((TableView) results.getTable()).getSourceRowIndex(3));
     }
 
     public void testSortRealmResultsTwoFields() {
@@ -225,8 +227,7 @@ public class SortTest extends AndroidTestCase {
         RealmResults<AllTypes> results4 = testRealm.allObjects(AllTypes.class);
         results4.sort(ORDER_INT_STRING, ORDER_ASC_DES);
         checkSortTwoFieldsIntAscendingStringDescending(results4);
-   }
-
+    }
 
     public void testRealmQuerySortTwoFields() {
         RealmResults<AllTypes> results1 = testRealm.where(AllTypes.class)
@@ -269,7 +270,7 @@ public class SortTest extends AndroidTestCase {
 
         // zero fields specified
         try {
-            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
+            testRealm.allObjectsSorted(AllTypes.class, new String[] {}, new boolean[] {});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -277,7 +278,7 @@ public class SortTest extends AndroidTestCase {
         // number of fields and sorting orders don't match
         try {
             testRealm.allObjectsSorted(AllTypes.class,
-                    new String[]{FIELD_STRING}, ORDER_ASC_ASC);
+                    new String[] {FIELD_STRING}, ORDER_ASC_ASC);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -286,9 +287,10 @@ public class SortTest extends AndroidTestCase {
         try {
             testRealm.allObjectsSorted(AllTypes.class, null, null);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
         try {
-            testRealm.allObjectsSorted(AllTypes.class, new String[]{FIELD_STRING}, null);
+            testRealm.allObjectsSorted(AllTypes.class, new String[] {FIELD_STRING}, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -296,7 +298,7 @@ public class SortTest extends AndroidTestCase {
         // non-existing field name
         try {
             testRealm.allObjectsSorted(AllTypes.class,
-                    new String[]{FIELD_STRING, "dont-exist"},
+                    new String[] {FIELD_STRING, "dont-exist"},
                     ORDER_ASC_ASC);
             fail();
         } catch (IllegalArgumentException ignored) {

@@ -29,7 +29,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Random;
 
-public class TestHelper {
+public final class TestHelper {
+
+    // Enforce non-instantiability
+    private TestHelper() {}
 
     public static String streamToString(InputStream in) throws IOException {
         BufferedReader br = null;

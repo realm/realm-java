@@ -21,15 +21,15 @@ import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 
 /**
- * The RealmBaseAdapter class is an abstract utility class for binding UI elements to Realm data,
- * much like an {@link android.widget.CursorAdapter}.
- * <p>
- * This adapter will automatically handle any updates to its data and call
- * {@link #notifyDataSetChanged()} as appropriate.
- * <p>
- * The RealmAdapter will stop receiving updates if the Realm instance providing the
- * {@link io.realm.RealmResults} is closed. Trying to access read objects, will at this point also
- * result in a {@link io.realm.exceptions.RealmException}.
+ * The RealmBaseAdapter class is an abstract utility class for binding UI elements to Realm data, much like an {@link
+ * android.widget.CursorAdapter}.
+ * <p/>
+ * This adapter will automatically handle any updates to its data and call {@link #notifyDataSetChanged()} as
+ * appropriate.
+ * <p/>
+ * The RealmAdapter will stop receiving updates if the Realm instance providing the {@link io.realm.RealmResults} is
+ * closed. Trying to access read objects, will at this point also result in a {@link
+ * io.realm.exceptions.RealmException}.
  */
 public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
 
@@ -74,9 +74,8 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     /**
-     * Returns the current ID for an item. Note that item IDs are not stable so you cannot rely on
-     * the item ID being the same after {@link #notifyDataSetChanged()} or
-     * {@link #updateRealmResults(RealmResults)} has been called.
+     * Returns the current ID for an item. Note that item IDs are not stable so you cannot rely on the item ID being the
+     * same after {@link #notifyDataSetChanged()} or {@link #updateRealmResults(RealmResults)} has been called.
      *
      * @param i Index of item in the adapter
      * @return Current item ID.
@@ -88,8 +87,8 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     /**
-     * Update the RealmResults associated to the Adapter. Useful when the query has been changed.
-     * If the query does not change you might consider using the automaticUpdate feature
+     * Update the RealmResults associated to the Adapter. Useful when the query has been changed. If the query does not
+     * change you might consider using the automaticUpdate feature
      *
      * @param queryResults the new RealmResults coming from the new query.
      */

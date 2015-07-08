@@ -95,8 +95,8 @@ public class NotificationsTest extends AndroidTestCase {
         assertTrue(Realm.realmsCache.get().isEmpty());
     }
 
-    public void testRemoveNotifications () throws InterruptedException, ExecutionException {
-        final AtomicInteger counter= new AtomicInteger(0);
+    public void testRemoveNotifications() throws InterruptedException, ExecutionException {
+        final AtomicInteger counter = new AtomicInteger(0);
         RealmChangeListener listener = new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -116,7 +116,7 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testAddDuplicatedListener() {
-        final AtomicInteger counter= new AtomicInteger(0);
+        final AtomicInteger counter = new AtomicInteger(0);
         RealmChangeListener listener = new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -206,7 +206,7 @@ public class NotificationsTest extends AndroidTestCase {
         final AtomicBoolean isRealmOpen = new AtomicBoolean(true);
         final Map<Integer, Integer> results = new ConcurrentHashMap<Integer, Integer>();
         final Looper[] looper = new Looper[1];
-        final RealmChangeListener listener[] = new RealmChangeListener[1];
+        final RealmChangeListener[] listener = new RealmChangeListener[1];
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -278,7 +278,8 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     // TODO Disabled until we can figure out why this times out so often on the build server
-    public void DISABLEDtestCloseClearingHandlerMessages() throws InterruptedException, TimeoutException, ExecutionException {
+    public void DISABLEDtestCloseClearingHandlerMessages() throws InterruptedException, TimeoutException,
+            ExecutionException {
         final int TEST_SIZE = 10;
         final CountDownLatch backgroundLooperStarted = new CountDownLatch(1);
         final CountDownLatch addHandlerMessages = new CountDownLatch(1);
@@ -363,7 +364,7 @@ public class NotificationsTest extends AndroidTestCase {
 
     public void testImmediateNotificationsOnSameThread() {
         final AtomicBoolean success = new AtomicBoolean(false);
-        final RealmChangeListener listener[] = new RealmChangeListener[1];
+        final RealmChangeListener[] listener = new RealmChangeListener[1];
         realm = Realm.getInstance(getContext());
         listener[0] = new RealmChangeListener() {
             @Override

@@ -19,8 +19,8 @@ import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 
 /**
- * This class is used for holding the reference to the native pointers present in NativeObjects.
- * This is required as phantom references cannot access the original objects for this value.
+ * This class is used for holding the reference to the native pointers present in NativeObjects. This is required as
+ * phantom references cannot access the original objects for this value.
  */
 public class NativeObjectReference extends PhantomReference<NativeObject> {
 

@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 public class JNIBinaryTypeTest extends TestCase {
 
     protected Table table;
-    protected byte [] testArray = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+    protected byte[] testArray = new byte[] {1, 2, 3, 4, 5, 6, 7, 8};
 
     @Override
     public void setUp() {
@@ -21,6 +21,5 @@ public class JNIBinaryTypeTest extends TestCase {
         //table.close();
         table = null;
     }
-
 
 }

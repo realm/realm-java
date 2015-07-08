@@ -16,15 +16,10 @@
 
 package some.test;
 
-import java.util.Date;
-
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 
 // Object is not a RealmObject which the Annotation Processor should be able to detect.
-@RealmModule(classes = { Object.class, AllTypes.class })
+@RealmModule(classes = {Object.class, AllTypes.class})
 public class InvalidAllTypesModuleWrongType {
 
 }

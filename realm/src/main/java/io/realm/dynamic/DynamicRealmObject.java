@@ -28,13 +28,13 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 
 /**
- * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
- * Using a DynamicRealmObject is slower than using the regular model class.
+ * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface. Using a
+ * DynamicRealmObject is slower than using the regular model class.
  */
 public class DynamicRealmObject extends RealmObject {
 
-     Realm realm;
-     Row row;
+    Realm realm;
+    Row row;
 
     /**
      * Creates a dynamic Realm object based on a existing object.
@@ -48,7 +48,8 @@ public class DynamicRealmObject extends RealmObject {
         }
         Row row = RealmObject.getRow(obj);
         if (row == null) {
-            throw new IllegalArgumentException("A object managed by Realm must be provided. This is a standalone object.");
+            throw new IllegalArgumentException("A object managed by Realm must be provided. This is a standalone " +
+                    "object.");
         }
         this.realm = RealmObject.getRealm(obj);
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
@@ -65,6 +66,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The boolean value.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain booleans.
      */
     public boolean getBoolean(String fieldName) {
@@ -77,6 +79,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The int value. Integer values exceeding {@code Integer.MAX_VALUE} will wrap.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
      */
     public int getInt(String fieldName) {
@@ -88,6 +91,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The short value. Integer values exceeding {@code Short.MAX_VALUE} will wrap.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
      */
     public short getShort(String fieldName) {
@@ -99,6 +103,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The long value. Integer values exceeding {@code Long.MAX_VALUE} will wrap.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
      */
     public long getLong(String fieldName) {
@@ -111,6 +116,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The byte value.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
      */
     public byte getByte(String fieldName) {
@@ -123,6 +129,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The float value.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain floats.
      */
     public float getFloat(String fieldName) {
@@ -135,6 +142,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The double value.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain doubles.
      */
     public double getDouble(String fieldName) {
@@ -147,9 +155,10 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The byte[] value.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
      */
-    public byte[] getBlob (String fieldName) {
+    public byte[] getBlob(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         return row.getBinaryByteArray(columnIndex);
     }
@@ -159,6 +168,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The String value.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain Strings.
      */
     public String getString(String fieldName) {
@@ -171,6 +181,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return The Date value.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain Dates.
      */
     public Date getDate(String fieldName) {
@@ -182,7 +193,9 @@ public class DynamicRealmObject extends RealmObject {
      * Returns the object being linked to from this field.
      *
      * @param fieldName Name of field.
-     * @return The {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is linked.
+     * @return The {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is
+     * linked.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain links to other objects.
      */
     public DynamicRealmObject getObject(String fieldName) {
@@ -197,11 +210,12 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Returns the {@link io.realm.RealmList} of objects being linked to from this field. This list is returned
-     * as a {@link DynamicRealmList}.
+     * Returns the {@link io.realm.RealmList} of objects being linked to from this field. This list is returned as a
+     * {@link DynamicRealmList}.
      *
      * @param fieldName Name of field.
      * @return the {@link DynamicRealmList} representation of the RealmList.
+     *
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain a list of links.
      */
     public DynamicRealmList getList(String fieldName) {
@@ -214,6 +228,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return {@code true} if field value is null, {@code false} otherwise.
+     *
      * @throws IllegalArgumentException if field name doesn't exists.
      */
     public boolean isNull(String fieldName) {
@@ -239,6 +254,7 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Checks whether an object has the given field or not.
+     *
      * @param fieldName Field name to check.
      * @return {@code true} if the object has a field with the given name, {@code false} otherwise.
      */
@@ -387,8 +403,8 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Field name.
      * @param value Object to link to.
-     * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, or the type
-     * of DynamicRealmObject doesn't match.
+     * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, or the
+     * type of DynamicRealmObject doesn't match.
      */
     public void setObject(String fieldName, DynamicRealmObject value) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -416,8 +432,8 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Field name.
      * @param list List of references.
-     * @throws IllegalArgumentException if field name doesn't exists, it doesn't contain a list of links or the type
-     * of the object represented by the DynamicRealmObject doesn't match.
+     * @throws IllegalArgumentException if field name doesn't exists, it doesn't contain a list of links or the type of
+     * the object represented by the DynamicRealmObject doesn't match.
      */
     public void setList(String fieldName, DynamicRealmList list) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -429,8 +445,8 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Deletes this object from the Realm. Accessing any fields after removing the object will throw an
-     * {@link IllegalStateException}.
+     * Deletes this object from the Realm. Accessing any fields after removing the object will throw an {@link
+     * IllegalStateException}.
      */
     public void removeFromRealm() {
         row.getTable().moveLastOver(row.getIndex());
@@ -438,8 +454,8 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Return the type of object. This will normally correspond to the name of a model class that is extending
-     * {@link RealmObject}.
+     * Return the type of object. This will normally correspond to the name of a model class that is extending {@link
+     * RealmObject}.
      *
      * @return This objects type.
      */
@@ -497,13 +513,27 @@ public class DynamicRealmObject extends RealmObject {
             ColumnType type = row.getColumnType(columnIndex);
             sb.append("{");
             switch (type) {
-                case BOOLEAN: sb.append(field + ": " + row.getBoolean(columnIndex)); break;
-                case INTEGER: sb.append(field + ": " + row.getLong(columnIndex)); break;
-                case FLOAT: sb.append(field + ": " + row.getFloat(columnIndex)); break;
-                case DOUBLE: sb.append(field + ": " + row.getDouble(columnIndex)); break;
-                case STRING: sb.append(field + ": " + row.getString(columnIndex)); break;
-                case BINARY: sb.append(field + ": " + row.getBinaryByteArray(columnIndex)); break;
-                case DATE: sb.append(field + ": " + row.getDate(columnIndex)); break;
+                case BOOLEAN:
+                    sb.append(field + ": " + row.getBoolean(columnIndex));
+                    break;
+                case INTEGER:
+                    sb.append(field + ": " + row.getLong(columnIndex));
+                    break;
+                case FLOAT:
+                    sb.append(field + ": " + row.getFloat(columnIndex));
+                    break;
+                case DOUBLE:
+                    sb.append(field + ": " + row.getDouble(columnIndex));
+                    break;
+                case STRING:
+                    sb.append(field + ": " + row.getString(columnIndex));
+                    break;
+                case BINARY:
+                    sb.append(field + ": " + row.getBinaryByteArray(columnIndex));
+                    break;
+                case DATE:
+                    sb.append(field + ": " + row.getDate(columnIndex));
+                    break;
                 case LINK:
                     if (row.isNullLink(columnIndex)) {
                         sb.append("null");
@@ -513,7 +543,8 @@ public class DynamicRealmObject extends RealmObject {
                     break;
                 case LINK_LIST:
                     String targetType = row.getTable().getLinkTarget(columnIndex).getName();
-                    sb.append(String.format("%s: RealmList<%s>[%s]", field, targetType, row.getLinkList(columnIndex).size()));
+                    sb.append(String.format("%s: RealmList<%s>[%s]", field, targetType, row.getLinkList(columnIndex)
+                            .size()));
                     break;
                 case TABLE:
                 case MIXED:

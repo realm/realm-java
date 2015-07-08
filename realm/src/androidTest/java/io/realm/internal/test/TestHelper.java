@@ -7,20 +7,17 @@ import io.realm.entities.AllTypes;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
-
 /**
- * Class holds helper methods for the test cases
- *
+ * Class holds helper methods for the test cases.
  */
-public class TestHelper {
+public final class TestHelper {
 
+    private TestHelper() {}
 
     /**
      * Returns the corresponding column type for an object.
-     * @param o
-     * @return
      */
-    public static ColumnType getColumnType(Object o){
+    public static ColumnType getColumnType(Object o) {
 
         if (o instanceof Boolean)
             return ColumnType.BOOLEAN;
@@ -40,12 +37,10 @@ public class TestHelper {
         return ColumnType.MIXED;
     }
 
-
     /**
-     * Creates an empty table with 1 column of all our supported column types, currently 9 columns
-     * @return
+     * Creates an empty table with 1 column of all our supported column types, currently 9 columns.
      */
-    public static Table getTableWithAllColumnTypes(){
+    public static Table getTableWithAllColumnTypes() {
 
         Table t = new Table();
 

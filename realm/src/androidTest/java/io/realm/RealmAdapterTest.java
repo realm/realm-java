@@ -24,8 +24,8 @@ import io.realm.entities.RealmAdapter;
 
 public class RealmAdapterTest extends AndroidTestCase {
 
-    private final static String FIELD_STRING = "columnString";
-    private final static int TEST_DATA_SIZE = 47;
+    private static final String FIELD_STRING = "columnString";
+    private static final int TEST_DATA_SIZE = 47;
 
     private boolean automaticUpdate = true;
     private Realm testRealm;
@@ -72,7 +72,8 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertEquals(resultList.last().getColumnString(), realmAdapter.getRealmResults().last().getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
 
-        RealmResults<AllTypes> emptyResultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
+        RealmResults<AllTypes> emptyResultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there")
+                .findAll();
         realmAdapter.updateRealmResults(emptyResultList);
         assertEquals(emptyResultList.size(), realmAdapter.getRealmResults().size());
     }
@@ -112,12 +113,14 @@ public class RealmAdapterTest extends AndroidTestCase {
         resultList.sort(FIELD_STRING);
 
         assertEquals(resultList.last().getColumnString(), realmAdapter.getRealmResults().last().getColumnString());
-        assertEquals(resultList.get(TEST_DATA_SIZE/2).getColumnString(), realmAdapter.getRealmResults().get(TEST_DATA_SIZE/2).getColumnString());
+        assertEquals(resultList.get(TEST_DATA_SIZE / 2).getColumnString(), realmAdapter.getRealmResults().get
+                (TEST_DATA_SIZE / 2).getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());
     }
 
     public void testEmptyRealmResult() {
-        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there").findAll();
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Not there")
+                .findAll();
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
         assertEquals(0, realmAdapter.getRealmResults().size());
         assertEquals(0, realmAdapter.getCount());

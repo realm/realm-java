@@ -36,7 +36,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.Thread;
 import io.realm.internal.Row;
 
-
 public class RealmObjectTest extends AndroidTestCase {
 
     private Realm testRealm;
@@ -111,14 +110,15 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         RealmResults<Dog> allDogsAfter = testRealm.where(Dog.class).equalTo("name", "Rex").findAll();
-        assertEquals(0  , allDogsAfter.size());
+        assertEquals(0, allDogsAfter.size());
 
         fido.getName();
         try {
             rex.getName();
             testRealm.close();
             fail();
-        } catch (IllegalStateException ignored) {}
+        } catch (IllegalStateException ignored) {
+        }
 
         // deleting rex twice should fail
         testRealm.beginTransaction();
@@ -126,7 +126,8 @@ public class RealmObjectTest extends AndroidTestCase {
             rex.removeFromRealm();
             testRealm.close();
             fail();
-        } catch (IllegalStateException ignored) {}
+        } catch (IllegalStateException ignored) {
+        }
         testRealm.commitTransaction();
         testRealm.close();
     }
@@ -153,14 +154,14 @@ public class RealmObjectTest extends AndroidTestCase {
             dogToAdd.getName();
             testRealm.close();
             fail();
+        } catch (IllegalStateException ignored) {
         }
-        catch (IllegalStateException ignored) {}
         try {
             dogToRemove.getName();
             testRealm.close();
             fail();
+        } catch (IllegalStateException ignored) {
         }
-        catch (IllegalStateException ignored) {}
         testRealm.close();
     }
 
@@ -193,8 +194,8 @@ public class RealmObjectTest extends AndroidTestCase {
             try {
                 dogToRemove.getAge();
                 fail();
+            } catch (IllegalStateException ignored) {
             }
-            catch (IllegalStateException ignored) {}
 
             testRealm.commitTransaction();
 
@@ -338,9 +339,9 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public void testDateType() {
-        long testDatesNotValid[] = {Long.MIN_VALUE, Long.MAX_VALUE};
-        long testDatesValid[] = {-1000, 0, 1000};
-        long testDatesLoosePrecision[] = {1, 1001};
+        long[] testDatesNotValid = {Long.MIN_VALUE, Long.MAX_VALUE};
+        long[] testDatesValid = {-1000, 0, 1000};
+        long[] testDatesLoosePrecision = {1, 1001};
 
         // test valid dates
         testRealm.beginTransaction();
@@ -368,7 +369,7 @@ public class RealmObjectTest extends AndroidTestCase {
         i = 0;
         for (AllTypes allTypes : testRealm.allObjects(AllTypes.class)) {
             assertFalse("Item " + i, new Date(testDatesLoosePrecision[i]) == allTypes.getColumnDate());
-            assertEquals("Item " + i, new Date(1000*(testDatesLoosePrecision[i]/1000)), allTypes.getColumnDate());
+            assertEquals("Item " + i, new Date(1000 * (testDatesLoosePrecision[i] / 1000)), allTypes.getColumnDate());
             i++;
         }
 
@@ -381,7 +382,9 @@ public class RealmObjectTest extends AndroidTestCase {
                 allTypes.setColumnDate(new Date(value));
                 testRealm.commitTransaction();
                 fail();
-            } catch (IllegalArgumentException ignored) { testRealm.cancelTransaction(); }
+            } catch (IllegalArgumentException ignored) {
+                testRealm.cancelTransaction();
+            }
         }
     }
 

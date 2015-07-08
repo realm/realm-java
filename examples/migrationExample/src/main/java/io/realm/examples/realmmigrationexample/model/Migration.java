@@ -22,12 +22,9 @@ import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
 /***************************** NOTE: *********************************************
- * The API for migration is currently using internal lower level classes that will
- * be replaced by a new API very soon! Until then you will have to explore and use
- * below example as inspiration.
- *********************************************************************************
- */
-
+ * The API for migration is currently using internal lower level classes that will be replaced by a new API very soon!
+ * Until then you will have to explore and use below example as inspiration.
+ *********************************************************************************/
 
 public class Migration implements RealmMigration {
     @Override
@@ -111,11 +108,9 @@ public class Migration implements RealmMigration {
                 String type = petTable.getString(oldTypeIndex, i);
                 if (type.equals("dog")) {
                     petTable.setLong(typeIndex, i, 1);
-                }
-                else if (type.equals("cat")) {
+                } else if (type.equals("cat")) {
                     petTable.setLong(typeIndex, i, 2);
-                }
-                else if (type.equals("hamster")) {
+                } else if (type.equals("hamster")) {
                     petTable.setLong(typeIndex, i, 3);
                 }
             }

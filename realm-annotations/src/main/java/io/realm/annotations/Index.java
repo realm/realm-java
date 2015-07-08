@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 /**
  * This annotation will add a search index to the field. A search index will make the
  * Realm file larger and inserts slower but queries will be faster. 
- * <p>
+ * <p/>
  * NOTICE: Only String, int, byte, short, long, boolean and Date fields can be indexed.
  */
 @Retention(RetentionPolicy.CLASS)

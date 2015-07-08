@@ -16,7 +16,6 @@
 
 package io.realm;
 
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,17 +29,16 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 
 /**
- * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults}
- * using the Builder pattern. The query is executed using either {@link #findAll()} or
- * {@link #findFirst()}
- * <p>
- * The input to many of the query functions take a field name as String. Note that this is not
- * type safe. If a model class is refactored care has to be taken to not break any queries.
- * <p>
- * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a
- * Realm will return the objects in the order they where inserted. Use
- * {@link #findAllSorted(String)} and similar methods if a specific order is required.
- * <p>
+ * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
+ * pattern. The query is executed using either {@link #findAll()} or {@link #findFirst()}
+ * <p/>
+ * The input to many of the query functions take a field name as String. Note that this is not type safe. If a model
+ * class is refactored care has to be taken to not break any queries.
+ * <p/>
+ * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a Realm will return the
+ * objects in the order they where inserted. Use {@link #findAllSorted(String)} and similar methods if a specific order
+ * is required.
+ * <p/>
  * A RealmQuery cannot be passed between different threads.
  *
  * @param <E> The class of the objects to be queried.
@@ -65,8 +63,8 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Creating a RealmQuery instance.
      *
-     * @param realm  The realm to query within.
-     * @param clazz  The class to query.
+     * @param realm The realm to query within.
+     * @param clazz The class to query.
      * @throws java.lang.RuntimeException Any other error.
      */
     public RealmQuery(Realm realm, Class<E> clazz) {
@@ -80,8 +78,8 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
      *
-     * @param realmList   The @{link io.realm.RealmResults} to query
-     * @param clazz       The class to query
+     * @param realmList The @{link io.realm.RealmResults} to query
+     * @param clazz The class to query
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery(RealmResults realmList, Class<E> clazz) {
@@ -115,17 +113,17 @@ public class RealmQuery<E extends RealmObject> {
                 n++;
 
         // split at .
-        String[] arr = new String[n+1];
+        String[] arr = new String[n + 1];
         i = 0;
         n = 0;
         j = s.indexOf('.');
         while (j != -1) {
             arr[n] = s.substring(i, j);
-            i = j+1;
+            i = j + 1;
             j = s.indexOf('.', i);
             n++;
         }
-        arr[n] = s.substring(s.lastIndexOf('.')+1);
+        arr[n] = s.substring(s.lastIndexOf('.') + 1);
 
         return arr;
     }
@@ -136,7 +134,7 @@ public class RealmQuery<E extends RealmObject> {
         if (containsDot(fieldName)) {
             String[] names = splitString(fieldName); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];
-            for (int i = 0; i < names.length-1; i++) {
+            for (int i = 0; i < names.length - 1; i++) {
                 long index = table.getColumnIndex(names[i]);
                 if (index < 0) {
                     throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
@@ -149,9 +147,10 @@ public class RealmQuery<E extends RealmObject> {
                     throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
                 }
             }
-            columnIndices[names.length-1] = table.getColumnIndex(names[names.length-1]);
-            if (fieldType != table.getColumnType(columnIndices[names.length-1])) {
-                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", names[names.length-1]));
+            columnIndices[names.length - 1] = table.getColumnIndex(names[names.length - 1]);
+            if (fieldType != table.getColumnType(columnIndices[names.length - 1])) {
+                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", names[names.length -
+                        1]));
             }
             return columnIndices;
         } else {
@@ -174,6 +173,7 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName - the field name
      * @return The query object
+     *
      * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
      */
     public RealmQuery<E> isNull(String fieldName) {
@@ -192,6 +192,7 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName - the field name
      * @return The query object
+     *
      * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
      */
     public RealmQuery<E> isNotNull(String fieldName) {
@@ -201,12 +202,13 @@ public class RealmQuery<E extends RealmObject> {
     // Equal
 
     /**
-     * Equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, String value) {
@@ -214,45 +216,47 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Equal-to comparison
-     * @param fieldName   The field to compare
-     * @param value       The value to compare with
+     * Equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for English
-     *                      locale characters.
+     * locale characters.
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
-
      */
     public RealmQuery<E> equalTo(String fieldName, String value, boolean caseSensitive) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.STRING);
         this.query.equalTo(columnIndices, value, caseSensitive);
         return this;
     }
 
     /**
-     * Equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, int value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.equalTo(columnIndices, value);
         return this;
     }
 
     /**
-     * Equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, long value) {
@@ -262,61 +266,65 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, double value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         this.query.equalTo(columnIndices, value);
         return this;
     }
 
     /**
-     * Equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, float value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         this.query.equalTo(columnIndices, value);
         return this;
     }
 
     /**
-     * Equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, boolean value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.BOOLEAN);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.BOOLEAN);
         this.query.equalTo(columnIndices, value);
         return this;
     }
 
     /**
-     * Equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, Date value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.equalTo(columnIndices, value);
         return this;
     }
@@ -324,12 +332,13 @@ public class RealmQuery<E extends RealmObject> {
     // Not Equal
 
     /**
-     * Not-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Not-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value) {
@@ -337,18 +346,19 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Not-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Not-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for English
-     *                      locale characters.
+     * locale characters.
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, String value, boolean caseSensitive) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.STRING);
         if (columnIndices.length > 1 && !caseSensitive) {
             throw new IllegalArgumentException("Link queries cannot be case insensitive - coming soon.");
         }
@@ -357,12 +367,13 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Not-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Not-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, int value) {
@@ -372,12 +383,13 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Not-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Not-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, long value) {
@@ -387,61 +399,65 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Not-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Not-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, double value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         this.query.notEqualTo(columnIndices, value);
         return this;
     }
 
     /**
-     * Not-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Not-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, float value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         this.query.notEqualTo(columnIndices, value);
         return this;
     }
 
     /**
-     * Not-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Not-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, boolean value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.BOOLEAN);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.BOOLEAN);
         this.query.equalTo(columnIndices, !value);
         return this;
     }
 
     /**
-     * Not-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Not-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, Date value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.notEqualTo(columnIndices, value);
         return this;
     }
@@ -449,12 +465,13 @@ public class RealmQuery<E extends RealmObject> {
     // Greater Than
 
     /**
-     * Greater-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
@@ -464,12 +481,13 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Greater-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, long value) {
@@ -479,121 +497,129 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Greater-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, double value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         this.query.greaterThan(columnIndices, value);
         return this;
     }
 
     /**
-     * Greater-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, float value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         this.query.greaterThan(columnIndices, value);
         return this;
     }
 
     /**
-     * Greater-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThan(String fieldName, Date value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.greaterThan(columnIndices, value);
         return this;
     }
 
     /**
-     * Greater-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, int value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
     /**
-     * Greater-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, long value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
     /**
-     * Greater-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, double value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
     /**
-     * Greater-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, float value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
 
     /**
-     * Greater-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Greater-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> greaterThanOrEqualTo(String fieldName, Date value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.greaterThanOrEqual(columnIndices, value);
         return this;
     }
@@ -601,151 +627,161 @@ public class RealmQuery<E extends RealmObject> {
     // Less Than
 
     /**
-     * Less-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, int value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.lessThan(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, long value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.lessThan(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, double value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         this.query.lessThan(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, float value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         this.query.lessThan(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThan(String fieldName, Date value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.lessThan(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, int value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, long value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, double value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, float value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
 
     /**
-     * Less-than-or-equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
+     * Less-than-or-equal-to comparison.
+     *
+     * @param fieldName The field to compare
+     * @param value The value to compare with
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> lessThanOrEqualTo(String fieldName, Date value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.lessThanOrEqual(columnIndices, value);
         return this;
     }
@@ -753,95 +789,100 @@ public class RealmQuery<E extends RealmObject> {
     // Between
 
     /**
-     * Between condition
-     * @param fieldName  The field to compare
-     * @param from       Lowest value (inclusive)
-     * @param to         Highest value (inclusive)
+     * Between condition.
+     *
+     * @param fieldName The field to compare
+     * @param from Lowest value (inclusive)
+     * @param to Highest value (inclusive)
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, int from, int to) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.between(columnIndices, from, to);
         return this;
     }
 
     /**
-     * Between condition
-     * @param fieldName  The field to compare
-     * @param from       Lowest value (inclusive)
-     * @param to         Highest value (inclusive)
+     * Between condition.
+     *
+     * @param fieldName The field to compare
+     * @param from Lowest value (inclusive)
+     * @param to Highest value (inclusive)
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, long from, long to) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         this.query.between(columnIndices, from, to);
         return this;
     }
 
     /**
-     * Between condition
-     * @param fieldName  The field to compare
-     * @param from       Lowest value (inclusive)
-     * @param to         Highest value (inclusive)
+     * Between condition.
+     *
+     * @param fieldName The field to compare
+     * @param from Lowest value (inclusive)
+     * @param to Highest value (inclusive)
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, double from, double to) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         this.query.between(columnIndices, from, to);
         return this;
     }
 
     /**
-     * Between condition
-     * @param fieldName  The field to compare
-     * @param from       Lowest value (inclusive)
-     * @param to         Highest value (inclusive)
+     * Between condition.
+     *
+     * @param fieldName The field to compare
+     * @param from Lowest value (inclusive)
+     * @param to Highest value (inclusive)
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, float from, float to) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         this.query.between(columnIndices, from, to);
         return this;
     }
 
     /**
-     * Between condition
-     * @param fieldName  The field to compare
-     * @param from       Lowest value (inclusive)
-     * @param to         Highest value (inclusive)
+     * Between condition.
+     *
+     * @param fieldName The field to compare
+     * @param from Lowest value (inclusive)
+     * @param to Highest value (inclusive)
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> between(String fieldName, Date from, Date to) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
         this.query.between(columnIndices, from, to);
         return this;
     }
-
 
     // Contains
 
     /**
-     * Condition that value of field contains the specified substring
-     * @param fieldName  The field to compare
-     * @param value      The substring
+     * Condition that value of field contains the specified substring.
+     *
+     * @param fieldName The field to compare
+     * @param value The substring
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value) {
@@ -849,29 +890,31 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Condition that value of field contains the specified substring
-     * @param fieldName  The field to compare
-     * @param value      The substring
+     * Condition that value of field contains the specified substring.
+     *
+     * @param fieldName The field to compare
+     * @param value The substring
      * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for English
-     *                      locale characters.
+     * locale characters.
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> contains(String fieldName, String value, boolean caseSensitive) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.STRING);
         this.query.contains(columnIndices, value, caseSensitive);
         return this;
     }
 
     /**
-     * Condition that the value of field begins with the specified string
+     * Condition that the value of field begins with the specified string.
+     *
      * @param fieldName The field to compare
-     * @param value     The string
+     * @param value The string
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value) {
@@ -879,29 +922,31 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Condition that the value of field begins with the specified substring
+     * Condition that the value of field begins with the specified substring.
+     *
      * @param fieldName The field to compare
-     * @param value     The substring
+     * @param value The substring
      * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for English
-     *                      locale characters.
+     * locale characters.
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> beginsWith(String fieldName, String value, boolean caseSensitive) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.STRING);
         this.query.beginsWith(columnIndices, value, caseSensitive);
         return this;
     }
 
     /**
-     * Condition that the value of field ends with the specified string
+     * Condition that the value of field ends with the specified string.
+     *
      * @param fieldName The field to compare
-     * @param value     The string
+     * @param value The string
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value) {
@@ -909,18 +954,19 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Condition that the value of field ends with the specified substring
+     * Condition that the value of field ends with the specified substring.
+     *
      * @param fieldName The field to compare
-     * @param value     The substring
+     * @param value The substring
      * @param caseSensitive if true, substring matching is case sensitive. Setting this to false only works for English
-     *                      locale characters.
+     * locale characters.
      * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
+     *
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> endsWith(String fieldName, String value, boolean caseSensitive) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.STRING);
         this.query.endsWith(columnIndices, value, caseSensitive);
         return this;
     }
@@ -928,9 +974,11 @@ public class RealmQuery<E extends RealmObject> {
     // Grouping
 
     /**
-     * Begin grouping of conditions ("left parenthesis"). A group must be closed with a
-     * call to <code>endGroup()</code>.
+     * Begin grouping of conditions ("left parenthesis"). A group must be closed with a call to
+     * <code>endGroup()</code>.
+     *
      * @return The query object
+     *
      * @see #endGroup()
      */
     public RealmQuery<E> beginGroup() {
@@ -939,9 +987,10 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * End grouping of conditions ("right parenthesis") which was opened by a call to
-     * <code>beginGroup()</code>.
+     * End grouping of conditions ("right parenthesis") which was opened by a call to <code>beginGroup()</code>.
+     *
      * @return The query object
+     *
      * @see #beginGroup()
      */
     public RealmQuery<E> endGroup() {
@@ -950,7 +999,8 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Logical-or two conditions
+     * Logical-or two conditions.
+     *
      * @return The query object
      */
     public RealmQuery<E> or() {
@@ -960,6 +1010,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Negate condition.
+     *
      * @return The query object
      */
     public RealmQuery<E> not() {
@@ -972,9 +1023,11 @@ public class RealmQuery<E extends RealmObject> {
     // Sum
 
     /**
-     * Calculate the sum of a field
+     * Calculate the sum of a field.
+     *
      * @param fieldName The field name
      * @return The sum
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long sumInt(String fieldName) {
@@ -983,9 +1036,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Calculate the sum of a field
+     * Calculate the sum of a field.
+     *
      * @param fieldName The field name
      * @return The sum
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double sumDouble(String fieldName) {
@@ -994,9 +1049,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Calculate the sum of a field
+     * Calculate the sum of a field.
+     *
      * @param fieldName The field name
      * @return The sum
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double sumFloat(String fieldName) {
@@ -1007,9 +1064,11 @@ public class RealmQuery<E extends RealmObject> {
     // Average
 
     /**
-     * Calculate the average of a field
+     * Calculate the average of a field.
+     *
      * @param fieldName The field name
      * @return The average
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageInt(String fieldName) {
@@ -1018,9 +1077,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Calculate the average of a field
+     * Calculate the average of a field.
+     *
      * @param fieldName The field name
      * @return The average
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageDouble(String fieldName) {
@@ -1029,9 +1090,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Calculate the average of a field
+     * Calculate the average of a field.
+     *
      * @param fieldName The field name
      * @return The average
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double averageFloat(String fieldName) {
@@ -1042,9 +1105,11 @@ public class RealmQuery<E extends RealmObject> {
     // Min
 
     /**
-     * Find the minimum value of a field
-     * @param fieldName  The field name
+     * Find the minimum value of a field.
+     *
+     * @param fieldName The field name
      * @return The minimum value
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long minimumInt(String fieldName) {
@@ -1053,9 +1118,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find the minimum value of a field
-     * @param fieldName  The field name
+     * Find the minimum value of a field.
+     *
+     * @param fieldName The field name
      * @return The minimum value
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double minimumDouble(String fieldName) {
@@ -1064,9 +1131,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find the minimum value of a field
-     * @param fieldName  The field name
+     * Find the minimum value of a field.
+     *
+     * @param fieldName The field name
      * @return The minimum value
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public float minimumFloat(String fieldName) {
@@ -1075,9 +1144,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find the minimum value of a field
-     * @param fieldName  The field name
+     * Find the minimum value of a field.
+     *
+     * @param fieldName The field name
      * @return The minimum value
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date minimumDate(String fieldName) {
@@ -1088,9 +1159,11 @@ public class RealmQuery<E extends RealmObject> {
     // Max
 
     /**
-     * Find the maximum value of a field
-     * @param fieldName  The field name
+     * Find the maximum value of a field.
+     *
+     * @param fieldName The field name
      * @return The maximum value
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long maximumInt(String fieldName) {
@@ -1099,9 +1172,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find the maximum value of a field
-     * @param fieldName  The field name
+     * Find the maximum value of a field.
+     *
+     * @param fieldName The field name
      * @return The maximum value
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public double maximumDouble(String fieldName) {
@@ -1110,9 +1185,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find the maximum value of a field
-     * @param fieldName  The field name
+     * Find the maximum value of a field.
+     *
+     * @param fieldName The field name
      * @return The maximum value
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public float maximumFloat(String fieldName) {
@@ -1121,9 +1198,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find the maximum value of a field
-     * @param fieldName  The field name
+     * Find the maximum value of a field.
+     *
+     * @param fieldName The field name
      * @return The maximum value
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date maximumDate(String fieldName) {
@@ -1135,6 +1214,7 @@ public class RealmQuery<E extends RealmObject> {
      * Count the number of objects that fulfill the query conditions.
      *
      * @return The number of matching objects.
+     *
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public long count() {
@@ -1146,10 +1226,11 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find all objects that fulfill the query conditions.
      *
-     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition,
-     * a list with zero objects is returned.
-     * @see io.realm.RealmResults
+     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     *
      * @throws java.lang.RuntimeException Any other error
+     * @see io.realm.RealmResults
      */
     public RealmResults<E> findAll() {
         return new RealmResults<E>(realm, query.findAll(), clazz);
@@ -1157,15 +1238,16 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field name.
-     *
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * <p/>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A', 'Latin
+     * Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
-     * @param sortAscending sort ascending if <code>SORT_ORDER_ASCENDING</code>, sort descending
-     *                      if <code>SORT_ORDER_DESCENDING</code>
-     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition,
-     * a list with zero objects is returned.
+     * @param sortAscending sort ascending if <code>SORT_ORDER_ASCENDING</code>, sort descending if
+     * <code>SORT_ORDER_DESCENDING</code>
+     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     *
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName, boolean sortAscending) {
@@ -1179,17 +1261,16 @@ public class RealmQuery<E extends RealmObject> {
         return new RealmResults<E>(realm, tableView, clazz);
     }
 
-
     /**
-     * Find all objects that fulfill the query conditions and sorted by specific field name in
-     * ascending order.
-     *
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * Find all objects that fulfill the query conditions and sorted by specific field name in ascending order.
+     * <p/>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A', 'Latin
+     * Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName the field name to sort by.
-     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition,
-     * a list with zero objects is returned.
+     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     *
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName) {
@@ -1198,18 +1279,19 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names.
-     *
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * <p/>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A', 'Latin
+     * Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldNames an array of field names to sort by.
-     * @param sortAscending sort ascending if <code>SORT_ORDER_ASCENDING</code>, sort descending
-     *                      if <code>SORT_ORDER_DESCENDING</code>.
-     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition,
-     * a list with zero objects is returned.
+     * @param sortAscending sort ascending if <code>SORT_ORDER_ASCENDING</code>, sort descending if
+     * <code>SORT_ORDER_DESCENDING</code>.
+     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     *
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public RealmResults<E> findAllSorted(String fieldNames[], boolean sortAscending[]) {
+    public RealmResults<E> findAllSorted(String[] fieldNames, boolean[] sortAscending) {
         if (fieldNames == null) {
             throw new IllegalArgumentException("fieldNames cannot be 'null'.");
         } else if (sortAscending == null) {
@@ -1217,7 +1299,8 @@ public class RealmQuery<E extends RealmObject> {
         } else if (fieldNames.length == 0) {
             throw new IllegalArgumentException("At least one field name must be specified.");
         } else if (fieldNames.length != sortAscending.length) {
-            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortAscending.length));
+            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does " +
+                    "not match.", fieldNames.length, sortAscending.length));
         }
 
         if (fieldNames.length == 1 && sortAscending.length == 1) {
@@ -1243,32 +1326,30 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Find all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
-     *
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * Find all objects that fulfill the query conditions and sorted by specific field names in ascending order.
+     * <p/>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A', 'Latin
+     * Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName1 first field name
      * @param sortAscending1 sort order for first field
      * @param fieldName2 second field name
      * @param sortAscending2 sort order for second field
-     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition,
-     * a list with zero objects is returned.
+     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     *
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
-                                   String fieldName2, boolean sortAscending2) {
+                                         String fieldName2, boolean sortAscending2) {
         return findAllSorted(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
     }
 
-
     /**
-     * Find all objects that fulfill the query conditions and sorted by specific field names in
-     * ascending order.
-     *
-     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
-     * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
+     * Find all objects that fulfill the query conditions and sorted by specific field names in ascending order.
+     * <p/>
+     * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A', 'Latin
+     * Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
      * @param fieldName1 first field name
      * @param sortAscending1 sort order for first field
@@ -1276,13 +1357,14 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortAscending2 sort order for second field
      * @param fieldName3 third field name
      * @param sortAscending3 sort order for third field
-     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition,
-     * a list with zero objects is returned.
+     * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     *
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
-                                   String fieldName2, boolean sortAscending2,
-                                   String fieldName3, boolean sortAscending3) {
+                                         String fieldName2, boolean sortAscending2,
+                                         String fieldName3, boolean sortAscending3) {
         return findAllSorted(new String[] {fieldName1, fieldName2, fieldName3},
                 new boolean[] {sortAscending1, sortAscending2, sortAscending3});
     }
@@ -1291,8 +1373,9 @@ public class RealmQuery<E extends RealmObject> {
      * Find the first object that fulfills the query conditions.
      *
      * @return The object found or null if no object matches the query conditions.
-     * @see io.realm.RealmObject
+     *
      * @throws java.lang.RuntimeException Any other error.
+     * @see io.realm.RealmObject
      */
     public E findFirst() {
         long rowIndex = this.query.find();

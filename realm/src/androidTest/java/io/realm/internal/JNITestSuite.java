@@ -71,7 +71,6 @@ public class JNITestSuite extends TestSuite {
             return;
         }
 
-
         for (final TestCase testCase : testCaseInstances) {
             addTest(testCase);
 

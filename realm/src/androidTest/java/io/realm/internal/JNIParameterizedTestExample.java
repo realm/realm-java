@@ -30,9 +30,9 @@ public class JNIParameterizedTestExample extends TestCase {
     //set up parameters for tests
     public static Collection<Object[]> parameters() {
         return Arrays.asList(
-                new Object[]{2, 1, 3},
-                new Object[]{1, 1, 2},
-                new Object[]{-2, 1, -1}
+                new Object[] {2, 1, 3},
+                new Object[] {1, 1, 2},
+                new Object[] {-2, 1, -1}
         );
     }
 
@@ -55,6 +55,5 @@ public class JNIParameterizedTestExample extends TestCase {
         return new JNITestSuite(JNIParameterizedTestExample.class, parameters());
 
     }
-
 
 }

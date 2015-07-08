@@ -20,10 +20,9 @@ import io.realm.RealmObject;
 import some.test.Simple;
 
 /**
- * All field names should be allowed. This means that annnotation processor
- * should add a suffix to all fieldNames to avoid naming conflict with
- * internal processor variabels.
- *
+ * All field names should be allowed. This means that annnotation processor should add a suffix to all fieldNames to
+ * avoid naming conflict with internal processor variabels.
+ * <p/>
  * This class list field names that has caused problems.
  */
 public class FieldNames extends RealmObject {

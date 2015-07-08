@@ -20,11 +20,9 @@ public class JNIRowTest extends TestCase {
         table.addColumn(ColumnType.DATE, "date");
         table.addColumn(ColumnType.BINARY, "binary");
 
-
         byte[] data = new byte[2];
 
         table.add("abc", 3, (float) 1.2, 1.3, true, new Date(0), data);
-
 
         UncheckedRow row = table.getUncheckedRow(0);
 
@@ -35,7 +33,6 @@ public class JNIRowTest extends TestCase {
         assertEquals(true, row.getBoolean(4));
         assertEquals(new Date(0), row.getDate(5));
         MoreAsserts.assertEquals(data, row.getBinaryByteArray(6));
-
 
         row.setString(0, "a");
         row.setLong(1, 1);
@@ -72,7 +69,6 @@ public class JNIRowTest extends TestCase {
         row2.setMixed(0, new Mixed("test"));
 
         assertEquals("test", row2.getMixed(0).getStringValue());
-
 
     }
 

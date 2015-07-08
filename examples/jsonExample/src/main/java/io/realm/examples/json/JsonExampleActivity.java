@@ -32,8 +32,8 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 /**
- * This example demonstrates how to import RealmObjects as JSON. Realm supports JSON represented
- * as Strings, JSONObject, JSONArray or InputStreams (from API 11+)
+ * This example demonstrates how to import RealmObjects as JSON. Realm supports JSON represented as Strings, JSONObject,
+ * JSONArray or InputStreams (from API 11+)
  */
 public class JsonExampleActivity extends Activity {
 
@@ -56,7 +56,7 @@ public class JsonExampleActivity extends Activity {
         super.onResume();
 
         // Load from file "cities.json" first time
-        if(mAdapter == null) {
+        if (mAdapter == null) {
             List<City> cities = null;
             try {
                 cities = loadCities();

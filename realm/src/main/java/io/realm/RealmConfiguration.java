@@ -35,28 +35,27 @@ import io.realm.internal.modules.FilterableMediator;
 
 /**
  * A RealmConfiguration is used to setup a specific Realm instance.
- *
- * Instances of a RealmConfiguration can only created by using the {@link io.realm.RealmConfiguration.Builder} and calling
- * its {@link io.realm.RealmConfiguration.Builder#build()} method.
- *
- * A commonly used RealmConfiguration can easily be accessed by first saving it as
- * {@link Realm#setDefaultConfiguration(RealmConfiguration)} and then using {@link io.realm.Realm#getDefaultInstance()}.
- *
+ * <p/>
+ * Instances of a RealmConfiguration can only created by using the {@link io.realm.RealmConfiguration.Builder} and
+ * calling its {@link io.realm.RealmConfiguration.Builder#build()} method.
+ * <p/>
+ * A commonly used RealmConfiguration can easily be accessed by first saving it as {@link
+ * Realm#setDefaultConfiguration(RealmConfiguration)} and then using {@link io.realm.Realm#getDefaultInstance()}.
+ * <p/>
  * A minimal configuration can be created using:
- *
+ * <p/>
  * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
- *
- * This will create a RealmConfiguration with the following properties
- * - Realm file is called "default.realm"
- * - It is saved in Context.getFilesDir()
- * - It has its schema version set to 0.
+ * <p/>
+ * This will create a RealmConfiguration with the following properties - Realm file is called "default.realm" - It is
+ * saved in Context.getFilesDir() - It has its schema version set to 0.
  */
-public class RealmConfiguration {
+public final class RealmConfiguration {
 
     public static final int KEY_LENGTH = 64;
 
     private static final Object DEFAULT_MODULE;
     private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
         if (DEFAULT_MODULE != null) {
@@ -148,7 +147,7 @@ public class RealmConfiguration {
         result = 31 * result + realmFileName.hashCode();
         result = 31 * result + canonicalPath.hashCode();
         result = 31 * result + (key != null ? Arrays.hashCode(key) : 0);
-        result = 31 * result + (int)schemaVersion;
+        result = 31 * result + (int) schemaVersion;
         result = 31 * result + (migration != null ? migration.hashCode() : 0);
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
         result = 31 * result + schemaMediator.hashCode();
@@ -218,11 +217,10 @@ public class RealmConfiguration {
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
 
         /**
-         * Creates an instance of the Builder for the RealmConfiguration.
-         * The Realm file will be saved in the provided folder.
+         * Creates an instance of the Builder for the RealmConfiguration. The Realm file will be saved in the provided
+         * folder.
          *
          * @param folder Folder to save Realm file in. Folder must be writable.
-         *
          * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
          */
         public Builder(File folder) {
@@ -231,10 +229,10 @@ public class RealmConfiguration {
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
-         *
+         * <p/>
          * This will use the apps own internal directory for storing the Realm file. This does not require any
-         * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can
-         * change depending on vendor implementations of Android.
+         * additional permissions. The default location is {@code /data/data/<packagename>/files}, but can change
+         * depending on vendor implementations of Android.
          *
          * @param context Android context.
          */
@@ -297,14 +295,16 @@ public class RealmConfiguration {
         /**
          * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
          * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
-         *
-         * If no migration code is provided, Realm will throw a {@link io.realm.exceptions.RealmMigrationNeededException}.
+         * <p/>
+         * If no migration code is provided, Realm will throw a {@link io.realm.exceptions
+         * .RealmMigrationNeededException}.
          *
          * @see #migration(RealmMigration)
          */
         public Builder schemaVersion(long schemaVersion) {
             if (schemaVersion < 0) {
-                throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours was: " + schemaVersion);
+                throw new IllegalArgumentException("Realm schema version numbers must be 0 (zero) or higher. Yours " +
+                        "was: " + schemaVersion);
             }
             this.schemaVersion = schemaVersion;
             return this;
@@ -312,8 +312,8 @@ public class RealmConfiguration {
 
         /**
          * Sets the {@link io.realm.RealmMigration} to be run if a migration is needed. If this migration fails to
-         * upgrade the on-disc schema to the runtime schema, a
-         * {@link io.realm.exceptions.RealmMigrationNeededException} will be thrown.
+         * upgrade the on-disc schema to the runtime schema, a {@link io.realm.exceptions.RealmMigrationNeededException}
+         * will be thrown.
          */
         public Builder migration(RealmMigration migration) {
             if (migration == null) {
@@ -324,10 +324,10 @@ public class RealmConfiguration {
         }
 
         /**
-         * Setting this will change the behavior of how migration exceptions are handled. Instead of throwing a
-         * {@link io.realm.exceptions.RealmMigrationNeededException} the on-disc Realm will be cleared and recreated
-         * with the new Realm schema.
-         *
+         * Setting this will change the behavior of how migration exceptions are handled. Instead of throwing a {@link
+         * io.realm.exceptions.RealmMigrationNeededException} the on-disc Realm will be cleared and recreated with the
+         * new Realm schema.
+         * <p/>
          * <b>WARNING!</b> This will result in loss of data.
          */
         public Builder deleteRealmIfMigrationNeeded() {
@@ -339,7 +339,7 @@ public class RealmConfiguration {
          * Setting this will create an in-memory Realm instead of saving it to disk. In-memory Realms might still use
          * disk space if memory is running low, but all files created by an in-memory Realm will be deleted when the
          * Realm is closed.
-         * <p>
+         * <p/>
          * Note that because in-memory Realms are not persisted, you must be sure to hold on to at least one non-closed
          * reference to the in-memory Realm object with the specific name as long as you want the data to last.
          */
@@ -351,18 +351,17 @@ public class RealmConfiguration {
         /**
          * Replaces the existing module(s) with one or more {@link RealmModule}s. Using this method will replace the
          * current schema for this Realm with the schema defined by the provided modules.
-         *
+         * <p/>
          * A reference to the default Realm module containing all Realm classes in the project (but not dependencies),
          * can be found using {@link Realm#getDefaultModule()}. Combining the schema from the app project and a library
          * dependency is thus done using the following code:
-         *
+         * <p/>
          * {@code builder.setModules(Realm.getDefaultMode(), new MyLibraryModule()); }
          *
-         * @param baseModule        First Realm module (required).
+         * @param baseModule First Realm module (required).
          * @param additionalModules Additional Realm modules
-         *
-         * @throws IllegalArgumentException if any of the modules are {@code null} or doesn't have the
-         * {@link RealmModule} annotation.
+         * @throws IllegalArgumentException if any of the modules are {@code null} or doesn't have the {@link
+         * RealmModule} annotation.
          * @see Realm#getDefaultModule()
          */
         public Builder setModules(Object baseModule, Object... additionalModules) {

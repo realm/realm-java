@@ -6,8 +6,8 @@ import java.io.File;
 import java.io.IOException;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.FieldOrder;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.FieldOrder;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;

@@ -54,7 +54,6 @@ public class Cat extends RealmObject {
         this.hasTail = hasTail;
     }
 
-
     public double getWeight() {
         return weight;
     }

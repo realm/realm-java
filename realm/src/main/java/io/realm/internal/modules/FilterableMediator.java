@@ -38,7 +38,7 @@ import io.realm.internal.Table;
 import io.realm.internal.Util;
 
 /**
- * Specialized version of a RealmProxyMediator that can further filter the available classes based on provided filter
+ * Specialized version of a RealmProxyMediator that can further filter the available classes based on provided filter.
  */
 public class FilterableMediator extends RealmProxyMediator {
 
@@ -48,10 +48,11 @@ public class FilterableMediator extends RealmProxyMediator {
     /**
      * Creates a filterable Mediator.
      *
-     * @param originalMediator      Original auto generated mediator.
-     * @param allowedClasses                Subset of classes from original mediator to allow.
+     * @param originalMediator Original auto generated mediator.
+     * @param allowedClasses Subset of classes from original mediator to allow.
      */
-    public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>> allowedClasses) {
+    public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>>
+            allowedClasses) {
         this.originalMediator = originalMediator;
         if (originalMediator != null) {
             List<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
@@ -109,19 +110,22 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
+    public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject,
+            RealmObjectProxy> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
         return originalMediator.copyOrUpdate(realm, object, update, cache);
     }
 
     @Override
-    public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException {
+    public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json,
+                                                                   boolean update) throws JSONException {
         checkSchemaHasClass(clazz);
         return originalMediator.createOrUpdateUsingJsonObject(clazz, realm, json, update);
     }
 
     @Override
-    public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws IOException {
+    public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws
+            IOException {
         checkSchemaHasClass(clazz);
         return originalMediator.createUsingJsonStream(clazz, realm, reader);
     }

@@ -18,26 +18,42 @@ package io.realm.entities;
 
 import io.realm.RealmObject;
 
-public class NonLatinFieldNames extends RealmObject{
+public class NonLatinFieldNames extends RealmObject {
     private long 델타;
     private long Δέλτα;
 
     private float 베타;
     private float βήτα;
 
-    public float get베타() { return 베타; }
+    public float get베타() {
+        return 베타;
+    }
 
-    public void set베타(float 베타) { this.베타 = 베타; }
+    public void set베타(float 베타) {
+        this.베타 = 베타;
+    }
 
-    public float getΒήτα() { return βήτα; }
+    public float getΒήτα() {
+        return βήτα;
+    }
 
-    public void setΒήτα(float βήτα) { this.βήτα = βήτα; }
+    public void setΒήτα(float βήτα) {
+        this.βήτα = βήτα;
+    }
 
-    public long get델타() { return 델타; }
+    public long get델타() {
+        return 델타;
+    }
 
-    public void set델타(long 델타) { this.델타 = 델타; }
+    public void set델타(long 델타) {
+        this.델타 = 델타;
+    }
 
-    public long getΔέλτα() { return Δέλτα; }
+    public long getΔέλτα() {
+        return Δέλτα;
+    }
 
-    public void setΔέλτα(long δέλτα) { this.Δέλτα = δέλτα; }
+    public void setΔέλτα(long δέλτα) {
+        this.Δέλτα = δέλτα;
+    }
 }

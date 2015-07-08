@@ -68,7 +68,7 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
         super.onResume();
 
         // Load from file "cities.json" first time
-        if(mAdapter == null) {
+        if (mAdapter == null) {
             List<City> cities = loadCities();
 
             //This is the GridView adapter
@@ -119,7 +119,8 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
                 .create();
 
         JsonElement json = new JsonParser().parse(new InputStreamReader(stream));
-        List<City> cities = gson.fromJson(json, new TypeToken<List<City>>() {}.getType());
+        List<City> cities = gson.fromJson(json, new TypeToken<List<City>>() {
+        }.getType());
 
         // Open a transaction to store items into the realm
         // Use copyToRealm() to convert the objects into proper RealmObjects managed by Realm.
@@ -144,7 +145,7 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        City modifiedCity = (City)mAdapter.getItem(position);
+        City modifiedCity = (City) mAdapter.getItem(position);
 
         // Update the realm object affected by the user
         Realm realm = Realm.getInstance(this);

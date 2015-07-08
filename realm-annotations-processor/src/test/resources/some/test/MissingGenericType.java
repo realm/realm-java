@@ -16,8 +16,8 @@
 
 package some.test;
 
-import io.realm.RealmObject;
 import io.realm.RealmList;
+import io.realm.RealmObject;
 
 class MissingGenericType extends RealmObject {
     private RealmList list; // this is an error!

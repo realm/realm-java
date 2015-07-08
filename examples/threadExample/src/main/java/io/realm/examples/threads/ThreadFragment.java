@@ -92,7 +92,7 @@ public class ThreadFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.action_add_dot:
                 // Add blue dot from the UI thread
                 realm.beginTransaction();

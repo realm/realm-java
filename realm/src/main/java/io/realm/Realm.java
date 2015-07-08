@@ -58,43 +58,40 @@ import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
 
 /**
- * The Realm class is the storage and transactional manager of your object persistent store. It
- * is in charge of creating instances of your RealmObjects. Objects within a Realm can be queried
- * and read at any time. Creating, modifying, and deleting objects must be done while inside a
- * transaction. See {@link #beginTransaction()}
- * <p>
- * The transactions ensure that multiple instances (on multiple threads) can access the same
- * objects in a consistent state with full ACID guarantees.
- * <p>
- * It is important to remember to call the {@link #close()} method when done with a Realm
- * instance. Failing to do so can lead to {@link java.lang.OutOfMemoryError} as the native
- * resources cannot be freed.
- * <p>
- * Realm instances cannot be used across different threads. This means that you have to open an
- * instance on each thread you want to use Realm. Realm instances are cached automatically per
- * thread using reference counting, so as long as the reference count doesn't reach zero, calling
- * {@link #getInstance(android.content.Context)} will just return the cached Realm and should be
- * considered a lightweight operation.
- * <p>
- * For the UI thread this means that opening and closing Realms should occur in either
- * onCreate/onDestroy or onStart/onStop.
- * <p>
- * Realm instances coordinate their state across threads using the {@link android.os.Handler}
- * mechanism. This also means that Realm instances on threads without a {@link android.os.Looper}
- * cannot receive updates unless {@link #refresh()} is manually called.
- * <p>
+ * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
+ * instances of your RealmObjects. Objects within a Realm can be queried and read at any time. Creating, modifying, and
+ * deleting objects must be done while inside a transaction. See {@link #beginTransaction()}
+ * <p/>
+ * The transactions ensure that multiple instances (on multiple threads) can access the same objects in a consistent
+ * state with full ACID guarantees.
+ * <p/>
+ * It is important to remember to call the {@link #close()} method when done with a Realm instance. Failing to do so can
+ * lead to {@link java.lang.OutOfMemoryError} as the native resources cannot be freed.
+ * <p/>
+ * Realm instances cannot be used across different threads. This means that you have to open an instance on each thread
+ * you want to use Realm. Realm instances are cached automatically per thread using reference counting, so as long as
+ * the reference count doesn't reach zero, calling {@link #getInstance(android.content.Context)} will just return the
+ * cached Realm and should be considered a lightweight operation.
+ * <p/>
+ * For the UI thread this means that opening and closing Realms should occur in either onCreate/onDestroy or
+ * onStart/onStop.
+ * <p/>
+ * Realm instances coordinate their state across threads using the {@link android.os.Handler} mechanism. This also means
+ * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #refresh()}
+ * is manually called.
+ * <p/>
  * A standard pattern for working with Realm in Android activities can be seen below:
- * <p>
+ * <p/>
  * <pre>
  * public class RealmActivity extends Activity {
  *
@@ -114,9 +111,10 @@ import io.realm.internal.log.RealmLog;
  *   }
  * }
  * </pre>
- * <p>
+ * <p/>
  * Realm supports String and byte fields containing up to 16 MB.
- * <p>
+ * <p/>
+ *
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
@@ -131,19 +129,19 @@ public final class Realm implements Closeable {
 
     protected static final ThreadLocal<Map<RealmConfiguration, Realm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, Realm>>() {
-        @Override
-        protected Map<RealmConfiguration, Realm> initialValue() {
-            return new HashMap<RealmConfiguration, Realm>();
-        }
-    };
+                @Override
+                protected Map<RealmConfiguration, Realm> initialValue() {
+                    return new HashMap<RealmConfiguration, Realm>();
+                }
+            };
 
     private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
-            new ThreadLocal<Map<RealmConfiguration,Integer>>() {
-        @Override
-        protected Map<RealmConfiguration, Integer> initialValue() {
-            return new HashMap<RealmConfiguration, Integer>();
-        }
-    };
+            new ThreadLocal<Map<RealmConfiguration, Integer>>() {
+                @Override
+                protected Map<RealmConfiguration, Integer> initialValue() {
+                    return new HashMap<RealmConfiguration, Integer>();
+                }
+            };
 
     // Map between all Realm file paths and all known configurations pointing to that file.
     private static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
@@ -163,9 +161,12 @@ public final class Realm implements Closeable {
     private final Map<Class<? extends RealmObject>, Table> classToTable =
             new HashMap<Class<? extends RealmObject>, Table>();
 
-    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
-    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
-    private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
+    private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can " +
+            "only be accessed on the thread they were created.";
+    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance " +
+            "can only be closed on the thread it was created.";
+    private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it " +
+            "unusable.";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
 
     @SuppressWarnings("UnusedDeclaration")
@@ -224,12 +225,12 @@ public final class Realm implements Closeable {
 
     /**
      * Closes the Realm instance and all its resources.
-     * <p>
-     * It's important to always remember to close Realm instances when you're done with it in order
-     * not to leak memory, file descriptors or grow the size of Realm file out of measure.
+     * <p/>
+     * It's important to always remember to close Realm instances when you're done with it in order not to leak memory,
+     * file descriptors or grow the size of Realm file out of measure.
      *
-     * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the
-     * one it was created on.
+     * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the one it was
+     * created on.
      */
     @Override
     public void close() {
@@ -288,6 +289,7 @@ public final class Realm implements Closeable {
 
     /**
      * Retrieve the auto-refresh status of the Realm instance.
+     *
      * @return the auto-refresh status
      */
     public boolean isAutoRefresh() {
@@ -296,10 +298,11 @@ public final class Realm implements Closeable {
 
     /**
      * Set the auto-refresh status of the Realm instance.
-     * <p>
+     * <p/>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
-     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
-     * This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled thread.
+     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in
+     * another thread. This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled
+     * thread.
      *
      * @param autoRefresh true will turn auto-refresh on, false will turn it off.
      * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
@@ -330,37 +333,36 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor for the default Realm "default.realm".
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
+     * Realm static constructor for the default Realm "default.realm". {@link #close()} must be called when you are done
+     * using the Realm instance.
+     * <p/>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
+     * <p/>
      * This is equivalent to calling {@code Realm.getInstance(new RealmConfiguration(getContext()).build()) }.
-
+     *
      * @param context an Android {@link android.content.Context}
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException Other errors
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(context, DEFAULT_REALM_NAME);
     }
 
     /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
+     * Realm static constructor. {@link #close()} must be called when you are done using the Realm instance.
+     * <p/>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
-     * @param context  an Android {@link android.content.Context}
+     * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to save the Realm to
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException Other errors
      */
     @Deprecated
     public static Realm getInstance(Context context, String fileName) {
@@ -368,18 +370,17 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
+     * Realm static constructor. {@link #close()} must be called when you are done using the Realm instance.
+     * <p/>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
-     * @param key     a 64-byte encryption key
+     * @param key a 64-byte encryption key
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException Other errors
      */
     @Deprecated
     public static Realm getInstance(Context context, byte[] key) {
@@ -387,18 +388,17 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
+     * Realm static constructor. {@link #close()} must be called when you are done using the Realm instance.
+     * <p/>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param context an Android {@link android.content.Context}
-     * @param key     a 64-byte encryption key
+     * @param key a 64-byte encryption key
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException Other errors
      */
     @Deprecated
     public static Realm getInstance(Context context, String fileName, byte[] key) {
@@ -411,17 +411,16 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
+     * Realm static constructor. {@link #close()} must be called when you are done using the Realm instance.
+     * <p/>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param writableFolder a File object representing a writable folder
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException Other errors
      */
     @Deprecated
     @SuppressWarnings("UnusedDeclaration")
@@ -433,17 +432,16 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor.
-     * {@link #close()}
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
+     * Realm static constructor. {@link #close()} It sets auto-refresh on if the current thread has a Looper, off
+     * otherwise.
      *
      * @param writableFolder a File object representing a writable folder
      * @param fileName the name of the Realm file
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException Other errors
      */
     @Deprecated
     @SuppressWarnings("UnusedDeclaration")
@@ -455,18 +453,17 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
+     * Realm static constructor. {@link #close()} must be called when you are done using the Realm instance.
+     * <p/>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param writableFolder a File object representing a writable folder
-     * @param key     a 64-byte encryption key
+     * @param key a 64-byte encryption key
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException Other errors
      */
     @Deprecated
     @SuppressWarnings("UnusedDeclaration")
@@ -479,19 +476,18 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
+     * Realm static constructor. {@link #close()} must be called when you are done using the Realm instance.
+     * <p/>
      * It sets auto-refresh on if the current thread has a Looper, off otherwise.
      *
      * @param writableFolder a File object representing a writable folder
      * @param fileName the name of the Realm file
-     * @param key     a 64-byte encryption key
+     * @param key a 64-byte encryption key
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     *
+     * @throws RealmMigrationNeededException The model classes have been changed and the Realm must be migrated
+     * @throws RealmIOException Error when accessing underlying file
+     * @throws RealmException Other errors
      */
     @Deprecated
     @SuppressWarnings("UnusedDeclaration")
@@ -505,7 +501,7 @@ public final class Realm implements Closeable {
 
     /**
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
-     * by {@link #setDefaultConfiguration(RealmConfiguration)}
+     * by {@link #setDefaultConfiguration(RealmConfiguration)}.
      *
      * @return an instance of the Realm class
      *
@@ -515,18 +511,19 @@ public final class Realm implements Closeable {
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
-            throw new NullPointerException("No default RealmConfiguration was found. Call setDefaultConfiguration() first");
+            throw new NullPointerException("No default RealmConfiguration was found. Call setDefaultConfiguration() " +
+                    "first");
         }
         return create(defaultConfiguration);
     }
 
     /**
-     * Realm static constructor that returns the Realm instance defined by provided {@link io.realm.RealmConfiguration}
+     * Realm static constructor that returns the Realm instance defined by provided {@link io.realm.RealmConfiguration}.
      *
      * @return an instance of the Realm class
      *
-     * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
-     * model classes or version has has changed so a migration is required.
+     * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the model
+     * classes or version has has changed so a migration is required.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
@@ -550,8 +547,8 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Removes the current default configuration (if any). Any further calls to {@link #getDefaultInstance()} will
-     * fail until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
+     * Removes the current default configuration (if any). Any further calls to {@link #getDefaultInstance()} will fail
+     * until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
      */
     public static void removeDefaultConfiguration() {
         defaultConfiguration = null;
@@ -572,7 +569,8 @@ public final class Realm implements Closeable {
         }
     }
 
-    private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+    private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema,
+                                                        boolean autoRefresh) {
         // Start the finalizer thread if needed
         if (!isFinalizerStarted) {
             executorService.submit(new FinalizerRunnable());
@@ -592,7 +590,6 @@ public final class Realm implements Closeable {
             localRefCount.put(configuration, references + 1);
             return realm;
         }
-
 
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
         // faulty cache data.
@@ -616,11 +613,13 @@ public final class Realm implements Closeable {
         long requiredVersion = configuration.getSchemaVersion();
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && validateSchema) {
             realm.close();
-            throw new RealmMigrationNeededException(canonicalPath, String.format("Realm on disc need to migrate from v%s to v%s", currentVersion, requiredVersion));
+            throw new RealmMigrationNeededException(canonicalPath, String.format("Realm on disc need to migrate from " +
+                    "v%s to v%s", currentVersion, requiredVersion));
         }
         if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && validateSchema) {
             realm.close();
-            throw new IllegalArgumentException(String.format("Realm on disc is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+            throw new IllegalArgumentException(String.format("Realm on disc is newer than the one specified: v%s vs. " +
+                    "v%s", currentVersion, requiredVersion));
         }
 
         // Initialize Realm schema if needed
@@ -659,7 +658,8 @@ public final class Realm implements Closeable {
 
             // Check schema versions are the same
             if (cachedConfiguration.getSchemaVersion() != newConfiguration.getSchemaVersion()) {
-                throw new IllegalArgumentException(String.format("Configurations cannot have different schema versions " +
+                throw new IllegalArgumentException(String.format("Configurations cannot have different schema " +
+                                "versions " +
                                 "if used to open the same file. %d vs. %d", cachedConfiguration.getSchemaVersion(),
                         newConfiguration.getSchemaVersion()));
             }
@@ -715,13 +715,12 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
-     * JSON properties with a null value will map to the default value for the data type in Realm
-     * and unknown properties will be ignored.
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction. JSON properties
+     * with a null value will map to the default value for the data type in Realm and unknown properties will be
+     * ignored.
      *
      * @param clazz Type of Realm objects to create.
-     * @param json  Array where each JSONObject must map to the specified class.
-     *
+     * @param json Array where each JSONObject must map to the specified class.
      * @throws RealmException if mapping from JSON fails.
      */
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, JSONArray json) {
@@ -731,7 +730,8 @@ public final class Realm implements Closeable {
 
         for (int i = 0; i < json.length(); i++) {
             try {
-                configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), false);
+                configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i),
+                        false);
             } catch (Exception e) {
                 throw new RealmException("Could not map Json", e);
             }
@@ -743,10 +743,9 @@ public final class Realm implements Closeable {
      * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
-     * @param json  Array with object data.
-     *
-     * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     * @param json Array with object data.
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a {@link
+     * io.realm.annotations.PrimaryKey}.
      * @see #createAllFromJson(Class, org.json.JSONArray)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
@@ -756,7 +755,8 @@ public final class Realm implements Closeable {
         checkHasPrimaryKey(clazz);
         for (int i = 0; i < json.length(); i++) {
             try {
-                configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
+                configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i),
+                        true);
             } catch (Exception e) {
                 throw new RealmException("Could not map Json", e);
             }
@@ -764,13 +764,12 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
-     * JSON properties with a null value will map to the default value for the data type in Realm
-     * and unknown properties will be ignored.
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction. JSON properties
+     * with a null value will map to the default value for the data type in Realm and unknown properties will be
+     * ignored.
      *
      * @param clazz Type of Realm objects to create.
-     * @param json  JSON array as a String where each object can map to the specified class.
-     *
+     * @param json JSON array as a String where each object can map to the specified class.
      * @throws RealmException if mapping from JSON fails.
      */
     public <E extends RealmObject> void createAllFromJson(Class<E> clazz, String json) {
@@ -793,10 +792,9 @@ public final class Realm implements Closeable {
      * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
-     * @param json  String with an array of JSON objects.
-     *
-     * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     * @param json String with an array of JSON objects.
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a {@link
+     * io.realm.annotations.PrimaryKey}.
      * @see #createAllFromJson(Class, String)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
@@ -816,14 +814,12 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object for each object in a JSON array. This must be done within a transaction.
-     * JSON properties with a null value will map to the default value for the data type in Realm
-     * and unknown properties will be ignored.
+     * Create a Realm object for each object in a JSON array. This must be done within a transaction. JSON properties
+     * with a null value will map to the default value for the data type in Realm and unknown properties will be
+     * ignored.
      *
-     * @param clazz         Type of Realm objects created.
-     * @param inputStream   JSON array as a InputStream. All objects in the array must be of the
-     *                      specified class.
-     *
+     * @param clazz Type of Realm objects created.
+     * @param inputStream JSON array as a InputStream. All objects in the array must be of the specified class.
      * @throws RealmException if mapping from JSON fails.
      * @throws IOException if something was wrong with the input stream.
      */
@@ -850,10 +846,9 @@ public final class Realm implements Closeable {
      * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
-     * @param in    InputStream with a list of object data in JSON format.
-     *
-     * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     * @param in InputStream with a list of object data in JSON format.
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a {@link
+     * io.realm.annotations.PrimaryKey}.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -870,7 +865,8 @@ public final class Realm implements Closeable {
             scanner = getFullStringScanner(in);
             JSONArray json = new JSONArray(scanner.next());
             for (int i = 0; i < json.length(); i++) {
-                configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i), true);
+                configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json.getJSONObject(i),
+                        true);
             }
         } catch (JSONException e) {
             throw new RealmException("Failed to read JSON", e);
@@ -882,12 +878,12 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object pre-filled with data from a JSON object. This must be done inside a
-     * transaction. JSON properties with a null value will map to the default value for the data
-     * type in Realm and unknown properties will be ignored.
+     * Create a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
+     * properties with a null value will map to the default value for the data type in Realm and unknown properties will
+     * be ignored.
      *
      * @param clazz Type of Realm object to create.
-     * @param json  JSONObject with object data.
+     * @param json JSONObject with object data.
      * @return Created object or null if no json data was provided.
      *
      * @throws RealmException if the mapping from JSON fails.
@@ -910,10 +906,11 @@ public final class Realm implements Closeable {
      * found a new object will be saved in the Realm. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
-     * @param json  {@link org.json.JSONObject} with object data.
+     * @param json {@link org.json.JSONObject} with object data.
      * @return Created or updated {@link io.realm.RealmObject}.
-     * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     *
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a {@link
+     * io.realm.annotations.PrimaryKey}.
      * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
@@ -929,12 +926,12 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object pre-filled with data from a JSON object. This must be done inside a
-     * transaction. JSON properties with a null value will map to the default value for the data
-     * type in Realm and unknown properties will be ignored.
+     * Create a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
+     * properties with a null value will map to the default value for the data type in Realm and unknown properties will
+     * be ignored.
      *
      * @param clazz Type of Realm object to create.
-     * @param json  JSON string with object data.
+     * @param json JSON string with object data.
      * @return Created object or null if json string was empty or null.
      *
      * @throws RealmException if mapping to json failed.
@@ -959,11 +956,11 @@ public final class Realm implements Closeable {
      * found a new object will be saved in the Realm. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
-     * @param json  String with object data in JSON format.
+     * @param json String with object data in JSON format.
      * @return Created or updated {@link io.realm.RealmObject}.
-     * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
      *
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a {@link
+     * io.realm.annotations.PrimaryKey}.
      * @see #createObjectFromJson(Class, String)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
@@ -983,12 +980,12 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Create a Realm object pre-filled with data from a JSON object. This must be done inside a
-     * transaction. JSON properties with a null value will map to the default value for the data
-     * type in Realm and unknown properties will be ignored.
+     * Create a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
+     * properties with a null value will map to the default value for the data type in Realm and unknown properties will
+     * be ignored.
      *
-     * @param clazz         Type of Realm object to create.
-     * @param inputStream   JSON object data as a InputStream.
+     * @param clazz Type of Realm object to create.
+     * @param inputStream JSON object data as a InputStream.
      * @return Created object or null if json string was empty or null.
      *
      * @throws RealmException if the mapping from JSON failed.
@@ -1013,10 +1010,11 @@ public final class Realm implements Closeable {
      * found a new object will be saved in the Realm. This must happen within a transaction.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
-     * @param in    {@link InputStream} with object data in JSON format.
+     * @param in {@link InputStream} with object data in JSON format.
      * @return Created or updated {@link io.realm.RealmObject}.
-     * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     * {@link io.realm.annotations.PrimaryKey}.
+     *
+     * @throws java.lang.IllegalArgumentException if trying to update a class without a {@link
+     * io.realm.annotations.PrimaryKey}.
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -1048,11 +1046,11 @@ public final class Realm implements Closeable {
 
     /**
      * Write a compacted copy of the Realm to the given destination File.
-     * <p>
+     * <p/>
      * The destination file cannot already exist.
-     * <p>
-     * Note that if this is called from within a write transaction it writes the
-     * current data, and not the data as it was when the last write transaction was committed.
+     * <p/>
+     * Note that if this is called from within a write transaction it writes the current data, and not the data as it
+     * was when the last write transaction was committed.
      *
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
@@ -1063,12 +1061,13 @@ public final class Realm implements Closeable {
 
     /**
      * Write a compacted and encrypted copy of the Realm to the given destination File.
-     * <p>
+     * <p/>
      * The destination file cannot already exist.
-     * <p>
-     * Note that if this is called from within a write transaction it writes the
-     * current data, and not the data as it was when the last write transaction was committed.
-     * <p>
+     * <p/>
+     * Note that if this is called from within a write transaction it writes the current data, and not the data as it
+     * was when the last write transaction was committed.
+     * <p/>
+     *
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
      */
@@ -1080,12 +1079,12 @@ public final class Realm implements Closeable {
         transaction.writeToFile(destination, key);
     }
 
-
     /**
      * Instantiates and adds a new object to the Realm.
      *
      * @param clazz The Class of the object to create
      * @return The new object
+     *
      * @throws RealmException An object could not be created
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
@@ -1095,13 +1094,13 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Creates a new object inside the Realm with the Primary key value initially set.
-     * If the value violates the primary key constraint, no object will be added and a
-     * {@link RealmException} will be thrown.
+     * Creates a new object inside the Realm with the Primary key value initially set. If the value violates the primary
+     * key constraint, no object will be added and a {@link RealmException} will be thrown.
      *
      * @param clazz The Class of the object to create
      * @param primaryKeyValue Value for the primary key field.
      * @return The new object
+     *
      * @throws {@link RealmException} if object could not be created.
      */
     <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
@@ -1143,7 +1142,7 @@ public final class Realm implements Closeable {
      * a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects will be
      * either copied or updated.
      *
-     * @param object    {@link io.realm.RealmObject} to copy or update.
+     * @param object {@link io.realm.RealmObject} to copy or update.
      * @return The new or updated RealmObject with all its properties backed by the Realm.
      *
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
@@ -1156,9 +1155,9 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes
-     * to the original RealmObjects will not be reflected in the Realm copies. This is a deep copy, so all referenced
-     * objects will be copied. Objects already in this Realm will be ignored.
+     * Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes to the
+     * original RealmObjects will not be reflected in the Realm copies. This is a deep copy, so all referenced objects
+     * will be copied. Objects already in this Realm will be ignored.
      *
      * @param objects RealmObjects to copy to the Realm.
      * @return A list of the the converted RealmObjects that all has their properties managed by the Realm.
@@ -1180,11 +1179,11 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or create a
-     * new copy if no existing object could be found. This is a deep copy or update, so all referenced objects will be
-     * either copied or updated.
+     * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or
+     * create a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects
+     * will be either copied or updated.
      *
-     * @param objects   List of objects to update or copy into Realm.
+     * @param objects List of objects to update or copy into Realm.
      * @return A list of all the new or updated RealmObjects.
      *
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
@@ -1208,10 +1207,11 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Returns a typed RealmQuery, which can be used to query for specific objects of this type
+     * Returns a typed RealmQuery, which can be used to query for specific objects of this type.
      *
      * @param clazz The class of the object which is to be queried for
      * @return A typed RealmQuery, which can be used to query for specific objects of this type
+     *
      * @throws java.lang.RuntimeException Any other error
      * @see io.realm.RealmQuery
      */
@@ -1221,11 +1221,12 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Get all objects of a specific Class. If no objects exist, the returned RealmResults will not
-     * be null. The RealmResults.size() to check the number of objects instead.
+     * Get all objects of a specific Class. If no objects exist, the returned RealmResults will not be null. The
+     * RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the Class to get objects of
      * @return A RealmResult list containing the objects
+     *
      * @throws java.lang.RuntimeException Any other error
      * @see io.realm.RealmResults
      */
@@ -1234,13 +1235,14 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Get all objects of a specific Class sorted by a field.  If no objects exist, the returned
-     * RealmResults will not be null. The RealmResults.size() to check the number of objects instead.
+     * Get all objects of a specific Class sorted by a field.  If no objects exist, the returned RealmResults will not
+     * be null. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the Class to get objects of.
      * @param fieldName the field name to sort by.
      * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
      * @return A sorted RealmResults containing the objects.
+     *
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName,
@@ -1257,11 +1259,9 @@ public final class Realm implements Closeable {
         return new RealmResults<E>(this, tableView, clazz);
     }
 
-
     /**
-     * Get all objects of a specific class sorted by two specific field names.  If no objects exist,
-     * the returned RealmResults will not be null. The RealmResults.size() to check the number of
-     * objects instead.
+     * Get all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
+     * RealmResults will not be null. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
@@ -1269,19 +1269,19 @@ public final class Realm implements Closeable {
      * @param fieldName2 second field name to sort by.
      * @param sortAscending2 sort order for second field.
      * @return A sorted RealmResults containing the objects.
+     *
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
-                                                               boolean sortAscending1, String fieldName2,
+                                                                    boolean sortAscending1, String fieldName2,
                                                                     boolean sortAscending2) {
-        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new boolean[]{sortAscending1,
+        return allObjectsSorted(clazz, new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1,
                 sortAscending2});
     }
 
     /**
-     * Get all objects of a specific class sorted by two specific field names.  If no objects exist,
-     * the returned RealmResults will not be null. The RealmResults.size() to check the number of
-     * objects instead.
+     * Get all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
+     * RealmResults will not be null. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
@@ -1291,31 +1291,32 @@ public final class Realm implements Closeable {
      * @param fieldName3 third field name to sort by.
      * @param sortAscending3 sort order for third field.
      * @return A sorted RealmResults containing the objects.
+     *
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
                                                                     boolean sortAscending1,
                                                                     String fieldName2, boolean sortAscending2,
                                                                     String fieldName3, boolean sortAscending3) {
-        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2, fieldName3},
-                new boolean[]{sortAscending1, sortAscending2, sortAscending3});
+        return allObjectsSorted(clazz, new String[] {fieldName1, fieldName2, fieldName3},
+                new boolean[] {sortAscending1, sortAscending2, sortAscending3});
     }
 
     /**
-     * Get all objects of a specific Class sorted by multiple fields.  If no objects exist, the
-     * returned RealmResults will not be null. The RealmResults.size() to check the number of
-     * objects instead.
+     * Get all objects of a specific Class sorted by multiple fields.  If no objects exist, the returned RealmResults
+     * will not be null. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the Class to get objects of.
      * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
-     * @param fieldNames an array of field names to sort objects by.
-     *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
+     * @param fieldNames an array of field names to sort objects by. The objects are first sorted by fieldNames[0], then
+     * by fieldNames[1] and so forth.
      * @return A sorted RealmResults containing the objects.
+     *
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     @SuppressWarnings("unchecked")
-    public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
-                                                                    boolean sortAscending[]) {
+    public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String[] fieldNames,
+                                                                    boolean[] sortAscending) {
         if (fieldNames == null) {
             throw new IllegalArgumentException("fieldNames must be provided.");
         } else if (sortAscending == null) {
@@ -1324,7 +1325,7 @@ public final class Realm implements Closeable {
 
         // Convert field names to column indices
         Table table = this.getTable(clazz);
-        long columnIndices[] = new long[fieldNames.length];
+        long[] columnIndices = new long[fieldNames.length];
         for (int i = 0; i < fieldNames.length; i++) {
             String fieldName = fieldNames[i];
             long columnIndex = table.getColumnIndex(fieldName);
@@ -1342,7 +1343,7 @@ public final class Realm implements Closeable {
     // Notifications
 
     /**
-     * Add a change listener to the Realm
+     * Add a change listener to the Realm.
      *
      * @param listener the change listener
      * @see io.realm.RealmChangeListener
@@ -1360,7 +1361,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Remove the specified change listener
+     * Remove the specified change listener.
      *
      * @param listener the change listener to be removed
      * @see io.realm.RealmChangeListener
@@ -1381,7 +1382,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Remove all user-defined change listeners
+     * Remove all user-defined change listeners.
      *
      * @see io.realm.RealmChangeListener
      */
@@ -1391,8 +1392,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Return change listeners
-     * For internal testing purpose only
+     * Return change listeners. For internal testing purpose only.
      *
      * @return changeListeners list of this realm instance
      */
@@ -1426,11 +1426,7 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Transactions
-     */
-
-    /**
-     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it
+     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it.
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
@@ -1439,18 +1435,13 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
-     * or aborted by {@link io.realm.Realm#cancelTransaction()}. Write transactions are used to
-     * atomically create, update and delete objects within a realm.
-     * <br>
-     * Before beginning the write transaction, {@link io.realm.Realm#beginTransaction()} updates the
-     * realm in the case of pending updates from other threads.
-     * <br>
-     * Notice: it is not possible to nest write transactions. If you start a write
-     * transaction within a write transaction an exception is thrown.
-     * <br>
-     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
+     * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or aborted by
+     * {@link io.realm.Realm#cancelTransaction()}. Write transactions are used to atomically create, update and delete
+     * objects within a realm. <br> Before beginning the write transaction, {@link io.realm.Realm#beginTransaction()}
+     * updates the realm in the case of pending updates from other threads. <br> Notice: it is not possible to nest
+     * write transactions. If you start a write transaction within a write transaction an exception is thrown. <br>
      *
+     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
      */
     public void beginTransaction() {
         checkIfValid();
@@ -1458,11 +1449,10 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the
-     * Realm reverts back to being read-only. An event is sent to notify all other realm instances
-     * that a change has occurred. When the event is received, the other Realms will get their
-     * objects and {@link io.realm.RealmResults} updated to reflect
-     * the changes from this commit.
+     * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the Realm reverts back to
+     * being read-only. An event is sent to notify all other realm instances that a change has occurred. When the event
+     * is received, the other Realms will get their objects and {@link io.realm.RealmResults} updated to reflect the
+     * changes from this commit.
      *
      * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
      */
@@ -1483,24 +1473,21 @@ public final class Realm implements Closeable {
             // For all other threads, use the Handler
             if (
                     realmPath.equals(configuration.getPath())    // It's the right realm
-                    && !handler.hasMessages(REALM_CHANGED)       // The right message
-                    && handler.getLooper().getThread().isAlive() // The receiving thread is alive
-            ) {
+                            && !handler.hasMessages(REALM_CHANGED)       // The right message
+                            && handler.getLooper().getThread().isAlive() // The receiving thread is alive
+                    ) {
                 handler.sendEmptyMessage(REALM_CHANGED);
             }
         }
     }
 
     /**
-     * Revert all writes (created, updated, or deleted objects) made in the current write
-     * transaction and end the transaction.
-     * <br>
-     * The Realm reverts back to read-only.
-     * <br>
-     * Calling this when not in a write transaction will throw an exception.
+     * Revert all writes (created, updated, or deleted objects) made in the current write transaction and end the
+     * transaction. <br> The Realm reverts back to read-only. <br> Calling this when not in a write transaction will
+     * throw an exception.
      *
-     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
-     *                                             not in a write transaction or incorrect thread.
+     * @throws java.lang.IllegalStateException If the write transaction is an invalid state, not in a write transaction
+     * or incorrect thread.
      */
     public void cancelTransaction() {
         checkIfValid();
@@ -1508,9 +1495,9 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Executes a given transaction on the Realm. {@link #beginTransaction()} and
-     * {@link #commitTransaction()} will be called automatically. If any exception is thrown
-     * during the transaction {@link #cancelTransaction()} will be called instead of {@link #commitTransaction()}.
+     * Executes a given transaction on the Realm. {@link #beginTransaction()} and {@link #commitTransaction()} will be
+     * called automatically. If any exception is thrown during the transaction {@link #cancelTransaction()} will be
+     * called instead of {@link #commitTransaction()}.
      *
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @throws RealmException if any error happened during the transaction.
@@ -1584,7 +1571,8 @@ public final class Realm implements Closeable {
 
     @SuppressWarnings("unchecked")
     private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
-        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
+        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject,
+                RealmObjectProxy>());
     }
 
     private <E extends RealmObject> void checkNotNullObject(E object) {
@@ -1596,13 +1584,15 @@ public final class Realm implements Closeable {
     private <E extends RealmObject> void checkHasPrimaryKey(E object) {
         Class<? extends RealmObject> objectClass = object.getClass();
         if (!getTable(objectClass).hasPrimaryKey()) {
-            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + objectClass.getSimpleName());
+            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + objectClass.getSimpleName
+                    ());
         }
     }
 
     private void checkHasPrimaryKey(Class<? extends RealmObject> clazz) {
         if (!getTable(clazz).hasPrimaryKey()) {
-            throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
+            throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz
+                    .toString());
         }
     }
 
@@ -1635,9 +1625,8 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the
-     * latest version, nothing will happen.
-     * @param configuration
+     * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the latest
+     * version, nothing will happen.
      */
     public static synchronized void migrateRealm(RealmConfiguration configuration) {
         migrateRealm(configuration, null);
@@ -1675,16 +1664,15 @@ public final class Realm implements Closeable {
 
     /**
      * Deprecated: Use {@link #deleteRealm(RealmConfiguration)} instead.
-     *
-     * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
-     * The Realm must be unused and closed before calling this method.
-     * WARNING: Your Realm must not be open (typically when your app launch).
+     * <p/>
+     * Delete the Realm file from the filesystem for the default Realm (named "default.realm"). The Realm must be unused
+     * and closed before calling this method. WARNING: Your Realm must not be open (typically when your app launch).
      *
      * @param context an Android {@link android.content.Context}.
      * @return false if a file could not be deleted. The failing file will be logged.
-     * @see io.realm.Realm#clear(Class)
      *
      * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
+     * @see io.realm.Realm#clear(Class)
      */
     @Deprecated
     public static boolean deleteRealmFile(Context context) {
@@ -1693,11 +1681,11 @@ public final class Realm implements Closeable {
 
     /**
      * Deprecated: Use {@link #deleteRealm(RealmConfiguration)} instead.
+     * <p/>
+     * Delete the Realm file from the filesystem for a custom named Realm. The Realm must be unused and closed before
+     * calling this method.
      *
-     * Delete the Realm file from the filesystem for a custom named Realm.
-     * The Realm must be unused and closed before calling this method.
-     *
-     * @param context  an Android {@link android.content.Context}.
+     * @param context an Android {@link android.content.Context}.
      * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
      * @return false if a file could not be deleted. The failing file will be logged.
      *
@@ -1712,8 +1700,8 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Delete the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
-     * The Realm must be unused and closed before calling this method.
+     * Delete the Realm file specified by the given {@link RealmConfiguration} from the filesystem. The Realm must be
+     * unused and closed before calling this method.
      *
      * @param configuration A {@link RealmConfiguration}
      * @return false if a file could not be deleted. The failing file will be logged.
@@ -1749,18 +1737,15 @@ public final class Realm implements Closeable {
         return result;
     }
 
-
     /**
      * Deprecated: Use {@link #compactRealm(RealmConfiguration)} instead.
-      *
-     * Compact a Realm file. A Realm file usually contain free/unused space.
-     * This method removes this free space and the file size is thereby reduced.
-     * Objects within the Realm files are untouched.
-     * <p>
-     * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the Realm file.<br>
-     * The Realm file is left untouched if any file operation fails.<br>
-     * Currently it is not possible to compact an encrypted Realm.<br>
+     * <p/>
+     * Compact a Realm file. A Realm file usually contain free/unused space. This method removes this free space and the
+     * file size is thereby reduced. Objects within the Realm files are untouched.
+     * <p/>
+     * The file must be closed before this method is called.<br> The file system should have free space for at least a
+     * copy of the Realm file.<br> The Realm file is left untouched if any file operation fails.<br> Currently it is not
+     * possible to compact an encrypted Realm.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @param fileName the name of the file to compact
@@ -1775,14 +1760,12 @@ public final class Realm implements Closeable {
 
     /**
      * Deprecated: Use {@link #compactRealm(RealmConfiguration)} instead.
-     *
-     * Compact a Realm file. A Realm file usually contain free/unused space.
-     * This method removes this free space and the file size is thereby reduced.
-     * Objects within the Realm files are untouched.
-     * <p>
-     * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
-     * The Realm file is left untouched if any file operation fails.<br>
+     * <p/>
+     * Compact a Realm file. A Realm file usually contain free/unused space. This method removes this free space and the
+     * file size is thereby reduced. Objects within the Realm files are untouched.
+     * <p/>
+     * The file must be closed before this method is called.<br> The file system should have free space for at least a
+     * copy of the realm file.<br> The Realm file is left untouched if any file operation fails.<br>
      *
      * @param context an Android {@link android.content.Context}
      * @return true if successful, false if any file operation failed
@@ -1795,13 +1778,11 @@ public final class Realm implements Closeable {
     }
 
     /**
-     * Compact a Realm file. A Realm file usually contain free/unused space.
-     * This method removes this free space and the file size is thereby reduced.
-     * Objects within the Realm files are untouched.
-     * <p>
-     * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the Realm file.<br>
-     * The Realm file is left untouched if any file operation fails.<br>
+     * Compact a Realm file. A Realm file usually contain free/unused space. This method removes this free space and the
+     * file size is thereby reduced. Objects within the Realm files are untouched.
+     * <p/>
+     * The file must be closed before this method is called.<br> The file system should have free space for at least a
+     * copy of the Realm file.<br> The Realm file is left untouched if any file operation fails.<br>
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return true if successful, false if any file operation failed
@@ -1821,7 +1802,8 @@ public final class Realm implements Closeable {
         SharedGroup sharedGroup = null;
         boolean result = false;
         try {
-            sharedGroup = new SharedGroup(canonicalPath, false, SharedGroup.Durability.FULL, configuration.getEncryptionKey());
+            sharedGroup = new SharedGroup(canonicalPath, false, SharedGroup.Durability.FULL, configuration
+                    .getEncryptionKey());
             result = sharedGroup.compact();
         } finally {
             if (sharedGroup != null) {
@@ -1835,6 +1817,7 @@ public final class Realm implements Closeable {
      * Returns the canonical path to where this Realm is persisted on disk.
      *
      * @return The canonical path to the Realm file.
+     *
      * @see File#getCanonicalPath()
      */
     public String getPath() {
@@ -1843,6 +1826,7 @@ public final class Realm implements Closeable {
 
     /**
      * Returns the {@link RealmConfiguration} for this Realm.
+     *
      * @return {@link RealmConfiguration} for this Realm.
      */
     public RealmConfiguration getConfiguration() {
@@ -1854,15 +1838,17 @@ public final class Realm implements Closeable {
         try {
             return realmFile.getCanonicalPath();
         } catch (IOException e) {
-            throw new RealmException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
+            throw new RealmException("Could not resolve the canonical path to the Realm file: " + realmFile
+                    .getAbsolutePath());
         }
     }
 
     /**
-     * Returns the default Realm module. This module contains all Realm classes in the current project, but not
-     * those from library or project dependencies. Realm classes in these should be exposed using their own module.
+     * Returns the default Realm module. This module contains all Realm classes in the current project, but not those
+     * from library or project dependencies. Realm classes in these should be exposed using their own module.
      *
      * @return The default Realm module or null if no default module exists.
+     *
      * @see io.realm.RealmConfiguration.Builder#setModules(Object, Object...)
      */
     public static Object getDefaultModule() {
@@ -1886,10 +1872,10 @@ public final class Realm implements Closeable {
 
     /**
      * Encapsulates a Realm transaction.
-     * <p>
-     * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()}
-     * If any exception is thrown during the transaction {@link #cancelTransaction()} will be called
-     * instead of {@link #commitTransaction()}.
+     * <p/>
+     * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()} If any
+     * exception is thrown during the transaction {@link #cancelTransaction()} will be called instead of {@link
+     * #commitTransaction()}.
      */
     public interface Transaction {
         void execute(Realm realm);

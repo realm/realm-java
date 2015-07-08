@@ -22,11 +22,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * This class is used to serialize tables to either disk or memory. It consists
- * of a collection of tables.
+ * This class is used to serialize tables to either disk or memory. It consists of a collection of tables.
  */
 public class Group implements Closeable {
-    
+
     protected long nativePtr;
     protected boolean immutable;
     private final Context context;
@@ -63,14 +62,15 @@ public class Group implements Closeable {
         READ_WRITE(1),
         READ_WRITE_NO_CREATE(2);
         private int value;
+
         private OpenMode(int value) {
             this.value = value;
         }
-    };
+    }
 
     public Group(String filepath, OpenMode mode) {
         this.immutable = mode.equals(OpenMode.READ_ONLY);
-        
+
         this.context = new Context();
         this.nativePtr = createNative(filepath, mode.value);
         checkNativePtrNotZero();
@@ -166,17 +166,15 @@ public class Group implements Closeable {
 
     protected native long nativeSize(long nativeGroupPtr);
 
-
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return size() == 0;
     }
-
 
     /**
      * Checks whether table exists in the Group.
      *
-     * @param name  The name of the table.
-     * @return      true if the table exists, otherwise false.
+     * @param name The name of the table.
+     * @return true if the table exists, otherwise false.
      */
     public boolean hasTable(String name) {
         verifyGroupIsValid();
@@ -191,7 +189,7 @@ public class Group implements Closeable {
         if (index < 0 || index >= cnt) {
             throw new IndexOutOfBoundsException(
                     "Table index argument is out of range. possible range is [0, "
-                    + (cnt - 1) + "]");
+                            + (cnt - 1) + "]");
         }
         return nativeGetTableName(nativePtr, index);
     }
@@ -201,8 +199,8 @@ public class Group implements Closeable {
     /**
      * Returns a table with the specified name.
      *
-     * @param name  The name of the table.
-     * @return      The table if it exists, otherwise create it.
+     * @param name The name of the table.
+     * @return The table if it exists, otherwise create it.
      */
     public Table getTable(String name) {
         verifyGroupIsValid();
@@ -236,11 +234,9 @@ public class Group implements Closeable {
     /**
      * Serialize the group to the specific file on the disk using encryption.
      *
-     * @param file
-     *            A File object representing the file.
-     * @param key A 64 bytes long byte array containing the key to the encrypted Realm file. Can be null if
-     *            encryption is not required.
-     * @throws IOException
+     * @param file A File object representing the file.
+     * @param key A 64 bytes long byte array containing the key to the encrypted Realm file. Can be null if encryption
+     * is not required.
      */
     public void writeToFile(File file, byte[] key) throws IOException {
         verifyGroupIsValid();
@@ -298,6 +294,7 @@ public class Group implements Closeable {
     protected native String nativeToString(long nativeGroupPtr);
 
     private void throwImmutable() {
-        throw new IllegalStateException("Objects cannot be changed outside a transaction; see beginTransaction() for details.");
+        throw new IllegalStateException("Objects cannot be changed outside a transaction; see beginTransaction() for " +
+                "details.");
     }
 }

@@ -4,14 +4,23 @@ package io.realm.internal.log;
  * Interface for Realm logger implementations.
  */
 public interface Logger {
-    public void v(String message);
-    public void v(String message, Throwable t);
-    public void d(String message);
-    public void d(String message, Throwable t);
-    public void i(String message);
-    public void i(String message, Throwable t);
-    public void w(String message);
-    public void w(String message, Throwable t);
-    public void e(String message);
-    public void e(String message, Throwable t);
+    void v(String message);
+
+    void v(String message, Throwable t);
+
+    void d(String message);
+
+    void d(String message, Throwable t);
+
+    void i(String message);
+
+    void i(String message, Throwable t);
+
+    void w(String message);
+
+    void w(String message, Throwable t);
+
+    void e(String message);
+
+    void e(String message, Throwable t);
 }

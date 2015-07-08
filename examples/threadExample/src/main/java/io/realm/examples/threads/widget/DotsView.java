@@ -39,7 +39,6 @@ public class DotsView extends View {
     private float pixelsPrWidth;
     private float pixelsPrHeight;
 
-
     public DotsView(Context context) {
         super(context);
         init();
@@ -70,8 +69,8 @@ public class DotsView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        pixelsPrWidth = w/100f;
-        pixelsPrHeight = h/100f;
+        pixelsPrWidth = w / 100f;
+        pixelsPrHeight = h / 100f;
     }
 
     @Override
@@ -80,7 +79,7 @@ public class DotsView extends View {
         canvas.drawColor(Color.TRANSPARENT);
         for (Dot dot : results) {
             circlePaint.setColor(dot.getColor());
-            canvas.drawCircle(dot.getX()*pixelsPrWidth, dot.getY()*pixelsPrHeight, circleRadius, circlePaint);
+            canvas.drawCircle(dot.getX() * pixelsPrWidth, dot.getY() * pixelsPrHeight, circleRadius, circlePaint);
         }
     }
 }

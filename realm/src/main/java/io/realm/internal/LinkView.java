@@ -34,9 +34,9 @@ public class LinkView {
     }
 
     /**
-     * Returns a non-checking Row. Incorrect use of this Row will cause a hard Realm Core crash (SIGSEGV).
-     * Only use this method if you are sure that input parameters are valid, otherwise use {@link #getCheckedRow(long)}
-     * which will throw appropriate exceptions if used incorrectly.
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard Realm Core crash (SIGSEGV). Only use this
+     * method if you are sure that input parameters are valid, otherwise use {@link #getCheckedRow(long)} which will
+     * throw appropriate exceptions if used incorrectly.
      *
      * @param index Index of row to fetch.
      * @return Unsafe row wrapper object.
@@ -46,9 +46,9 @@ public class LinkView {
     }
 
     /**
-     * Returns a wrapper for Row access. All access will be error checked at the JNI layer and will throw an
-     * appropriate {@link RuntimeException} if used incorrectly.
-     *
+     * Returns a wrapper for Row access. All access will be error checked at the JNI layer and will throw an appropriate
+     * {@link RuntimeException} if used incorrectly.
+     * <p/>
      * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
      *
      * @param index Index of row to fetch.
@@ -126,15 +126,26 @@ public class LinkView {
     }
 
     protected static native void nativeClose(long nativeLinkViewPtr);
+
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
+
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
+
     private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
+
     private native void nativeInsert(long nativeLinkViewPtr, long pos, long rowIndex);
+
     private native void nativeSet(long nativeLinkViewPtr, long pos, long rowIndex);
+
     private native void nativeMove(long nativeLinkViewPtr, long oldPos, long newPos);
+
     private native void nativeRemove(long nativeLinkViewPtr, long pos);
+
     private native void nativeClear(long nativeLinkViewPtr);
+
     private native long nativeSize(long nativeLinkViewPtr);
+
     private native boolean nativeIsEmpty(long nativeLinkViewPtr);
+
     protected native long nativeWhere(long nativeLinkViewPtr);
 }

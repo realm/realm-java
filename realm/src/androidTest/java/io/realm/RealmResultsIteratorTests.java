@@ -32,7 +32,7 @@ import io.realm.exceptions.RealmException;
 
 public class RealmResultsIteratorTests extends AndroidTestCase {
 
-    protected final static int TEST_DATA_SIZE = 10;
+    protected static final int TEST_DATA_SIZE = 10;
     protected Realm testRealm;
 
     @Override
@@ -43,7 +43,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
-            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnBinary(new byte[] {1, 2, 3});
             allTypes.setColumnDate(new Date((long) i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
@@ -73,6 +73,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         assertFalse(it.hasNext());
         assertEquals(TEST_DATA_SIZE, it.nextIndex());
     }
+
     // TODO: Should we reenable this test?
     public void DISABLEDtestListIteratorRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
@@ -88,6 +89,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
         assertEquals(0, testRealm.allObjects(AllTypes.class).size());
     }
+
     // TODO: Should we reenable this test?
     public void DISABLEDtestListIteratorFailOnDeleteBeforeNext() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
@@ -104,6 +106,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
         fail("You must call next() before calling remove() pr. the JavaDoc");
     }
+
     // TODO: Should we reenable this test?
     public void DISABLEDtestListIteratorFailOnDoubleRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
@@ -124,19 +127,26 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         fail("You can only make one call to remove() after calling next() pr. the JavaDoc");
     }
 
-    private enum ListIteratorMethods { ADD, SET; }
+    private enum ListIteratorMethods {ADD, SET;}
+
     public void testListIteratorUnsupportedMethods() {
         for (ListIteratorMethods method : ListIteratorMethods.values()) {
             ListIterator<AllTypes> it = testRealm.allObjects(AllTypes.class).listIterator();
             try {
                 switch (method) {
-                    case ADD: it.add(new AllTypes()); break;
-                    case SET: it.set(new AllTypes()); break;
+                    case ADD:
+                        it.add(new AllTypes());
+                        break;
+                    case SET:
+                        it.set(new AllTypes());
+                        break;
+                    default:
+                        throw new UnsupportedOperationException();
                 }
 
                 fail(method + " should not be supported");
 
-            } catch(RealmException ignored) {
+            } catch (RealmException ignored) {
             }
         }
     }
@@ -177,7 +187,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         assertEquals(sum(0, TEST_DATA_SIZE - 2), realmSum);
     }
 
-
     public void testIteratorStandardBehavior() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
@@ -189,6 +198,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
         assertEquals(sum(0, TEST_DATA_SIZE - 1), realmSum);
     }
+
     // TODO: Should we reenable this test?
     public void DISABLEDtestIteratorRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
@@ -220,6 +230,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
         fail("You must call next() before calling remove() pr. the JavaDoc");
     }
+
     // TODO: Should we reenable this test?
     public void DISABLEDtestIteratorFailOnDoubleRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
@@ -241,13 +252,13 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         fail("You can only make one call to remove() after calling next() pr. the JavaDoc");
     }
 
-
     // TODO: Should we reenable this test?
     // Using size() as heuristic for concurrent modifications is dangerous as we might skip
     // elements.
     // TODO Possible bug: Why does this interfere with reference counting check. They are separate Realm files.
     // TODO Possible bug: Why is realm.refresh() needed?
-    public void DISABLEDtestRemovingObjectsFromOtherThreadWhileIterating() throws InterruptedException, ExecutionException {
+    public void DISABLEDtestRemovingObjectsFromOtherThreadWhileIterating() throws InterruptedException,
+            ExecutionException {
 
         // Prefill
         Realm realm = Realm.getInstance(getContext(), "test");
@@ -283,11 +294,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
                 backgroundRealm.commitTransaction();
                 int size = backgroundResult.size();
                 backgroundRealm.close();
-                if (size != 2) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return size == 2;
             }
         };
 
@@ -303,7 +310,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
             assertEquals(3, o3.getColumnLong());
             fail("Failed to detect the list was modified, but retained it's size while iterating");
         } catch (ConcurrentModificationException ignored) {
-            return;
         } finally {
             realm.close();
         }

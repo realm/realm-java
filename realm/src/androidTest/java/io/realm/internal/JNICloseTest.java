@@ -43,13 +43,13 @@ public class JNICloseTest extends AndroidTestCase {
 
             wt.commit();
 
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             wt.rollback();
         } finally {
             for (Closeable c : resources) {
                 try {
                     c.close();
-                } catch(java.io.IOException e) {
+                } catch (java.io.IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -60,9 +60,21 @@ public class JNICloseTest extends AndroidTestCase {
         Table table = new Table();
         table.close();
 
-        try { table.size();                            fail("Table is closed"); } catch (IllegalStateException e) { }
-        try { table.getColumnCount();                  fail("Table is closed"); } catch (IllegalStateException e) { }
-        try { table.addColumn(ColumnType.STRING, "");  fail("Table is closed"); } catch (IllegalStateException e) { }
+        try {
+            table.size();
+            fail("Table is closed");
+        } catch (IllegalStateException e) {
+        }
+        try {
+            table.getColumnCount();
+            fail("Table is closed");
+        } catch (IllegalStateException e) {
+        }
+        try {
+            table.addColumn(ColumnType.STRING, "");
+            fail("Table is closed");
+        } catch (IllegalStateException e) {
+        }
 
         // TODO: Test all methods...
     }
@@ -77,17 +89,25 @@ public class JNICloseTest extends AndroidTestCase {
         Group group = new Group();
         group.close();
 
-        try { group.getTable("t");    fail("Group is closed"); } catch (IllegalStateException e) { }
-        try { group.size();                     fail("Group is closed"); } catch (IllegalStateException e) { }
+        try {
+            group.getTable("t");
+            fail("Group is closed");
+        } catch (IllegalStateException e) {
+        }
+        try {
+            group.size();
+            fail("Group is closed");
+        } catch (IllegalStateException e) {
+        }
     }
 
     /**
-     * Make sure, that it's possible to use the query on a closed table
+     * Makes sure, that it's possible to use the query on a closed table.
      */
-    public void testQueryAccessibleAfterTableClose() throws Throwable{
+    public void testQueryAccessibleAfterTableClose() throws Throwable {
         Table table = TestHelper.getTableWithAllColumnTypes();
         table.addEmptyRows(10);
-        for (long i=0; i<table.size(); i++)
+        for (long i = 0; i < table.size(); i++)
             table.setLong(5, i, i);
         TableQuery query = table.where();
         // Closes the table, it _should_ be allowed to access the query thereafter
@@ -95,8 +115,8 @@ public class JNICloseTest extends AndroidTestCase {
         table = null;
         Table table2 = TestHelper.getTableWithAllColumnTypes();
         table2.addEmptyRows(10);
-        for (int i=0; i<table2.size(); i++)
-            table2.setLong(5, i, 117+i);
+        for (int i = 0; i < table2.size(); i++)
+            table2.setLong(5, i, 117 + i);
 
         TableView tv = query.findAll();
         assertEquals(10, tv.size());
@@ -127,7 +147,7 @@ public class JNICloseTest extends AndroidTestCase {
         // TODO - add all methods from view
     }
 
-// TODO: this test is crashing
+    // TODO: this test is crashing
 /*    public void testShouldThrowWhenAccessingViewAfterTableIsDetached() {
         final String testFile = "closetest.realm";
         SharedGroup db;

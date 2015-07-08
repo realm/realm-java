@@ -1,7 +1,7 @@
 ext.coreVersion = '0.89.5'
 ext.clang = false // gcc is default for the NDK. It also produces smaller binaries
 
-def commonCflags = [ '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
+def commonCflags = ['-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto']
 
 enum Compiler {
     GCC, CLANG
@@ -43,18 +43,24 @@ class Target {
 
 // We are using gcc 4.8 for 32 bits targets and 4.9 for 64 bits targets, as the NDK defaults.
 def toolchains = [
-    new Toolchain( name:'arm', fullName:'arm-linux-androideabi', commandPrefix:'arm-linux-androideabi', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:8 ),
-    new Toolchain( name:'arm64', fullName:'aarch64-linux-android', commandPrefix:'aarch64-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:21 ),
-    new Toolchain( name:'mips', fullName:'mipsel-linux-android', commandPrefix:'mipsel-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 ),
-    new Toolchain( name:'x86', fullName:'x86', commandPrefix:'i686-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 )
+        new Toolchain(name: 'arm', fullName: 'arm-linux-androideabi', commandPrefix: 'arm-linux-androideabi', version: [(Compiler.GCC): '4.8', (Compiler.CLANG): '3.5'], platform: 8),
+        new Toolchain(name: 'arm64', fullName: 'aarch64-linux-android', commandPrefix: 'aarch64-linux-android', version: [(Compiler.GCC): '4.9', (Compiler.CLANG): '3.5'], platform: 21),
+        new Toolchain(name: 'mips', fullName: 'mipsel-linux-android', commandPrefix: 'mipsel-linux-android', version: [(Compiler.GCC): '4.8', (Compiler.CLANG): '3.5'], platform: 9),
+        new Toolchain(name: 'x86', fullName: 'x86', commandPrefix: 'i686-linux-android', version: [(Compiler.GCC): '4.8', (Compiler.CLANG): '3.5'], platform: 9)
 ]
 
 def targets = [
-    new Target( name:'arm', jniFolder:'armeabi', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb' ] ),
-    new Target( name:'arm-v7a', jniFolder:'armeabi-v7a', toolchain:toolchains.find{it.name == 'arm'}, cflags:[ '-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16' ] ),
-    new Target( name:'arm64', jniFolder:'arm64-v8a', toolchain:toolchains.find{it.name == 'arm64'}, cflags:[] ),
-    new Target( name:'mips', jniFolder:'mips', toolchain:toolchains.find{it.name == 'mips'}, cflags:[] ),
-    new Target( name:'x86', jniFolder:'x86', toolchain:toolchains.find{it.name == 'x86'}, cflags:[] )
+        new Target(name: 'arm', jniFolder: 'armeabi', toolchain: toolchains.find {
+            it.name == 'arm'
+        }, cflags: ['-mthumb']),
+        new Target(name: 'arm-v7a', jniFolder: 'armeabi-v7a', toolchain: toolchains.find {
+            it.name == 'arm'
+        }, cflags: ['-mthumb', '-march=armv7-a', '-mfloat-abi=softfp', '-mfpu=vfpv3-d16']),
+        new Target(name: 'arm64', jniFolder: 'arm64-v8a', toolchain: toolchains.find {
+            it.name == 'arm64'
+        }, cflags: []),
+        new Target(name: 'mips', jniFolder: 'mips', toolchain: toolchains.find { it.name == 'mips' }, cflags: []),
+        new Target(name: 'x86', jniFolder: 'x86', toolchain: toolchains.find { it.name == 'x86' }, cflags: [])
 ]
 
 buildscript {
@@ -130,11 +136,11 @@ toolchains.each { toolchain ->
         dependsOn { checkProperties }
         outputs.dir new File("${buildDir}/standalone-toolchains/${toolchain.name}")
         commandLine = [
-            "bash",
-            "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
-            "--platform=android-${toolchain.platform}",
-            "--install-dir=${buildDir}/standalone-toolchains/${toolchain.name}",
-            "--toolchain=${toolchain.fullName}-${clang?'clang'+toolchain.version[Compiler.CLANG]:toolchain.version[Compiler.GCC]}"
+                "bash",
+                "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
+                "--platform=android-${toolchain.platform}",
+                "--install-dir=${buildDir}/standalone-toolchains/${toolchain.name}",
+                "--toolchain=${toolchain.fullName}-${clang ? 'clang' + toolchain.version[Compiler.CLANG] : toolchain.version[Compiler.GCC]}"
         ]
     }
 }
@@ -146,19 +152,19 @@ targets.each { target ->
         dependsOn downloadCore
         dependsOn "generateNdkToolchain${target.toolchain.name.capitalize()}"
         environment PATH: "${buildDir}/standalone-toolchains/${target.toolchain.name}/bin:${System.env.PATH}"
-        environment CC: "${target.toolchain.commandPrefix}-${clang?'clang':'gcc'}"
+        environment CC: "${target.toolchain.commandPrefix}-${clang ? 'clang' : 'gcc'}"
         environment STRIP: "${target.toolchain.commandPrefix}-strip"
         environment REALM_ANDROID: '1'
         commandLine = [
-            'make',
-            '-C', "${projectDir}/src",
-            "CC_IS=${clang?'clang':'gcc'}",
-            "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
-            "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
-            "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
-            'LIB_SUFFIX_SHARED=.so',
-            "librealm-jni-${target.name}.so"
+                'make',
+                '-C', "${projectDir}/src",
+                "CC_IS=${clang ? 'clang' : 'gcc'}",
+                "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+                "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
+                "BASE_DENOM=${target.name}",
+                "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
+                'LIB_SUFFIX_SHARED=.so',
+                "librealm-jni-${target.name}.so"
         ]
     }
 
@@ -180,19 +186,19 @@ task clean(group: 'build', description: 'Clean the make artifacts') << {
     targets.each { target ->
         exec {
             commandLine = [
-                'make',
-                '-C', "${projectDir}/src",
-                "BASE_DENOM=${target.name}",
-                'LIB_SUFFIX_SHARED=.so',
-                'clean'
+                    'make',
+                    '-C', "${projectDir}/src",
+                    "BASE_DENOM=${target.name}",
+                    'LIB_SUFFIX_SHARED=.so',
+                    'clean'
             ]
         }
     }
     exec {
         commandLine = [
-            'rm',
-            '-rf',
-            "${projectDir}/build/*"
+                'rm',
+                '-rf',
+                "${projectDir}/build/*"
         ]
     }
 }

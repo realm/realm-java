@@ -23,7 +23,6 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
-import io.realm.entities.OwnerPrimaryKey;
 import io.realm.exceptions.RealmException;
 
 public class RealmListTest extends AndroidTestCase {
@@ -60,15 +59,25 @@ public class RealmListTest extends AndroidTestCase {
         realm.beginTransaction();
         for (int i = 0; i < 4; i++) {
             try {
-                switch(i) {
-                    case 0: list.get(0); break;
-                    case 1: list.remove(0); break;
-                    case 2: list.set(0, new Dog()); break;
-                    case 3: list.move(0,0); break;
+                switch (i) {
+                    case 0:
+                        list.get(0);
+                        break;
+                    case 1:
+                        list.remove(0);
+                        break;
+                    case 2:
+                        list.set(0, new Dog());
+                        break;
+                    case 3:
+                        list.move(0, 0);
+                        break;
+                    default:
+                        throw new UnsupportedOperationException();
                 }
                 fail();
-            } catch (IndexOutOfBoundsException expected) {
-            } catch (RealmException expected) {
+            } catch (IndexOutOfBoundsException ignored) {
+            } catch (RealmException ignored) {
             }
         }
         realm.cancelTransaction();
@@ -82,10 +91,6 @@ public class RealmListTest extends AndroidTestCase {
     protected void tearDown() throws Exception {
         testRealm.close();
     }
-
-    /*********************************************************
-     * Non-Managed mode tests                                *
-     *********************************************************/
 
     public void testPublicNoArgConstructor() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
@@ -122,7 +127,7 @@ public class RealmListTest extends AndroidTestCase {
     public void testAddManagedObject_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         testRealm.beginTransaction();
-        AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
         list.add(managedAllTypes);
 
@@ -234,7 +239,8 @@ public class RealmListTest extends AndroidTestCase {
         int newIndex = oldIndex + 1;
         Dog dog = owner.getDogs().get(oldIndex);
         testRealm.beginTransaction();
-        owner.getDogs().move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
+        owner.getDogs().move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's
+        // above gets shifted to the left.
         testRealm.commitTransaction();
 
         assertEquals(TEST_OBJECTS, owner.getDogs().size());
@@ -257,10 +263,6 @@ public class RealmListTest extends AndroidTestCase {
         checkMethodsOnEmptyList(testRealm, list);
     }
 
-    /*********************************************************
-     * Managed mode tests                                    *
-     *********************************************************/
-
     // Test move where oldPosition > newPosition
     public void testMoveDown_nonManagedMode() {
         RealmList<Dog> dogs = createNonManagedDogList();
@@ -276,7 +278,8 @@ public class RealmListTest extends AndroidTestCase {
         int oldIndex = TEST_OBJECTS / 2;
         int newIndex = oldIndex + 1;
         Dog dog = dogs.get(oldIndex);
-        dogs.move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets shifted to the left.
+        dogs.move(oldIndex, newIndex); // This doesn't do anything as oldIndex is now empty so the index's above gets
+        // shifted to the left.
 
         assertEquals(TEST_OBJECTS, dogs.size());
         assertEquals(oldIndex, dogs.indexOf(dog));
@@ -504,12 +507,36 @@ public class RealmListTest extends AndroidTestCase {
         list.add(dog);
         testRealm.commitTransaction();
 
-        try { list.add(dog);    fail(); } catch (IllegalStateException expected) {}
-        try { list.add(0, dog); fail(); } catch (IllegalStateException expected) {}
-        try { list.clear();     fail(); } catch (IllegalStateException expected) {}
-        try { list.move(0, 1);  fail(); } catch (IllegalStateException expected) {}
-        try { list.remove(0);   fail(); } catch (IllegalStateException expected) {}
-        try { list.set(0, dog); fail(); } catch (IllegalStateException expected) {}
+        try {
+            list.add(dog);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            list.add(0, dog);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            list.clear();
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            list.move(0, 1);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            list.remove(0);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+        try {
+            list.set(0, dog);
+            fail();
+        } catch (IllegalStateException expected) {
+        }
     }
 
     public void testSettingListClearsOldItems() {

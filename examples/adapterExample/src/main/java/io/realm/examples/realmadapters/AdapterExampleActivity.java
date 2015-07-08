@@ -30,7 +30,6 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.examples.realmadapters.models.TimeStamp;
 
-
 public class AdapterExampleActivity extends Activity {
 
     private Realm realm;

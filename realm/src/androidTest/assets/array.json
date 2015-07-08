@@ -1,5 +1,11 @@
 [
-    { "name" : "Fido-1" },
-    { "name" : "Fido-2" },
-    { "name" : "Fido-3" }
+  {
+    "name": "Fido-1"
+  },
+  {
+    "name": "Fido-2"
+  },
+  {
+    "name": "Fido-3"
+  }
 ]

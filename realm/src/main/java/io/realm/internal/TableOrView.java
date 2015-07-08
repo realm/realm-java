@@ -23,14 +23,12 @@ import java.util.Date;
  */
 public interface TableOrView {
 
-    public static final int NO_MATCH = -1;
+    int NO_MATCH = -1;
 
     void clear();
 
     /**
-     * Returns the table
-     *
-     * @return
+     * Returns the table.
      */
     Table getTable();
 
@@ -38,8 +36,6 @@ public interface TableOrView {
 
     /**
      * Returns the number of entries of the table/view.
-     *
-     * @return
      */
     long size();
 
@@ -51,11 +47,8 @@ public interface TableOrView {
     boolean isEmpty();
 
     /**
-     * Removes a particular row identified by the index from the table/view.
-     * [citation needed] The corresponding row of the table also get deleted for
-     * which the table/view is part of.
-     *
-     * @param index
+     * Removes a particular row identified by the index from the table/view. [citation needed] The corresponding row of
+     * the table also get deleted for which the table/view is part of.
      */
     void remove(long index);
 
@@ -70,72 +63,38 @@ public interface TableOrView {
     ColumnType getColumnType(long columnIndex);
 
     /**
-     * Get the long value of a cell of the table/view identified by the
-     * columnIndex and rowIndex.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @return
+     * Get the long value of a cell of the table/view identified by the columnIndex and rowIndex.
      */
     long getLong(long columnIndex, long rowIndex);
 
     /**
-     * Get the boolean value of a cell of the table identified by the
-     * columnIndex and rowIndex.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @return
+     * Get the boolean value of a cell of the table identified by the columnIndex and rowIndex.
      */
     boolean getBoolean(long columnIndex, long rowIndex);
 
     /**
-     * Get the float value of a cell of the table identified by the
-     * columnIndex and rowIndex.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @return
+     * Get the float value of a cell of the table identified by the columnIndex and rowIndex.
      */
     float getFloat(long columnIndex, long rowIndex);
 
     /**
-     * Get the double value of a cell of the table identified by the
-     * columnIndex and rowIndex.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @return
+     * Get the double value of a cell of the table identified by the columnIndex and rowIndex.
      */
     double getDouble(long columnIndex, long rowIndex);
 
     /**
-     * Gets the string value of a cell identified by the columnIndex and
-     * rowIndex of the cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @return
+     * Gets the string value of a cell identified by the columnIndex and rowIndex of the cell.
      */
     String getString(long columnIndex, long rowIndex);
 
     /**
-     * Returns the Date value (java.util.Date) for a particular cell specified
-     * by the columnIndex and rowIndex of the cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @return
+     * Returns the Date value (java.util.Date) for a particular cell specified by the columnIndex and rowIndex of the
+     * cell.
      */
     Date getDate(long columnIndex, long rowIndex);
 
     /**
-     * Returns the binary data for a cell identified by the columnIndex
-     * and rowIndex of that cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @return
+     * Returns the binary data for a cell identified by the columnIndex and rowIndex of that cell.
      */
     //ByteBuffer getBinaryByteBuffer(long columnIndex, long rowIndex);
 
@@ -144,12 +103,7 @@ public interface TableOrView {
     Mixed getMixed(long columnIndex, long rowIndex);
 
     /**
-     * Get the link index of a cell of the table/view identified by the
-     * columnIndex and rowIndex.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @return
+     * Get the link index of a cell of the table/view identified by the columnIndex and rowIndex.
      */
     long getLink(long columnIndex, long rowIndex);
 
@@ -162,62 +116,33 @@ public interface TableOrView {
     long getSubtableSize(long columnIndex, long rowIndex);
 
     /**
-     * Sets the long value for a particular cell identified by columnIndex and
-     * rowIndex of that cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @param value
+     * Sets the long value for a particular cell identified by columnIndex and rowIndex of that cell.
      */
     void setLong(long columnIndex, long rowIndex, long value);
 
     /**
-     * Sets the boolean value of a cell identified by the columnIndex and the
-     * rowIndex of that cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @param value
+     * Sets the boolean value of a cell identified by the columnIndex and the rowIndex of that cell.
      */
     void setBoolean(long columnIndex, long rowIndex, boolean value);
 
     /**
-     * Sets the float value of a cell identified by the columnIndex and the
-     * rowIndex of that cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @param value
+     * Sets the float value of a cell identified by the columnIndex and the rowIndex of that cell.
      */
     void setFloat(long columnIndex, long rowIndex, float value);
 
     /**
-     * Sets the double value of a cell identified by the columnIndex and the
-     * rowIndex of that cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @param value
+     * Sets the double value of a cell identified by the columnIndex and the rowIndex of that cell.
      */
     void setDouble(long columnIndex, long rowIndex, double value);
 
     /**
-     * Sets the string value of a particular cell of the table/view identified
-     * by the columnIndex and the rowIndex of this table/view
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @param value
+     * Sets the string value of a particular cell of the table/view identified by the columnIndex and the rowIndex of
+     * this table/view.
      */
     void setString(long columnIndex, long rowIndex, String value);
 
     /**
-     * Sets the binary value for a particular cell identified by the
-     * rowIndex and columnIndex of the cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @param data
+     * Sets the binary value for a particular cell identified by the rowIndex and columnIndex of the cell.
      */
     //void setBinaryByteBuffer(long columnIndex, long rowIndex, ByteBuffer data);
 
@@ -232,12 +157,7 @@ public interface TableOrView {
     void nullifyLink(long columnIndex, long rowIndex);
 
     /**
-     * Sets the link index for a particular cell identified by columnIndex and
-     * rowIndex of that cell.
-     *
-     * @param columnIndex
-     * @param rowIndex
-     * @param value
+     * Sets the link index for a particular cell identified by columnIndex and rowIndex of that cell.
      */
     void setLink(long columnIndex, long rowIndex, long value);
 
@@ -252,7 +172,6 @@ public interface TableOrView {
 
     double averageLong(long columnIndex);
 
-
     double sumFloat(long columnIndex);
 
     float maximumFloat(long columnIndex);
@@ -260,7 +179,6 @@ public interface TableOrView {
     float minimumFloat(long columnIndex);
 
     double averageFloat(long columnIndex);
-
 
     double sumDouble(long columnIndex);
 
@@ -270,69 +188,67 @@ public interface TableOrView {
 
     double averageDouble(long columnIndex);
 
-
     Date maximumDate(long columnIndex);
 
     Date minimumDate(long columnIndex);
 
-
     /**
      * Searches for first occurrence of a value. Beware that the order in the column is undefined.
      *
-     * @param columnIndex   Column to search in.
-     * @param value         Value to search for.
-     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     * @param columnIndex Column to search in.
+     * @param value Value to search for.
+     * @return Row index for the first match found or {@link #NO_MATCH}.
      */
     long findFirstLong(long columnIndex, long value);
 
     /**
      * Searches for first occurrence of a value. Beware that the order in the column is undefined.
      *
-     * @param columnIndex   Column to search in.
-     * @param value         Value to search for.
-     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     * @param columnIndex Column to search in.
+     * @param value Value to search for.
+     * @return Row index for the first match found or {@link #NO_MATCH}.
      */
     long findFirstBoolean(long columnIndex, boolean value);
 
     /**
      * Searches for first occurrence of a value. Beware that the order in the column is undefined.
      *
-     * @param columnIndex   Column to search in.
-     * @param value         Value to search for.
-     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     * @param columnIndex Column to search in.
+     * @param value Value to search for.
+     * @return Row index for the first match found or {@link #NO_MATCH}.
      */
     long findFirstFloat(long columnIndex, float value);
 
     /**
      * Searches for first occurrence of a value. Beware that the order in the column is undefined.
      *
-     * @param columnIndex   Column to search in.
-     * @param value         Value to search for.
-     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     * @param columnIndex Column to search in.
+     * @param value Value to search for.
+     * @return Row index for the first match found or {@link #NO_MATCH}.
      */
     long findFirstDouble(long columnIndex, double value);
 
     /**
      * Searches for first occurrence of a value. Beware that the order in the column is undefined.
      *
-     * @param columnIndex   Column to search in.
-     * @param value         Value to search for.
-     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     * @param columnIndex Column to search in.
+     * @param value Value to search for.
+     * @return Row index for the first match found or {@link #NO_MATCH}.
      */
     long findFirstDate(long columnIndex, Date value);
 
     /**
      * Searches for first occurrence of a value. Beware that the order in the column is undefined.
      *
-     * @param columnIndex   Column to search in.
-     * @param value         Value to search for.
-     * @return              Row index for the first match found or {@link #NO_MATCH}.
+     * @param columnIndex Column to search in.
+     * @param value Value to search for.
+     * @return Row index for the first match found or {@link #NO_MATCH}.
      */
     long findFirstString(long columnIndex, String value);
 
     long lowerBoundLong(long columnIndex, long value);
-    long upperBoundLong(long columnIndex, long value);
 
+    long upperBoundLong(long columnIndex, long value);
 
     TableView findAllLong(long columnIndex, long value);
 
@@ -360,7 +276,7 @@ public interface TableOrView {
 
     long count(long columnIndex, String value);
 
-    public enum PivotType {
+    enum PivotType {
         COUNT(0),
         SUM(1),
         AVG(2),
@@ -374,13 +290,13 @@ public interface TableOrView {
         }
     }
 
-    public Table pivot(long stringCol, long intCol, PivotType pivotType);
+    Table pivot(long stringCol, long intCol, PivotType pivotType);
 
     /**
-     * Syncs the tableview with the underlying table data. It is not required to call this
-     * explicitly, all other API methods will automatically sync the view as well.
+     * Syncs the tableview with the underlying table data. It is not required to call this explicitly, all other API
+     * methods will automatically sync the view as well.
      *
      * @return Version number for the updated tableview.
      */
-    public long sync();
+    long sync();
 }

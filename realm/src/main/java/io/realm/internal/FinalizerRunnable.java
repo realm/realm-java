@@ -21,9 +21,8 @@ import java.lang.ref.ReferenceQueue;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 /**
- * This runnable performs the garbage collection of the references stored in the reference queue
+ * This runnable performs the garbage collection of the references stored in the reference queue.
  */
 public class FinalizerRunnable implements Runnable {
 
@@ -35,7 +34,6 @@ public class FinalizerRunnable implements Runnable {
     // This is the actual reference queue in which the garbage collector will insert the row instances ready to be
     // cleaned up
     static final ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
-
 
     @Override
     public void run() {

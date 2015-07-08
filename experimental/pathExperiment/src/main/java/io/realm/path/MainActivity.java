@@ -29,10 +29,10 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import de.greenrobot.event.EventBus;
 
-
 public class MainActivity extends ActionBarActivity {
 
-    @InjectView(R.id.list) LinearLayout list;
+    @InjectView(R.id.list)
+    LinearLayout list;
 
     private EventBus bus;
     private JobManager jobManager;
@@ -52,7 +52,8 @@ public class MainActivity extends ActionBarActivity {
         jobManager.addJob(new AddPersonJob(this));
     }
 
-    // Callback from EventBus on the same thread as the job which posted the event. This is not executed on the UI thread.
+    // Callback from EventBus on the same thread as the job which posted the event. This is not executed on the UI
+    // thread.
     public void onEvent(Person person) {
         final String description = person.toString();
         runOnUiThread(new Runnable() {

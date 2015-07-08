@@ -1,12 +1,16 @@
 package io.realm.internal.test;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
-public class ExtraTests {
+public final class ExtraTests {
+
+    private ExtraTests() {}
 
     public static void assertArrayEquals(Object[] expecteds, Object[] actuals) {
         new ExactComparisonCriteria().arrayEquals(null, expecteds, actuals);
@@ -16,70 +20,62 @@ public class ExtraTests {
         new ExactComparisonCriteria().arrayEquals(null, expecteds, actuals);
     }
 
-    public static void assertDateArrayEquals(Object[] expecteds, Date[] actuals)
-    {
-        int i=0;
+    public static void assertDateArrayEquals(Object[] expecteds, Date[] actuals) {
+        int i = 0;
         for (Date date : actuals) {
-            Date expect = (Date)expecteds[i];
-            assertEquals(expect.getTime()/1000, date.getTime()/1000);
+            Date expect = (Date) expecteds[i];
+            assertEquals(expect.getTime() / 1000, date.getTime() / 1000);
             i++;
         }
     }
 
     private static class ExactComparisonCriteria extends ComparisonCriteria {
-        protected void assertElementsEqual(Object expected, Object actual)
-        {
+        protected void assertElementsEqual(Object expected, Object actual) {
             assertEquals(expected, actual);
         }
     }
 
-    private static abstract class ComparisonCriteria {
-        public void arrayEquals(String message, Object expecteds, Object actuals) throws ArrayComparisonFailure
-        {
+    private abstract static class ComparisonCriteria {
+        public void arrayEquals(String message, Object expecteds, Object actuals) throws ArrayComparisonFailure {
             if (expecteds == actuals) return;
-            String header= message == null ? "" : message + ": ";
+            String header = message == null ? "" : message + ": ";
 
-            int expectedsLength= assertArraysAreSameLength(expecteds, actuals, header);
+            int expectedsLength = assertArraysAreSameLength(expecteds, actuals, header);
 
-            for (int i= 0; i < expectedsLength; ++i) {
-                Object expected= Array.get(expecteds, i);
-                Object actual= Array.get(actuals, i);
+            for (int i = 0; i < expectedsLength; ++i) {
+                Object expected = Array.get(expecteds, i);
+                Object actual = Array.get(actuals, i);
 
                 if (isArray(expected) && isArray(actual)) {
                     try {
                         arrayEquals(message, expected, actual);
-                    }
-                    catch (ArrayComparisonFailure e) {
+                    } catch (ArrayComparisonFailure e) {
                         e.addDimension(i);
                         throw e;
                     }
-                }
-                else
+                } else
                     try {
                         assertElementsEqual(expected, actual);
-                    }
-                    catch (AssertionError e) {
+                    } catch (AssertionError e) {
                         throw new ArrayComparisonFailure(header, e, i);
                     }
             }
         }
 
-        private boolean isArray(Object expected)
-        {
+        private boolean isArray(Object expected) {
             return expected != null && expected.getClass().isArray();
         }
 
-        private int assertArraysAreSameLength(Object expecteds, Object actuals, String header)
-        {
+        private int assertArraysAreSameLength(Object expecteds, Object actuals, String header) {
             if (expecteds == null)
                 fail(header + "expected array was null");
             if (actuals == null)
                 fail(header + "actual array was null");
-            int actualsLength= Array.getLength(actuals);
-            int expectedsLength= Array.getLength(expecteds);
+            int actualsLength = Array.getLength(actuals);
+            int expectedsLength = Array.getLength(expecteds);
             if (actualsLength != expectedsLength)
                 fail(header + "array lengths differed, expected.length="
-                                 + expectedsLength + " actual.length=" + actualsLength);
+                        + expectedsLength + " actual.length=" + actualsLength);
             return expectedsLength;
         }
 
@@ -88,15 +84,15 @@ public class ExtraTests {
 
     private static class ArrayComparisonFailure extends AssertionError {
 
-        private static final long serialVersionUID= 1L;
+        private static final long serialVersionUID = 1L;
 
-        private List<Integer> fIndices= new ArrayList<Integer>();
+        private List<Integer> fIndices = new ArrayList<Integer>();
         private final String fMessage;
         private final AssertionError fCause;
 
         public ArrayComparisonFailure(String message, AssertionError cause, int index) {
-            fMessage= message;
-            fCause= cause;
+            fMessage = message;
+            fCause = cause;
             addDimension(index);
         }
 
@@ -106,7 +102,7 @@ public class ExtraTests {
 
         @Override
         public String getMessage() {
-            StringBuilder builder= new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             if (fMessage != null)
                 builder.append(fMessage);
             builder.append("arrays first differed at element ");
@@ -120,7 +116,8 @@ public class ExtraTests {
             return builder.toString();
         }
 
-        @Override public String toString() {
+        @Override
+        public String toString() {
             return getMessage();
         }
     }

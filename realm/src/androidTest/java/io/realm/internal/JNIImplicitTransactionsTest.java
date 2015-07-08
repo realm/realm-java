@@ -28,7 +28,8 @@ public class JNIImplicitTransactionsTest extends AndroidTestCase {
 
     public void testImplicitTransactions() {
         deleteFile();
-        SharedGroup sg = new SharedGroup(testFile, true, SharedGroup.Durability.FULL, null); // TODO: try with encryption
+        SharedGroup sg = new SharedGroup(testFile, true, SharedGroup.Durability.FULL, null); // TODO: try with
+        // encryption
 
         // Create a table
         WriteTransaction wt = sg.beginWrite();

@@ -47,7 +47,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         obj.setFieldByte((byte) 4);
         obj.setFieldFloat(1.23f);
         obj.setFieldDouble(1.234d);
-        obj.setFieldBinary(new byte[]{1, 2, 3});
+        obj.setFieldBinary(new byte[] {1, 2, 3});
         obj.setFieldBoolean(true);
         obj.setFieldDate(new Date(1000));
         obj.setFieldObject(obj);
@@ -80,26 +80,50 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
             try {
                 callGetter(type, args);
                 fail();
-            } catch(IllegalArgumentException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
 
     private void callGetter(SupportedType type, List<String> arguments) {
         for (String fieldName : arguments) {
-            switch(type) {
-                case BOOLEAN: dObj.getBoolean(fieldName); break;
-                case SHORT: dObj.getShort(fieldName); break;
-                case INT: dObj.getInt(fieldName); break;
-                case LONG: dObj.getLong(fieldName); break;
-                case BYTE: dObj.getByte(fieldName); break;
-                case FLOAT: dObj.getFloat(fieldName); break;
-                case DOUBLE: dObj.getDouble(fieldName); break;
-                case STRING: dObj.getString(fieldName); break;
-                case BINARY: dObj.getBlob(fieldName); break;
-                case DATE: dObj.getDate(fieldName); break;
-                case OBJECT: dObj.getObject(fieldName); break;
-                case LIST: dObj.getList(fieldName); break;
+            switch (type) {
+                case BOOLEAN:
+                    dObj.getBoolean(fieldName);
+                    break;
+                case SHORT:
+                    dObj.getShort(fieldName);
+                    break;
+                case INT:
+                    dObj.getInt(fieldName);
+                    break;
+                case LONG:
+                    dObj.getLong(fieldName);
+                    break;
+                case BYTE:
+                    dObj.getByte(fieldName);
+                    break;
+                case FLOAT:
+                    dObj.getFloat(fieldName);
+                    break;
+                case DOUBLE:
+                    dObj.getDouble(fieldName);
+                    break;
+                case STRING:
+                    dObj.getString(fieldName);
+                    break;
+                case BINARY:
+                    dObj.getBlob(fieldName);
+                    break;
+                case DATE:
+                    dObj.getDate(fieldName);
+                    break;
+                case OBJECT:
+                    dObj.getObject(fieldName);
+                    break;
+                case LIST:
+                    dObj.getList(fieldName);
+                    break;
                 default:
                     fail();
             }
@@ -120,26 +144,50 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
             try {
                 callSetter(type, args);
                 fail();
-            } catch(IllegalArgumentException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
 
     private void callSetter(SupportedType type, List<String> arguments) {
         for (String fieldName : arguments) {
-            switch(type) {
-                case BOOLEAN: dObj.setBoolean(fieldName, false); break;
-                case SHORT: dObj.setShort(fieldName, (short) 1); break;
-                case INT: dObj.setInt(fieldName, 1); break;
-                case LONG: dObj.setLong(fieldName, 1L); break;
-                case BYTE: dObj.setByte(fieldName, (byte) 4); break;
-                case FLOAT: dObj.setFloat(fieldName, 1.23f); break;
-                case DOUBLE: dObj.setDouble(fieldName, 1.23d); break;
-                case STRING: dObj.setString(fieldName, "foo"); break;
-                case BINARY: dObj.setBlob(fieldName, new byte[]{}); break;
-                case DATE: dObj.getDate(fieldName); break;
-                case OBJECT: dObj.setObject(fieldName, null); break;
-                case LIST: dObj.setList(fieldName, null); break;
+            switch (type) {
+                case BOOLEAN:
+                    dObj.setBoolean(fieldName, false);
+                    break;
+                case SHORT:
+                    dObj.setShort(fieldName, (short) 1);
+                    break;
+                case INT:
+                    dObj.setInt(fieldName, 1);
+                    break;
+                case LONG:
+                    dObj.setLong(fieldName, 1L);
+                    break;
+                case BYTE:
+                    dObj.setByte(fieldName, (byte) 4);
+                    break;
+                case FLOAT:
+                    dObj.setFloat(fieldName, 1.23f);
+                    break;
+                case DOUBLE:
+                    dObj.setDouble(fieldName, 1.23d);
+                    break;
+                case STRING:
+                    dObj.setString(fieldName, "foo");
+                    break;
+                case BINARY:
+                    dObj.setBlob(fieldName, new byte[] {});
+                    break;
+                case DATE:
+                    dObj.getDate(fieldName);
+                    break;
+                case OBJECT:
+                    dObj.setObject(fieldName, null);
+                    break;
+                case LIST:
+                    dObj.setList(fieldName, null);
+                    break;
                 default:
                     fail();
             }
@@ -187,8 +235,8 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         assertEquals("str", dObj.getString(AllJavaTypes.FIELD_STRING));
                         break;
                     case BINARY:
-                        dObj.setBlob(AllJavaTypes.FIELD_BINARY, new byte[]{1, 2, 3});
-                        assertArrayEquals(new byte[]{1, 2, 3}, dObj.getBlob(AllJavaTypes.FIELD_BINARY));
+                        dObj.setBlob(AllJavaTypes.FIELD_BINARY, new byte[] {1, 2, 3});
+                        assertArrayEquals(new byte[] {1, 2, 3}, dObj.getBlob(AllJavaTypes.FIELD_BINARY));
                         break;
                     case DATE:
                         dObj.setDate(AllJavaTypes.FIELD_DATE, new Date(1000));
@@ -277,10 +325,10 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     }
 
     public void testGetFieldNames() {
-        String[] expectedKeys = { AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT,
+        String[] expectedKeys = {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT,
                 AllJavaTypes.FIELD_LONG, AllJavaTypes.FIELD_BYTE, AllJavaTypes.FIELD_FLOAT, AllJavaTypes.FIELD_DOUBLE,
                 AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE, AllJavaTypes.FIELD_BINARY,
-                AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST };
+                AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST};
         String[] keys = dObj.getFieldNames();
         assertArrayEquals(expectedKeys, keys);
     }

@@ -40,7 +40,8 @@ import io.realm.internal.Util;
  */
 public class CompositeMediator extends RealmProxyMediator {
 
-    Map<Class<? extends RealmObject>, RealmProxyMediator> mediators = new HashMap<Class<? extends RealmObject>, RealmProxyMediator>();
+    Map<Class<? extends RealmObject>, RealmProxyMediator> mediators = new HashMap<Class<? extends RealmObject>,
+            RealmProxyMediator>();
 
     public void addMediator(RealmProxyMediator mediator) {
         for (Class<? extends RealmObject> realmClass : mediator.getModelClasses()) {
@@ -94,19 +95,22 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
+    public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject,
+            RealmObjectProxy> cache) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
         return mediator.copyOrUpdate(realm, object, update, cache);
     }
 
     @Override
-    public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json, boolean update) throws JSONException {
+    public <E extends RealmObject> E createOrUpdateUsingJsonObject(Class<E> clazz, Realm realm, JSONObject json,
+                                                                   boolean update) throws JSONException {
         RealmProxyMediator mediator = getMediator(clazz);
         return mediator.createOrUpdateUsingJsonObject(clazz, realm, json, update);
     }
 
     @Override
-    public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws IOException {
+    public <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws
+            IOException {
         RealmProxyMediator mediator = getMediator(clazz);
         return mediator.createUsingJsonStream(clazz, realm, reader);
     }

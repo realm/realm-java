@@ -16,11 +16,6 @@
 
 package some.test;
 
-import java.util.Date;
-
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmModule;
 
 @RealmModule(library = true, allClasses = true)

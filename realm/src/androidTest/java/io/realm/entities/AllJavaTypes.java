@@ -24,7 +24,7 @@ import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
-public class AllJavaTypes extends RealmObject{
+public class AllJavaTypes extends RealmObject {
 
     public static String FIELD_IGNORED = "fieldIgnored";
     public static String FIELD_STRING = "fieldString";
@@ -40,11 +40,14 @@ public class AllJavaTypes extends RealmObject{
     public static String FIELD_OBJECT = "fieldObject";
     public static String FIELD_LIST = "fieldList";
 
-    @Ignore private String fieldIgnored;
-    @Index private String fieldString;
+    @Ignore
+    private String fieldIgnored;
+    @Index
+    private String fieldString;
     private short fieldShort;
     private int fieldInt;
-    @PrimaryKey private long fieldLong;
+    @PrimaryKey
+    private long fieldLong;
     private byte fieldByte;
     private float fieldFloat;
     private double fieldDouble;

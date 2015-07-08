@@ -28,7 +28,6 @@ import java.util.List;
 
 import io.realm.internal.test.TestHelper;
 
-
 public class JNITableInsertTest extends TestCase {
 
     static List<Object> value = new ArrayList<Object>();
@@ -42,10 +41,10 @@ public class JNITableInsertTest extends TestCase {
         value.add(3, 987.123f);
         value.add(4, 1234567.898d);
         value.add(5, new Date(645342));
-        value.add(6, new byte[]{1, 2, 3, 4, 5});
+        value.add(6, new byte[] {1, 2, 3, 4, 5});
         return Arrays.asList(
-                new Object[]{value},
-                new Object[]{value}
+                new Object[] {value},
+                new Object[] {value}
         );
     }
 
@@ -75,7 +74,6 @@ public class JNITableInsertTest extends TestCase {
         assertTrue(tbl.isValid());
     }
 
-
     public void testShouldInsertAddAndSetRows() {
         Table table = new Table();
         TableSpec tableSpec = new TableSpec();
@@ -96,17 +94,17 @@ public class JNITableInsertTest extends TestCase {
         long mixed = 123;
 
         // Check subtable
-        Object[][] subTblData = new Object[][]{{234, "row0"},
+        Object[][] subTblData = new Object[][] {{234, "row0"},
                 {345, "row1"},
                 {456, "row2"}};
-        Object[] rowData0 = new Object[]{false, (short) 2, "hi", buf, date, mixed, subTblData};
+        Object[] rowData0 = new Object[] {false, (short) 2, "hi", buf, date, mixed, subTblData};
         long index = table.add(rowData0);
         assertEquals(0, index);
         verifyRow(table, 0, rowData0);
 
-        Object[] rowData1 = new Object[]{false, 7, "hi1", new byte[]{0, 2, 3}, date, "mix1", null};
-        Object[] rowData2 = new Object[]{true, 12345567789L, "hello", new byte[]{0}, date, buf, null};
-        Object[] rowData3 = new Object[]{false, (byte) 17, "hi3", buf, date, mixedSubtable, null};
+        Object[] rowData1 = new Object[] {false, 7, "hi1", new byte[] {0, 2, 3}, date, "mix1", null};
+        Object[] rowData2 = new Object[] {true, 12345567789L, "hello", new byte[] {0}, date, buf, null};
+        Object[] rowData3 = new Object[] {false, (byte) 17, "hi3", buf, date, mixedSubtable, null};
         // TODO: support insert of mixed subtable
 
         table.addAt(1, rowData1);
@@ -120,15 +118,15 @@ public class JNITableInsertTest extends TestCase {
         verifyRow(table, 3, rowData2);
 
         // Same test - but a one-liner...
-        table.add(false, (short) 2, "hi", buf, date, mixed, new Object[][]{{234, "row0"},
+        table.add(false, (short) 2, "hi", buf, date, mixed, new Object[][] {{234, "row0"},
                 {345, "row1"},
                 {456, "row2"}});
         verifyRow(table, 4, rowData0);
 
         // Test set()
         Date date2 = new Date(123);
-        Object[] newRowData = new Object[]{true, 321, "new", new byte[]{5},
-                date2, "hey", new Object[][]{{432, "new"}}};
+        Object[] newRowData = new Object[] {true, 321, "new", new byte[] {5},
+                date2, "hey", new Object[][] {{432, "new"}}};
         table.set(2, newRowData);
         verifyRow(table, 0, rowData3);
         verifyRow(table, 1, rowData0);
@@ -232,19 +230,18 @@ public class JNITableInsertTest extends TestCase {
 
         // Wrong type of parameter (String instead of subtable-Int)
         try {
-            table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[][]{{"err", 2, 3}});
+            table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[][] {{"err", 2, 3}});
             fail("expected exception.");
         } catch (IllegalArgumentException e) {
         }
 
         // Wrong type of parameter (String instead of subtable-Int)
         try {
-            table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[]{1, 2, 3});
+            table.addAt(0, false, 1, "hi", buf, new Date(), mix, new Object[] {1, 2, 3});
             fail("expected exception.");
         } catch (IllegalArgumentException e) {
         }
     }
-
 
     public void testIncrementInColumnTest() {
 
@@ -267,14 +264,13 @@ public class JNITableInsertTest extends TestCase {
         assertEquals(43, table.getLong(1, 4));
     }
 
-
     public void testAdjustColumnValuesOnUnsupportedColumnTypeTest() {
 
         Table table = TestHelper.getTableWithAllColumnTypes();
 
         for (long c = 0; c < table.getColumnCount(); c++) {
 
-            if (table.getColumnType(c).equals(ColumnType.INTEGER) == false) { // Do not check if it is a Long column
+            if (!table.getColumnType(c).equals(ColumnType.INTEGER)) { // Do not check if it is a Long column
                 try {
                     table.adjust(c, 10);
                     assertTrue(false); //We should never get here, as an exception is thrown above
@@ -292,7 +288,7 @@ public class JNITableInsertTest extends TestCase {
             table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, "
                     + "LONGER THAN THE MAX 63 CHARACTERS");
             fail("Too long name");
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -325,7 +321,6 @@ public class JNITableInsertTest extends TestCase {
             }
         }
     }
-
 
     public static Test suite() {
         return new JNITestSuite(JNITableInsertTest.class, parameters());

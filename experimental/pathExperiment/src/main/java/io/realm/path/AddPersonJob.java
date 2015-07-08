@@ -73,7 +73,7 @@ public class AddPersonJob extends Job {
     }
 
     private String getRandomName() {
-        String[] names = new String[] { "John", "Frank", "Niels"};
+        String[] names = new String[] {"John", "Frank", "Niels"};
         return names[random.nextInt(names.length)];
     }
 

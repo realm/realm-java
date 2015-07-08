@@ -25,19 +25,18 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.LinkView;
 
 /**
- * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
- * RealmList has two modes: A managed and non-managed mode. In managed mode all objects are persisted
- * inside a Realm, in non-managed mode it works as a normal ArrayList.
- * <p>
- * Only Realm can create managed RealmLists. Managed RealmLists will automatically update the
- * content whenever the underlying Realm is updated, and can only be accessed using the getter
- * of a {@link io.realm.RealmObject}.
- * <p>
- * Non-managed RealmLists can be created by the user and can contain both managed and non-managed
- * RealmObjects. This is useful when dealing with JSON deserializers like GSON or other
- * frameworks that inject values into a class. Non-managed elements in this list can be added to a
- * Realm using the {@link Realm#copyToRealm(Iterable)} method.
- * <p>
+ * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}. RealmList has two modes: A
+ * managed and non-managed mode. In managed mode all objects are persisted inside a Realm, in non-managed mode it works
+ * as a normal ArrayList.
+ * <p/>
+ * Only Realm can create managed RealmLists. Managed RealmLists will automatically update the content whenever the
+ * underlying Realm is updated, and can only be accessed using the getter of a {@link io.realm.RealmObject}.
+ * <p/>
+ * Non-managed RealmLists can be created by the user and can contain both managed and non-managed RealmObjects. This is
+ * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
+ * Non-managed elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
+ * <p/>
+ *
  * @param <E> The class of objects in list.
  */
 
@@ -53,12 +52,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     private List<E> nonManagedList;
 
     /**
-     * Create a RealmList in non-managed mode, where the elements are not controlled by a Realm.
-     * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible
-     * to query the objects in this state.
-     * <p>
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)}  to properly persist it's elements in
-     * Realm.
+     * Create a RealmList in non-managed mode, where the elements are not controlled by a Realm. This effectively makes
+     * the RealmList function as a {@link java.util.ArrayList} and it is not possible to query the objects in this
+     * state.
+     * <p/>
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)}  to properly persist it's elements in Realm.
      */
     public RealmList() {
         managedMode = false;
@@ -66,12 +64,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Create a RealmList in non-managed mode with an initial list of elements.
-     * A RealmList in non-managed mode function as a {@link java.util.ArrayList} and it is not
-     * possible to query the objects in this state.
-     *
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all non-managed elements
-     * in Realm.
+     * Create a RealmList in non-managed mode with an initial list of elements. A RealmList in non-managed mode function
+     * as a {@link java.util.ArrayList} and it is not possible to query the objects in this state.
+     * <p/>
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all non-managed elements in Realm.
      *
      * @param objects Initial objects in the list.
      */
@@ -88,7 +84,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * Creates a RealmList from a LinkView, so its elements are managed by Realm.
      *
      * @param clazz Type of elements in the Array
-     * @param view  Backing LinkView
+     * @param view Backing LinkView
      * @param realm Reference to Realm containing the data
      */
     RealmList(Class<E> clazz, LinkView view, Realm realm) {
@@ -101,16 +97,14 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     /**
      * Inserts the specified object into this List at the specified location. The object is inserted before any previous
      * element at the specified location. If the location is equal to the size of this List, the object is added at the
-     * end.
-     * <ol>
-     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
-     * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * end. <ol> <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding
+     * managed objects to a un-managed RealmList they will not be copied to the Realm again if using {@link
+     * Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * <p/>
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed.
+     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)} or
+     * {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li> </ol>
      *
-     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
-     * </ol>
      * @param location the index at which to insert.
      * @param object the object to add.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}
@@ -127,16 +121,14 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Adds the specified object at the end of this List.
-     * <ol>
-     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
-     * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * Adds the specified object at the end of this List. <ol> <li><b>Un-managed RealmLists:</b> It is possible to add
+     * both managed and un-managed objects. If adding managed objects to a un-managed RealmList they will not be copied
+     * to the Realm again if using {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * <p/>
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed.
+     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)} or
+     * {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li> </ol>
      *
-     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
-     * </ol>
      * @param object the object to add.
      * @return true
      */
@@ -153,20 +145,19 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Replaces the element at the specified location in this list with the
-     * specified object.
-     * <ol>
-     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
-     * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * Replaces the element at the specified location in this list with the specified object. <ol> <li><b>Un-managed
+     * RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed objects to a
+     * un-managed RealmList they will not be copied to the Realm again if using {@link Realm#copyToRealm(RealmObject)}
+     * afterwards.</li>
+     * <p/>
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed.
+     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)} or
+     * {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li> </ol>
      *
-     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
-     * </ol>
      * @param location the index at which to put the specified object.
      * @param object the object to add.
      * @return the previous element at the index.
+     *
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
@@ -181,7 +172,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         return object;
     }
 
-    // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
+    // Transparently copies a standalone object or managed object from another Realm to the Realm backing this
+    // RealmList.
     private E copyToRealmIfNeeded(E object) {
         if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
@@ -194,14 +186,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Moves an object from one position to another, while maintaining a fixed sized list.
-     * RealmObjects will be shifted so no null values are introduced.
+     * Moves an object from one position to another, while maintaining a fixed sized list. RealmObjects will be shifted
+     * so no null values are introduced.
      *
      * @param oldPos Index of RealmObject to move.
-     * @param newPos Target position. If newPos &lt; oldPos the object at the location will be shifted
-     *               to the right. If oldPos &lt; newPos, indexes &gt; oldPos will be shifted once to the
-     *               left.
-     *
+     * @param newPos Target position. If newPos &lt; oldPos the object at the location will be shifted to the right. If
+     * oldPos &lt; newPos, indexes &gt; oldPos will be shifted once to the left.
      * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()[.
      */
     public void move(int oldPos, int newPos) {
@@ -299,9 +289,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns a RealmQuery, which can be used to query for specific objects of this class
+     * Returns a RealmQuery, which can be used to query for specific objects of this class.
      *
      * @return A RealmQuery object
+     *
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {

@@ -4,9 +4,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Logger implementation for Realm. This can be used to transparently change logging behavior
- * between Android and Java.
- *
+ * Logger implementation for Realm. This can be used to transparently change logging behavior between Android and Java.
+ * <p/>
  * This class supports adding multiple logger implementations.
  */
 public final class RealmLog {
@@ -19,8 +18,10 @@ public final class RealmLog {
     public static final int ERROR = 6;
     public static final int ASSERT = 7;
     public static final int NONE = 8;
-
     private static final List<Logger> LOGGERS = new CopyOnWriteArrayList<Logger>();
+
+    // Enforce non-instantiability
+    private RealmLog() {}
 
     /**
      * Add a logger implementation.
@@ -36,7 +37,6 @@ public final class RealmLog {
 
     /**
      * Remove a current logger implementation.
-     * @param logger
      */
     public static void remove(Logger logger) {
         if (logger == null) {
@@ -93,7 +93,7 @@ public final class RealmLog {
         }
     }
 
-    public static void e(String message)  {
+    public static void e(String message) {
         for (int i = 0; i < LOGGERS.size(); i++) {
             LOGGERS.get(i).e(message);
         }

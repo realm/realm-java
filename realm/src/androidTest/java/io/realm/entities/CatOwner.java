@@ -15,14 +15,12 @@
  */
 package io.realm.entities;
 
-
 import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class CatOwner extends RealmObject {
     private String name;
     private RealmList<Cat> cats;
-
 
     public String getName() {
         return name;
