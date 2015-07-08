@@ -268,8 +268,39 @@ public class RealmProcessorTest {
         final String invalidIndexFieldTypes[] = {"float", "double", "byte[]", "Simple", "RealmList"};
 
         for (String fieldType : invalidIndexFieldTypes) {
+            TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
+                    "InvalidIndexType", "Index", fieldType, "testField");
+            ASSERT.about(javaSource())
+                    .that(javaFileObject)
+                    .processedWith(new RealmProcessor())
+                    .failsToCompile();
+        }
+    }
+
+    // Supported "PrimaryKey" annotation types
+    @Test
+    public void compilePrimaryKeyTypes() throws IOException {
+        final String validPrimaryKeyFieldTypes[] = {"byte", "short", "int", "long", "String"};
+
+        for (String fieldType : validPrimaryKeyFieldTypes) {
+            TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
+                    "ValidPrimaryKeyType", "PrimaryKey", fieldType, "testField");
+            ASSERT.about(javaSource())
+                    .that(javaFileObject)
+                    .processedWith(new RealmProcessor())
+                    .compilesWithoutError();
+        }
+    }
+
+    // Unsupported "PrimaryKey" annotation types
+    @Test
+    public void compileInvalidPrimaryKeyTypes() throws IOException {
+        final String invalidPrimaryKeyFieldTypes[] = {"boolean", "java.util.Date", "Simple", "RealmList"};
+
+        for (String fieldType : invalidPrimaryKeyFieldTypes) {
             TestRealmObjectFileObject javaFileObject =
-                    TestRealmObjectFileObject.getSingleFieldInstance("InvalidIndexType", "Index", fieldType, "testField");
+                    TestRealmObjectFileObject.getSingleFieldInstance(
+                            "InvalidPrimaryKeyType", "PrimaryKey", fieldType, "testField");
             ASSERT.about(javaSource())
                     .that(javaFileObject)
                     .processedWith(new RealmProcessor())

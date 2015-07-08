@@ -326,8 +326,8 @@ public class ClassMetaData {
 
                     primaryKey = variableElement;
 
-                    // Also add as index if the primary key is a string
-                    if (Utils.isString(variableElement) && !indexedFields.contains(variableElement)) {
+                    // Also add as index. All types of primary key can be indexed.
+                    if (!indexedFields.contains(variableElement)) {
                         indexedFields.add(variableElement);
                     }
                 }
