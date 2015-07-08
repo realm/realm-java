@@ -156,7 +156,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     // async query (will run on different thread)
                     realm.where(AllTypes.class)
                             .between("columnLong", 0, 9)
-                            .findAll(new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                            .findAll(new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
                                 @Override
                                 public void onSuccess(RealmResults<AllTypes> results) {
                                     signalCallbackFinished.countDown();
@@ -223,7 +223,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     realm.where(AllTypes.class)
                             .between("columnLong", 0, 9)
-                            .findAll(new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                            .findAll(new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
                                 @Override
                                 public void onSuccess(RealmResults<AllTypes> results) {
                                     signalCallbackFinished.countDown();
@@ -293,7 +293,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     populateTestRealm(realm, 10);
                     realm.where(AllTypes.class)
                             .between("columnLong", 0, 9)
-                            .findAll(new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                            .findAll(new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
                                 @Override
                                 public void onSuccess(RealmResults<AllTypes> results) {
                                     try {
@@ -370,7 +370,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     populateTestRealm(realm, 10);
                     realm.where(AllTypes.class)
                             .between("columnLong", 0, 9)
-                            .findAll(new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                            .findAll(new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
                                 @Override
                                 public void onSuccess(RealmResults<AllTypes> results) {
                                     try {
@@ -446,7 +446,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     populateTestRealm(realm, numberOfEntries.get());
                     realm.where(AllTypes.class)
                             .between("columnLong", 0, 9)
-                            .findAll(new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                            .findAll(new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
                                 @Override
                                 public void onSuccess(RealmResults<AllTypes> results) {
                                     try {
@@ -531,7 +531,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     asyncRequest[0] = realm.where(AllTypes.class)
                             .between("columnLong", 0, 9)
-                            .findAll(new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                            .findAll(new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
                                 @Override
                                 public void onSuccess(RealmResults<AllTypes> results) {
                                     threadAssertionError[0] = new AssertionFailedError("onSuccess called on a cancelled query");
@@ -725,7 +725,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     realm.where(Owner.class)
                             .equalTo("name", "Owner 2")
-                            .findFirst(new Realm.DebugRealmObjectQueryCallback<Owner>() {
+                            .findFirst(new RealmObject.DebugRealmObjectQueryCallback<Owner>() {
                                 @Override
                                 public void onSuccess(Owner result) {
                                     signalCallbackFinished.countDown();
@@ -823,7 +823,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     realm.where(Owner.class)
                             .equalTo("name", "Owner 2")
-                            .findFirst(new Realm.DebugRealmObjectQueryCallback<Owner>() {
+                            .findFirst(new RealmObject.DebugRealmObjectQueryCallback<Owner>() {
                                 @Override
                                 public void onSuccess(Owner result) {
                                     try {
@@ -998,7 +998,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     realm.where(AllTypes.class)
                             .findAllSorted("columnLong",
                                     RealmResults.SORT_ORDER_ASCENDING,
-                                    new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                                    new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
 
                                         @Override
                                         public void onSuccess(RealmResults<AllTypes> sortedList) {
@@ -1093,7 +1093,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     realm.where(AllTypes.class)
                             .findAllSorted("columnLong",
                                     RealmResults.SORT_ORDER_DESCENDING,
-                                    new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                                    new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
                                         @Override
                                         public void onSuccess(RealmResults<AllTypes> result) {
                                             signalCallbackFinished.countDown();
@@ -1178,7 +1178,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     realm.where(AllTypes.class)
                             .findAllSorted(new String[]{"columnLong", "columnString"},
                                     new boolean[]{RealmResults.SORT_ORDER_DESCENDING, RealmResults.SORT_ORDER_ASCENDING},
-                                    new Realm.DebugRealmResultsQueryCallback<AllTypes>() {
+                                    new RealmResults.DebugRealmResultsQueryCallback<AllTypes>() {
                                         @Override
                                         public void onSuccess(RealmResults<AllTypes> sortedList) {
                                             try {

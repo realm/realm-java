@@ -24,7 +24,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.JsonReader;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -1985,29 +1984,6 @@ public final class Realm implements Closeable {
             public void onError(Throwable e) {}
         }
     }
-
-    /**
-     * Used for debugging/testing purpose to add any logic (within the caller's thread)
-     * before we return the results
-     */
-    interface DebugRealmResultsQueryCallback<E extends RealmObject> extends RealmResults.QueryCallback<E> {
-        /**
-         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmResults)}
-         */
-        void onBackgroundQueryCompleted(Realm realm);
-    }
-
-    /**
-     * Used for debugging/testing purpose to add any logic (within the caller's thread)
-     * before we return the results
-     */
-    interface DebugRealmObjectQueryCallback<E extends RealmObject> extends RealmObject.QueryCallback<E> {
-        /**
-         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmObject)}
-         */
-        void onBackgroundQueryCompleted(Realm realm);
-    }
-
     //FIXME Realm.java being the public API and the implementation.
     //      we need a Realm interface to be able to separate this kind of call
     //      (mostly from internal API/tests that need to access private field/method).

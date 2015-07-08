@@ -625,4 +625,15 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         void onSuccess (RealmResults<E>  results);
         void onError (Exception t);
     }
+
+    /**
+     * Used for debugging/testing purpose to add any logic (within the caller's thread)
+     * before we return the results
+     */
+    interface DebugRealmResultsQueryCallback<E extends RealmObject> extends RealmResults.QueryCallback<E> {
+        /**
+         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmResults)}
+         */
+        void onBackgroundQueryCompleted(Realm realm);
+    }
 }

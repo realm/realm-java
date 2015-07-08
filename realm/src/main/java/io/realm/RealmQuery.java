@@ -35,9 +35,9 @@ import io.realm.internal.LinkView;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
+import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.RetryPolicy;
 import io.realm.internal.async.RetryPolicyFactory;
-import io.realm.internal.async.BadVersionException;
 
 import static io.realm.Realm.asyncQueryExecutor;
 
@@ -1999,8 +1999,6 @@ public class RealmQuery<E extends RealmObject> {
                 handleUnreachableVersion(message);
 
             } catch (Exception e) {
-                // if we make it this fare it means that the query handover + TableView or Row
-                // were already freed/consumed
                 handoverQueryPtr = -1;
                 handoverTableViewPtr = -1;
                 handoverRowPtr = -1;
@@ -2056,12 +2054,12 @@ public class RealmQuery<E extends RealmObject> {
         private void handleAdvanceRead(Message message) {
             switch (message.arg1) {
                 case FIND_FIRST_QUERY:
-                    ((Realm.DebugRealmObjectQueryCallback<E>) callbackRealmObject).onBackgroundQueryCompleted(realm);
+                    ((RealmObject.DebugRealmObjectQueryCallback<E>) callbackRealmObject).onBackgroundQueryCompleted(realm);
                     break;
                 case FIND_ALL_QUERY:
                 case FIND_ALL_SORTED_QUERY:
                 case FIND_ALL_SORTED_MULTI_QUERY:
-                    ((Realm.DebugRealmResultsQueryCallback<E>) callbackRealmResults).onBackgroundQueryCompleted(realm);
+                    ((RealmResults.DebugRealmResultsQueryCallback<E>) callbackRealmResults).onBackgroundQueryCompleted(realm);
                     break;
             }
         }

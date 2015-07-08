@@ -134,4 +134,15 @@ public abstract class RealmObject {
         void onSuccess (E result);
         void onError (Exception t);
     }
+
+    /**
+     * Used for debugging/testing purpose to add any logic (within the caller's thread)
+     * before we return the results
+     */
+    interface DebugRealmObjectQueryCallback<E extends RealmObject> extends RealmObject.QueryCallback<E> {
+        /**
+         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmObject)}
+         */
+        void onBackgroundQueryCompleted(Realm realm);
+    }
 }
