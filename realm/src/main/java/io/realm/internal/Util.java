@@ -54,7 +54,7 @@ public class Util {
         Exception_TableInvalid(8),
         Exception_UnsupportedOperation(9),
         Exception_OutOfMemory(10),
-        Exception_Unspecified(11),
+        Exception_FatalError(11),
         Exception_RuntimeError(12),
         Exception_RowInvalid(13);
 
