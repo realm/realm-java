@@ -1588,7 +1588,6 @@ public final class Realm implements Closeable {
                             bgRealm.cancelTransaction();
                         }
 
-
                     } catch (final RuntimeException e) {
                         bgRealm.cancelTransaction();
                         if (callback != null && !Thread.currentThread().isInterrupted()) {
