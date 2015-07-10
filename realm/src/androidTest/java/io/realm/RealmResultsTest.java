@@ -183,7 +183,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertTrue(allTypes.getColumnString().startsWith("test data 0"));
     }
 
-    // first() and last() will throw an exception is no element exists
+    // first() and last() will throw an exception when no element exist
     public void testResultListFirstLastThrowIfEmpty() {
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
