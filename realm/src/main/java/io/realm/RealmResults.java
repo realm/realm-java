@@ -623,7 +623,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public interface QueryCallback<E extends RealmObject> {
         void onSuccess (RealmResults<E>  results);
-        void onError (Exception t);
+        void onError (Exception e);
     }
 
     /**

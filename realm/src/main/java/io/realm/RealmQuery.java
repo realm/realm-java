@@ -1259,7 +1259,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      * @see io.realm.RealmResults
      */
-    public Request findAll(RealmResults.QueryCallback<E> callback) {
+    public Request findAll(final RealmResults.QueryCallback<E> callback) {
         // will use the Looper of the caller thread to post the result
         final Handler handler = new EventHandler(callback);
 
@@ -1276,6 +1276,7 @@ public class RealmQuery<E extends RealmObject> {
         Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 if (!Thread.currentThread().isInterrupted() && (asyncRequest == null || !asyncRequest.isCancelled())) {
                     Realm bgRealm = null;
 
@@ -1402,6 +1403,7 @@ public class RealmQuery<E extends RealmObject> {
         Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 if (!Thread.currentThread().isInterrupted() && (asyncRequest == null || !asyncRequest.isCancelled())) {
                     Realm bgRealm = null;
 
@@ -1592,6 +1594,7 @@ public class RealmQuery<E extends RealmObject> {
             Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
+                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                     if (!Thread.currentThread().isInterrupted() && (asyncRequest == null || !asyncRequest.isCancelled())) {
                         Realm bgRealm = null;
 
@@ -1781,6 +1784,7 @@ public class RealmQuery<E extends RealmObject> {
         Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 if (!Thread.currentThread().isInterrupted() && (asyncRequest == null || !asyncRequest.isCancelled())) {
                     Realm bgRealm = null;
 

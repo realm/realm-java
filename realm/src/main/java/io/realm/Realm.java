@@ -1566,6 +1566,8 @@ public final class Realm implements Closeable {
         final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+
                 if (!Thread.currentThread().isInterrupted()) {
                     Realm bgRealm = Realm.getInstance(realmConfiguration);
                     bgRealm.beginTransaction();
@@ -1574,15 +1576,19 @@ public final class Realm implements Closeable {
 
                         if (!Thread.currentThread().isInterrupted()) {
                             bgRealm.commitTransaction();
+                            if (callback != null) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callback.onSuccess();
+                                    }
+                                });
+                            }
+                        } else {
+                            bgRealm.cancelTransaction();
                         }
-                        if (callback != null && !Thread.currentThread().isInterrupted()) {
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callback.onSuccess();
-                                }
-                            });
-                        }
+
+
                     } catch (final RuntimeException e) {
                         bgRealm.cancelTransaction();
                         if (callback != null && !Thread.currentThread().isInterrupted()) {
