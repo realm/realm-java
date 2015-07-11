@@ -64,19 +64,40 @@ import java.util.List;
  */
 public class TableView implements TableOrView, Closeable {
     protected boolean DEBUG = false; //true;
+    // Don't convert this into local variable and don't remove this.
+    // Core requests TableView to hold the Query reference.
+    @SuppressWarnings({"unused"})
+    private final TableQuery query; // the query which created this TableView
 
-     /**
+    /**
+     * Creates a TableView. This constructor is used if the TableView is created from a table.
+     *
+     * @param context
+     * @param parent
+     * @param nativePtr
+     */
+    protected TableView(Context context, Table parent, long nativePtr) {
+        this.context = context;
+        this.parent = parent;
+        this.nativePtr = nativePtr;
+        this.query = null;
+    }
+
+    /**
      * Creates a TableView with already created Java TableView Object and a
      * native native TableView object reference. The method is not supposed to
      * be called by the user of the db. The method is for internal use only.
      *
+     * @param context
      * @param parent A table.
-     * @param nativePtr pointer to table.
+     * @param nativePtr pointer to table view.
+     * @param query a reference to the query which the table view is based
      */
-    protected TableView(Context context, Table parent, long nativePtr){
+    protected TableView(Context context, Table parent, long nativePtr, TableQuery query) {
         this.context = context;
         this.parent = parent;
         this.nativePtr = nativePtr;
+        this.query = query;
     }
 
     @Override
@@ -85,7 +106,7 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
-    public void close(){
+    public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
@@ -910,7 +931,7 @@ public class TableView implements TableOrView, Closeable {
         this.context.executeDelayedDisposal();
         long nativeQueryPtr = nativeWhere(nativePtr);
         try {
-            return new TableQuery(this.context, this.parent, nativeQueryPtr);
+            return new TableQuery(this.context, this.parent, nativeQueryPtr, this);
         } catch (RuntimeException e) {
             TableQuery.nativeClose(nativeQueryPtr);
             throw e;

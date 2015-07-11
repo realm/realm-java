@@ -94,4 +94,23 @@ public class TestHelper {
             return 0; // Stub implementation
         }
     }
+
+    // Alloc as much garbage as we can. Pass maxSize = 0 to use it.
+    public static byte[] allocGarbage(int garbageSize) {
+        if (garbageSize == 0) {
+            long maxMemory = Runtime.getRuntime().maxMemory();
+            long totalMemory = Runtime.getRuntime().totalMemory();
+            garbageSize = (int)(maxMemory - totalMemory)/10*9;
+        }
+        byte garbage[];
+        try {
+            garbage = new byte[garbageSize];
+            garbage[0] = 1;
+            garbage[garbage.length - 1] = 1;
+        } catch (OutOfMemoryError oom) {
+            return allocGarbage(garbageSize/10*9);
+        }
+
+        return garbage;
+    }
 }
