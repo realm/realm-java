@@ -150,6 +150,70 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table *table = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, table, columnIndex)) {
+        return;
+    }
+    if (table->has_shared_type()) {
+        ThrowException(env, UnsupportedOperation, "Not allowed to convert column in subtable.");
+        return;
+    }
+    try {
+        size_t column_index = S(columnIndex);
+        if (table->is_nullable(column_index)) {
+            return; // column is already nullable
+        }
+
+        std::string column_name = table->get_column_name(column_index);
+        DataType column_type = table->get_column_type(column_index);
+        if (column_type != type_String && column_type != type_Binary) {
+            ThrowException(env, IllegalArgument, "Only String and bytes[] fields can be nullable.");
+        }
+
+        size_t tmp_column_index = realm::not_found;
+        std::string tmp_column_name;
+        size_t i = 0;
+        while (true) {
+            std::ostringstream ss;
+            ss << std::string("__TMP__") << i;
+            if (table->get_column_index(ss.str()) == realm::not_found) {
+                tmp_column_index = table->add_column(column_type, ss.str(), true);
+                tmp_column_name = ss.str();
+                break;
+            }
+            i++;
+        }
+        for(size_t i = 0; i < table->size(); ++i) {
+            switch (column_type) {
+                case type_String:
+                    table->set_string(tmp_column_index, i, table->get_string(column_index, i));
+                    break;
+                case type_Binary:
+                    table->set_binary(tmp_column_index, i, table->get_binary(column_index, i));
+                    break;
+                case type_Int:
+                case type_Bool:
+                case type_DateTime:
+                case type_Float:
+                case type_Double:
+                case type_Link:
+                case type_LinkList:
+                case type_Mixed:
+                case type_Table:
+                    // checked previously
+                    break;
+            }
+        }
+        if (table->has_search_index(column_index)) {
+            table->add_search_index(tmp_column_index);
+        }
+        table->remove_column(column_index);
+        table->rename_column(table->get_column_index(tmp_column_name), column_name);
+    } CATCH_STD()
+}
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsRootTable
   (JNIEnv *, jobject, jlong nativeTablePtr)

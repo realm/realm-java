@@ -46,7 +46,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public static final boolean NOT_NULLABLE = false;
 
     protected long nativePtr;
-    
+
     protected final Object parent;
     private final Context context;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
@@ -83,7 +83,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native long createNative();
-    
+
     Table(Context context, Object parent, long nativePointer) {
         this.context = context;
         this.parent  = parent;
@@ -111,14 +111,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     tableCount.decrementAndGet();
                     System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + tableCount.get());
                 }
-                
+
                 nativePtr = 0;
-            }   
+            }
         }
     }
 
     protected static native void nativeClose(long nativeTablePtr);
-    
+
     @Override
     protected void finalize() {
         synchronized (context) {
@@ -129,7 +129,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
         }
 
-        if (DEBUG) 
+        if (DEBUG)
             System.err.println("==== FINALIZE " + tableNo + "...");
     }
 
@@ -223,6 +223,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
+     * Convert a column to be nullable. columnIndex might not be preserved.
+     * @param columnIndex
+     */
+    public void convertColumnToNullable(long columnIndex) {
+        nativeConvertColumnToNullable(nativePtr, columnIndex);
+    }
+
+    protected native void nativeConvertColumnToNullable(long nativeTablePtr, long columnIndex);
+
+    /**
      * Updates a table specification from a Table specification structure.
      */
     public void updateFromSpec(TableSpec tableSpec) {
@@ -314,7 +324,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
         return nativeGetColumnIndex(nativePtr, columnName);
     }
-    
+
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
 
 
@@ -389,7 +399,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
         checkImmutable();
         checkHasPrimaryKey();
-        
+
         long primaryKeyColumnIndex = getPrimaryKey();
         ColumnType type = getColumnType(primaryKeyColumnIndex);
         long rowIndex;
@@ -1581,8 +1591,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
     protected native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
-    
-    
+
+
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
         if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
