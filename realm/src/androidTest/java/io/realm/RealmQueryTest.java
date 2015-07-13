@@ -5,6 +5,7 @@ import android.test.AndroidTestCase;
 import java.util.Date;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
@@ -540,6 +541,22 @@ public class RealmQueryTest extends AndroidTestCase{
     public void testQueryNullStringsEndsWith() {
         populateTestRealmForNullTests();
         assertEquals("Fish", testRealm.where(NullTypes.class).endsWith(NullTypes.FIELD_STRING_NULL,
-                (String)null).findFirst().getFieldStringNotNull());
+                (String) null).findFirst().getFieldStringNotNull());
+    }
+
+    // If the RealmQuery is built on a TableView, it should not crash when used after GC.
+    // See issue #1161 for more details.
+    public void testBuildQueryFromResultsGC() {
+        // According to the testing, setting this to 10 can almost certainly trigger the GC.
+        // Use 30 here can ensure GC happen. (Tested with 4.3 1G Ram and 5.0 3G Ram)
+        final int count = 30;
+        RealmResults<CatOwner> results = testRealm.where(CatOwner.class).findAll();
+
+        for (int i=1; i<=count; i++) {
+            @SuppressWarnings({"unused"})
+            byte garbage[] = TestHelper.allocGarbage(0);
+            results = results.where().findAll();
+            System.gc(); // if a native resource has a reference count = 0, doing GC here might lead to a crash
+        }
     }
 }

@@ -966,9 +966,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeRowToString(
     return NULL;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere
-  (JNIEnv *env, jobject, jlong nativeViewPtr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
+    JNIEnv *env, jobject, jlong nativeViewPtr)
 {
+    TR_ENTER_PTR(nativeViewPtr)
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return 0;

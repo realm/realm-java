@@ -23,19 +23,36 @@ public class TableQuery implements Closeable {
     protected boolean DEBUG = false;
 
     protected long nativePtr;
-    protected final Table parent;
+    protected final Table table;
+    // Don't convert this into local variable and don't remove this.
+    // Core requests Query to hold the TableView reference which it is built from.
+    @SuppressWarnings({"unused"})
+    private final TableOrView origin; // Table or TableView which created this TableQuery
     private final Context context;
 
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
-    public TableQuery(Context context, Table parent, long nativeQueryPtr){
-        if (DEBUG)
+    public TableQuery(Context context, Table table, long nativeQueryPtr) {
+        if (DEBUG) {
             System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
+        }
         this.context = context;
-        this.parent = parent;
+        this.table = table;
         this.nativePtr = nativeQueryPtr;
+        this.origin = null;
     }
+
+    public TableQuery(Context context, Table table, long nativeQueryPtr, TableOrView origin) {
+        if (DEBUG) {
+            System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
+        }
+        this.context = context;
+        this.table = table;
+        this.nativePtr = nativeQueryPtr;
+        this.origin = origin;
+    }
+
 
     public void close() {
         synchronized (context) {
@@ -55,7 +72,7 @@ public class TableQuery implements Closeable {
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
-                context.asyncDisposeQuery(nativePtr); 
+                context.asyncDisposeQuery(nativePtr);
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
             }
         }
@@ -452,7 +469,7 @@ public class TableQuery implements Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, start, end, limit);
         try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
+            return new TableView(this.context, this.table, nativeViewPtr, this);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -466,7 +483,7 @@ public class TableQuery implements Closeable {
         context.executeDelayedDisposal();
         long nativeViewPtr = nativeFindAll(nativePtr, 0, Table.INFINITE, Table.INFINITE);
         try {
-            return new TableView(this.context, this.parent, nativeViewPtr);
+            return new TableView(this.context, this.table, nativeViewPtr, this);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
             throw e;
@@ -667,13 +684,13 @@ public class TableQuery implements Closeable {
     // Deletion.
     public long remove(long start, long end) {
         validateQuery();
-        if (parent.isImmutable()) throwImmutable();
+        if (table.isImmutable()) throwImmutable();
         return nativeRemove(nativePtr, start, end, Table.INFINITE);
     }
 
     public long remove() {
         validateQuery();
-        if (parent.isImmutable()) throwImmutable();
+        if (table.isImmutable()) throwImmutable();
         return nativeRemove(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
 
