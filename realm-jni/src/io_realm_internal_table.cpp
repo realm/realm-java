@@ -173,14 +173,13 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
             ThrowException(env, IllegalArgument, "Only String and bytes[] fields can be nullable.");
         }
 
-        size_t tmp_column_index = realm::not_found;
         std::string tmp_column_name;
         size_t i = 0;
         while (true) {
             std::ostringstream ss;
             ss << std::string("__TMP__") << i;
             if (table->get_column_index(ss.str()) == realm::not_found) {
-                tmp_column_index = table->add_column(column_type, ss.str(), true);
+                table->insert_column(column_index, column_type, ss.str(), true);
                 tmp_column_name = ss.str();
                 break;
             }
@@ -189,10 +188,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
         for(size_t i = 0; i < table->size(); ++i) {
             switch (column_type) {
                 case type_String:
-                    table->set_string(tmp_column_index, i, table->get_string(column_index, i));
+                    table->set_string(column_index, i, table->get_string(column_index + 1, i));
                     break;
                 case type_Binary:
-                    table->set_binary(tmp_column_index, i, table->get_binary(column_index, i));
+                    table->set_binary(column_index, i, table->get_binary(column_index + 1, i));
                     break;
                 case type_Int:
                 case type_Bool:
@@ -207,10 +206,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                     break;
             }
         }
-        if (table->has_search_index(column_index)) {
-            table->add_search_index(tmp_column_index);
+        if (table->has_search_index(column_index + 1)) {
+            table->add_search_index(column_index);
         }
-        table->remove_column(column_index);
+        table->remove_column(column_index + 1);
         table->rename_column(table->get_column_index(tmp_column_name), column_name);
     } CATCH_STD()
 }

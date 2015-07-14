@@ -223,7 +223,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
-     * Convert a column to be nullable. columnIndex might not be preserved.
+     * Convert a column to be nullable.
      * @param columnIndex
      */
     public void convertColumnToNullable(long columnIndex) {

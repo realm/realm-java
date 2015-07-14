@@ -534,9 +534,7 @@ public class JNITableTest extends AndroidTestCase {
                 assertEquals(1, table.size());
                 assertEquals(2, table.getColumnCount());
                 assertTrue(table.getColumnIndex(columnName) >= 0);
-
-                // column index has been changed
-                colIndex = table.getColumnIndex(columnName);
+                assertEquals(colIndex, table.getColumnIndex(columnName));
 
                 table.addEmptyRow();
                 table.setString(colIndex, 1, null);
