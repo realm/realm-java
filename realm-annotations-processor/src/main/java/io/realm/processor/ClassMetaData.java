@@ -40,7 +40,7 @@ import javax.lang.model.util.Types;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
-import io.realm.annotations.NotNullable;
+import io.realm.annotations.Required;
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -310,20 +310,20 @@ public class ClassMetaData {
                     }
                 }
 
-                if (variableElement.getAnnotation(NotNullable.class) == null) {
-                    // The field has not the @NotNullable annotation
+                if (variableElement.getAnnotation(Required.class) == null) {
+                    // The field has not the @Required annotation
                     if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
                         nullableElements.add(variableElement);
                     }
                 } else {
-                    // The field has the @NotNullable annotation
+                    // The field has the @Required annotation
                     String elementTypeCanonicalName = variableElement.asType().toString();
                     if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
                         if (nullableElements.contains(variableElement)) {
                             nullableElements.remove(variableElement);
                         }
                     } else{
-                        Utils.error("@NotNullable is only applicable to String and byte[] fields - got " + element);
+                        Utils.error("@Required is only applicable to String and byte[] fields - got " + element);
                     }
                 }
 
