@@ -16,6 +16,6 @@
 
 package io.realm.annotations;
 
-public @interface NotNullable {
+public @interface Required {
 
 }

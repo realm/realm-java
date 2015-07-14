@@ -17,7 +17,7 @@
 package io.realm.entities;
 
 import io.realm.RealmObject;
-import io.realm.annotations.NotNullable;
+import io.realm.annotations.Required;
 
 
 public class NullTypes extends RealmObject {
@@ -26,14 +26,14 @@ public class NullTypes extends RealmObject {
     public static String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";
     public static String FIELD_BYTES_NULL = "fieldBytesNull";
 
-    @NotNullable
+    @Required
     private String fieldStringNotNull;
 
     private String fieldStringNull;
 
     private byte[] fieldBytesNull;
 
-    @NotNullable
+    @Required
     private byte[] fieldBytesNotNull;
 
     public String getFieldStringNotNull() {

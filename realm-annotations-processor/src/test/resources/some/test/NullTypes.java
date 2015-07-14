@@ -19,10 +19,10 @@ package some.test;
 import java.lang.String;
 
 import io.realm.RealmObject;
-import io.realm.annotations.NotNullable;
+import io.realm.annotations.Required;
 
 public class NullTypes extends RealmObject {
-    @NotNullable
+    @Required
     private String fieldStringNotNull;
 
     private String fieldStringNull;
