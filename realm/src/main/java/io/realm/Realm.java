@@ -543,10 +543,28 @@ public final class Realm implements Closeable {
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static void setDefaultConfiguration(RealmConfiguration configuration) {
+       setDefaultConfiguration(configuration, false);
+    }
+
+    /**
+     * Sets the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}.  
+     * 
+     * @param configuration RealmConfiguration to use as the default configuration.
+     * @param removePastConfigurations Boolean value to determine whether or not we should remove cached configurations.
+     * @see RealmConfiguration for details on how to configure a Realm.
+     */
+    public static void setDefaultConfiguration(RealmConfiguration configuration, boolean removePastConfigurations) {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
         defaultConfiguration = configuration;
+
+        if(removePastConfigurations){
+	        String realmPath = newConfiguration.getPath();
+	        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
+	        pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+	        globalPathConfigurationCache.put(realmPath, pathConfigurationCache);
+        }
     }
 
     /**
