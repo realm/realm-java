@@ -61,8 +61,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
 
         DataType dataType = DataType(colType);
         if (is_column_nullable && dataType != type_String && dataType != type_Binary) {
-             ThrowException(env, IllegalArgument, "Only string and byte array fields can be nullable.");   
-        }  
+             ThrowException(env, IllegalArgument, "Only string and byte array fields can be nullable.");
+        }
         return TBL(nativeTablePtr)->add_column(dataType, name2, is_column_nullable);
     } CATCH_STD()
     return 0;
@@ -148,6 +148,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
         JStringAccessor name2(env, name); // throws
         TBL(nativeTablePtr)->rename_column(S(columnIndex), name2);
     } CATCH_STD()
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table *table = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, table, columnIndex)) {
+        return false;
+    }
+    if (table->has_shared_type()) {
+        ThrowException(env, UnsupportedOperation, "Not allowed to convert column in subtable.");
+        return false;
+    }
+    size_t column_index = S(columnIndex);
+    return table->is_nullable(column_index);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable

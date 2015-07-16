@@ -221,6 +221,17 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeRenameColumn(long nativeTablePtr, long columnIndex, String name);
 
+    /**
+     * Is a column nullable?
+     *
+     * @param columnIndex
+     * @return true if column is nullable, false otherwise.
+     */
+    public boolean isColumnNullable(long columnIndex) {
+        return nativeIsColumnNullable(nativePtr, columnIndex);
+    }
+
+    protected native boolean nativeIsColumnNullable(long nativePtr, long columnIndex);
 
     /**
      * Convert a column to be nullable.

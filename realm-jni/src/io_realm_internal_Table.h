@@ -87,6 +87,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeIsColumnNullable
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeConvertColumnToNullable
  * Signature: (JJ)V
  */

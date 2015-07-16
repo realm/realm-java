@@ -555,4 +555,14 @@ public class JNITableTest extends AndroidTestCase {
         } catch (IllegalArgumentException ignored) {
         }
     }
+
+    // add column and read back if it is nullable or not
+    public void testIsNullable() {
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "string1", Table.NOT_NULLABLE);
+        table.addColumn(ColumnType.STRING, "string2", Table.NULLABLE);
+
+        assertFalse(table.isColumnNullable(0));
+        assertTrue(table.isColumnNullable(1));
+    }
 }

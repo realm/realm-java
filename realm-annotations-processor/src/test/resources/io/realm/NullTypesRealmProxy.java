@@ -103,11 +103,17 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             if (columnTypes.get("fieldStringNotNull") != ColumnType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNotNull'");
             }
+            if (table.isColumnNullable(INDEX_FIELDSTRINGNOTNULL)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldStringNotNull'");
+            }
             if (!columnTypes.containsKey("fieldStringNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNull'");
             }
             if (columnTypes.get("fieldStringNull") != ColumnType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNull'");
+            }
+            if (!table.isColumnNullable(INDEX_FIELDSTRINGNULL)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldStringNull'");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The NullTypes class is missing from the schema for this Realm.");

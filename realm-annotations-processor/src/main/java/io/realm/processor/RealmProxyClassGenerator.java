@@ -367,6 +367,17 @@ public class RealmProxyClassGenerator {
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
 
+                // make sure that nullability matches
+                if (metadata.isNullable(field)) {
+                    writer.beginControlFlow("if (!table.isColumnNullable(%s))", staticFieldIndexVarName(field));
+                    writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Add annotation @Required or @PrimaryKey to field '%s'\")", fieldName);
+                    writer.endControlFlow();
+                } else {
+                    writer.beginControlFlow("if (table.isColumnNullable(%s))", staticFieldIndexVarName(field));
+                    writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Remove annotation @Required or @PrimaryKey from field '%s'\")", fieldName);
+                    writer.endControlFlow();
+                }
+
                 // Validate @PrimaryKey
                 if (field.equals(metadata.getPrimaryKey())) {
                     writer.beginControlFlow("if (table.getPrimaryKey() != table.getColumnIndex(\"%s\"))", fieldName);
