@@ -560,7 +560,7 @@ public final class Realm implements Closeable {
         defaultConfiguration = configuration;
 
         if(removePastConfigurations){
-	        String realmPath = newConfiguration.getPath();
+	        String realmPath = configuration.getPath();
 	        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
 	        pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
 	        globalPathConfigurationCache.put(realmPath, pathConfigurationCache);
