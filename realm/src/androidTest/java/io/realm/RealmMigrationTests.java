@@ -132,12 +132,14 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
-                table.addSearchIndex(columnIndex);
-                // Forget to set @PrimaryKey
-                columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString");
+                if (table.getColumnCount() == 0) {
+                    long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
+                    table.addSearchIndex(columnIndex);
+                    // Forget to set @PrimaryKey
+                    columnIndex = table.addColumn(ColumnType.STRING, "indexString");
+                    table.addSearchIndex(columnIndex);
+                    table.addColumn(ColumnType.STRING, "notIndexString");
+                }
                 return 1;
             }
         };
@@ -152,7 +154,10 @@ public class RealmMigrationTests extends AndroidTestCase {
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
-        } catch (RealmMigrationNeededException expected) {
+        } catch (RealmMigrationNeededException e) {
+            if (!e.getMessage().equals("Primary key not defined for field 'id'")) {
+                fail(e.getMessage());
+            }
         }
     }
 
