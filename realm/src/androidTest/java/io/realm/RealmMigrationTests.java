@@ -167,13 +167,15 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                // Primary key will be indexed automatically
-                table.addSearchIndex(columnIndex);
-                columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString");
+                if (table.getColumnCount() == 0) {
+                    long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
+                    table.setPrimaryKey("id");
+                    // Primary key will be indexed automatically
+                    table.addSearchIndex(columnIndex);
+                    columnIndex = table.addColumn(ColumnType.STRING, "indexString", Table.NULLABLE);
+                    table.addSearchIndex(columnIndex);
+                    table.addColumn(ColumnType.STRING, "notIndexString", Table.NULLABLE);
+                }
                 return 1;
             }
         };
@@ -250,15 +252,27 @@ public class RealmMigrationTests extends AndroidTestCase {
     // a MigrationNeeded exception.
     public void testOpenPreNullRealmRequiredMissing() throws IOException {
         TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration realmMigration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                // intentionally left empty
+                return 0;
+            }
+        };
+
         try {
             RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                     .schemaVersion(0)
                     .schema(AllTypes.class)
+                    .migration(realmMigration)
                     .build();
             Realm realm = Realm.getInstance(realmConfig);
             realm.close();
             fail();
-        } catch (RealmMigrationNeededException ignored) {
+        } catch (RealmMigrationNeededException e) {
+            if (!e.getMessage().equals("Add annotation @Required or @PrimaryKey to field 'columnString'")) {
+                fail(e.getMessage());
+            }
         }
     }
 

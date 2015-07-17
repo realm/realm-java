@@ -18,8 +18,10 @@ package io.realm.entities;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Required;
 
 public class CatOwner extends RealmObject {
+    @Required
     private String name;
     private RealmList<Cat> cats;
 
