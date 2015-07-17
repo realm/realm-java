@@ -16,12 +16,22 @@
 
 package io.realm.processor;
 
-import io.realm.annotations.RealmModule;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.*;
-import java.util.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
+
+import io.realm.annotations.RealmModule;
 
 /**
  * Utility class for holding metadata for the Realm modules.
@@ -102,7 +112,7 @@ public class ModuleMetaData {
         }
 
         // Add default realm module if needed.
-        if (libraryModules.size() == 0) {
+        if (modules.size() == 0) {
             shouldCreateDefaultModule = true;
             String defautModuleName = Constants.REALM_PACKAGE_NAME + "." + Constants.DEFAULT_MODULE_CLASS_NAME;
             modules.put(defautModuleName, availableClasses);
