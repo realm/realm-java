@@ -133,12 +133,14 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
-                table.addSearchIndex(columnIndex);
-                // Forget to set @PrimaryKey
-                columnIndex = table.addColumn(ColumnType.STRING, "indexString", Table.NULLABLE);
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString", Table.NULLABLE);
+                if (table.getColumnCount() == 0) {
+                    long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
+                    table.addSearchIndex(columnIndex);
+                    // Forget to set @PrimaryKey
+                    columnIndex = table.addColumn(ColumnType.STRING, "indexString");
+                    table.addSearchIndex(columnIndex);
+                    table.addColumn(ColumnType.STRING, "notIndexString");
+                }
                 return 1;
             }
         };
