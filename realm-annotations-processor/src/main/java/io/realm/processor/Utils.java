@@ -1,6 +1,5 @@
 package io.realm.processor;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import javax.annotation.processing.Messager;

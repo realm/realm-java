@@ -24,8 +24,11 @@ import io.realm.annotations.Required;
 public class NullTypes extends RealmObject {
     @Required
     private String fieldStringNotNull;
-
     private String fieldStringNull;
+
+    @Required
+    private Boolean fieldBooleanNotNull;
+    private Boolean fieldBooleanNull;
 
     public String getFieldStringNotNull() {
         return fieldStringNotNull;
@@ -41,5 +44,21 @@ public class NullTypes extends RealmObject {
 
     public void setFieldStringNull(String fieldStringNull) {
         this.fieldStringNull = fieldStringNull;
+    }
+
+    public Boolean getFieldBooleanNotNull() {
+        return fieldBooleanNotNull;
+    }
+
+    public void setFieldBooleanNotNull(Boolean fieldBooleanNotNull) {
+        this.fieldBooleanNotNull = fieldBooleanNotNull;
+    }
+
+    public Boolean getFieldBooleanNull() {
+        return fieldBooleanNull;
+    }
+
+    public void setFieldBooleanNull(Boolean fieldBooleanNull) {
+        this.fieldBooleanNull = fieldBooleanNull;
     }
 }

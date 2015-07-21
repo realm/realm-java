@@ -60,7 +60,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
         bool is_column_nullable = isNullable != 0 ? true : false;
 
         DataType dataType = DataType(colType);
-        if (is_column_nullable && dataType != type_String && dataType != type_Binary) {
+        // FIXME: Remove this check after all types support nullable!
+        if (is_column_nullable && dataType != type_String && dataType != type_Binary && dataType != type_Bool) {
              ThrowException(env, IllegalArgument, "Only string and byte array fields can be nullable.");
         }
         return TBL(nativeTablePtr)->add_column(dataType, name2, is_column_nullable);

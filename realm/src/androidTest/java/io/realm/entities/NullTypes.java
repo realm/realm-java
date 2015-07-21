@@ -26,15 +26,20 @@ public class NullTypes extends RealmObject {
     public static String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";
     public static String FIELD_BYTES_NULL = "fieldBytesNull";
 
+    public static String FIELD_BOXED_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
+    public static String FIELD_BOOLEAN_NOT_NULLL = "fieldBooleanNotNull";
+
     @Required
     private String fieldStringNotNull;
-
     private String fieldStringNull;
-
-    private byte[] fieldBytesNull;
 
     @Required
     private byte[] fieldBytesNotNull;
+    private byte[] fieldBytesNull;
+
+    @Required
+    private Boolean fieldBooleanNotNull;
+    private Boolean fieldBooleanNull;
 
     public String getFieldStringNotNull() {
         return fieldStringNotNull;
@@ -66,5 +71,21 @@ public class NullTypes extends RealmObject {
 
     public void setFieldBytesNotNull(byte[] fieldBytesNotNull) {
         this.fieldBytesNotNull = fieldBytesNotNull;
+    }
+
+    public Boolean getFieldBooleanNotNull() {
+        return fieldBooleanNotNull;
+    }
+
+    public void setFieldBooleanNotNull(Boolean fieldBooleanNotNull) {
+        this.fieldBooleanNotNull = fieldBooleanNotNull;
+    }
+
+    public Boolean getFieldBooleanNull() {
+        return fieldBooleanNull;
+    }
+
+    public void setFieldBooleanNull(Boolean fieldBooleanNull) {
+        this.fieldBooleanNull = fieldBooleanNull;
     }
 }

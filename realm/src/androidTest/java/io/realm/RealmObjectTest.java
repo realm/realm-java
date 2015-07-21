@@ -528,7 +528,7 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     // store and retrieve non-null strings when field can contain null strings
-    public void testNullableField() {
+    public void testNullableStringField() {
         final String fooBar = "FooBar";
         testRealm.beginTransaction();
         NullTypes nullTypes = testRealm.createObject(NullTypes.class);
@@ -539,14 +539,14 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     // try to store null string in non-nullable field
-    public void testNotNullableField() {
+    public void testNotNullableStringField() {
         try {
             testRealm.beginTransaction();
             NullTypes nullTypes = testRealm.createObject(NullTypes.class);
             nullTypes.setFieldStringNotNull(null);
             fail();
         }
-        catch (IllegalArgumentException expected) {
+        catch (IllegalArgumentException ignored) {
         }
         finally {
             testRealm.cancelTransaction();
@@ -562,6 +562,41 @@ public class RealmObjectTest extends AndroidTestCase {
 
         assertNull(testRealm.where(NullTypes.class).findFirst().getFieldBytesNull());
 
+    }
+
+    // store and retrieve null Boolean
+    public void testNullBoolean() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldBooleanNull(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.where(NullTypes.class).findAll().first().getFieldBooleanNull());
+    }
+
+    // store and retrieve non-null Booleans when field can contain null Booleans
+    public void testNullableBooleanField() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldBooleanNull(true);
+        testRealm.commitTransaction();
+
+        assertTrue(testRealm.where(NullTypes.class).findFirst().getFieldBooleanNull());
+    }
+
+    // try to store null Boolean in non-nullable field
+    public void testNotNullableBooleanField() {
+        try {
+            testRealm.beginTransaction();
+            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            nullTypes.setFieldBooleanNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
     }
 
     public void testAccessObjectRemovalThrows() throws InterruptedException {

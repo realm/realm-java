@@ -250,6 +250,16 @@ public class UncheckedRow extends NativeObject implements Row {
         nativeNullifyLink(nativePointer, columnIndex);
     }
 
+    @Override
+    public boolean isNull(long columnIndex) {
+        return nativeIsNull(nativePointer, columnIndex);
+    }
+
+    @Override
+    public void setNull(long columnIndex) {
+        nativeSetNull(nativePointer, columnIndex);
+    }
+
     /**
      * Converts the unchecked Row to a checked variant.
      *
@@ -299,4 +309,6 @@ public class UncheckedRow extends NativeObject implements Row {
     protected static native void nativeClose(long nativeRowPtr);
     protected native boolean nativeIsAttached(long nativeRowPtr);
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
+    protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
+    protected native boolean nativeSetNull(long nativeRowPtr, long columnIndex);
 }
