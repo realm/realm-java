@@ -89,6 +89,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetString
 
 /*
  * Class:     io_realm_internal_CheckedRow
+ * Method:    nativeIsNullLink
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsNullLink
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_CheckedRow
  * Method:    nativeGetByteArray
  * Signature: (JJ)[B
  */
@@ -109,22 +117,6 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_CheckedRow_nativeGetMixedType
  * Signature: (JJ)Lio/realm/internal/Mixed;
  */
 JNIEXPORT jobject JNICALL Java_io_realm_internal_CheckedRow_nativeGetMixed
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_CheckedRow
- * Method:    nativeGetLink
- * Signature: (JJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetLink
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_CheckedRow
- * Method:    nativeIsNullLink
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsNullLink
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -158,6 +150,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetBoolean
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetFloat
   (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     io_realm_internal_CheckedRow
+ * Method:    nativeGetLink
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetLink
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_CheckedRow
@@ -217,20 +217,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeNullifyLink
 
 /*
  * Class:     io_realm_internal_CheckedRow
- * Method:    nativeClose
- * Signature: (J)V
+ * Method:    nativeIsNull
+ * Signature: (JJ)Z
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeClose
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     io_realm_internal_CheckedRow
- * Method:    nativeIsAttached
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsAttached
-  (JNIEnv *, jobject, jlong);
-
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsNull
+  (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus
 }

@@ -97,6 +97,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetString
 
 /*
  * Class:     io_realm_internal_UncheckedRow
+ * Method:    nativeIsNullLink
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNullLink
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_UncheckedRow
  * Method:    nativeGetByteArray
  * Signature: (JJ)[B
  */
@@ -117,22 +125,6 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixedType
  * Signature: (JJ)Lio/realm/internal/Mixed;
  */
 JNIEXPORT jobject JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_UncheckedRow
- * Method:    nativeGetLink
- * Signature: (JJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLink
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_UncheckedRow
- * Method:    nativeIsNullLink
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNullLink
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -166,6 +158,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetBoolean
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetFloat
   (JNIEnv *, jobject, jlong, jlong, jfloat);
+
+/*
+ * Class:     io_realm_internal_UncheckedRow
+ * Method:    nativeGetLink
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetLink
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_UncheckedRow
@@ -241,12 +241,27 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsAttached
 
 /*
  * Class:     io_realm_internal_UncheckedRow
- * Method:    nativeHasField
+ * Method:    nativeHasColumn
  * Signature: (JLjava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeHasColumn
   (JNIEnv *, jobject, jlong, jstring);
 
+/*
+ * Class:     io_realm_internal_UncheckedRow
+ * Method:    nativeIsNull
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_UncheckedRow
+ * Method:    nativeSetNull
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
+  (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus
 }

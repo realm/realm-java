@@ -99,6 +99,10 @@ public interface Row {
 
     void nullifyLink(long columnIndex);
 
+    boolean isNull(long columnIndex);
+
+    void setNull(long columnIndex);
+
     /**
      * Checks if the row is still valid.
      * @return Returns true {@code true} if the row is still valid and attached to the underlying
