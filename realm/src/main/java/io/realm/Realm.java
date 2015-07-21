@@ -558,8 +558,8 @@ public final class Realm implements Closeable {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
         defaultConfiguration = configuration;
-
-        if(removePastConfigurations){
+        
+        if (removePastConfigurations) {
 	        String realmPath = configuration.getPath();
 	        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
 	        pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
