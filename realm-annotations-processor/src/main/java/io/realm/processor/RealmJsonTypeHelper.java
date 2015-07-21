@@ -43,7 +43,7 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("Long", new SimpleTypeConverter("Long", "Long"));
         JAVA_TO_JSON_TYPES.put("Float", new SimpleTypeConverter("Float", "Double"));
         JAVA_TO_JSON_TYPES.put("Double", new SimpleTypeConverter("Double", "Double"));
-        JAVA_TO_JSON_TYPES.put("Boolean", new SimpleTypeConverter("Boolean", "Boolean"));
+        JAVA_TO_JSON_TYPES.put("java.lang.Boolean", new SimpleTypeConverter("Boolean", "Boolean"));
         JAVA_TO_JSON_TYPES.put("java.lang.String", new SimpleTypeConverter("String", "String"));
         JAVA_TO_JSON_TYPES.put("java.util.Date", new JsonToRealmTypeConverter() {
             @Override

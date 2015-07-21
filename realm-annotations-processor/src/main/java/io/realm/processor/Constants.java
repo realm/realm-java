@@ -41,7 +41,7 @@ public class Constants {
         JAVA_TO_REALM_TYPES.put("Long", "Long");
         JAVA_TO_REALM_TYPES.put("Float", "Float");
         JAVA_TO_REALM_TYPES.put("Double", "Double");
-        JAVA_TO_REALM_TYPES.put("Boolean", "Boolean");
+        JAVA_TO_REALM_TYPES.put("java.lang.Boolean", "Boolean");
         JAVA_TO_REALM_TYPES.put("java.lang.String", "String");
         JAVA_TO_REALM_TYPES.put("java.util.Date", "Date");
         JAVA_TO_REALM_TYPES.put("byte[]", "BinaryByteArray");
@@ -73,7 +73,7 @@ public class Constants {
         JAVA_TO_COLUMN_TYPES.put("Long", "ColumnType.INTEGER");
         JAVA_TO_COLUMN_TYPES.put("Float", "ColumnType.FLOAT");
         JAVA_TO_COLUMN_TYPES.put("Double", "ColumnType.DOUBLE");
-        JAVA_TO_COLUMN_TYPES.put("Boolean", "ColumnType.BOOLEAN");
+        JAVA_TO_COLUMN_TYPES.put("java.lang.Boolean", "ColumnType.BOOLEAN");
         JAVA_TO_COLUMN_TYPES.put("java.lang.String", "ColumnType.STRING");
         JAVA_TO_COLUMN_TYPES.put("java.util.Date", "ColumnType.DATE");
         JAVA_TO_COLUMN_TYPES.put("byte[]", "ColumnType.BINARY");
@@ -95,7 +95,7 @@ public class Constants {
         CASTING_TYPES.put("Long", "long");
         CASTING_TYPES.put("Float", "float");
         CASTING_TYPES.put("Double", "double");
-        CASTING_TYPES.put("Boolean", "boolean");
+        CASTING_TYPES.put("java.lang.Boolean", "Boolean");
         CASTING_TYPES.put("java.lang.String", "String");
         CASTING_TYPES.put("java.util.Date", "Date");
         CASTING_TYPES.put("byte[]", "byte[]");

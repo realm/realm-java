@@ -173,6 +173,14 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement(
                         "realm.checkIfValid()"
                 );
+                // FIXME: Use below condition when all boxed type and Date supported
+                // FIXME: Check if we should remove the isString condition
+                //if (!field.asType().getKind().isPrimitive()) {
+                if (metadata.isNullable(field) && !Utils.isString(field)) {
+                    writer.beginControlFlow("if (row.isNull(%s))", staticFieldIndexVarName(field));
+                    writer.emitStatement("return null");
+                    writer.endControlFlow();
+                }
                 writer.emitStatement(
                         "return (%s) row.get%s(%s)",
                         fieldTypeCanonicalName, realmType, staticFieldIndexVarName(field));
@@ -185,6 +193,19 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement(
                         "realm.checkIfValid()"
                 );
+                // FIXME: Check if we should remove the String condition
+                if (!field.asType().getKind().isPrimitive() && !metadata.isNullable(field) && !Utils.isString(field)) {
+                    writer.beginControlFlow("if (value == null)");
+                    writer.emitStatement("throw new IllegalArgumentException(\"%s is not nullable.\")", fieldName);
+                    writer.endControlFlow();
+                }
+                // FIXME: Make a better condition
+                if (metadata.isNullable(field) && !Utils.isString(field)) {
+                    writer.beginControlFlow("if (value == null)");
+                    writer.emitStatement("row.setNull(%s)", staticFieldIndexVarName(field));
+                    writer.emitStatement("return");
+                    writer.endControlFlow();
+                }
                 writer.emitStatement(
                         "row.set%s(%s, (%s) value)",
                         realmType, staticFieldIndexVarName(field), castingType);

@@ -86,6 +86,24 @@ public class CheckedRow extends UncheckedRow {
         }
     }
 
+    @Override
+    public boolean isNull(long columnIndex) {
+        ColumnType columnType = getColumnType(columnIndex);
+        if (columnType == ColumnType.BOOLEAN) {
+            return super.isNull(columnIndex);
+        } else {
+            return false; // Unsupported types always return false
+        }
+    }
+
+    @Override
+    public void setNull(long columnIndex) {
+        ColumnType columnType = getColumnType(columnIndex);
+        if (columnType == ColumnType.BOOLEAN) {
+            super.setNull(columnIndex);
+        }
+    }
+
     protected native long nativeGetColumnCount(long nativeTablePtr);
     protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
@@ -112,4 +130,5 @@ public class CheckedRow extends UncheckedRow {
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
+    protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
 }

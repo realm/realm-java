@@ -30,12 +30,16 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
 
     private static long INDEX_FIELDSTRINGNOTNULL;
     private static long INDEX_FIELDSTRINGNULL;
+    private static long INDEX_FIELDBOOLEANNOTNULL;
+    private static long INDEX_FIELDBOOLEANNULL;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
         fieldNames.add("fieldStringNotNull");
         fieldNames.add("fieldStringNull");
+        fieldNames.add("fieldBooleanNotNull");
+        fieldNames.add("fieldBooleanNull");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
@@ -60,7 +64,45 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldStringNull(String value) {
         realm.checkIfValid();
+        // FIXME: Check if we should enable this.
+        // if (value == null) {
+        //    throw new IllegalArgumentException("booleanNotNull is not nullable.");
+        //}
         row.setString(INDEX_FIELDSTRINGNULL, (String) value);
+    }
+
+    @Override
+    public Boolean getFieldBooleanNotNull() {
+        realm.checkIfValid();
+        return (java.lang.Boolean) row.getBoolean(INDEX_FIELDBOOLEANNOTNULL);
+    }
+
+    @Override
+    public void setFieldBooleanNotNull(Boolean value) {
+        realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("fieldBooleanNotNull is not nullable.");
+        }
+        row.setBoolean(INDEX_FIELDBOOLEANNOTNULL, (Boolean) value);
+    }
+
+    @Override
+    public Boolean getFieldBooleanNull() {
+        realm.checkIfValid();
+        if (row.isNull(INDEX_FIELDBOOLEANNULL)) {
+            return null;
+        }
+        return (java.lang.Boolean) row.getBoolean(INDEX_FIELDBOOLEANNULL);
+    }
+
+    @Override
+    public void setFieldBooleanNull(Boolean value) {
+        realm.checkIfValid();
+        if (value == null) {
+            row.setNull(INDEX_FIELDBOOLEANNULL);
+            return;
+        }
+        row.setBoolean(INDEX_FIELDBOOLEANNULL, (Boolean) value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -68,6 +110,8 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             Table table = transaction.getTable("class_NullTypes");
             table.addColumn(ColumnType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
             table.addColumn(ColumnType.STRING, "fieldStringNull", Table.NULLABLE);
+            table.addColumn(ColumnType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
+            table.addColumn(ColumnType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
             table.setPrimaryKey("");
             return table;
         }
@@ -77,11 +121,11 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public static void validateTable(ImplicitTransaction transaction) {
         if (transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
-            if (table.getColumnCount() != 2) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
+            if (table.getColumnCount() != 4) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for(long i = 0; i < 2; i++) {
+            for (long i = 0; i < 4; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
@@ -96,6 +140,8 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
 
             INDEX_FIELDSTRINGNOTNULL = table.getColumnIndex("fieldStringNotNull");
             INDEX_FIELDSTRINGNULL = table.getColumnIndex("fieldStringNull");
+            INDEX_FIELDBOOLEANNOTNULL = table.getColumnIndex("fieldBooleanNotNull");
+            INDEX_FIELDBOOLEANNULL = table.getColumnIndex("fieldBooleanNull");
 
             if (!columnTypes.containsKey("fieldStringNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNotNull'");
@@ -114,6 +160,24 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             }
             if (!table.isColumnNullable(INDEX_FIELDSTRINGNULL)) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldStringNull'");
+            }
+            if (!columnTypes.containsKey("fieldBooleanNotNull")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBooleanNotNull'");
+            }
+            if (columnTypes.get("fieldBooleanNotNull") != ColumnType.BOOLEAN) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Boolean' for field 'fieldBooleanNotNull'");
+            }
+            if (table.isColumnNullable(INDEX_FIELDBOOLEANNOTNULL)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldBooleanNotNull'");
+            }
+            if (!columnTypes.containsKey("fieldBooleanNull")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBooleanNull'");
+            }
+            if (columnTypes.get("fieldBooleanNull") != ColumnType.BOOLEAN) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Boolean' for field 'fieldBooleanNull'");
+            }
+            if (!table.isColumnNullable(INDEX_FIELDBOOLEANNULL)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldBooleanNull'");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The NullTypes class is missing from the schema for this Realm.");
@@ -147,6 +211,12 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
                 obj.setFieldStringNull((String) json.getString("fieldStringNull"));
             }
         }
+        if (!json.isNull("fieldBooleanNotNull")) {
+            obj.setFieldBooleanNotNull((Boolean) json.getBoolean("fieldBooleanNotNull"));
+        }
+        if (!json.isNull("fieldBooleanNull")) {
+            obj.setFieldBooleanNull((Boolean) json.getBoolean("fieldBooleanNull"));
+        }
         return obj;
     }
 
@@ -160,6 +230,10 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
                 obj.setFieldStringNotNull((String) reader.nextString());
             } else if (name.equals("fieldStringNull") && reader.peek() != JsonToken.NULL) {
                 obj.setFieldStringNull((String) reader.nextString());
+            } else if (name.equals("fieldBooleanNotNull")  && reader.peek() != JsonToken.NULL) {
+                obj.setFieldBooleanNotNull((Boolean) reader.nextBoolean());
+            } else if (name.equals("fieldBooleanNull")  && reader.peek() != JsonToken.NULL) {
+                obj.setFieldBooleanNull((Boolean) reader.nextBoolean());
             } else {
                 reader.skipValue();
             }
@@ -180,12 +254,16 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         cache.put(newObject, (RealmObjectProxy) realmObject);
         realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
         realmObject.setFieldStringNull(newObject.getFieldStringNull());
+        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull());
+        realmObject.setFieldBooleanNull(newObject.getFieldBooleanNull());
         return realmObject;
     }
 
     static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObjectProxy> cache) {
         realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
         realmObject.setFieldStringNull(newObject.getFieldStringNull());
+        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull());
+        realmObject.setFieldBooleanNull(newObject.getFieldBooleanNull());
         return realmObject;
     }
 
@@ -201,6 +279,14 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         stringBuilder.append(",");
         stringBuilder.append("{fieldStringNull:");
         stringBuilder.append(getFieldStringNull() != null ? getFieldStringNull() : "null");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldBooleanNotNull:");
+        stringBuilder.append(getFieldBooleanNotNull());
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldBooleanNull:");
+        stringBuilder.append(getFieldBooleanNull() != null ? getFieldBooleanNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();
