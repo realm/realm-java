@@ -301,8 +301,13 @@ public class TableQuery implements Closeable {
 
     // Query for boolean values.
 
-    public TableQuery equalTo(long columnIndex[], boolean value){
-        nativeEqual(nativePtr, columnIndex, value);
+    public TableQuery equalTo(long columnIndex[], Boolean value){
+        if (value == null) {
+            nativeEqualToNull(nativePtr, columnIndex);
+        } else {
+            nativeEqual(nativePtr, columnIndex, value);
+        }
+
         queryValidated = false;
         return this;
     }
@@ -699,4 +704,7 @@ public class TableQuery implements Closeable {
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
+
+    // Query for null values.
+    private native void nativeEqualToNull(long nativeQueryPtr, long columnIndexes[]);
 }

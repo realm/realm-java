@@ -68,15 +68,23 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     private void populateTestRealmForNullTests() {
+        final int count = 3;
         String words[] = {"Fish", null, "Horse"};
+        Boolean bools[] = {true, null, false};
+
         testRealm.beginTransaction();
         for (int i = 0; i < words.length; i++) {
             String word = words[i];
+            Boolean bool = bools[i];
             NullTypes nullTypes = new NullTypes();
             nullTypes.setId(i+1);
             nullTypes.setFieldStringNull(word);
             if (word != null) {
                 nullTypes.setFieldStringNotNull(word);
+            }
+            nullTypes.setFieldBooleanNull(bool);
+            if (bool != null) {
+                nullTypes.setFieldBooleanNotNull(bool);
             }
             testRealm.copyToRealm(nullTypes);
         }
@@ -507,6 +515,7 @@ public class RealmQueryTest extends AndroidTestCase{
         populateTestRealmForNullTests();
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, (String)null).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Fish").findAll().size());
         assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").findAll().size());
     }
 
@@ -533,14 +542,14 @@ public class RealmQueryTest extends AndroidTestCase{
     public void testQueryNullStringsBeginsWith() {
         populateTestRealmForNullTests();
         assertEquals("Fish", testRealm.where(NullTypes.class).beginsWith(NullTypes.FIELD_STRING_NULL,
-                (String)null).findFirst().getFieldStringNotNull());
+                (String) null).findFirst().getFieldStringNotNull());
     }
 
     // Querying nullable field with endsWith - all strings contain with null
     public void testQueryNullStringsContains() {
         populateTestRealmForNullTests();
         assertEquals("Fish", testRealm.where(NullTypes.class).contains(NullTypes.FIELD_STRING_NULL,
-                (String)null).findFirst().getFieldStringNotNull());
+                (String) null).findFirst().getFieldStringNotNull());
     }
 
     // Querying nullable field with endsWith - all strings end with null
@@ -602,5 +611,24 @@ public class RealmQueryTest extends AndroidTestCase{
         }
 
         latch.await();
+    }
+
+    // Querying a non-nullable field with null is an error
+    public void testQueryNullBooleansNotNullableFieldIsNull() {
+        try {
+            RealmResults<NullTypes> nullTypes = testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException expected) {
+        }
+    }
+
+    // Querying nullable fields, querying with null
+    public void testQueryNullBooleansEqual() {
+        populateTestRealmForNullTests();
+        RealmResults<NullTypes> results = testRealm.allObjects(NullTypes.class);
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, true).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean)null).findAll().size());
     }
 }
