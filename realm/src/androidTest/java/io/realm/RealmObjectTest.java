@@ -593,7 +593,8 @@ public class RealmObjectTest extends AndroidTestCase {
             nullTypes.setFieldBooleanNotNull(null);
             fail();
         }
-        catch (IllegalArgumentException ignored) {
+        catch (NullPointerException ignored) {
+            // FIXME: Make agreement about the exception type. Extra code is needed for IllegalArgumentException
         }
         finally {
             testRealm.cancelTransaction();

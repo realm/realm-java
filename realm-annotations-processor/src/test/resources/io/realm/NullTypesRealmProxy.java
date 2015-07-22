@@ -80,9 +80,6 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldBooleanNotNull(Boolean value) {
         realm.checkIfValid();
-        if (value == null) {
-            throw new IllegalArgumentException("fieldBooleanNotNull is not nullable.");
-        }
         row.setBoolean(INDEX_FIELDBOOLEANNOTNULL, (Boolean) value);
     }
 
