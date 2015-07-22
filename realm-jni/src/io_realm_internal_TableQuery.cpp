@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <realm/group_shared.hpp>
 #include "util.hpp"
 #include "io_realm_internal_TableQuery.h"
 #include "tablequery.hpp"
@@ -23,11 +24,13 @@ using namespace realm;
 #if 1
 #define COL_TYPE_VALID(env,ptr,col, type)           TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)
 #define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)
+#define COL_TYPE_NULLABLE(env,ptr,col)              TBL_AND_COL_NULLABLE(env,ptr,col)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  query_col_type_valid(env, jPtr, col, type)
 #define QUERY_VALID(env, pQuery)                    query_valid(env, pQuery)
 #else
 #define COL_TYPE_VALID(env,ptr,col, type)           (true)
 #define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      (true)
+#define COL_TYPE_NULLABLE(env,ptr,col)              (true)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  (true)
 #define QUERY_VALID(env, pQuery)                    (true)
 #endif
@@ -666,46 +669,58 @@ enum StringPredicate {
 void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive, StringPredicate predicate) {
     GET_ARRAY()
     try {
-        bool isCaseSensitive = caseSensitive ? true : false;
+        if (value == NULL) {
+            if (!(Q(nativeQueryPtr)->get_table()->is_nullable( S(arr[0]) ))) {
+                ThrowException(env, IllegalArgument, "Trying to query field with null but field is not nullable.");
+                return;
+            }
+        }
+        bool is_case_sensitive = caseSensitive ? true : false;
         JStringAccessor value2(env, value); // throws
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_String))
                 return;
             switch (predicate) {
             case StringEqual:
-                Q(nativeQueryPtr)->equal(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->equal(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringNotEqual:
-                Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringContains:
-                Q(nativeQueryPtr)->contains(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->contains(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringBeginsWith:
-                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringEndsWith:
-                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2, is_case_sensitive);
                 break;
             }
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            if (value == NULL) {
+                if (tbl->is_nullable(S(arr[arr_len-1]))) {
+                    ThrowException(env, IllegalArgument, "Trying to query field with null but field is not nullable.");
+                    return;    
+                }
+            }
             switch (predicate) {
             case StringEqual:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).equal(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).equal(StringData(value2), is_case_sensitive));
                 break;
             case StringNotEqual:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).not_equal(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).not_equal(StringData(value2), is_case_sensitive));
                 break;
             case StringContains:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).contains(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).contains(StringData(value2), is_case_sensitive));
                 break;
             case StringBeginsWith:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).begins_with(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).begins_with(StringData(value2), is_case_sensitive));
                 break;
             case StringEndsWith:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).ends_with(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).ends_with(StringData(value2), is_case_sensitive));
                 break;
             }
         }
@@ -864,6 +879,51 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(
     return -1;
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover(
+    JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong fromTableRow)
+{
+    try {
+      // cast the pointer
+      SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>* > (handoverQueryPtr);
+      std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+
+      // when opening a Realm, we start implicitly a read transaction
+      // we need to close it before calling begin_read
+      SG(bgSharedGroupPtr)->end_read();
+
+      // set the background Realm to the same version as the caller Realm
+      SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
+
+      // import the handover query pointer using the background SharedGroup
+      std::unique_ptr<Query> pQuery = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
+      Table* pTable = pQuery->get_table().get();
+
+      if (!QUERY_VALID(env, pQuery.get()))
+           return -1;
+
+       // It's valid to go 1 past the end index
+      if ((fromTableRow < 0) || (S(fromTableRow) > pTable->size())) {
+        // below check will fail with appropriate exception
+        (void) ROW_INDEX_VALID(env, pTable, fromTableRow);
+        return -1;
+      }
+
+      size_t r = pQuery->find( S(fromTableRow) );
+      if (r == not_found) {
+        return -1;
+      } else {
+         // handover the result
+         Row row = (*pTable)[r];
+         std::unique_ptr<SharedGroup::Handover<Row> > handover = SG(bgSharedGroupPtr)->export_for_handover(row);
+         return reinterpret_cast<jlong>(handover.release());
+      }
+
+  } CATCH_STD()
+  return -1;
+
+}
+
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlong start, jlong end, jlong limit)
 {
@@ -878,6 +938,179 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
     } CATCH_STD()
     return -1;
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit)
+  {
+
+          // cast the pointer
+          SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>* >(handoverQueryPtr);
+          try {
+              std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+
+              // when opening a Realm, we start implicitly a read transaction
+              // we need to close it before calling begin_read
+              SG(bgSharedGroupPtr)->end_read();
+
+              // set the background Realm to the same version as the caller Realm
+              SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
+
+              // import the handover query pointer using the background SharedGroup
+              std::unique_ptr<Query> pQuery = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
+              Table* pTable = pQuery->get_table().get();
+
+              if (!QUERY_VALID(env, pQuery.get()) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+                  return -1;
+
+                // run the query
+                TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
+
+                // handover the result
+                std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*pResultView, MutableSourcePayload::Move);
+
+                return reinterpret_cast<jlong>(handover.release());
+
+          } catch (SharedGroup::BadVersion& e) {
+              delete hQuery;
+              ThrowException(env, BadVersion, " begin_read failed");
+          } CATCH_STD()
+      return -1;
+  }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
+  {
+      try {
+          // cast the pointer
+          SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>*>(handoverQueryPtr);
+          std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+
+          // when opening a Realm, we start implicitly a read transaction
+          // we need to close it before calling begin_read
+          SG(bgSharedGroupPtr)->end_read();
+
+          // set the background Realm to the same version as the caller Realm
+          SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
+
+          // import the handover query pointer using the background SharedGroup
+          std::unique_ptr<Query> pQuery (SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery)));
+          Table* pTable = pQuery->get_table().get();
+
+          if (!QUERY_VALID(env, pQuery.get()) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+              return -1;
+
+            // run the query
+            TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
+
+            // sorting the results
+            if (!COL_INDEX_VALID(env, pResultView, columnIndex))
+                      return -1;
+              int colType = pResultView->get_column_type( S(columnIndex) );
+
+              switch (colType) {
+                  case type_Bool:
+                  case type_Int:
+                  case type_DateTime:
+                  case type_Float:
+                  case type_Double:
+                  case type_String:
+                      pResultView->sort( S(columnIndex), ascending != 0 ? true : false);
+                      break;
+                  default:
+                      ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, float, double, boolean, Date, and String columns.");
+                      return -1;
+              }
+
+            // handover the result
+            std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*pResultView, MutableSourcePayload::Move);
+
+            return reinterpret_cast<jlong>(handover.release());
+
+      } CATCH_STD()
+      return -1;
+  }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
+  {
+      try {
+          // cast the pointer
+          SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>*>(handoverQueryPtr);
+          std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+
+          // when opening a Realm, we start implicitly a read transaction
+          // we need to close it before calling begin_read
+          SG(bgSharedGroupPtr)->end_read();
+
+          // set the background Realm to the same version as the caller Realm
+          SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
+
+          jsize arr_len = env->GetArrayLength(columnIndices);
+          jsize asc_len = env->GetArrayLength(ascending);
+
+          jlong *long_arr = env->GetLongArrayElements(columnIndices, NULL);
+          jboolean *bool_arr = env->GetBooleanArrayElements(ascending, NULL);
+
+          if (arr_len == 0) {
+              ThrowException(env, IllegalArgument, "You must provide at least one field name.");
+              return -1;
+          }
+          if (asc_len == 0) {
+              ThrowException(env, IllegalArgument, "You must provide at least one sort order.");
+              return -1;
+          }
+          if (arr_len != asc_len) {
+              ThrowException(env, IllegalArgument, "Number of column indices and sort orders do not match.");
+              return -1;
+          }
+
+          // import the handover query pointer using the background SharedGroup
+          std::unique_ptr<Query> pQuery = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
+          Table* pTable = pQuery->get_table().get();
+
+          if (!QUERY_VALID(env, pQuery.get()) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+              return -1;
+
+            // run the query
+            TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
+
+            // sorting the results
+            std::vector<size_t> indices;
+            std::vector<bool> ascendings;
+
+            for (int i = 0; i < arr_len; ++i) {
+                if (!COL_INDEX_VALID(env, pResultView, long_arr[i]))
+                    return -1;
+                int colType = pResultView->get_column_type( S(long_arr[i]) );
+                switch (colType) {
+                    case type_Bool:
+                    case type_Int:
+                    case type_DateTime:
+                    case type_Float:
+                    case type_Double:
+                    case type_String:
+                        indices.push_back( S(long_arr[i]) );
+                        ascendings.push_back( B(bool_arr[i]) );
+                        break;
+                    default:
+                        ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, float, double, boolean, Date, and String columns.");
+                        return -1;
+                }
+            }
+
+            pResultView->sort(indices, ascendings);
+            env->ReleaseLongArrayElements(columnIndices, long_arr, 0);
+            env->ReleaseBooleanArrayElements(ascending, bool_arr, 0);
+
+            // handover the result
+            std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*pResultView, MutableSourcePayload::Move);
+
+            return reinterpret_cast<jlong>(handover.release());
+
+      } CATCH_STD()
+      return -1;
+  }
+
 
 
 // Integer Aggregates
@@ -1163,9 +1396,119 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
     Query* pQuery = Q(nativeQueryPtr);
     try {
         Table* pTable = pQuery->get_table().get();
-        if (!COL_TYPE_LINK_OR_LINKLIST(env, pTable, columnIndex))
+        if (!COL_TYPE_NULLABLE(env, pTable, columnIndex))
             return;
-        Query query = pTable->column<Link>(S(columnIndex)).is_null();
-        pQuery->and_query(query);
+
+        int col_type = pTable->get_column_type(S(columnIndex));
+        switch (col_type) {
+            case type_Link:
+            case type_LinkList: {
+                Query query = pTable->column<Link>(S(columnIndex)).is_null();
+                pQuery->and_query(query);
+                break;
+            }
+            case type_String: {
+                Query query = pTable->column<String>(S(columnIndex)).equal(realm::null());
+                pQuery->and_query(query);
+                break;
+            }
+            default:
+                // this point is inreachable
+                return ;
+        }
     } CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTableViewIntoSharedGroup
+  (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
+  {
+    SharedGroup::Handover<TableView>* hTableView = reinterpret_cast<SharedGroup::Handover<TableView>*>(handoverPtr);
+    std::unique_ptr<SharedGroup::Handover<TableView> > handoverTV (hTableView);
+
+    try {
+        // import_from_handover will free (delete) the handover
+        if (SG(callerSharedGrpPtr)->is_attached()) {
+            std::unique_ptr<TableView> tv = SG(callerSharedGrpPtr)->import_from_handover(std::move(handoverTV));
+            return reinterpret_cast<jlong>(tv.release());
+
+        } else {
+            ThrowException(env, RuntimeError, " Can not import results from a closed Realm");
+        }
+
+    } catch (SharedGroup::BadVersion& e) {
+        ThrowException(env, BadVersion, " import handover failed");
+
+    } CATCH_STD()
+    return -1;
+  }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRowIntoSharedGroup
+  (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
+  {
+    SharedGroup::Handover<Row>* hRow = reinterpret_cast<SharedGroup::Handover<Row>*>(handoverPtr);
+    std::unique_ptr<SharedGroup::Handover<Row> > handoverRow (hRow);
+
+    try {
+        // import_from_handover will free (delete) the handover
+        if (SG(callerSharedGrpPtr)->is_attached()) {
+            std::unique_ptr<Row> row = SG(callerSharedGrpPtr)->import_from_handover(std::move(handoverRow));
+            return reinterpret_cast<jlong>(row.release());
+
+        } else {
+            ThrowException(env, RuntimeError, " Can not import results from a closed Realm");
+        }
+
+    } catch (SharedGroup::BadVersion& e) {
+        ThrowException(env, BadVersion, " import handover failed");
+
+    } CATCH_STD()
+    return -1;
+  }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
+   (JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong nativeQueryPtr)
+{
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return -1;
+    try {
+        std::unique_ptr<SharedGroup::Handover<Query> > handover = SG(bgSharedGroupPtr)->export_for_handover(*pQuery, MutableSourcePayload::Move);
+        return reinterpret_cast<jlong>(handover.release());
+    } CATCH_STD()
+    return -1;
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseRowHandover
+  (JNIEnv *env, jobject, jlong nativeHandoverRowPtr)
+  {
+     TR_ENTER_PTR(nativeHandoverRowPtr)
+     delete reinterpret_cast<SharedGroup::Handover<Row>* > (nativeHandoverRowPtr);
+  }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandover
+  (JNIEnv *env, jobject, jlong nativeHandoverQuery)
+  {
+    TR_ENTER_PTR(nativeHandoverQuery)
+    delete reinterpret_cast<SharedGroup::Handover<Query>*>(nativeHandoverQuery);
+  }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseTableHandover
+  (JNIEnv *env, jobject, jlong nativeHandoverTable)
+  {
+     TR_ENTER_PTR(nativeHandoverTable)
+    delete reinterpret_cast<SharedGroup::Handover<TableView>*>(nativeHandoverTable);
+  }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualToNull
+  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes) {
+    GET_ARRAY()
+    try {
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Bool)) {
+                return;
+            }
+            Q(nativeQueryPtr)->equal(S(arr[0]), realm::null());
+        }
+    } CATCH_STD()
+    RELEASE_ARRAY()
 }

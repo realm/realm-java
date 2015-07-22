@@ -91,14 +91,14 @@ public class TableQuery implements Closeable {
         }
     }
 
-    protected native String nativeValidateQuery(long nativeQueryPtr);
+    private native String nativeValidateQuery(long nativeQueryPtr);
 
     // Query TableView
     public TableQuery tableview(TableView tv) {
         nativeTableview(nativePtr, tv.nativePtr);
         return this;
     }
-    protected native void nativeTableview(long nativeQueryPtr, long nativeTableViewPtr);
+    private native void nativeTableview(long nativeQueryPtr, long nativeTableViewPtr);
 
     // Grouping
 
@@ -106,42 +106,42 @@ public class TableQuery implements Closeable {
         nativeGroup(nativePtr);
         return this;
     }
-    protected native void nativeGroup(long nativeQueryPtr);
+    private native void nativeGroup(long nativeQueryPtr);
 
     public TableQuery endGroup() {
         nativeEndGroup(nativePtr);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEndGroup(long nativeQueryPtr);
+    private native void nativeEndGroup(long nativeQueryPtr);
 
     public TableQuery subtable(long columnIndex) {
         nativeSubtable(nativePtr, columnIndex);
         queryValidated = false;
         return this;
     }
-    protected native void nativeSubtable(long nativeQueryPtr, long columnIndex);
+    private native void nativeSubtable(long nativeQueryPtr, long columnIndex);
 
     public TableQuery endSubtable() {
         nativeParent(nativePtr);
         queryValidated = false;
         return this;
     }
-    protected native void nativeParent(long nativeQueryPtr);
+    private native void nativeParent(long nativeQueryPtr);
 
     public TableQuery or() {
         nativeOr(nativePtr);
         queryValidated = false;
         return this;
     }
-    protected native void nativeOr(long nativeQueryPtr);
+    private native void nativeOr(long nativeQueryPtr);
 
     public TableQuery not() {
         nativeNot(nativePtr);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNot(long nativeQueryPtr);
+    private native void nativeNot(long nativeQueryPtr);
 
     // Query for integer values.
 
@@ -150,49 +150,49 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeEqual(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery notEqualTo(long columnIndex[], long value) {
         nativeNotEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery greaterThan(long columnIndex[], long value) {
         nativeGreater(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreater(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeGreater(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery greaterThanOrEqual(long columnIndex[], long value) {
         nativeGreaterEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery lessThan(long columnIndex[], long value) {
         nativeLess(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLess(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeLess(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery lessThanOrEqual(long columnIndex[], long value) {
         nativeLessEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery between(long columnIndex[], long value1, long value2) {
         nativeBetween(nativePtr, columnIndex, value1, value2);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBetween(long nativeQueryPtr, long columnIndex[], long value1, long value2);
+    private native void nativeBetween(long nativeQueryPtr, long columnIndex[], long value1, long value2);
 
 
     // Query for float values.
@@ -202,49 +202,49 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], float value);
+    private native void nativeEqual(long nativeQueryPtr, long columnIndex[], float value);
 
     public TableQuery notEqualTo(long columnIndex[], float value) {
         nativeNotEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], float value);
+    private native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], float value);
 
     public TableQuery greaterThan(long columnIndex[], float value) {
         nativeGreater(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreater(long nativeQueryPtr, long columnIndex[], float value);
+    private native void nativeGreater(long nativeQueryPtr, long columnIndex[], float value);
 
     public TableQuery greaterThanOrEqual(long columnIndex[], float value) {
         nativeGreaterEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], float value);
+    private native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], float value);
 
     public TableQuery lessThan(long columnIndex[], float value) {
         nativeLess(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLess(long nativeQueryPtr, long columnIndex[], float value);
+    private native void nativeLess(long nativeQueryPtr, long columnIndex[], float value);
 
     public TableQuery lessThanOrEqual(long columnIndex[], float value) {
         nativeLessEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], float value);
+    private native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], float value);
 
     public TableQuery between(long columnIndex[], float value1, float value2) {
         nativeBetween(nativePtr, columnIndex, value1, value2);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBetween(long nativeQueryPtr, long columnIndex[], float value1, float value2);
+    private native void nativeBetween(long nativeQueryPtr, long columnIndex[], float value1, float value2);
 
 
     // Query for double values.
@@ -254,59 +254,64 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], double value);
+    private native void nativeEqual(long nativeQueryPtr, long columnIndex[], double value);
 
     public TableQuery notEqualTo(long columnIndex[], double value) {
         nativeNotEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], double value);
+    private native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], double value);
 
     public TableQuery greaterThan(long columnIndex[], double value) {
         nativeGreater(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreater(long nativeQueryPtr, long columnIndex[], double value);
+    private native void nativeGreater(long nativeQueryPtr, long columnIndex[], double value);
 
     public TableQuery greaterThanOrEqual(long columnIndex[], double value) {
         nativeGreaterEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], double value);
+    private native void nativeGreaterEqual(long nativeQueryPtr, long columnIndex[], double value);
 
     public TableQuery lessThan(long columnIndex[], double value) {
         nativeLess(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLess(long nativeQueryPtr, long columnIndex[], double value);
+    private native void nativeLess(long nativeQueryPtr, long columnIndex[], double value);
 
     public TableQuery lessThanOrEqual(long columnIndex[], double value) {
         nativeLessEqual(nativePtr, columnIndex, value);
         queryValidated = false;
         return this;
     }
-    protected native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], double value);
+    private native void nativeLessEqual(long nativeQueryPtr, long columnIndex[], double value);
 
     public TableQuery between(long columnIndex[], double value1, double value2) {
         nativeBetween(nativePtr, columnIndex, value1, value2);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBetween(long nativeQueryPtr, long columnIndex[], double value1, double value2);
+    private native void nativeBetween(long nativeQueryPtr, long columnIndex[], double value1, double value2);
 
 
     // Query for boolean values.
 
-    public TableQuery equalTo(long columnIndex[], boolean value){
-        nativeEqual(nativePtr, columnIndex, value);
+    public TableQuery equalTo(long columnIndex[], Boolean value){
+        if (value == null) {
+            nativeEqualToNull(nativePtr, columnIndex);
+        } else {
+            nativeEqual(nativePtr, columnIndex, value);
+        }
+
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long columnIndex[], boolean value);
+    private native void nativeEqual(long nativeQueryPtr, long columnIndex[], boolean value);
 
     // Query for Date values
 
@@ -319,7 +324,7 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery notEqualTo(long columnIndex[], Date value){
         if (value == null)
@@ -328,7 +333,7 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeNotEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery greaterThan(long columnIndex[], Date value){
         if (value == null)
@@ -338,7 +343,7 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeGreaterDateTime(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeGreaterDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
 
     public TableQuery greaterThanOrEqual(long columnIndex[], Date value){
@@ -349,7 +354,7 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeGreaterEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeGreaterEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery lessThan(long columnIndex[], Date value){
         if (value == null)
@@ -359,7 +364,7 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeLessDateTime(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeLessDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
 
     public TableQuery lessThanOrEqual(long columnIndex[], Date value){
@@ -370,7 +375,7 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeLessEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
+    private native void nativeLessEqualDateTime(long nativeQueryPtr, long columnIndex[], long value);
 
     public TableQuery between(long columnIndex[], Date value1, Date value2){
         if (value1 == null || value2 == null)
@@ -379,7 +384,7 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
-    protected native void nativeBetweenDateTime(long nativeQueryPtr, long columnIndex[], long value1, long value2);
+    private native void nativeBetweenDateTime(long nativeQueryPtr, long columnIndex[], long value1, long value2);
 
     // Query for String values.
     
@@ -387,85 +392,65 @@ public class TableQuery implements Closeable {
 
     // Equal
     public TableQuery equalTo(long[] columnIndexes, String value, boolean caseSensitive) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeEqual(nativePtr, columnIndexes, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery equalTo(long[] columnIndexes, String value) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeEqual(nativePtr, columnIndexes, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
+    private native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
 
     // Not Equal
     public TableQuery notEqualTo(long columnIndex[], String value, boolean caseSensitive) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeNotEqual(nativePtr, columnIndex, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery notEqualTo(long columnIndex[], String value) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeNotEqual(nativePtr, columnIndex, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
+    private native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
 
     public TableQuery beginsWith(long columnIndices[], String value, boolean caseSensitive) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeBeginsWith(nativePtr, columnIndices, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery beginsWith(long columnIndices[], String value) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeBeginsWith(nativePtr, columnIndices, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
+    private native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
 
     public TableQuery endsWith(long columnIndices[], String value, boolean caseSensitive) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeEndsWith(nativePtr, columnIndices, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery endsWith(long columnIndices[], String value) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeEndsWith(nativePtr, columnIndices, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeEndsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
+    private native void nativeEndsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
 
     public TableQuery contains(long columnIndices[], String value, boolean caseSensitive) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeContains(nativePtr, columnIndices, value, caseSensitive);
         queryValidated = false;
         return this;
     }
     public TableQuery contains(long columnIndices[], String value) {
-        if (value == null)
-            throw new IllegalArgumentException(STRING_NULL_ERROR_MESSAGE);
         nativeContains(nativePtr, columnIndices, value, true);
         queryValidated = false;
         return this;
     }
-    protected native void nativeContains(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
+    private native void nativeContains(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
 
 
     // Searching methods.
@@ -480,7 +465,16 @@ public class TableQuery implements Closeable {
         return nativeFind(nativePtr, 0);
     }
 
-    protected native long nativeFind(long nativeQueryPtr, long fromTableRow);
+    public long findWithHandover(long bgSharedGroupPtr, long ptrQuery) {
+        validateQuery();
+
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();
+        return nativeFindWithHandover(bgSharedGroupPtr, ptrQuery, 0);
+    }
+
+    private native long nativeFind(long nativeQueryPtr, long fromTableRow);
+    private native long nativeFindWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long fromTableRow);
 
     public TableView findAll(long start, long end, long limit) {
         validateQuery();
@@ -510,8 +504,69 @@ public class TableQuery implements Closeable {
         }
     }
 
-    protected native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
+    /**
+     * This will use the background SharedGroup to import the query (using the handover object)
+     * run the query, and return the table view to the caller SharedGroup using the handover object.
+     * @param bgSharedGroupPtr Background shared group native pointer
+     * @param ptrQuery handover pointer to the query (coming from the caller SharedGroup)
+     * @return handover pointer to the table view results
+     */
+    public long findAllWithHandover(long bgSharedGroupPtr, long ptrQuery) {
+        validateQuery();
 
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();// TODO bottleneck. when freeing tables become thread safe in core use FinalizerRunnable
+        return nativeFindAllWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE);
+    }
+
+    public long findAllSortedWithHandover(long bgSharedGroupPtr, long ptrQuery, long columnIndex, boolean ascending) {
+        validateQuery();
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();
+        return nativeFindAllSortedWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndex, ascending);
+    }
+
+    public long findAllMultiSortedWithHandover(long bgSharedGroupPtr, long ptrQuery, long[] columnIndices, boolean[] ascending) {
+        validateQuery();
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();
+        return nativeFindAllMultiSortedWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndices, ascending);
+    }
+
+    // Suppose to be called from the caller SharedGroup thread
+    public TableView importHandoverTableView(long handoverPtr, long callerSharedGroupPtr) {
+        long nativeTvPtr = 0;
+        try {
+            nativeTvPtr = nativeImportHandoverTableViewIntoSharedGroup(handoverPtr, callerSharedGroupPtr);
+            return new TableView(this.context, this.table, nativeTvPtr);
+        } catch (RuntimeException e) {
+            if (nativeTvPtr != 0) {
+                TableView.nativeClose(nativeTvPtr);
+            }
+            throw e;
+        }
+    }
+
+    public long importHandoverRow(long handoverPtr, long callerSharedGroupPtr) {
+      return nativeImportHandoverRowIntoSharedGroup(handoverPtr, callerSharedGroupPtr);
+    }
+
+    /**
+     * Handover the query, so it can be used by other SharedGroup (in different thread)
+     * @param callerSharedGroupPtr native pointer to the SharedGroup holding the query
+     * @return native pointer to the handover query
+     */
+    public long handoverQuery(long callerSharedGroupPtr) {
+        return nativeHandoverQuery(callerSharedGroupPtr, nativePtr);
+    }
+
+    private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
+    private native long nativeFindAllWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit);
+    private native long nativeFindAllSortedWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit, long columnIndex, boolean ascending);
+    private native long nativeFindAllMultiSortedWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit, long[] columnIndices, boolean[] ascending);
+    private native long nativeImportHandoverTableViewIntoSharedGroup(long handoverTableViewPtr, long callerSharedGroupPtr);
+    private native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedGroupPtr);
+    private native long nativeHandoverQuery(long callerSharedGroupPtr, long nativeQueryPtr);
     //
     // Aggregation methods
     //
@@ -526,7 +581,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeSumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native long nativeSumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native long nativeSumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public long maximumInt(long columnIndex, long start, long end, long limit) {
@@ -537,7 +592,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeMaximumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native long nativeMaximumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native long nativeMaximumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public long minimumInt(long columnIndex, long start, long end, long limit) {
@@ -548,7 +603,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeMinimumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native long nativeMinimumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native long nativeMinimumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double averageInt(long columnIndex, long start, long end, long limit) {
@@ -559,7 +614,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeAverageInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native double nativeAverageInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native double nativeAverageInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     // float aggregation
@@ -572,7 +627,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeSumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native double nativeSumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native double nativeSumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public float maximumFloat(long columnIndex, long start, long end, long limit) {
@@ -583,7 +638,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeMaximumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native float nativeMaximumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native float nativeMaximumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public float minimumFloat(long columnIndex, long start, long end, long limit) {
@@ -594,7 +649,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeMinimumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native float nativeMinimumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native float nativeMinimumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double averageFloat(long columnIndex, long start, long end, long limit) {
@@ -605,7 +660,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeAverageFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native double nativeAverageFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native double nativeAverageFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     // double aggregation
@@ -618,7 +673,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeSumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native double nativeSumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native double nativeSumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double maximumDouble(long columnIndex, long start, long end, long limit) {
@@ -629,7 +684,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeMaximumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native double nativeMaximumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native double nativeMaximumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double minimumDouble(long columnIndex, long start, long end, long limit) {
@@ -640,7 +695,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeMinimumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native double nativeMinimumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native double nativeMinimumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public double averageDouble(long columnIndex, long start, long end, long limit) {
@@ -651,7 +706,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeAverageDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    protected native double nativeAverageDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native double nativeAverageDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
     // date aggregation
 
@@ -663,7 +718,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return new Date(nativeMaximumDate(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE) * 1000);
     }
-    protected native long nativeMaximumDate(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native long nativeMaximumDate(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     public Date minimumDate(long columnIndex, long start, long end, long limit) {
@@ -674,7 +729,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return new Date(nativeMinimumDate(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE) * 1000);
     }
-    protected native long nativeMinimumDate(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
+    private native long nativeMinimumDate(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
 
 
     // isNull and isNotNull
@@ -683,7 +738,7 @@ public class TableQuery implements Closeable {
         return this;
     }
 
-    protected native void nativeIsNull(long nativePtr, long columnIndex);
+    private native void nativeIsNull(long nativePtr, long columnIndex);
 
     // count
 
@@ -698,7 +753,7 @@ public class TableQuery implements Closeable {
         return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
 
-    protected native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
+    private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
 
 
     // Deletion.
@@ -714,9 +769,34 @@ public class TableQuery implements Closeable {
         return nativeRemove(nativePtr, 0, Table.INFINITE, Table.INFINITE);
     }
 
-    protected native long nativeRemove(long nativeQueryPtr, long start, long end, long limit);
+    private native long nativeRemove(long nativeQueryPtr, long start, long end, long limit);
 
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
+
+    // Handover
+    public void closeRowHandover (long nativePtr) {
+        if (nativePtr != -1) {
+            nativeCloseRowHandover(nativePtr);
+        }
+    }
+    private native void nativeCloseRowHandover (long nativePtr);// closed from bg realm
+
+    public void closeQueryHandover (long nativePtr) {
+        if (nativePtr != -1) {
+            nativeCloseQueryHandover (nativePtr);
+        }
+    }
+    private native void nativeCloseQueryHandover (long nativePtr);
+
+    public void closeTableViewHandover (long nativePtr) {
+        if (nativePtr != -1) {
+            nativeCloseTableHandover (nativePtr);
+        }
+    }
+    private native void nativeCloseTableHandover (long nativePtr);
+
+    // Query for null values.
+    private native void nativeEqualToNull(long nativeQueryPtr, long columnIndexes[]);
 }

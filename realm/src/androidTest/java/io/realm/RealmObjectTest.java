@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Thread;
 import io.realm.internal.Row;
 
@@ -514,6 +515,89 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(allTypes.isValid());
         testRealm.commitTransaction();
         assertTrue(allTypes.isValid());
+    }
+
+    // store and retrieve null strings
+    public void testNullString() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldStringNull(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.where(NullTypes.class).findAll().first().getFieldStringNull());
+    }
+
+    // store and retrieve non-null strings when field can contain null strings
+    public void testNullableStringField() {
+        final String fooBar = "FooBar";
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldStringNull(fooBar);
+        testRealm.commitTransaction();
+
+        assertEquals(fooBar, testRealm.where(NullTypes.class).findFirst().getFieldStringNull());
+    }
+
+    // try to store null string in non-nullable field
+    public void testNotNullableStringField() {
+        try {
+            testRealm.beginTransaction();
+            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            nullTypes.setFieldStringNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    // store and retrieve null bytes in a nullable fields
+    public void testNullableBytesField() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldBytesNull(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.where(NullTypes.class).findFirst().getFieldBytesNull());
+
+    }
+
+    // store and retrieve null Boolean
+    public void testNullBoolean() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldBooleanNull(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.where(NullTypes.class).findAll().first().getFieldBooleanNull());
+    }
+
+    // store and retrieve non-null Booleans when field can contain null Booleans
+    public void testNullableBooleanField() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldBooleanNull(true);
+        testRealm.commitTransaction();
+
+        assertTrue(testRealm.where(NullTypes.class).findFirst().getFieldBooleanNull());
+    }
+
+    // try to store null Boolean in non-nullable field
+    public void testNotNullableBooleanField() {
+        try {
+            testRealm.beginTransaction();
+            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            nullTypes.setFieldBooleanNotNull(null);
+            fail();
+        }
+        catch (NullPointerException ignored) {
+            // FIXME: Make agreement about the exception type. Extra code is needed for IllegalArgumentException
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
     }
 
     public void testAccessObjectRemovalThrows() throws InterruptedException {

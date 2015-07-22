@@ -13,32 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.entities;
 
+package io.realm.internal.async;
 
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.Required;
-
-public class CatOwner extends RealmObject {
-    @Required
-    private String name;
-    private RealmList<Cat> cats;
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public RealmList<Cat> getCats() {
-        return cats;
-    }
-
-    public void setCats(RealmList<Cat> cats) {
-        this.cats = cats;
+/**
+ * Keep retrying the query until both background Realm & caller's Realm converge (i.e have the
+ * same {@code VersionID})
+ * this corresponds to the mode {@link RetryPolicy#MODE_INDEFINITELY}
+ */
+class IndefinitelyRetryPolicy implements RetryPolicy {
+    @Override
+    public boolean shouldRetry() {
+        return true;
     }
 }

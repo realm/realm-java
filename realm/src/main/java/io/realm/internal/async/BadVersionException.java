@@ -13,32 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.entities;
 
+package io.realm.internal.async;
 
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.Required;
+import io.realm.exceptions.RealmException;
 
-public class CatOwner extends RealmObject {
-    @Required
-    private String name;
-    private RealmList<Cat> cats;
+/**
+ * Triggered when the result of a query could not be used against the current state of the Realm
+ * which might be more up-to-date than the provided results
+ */
+// Triggered from JNI level to indicate a failing Handover due to version mismatch
+public class BadVersionException extends RealmException {
 
-
-    public String getName() {
-        return name;
+    public BadVersionException(String detailMessage) {
+        super(detailMessage);
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public RealmList<Cat> getCats() {
-        return cats;
-    }
-
-    public void setCats(RealmList<Cat> cats) {
-        this.cats = cats;
+    public BadVersionException(String detailMessage, Throwable exception) {
+        super(detailMessage, exception);
     }
 }

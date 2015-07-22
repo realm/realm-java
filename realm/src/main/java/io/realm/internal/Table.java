@@ -42,8 +42,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
 
+    public static final boolean NULLABLE = true;
+    public static final boolean NOT_NULLABLE = false;
+
     protected long nativePtr;
-    
+
     protected final Object parent;
     private final Context context;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
@@ -80,7 +83,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native long createNative();
-    
+
     Table(Context context, Object parent, long nativePointer) {
         this.context = context;
         this.parent  = parent;
@@ -108,14 +111,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     tableCount.decrementAndGet();
                     System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + tableCount.get());
                 }
-                
+
                 nativePtr = 0;
-            }   
+            }
         }
     }
 
     protected static native void nativeClose(long nativeTablePtr);
-    
+
     @Override
     protected void finalize() {
         synchronized (context) {
@@ -126,7 +129,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
         }
 
-        if (DEBUG) 
+        if (DEBUG)
             System.err.println("==== FINALIZE " + tableNo + "...");
     }
 
@@ -164,15 +167,27 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     /**
      * Add a column to the table dynamically.
+     *
+     * @param type The column type.
+     * @param name The field/column name
+     * @param isNullable true if column can contain null values, false otherwise
+     * @return
+     */
+    public long addColumn(ColumnType type, String name, boolean isNullable) {
+        verifyColumnName(name);
+        return nativeAddColumn(nativePtr, type.getValue(), name, isNullable);
+    }
+
+    /**
+     * Add a non-nullable column to the table dynamically.
      * @return Index of the new column.
      */
     @Override
-    public long addColumn (ColumnType type, String name) {
-        verifyColumnName(name);
-        return nativeAddColumn(nativePtr, type.getValue(), name);
+    public long addColumn(ColumnType type, String name) {
+        return addColumn(type, name, false);
     }
 
-    protected native long nativeAddColumn(long nativeTablePtr, int type, String name);
+    protected native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
 
     /**
      * Add a link column to the table dynamically.
@@ -206,6 +221,27 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeRenameColumn(long nativeTablePtr, long columnIndex, String name);
 
+    /**
+     * Is a column nullable?
+     *
+     * @param columnIndex
+     * @return true if column is nullable, false otherwise.
+     */
+    public boolean isColumnNullable(long columnIndex) {
+        return nativeIsColumnNullable(nativePtr, columnIndex);
+    }
+
+    protected native boolean nativeIsColumnNullable(long nativePtr, long columnIndex);
+
+    /**
+     * Convert a column to be nullable.
+     * @param columnIndex
+     */
+    public void convertColumnToNullable(long columnIndex) {
+        nativeConvertColumnToNullable(nativePtr, columnIndex);
+    }
+
+    protected native void nativeConvertColumnToNullable(long nativeTablePtr, long columnIndex);
 
     /**
      * Updates a table specification from a Table specification structure.
@@ -299,7 +335,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
         return nativeGetColumnIndex(nativePtr, columnName);
     }
-    
+
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
 
 
@@ -374,7 +410,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
         checkImmutable();
         checkHasPrimaryKey();
-        
+
         long primaryKeyColumnIndex = getPrimaryKey();
         ColumnType type = getColumnType(primaryKeyColumnIndex);
         long rowIndex;
@@ -390,7 +426,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
+                row = getUncheckedRowByIndex(rowIndex);
                 row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
                 break;
 
@@ -405,7 +441,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(pkValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
+                row = getUncheckedRowByIndex(rowIndex);
                 row.setLong(primaryKeyColumnIndex, pkValue);
                 break;
 
@@ -660,7 +696,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
             long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
             if (rowIndex != NO_MATCH) {
-                String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                String pkColumnName = pkTable.getUncheckedRowByIndex(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
             } else {
                 cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
@@ -688,9 +724,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     void checkStringValueIsLegal(long columnIndex, long rowToUpdate, String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("Null String is not allowed.");
-        }
         if (isPrimaryKey(columnIndex)) {
             long rowIndex = findFirstString(columnIndex, value);
             if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
@@ -997,15 +1030,26 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param index Index of row to fetch.
      * @return Unsafe row wrapper object.
      */
-    public UncheckedRow getUncheckedRow(long index) {
-        return UncheckedRow.get(context, this, index);
+    public UncheckedRow getUncheckedRowByIndex(long index) {
+        return UncheckedRow.getByRowIndex(context, this, index);
+    }
+
+    /**
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
+     * If error checking is required, use {@link #getCheckedRow(long)} instead.
+     *
+     * @param nativeRowPointer Pointer to the row to fetch.
+     * @return Unsafe row wrapper object.
+     */
+    public UncheckedRow getUncheckedRowByPointer(long nativeRowPointer) {
+        return UncheckedRow.getByRowPointer(context, this, nativeRowPointer);
     }
 
     /**
      * Returns a wrapper around Row access. All access will be error checked in JNI and will throw an
      * appropriate {@link RuntimeException} if used incorrectly.
      *
-     * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
+     * If error checking is done elsewhere, consider using {@link #getUncheckedRowByIndex(long)} for better performance.
      *
      * @param index Index of row to fetch./
      * @return Safe row wrapper object.
@@ -1103,8 +1147,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         checkImmutable();
-        if (data == null)
-            throw new IllegalArgumentException("Null Array");
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
     }
 
@@ -1571,8 +1613,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
     protected native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
-    
-    
+
+
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
         if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))

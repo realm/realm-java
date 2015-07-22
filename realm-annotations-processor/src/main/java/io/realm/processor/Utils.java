@@ -1,6 +1,5 @@
 package io.realm.processor;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 import javax.annotation.processing.Messager;
@@ -67,6 +66,13 @@ public class Utils {
             return false;
         }
         return getFieldTypeSimpleName(field).equals("String");
+    }
+
+    public static boolean isByteArray(VariableElement field) {
+        if (field == null) {
+            return false;
+        }
+        return getFieldTypeSimpleName(field).equals("byte[]");
     }
 
     /**

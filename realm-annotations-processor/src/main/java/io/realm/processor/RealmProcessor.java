@@ -95,6 +95,7 @@ import io.realm.annotations.RealmClass;
         "io.realm.annotations.Ignore",
         "io.realm.annotations.Index",
         "io.realm.annotations.PrimaryKey",
+        "io.realm.annotations.Required",
         "io.realm.annotations.internal.RealmModule"
 })
 public class RealmProcessor extends AbstractProcessor {

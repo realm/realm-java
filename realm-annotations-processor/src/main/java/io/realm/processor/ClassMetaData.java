@@ -40,6 +40,7 @@ import javax.lang.model.util.Types;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.Required;
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -55,6 +56,7 @@ public class ClassMetaData {
     private List<String> fieldNames = new ArrayList<String>();
     private List<String> ignoreFieldNames = new ArrayList<String>();
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
+    private Set<VariableElement> nullableElements = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private Set<String> expectedGetters = new HashSet<String>(); // Set of fieldnames that are expected to have a getter
     private Set<String> expectedSetters = new HashSet<String>(); // Set of fieldnames that are expected to have a setter
     private Set<ExecutableElement> methods = new HashSet<ExecutableElement>(); // List of all methods in the model class
@@ -308,6 +310,29 @@ public class ClassMetaData {
                     }
                 }
 
+                if (variableElement.getAnnotation(Required.class) == null) {
+                    // The field doesn't have the @Required annotation
+                    // TODO: Remove AND condition since non-primitive types are nullable by default.
+                    if (!variableElement.asType().getKind().isPrimitive() &&
+                            (Utils.isString(variableElement) ||
+                                    Utils.isByteArray(variableElement) ||
+                                    variableElement.asType().toString().equals("java.lang.Boolean"))) {
+                        nullableElements.add(variableElement);
+                    }
+                } else {
+                    // The field has the @Required annotation
+                    String elementTypeCanonicalName = variableElement.asType().toString();
+                    // FIXME: Remove this after supporting all boxed types
+                    if (Utils.isString(variableElement) || Utils.isByteArray(variableElement) || elementTypeCanonicalName.equals("java.lang.Boolean")) {
+                        if (nullableElements.contains(variableElement)) {
+                            nullableElements.remove(variableElement);
+                        }
+                    } else{
+                        // FIXME: Remove this after supporting all boxed types
+                        Utils.error("@Required is only applicable to String, byte[] and Boolean fields - got " + element);
+                    }
+                }
+
                 if (variableElement.getAnnotation(PrimaryKey.class) != null) {
                     // The field has the @PrimaryKey annotation. It is only valid for
                     // String, short, int, long and must only be present one time
@@ -407,6 +432,16 @@ public class ClassMetaData {
 
     public String getPrimaryKeyGetter() {
         return getters.get(primaryKey.getSimpleName().toString());
+    }
+
+    public boolean isNullable(VariableElement variableElement) {
+        // primary keys cannot be nullable
+        if (hasPrimaryKey()) {
+            if (variableElement.equals(getPrimaryKey())) {
+                return false;
+            }
+        }
+        return nullableElements.contains(variableElement);
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {

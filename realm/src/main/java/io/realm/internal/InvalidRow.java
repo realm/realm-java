@@ -167,6 +167,16 @@ public enum InvalidRow implements Row {
     }
 
     @Override
+    public boolean isNull(long columnIndex) {
+        throw getStubException();
+    }
+
+    @Override
+    public void setNull(long columnIndex) {
+        throw getStubException();
+    }
+
+    @Override
     public boolean isAttached() {
         throw getStubException();
     }

@@ -25,6 +25,9 @@ jbyteArray tbl_GetByteArray(JNIEnv* env, jlong nativeTablePtr, jlong columnIndex
         return NULL;
 
     BinaryData bin = reinterpret_cast<T*>(nativeTablePtr)->get_binary( S(columnIndex), S(rowIndex));
+    if (bin.is_null()) {
+        return NULL;
+    }
     if (bin.size() <= MAX_JSIZE) {
         jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
         if (jresult)

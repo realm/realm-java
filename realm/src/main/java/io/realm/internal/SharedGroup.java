@@ -82,20 +82,24 @@ public class SharedGroup implements Closeable {
     }
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
+    
+    public long getNativePointer () {
+        return nativePtr;
+    }
 
     private native long nativeCreateReplication(String databaseFile, byte[] key);
 
     void advanceRead() {
-        nativeAdvanceRead(nativePtr);
+        nativeAdvanceRead(nativePtr, nativeReplicationPtr);
     }
 
-    private native void nativeAdvanceRead(long nativePtr);
+    private native void nativeAdvanceRead(long nativePtr, long nativeReplicationPtr);
 
     void promoteToWrite() {
-        nativePromoteToWrite(nativePtr);
+        nativePromoteToWrite(nativePtr, nativeReplicationPtr);
     }
 
-    private native void nativePromoteToWrite(long nativePtr);
+    private native void nativePromoteToWrite(long nativePtr, long nativeReplicationPtr);
 
     void commitAndContinueAsRead() {
         nativeCommitAndContinueAsRead(nativePtr);
@@ -104,10 +108,10 @@ public class SharedGroup implements Closeable {
     private native void nativeCommitAndContinueAsRead(long nativePtr);
 
     void rollbackAndContinueAsRead() {
-        nativeRollbackAndContinueAsRead(nativePtr);
+        nativeRollbackAndContinueAsRead(nativePtr, nativeReplicationPtr);
     }
 
-    private native void nativeRollbackAndContinueAsRead(long nativePtr);
+    private native void nativeRollbackAndContinueAsRead(long nativePtr, long nativeReplicationPtr);
 
     public ImplicitTransaction beginImplicitTransaction() {
         if (activeTransaction) {

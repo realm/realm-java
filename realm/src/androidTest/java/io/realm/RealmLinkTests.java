@@ -20,6 +20,7 @@ import android.test.AndroidTestCase;
 
 import java.util.Date;
 
+import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
@@ -518,8 +519,8 @@ public class RealmLinkTests extends AndroidTestCase {
 
     public void testIsNullWrongType() {
         try {
-            // Owner.name is a String
-            RealmResults<Owner> owners = testRealm.where(Owner.class).isNull("name").findAll();
+            // AllTypes.columnFloat is not nullable
+            RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).isNull("columnFloat").findAll();
             fail();
         } catch (IllegalArgumentException expected) {
         }

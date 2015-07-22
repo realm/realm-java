@@ -54,6 +54,7 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
@@ -280,10 +281,10 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, resultList.size());
     }
 
-    // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
+    // <E extends RealmObject> E getByIndex(Class<E> clazz, long rowIndex)
     public void testShouldGetObject() {
         populateTestRealm();
-        AllTypes allTypes = testRealm.get(AllTypes.class, 0);
+        AllTypes allTypes = testRealm.getByIndex(AllTypes.class, 0);
         assertNotNull(allTypes);
         assertEquals("test data 0", allTypes.getColumnString());
     }
@@ -412,7 +413,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testQueriesFailWithNullQueryValue() throws IOException {
         try {
-            testRealm.where(AllTypes.class).equalTo(FIELD_STRING, (String) null).findAll();
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL, (String) null).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException ignored) {
         }
@@ -422,7 +423,7 @@ public class RealmTest extends AndroidTestCase {
     public void testShouldReturnTableOrViewList() {
         populateTestRealm();
         RealmResults<AllTypes> resultList = testRealm.allObjects(AllTypes.class);
-        assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
+        assertEquals("Realm.getByIndex is returning wrong result set", TEST_DATA_SIZE, resultList.size());
     }
 
     public void testAllObjectsSorted() {
@@ -637,7 +638,10 @@ public class RealmTest extends AndroidTestCase {
 
 
     public void testExecuteTransactionNull() {
-        testRealm.executeTransaction(null); // Nothing happens
+        try {
+            testRealm.executeTransaction(null);
+            fail("null transaction should throw");
+        } catch (IllegalArgumentException ignore) {}
         assertFalse(testRealm.hasChanged());
     }
 
@@ -1039,7 +1043,7 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnString("Test");
         testRealm.commitTransaction();
 
-        testRealm.commitTransaction();
+        testRealm.beginTransaction();
         AllTypes copiedAllTypes = testRealm.copyToRealm(allTypes);
         testRealm.commitTransaction();
 
@@ -1138,9 +1142,9 @@ public class RealmTest extends AndroidTestCase {
         AllTypes realmTypes = testRealm.copyToRealm(new AllTypes());
         testRealm.commitTransaction();
 
-        assertEquals("", realmTypes.getColumnString());
+        assertNull(realmTypes.getColumnString());
         assertEquals(new Date(0), realmTypes.getColumnDate());
-        assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
+        assertNull(realmTypes.getColumnBinary());
     }
 
     // Check that using copyToRealm will set the primary key directly instead of first setting
@@ -1336,12 +1340,12 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(1, testRealm.allObjects(AllTypesPrimaryKey.class).size());
 
         AllTypesPrimaryKey obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
-        assertEquals("", obj.getColumnString());
+        assertNull(obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
         assertEquals(0.0F, obj.getColumnFloat());
         assertEquals(0.0D, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
-        assertArrayEquals(new byte[0], obj.getColumnBinary());
+        assertNull(obj.getColumnBinary());
         assertEquals(new Date(0), obj.getColumnDate());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());

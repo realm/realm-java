@@ -67,8 +67,8 @@ public class SimpleRealmProxy extends Simple
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            table.addColumn(ColumnType.STRING, "name");
-            table.addColumn(ColumnType.INTEGER, "age");
+            table.addColumn(ColumnType.STRING, "name", Table.NULLABLE);
+            table.addColumn(ColumnType.INTEGER, "age", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
             return table;
         }
@@ -105,11 +105,17 @@ public class SimpleRealmProxy extends Simple
             if (columnTypes.get("name") != ColumnType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name'");
             }
+            if (!table.isColumnNullable(INDEX_NAME)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'name'");
+            }
             if (!columnTypes.containsKey("age")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age'");
             }
             if (columnTypes.get("age") != ColumnType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age'");
+            }
+            if (table.isColumnNullable(INDEX_AGE)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'age'");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the schema for this Realm.");
@@ -158,23 +164,23 @@ public class SimpleRealmProxy extends Simple
         return obj;
     }
 
-    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+    public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
         if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
     }
 
-    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
-        realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
+        realmObject.setName(newObject.getName());
         realmObject.setAge(newObject.getAge());
         return realmObject;
     }
 
     static Simple update(Realm realm, Simple realmObject, Simple newObject, Map<RealmObject, RealmObjectProxy> cache) {
-        realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
+        realmObject.setName(newObject.getName());
         realmObject.setAge(newObject.getAge());
         return realmObject;
     }
@@ -186,7 +192,7 @@ public class SimpleRealmProxy extends Simple
         }
         StringBuilder stringBuilder = new StringBuilder("Simple = [");
         stringBuilder.append("{name:");
-        stringBuilder.append(getName());
+        stringBuilder.append(getName() != null ? getName() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{age:");
