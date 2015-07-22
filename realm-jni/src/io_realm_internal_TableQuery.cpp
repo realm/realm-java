@@ -1201,3 +1201,18 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
         }
     } CATCH_STD()
 }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualToNull
+  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes) {
+    GET_ARRAY()
+    try {
+        if (arr_len == 1) {
+            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Bool)) {
+                return;
+            }
+            Q(nativeQueryPtr)->equal(S(arr[0]), realm::null());
+        }
+    } CATCH_STD()
+    RELEASE_ARRAY()
+}
+

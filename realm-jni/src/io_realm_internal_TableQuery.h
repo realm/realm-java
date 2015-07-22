@@ -503,6 +503,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
 
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeEqualToNull
+ * Signature: (J[J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualToNull
+  (JNIEnv *, jobject, jlong, jlongArray);
+
 #ifdef __cplusplus
 }
 #endif
