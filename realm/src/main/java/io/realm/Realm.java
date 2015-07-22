@@ -54,14 +54,13 @@ import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
-import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
@@ -573,12 +572,6 @@ public final class Realm implements Closeable {
     }
 
     private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
-        // Start the finalizer thread if needed
-        if (!isFinalizerStarted) {
-            executorService.submit(new FinalizerRunnable());
-            isFinalizerStarted = true;
-        }
-
         // Check if a cached instance already exists for this thread
         String canonicalPath = configuration.getPath();
         Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();

@@ -36,6 +36,8 @@ public class UncheckedRow extends NativeObject implements Row {
         this.context = context;
         this.parent = parent;
         this.nativePointer = nativePtr;
+
+        context.cleanRows();
     }
 
     /**

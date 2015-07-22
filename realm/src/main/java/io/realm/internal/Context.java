@@ -16,10 +16,12 @@
 
 package io.realm.internal;
 
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.List;
 
-class Context {
+public class Context {
 
     // Each group of related Realm objects will have a Context object in the root.
     // The root can be a table, a group, or a shared group.
@@ -30,6 +32,9 @@ class Context {
     private List<Long> abandonedTables = new ArrayList<Long>();
     private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
+
+    List<Reference<?>> rowReferences = new ArrayList<Reference<?>>();
+    ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
 
     private boolean isFinalized = false;
 
@@ -52,6 +57,17 @@ class Context {
                 TableQuery.nativeClose(nativePointer);
             }
             abandonedQueries.clear();
+
+            cleanRows();
+        }
+    }
+
+    public void cleanRows() {
+        NativeObjectReference reference = (NativeObjectReference) referenceQueue.poll();
+        while (reference != null) {
+            UncheckedRow.nativeClose(reference.nativePointer);
+            rowReferences.remove(reference);
+            reference = (NativeObjectReference) referenceQueue.poll();
         }
     }
 
