@@ -337,7 +337,7 @@ public class RealmQuery<E extends RealmObject> {
      *                                            field type
      * @throws java.lang.RuntimeException         Any other error
      */
-    public RealmQuery<E> equalTo(String fieldName, boolean value) {
+    public RealmQuery<E> equalTo(String fieldName, Boolean value) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.BOOLEAN);
         this.query.equalTo(columnIndices, value);
         return this;

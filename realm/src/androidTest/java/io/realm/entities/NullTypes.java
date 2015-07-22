@@ -26,8 +26,8 @@ public class NullTypes extends RealmObject {
     public static String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";
     public static String FIELD_BYTES_NULL = "fieldBytesNull";
 
-    public static String FIELD_BOXED_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
-    public static String FIELD_BOOLEAN_NOT_NULLL = "fieldBooleanNotNull";
+    public static String FIELD_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
+    public static String FIELD_BOOLEAN_NULL = "fieldBooleanNull";
 
     @Required
     private String fieldStringNotNull;
