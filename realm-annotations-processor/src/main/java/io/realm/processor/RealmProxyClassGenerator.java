@@ -193,12 +193,6 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement(
                         "realm.checkIfValid()"
                 );
-                // FIXME: Check if we should remove the String condition
-                if (!field.asType().getKind().isPrimitive() && !metadata.isNullable(field) && !Utils.isString(field)) {
-                    writer.beginControlFlow("if (value == null)");
-                    writer.emitStatement("throw new IllegalArgumentException(\"%s is not nullable.\")", fieldName);
-                    writer.endControlFlow();
-                }
                 // FIXME: Make a better condition
                 if (metadata.isNullable(field) && !Utils.isString(field)) {
                     writer.beginControlFlow("if (value == null)");
