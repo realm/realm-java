@@ -533,7 +533,7 @@ public class TableQuery implements Closeable {
         long nativeTvPtr = 0;
         try {
             nativeTvPtr = nativeImportHandoverTableViewIntoSharedGroup(handoverPtr, callerSharedGroupPtr);
-            return new TableView(this.context, this.parent, nativeTvPtr);
+            return new TableView(this.context, this.table, nativeTvPtr);
         } catch (RuntimeException e) {
             if (nativeTvPtr != 0) {
                 TableView.nativeClose(nativeTvPtr);
