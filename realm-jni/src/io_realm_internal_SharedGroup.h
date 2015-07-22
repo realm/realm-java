@@ -26,18 +26,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    nativeAdvanceRead
- * Signature: (J)V
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    nativePromoteToWrite
- * Signature: (J)V
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_SharedGroup
@@ -50,10 +50,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCommitAndContinu
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    nativeRollbackAndContinueAsRead
- * Signature: (J)V
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeRollbackAndContinueAsRead
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_SharedGroup

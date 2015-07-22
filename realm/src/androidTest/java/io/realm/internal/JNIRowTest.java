@@ -26,7 +26,7 @@ public class JNIRowTest extends TestCase {
         table.add("abc", 3, (float) 1.2, 1.3, true, new Date(0), data);
 
 
-        UncheckedRow row = table.getUncheckedRow(0);
+        UncheckedRow row = table.getUncheckedRowByIndex(0);
 
         assertEquals("abc", row.getString(0));
         assertEquals(3, row.getLong(1));
@@ -63,12 +63,12 @@ public class JNIRowTest extends TestCase {
 
         table.addEmptyRows(2);
 
-        UncheckedRow row = table.getUncheckedRow(0);
+        UncheckedRow row = table.getUncheckedRowByIndex(0);
         row.setMixed(0, new Mixed(1.5));
 
         assertEquals(1.5, row.getMixed(0).getDoubleValue());
 
-        UncheckedRow row2 = table.getUncheckedRow(1);
+        UncheckedRow row2 = table.getUncheckedRowByIndex(1);
         row2.setMixed(0, new Mixed("test"));
 
         assertEquals("test", row2.getMixed(0).getStringValue());

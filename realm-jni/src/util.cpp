@@ -126,6 +126,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = "Illegal State: " + classStr;
             break;
+
+        case BadVersion:
+            jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
+            message = "Handover failed due to version mismatch: " + classStr;
+            break;
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());

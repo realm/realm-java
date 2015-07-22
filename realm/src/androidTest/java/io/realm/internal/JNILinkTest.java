@@ -59,7 +59,7 @@ public class JNILinkTest extends TestCase {
 
         table2.insertLinkList(0,0);
 
-        LinkView links = table2.getUncheckedRow(0).getLinkList(0);
+        LinkView links = table2.getUncheckedRowByIndex(0).getLinkList(0);
 
         assertEquals(links.isEmpty(), true);
         assertEquals(links.size(), 0);

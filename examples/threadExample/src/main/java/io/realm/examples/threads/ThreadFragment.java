@@ -16,7 +16,6 @@
 
 package io.realm.examples.threads;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -59,27 +58,9 @@ public class ThreadFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        // Create Realm instance for the UI thread
-        realm = Realm.getDefaultInstance();
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_thread, container, false);
         dotsView = (DotsView) rootView.findViewById(R.id.dots);
-
-        // Create a RealmQuery on the UI thread and send the results to the custom view. The
-        // RealmResults will automatically be updated whenever the Realm data is changed.
-        // We still need to invalidate the UI to show the changes however. See the RealmChangeListener.
-        //
-        // Note that the query gets updated by rerunning it on the thread it was
-        // created. This can negatively effect frame rates if it is a complicated query or a very
-        // large data set.
-        dotsView.setRealmResults(realm.allObjects(Dot.class));
-
         return rootView;
     }
 
@@ -112,6 +93,22 @@ public class ThreadFragment extends Fragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Create Realm instance for the UI thread
+        realm = Realm.getDefaultInstance();
+
+        // Create a RealmQuery on the UI thread and send the results to the custom view. The
+        // RealmResults will automatically be updated whenever the Realm data is changed.
+        // We still need to invalidate the UI to show the changes however. See the RealmChangeListener.
+        //
+        // Note that the query gets updated by rerunning it on the thread it was
+        // created. This can negatively effect frame rates if it is a complicated query or a very
+        // large data set.
+        dotsView.setRealmResults(realm.allObjects(Dot.class));
     }
 
     @Override
@@ -161,8 +158,8 @@ public class ThreadFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStop() {
+        super.onStop();
         // Remember to close the Realm instance when done with it.
         realm.close();
     }
