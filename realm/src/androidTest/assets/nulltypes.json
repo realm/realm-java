@@ -3,12 +3,16 @@
     "fieldStringNotNull": null,
     "fieldStringNull": null,
     "fieldBytesNotNull": null,
-    "fieldBytesNull": null
+    "fieldBytesNull": null,
+    "fieldBooleanNotNull": null,
+    "fieldBooleanNull": null
   },
   {
     "fieldStringNotNull": "",
     "fieldStringNull": "",
     "fieldBytesNotNull": "",
-    "fieldBytesNull": ""
+    "fieldBytesNull": "",
+    "fieldBooleanNotNull": false,
+    "fieldBooleanNull": false
   }
 ]
