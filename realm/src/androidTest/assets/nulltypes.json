@@ -4,13 +4,17 @@
     "fieldStringNotNull": "",
     "fieldStringNull": null,
     "fieldBytesNotNull": "",
-    "fieldBytesNull": null
+    "fieldBytesNull": null,
+    "fieldBooleanNotNull": null,
+    "fieldBooleanNull": null
   },
   {
     "id": 2,
     "fieldStringNotNull": "",
     "fieldStringNull": "",
     "fieldBytesNotNull": "",
-    "fieldBytesNull": ""
+    "fieldBytesNull": "",
+    "fieldBooleanNotNull": false,
+    "fieldBooleanNull": false
   }
 ]
