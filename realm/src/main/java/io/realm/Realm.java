@@ -45,8 +45,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
@@ -121,12 +119,6 @@ import io.realm.internal.log.RealmLog;
  */
 public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
-
-    // This single thread executor ensures that only one finalizer thread ever exists
-    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-    // This does not need to be thread safe since it's only used in a synchronized method
-    private static volatile boolean isFinalizerStarted = false;
 
     protected static final ThreadLocal<Map<RealmConfiguration, Realm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, Realm>>() {
