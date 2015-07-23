@@ -31,18 +31,18 @@ import java.util.List;
 //
 // Why are we doing this? Because it helps us build a better product for you.
 // None of the data personally identifies you, your employer or your app, but it
-// *will* help us understand what language you use, what Android versions you
-// target, etc. Having this info will help prioritizing our time, adding new
+// *will* help us understand what Realm version you use, what host OS you use,
+// etc. Having this info will help with prioritizing our time, adding new
 // features and deprecating old features. Collecting an anonymized bundle &
 // anonymized MAC is the only way for us to count actual usage of the other
 // metrics accurately. If we don’t have a way to deduplicate the info reported,
-// it will be useless, as a single developer building their Android app 10 times
-// would report 10 times more than a single developer that only
-// builds once, making the data all but useless. No one likes sharing data
-// unless it’s necessary, we get it, and we’ve debated adding this for a long
-// long time. Since Realm is a free product without an email signup, we feel
-// this is a necessary step so we can collect relevant data to build a better
-// product for you.
+// it will be useless, as a single developer building their app on Windows ten
+// times would report 10 times more than a single developer that only builds
+// once from Mac OS X, making the data all but useless. No one likes sharing
+// data unless it’s necessary, we get it, and we’ve debated adding this for a
+// long long time. Since Realm is a free product without an email signup, we
+// feel this is a necessary step so we can collect relevant data to build a
+// better product for you.
 //
 // Currently the following information is reported:
 // - What version of Realm is being used
