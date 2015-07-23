@@ -360,8 +360,12 @@ public class AllTypesRealmProxy extends AllTypes
         if (obj == null) {
             obj = realm.createObject(AllTypes.class);
         }
-        if (!json.isNull("columnString")) {
-            obj.setColumnString((String) json.getString("columnString"));
+        if (json.has("columnString")) {
+            if (json.isNull("columnString")) {
+                obj.setColumnString(null);
+            } else {
+                obj.setColumnString((String) json.getString("columnString"));
+            }
         }
         if (!json.isNull("columnLong")) {
             obj.setColumnLong((long) json.getLong("columnLong"));
@@ -383,8 +387,12 @@ public class AllTypesRealmProxy extends AllTypes
                 obj.setColumnDate(new Date(json.getLong("columnDate")));
             }
         }
-        if (!json.isNull("columnBinary")) {
-            obj.setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
+        if (json.has("columnBinary")) {
+            if (json.isNull("columnBinary")) {
+                obj.setColumnBinary(null);
+            } else {
+                obj.setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
+            }
         }
         if (!json.isNull("columnObject")) {
             some.test.AllTypes columnObjectObj = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("columnObject"), update);

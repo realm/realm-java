@@ -133,11 +133,19 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public static NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         NullTypes obj = realm.createObject(NullTypes.class);
-        if (!json.isNull("fieldStringNotNull")) {
-            obj.setFieldStringNotNull((String) json.getString("fieldStringNotNull"));
+        if (json.has("fieldStringNotNull")) {
+            if (json.isNull("fieldStringNotNull")) {
+                obj.setFieldStringNotNull(null);
+            } else {
+                obj.setFieldStringNotNull((String) json.getString("fieldStringNotNull"));
+            }
         }
-        if (!json.isNull("fieldStringNull")) {
-            obj.setFieldStringNull((String) json.getString("fieldStringNull"));
+        if (json.has("fieldStringNull")) {
+            if (json.isNull("fieldStringNull")) {
+                obj.setFieldStringNull(null);
+            } else {
+                obj.setFieldStringNull((String) json.getString("fieldStringNull"));
+            }
         }
         return obj;
     }

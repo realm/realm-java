@@ -90,12 +90,15 @@ public class RealmResultsTest extends AndroidTestCase {
     private void populateTestRealmForNullTests() {
         String words[] = {"Fish", null, "Horse"};
         testRealm.beginTransaction();
-        for (String word : words) {
-            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            NullTypes nullTypes = new NullTypes();
+            nullTypes.setId(i + 1);
             nullTypes.setFieldStringNull(word);
             if (word != null) {
                 nullTypes.setFieldStringNotNull(word);
             }
+            testRealm.copyToRealm(nullTypes);
         }
         testRealm.commitTransaction();
     }

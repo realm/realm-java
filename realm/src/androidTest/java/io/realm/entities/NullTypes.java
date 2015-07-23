@@ -17,24 +17,35 @@
 package io.realm.entities;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 
 public class NullTypes extends RealmObject {
+
     public static String FIELD_STRING_NOT_NULL = "fieldStringNotNull";
     public static String FIELD_STRING_NULL = "fieldStringNull";
     public static String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";
     public static String FIELD_BYTES_NULL = "fieldBytesNull";
 
+    @PrimaryKey
+    private int id;
+
     @Required
     private String fieldStringNotNull;
-
     private String fieldStringNull;
-
-    private byte[] fieldBytesNull;
 
     @Required
     private byte[] fieldBytesNotNull;
+    private byte[] fieldBytesNull;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getFieldStringNotNull() {
         return fieldStringNotNull;
