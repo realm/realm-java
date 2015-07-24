@@ -13,32 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.entities;
 
+package some.test;
 
-import io.realm.RealmList;
+import java.lang.String;
+
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
 
-public class CatOwner extends RealmObject {
+public class NullTypes extends RealmObject {
     @Required
-    private String name;
-    private RealmList<Cat> cats;
+    private String fieldStringNotNull;
 
+    private String fieldStringNull;
 
-    public String getName() {
-        return name;
+    public String getFieldStringNotNull() {
+        return fieldStringNotNull;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFieldStringNotNull(String fieldStringNotNull) {
+        this.fieldStringNotNull = fieldStringNotNull;
     }
 
-    public RealmList<Cat> getCats() {
-        return cats;
+    public String getFieldStringNull() {
+        return fieldStringNull;
     }
 
-    public void setCats(RealmList<Cat> cats) {
-        this.cats = cats;
+    public void setFieldStringNull(String fieldStringNull) {
+        this.fieldStringNull = fieldStringNull;
     }
 }

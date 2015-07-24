@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Thread;
 import io.realm.internal.Row;
 
@@ -283,8 +284,8 @@ public class RealmObjectTest extends AndroidTestCase {
         ct1.setName("Baz");
         testRealm.commitTransaction();
 
-        assertTrue(ct1.equals(ct1));
-        assertTrue(ct2.equals(ct2));
+        assertTrue(ct1.equals(ct2));
+        assertTrue(ct2.equals(ct1));
     }
 
     public void testEqualsStandAlone() {
@@ -478,6 +479,7 @@ public class RealmObjectTest extends AndroidTestCase {
         // The model class' name (Thread) clashed with a common Java class.
         // The annotation process must be able to handle that.
         testRealm.beginTransaction();
+        @SuppressWarnings("unused")
         Thread thread = testRealm.createObject(Thread.class);
         testRealm.commitTransaction();
     }
@@ -514,6 +516,53 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(allTypes.isValid());
         testRealm.commitTransaction();
         assertTrue(allTypes.isValid());
+    }
+
+    // store and retrieve null strings
+    public void testNullString() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldStringNull(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.where(NullTypes.class).findFirst().getFieldStringNull());
+    }
+
+    // store and retrieve non-null strings when field can contain null strings
+    public void testNullableField() {
+        final String fooBar = "FooBar";
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldStringNull(fooBar);
+        testRealm.commitTransaction();
+
+        assertEquals(fooBar, testRealm.where(NullTypes.class).findFirst().getFieldStringNull());
+    }
+
+    // try to store null string in non-nullable field
+    public void testNotNullableField() {
+        try {
+            testRealm.beginTransaction();
+            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            nullTypes.setFieldStringNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    // store and retrieve null bytes in a nullable fields
+    public void testNullableBytesField() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        nullTypes.setFieldBytesNull(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.where(NullTypes.class).findFirst().getFieldBytesNull());
+
     }
 
     public void testAccessObjectRemovalThrows() throws InterruptedException {

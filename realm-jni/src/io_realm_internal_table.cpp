@@ -47,7 +47,7 @@ inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type) {
 //
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
-  (JNIEnv *env, jobject, jlong nativeTablePtr, jint colType, jstring name)
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jint colType, jstring name, jboolean isNullable)
 {
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
@@ -57,7 +57,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
     }
     try {
         JStringAccessor name2(env, name); // throws
-        return TBL(nativeTablePtr)->add_column(DataType(colType), name2);
+        bool is_column_nullable = isNullable != 0 ? true : false;
+
+        DataType dataType = DataType(colType);
+        if (is_column_nullable && dataType != type_String && dataType != type_Binary) {
+             ThrowException(env, IllegalArgument, "Only string and byte array fields can be nullable.");
+        }
+        return TBL(nativeTablePtr)->add_column(dataType, name2, is_column_nullable);
     } CATCH_STD()
     return 0;
 }
@@ -144,6 +150,84 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
     } CATCH_STD()
 }
 
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table *table = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, table, columnIndex)) {
+        return false;
+    }
+    if (table->has_shared_type()) {
+        ThrowException(env, UnsupportedOperation, "Not allowed to convert column in subtable.");
+        return false;
+    }
+    size_t column_index = S(columnIndex);
+    return table->is_nullable(column_index);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table *table = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, table, columnIndex)) {
+        return;
+    }
+    if (table->has_shared_type()) {
+        ThrowException(env, UnsupportedOperation, "Not allowed to convert column in subtable.");
+        return;
+    }
+    try {
+        size_t column_index = S(columnIndex);
+        if (table->is_nullable(column_index)) {
+            return; // column is already nullable
+        }
+
+        std::string column_name = table->get_column_name(column_index);
+        DataType column_type = table->get_column_type(column_index);
+        if (column_type != type_String && column_type != type_Binary) {
+            ThrowException(env, IllegalArgument, "Only String and bytes[] fields can be nullable.");
+        }
+
+        std::string tmp_column_name;
+        size_t i = 0;
+        while (true) {
+            std::ostringstream ss;
+            ss << std::string("__TMP__") << i;
+            if (table->get_column_index(ss.str()) == realm::not_found) {
+                table->insert_column(column_index, column_type, ss.str(), true);
+                tmp_column_name = ss.str();
+                break;
+            }
+            i++;
+        }
+        for(size_t i = 0; i < table->size(); ++i) {
+            switch (column_type) {
+                case type_String:
+                    table->set_string(column_index, i, table->get_string(column_index + 1, i));
+                    break;
+                case type_Binary:
+                    table->set_binary(column_index, i, table->get_binary(column_index + 1, i));
+                    break;
+                case type_Int:
+                case type_Bool:
+                case type_DateTime:
+                case type_Float:
+                case type_Double:
+                case type_Link:
+                case type_LinkList:
+                case type_Mixed:
+                case type_Table:
+                    // checked previously
+                    break;
+            }
+        }
+        if (table->has_search_index(column_index + 1)) {
+            table->add_search_index(column_index);
+        }
+        table->remove_column(column_index + 1);
+        table->rename_column(table->get_column_index(tmp_column_name), column_name);
+    } CATCH_STD()
+}
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsRootTable
   (JNIEnv *, jobject, jlong nativeTablePtr)
@@ -641,6 +725,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_String))
         return;
     try {
+        if (value == NULL) {
+            if (!TBL(nativeTablePtr)->is_nullable(S(columnIndex))) {
+                ThrowNullValueException(env, TBL(nativeTablePtr), S(columnIndex));
+                return;
+            }
+        }
         JStringAccessor value2(env, value); // throws
         TBL(nativeTablePtr)->set_string( S(columnIndex), S(rowIndex), value2);
     } CATCH_STD()
@@ -685,7 +775,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary))
         return;
     try {
-        tbl_nativeDoByteArray(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+        if (dataArray == NULL) {
+            if (!TBL(nativeTablePtr)->is_nullable(S(columnIndex))) {
+                ThrowNullValueException(env, TBL(nativeTablePtr), S(columnIndex));
+                return;
+            }
+            TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), BinaryData());
+        }
+        else {
+            tbl_nativeDoByteArray(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+        }
     } CATCH_STD()
 }
 
@@ -695,7 +794,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertByteArray(
     if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary))
         return;
     try {
-        tbl_nativeDoByteArray(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+        if (dataArray == NULL) {
+            if (!TBL(nativeTablePtr)->is_nullable(S(columnIndex))) {
+                ThrowNullValueException(env, TBL(nativeTablePtr), S(columnIndex));
+                return;
+            }
+            TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), BinaryData());
+        }
+        else {
+            tbl_nativeDoByteArray(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
+        }
     } CATCH_STD()
 }
 

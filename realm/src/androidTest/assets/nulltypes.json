@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "fieldStringNotNull": "",
+    "fieldStringNull": null,
+    "fieldBytesNotNull": "",
+    "fieldBytesNull": null
+  },
+  {
+    "id": 2,
+    "fieldStringNotNull": "",
+    "fieldStringNull": "",
+    "fieldBytesNotNull": "",
+    "fieldBytesNull": ""
+  }
+]

@@ -6,8 +6,9 @@ import java.io.File;
 import java.io.IOException;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.FieldOrder;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.FieldOrder;
+import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
@@ -166,13 +167,15 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                // Primary key will be indexed automatically
-                table.addSearchIndex(columnIndex);
-                columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString");
+                if (table.getColumnCount() == 0) {
+                    long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
+                    table.setPrimaryKey("id");
+                    // Primary key will be indexed automatically
+                    table.addSearchIndex(columnIndex);
+                    columnIndex = table.addColumn(ColumnType.STRING, "indexString", Table.NULLABLE);
+                    table.addSearchIndex(columnIndex);
+                    table.addColumn(ColumnType.STRING, "notIndexString", Table.NULLABLE);
+                }
                 return 1;
             }
         };
@@ -242,5 +245,85 @@ public class RealmMigrationTests extends AndroidTestCase {
             fail();
         } catch (RealmMigrationNeededException expected) {
         }
+    }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. But @Required must be added, and forgetting so will give you
+    // a MigrationNeeded exception.
+    public void testOpenPreNullRealmRequiredMissing() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration realmMigration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                // intentionally left empty
+                return 0;
+            }
+        };
+
+        try {
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(0)
+                    .schema(AllTypes.class)
+                    .migration(realmMigration)
+                    .build();
+            Realm realm = Realm.getInstance(realmConfig);
+            realm.close();
+            fail();
+        } catch (RealmMigrationNeededException e) {
+            if (!e.getMessage().equals("Add annotation @Required or @PrimaryKey to field 'columnString'")) {
+                fail(e.getMessage());
+            }
+        }
+    }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. An explicit migration step to convert to nullable, and the
+    // old class (without @Required) can be used,
+    public void testMigratePreNull() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                Table table = realm.getTable(AllTypes.class);
+                table.convertColumnToNullable(table.getColumnIndex("columnString"));
+                table.convertColumnToNullable(table.getColumnIndex("columnBinary"));
+                return 1;
+            }
+        };
+
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schemaVersion(1)
+                .schema(AllTypes.class)
+                .migration(migration)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        realm.beginTransaction();
+        AllTypes allTypes = realm.createObject(AllTypes.class);
+        allTypes.setColumnString(null);
+        realm.commitTransaction();
+        realm.close();
+    }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. If the user adds the @Required annotation to a field and does not
+    // change the schema version, no migration is needed. But then, null cannot be used as a value.
+    public void testOpenPreNullWithRequired() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schemaVersion(0)
+                .schema(StringOnly.class)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+
+        realm.beginTransaction();
+        try {
+            StringOnly stringOnly = realm.createObject(StringOnly.class);
+            stringOnly.setChars(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        realm.cancelTransaction();
+
+        realm.close();
     }
 }

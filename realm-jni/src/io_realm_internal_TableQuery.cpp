@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <realm.hpp>
+ 
 #include "util.hpp"
 #include "io_realm_internal_TableQuery.h"
 #include "tablequery.hpp"
@@ -23,11 +25,13 @@ using namespace realm;
 #if 1
 #define COL_TYPE_VALID(env,ptr,col, type)           TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)
 #define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)
+#define COL_TYPE_NULLABLE(env,ptr,col)              TBL_AND_COL_NULLABLE(env,ptr,col)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  query_col_type_valid(env, jPtr, col, type)
 #define QUERY_VALID(env, pQuery)                    query_valid(env, pQuery)
 #else
 #define COL_TYPE_VALID(env,ptr,col, type)           (true)
 #define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      (true)
+#define COL_TYPE_NULLABLE(env,ptr,col)              (true)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  (true)
 #define QUERY_VALID(env, pQuery)                    (true)
 #endif
@@ -666,46 +670,58 @@ enum StringPredicate {
 void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray columnIndexes, jstring value, jboolean caseSensitive, StringPredicate predicate) {
     GET_ARRAY()
     try {
-        bool isCaseSensitive = caseSensitive ? true : false;
+        if (value == NULL) {
+            if (!(Q(nativeQueryPtr)->get_table()->is_nullable( S(arr[0]) ))) {
+                ThrowException(env, IllegalArgument, "Trying to query field with null but field is not nullable.");
+                return;
+            }
+        }
+        bool is_case_sensitive = caseSensitive ? true : false;
         JStringAccessor value2(env, value); // throws
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_String))
                 return;
             switch (predicate) {
             case StringEqual:
-                Q(nativeQueryPtr)->equal(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->equal(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringNotEqual:
-                Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->not_equal(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringContains:
-                Q(nativeQueryPtr)->contains(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->contains(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringBeginsWith:
-                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->begins_with(S(arr[0]), value2, is_case_sensitive);
                 break;
             case StringEndsWith:
-                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2, isCaseSensitive);
+                Q(nativeQueryPtr)->ends_with(S(arr[0]), value2, is_case_sensitive);
                 break;
             }
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            if (value == NULL) {
+                if (tbl->is_nullable(S(arr[arr_len-1]))) {
+                    ThrowException(env, IllegalArgument, "Trying to query field with null but field is not nullable.");
+                    return;    
+                }
+            }
             switch (predicate) {
             case StringEqual:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).equal(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).equal(StringData(value2), is_case_sensitive));
                 break;
             case StringNotEqual:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).not_equal(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).not_equal(StringData(value2), is_case_sensitive));
                 break;
             case StringContains:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).contains(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).contains(StringData(value2), is_case_sensitive));
                 break;
             case StringBeginsWith:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).begins_with(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).begins_with(StringData(value2), is_case_sensitive));
                 break;
             case StringEndsWith:
-                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).ends_with(StringData(value2), isCaseSensitive));
+                Q(nativeQueryPtr)->and_query(tbl->column<String>(size_t(arr[arr_len-1])).ends_with(StringData(value2), is_case_sensitive));
                 break;
             }
         }
@@ -1163,9 +1179,25 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
     Query* pQuery = Q(nativeQueryPtr);
     try {
         Table* pTable = pQuery->get_table().get();
-        if (!COL_TYPE_LINK_OR_LINKLIST(env, pTable, columnIndex))
+        if (!COL_TYPE_NULLABLE(env, pTable, columnIndex))
             return;
-        Query query = pTable->column<Link>(S(columnIndex)).is_null();
-        pQuery->and_query(query);
+
+        int col_type = pTable->get_column_type(S(columnIndex));
+        switch (col_type) {
+            case type_Link:
+            case type_LinkList: {
+                Query query = pTable->column<Link>(S(columnIndex)).is_null();
+                pQuery->and_query(query);
+                break;
+            }
+            case type_String: {
+                Query query = pTable->column<String>(S(columnIndex)).equal(realm::null());
+                pQuery->and_query(query);
+                break;
+            }
+            default:
+                // this point is inreachable
+                return ;
+        }
     } CATCH_STD()
 }
