@@ -4,7 +4,7 @@
     "fieldStringNotNull": "",
     "fieldStringNull": null,
     "fieldBytesNotNull": "",
-    "fieldBytesNull": null
+    "fieldBytesNull": null,
     "fieldBooleanNotNull": false,
     "fieldBooleanNull": null
   },
