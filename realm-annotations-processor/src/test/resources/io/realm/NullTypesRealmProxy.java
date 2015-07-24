@@ -251,7 +251,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         cache.put(newObject, (RealmObjectProxy) realmObject);
         realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
         realmObject.setFieldStringNull(newObject.getFieldStringNull());
-        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull());
+        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull() !=null ? newObject.getFieldBooleanNotNull() : false);
         realmObject.setFieldBooleanNull(newObject.getFieldBooleanNull());
         return realmObject;
     }
@@ -259,7 +259,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObjectProxy> cache) {
         realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
         realmObject.setFieldStringNull(newObject.getFieldStringNull());
-        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull());
+        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull() != null ? newObject.getFieldBooleanNotNull() : false);
         realmObject.setFieldBooleanNull(newObject.getFieldBooleanNull());
         return realmObject;
     }
