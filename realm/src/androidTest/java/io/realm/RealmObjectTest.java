@@ -284,8 +284,8 @@ public class RealmObjectTest extends AndroidTestCase {
         ct1.setName("Baz");
         testRealm.commitTransaction();
 
-        assertTrue(ct1.equals(ct1));
-        assertTrue(ct2.equals(ct2));
+        assertTrue(ct1.equals(ct2));
+        assertTrue(ct2.equals(ct1));
     }
 
     public void testEqualsStandAlone() {
@@ -479,6 +479,7 @@ public class RealmObjectTest extends AndroidTestCase {
         // The model class' name (Thread) clashed with a common Java class.
         // The annotation process must be able to handle that.
         testRealm.beginTransaction();
+        @SuppressWarnings("unused")
         Thread thread = testRealm.createObject(Thread.class);
         testRealm.commitTransaction();
     }
@@ -524,7 +525,7 @@ public class RealmObjectTest extends AndroidTestCase {
         nullTypes.setFieldStringNull(null);
         testRealm.commitTransaction();
 
-        assertNull(testRealm.where(NullTypes.class).findAll().first().getFieldStringNull());
+        assertNull(testRealm.where(NullTypes.class).findFirst().getFieldStringNull());
     }
 
     // store and retrieve non-null strings when field can contain null strings

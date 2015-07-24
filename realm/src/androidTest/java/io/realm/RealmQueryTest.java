@@ -70,10 +70,12 @@ public class RealmQueryTest extends AndroidTestCase{
         Boolean bools[] = {true, null, false};
 
         testRealm.beginTransaction();
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < words.length; i++) {
             String word = words[i];
             Boolean bool = bools[i];
-            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            NullTypes nullTypes = new NullTypes();
+            nullTypes.setId(i+1);
+
             nullTypes.setFieldStringNull(word);
             if (word != null) {
                 nullTypes.setFieldStringNotNull(word);
@@ -83,6 +85,7 @@ public class RealmQueryTest extends AndroidTestCase{
             if (bool != null) {
                 nullTypes.setFieldBooleanNotNull(bool);
             }
+            testRealm.copyToRealm(nullTypes);
         }
         testRealm.commitTransaction();
     }

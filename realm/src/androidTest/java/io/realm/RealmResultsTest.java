@@ -34,7 +34,7 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 
 public class RealmResultsTest extends AndroidTestCase {
-    protected final static int TEST_DATA_SIZE = 100; // TODO: set to 2516 when background GC works
+    protected final static int TEST_DATA_SIZE = 2516;
     protected final static int TEST_DATA_FIRST_HALF = 2 * (TEST_DATA_SIZE / 4) - 1;
     protected final static int TEST_DATA_LAST_HALF = 2 * (TEST_DATA_SIZE / 4) + 1;
 
@@ -90,12 +90,15 @@ public class RealmResultsTest extends AndroidTestCase {
     private void populateTestRealmForNullTests() {
         String words[] = {"Fish", null, "Horse"};
         testRealm.beginTransaction();
-        for (String word : words) {
-            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            NullTypes nullTypes = new NullTypes();
+            nullTypes.setId(i + 1);
             nullTypes.setFieldStringNull(word);
             if (word != null) {
                 nullTypes.setFieldStringNotNull(word);
             }
+            testRealm.copyToRealm(nullTypes);
         }
         testRealm.commitTransaction();
     }

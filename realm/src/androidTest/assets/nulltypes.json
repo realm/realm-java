@@ -1,13 +1,15 @@
 [
   {
-    "fieldStringNotNull": null,
+    "id": 1,
+    "fieldStringNotNull": "",
     "fieldStringNull": null,
-    "fieldBytesNotNull": null,
-    "fieldBytesNull": null,
-    "fieldBooleanNotNull": null,
+    "fieldBytesNotNull": "",
+    "fieldBytesNull": null
+    "fieldBooleanNotNull": false,
     "fieldBooleanNull": null
   },
   {
+    "id": 2,
     "fieldStringNotNull": "",
     "fieldStringNull": "",
     "fieldBytesNotNull": "",

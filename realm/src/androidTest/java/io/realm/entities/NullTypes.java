@@ -17,17 +17,21 @@
 package io.realm.entities;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 
 public class NullTypes extends RealmObject {
+
     public static String FIELD_STRING_NOT_NULL = "fieldStringNotNull";
     public static String FIELD_STRING_NULL = "fieldStringNull";
     public static String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";
     public static String FIELD_BYTES_NULL = "fieldBytesNull";
-
     public static String FIELD_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
     public static String FIELD_BOOLEAN_NULL = "fieldBooleanNull";
+
+    @PrimaryKey
+    private int id;
 
     @Required
     private String fieldStringNotNull;
@@ -40,6 +44,14 @@ public class NullTypes extends RealmObject {
     @Required
     private Boolean fieldBooleanNotNull;
     private Boolean fieldBooleanNull;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getFieldStringNotNull() {
         return fieldStringNotNull;

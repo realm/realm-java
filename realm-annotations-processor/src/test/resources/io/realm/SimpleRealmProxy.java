@@ -137,8 +137,12 @@ public class SimpleRealmProxy extends Simple
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         Simple obj = realm.createObject(Simple.class);
-        if (!json.isNull("name")) {
-            obj.setName((String) json.getString("name"));
+        if (json.has("name")) {
+            if (json.isNull("name")) {
+                obj.setName(null);
+            } else {
+                obj.setName((String) json.getString("name"));
+            }
         }
         if (!json.isNull("age")) {
             obj.setAge((int) json.getInt("age"));

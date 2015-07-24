@@ -76,8 +76,12 @@ public class RealmJsonTypeHelper {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
                 writer
-                    .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
-                        .emitStatement("obj.%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", setter, fieldName)
+                    .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                        .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                            .emitStatement("obj.%s(null)", setter)
+                        .nextControlFlow("else")
+                            .emitStatement("obj.%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", setter, fieldName)
+                        .endControlFlow()
                     .endControlFlow();
             }
 
@@ -163,14 +167,31 @@ public class RealmJsonTypeHelper {
 
         @Override
         public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
-            writer
-                .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
+            // FIXME: Finally this condition should be removed after we support nullable for all types.
+            // So we do checking here instead of create a new converter.
+            if (String.class.getName().equals(fieldType)) {
+                writer
+                    .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                        .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                            .emitStatement("obj.%s(null)", setter)
+                        .nextControlFlow("else")
+                            .emitStatement("obj.%s((%s) json.get%s(\"%s\"))",
+                                    setter,
+                                    castType,
+                                    jsonType,
+                                    fieldName)
+                        .endControlFlow()
+                    .endControlFlow();
+            } else {
+                writer
+                    .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
                     .emitStatement("obj.%s((%s) json.get%s(\"%s\"))",
-                        setter,
-                        castType,
-                        jsonType,
-                        fieldName)
-                .endControlFlow();
+                            setter,
+                            castType,
+                            jsonType,
+                            fieldName)
+                    .endControlFlow();
+            }
         }
 
         @Override
