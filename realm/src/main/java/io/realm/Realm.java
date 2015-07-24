@@ -45,8 +45,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
@@ -54,14 +52,13 @@ import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
-import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
@@ -122,12 +119,6 @@ import io.realm.internal.log.RealmLog;
  */
 public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
-
-    // This single thread executor ensures that only one finalizer thread ever exists
-    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-    // This does not need to be thread safe since it's only used in a synchronized method
-    private static volatile boolean isFinalizerStarted = false;
 
     protected static final ThreadLocal<Map<RealmConfiguration, Realm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, Realm>>() {
@@ -573,12 +564,6 @@ public final class Realm implements Closeable {
     }
 
     private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
-        // Start the finalizer thread if needed
-        if (!isFinalizerStarted) {
-            executorService.submit(new FinalizerRunnable());
-            isFinalizerStarted = true;
-        }
-
         // Check if a cached instance already exists for this thread
         String canonicalPath = configuration.getPath();
         Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
