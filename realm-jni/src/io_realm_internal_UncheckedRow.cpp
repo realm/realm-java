@@ -150,17 +150,15 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_UncheckedRow_nativeGetByteAr
     if (bin.is_null()) {
         return NULL;
     }
+    else if (bin.size() <= MAX_JSIZE) {
+        jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
+        if (jresult)
+            env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
+        return jresult;
+    }
     else {
-        if (bin.size() <= MAX_JSIZE) {
-            jbyteArray jresult = env->NewByteArray(static_cast<jsize>(bin.size()));
-            if (jresult)
-                env->SetByteArrayRegion(jresult, 0, static_cast<jsize>(bin.size()), reinterpret_cast<const jbyte*>(bin.data()));  // throws
-            return jresult;
-        }
-        else {
-            ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
-            return NULL;
-        }
+        ThrowException(env, IllegalArgument, "Length of ByteArray is larger than an Int.");
+        return NULL;
     }
 }
 

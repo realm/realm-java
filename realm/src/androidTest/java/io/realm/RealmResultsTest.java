@@ -34,7 +34,7 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 
 public class RealmResultsTest extends AndroidTestCase {
-    protected final static int TEST_DATA_SIZE = 100; // TODO: set to 2516 when background GC works
+    protected final static int TEST_DATA_SIZE = 2516;
     protected final static int TEST_DATA_FIRST_HALF = 2 * (TEST_DATA_SIZE / 4) - 1;
     protected final static int TEST_DATA_LAST_HALF = 2 * (TEST_DATA_SIZE / 4) + 1;
 

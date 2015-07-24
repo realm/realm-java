@@ -311,13 +311,12 @@ public class ClassMetaData {
                 }
 
                 if (variableElement.getAnnotation(Required.class) == null) {
-                    // The field has not the @Required annotation
+                    // The field doesn't have the @Required annotation
                     if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
                         nullableElements.add(variableElement);
                     }
                 } else {
                     // The field has the @Required annotation
-                    String elementTypeCanonicalName = variableElement.asType().toString();
                     if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
                         if (nullableElements.contains(variableElement)) {
                             nullableElements.remove(variableElement);
