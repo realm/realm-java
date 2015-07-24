@@ -55,6 +55,7 @@ public class Constants {
         NULLABLE_JAVA_TYPES.put("java.util.Date", "new Date(0)");
         NULLABLE_JAVA_TYPES.put("java.lang.String", "\"\"");
         NULLABLE_JAVA_TYPES.put("byte[]", "new byte[0]");
+        NULLABLE_JAVA_TYPES.put("java.lang.Boolean", "false");
     }
 
     static final Map<String, String> JAVA_TO_COLUMN_TYPES;
