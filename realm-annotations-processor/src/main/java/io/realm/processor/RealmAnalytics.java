@@ -56,7 +56,7 @@ public class RealmAnalytics {
     private static RealmAnalytics instance;
     private static final int READ_TIMEOUT = 2000;
     private static final int CONNECT_TIMEOUT = 4000;
-    private static final String ADDRESS_PREFIX = "http://api.mixpanel.com/track/?data=";
+    private static final String ADDRESS_PREFIX = "https://api.mixpanel.com/track/?data=";
     private static final String ADDRESS_SUFFIX = "&ip=1";
     private static final String TOKEN = "ce0fac19508f6c8f20066d345d360fd0";
     private static final String EVENT_NAME = "Run";
@@ -71,7 +71,7 @@ public class RealmAnalytics {
             + "      \"Binding\": \"java\",\n"
             + "      \"Realm Version\": \"%REALM_VERSION%\",\n"
             + "      \"Host OS Type\": \"%OS_TYPE%\",\n"
-            + "      \"Host OS Version\": \"%OS_VERSION%\"\n"
+            + "      \"Host OS Version\": \"%OS_VERSION%\",\n"
             + "      \"Target OS Type\": \"android\"\n"
             + "   }\n"
             + "}";
