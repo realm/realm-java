@@ -31,7 +31,7 @@ import java.util.Set;
 // processor is running
 //
 // To be clear: this does *not* run when your app is in production or on
-// your end-user’s devices; it will only run when you build your app from source.
+// your end-user's devices; it will only run when you build your app from source.
 //
 // Why are we doing this? Because it helps us build a better product for you.
 // None of the data personally identifies you, your employer or your app, but it
@@ -39,7 +39,7 @@ import java.util.Set;
 // etc. Having this info will help with prioritizing our time, adding new
 // features and deprecating old features. Collecting an anonymized bundle &
 // anonymized MAC is the only way for us to count actual usage of the other
-// metrics accurately. If we don’t have a way to deduplicate the info reported,
+// metrics accurately. If we don't have a way to deduplicate the info reported,
 // it will be useless, as a single developer building their app on Windows ten
 // times would report 10 times more than a single developer that only builds
 // once from Mac OS X, making the data all but useless. No one likes sharing
@@ -51,7 +51,7 @@ import java.util.Set;
 // Currently the following information is reported:
 // - What version of Realm is being used
 // - What OS you are running on
-// - An anonymous MAC address and bundle ID to aggregate the other information on.
+// - An anonymized MAC address and bundle ID to aggregate the other information on.
 public class RealmAnalytics {
     private static RealmAnalytics instance;
     private static final int READ_TIMEOUT = 2000;
