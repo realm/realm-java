@@ -26,7 +26,10 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The RealmProcessor is responsible for creating the plumbing that connects the RealmObjects to a Realm. The process
@@ -114,7 +117,7 @@ public class RealmProcessor extends AbstractProcessor {
 
         Utils.initialize(processingEnv);
 
-        List<String> packages = new ArrayList<String>();
+        Set<String> packages = new TreeSet<String>();
 
         // Create all proxy classes
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
@@ -146,7 +149,7 @@ public class RealmProcessor extends AbstractProcessor {
 	    }
 
         RealmAnalytics analytics = RealmAnalytics.getInstance(packages);
-        analytics.send();
+        analytics.execute();
 
         hasProcessedModules = true;
         return processModules(roundEnv);

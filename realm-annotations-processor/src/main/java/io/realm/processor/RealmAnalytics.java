@@ -18,10 +18,14 @@ package io.realm.processor;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
-import java.util.List;
+import java.util.Set;
 
 // Asynchronously submits build information to Realm when the annotation
 // processor is running
@@ -49,7 +53,9 @@ import java.util.List;
 // - What OS you are running on
 // - An anonymous MAC address and bundle ID to aggregate the other information on.
 public class RealmAnalytics {
-    private static RealmAnalytics INSTANCE;
+    private static RealmAnalytics instance;
+    private static final int READ_TIMEOUT = 2000;
+    private static final int CONNECT_TIMEOUT = 4000;
     private static final String ADDRESS_PREFIX = "http://api.mixpanel.com/track/?data=";
     private static final String ADDRESS_SUFFIX = "&ip=1";
     private static final String TOKEN = "ce0fac19508f6c8f20066d345d360fd0";
@@ -71,20 +77,20 @@ public class RealmAnalytics {
             + "}";
 
     // The list of packages the model classes reside in
-    private List<String> packages;
+    private Set<String> packages;
 
-    private RealmAnalytics(List<String> packages) {
+    private RealmAnalytics(Set<String> packages) {
         this.packages = packages;
     }
 
-    public static RealmAnalytics getInstance(List<String> packages) {
-        if (INSTANCE == null) {
-            INSTANCE = new RealmAnalytics(packages);
+    public static RealmAnalytics getInstance(Set<String> packages) {
+        if (instance == null) {
+            instance = new RealmAnalytics(packages);
         }
-        return INSTANCE;
+        return instance;
     }
 
-    public void send() {
+    private void send() {
         try {
             URL url = getUrl();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -93,6 +99,21 @@ public class RealmAnalytics {
             connection.getResponseCode();
         } catch (IOException ignored) {
         } catch (NoSuchAlgorithmException ignored) {
+        }
+    }
+
+    public void execute() {
+        Thread backgroundThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                send();
+            }
+        });
+        backgroundThread.start();
+        try {
+            backgroundThread.join(CONNECT_TIMEOUT + READ_TIMEOUT);
+        } catch (InterruptedException e) {
+            // We ignore this exception on purpose not to break the build system if this class fails
         }
     }
 
