@@ -131,12 +131,12 @@ public class RealmProcessor extends AbstractProcessor {
                 continue;
             }
             Utils.note("Processing class " + metadata.getSimpleClassName());
-            packages.add(metadata.getPackageName());
             boolean success = metadata.generate();
             if (!success) {
                 return true; // Abort processing by claiming all annotations
             }
             classesToValidate.add(metadata);
+            packages.add(metadata.getPackageName());
 
             RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, metadata);
             try {
