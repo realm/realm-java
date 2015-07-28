@@ -1,4 +1,5 @@
 0.82
+ * RealmConfiguration.setModules() now accept ignore null values which Realm.getDefaultModule() might return.
  * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
  * Added in-memory Realm support.
  * Closing realm on another thread different from where it was created now throws an exception.
