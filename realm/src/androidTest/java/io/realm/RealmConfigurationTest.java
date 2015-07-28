@@ -172,22 +172,6 @@ public class RealmConfigurationTest extends AndroidTestCase {
         }
     }
 
-    public void testSetModulesNullThrows() {
-        // Test first argument
-        try {
-            new RealmConfiguration.Builder(getContext()).setModules(null);
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
-
-        // Test second argument
-        try {
-            new RealmConfiguration.Builder(getContext()).setModules(Realm.getDefaultModule(), null, null);
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
-    }
-
     public void testSetModulesNonRealmModulesThrows() {
         // Test first argument
         try {
@@ -205,7 +189,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testSetModules() {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).setModules(Realm.getDefaultModule()).build();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).setModules(Realm.getDefaultModule(), null).build();
         realm = Realm.getInstance(realmConfig);
         assertNotNull(realm.getTable(AllTypes.class));
     }

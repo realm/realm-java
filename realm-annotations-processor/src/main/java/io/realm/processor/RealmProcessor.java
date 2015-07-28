@@ -95,7 +95,7 @@ import java.util.TreeSet;
         "io.realm.annotations.Ignore",
         "io.realm.annotations.Index",
         "io.realm.annotations.PrimaryKey",
-        "io.realm.annotations.internal.RealmModule"
+        "io.realm.annotations.RealmModule"
 })
 public class RealmProcessor extends AbstractProcessor {
 
