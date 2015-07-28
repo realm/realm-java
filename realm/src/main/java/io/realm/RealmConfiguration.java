@@ -361,8 +361,7 @@ public class RealmConfiguration {
          * @param baseModule        First Realm module (required).
          * @param additionalModules Additional Realm modules
          *
-         * @throws IllegalArgumentException if any of the modules are {@code null} or doesn't have the
-         * {@link RealmModule} annotation.
+         * @throws IllegalArgumentException if any of the modules doesn't have the {@link RealmModule} annotation.
          * @see Realm#getDefaultModule()
          */
         public Builder setModules(Object baseModule, Object... additionalModules) {
@@ -371,7 +370,6 @@ public class RealmConfiguration {
             if (additionalModules != null) {
                 for (int i = 0; i < additionalModules.length; i++) {
                     Object module = additionalModules[i];
-                    checkModule(module);
                     addModule(module);
                 }
             }
@@ -379,8 +377,10 @@ public class RealmConfiguration {
         }
 
         private void addModule(Object module) {
-            checkModule(module);
-            modules.add(module);
+            if (module != null) {
+                checkModule(module);
+                modules.add(module);
+            }
         }
 
         /**
@@ -412,9 +412,6 @@ public class RealmConfiguration {
         }
 
         private void checkModule(Object module) {
-            if (module == null) {
-                throw new IllegalArgumentException("Provided RealmModule must not be null.");
-            }
             if (!module.getClass().isAnnotationPresent(RealmModule.class)) {
                 throw new IllegalArgumentException(module.getClass().getCanonicalName() + " is not a RealmModule. " +
                         "Add @RealmModule to the class definition.");
