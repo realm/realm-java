@@ -26,6 +26,7 @@ class Toolchain {
     int platform
 }
 
+
 // This class describes the specific target
 class Target {
     // The name of the target. This is used for the task names
