@@ -183,6 +183,25 @@ public class RealmResultsTest extends AndroidTestCase {
         assertTrue(allTypes.getColumnString().startsWith("test data 0"));
     }
 
+    // first() and last() will throw an exception when no element exist
+    public void testResultListFirstLastThrowIfEmpty() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+        assertEquals(0, allTypes.size());
+        try {
+            allTypes.first();
+            fail();
+        } catch (ArrayIndexOutOfBoundsException ignored) {}
+
+        try {
+            allTypes.last();
+            fail();
+        } catch (ArrayIndexOutOfBoundsException ignored) {}
+    }
+
     public void testResultListLastIsLast() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 

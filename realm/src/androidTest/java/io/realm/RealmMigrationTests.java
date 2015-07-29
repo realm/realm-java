@@ -151,7 +151,10 @@ public class RealmMigrationTests extends AndroidTestCase {
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
-        } catch (RealmMigrationNeededException expected) {
+        } catch (RealmMigrationNeededExcseption e) {
+            if (!e.getMessage().equals("Primary key not defined for field 'id'")) {
+                fail(e.getMessage());
+            }
         }
     }
 
@@ -179,6 +182,36 @@ public class RealmMigrationTests extends AndroidTestCase {
         assertEquals(3, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
         assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
+    }
+
+    public void testNotSettingIndexForPrimaryKeyThrows() {
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                Table table = realm.getTable(AnnotationTypes.class);
+                table.addColumn(ColumnType.INTEGER, "id");
+                table.setPrimaryKey("id");
+                // Forget to add search index primary key
+                long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
+                table.addSearchIndex(columnIndex);
+                table.addColumn(ColumnType.STRING, "notIndexString");
+                return 1;
+            }
+        };
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schemaVersion(1)
+                .schema(AnnotationTypes.class)
+                .migration(migration)
+                .build();
+        Realm.deleteRealm(realmConfig);
+        Realm.migrateRealm(realmConfig);
+
+        try {
+            realm = Realm.getInstance(realmConfig);
+            fail();
+        } catch (RealmMigrationNeededException expected) {
+        }
+
     }
 
     public void testGetPathFromMigrationException() throws IOException {

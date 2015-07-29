@@ -16,10 +16,7 @@
 
 package io.realm.processor;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import io.realm.annotations.RealmClass;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -28,8 +25,11 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-
-import io.realm.annotations.RealmClass;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The RealmProcessor is responsible for creating the plumbing that connects the RealmObjects to a Realm. The process
@@ -95,7 +95,7 @@ import io.realm.annotations.RealmClass;
         "io.realm.annotations.Ignore",
         "io.realm.annotations.Index",
         "io.realm.annotations.PrimaryKey",
-        "io.realm.annotations.internal.RealmModule"
+        "io.realm.annotations.RealmModule"
 })
 public class RealmProcessor extends AbstractProcessor {
 
@@ -111,9 +111,13 @@ public class RealmProcessor extends AbstractProcessor {
         if (hasProcessedModules) {
             return true;
         }
+
         RealmVersionChecker updateChecker = RealmVersionChecker.getInstance(processingEnv);
         updateChecker.executeRealmVersionUpdate();
+
         Utils.initialize(processingEnv);
+
+        Set<String> packages = new TreeSet<String>();
 
         // Create all proxy classes
         for (Element classElement : roundEnv.getElementsAnnotatedWith(RealmClass.class)) {
@@ -132,6 +136,7 @@ public class RealmProcessor extends AbstractProcessor {
                 return true; // Abort processing by claiming all annotations
             }
             classesToValidate.add(metadata);
+            packages.add(metadata.getPackageName());
 
             RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, metadata);
             try {
@@ -142,6 +147,9 @@ public class RealmProcessor extends AbstractProcessor {
                 Utils.error(e.getMessage(), classElement);
             }
 	    }
+
+        RealmAnalytics analytics = RealmAnalytics.getInstance(packages);
+        analytics.execute();
 
         hasProcessedModules = true;
         return processModules(roundEnv);
