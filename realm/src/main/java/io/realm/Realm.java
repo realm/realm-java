@@ -47,7 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.dynamic.RealmSchema;
+import io.realm.dynamic.DynamicRealmSchema;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -1667,8 +1667,8 @@ public final class Realm implements Closeable {
     /**
      * Returns the dynamic schema for this Realm.
      */
-    RealmSchema getSchema() {
-        return new RealmSchema(this, transaction);
+    DynamicRealmSchema getSchema() {
+        return new DynamicRealmSchema(this, transaction);
     }
 
     /**

@@ -20,7 +20,7 @@ import android.test.AndroidTestCase;
 
 import java.io.File;
 
-import io.realm.dynamic.RealmSchema;
+import io.realm.dynamic.DynamicRealmSchema;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.CyclicType;
@@ -213,7 +213,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .schemaVersion(42)
                 .migration(new RealmMigration() {
                     @Override
-                    public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+                    public void migrate(DynamicRealmSchema schema, long oldVersion, long newVersion) {
                         // no-op
                     }
                 })

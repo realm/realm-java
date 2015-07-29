@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import io.realm.dynamic.RealmSchema;
-
 /**
  * The RealmMigration class is used to describe the migration of one Realm schema to another.
  * The schema for a Realm is defined by all classes in a project that extend
@@ -29,8 +27,8 @@ import io.realm.dynamic.RealmSchema;
  * <pre>
  * public class CustomMigration implements RealmMigration {
  *   \@Override
- *   public long execute(RealmSchema schema, long oldVersion, long newVersion) {
-
+ *   public long execute(DynamicRealm realm, long oldVersion, long newVersion) {
+ *
  *     if (oldVersion == 0) {
  *       // Migrate from v0 to v1
  *       oldVersion++;
@@ -45,8 +43,8 @@ import io.realm.dynamic.RealmSchema;
  * </pre>
  *
  * During development when model classes can change frequently, it is possible to use
- * {@link io.realm.Realm#deleteRealmFile(android.content.Context)}. This will delete the database
- * file and eliminate the need for any migrations.
+ * {@link RealmConfiguration.Builder#shouldDeleteRealmIfMigrationNeeded()}. This will delete the
+ * database file automatically if a migration is needed.
  *
  * @see io.realm.RealmConfiguration.Builder#schemaVersion(int)
  * @see io.realm.RealmConfiguration.Builder#migration(RealmMigration)
@@ -55,12 +53,14 @@ import io.realm.dynamic.RealmSchema;
 public interface RealmMigration {
 
     /**
-     * Implement this method in your subclass to perform a migration.
+     * This method will be called if a migration is needed. The entire method is wrapped in a
+     * write transaction so it is possible to create/change or delete any existing objects as well
+     * without wrapping it in your own transaction.
      *
-     * @param schema The Realm schema on which to perform the migration.
+     * @param realm The Realm schema on which to perform the migration.
      * @param oldVersion The schema version of the Realm at the start of the migration.
      * @param newVersion The schema version of the Realm after executing the migration.
      */
-    void migrate(RealmSchema schema, long oldVersion, long newVersion);
+    void migrate(DynamicRealm realm, long oldVersion, long newVersion);
 }
 

@@ -19,23 +19,22 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
-import java.lang.reflect.Modifier;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.dynamic.RealmModifier;
-import io.realm.dynamic.RealmObjectSchema;
-import io.realm.dynamic.RealmSchema;
+import io.realm.dynamic.DynamicRealmObjectSchema;
+import io.realm.dynamic.DynamicRealmSchema;
 import io.realm.entities.AllJavaTypes;
 import io.realm.exceptions.RealmException;
 
 public class RealmObjectSchemaTests extends AndroidTestCase {
 
-    private RealmObjectSchema DOG_SCHEMA;
+    private DynamicRealmObjectSchema DOG_SCHEMA;
     private Realm realm;
-    private RealmObjectSchema schema;
-    private RealmSchema realmSchema;
+    private DynamicRealmObjectSchema schema;
+    private DynamicRealmSchema realmSchema;
 
     @Override
     protected void setUp() throws Exception {
@@ -626,7 +625,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         dog2.setInt("age", 2);
 
         final AtomicInteger totalAge = new AtomicInteger(0);
-        DOG_SCHEMA.forEach(new RealmObjectSchema.Iterator() {
+        DOG_SCHEMA.forEach(new DynamicRealmObjectSchema.Iterator() {
             @Override
             public void next(DynamicRealmObject obj) {
                 totalAge.addAndGet(obj.getInt("age"));

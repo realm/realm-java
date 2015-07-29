@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.EnumSet;
 
 import io.realm.dynamic.RealmModifier;
-import io.realm.dynamic.RealmSchema;
+import io.realm.dynamic.DynamicRealmSchema;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
@@ -64,7 +64,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         // V2 config
         RealmMigration migration = new RealmMigration() {
             @Override
-            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+            public void migrate(DynamicRealmSchema schema, long oldVersion, long newVersion) {
                 schema.addClass("FieldOrder")
                         .addInt("field2")
                         .addBoolean("field1");
@@ -105,7 +105,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         // Create v1 of the Realm
         RealmMigration migration = new RealmMigration() {
             @Override
-            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+            public void migrate(DynamicRealmSchema schema, long oldVersion, long newVersion) {
                 schema.addClass("AnnotationTypes")
                         .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
                         .addString("indexString") // Forget to set @Index
@@ -134,7 +134,7 @@ public class RealmMigrationTests extends AndroidTestCase {
 
         RealmMigration migration = new RealmMigration() {
             @Override
-            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+            public void migrate(DynamicRealmSchema schema, long oldVersion, long newVersion) {
                 schema.addClass("AnnotationTypes")
                         .addLong("id") // Forget to set @PrimaryKey
                         .addString("columnIndex", EnumSet.of(RealmModifier.INDEXED))
@@ -161,7 +161,7 @@ public class RealmMigrationTests extends AndroidTestCase {
     public void testSetAnnotations() {
         RealmMigration migration = new RealmMigration() {
             @Override
-            public void migrate(RealmSchema schema, long oldVersion, long newVersion) {
+            public void migrate(DynamicRealmSchema schema, long oldVersion, long newVersion) {
                 schema.addClass("AnnotationTypes")
                         .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
                         .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
