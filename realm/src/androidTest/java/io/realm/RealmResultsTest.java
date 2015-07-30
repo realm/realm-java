@@ -743,15 +743,29 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     // Setting a not-nullable field to null is an error
-    public void testNullStringNotNullableField() {
+    public void testNullFieldNotNullableField() {
         populateTestRealmForNullTests();
         RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
+
+        // String
         try {
             testRealm.beginTransaction();
             list.first().setFieldStringNotNull(null);
             fail();
         }
-        catch (IllegalArgumentException expected) {
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+
+        // Boolean
+        try {
+            testRealm.beginTransaction();
+            list.first().setFieldBooleanNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
         }
         finally {
             testRealm.cancelTransaction();
@@ -759,14 +773,21 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     // Setting a nullable field to null is not an error
-    public void testSetNullString() {
+    public void testSetNullField() {
         populateTestRealmForNullTests();
         RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
+
+        // String
         testRealm.beginTransaction();
         list.first().setFieldStringNull(null);
         testRealm.commitTransaction();
-
         assertNull(testRealm.allObjects(NullTypes.class).first().getFieldStringNull());
+
+        // Boolean
+        testRealm.beginTransaction();
+        list.first().setFieldBooleanNull(null);
+        testRealm.commitTransaction();
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldBooleanNull());
     }
 
     public void testUnsupportedMethods() {
