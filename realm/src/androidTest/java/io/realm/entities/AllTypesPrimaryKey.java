@@ -33,6 +33,7 @@ public class AllTypesPrimaryKey extends RealmObject {
     private byte[] columnBinary;
     private DogPrimaryKey columnRealmObject;
     private RealmList<DogPrimaryKey> columnRealmList;
+    private Boolean columnBoxedBoolean;
 
     public String getColumnString() {
         return columnString;
@@ -104,5 +105,13 @@ public class AllTypesPrimaryKey extends RealmObject {
 
     public void setColumnRealmList(RealmList<DogPrimaryKey> columnRealmList) {
         this.columnRealmList = columnRealmList;
+    }
+
+    public Boolean getColumnBoxedBoolean() {
+        return columnBoxedBoolean;
+    }
+
+    public void setColumnBoxedBoolean(Boolean columnBoxedBoolean) {
+        this.columnBoxedBoolean = columnBoxedBoolean;
     }
 }

@@ -125,6 +125,7 @@ public class RealmTest extends AndroidTestCase {
             nonLatinFieldNames.setΔέλτα(i);
             nonLatinFieldNames.set베타(1.234567f + i);
             nonLatinFieldNames.setΒήτα(1.234567f + i);
+            allTypes.setColumnBoxedBoolean((i % 3) == 0);
         }
         realm.commitTransaction();
     }
@@ -389,8 +390,16 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testQueriesFailWithNullQueryValue() throws IOException {
+        // String
         try {
             testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL, (String) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Boolean
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NOT_NULL, (String) null).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException ignored) {
         }
@@ -1126,6 +1135,7 @@ public class RealmTest extends AndroidTestCase {
         assertNull(realmTypes.getColumnString());
         assertEquals(new Date(0), realmTypes.getColumnDate());
         assertNull(realmTypes.getColumnBinary());
+        assertNull(realmTypes.getColumnBoxedBoolean());
     }
 
     // Check that using copyToRealm will set the primary key directly instead of first setting
@@ -1240,6 +1250,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
+                obj.setColumnBoxedBoolean(true);
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
@@ -1252,6 +1263,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
+                obj2.setColumnBoxedBoolean(false);
                 realm.copyToRealmOrUpdate(obj2);
             }
         });
@@ -1270,6 +1282,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Dog3", obj.getColumnRealmObject().getName());
         assertEquals(1, obj.getColumnRealmList().size());
         assertEquals("Dog4", obj.getColumnRealmList().get(0).getName());
+        assertFalse(obj.getColumnBoxedBoolean());
     }
 
     public void testUpdateCyclicObject() {
