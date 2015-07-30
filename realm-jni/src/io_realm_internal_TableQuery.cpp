@@ -1212,6 +1212,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualToNull
             }
             Q(nativeQueryPtr)->equal(S(arr[0]), realm::null());
         }
+        else {
+            /* TODO: Fix this.
+            Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_equal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
+           */
+        }
     } CATCH_STD()
     RELEASE_ARRAY()
 }
