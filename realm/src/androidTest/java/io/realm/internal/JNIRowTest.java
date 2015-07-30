@@ -76,4 +76,37 @@ public class JNIRowTest extends TestCase {
 
     }
 
+    public void testNull() {
+
+        Table table = new Table();
+
+        long colStringIndex = table.addColumn(ColumnType.STRING, "string", true);
+        //long colIntIndex = table.addColumn(ColumnType.INTEGER, "integer", true);
+        table.addColumn(ColumnType.FLOAT, "float");
+        table.addColumn(ColumnType.DOUBLE, "double");
+        long colBoolIndex = table.addColumn(ColumnType.BOOLEAN, "boolean", true);
+        table.addColumn(ColumnType.DATE, "date");
+        table.addColumn(ColumnType.BINARY, "binary");
+
+        long rowIndex = table.addEmptyRow();
+        UncheckedRow row = table.getUncheckedRowByIndex(rowIndex);
+
+        row.setString(colStringIndex, "test");
+        assertEquals(row.getString(colStringIndex), "test");
+        row.setNull(colStringIndex);
+        assertNull(row.getString(colStringIndex));
+
+        /*
+        row.setLong(colIntIndex, 1);
+        assertFalse(row.isNull(colIntIndex));
+        row.setNull(colIntIndex);
+        assertTrue(row.isNull(colIntIndex));
+        */
+
+        row.setBoolean(colBoolIndex, true);
+        assertFalse(row.isNull(colBoolIndex));
+        row.setNull(colBoolIndex);
+        assertTrue(row.isNull(colBoolIndex));
+    }
+
 }

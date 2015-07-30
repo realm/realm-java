@@ -490,52 +490,92 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     // Querying a non-nullable field with null is an error
-    public void testQueryNullStringNotNullableField() {
+    public void testQueryNullFieldNotNullableField() {
+        // String
         try {
-            RealmResults<NullTypes> nullTypeses = testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL,
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL,
                     (String)null).findAll();
             fail();
         }
-        catch (IllegalArgumentException expected) {
+        catch (IllegalArgumentException ignored) {
+        }
+
+        // Boolean
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
         }
     }
 
     // Querying a non-nullable field with null is an error
-    public void testQueryNullStringsNotNullableFieldIsNull() {
+    public void testQueryNullFieldsNotNullableFieldIsNull() {
+        // String
         try {
-            RealmResults<NullTypes> nullTypes = testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NOT_NULL).findAll();
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException expected) {
+        }
+
+        // Boolean
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NOT_NULL).findAll();
             fail();
         }
         catch (IllegalArgumentException expected) {
         }
     }
 
-    // Querying nullable fields, querying with null
-    public void testQueryNullStringsEqual() {
+    // Querying nullable fields, querying with equalTo null
+    public void testQueryNullFieldsEqual() {
         populateTestRealmForNullTests();
+
+        // String
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, (String)null).findAll().size());
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Fish").findAll().size());
         assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").findAll().size());
+
+        // Boolean
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, true).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean)null).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
     }
 
     // Querying nullable field for null
-    public void testQueryNullStringsIsNull() {
+    public void testQueryNullFieldIsNull() {
         populateTestRealmForNullTests();
+
+        // String
         assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+
+        // Boolean
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NULL).findAll().size());
     }
 
     // Querying nullable field for not null
-    public void testQueryNullStringsNotEqual() {
+    public void testQueryNullFieldsNotEqual() {
         populateTestRealmForNullTests();
+        // String
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
+
+        // Boolean
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, true).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).findAll().size());
     }
 
     // Querying nullable field for not null
-    public void testQueryNullStringsIsNotNull() {
+    public void testQueryNullFieldsIsNotNull() {
         populateTestRealmForNullTests();
+        // String
         assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+
+        // Boolean
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BOOLEAN_NULL).findAll().size());
     }
 
     // Querying nullable field with beginsWith - all strings begin with null
@@ -611,24 +651,5 @@ public class RealmQueryTest extends AndroidTestCase{
         }
 
         latch.await();
-    }
-
-    // Querying a non-nullable field with null is an error
-    public void testQueryNullBooleansNotNullableFieldIsNull() {
-        try {
-            RealmResults<NullTypes> nullTypes = testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NOT_NULL).findAll();
-            fail();
-        }
-        catch (IllegalArgumentException expected) {
-        }
-    }
-
-    // Querying nullable fields, querying with null
-    public void testQueryNullBooleansEqual() {
-        populateTestRealmForNullTests();
-        RealmResults<NullTypes> results = testRealm.allObjects(NullTypes.class);
-        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, true).findAll().size());
-        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
-        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean)null).findAll().size());
     }
 }
