@@ -1,16 +1,6 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
-    }
-}
-
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-version = new File("${projectDir}/../version.txt").text.trim();
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
 
@@ -19,7 +9,7 @@ repositories {
 }
 
 Properties localProperties = new Properties()
-localProperties.load(new FileInputStream("${projectDir}/../local.properties"))
+localProperties.load(new FileInputStream("${rootDir}/local.properties"))
 localProperties.entrySet().each() { entry ->
     project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
 }
@@ -64,20 +54,10 @@ sourceSets {
     }
 }
 
-task compileAnnotations(type: GradleBuild) {
-    dir = file('../realm-annotations')
-    tasks = ['assemble']
-}
-
-task assembleRealm(type: GradleBuild) {
-    dir = file('../realm')
-    tasks = ['assemble']
-}
-
 tasks.compileJava {
-    dependsOn compileAnnotations
+    dependsOn ':realm-annotations:assemble'
 }
 
 tasks.check {
-    dependsOn assembleRealm
+    dependsOn ':realm:assemble'
 }
