@@ -422,7 +422,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
     if (colType == type_Link || colType == type_LinkList) {
         return true;
     }
-    if (colType == type_String) {
+    if (colType == type_String || colType == type_Bool) {
         if (pTable->is_nullable(col)) {
             return true;
         }
