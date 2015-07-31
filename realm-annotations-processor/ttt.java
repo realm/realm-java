@@ -26,7 +26,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.NullTypes;
 
-public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
+public class NullTypesRealmProxy extends NullTypes
+    implements RealmObjectProxy {
 
     private static long INDEX_FIELDSTRINGNOTNULL;
     private static long INDEX_FIELDSTRINGNULL;
@@ -426,7 +427,6 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
                 }
                 columnIndices.put(fieldName, index);
             }
-
             INDEX_FIELDSTRINGNOTNULL = table.getColumnIndex("fieldStringNotNull");
             INDEX_FIELDSTRINGNULL = table.getColumnIndex("fieldStringNull");
             INDEX_FIELDBOOLEANNOTNULL = table.getColumnIndex("fieldBooleanNotNull");
@@ -633,7 +633,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
     }
 
-    public static String getTableName() { return "class_NullTypes"; }
+    public static String getTableName() {
+        return "class_NullTypes";
+    }
 
     public static List<String> getFieldNames() {
         return FIELD_NAMES;
@@ -644,7 +646,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     }
 
     public static NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-            throws JSONException {
+        throws JSONException {
         NullTypes obj = realm.createObject(NullTypes.class);
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
@@ -772,35 +774,27 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
                 obj.setFieldDoubleNull((double) json.getDouble("fieldDoubleNull"));
             }
         }
-        if (json.has("fieldDateNotNull")) {
-            if (json.isNull("fieldDateNotNull")) {
-                obj.setFieldDateNotNull(null);
+        if (!json.isNull("fieldDateNotNull")) {
+            Object timestamp = json.get("fieldDateNotNull");
+            if (timestamp instanceof String) {
+                obj.setFieldDateNotNull(JsonUtils.stringToDate((String) timestamp));
             } else {
-                Object timestamp = json.get("fieldDateNotNull");
-                if (timestamp instanceof String) {
-                    obj.setFieldDateNotNull(JsonUtils.stringToDate((String) timestamp));
-                } else {
-                    obj.setFieldDateNotNull(new Date(json.getLong("fieldDateNotNull")));
-                }
+                obj.setFieldDateNotNull(new Date(json.getLong("fieldDateNotNull")));
             }
         }
-        if (json.has("fieldDateNull")) {
-            if (json.isNull("fieldDateNull")) {
-                obj.setFieldDateNull(null);
+        if (!json.isNull("fieldDateNull")) {
+            Object timestamp = json.get("fieldDateNull");
+            if (timestamp instanceof String) {
+                obj.setFieldDateNull(JsonUtils.stringToDate((String) timestamp));
             } else {
-                Object timestamp = json.get("fieldDateNull");
-                if (timestamp instanceof String) {
-                    obj.setFieldDateNull(JsonUtils.stringToDate((String) timestamp));
-                } else {
-                    obj.setFieldDateNull(new Date(json.getLong("fieldDateNull")));
-                }
+                obj.setFieldDateNull(new Date(json.getLong("fieldDateNull")));
             }
         }
         return obj;
     }
 
     public static NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
-            throws IOException {
+        throws IOException {
         NullTypes obj = realm.createObject(NullTypes.class);
         reader.beginObject();
         while (reader.hasNext()) {

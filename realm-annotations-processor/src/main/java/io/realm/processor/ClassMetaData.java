@@ -315,24 +315,17 @@ public class ClassMetaData {
 
                 if (variableElement.getAnnotation(Required.class) == null) {
                     // The field doesn't have the @Required annotation
-                    // TODO: Remove AND condition since non-primitive types are nullable by default.
-                    if (!variableElement.asType().getKind().isPrimitive() &&
-                            (Utils.isString(variableElement) ||
-                                    Utils.isByteArray(variableElement) ||
-                                    variableElement.asType().toString().equals("java.lang.Boolean"))) {
+                    if (!variableElement.asType().getKind().isPrimitive()) {
                         nullableElements.add(variableElement);
                     }
                 } else {
                     // The field has the @Required annotation
-                    String elementTypeCanonicalName = variableElement.asType().toString();
-                    // FIXME: Remove this after supporting all boxed types
-                    if (Utils.isString(variableElement) || Utils.isByteArray(variableElement) || elementTypeCanonicalName.equals("java.lang.Boolean")) {
+                    if (!variableElement.asType().getKind().isPrimitive()) {
                         if (nullableElements.contains(variableElement)) {
                             nullableElements.remove(variableElement);
                         }
                     } else{
-                        // FIXME: Remove this after supporting all boxed types
-                        Utils.error("@Required is only applicable to String, byte[] and Boolean fields - got " + element);
+                        Utils.error("@Required is not needed for primitive fields - got " + element);
                     }
                 }
 
