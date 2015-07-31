@@ -181,9 +181,17 @@ public class RealmProxyClassGenerator {
                     writer.emitStatement("return null");
                     writer.endControlFlow();
                 }
+
+                // For Boxed types, this would be the corresponding primitive types. Others remain the same.
+                String castingBackType = fieldTypeCanonicalName;
+                try {
+                    Types typeUtils = processingEnvironment.getTypeUtils();
+                    castingBackType = typeUtils.unboxedType(field.asType()).toString();
+                } catch (IllegalArgumentException ignored) {
+                }
                 writer.emitStatement(
                         "return (%s) row.get%s(%s)",
-                        fieldTypeCanonicalName, realmType, staticFieldIndexVarName(field));
+                        castingBackType, realmType, staticFieldIndexVarName(field));
                 writer.endMethod();
                 writer.emitEmptyLine();
 
@@ -817,7 +825,8 @@ public class RealmProxyClassGenerator {
                         metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
-                        writer);
+                        writer,
+                        metadata.isNullable(field));
             }
         }
 
