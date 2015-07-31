@@ -35,12 +35,12 @@ public class Constants {
         JAVA_TO_REALM_TYPES.put("float", "Float");
         JAVA_TO_REALM_TYPES.put("double", "Double");
         JAVA_TO_REALM_TYPES.put("boolean", "Boolean");
-        JAVA_TO_REALM_TYPES.put("Byte", "Long");
-        JAVA_TO_REALM_TYPES.put("Short", "Long");
-        JAVA_TO_REALM_TYPES.put("Integer", "Long");
-        JAVA_TO_REALM_TYPES.put("Long", "Long");
-        JAVA_TO_REALM_TYPES.put("Float", "Float");
-        JAVA_TO_REALM_TYPES.put("Double", "Double");
+        JAVA_TO_REALM_TYPES.put("java.lang.Byte", "Long");
+        JAVA_TO_REALM_TYPES.put("java.lang.Short", "Long");
+        JAVA_TO_REALM_TYPES.put("java.lang.Integer", "Long");
+        JAVA_TO_REALM_TYPES.put("java.lang.Long", "Long");
+        JAVA_TO_REALM_TYPES.put("java.lang.Float", "Float");
+        JAVA_TO_REALM_TYPES.put("java.lang.Double", "Double");
         JAVA_TO_REALM_TYPES.put("java.lang.Boolean", "Boolean");
         JAVA_TO_REALM_TYPES.put("java.lang.String", "String");
         JAVA_TO_REALM_TYPES.put("java.util.Date", "Date");
@@ -52,10 +52,17 @@ public class Constants {
     static final Map<String, String> NULLABLE_JAVA_TYPES;
     static {
         NULLABLE_JAVA_TYPES = new HashMap<String, String>();
-        NULLABLE_JAVA_TYPES.put("java.util.Date", "new Date(0)");
-        NULLABLE_JAVA_TYPES.put("java.lang.String", "\"\"");
-        NULLABLE_JAVA_TYPES.put("byte[]", "new byte[0]");
+
+        NULLABLE_JAVA_TYPES.put("java.lang.Byte", "0");
+        NULLABLE_JAVA_TYPES.put("java.lang.Short", "0");
+        NULLABLE_JAVA_TYPES.put("java.lang.Integer", "0");
+        NULLABLE_JAVA_TYPES.put("java.lang.Long", "0");
+        NULLABLE_JAVA_TYPES.put("java.lang.Float", "0");
+        NULLABLE_JAVA_TYPES.put("java.lang.Double", "0");
         NULLABLE_JAVA_TYPES.put("java.lang.Boolean", "false");
+        NULLABLE_JAVA_TYPES.put("java.lang.String", "\"\"");
+        NULLABLE_JAVA_TYPES.put("java.util.Date", "new Date(0)");
+        NULLABLE_JAVA_TYPES.put("byte[]", "new byte[0]");
     }
 
     static final Map<String, String> JAVA_TO_COLUMN_TYPES;
@@ -68,12 +75,12 @@ public class Constants {
         JAVA_TO_COLUMN_TYPES.put("float", "ColumnType.FLOAT");
         JAVA_TO_COLUMN_TYPES.put("double", "ColumnType.DOUBLE");
         JAVA_TO_COLUMN_TYPES.put("boolean", "ColumnType.BOOLEAN");
-        JAVA_TO_COLUMN_TYPES.put("Byte", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Short", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Integer", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Long", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Float", "ColumnType.FLOAT");
-        JAVA_TO_COLUMN_TYPES.put("Double", "ColumnType.DOUBLE");
+        JAVA_TO_COLUMN_TYPES.put("java.lang.Byte", "ColumnType.INTEGER");
+        JAVA_TO_COLUMN_TYPES.put("java.lang.Short", "ColumnType.INTEGER");
+        JAVA_TO_COLUMN_TYPES.put("java.lang.Integer", "ColumnType.INTEGER");
+        JAVA_TO_COLUMN_TYPES.put("java.lang.Long", "ColumnType.INTEGER");
+        JAVA_TO_COLUMN_TYPES.put("java.lang.Float", "ColumnType.FLOAT");
+        JAVA_TO_COLUMN_TYPES.put("java.lang.Double", "ColumnType.DOUBLE");
         JAVA_TO_COLUMN_TYPES.put("java.lang.Boolean", "ColumnType.BOOLEAN");
         JAVA_TO_COLUMN_TYPES.put("java.lang.String", "ColumnType.STRING");
         JAVA_TO_COLUMN_TYPES.put("java.util.Date", "ColumnType.DATE");
@@ -90,12 +97,12 @@ public class Constants {
         CASTING_TYPES.put("float", "float");
         CASTING_TYPES.put("double", "double");
         CASTING_TYPES.put("boolean", "boolean");
-        CASTING_TYPES.put("Byte", "long");
-        CASTING_TYPES.put("Short", "long");
-        CASTING_TYPES.put("Integer", "long");
-        CASTING_TYPES.put("Long", "long");
-        CASTING_TYPES.put("Float", "float");
-        CASTING_TYPES.put("Double", "double");
+        CASTING_TYPES.put("java.lang.Byte", "long");
+        CASTING_TYPES.put("java.lang.Short", "long");
+        CASTING_TYPES.put("java.lang.Integer", "long");
+        CASTING_TYPES.put("java.lang.Long", "long");
+        CASTING_TYPES.put("java.lang.Float", "float");
+        CASTING_TYPES.put("java.lang.Double", "double");
         CASTING_TYPES.put("java.lang.Boolean", "Boolean");
         CASTING_TYPES.put("java.lang.String", "String");
         CASTING_TYPES.put("java.util.Date", "Date");

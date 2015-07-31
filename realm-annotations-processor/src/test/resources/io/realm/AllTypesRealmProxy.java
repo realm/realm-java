@@ -379,12 +379,16 @@ public class AllTypesRealmProxy extends AllTypes
         if (!json.isNull("columnBoolean")) {
             obj.setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
         }
-        if (!json.isNull("columnDate")) {
-            Object timestamp = json.get("columnDate");
-            if (timestamp instanceof String) {
-                obj.setColumnDate(JsonUtils.stringToDate((String) timestamp));
+        if (json.has("columnDate")) {
+            if (json.isNull("columnDate")) {
+                throw new NullPointerException();
             } else {
-                obj.setColumnDate(new Date(json.getLong("columnDate")));
+                Object timestamp = json.get("columnDate");
+                if (timestamp instanceof String) {
+                    obj.setColumnDate(JsonUtils.stringToDate((String) timestamp));
+                } else {
+                    obj.setColumnDate(new Date(json.getLong("columnDate")));
+                }
             }
         }
         if (json.has("columnBinary")) {
