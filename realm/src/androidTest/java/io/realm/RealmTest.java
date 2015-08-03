@@ -1687,35 +1687,41 @@ public class RealmTest extends AndroidTestCase {
 
     // Check that FinalizerRunnable can free native resources (phantom refs)
     public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
+
+        // Manipulate field accessibility to facilitate testing
         Field realmFileReference = Realm.class.getDeclaredField("realmFile");
         realmFileReference.setAccessible(true);
+        Field contextField = SharedGroup.class.getDeclaredField("context");
+        contextField.setAccessible(true);
+        Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
+        rowReferencesField.setAccessible(true);
+
         RealmFileWrapper realmFile = (RealmFileWrapper) realmFileReference.get(testRealm);
         assertNotNull(realmFile);
 
-        Field contextField = SharedGroup.class.getDeclaredField("context");
-        contextField.setAccessible(true);
-        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(realmFile.sharedGroup);
+        SharedGroup sharedGroup = realmFile.sharedGroup;
+        assertNotNull(sharedGroup);
+
+        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(sharedGroup);
         assertNotNull(context);
 
-        Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
-        rowReferencesField.setAccessible(true);
         List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);
         assertNotNull(rowReferences);
-System.getenv()
 
         // insert some rows, then give the thread some time to cleanup
         // we have 8 reference so far let's add more
         final int numberOfPopulateTest = 1000;
-        final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
+        final int numberOfObjects = 20;
+        final int totalNumberOfReferences = 8 + numberOfObjects * 2 * numberOfPopulateTest;
 
         long tic = System.currentTimeMillis();
         for (int i = 0; i < numberOfPopulateTest; i++) {
-            populateTestRealm(testRealm, 20);
+            populateTestRealm(testRealm, numberOfObjects);
         }
         long toc = System.currentTimeMillis();
         Log.d(RealmTest.class.getName(), "Insertion time: " + (toc - tic));
 
-        final int MAX_GC_RETRIES = 5;
+        final int MAX_GC_RETRIES = 10;
         int numberOfRetries = 0;
         Log.i("GCing", "Hoping for the best");
         while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
