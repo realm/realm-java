@@ -121,10 +121,14 @@ public class RealmJsonTypeHelper {
     public static void emitFillRealmObjectWithJsonValue(String setter, String fieldName, String qualifiedFieldType,
                                                         String proxyClass, JavaWriter writer) throws IOException {
         writer
-            .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
-                .emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)",
-                        qualifiedFieldType, fieldName, proxyClass, fieldName)
-                .emitStatement("obj.%s(%sObj)", setter, fieldName)
+            .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                    .emitStatement("obj.%s(null)", setter)
+                .nextControlFlow("else")
+                    .emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)",
+                            qualifiedFieldType, fieldName, proxyClass, fieldName)
+                    .emitStatement("obj.%s(%sObj)", setter, fieldName)
+                .endControlFlow()
             .endControlFlow();
     }
 
