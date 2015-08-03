@@ -144,8 +144,12 @@ public class SimpleRealmProxy extends Simple
                 obj.setName((String) json.getString("name"));
             }
         }
-        if (!json.isNull("age")) {
-            obj.setAge((int) json.getInt("age"));
+        if (json.has("age")) {
+            if (json.isNull("age")) {
+                throw new NullPointerException();
+            } else {
+                obj.setAge((int) json.getInt("age"));
+            }
         }
         return obj;
     }

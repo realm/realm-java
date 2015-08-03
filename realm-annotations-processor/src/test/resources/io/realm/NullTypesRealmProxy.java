@@ -648,7 +648,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         NullTypes obj = realm.createObject(NullTypes.class);
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
-                obj.setFieldStringNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldStringNotNull((String) json.getString("fieldStringNotNull"));
             }
@@ -662,7 +662,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldBooleanNotNull")) {
             if (json.isNull("fieldBooleanNotNull")) {
-                obj.setFieldBooleanNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldBooleanNotNull((boolean) json.getBoolean("fieldBooleanNotNull"));
             }
@@ -676,7 +676,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldBytesNotNull")) {
             if (json.isNull("fieldBytesNotNull")) {
-                obj.setFieldBytesNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldBytesNotNull(JsonUtils.stringToBytes(json.getString("fieldBytesNotNull")));
             }
@@ -690,7 +690,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldByteNotNull")) {
             if (json.isNull("fieldByteNotNull")) {
-                obj.setFieldByteNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldByteNotNull((byte) json.getInt("fieldByteNotNull"));
             }
@@ -704,7 +704,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldShortNotNull")) {
             if (json.isNull("fieldShortNotNull")) {
-                obj.setFieldShortNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldShortNotNull((short) json.getInt("fieldShortNotNull"));
             }
@@ -718,7 +718,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldIntegerNotNull")) {
             if (json.isNull("fieldIntegerNotNull")) {
-                obj.setFieldIntegerNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldIntegerNotNull((int) json.getInt("fieldIntegerNotNull"));
             }
@@ -732,7 +732,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldLongNotNull")) {
             if (json.isNull("fieldLongNotNull")) {
-                obj.setFieldLongNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldLongNotNull((long) json.getLong("fieldLongNotNull"));
             }
@@ -746,7 +746,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldFloatNotNull")) {
             if (json.isNull("fieldFloatNotNull")) {
-                obj.setFieldFloatNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldFloatNotNull((float) json.getDouble("fieldFloatNotNull"));
             }
@@ -760,7 +760,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldDoubleNotNull")) {
             if (json.isNull("fieldDoubleNotNull")) {
-                obj.setFieldDoubleNotNull(null);
+                throw new NullPointerException();
             } else {
                 obj.setFieldDoubleNotNull((double) json.getDouble("fieldDoubleNotNull"));
             }
@@ -774,7 +774,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldDateNotNull")) {
             if (json.isNull("fieldDateNotNull")) {
-                obj.setFieldDateNotNull(null);
+                throw new NullPointerException();
             } else {
                 Object timestamp = json.get("fieldDateNotNull");
                 if (timestamp instanceof String) {

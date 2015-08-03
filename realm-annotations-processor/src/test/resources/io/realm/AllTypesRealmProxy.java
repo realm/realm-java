@@ -143,7 +143,7 @@ public class AllTypesRealmProxy extends AllTypes
         if (row.isNullLink(INDEX_COLUMNOBJECT)) {
             return null;
         }
-        return realm.get(some.test.AllTypes.class, row.getLink(INDEX_COLUMNOBJECT));
+        return realm.getByIndex(some.test.AllTypes.class, row.getLink(INDEX_COLUMNOBJECT));
     }
 
     @Override
@@ -181,7 +181,7 @@ public class AllTypesRealmProxy extends AllTypes
             table.addColumn(ColumnType.DOUBLE, "columnDouble", Table.NOT_NULLABLE);
             table.addColumn(ColumnType.BOOLEAN, "columnBoolean", Table.NOT_NULLABLE);
             table.addColumn(ColumnType.DATE, "columnDate", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.BINARY, "columnBinary", Table.NULLABLE);
+            table.addColumn(ColumnType.BINARY, "columnBinary", Table.NOT_NULLABLE);
             if (!transaction.hasTable("class_AllTypes")) {
                 AllTypesRealmProxy.initTable(transaction);
             }
@@ -292,8 +292,8 @@ public class AllTypesRealmProxy extends AllTypes
             if (columnTypes.get("columnBinary") != ColumnType.BINARY) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'byte[]' for field 'columnBinary'");
             }
-            if (!table.isColumnNullable(INDEX_COLUMNBINARY)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'columnBinary'");
+            if (table.isColumnNullable(INDEX_COLUMNBINARY)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'columnBinary'");
             }
             if (!columnTypes.containsKey("columnObject")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnObject'");
@@ -353,7 +353,7 @@ public class AllTypesRealmProxy extends AllTypes
                 if (rowIndex != TableOrView.NO_MATCH) {
                     obj = new AllTypesRealmProxy();
                     obj.realm = realm;
-                    obj.row = table.getUncheckedRow(rowIndex);
+                    obj.row = table.getUncheckedRowByIndex(rowIndex);
                 }
             }
         }
@@ -362,22 +362,38 @@ public class AllTypesRealmProxy extends AllTypes
         }
         if (json.has("columnString")) {
             if (json.isNull("columnString")) {
-                obj.setColumnString(null);
+                throw new NullPointerException();
             } else {
                 obj.setColumnString((String) json.getString("columnString"));
             }
         }
-        if (!json.isNull("columnLong")) {
-            obj.setColumnLong((long) json.getLong("columnLong"));
+        if (json.has("columnLong")) {
+            if (json.isNull("columnLong")) {
+                throw new NullPointerException();
+            } else {
+                obj.setColumnLong((long) json.getLong("columnLong"));
+            }
         }
-        if (!json.isNull("columnFloat")) {
-            obj.setColumnFloat((float) json.getDouble("columnFloat"));
+        if (json.has("columnFloat")) {
+            if (json.isNull("columnFloat")) {
+                throw new NullPointerException();
+            } else {
+                obj.setColumnFloat((float) json.getDouble("columnFloat"));
+            }
         }
-        if (!json.isNull("columnDouble")) {
-            obj.setColumnDouble((double) json.getDouble("columnDouble"));
+        if (json.has("columnDouble")) {
+            if (json.isNull("columnDouble")) {
+                throw new NullPointerException();
+            } else {
+                obj.setColumnDouble((double) json.getDouble("columnDouble"));
+            }
         }
-        if (!json.isNull("columnBoolean")) {
-            obj.setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
+        if (json.has("columnBoolean")) {
+            if (json.isNull("columnBoolean")) {
+                throw new NullPointerException();
+            } else {
+                obj.setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
+            }
         }
         if (json.has("columnDate")) {
             if (json.isNull("columnDate")) {
@@ -393,7 +409,7 @@ public class AllTypesRealmProxy extends AllTypes
         }
         if (json.has("columnBinary")) {
             if (json.isNull("columnBinary")) {
-                obj.setColumnBinary(null);
+                throw new NullPointerException();
             } else {
                 obj.setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
             }
@@ -479,7 +495,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (rowIndex != TableOrView.NO_MATCH) {
                 realmObject = new AllTypesRealmProxy();
                 realmObject.realm = realm;
-                realmObject.row = table.getUncheckedRow(rowIndex);
+                realmObject.row = table.getUncheckedRowByIndex(rowIndex);
                 cache.put(object, (RealmObjectProxy) realmObject);
             } else {
                 canUpdate = false;
@@ -502,7 +518,7 @@ public class AllTypesRealmProxy extends AllTypes
         realmObject.setColumnDouble(newObject.getColumnDouble());
         realmObject.setColumnBoolean(newObject.isColumnBoolean());
         realmObject.setColumnDate(newObject.getColumnDate() != null ? newObject.getColumnDate() : new Date(0));
-        realmObject.setColumnBinary(newObject.getColumnBinary());
+        realmObject.setColumnBinary(newObject.getColumnBinary() != null ? newObject.getColumnBinary() : new byte[0]);
 
         some.test.AllTypes columnObjectObj = newObject.getColumnObject();
         if (columnObjectObj != null) {
@@ -537,7 +553,7 @@ public class AllTypesRealmProxy extends AllTypes
         realmObject.setColumnDouble(newObject.getColumnDouble());
         realmObject.setColumnBoolean(newObject.isColumnBoolean());
         realmObject.setColumnDate(newObject.getColumnDate() != null ? newObject.getColumnDate() : new Date(0));
-        realmObject.setColumnBinary(newObject.getColumnBinary());
+        realmObject.setColumnBinary(newObject.getColumnBinary() != null ? newObject.getColumnBinary() : new byte[0]);
         AllTypes columnObjectObj = newObject.getColumnObject();
         if (columnObjectObj != null) {
             AllTypes cachecolumnObject = (AllTypes) cache.get(columnObjectObj);
@@ -597,7 +613,7 @@ public class AllTypesRealmProxy extends AllTypes
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnBinary:");
-        stringBuilder.append(getColumnBinary() != null ? getColumnBinary() : "null");
+        stringBuilder.append(getColumnBinary());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnObject:");
