@@ -1,3 +1,6 @@
+0.82.1
+ * Fixed a bug where String fields were ignored when updating objects from JSON with null values.
+
 0.82
  * RealmConfiguration.setModules() now accept ignore null values which Realm.getDefaultModule() might return.
  * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
@@ -36,7 +39,7 @@
  * Fixed a memory leak when using RealmBaseAdapter.
  * RealmBaseAdapter now allow RealmResults to be null (thanks @zaki50).
  * Fixed a bug where a change to a model class (RealmList<A> to RealmList<B>) would not throw a RealmMigrationNeededException.
- * Fixed a bug where where setting multiple RealmLists didn't remove the previously added objects.
+ * Fixed a bug where setting multiple RealmLists didn't remove the previously added objects.
  * Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (thanks @beeender)
  * Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now. (thanks @beeender)
 
