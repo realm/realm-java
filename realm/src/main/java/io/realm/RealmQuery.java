@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -1335,7 +1336,7 @@ public class RealmQuery<E extends RealmObject> {
             // with the new Future<?> reference.
             asyncRequest.setPendingQuery(pendingQuery);
 
-        } else { //First run
+        } else { // first run
             asyncRequest = new Request(pendingQuery);
         }
         return asyncRequest;
@@ -1975,6 +1976,7 @@ public class RealmQuery<E extends RealmObject> {
                                 clazz);
 
                         callbackRealmResults.onSuccess(resultList);
+                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
                         callbackRealmResults = null;
                         break;
                     }
@@ -1985,6 +1987,7 @@ public class RealmQuery<E extends RealmObject> {
                                 clazz);
 
                         callbackRealmResults.onSuccess(resultList);
+                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
                         callbackRealmResults = null;
                         break;
                     }
@@ -1995,6 +1998,7 @@ public class RealmQuery<E extends RealmObject> {
                                 clazz);
 
                         callbackRealmResults.onSuccess(resultList);
+                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
                         callbackRealmResults = null;
                         break;
                     }

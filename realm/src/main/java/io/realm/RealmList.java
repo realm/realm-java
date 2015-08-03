@@ -220,7 +220,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Removes all elements from this list, leaving it empty.
+     *
+     * @see List#isEmpty
+     * @see List#size
      */
     @Override
     public void clear() {
@@ -232,7 +235,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the object at the specified location from this list.
+     *
+     * @param location the index of the object to remove.
+     * @return the removed object.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
     public E remove(int location) {
@@ -246,7 +253,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the element at the specified location in this list.
+     *
+     * @param location the index of the element to return.
+     * @return the element at the specified index.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
     public E get(int location) {
@@ -286,7 +297,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the number of elements in this {@code List}.
+     *
+     * @return the number of elements in this {@code List}.
      */
     @Override
     public int size() {

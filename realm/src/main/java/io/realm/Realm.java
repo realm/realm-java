@@ -56,7 +56,6 @@ import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
-import io.realm.internal.FinalizerRunnable;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -125,12 +124,6 @@ import io.realm.internal.log.RealmLog;
 public final class Realm implements Closeable {
     public static final String DEFAULT_REALM_NAME = "default.realm";
 
-    // This single thread executor ensures that only one finalizer thread ever exists
-    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-    // This does not need to be thread safe since it's only used in a synchronized method
-    private static volatile boolean isFinalizerStarted = false;
-
     protected static final ThreadLocal<Map<RealmConfiguration, Realm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, Realm>>() {
         @Override
@@ -146,6 +139,17 @@ public final class Realm implements Closeable {
             return new HashMap<RealmConfiguration, Integer>();
         }
     };
+
+    // keep a WeakReference list to RealmResults obtained asynchronously in order to update them
+    protected static final ThreadLocal<List<WeakReference<RealmResults<?>>>> asyncRealmResults =
+            new ThreadLocal<List<WeakReference<RealmResults<?>>>>() {
+                @Override
+                protected List<WeakReference<RealmResults<?>>> initialValue() {
+                    return new CopyOnWriteArrayList<WeakReference<RealmResults<?>>>();
+                }
+            };
+
+    protected static final ThreadLocal<>
 
     // Map between all Realm file paths and all known configurations pointing to that file.
     private static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
@@ -284,8 +288,10 @@ public final class Realm implements Closeable {
         @Override
         public boolean handleMessage(Message message) {
             if (message.what == REALM_CHANGED) {
-                transaction.advanceRead();
-                sendNotifications();
+                if (!threadContainsAsyncQueries()) {
+                    transaction.advanceRead();
+                    sendNotifications();
+                }
             }
             return true;
         }
@@ -297,6 +303,19 @@ public final class Realm implements Closeable {
      */
     public boolean isAutoRefresh() {
         return autoRefresh;
+    }
+
+    /**
+     * Indicates if there are currently any RealmResults being used in this tread (obtained
+     * previously asynchronously). This will prevent advanceRead accidentally the current transaction
+     * resulting in re-running the queries in this thread.
+     * @return {@code true} if there is at least one (non GC'd) instance of {@link RealmResults} {@code false} otherwise
+     */
+    private boolean threadContainsAsyncQueries () {
+        for (WeakReference<RealmResults<?>> realmResultsWeakReference : asyncRealmResults.get()) {
+            if (!realmResultsWeakReference.isEnqueued()) return true;
+        }
+        return false;
     }
 
     /**
@@ -578,12 +597,6 @@ public final class Realm implements Closeable {
     }
 
     private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
-        // Start the finalizer thread if needed
-        if (!isFinalizerStarted) {
-            executorService.submit(new FinalizerRunnable());
-            isFinalizerStarted = true;
-        }
-
         // Check if a cached instance already exists for this thread
         String canonicalPath = configuration.getPath();
         Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();

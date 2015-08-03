@@ -18,6 +18,7 @@ package io.realm;
 import android.content.Context;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 import junit.framework.AssertionFailedError;
 
@@ -34,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -62,7 +62,7 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
-import io.realm.internal.FinalizerRunnable;
+import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -1688,42 +1688,51 @@ public class RealmTest extends AndroidTestCase {
     }
 
     // Check that FinalizerRunnable can free native resources (phantom refs)
-    public void testFinalizerThread() throws NoSuchFieldException, IllegalAccessException {
-        Field fieldReferences = FinalizerRunnable.class.getDeclaredField("references");
-        fieldReferences.setAccessible(true);
-        Map<Reference<?>, Boolean> references = (Map<Reference<?>, Boolean>) fieldReferences.get(null);
-        assertNotNull(references);
+    public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
+        Field sharedGroupReference = Realm.class.getDeclaredField("sharedGroup");
+        sharedGroupReference.setAccessible(true);
+        SharedGroup sharedGroup = (SharedGroup) sharedGroupReference.get(testRealm);
+        assertNotNull(sharedGroup);
 
-        Field fieldIsFinalizerStarted = Realm.class.getDeclaredField("isFinalizerStarted");
-        fieldIsFinalizerStarted.setAccessible(true);
-        boolean isFinalizerStarted = fieldIsFinalizerStarted.getBoolean(null);
-        assertTrue(isFinalizerStarted);
+        Field contextField = SharedGroup.class.getDeclaredField("context");
+        contextField.setAccessible(true);
+        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(sharedGroup);
+        assertNotNull(context);
 
-        //insert some rows, then give the FinalizerRunnable some time to cleanup
+        Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
+        rowReferencesField.setAccessible(true);
+        List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);
+        assertNotNull(rowReferences);
+
+
+        // insert some rows, then give the thread some time to cleanup
         // we have 8 reference so far let's add more
-        final int numberOfPopulateTest = 10000;
+        final int numberOfPopulateTest = 1000;
         final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
 
+        long tic = System.currentTimeMillis();
         for (int i = 0; i < numberOfPopulateTest; i++) {
             populateTestRealm(testRealm, 20);
         }
+        long toc = System.currentTimeMillis();
+        Log.d(RealmTest.class.getName(), "Insertion time: " + (toc - tic));
 
         final int MAX_GC_RETRIES = 5;
         int numberOfRetries = 0;
-        while (references.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
+        while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
             SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
             numberOfRetries++;
             System.gc();
         }
 
         // we can't guarantee that all references have been GC'd but we should detect a decrease
-        boolean isDecreasing = references.size() < totalNumberOfReferences;
+        boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
         if (!isDecreasing) {
-            fail("FinalizerRunnable is not closing all native resources");
+            fail("Native resources are not being closed");
 
         } else {
-            android.util.Log.d(RealmTest.class.getName(), "FinalizerRunnable freed : "
-                    + (totalNumberOfReferences - references.size()) + " out of " + totalNumberOfReferences);
+            android.util.Log.d(RealmTest.class.getName(), "References freed : "
+                    + (totalNumberOfReferences - rowReferences.size()) + " out of " + totalNumberOfReferences);
         }
     }
 

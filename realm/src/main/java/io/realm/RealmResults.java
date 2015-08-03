@@ -99,24 +99,30 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the element at the specified location in this list.
+     *
+     * @param location the index of the element to return.
+     * @return the element at the specified index.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
-    public E get(int rowIndex) {
+    public E get(int location) {
         E obj;
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = realm.getByIndex(classSpec, ((TableView) table).getSourceRowIndex(rowIndex));
+            obj = realm.getByIndex(classSpec, ((TableView) table).getSourceRowIndex(location));
         } else {
-            obj = realm.getByIndex(classSpec, rowIndex);
+            obj = realm.getByIndex(classSpec, location);
         }
 
         return obj;
     }
 
     /**
-     * {@inheritDoc}
+     * This method is not supported.
+     *
+     * @throws NoSuchMethodError always.
      */
     @Override
     public int indexOf(Object o) {
@@ -126,6 +132,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Get the first object from the list.
      * @return The first object.
+     * @throws ArrayIndexOutOfBoundsException if RealmResults is empty.
      */
     public E first() {
         return get(0);
@@ -134,6 +141,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Get the last object from the list.
      * @return The last object.
+     * @throws ArrayIndexOutOfBoundsException if RealmResults is empty.
      */
     public E last() {
         return get(size()-1);
@@ -193,7 +201,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Sort (ascending) an existing {@link io.realm.RealmResults}.
-     * 
+     *
      * @param fieldName  The field name to sort by. Only fields of type boolean, short, int, long,
      *                   float, double, Date, and String are supported.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
@@ -266,7 +274,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
-
     /**
      * Sort existing {@link io.realm.RealmResults} using two fields.
      *
@@ -298,7 +305,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Aggregates
 
     /**
-     * {@inheritDoc}
+     * Returns the number of elements in this query result.
+     *
+     * @return the number of elements in this query result.
      */
     @Override
     public int size() {

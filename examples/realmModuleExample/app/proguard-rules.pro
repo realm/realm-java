@@ -17,6 +17,7 @@
 #}
 
 # Realm ProGuard setup
+-keep class io.realm.annotations.RealmModule
 -keep @io.realm.annotations.RealmModule class *
 -dontwarn javax.**
 -dontwarn io.realm.**
