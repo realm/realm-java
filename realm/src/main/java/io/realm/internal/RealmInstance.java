@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,24 +12,18 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-/*package io.realm.internal;
+package io.realm.internal;
 
-public class SharedGroupWithReplication extends SharedGroup {
+import java.io.Closeable;
 
-    public SharedGroupWithReplication()
-    {
-        super("", true);
-    }
-
-    public SharedGroupWithReplication(String databaseFile)
-    {
-        super(databaseFile, true);
-    }
-
-    public static String getDefaultDatabaseFileName()
-    {
-        return nativeGetDefaultReplicationDatabaseFileName();
-    }
-} */
+/**
+ * Base class for all Realm instances.
+ *
+ * Developer note: Due to this class being in io.realm.internal. No JavaDoc can be used from this class. This means
+ * that all classes that you want JavaDoc for should be specified in the subclass :(
+ */
+public abstract class RealmInstance implements Closeable {
+}

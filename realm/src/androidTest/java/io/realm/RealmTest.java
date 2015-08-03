@@ -62,6 +62,7 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
+import io.realm.internal.RealmFileWrapper;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 
@@ -1686,21 +1687,21 @@ public class RealmTest extends AndroidTestCase {
 
     // Check that FinalizerRunnable can free native resources (phantom refs)
     public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
-        Field sharedGroupReference = Realm.class.getDeclaredField("sharedGroup");
-        sharedGroupReference.setAccessible(true);
-        SharedGroup sharedGroup = (SharedGroup) sharedGroupReference.get(testRealm);
-        assertNotNull(sharedGroup);
+        Field realmFileReference = Realm.class.getDeclaredField("realmFile");
+        realmFileReference.setAccessible(true);
+        RealmFileWrapper realmFile = (RealmFileWrapper) realmFileReference.get(testRealm);
+        assertNotNull(realmFile);
 
         Field contextField = SharedGroup.class.getDeclaredField("context");
         contextField.setAccessible(true);
-        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(sharedGroup);
+        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(realmFile.sharedGroup);
         assertNotNull(context);
 
         Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
         rowReferencesField.setAccessible(true);
         List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);
         assertNotNull(rowReferences);
-
+System.getenv()
 
         // insert some rows, then give the thread some time to cleanup
         // we have 8 reference so far let's add more
@@ -1716,6 +1717,7 @@ public class RealmTest extends AndroidTestCase {
 
         final int MAX_GC_RETRIES = 5;
         int numberOfRetries = 0;
+        Log.i("GCing", "Hoping for the best");
         while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
             SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
             numberOfRetries++;
@@ -1723,6 +1725,7 @@ public class RealmTest extends AndroidTestCase {
         }
 
         // we can't guarantee that all references have been GC'd but we should detect a decrease
+        Log.i("GCing", "Let's check");
         boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
         if (!isDecreasing) {
             fail("Native resources are not being closed");

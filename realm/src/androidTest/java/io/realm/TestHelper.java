@@ -102,11 +102,13 @@ public class TestHelper {
             long totalMemory = Runtime.getRuntime().totalMemory();
             garbageSize = (int)(maxMemory - totalMemory)/10*9;
         }
-        byte garbage[];
+        byte garbage[] = new byte[0];
         try {
-            garbage = new byte[garbageSize];
-            garbage[0] = 1;
-            garbage[garbage.length - 1] = 1;
+            if (garbageSize > 0) {
+                garbage = new byte[garbageSize];
+                garbage[0] = 1;
+                garbage[garbage.length - 1] = 1;
+            }
         } catch (OutOfMemoryError oom) {
             return allocGarbage(garbageSize/10*9);
         }

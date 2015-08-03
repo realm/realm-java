@@ -24,6 +24,9 @@ import io.realm.exceptions.RealmIOException;
 
 public class SharedGroup implements Closeable {
 
+    public static final boolean IMPLICIT_TRANSACTION = true;
+    public static final boolean EXPLICIT_TRANSACTION = false;
+
     private final String path;
     private long nativePtr;
     private long nativeReplicationPtr;
