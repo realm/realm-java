@@ -118,7 +118,7 @@ import io.realm.internal.log.RealmLog;
  */
 public final class Realm implements Closeable {
 
-    public static final String DEFAULT_REALM_NAME = RealmFileWrapper.DEFAULT_REALM_NAME;
+    public static final String DEFAULT_REALM_NAME = "default.realm";
 
     // Cache mapping between a RealmConfiguration and already open Realm instances on this thread.
     protected static final ThreadLocal<Map<RealmConfiguration, Realm>> realmsCache =
