@@ -186,17 +186,33 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public static Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         Booleans obj = realm.createObject(Booleans.class);
-        if (!json.isNull("done")) {
-            obj.setDone((boolean) json.getBoolean("done"));
+        if (json.has("done")) {
+            if (json.isNull("done")) {
+                throw new NullPointerException();
+            } else {
+                obj.setDone((boolean) json.getBoolean("done"));
+            }
         }
-        if (!json.isNull("isReady")) {
-            obj.setReady((boolean) json.getBoolean("isReady"));
+        if (json.has("isReady")) {
+            if (json.isNull("isReady")) {
+                throw new NullPointerException();
+            } else {
+                obj.setReady((boolean) json.getBoolean("isReady"));
+            }
         }
-        if (!json.isNull("mCompleted")) {
-            obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
+        if (json.has("mCompleted")) {
+            if (json.isNull("mCompleted")) {
+                throw new NullPointerException();
+            } else {
+                obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
+            }
         }
-        if (!json.isNull("anotherBoolean")) {
-            obj.setAnotherBoolean((boolean) json.getBoolean("anotherBoolean"));
+        if (json.has("anotherBoolean")) {
+            if (json.isNull("anotherBoolean")) {
+                throw new NullPointerException();
+            } else {
+                obj.setAnotherBoolean((boolean) json.getBoolean("anotherBoolean"));
+            }
         }
         return obj;
     }
