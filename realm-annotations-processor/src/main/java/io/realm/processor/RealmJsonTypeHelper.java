@@ -163,22 +163,54 @@ public class RealmJsonTypeHelper {
 
         @Override
         public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
-            writer
-                .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
-                    .emitStatement("obj.%s((%s) json.get%s(\"%s\"))",
-                        setter,
-                        castType,
-                        jsonType,
-                        fieldName)
-                .endControlFlow();
+            // TODO: This checking should be removed after nullable support for all types.
+            //       And the else block should be removed as well.
+            if (Utils.isString(fieldType)) {
+                writer
+                    .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                        .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                            .emitStatement("obj.%s(\"\")", setter)
+                        .nextControlFlow("else")
+                            .emitStatement("obj.%s((%s) json.get%s(\"%s\"))",
+                                    setter,
+                                    castType,
+                                    jsonType,
+                                    fieldName)
+                        .endControlFlow()
+                    .endControlFlow();
+            } else {
+                writer
+                    .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
+                        .emitStatement("obj.%s((%s) json.get%s(\"%s\"))",
+                                setter,
+                                castType,
+                                jsonType,
+                                fieldName)
+                    .endControlFlow();
+            }
         }
 
         @Override
         public void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
-            writer.emitStatement("obj.%s((%s) reader.next%s())",
-                    setter,
-                    castType,
-                    jsonType);
+            // TODO: This checking should be removed after nullable support for all types.
+            //       And remove the else block as well.
+            if (Utils.isString(fieldType)) {
+                writer
+                    .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                        .emitStatement("obj.%s(\"\")", setter)
+                        .emitStatement("reader.skipValue()")
+                    .nextControlFlow("else")
+                        .emitStatement("obj.%s((%s) reader.next%s())",
+                                setter,
+                                castType,
+                                jsonType)
+                    .endControlFlow();
+            } else {
+                writer.emitStatement("obj.%s((%s) reader.next%s())",
+                        setter,
+                        castType,
+                        jsonType);
+            }
         }
     }
 

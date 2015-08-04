@@ -806,10 +806,20 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
 
-            if (i == 0) {
-                writer.beginControlFlow("if (name.equals(\"%s\") && reader.peek() != JsonToken.NULL)", fieldName);
+            if (Utils.isString(qualifiedFieldType)) {
+                if (i == 0) {
+                    writer.beginControlFlow("if (name.equals(\"%s\"))", fieldName);
+                } else {
+                    writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
+                }
             } else {
-                writer.nextControlFlow("else if (name.equals(\"%s\")  && reader.peek() != JsonToken.NULL)", fieldName);
+                // TODO: This else block should be removed after nullable support for all types
+                //       as well as the condition checking.
+                if (i == 0) {
+                    writer.beginControlFlow("if (name.equals(\"%s\") && reader.peek() != JsonToken.NULL)", fieldName);
+                } else {
+                    writer.nextControlFlow("else if (name.equals(\"%s\")  && reader.peek() != JsonToken.NULL)", fieldName);
+                }
             }
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(
