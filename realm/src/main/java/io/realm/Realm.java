@@ -129,7 +129,7 @@ public final class Realm extends RealmInstance {
     private final Map<Class<? extends RealmObject>, Table> classToTable =
             new HashMap<Class<? extends RealmObject>, Table>();
 
-    // The constructor in private to enforce the use of the static one
+    // The constructor is private in order to enforce the use of the static one
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
     }
@@ -850,8 +850,9 @@ public final class Realm extends RealmInstance {
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
      */
+    @Override
     public void writeCopyTo(File destination) throws IOException {
-        writeEncryptedCopyTo(destination, null);
+        super.writeEncryptedCopyTo(destination, null);
     }
 
     /**
@@ -865,12 +866,9 @@ public final class Realm extends RealmInstance {
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
      */
+    @Override
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
-        if (destination == null) {
-            throw new IllegalArgumentException("The destination argument cannot be null");
-        }
-        checkIfValid();
-        realmFile.copyToFile(destination, key);
+        super.writeEncryptedCopyTo(destination, key);
     }
 
 
@@ -1138,6 +1136,7 @@ public final class Realm extends RealmInstance {
      * @param listener the change listener
      * @see RealmChangeListener
      */
+    @Override
     public void addChangeListener(RealmChangeListener listener) {
         super.addChangeListener(listener);
     }
@@ -1148,6 +1147,7 @@ public final class Realm extends RealmInstance {
      * @param listener the change listener to be removed
      * @see io.realm.RealmChangeListener
      */
+    @Override
     public void removeChangeListener(RealmChangeListener listener) {
         super.removeChangeListener(listener);
     }
@@ -1157,6 +1157,7 @@ public final class Realm extends RealmInstance {
      *
      * @see io.realm.RealmChangeListener
      */
+    @Override
     public void removeAllChangeListeners() {
         super.removeAllChangeListeners();
     }
@@ -1177,16 +1178,11 @@ public final class Realm extends RealmInstance {
     }
 
     /**
-     * Transactions
-     */
-
-    /**
      * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @Override
     public void refresh() {
-        checkIfValid();
-        realmFile.advanceRead();
+        super.refresh();
     }
 
     /**
@@ -1204,8 +1200,7 @@ public final class Realm extends RealmInstance {
      *
      */
     public void beginTransaction() {
-        checkIfValid();
-        realmFile.promoteToWrite();
+        super.beginTransaction();
     }
 
     /**
@@ -1218,28 +1213,7 @@ public final class Realm extends RealmInstance {
      * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
      */
     public void commitTransaction() {
-        checkIfValid();
-        realmFile.commitAndContinueAsRead();
-
-        for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
-            Handler handler = handlerIntegerEntry.getKey();
-            String realmPath = handlerIntegerEntry.getValue();
-
-            // Notify at once on thread doing the commit
-            if (handler.equals(this.handler)) {
-                sendNotifications();
-                continue;
-            }
-
-            // For all other threads, use the Handler
-            if (
-                    realmPath.equals(configuration.getPath())    // It's the right realm
-                    && !handler.hasMessages(REALM_CHANGED)       // The right message
-                    && handler.getLooper().getThread().isAlive() // The receiving thread is alive
-            ) {
-                handler.sendEmptyMessage(REALM_CHANGED);
-            }
-        }
+        super.commitTransaction();
     }
 
     /**
@@ -1254,8 +1228,7 @@ public final class Realm extends RealmInstance {
      *                                             not in a write transaction or incorrect thread.
      */
     public void cancelTransaction() {
-        checkIfValid();
-        realmFile.rollbackAndContinueAsRead();
+        super.cancelTransaction();
     }
 
     /**
@@ -1576,16 +1549,18 @@ public final class Realm extends RealmInstance {
      * @return The canonical path to the Realm file.
      * @see File#getCanonicalPath()
      */
+    @Override
     public String getPath() {
-        return configuration.getPath();
+        return super.getPath();
     }
 
     /**
      * Returns the {@link RealmConfiguration} for this Realm.
      * @return {@link RealmConfiguration} for this Realm.
      */
+    @Override
     public RealmConfiguration getConfiguration() {
-        return configuration;
+        return super.getConfiguration();
     }
 
     // Get the canonical path for a given file

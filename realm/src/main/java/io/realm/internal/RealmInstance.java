@@ -21,7 +21,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-import java.io.Closeable;
+import java.io.*;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -217,6 +217,66 @@ public abstract class RealmInstance implements Closeable {
         }
 
         return wasLastInstance;
+    }
+
+    protected void writeCopyTo(File destination) throws java.io.IOException {
+        writeEncryptedCopyTo(destination, null);
+    }
+
+    protected void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
+        if (destination == null) {
+            throw new IllegalArgumentException("The destination argument cannot be null");
+        }
+        checkIfValid();
+        realmFile.copyToFile(destination, key);
+    }
+
+    protected void refresh() {
+        checkIfValid();
+        realmFile.advanceRead();
+    }
+
+    protected void beginTransaction() {
+        checkIfValid();
+        realmFile.promoteToWrite();
+    }
+
+    protected void commitTransaction() {
+        checkIfValid();
+        realmFile.commitAndContinueAsRead();
+
+        for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
+            Handler handler = handlerIntegerEntry.getKey();
+            String realmPath = handlerIntegerEntry.getValue();
+
+            // Notify at once on thread doing the commit
+            if (handler.equals(this.handler)) {
+                sendNotifications();
+                continue;
+            }
+
+            // For all other threads, use the Handler
+            if (
+                    realmPath.equals(configuration.getPath())    // It's the right realm
+                    && !handler.hasMessages(REALM_CHANGED)       // The right message
+                    && handler.getLooper().getThread().isAlive() // The receiving thread is alive
+                    ) {
+                handler.sendEmptyMessage(REALM_CHANGED);
+            }
+        }
+    }
+
+    protected void cancelTransaction() {
+        checkIfValid();
+        realmFile.rollbackAndContinueAsRead();
+    }
+
+    protected String getPath() {
+        return configuration.getPath();
+    }
+
+    public RealmConfiguration getConfiguration() {
+        return configuration;
     }
 
     private class RealmCallback implements Handler.Callback {
