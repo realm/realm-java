@@ -16,6 +16,8 @@
 
 package io.realm.entities;
 
+import java.util.Date;
+
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
@@ -29,6 +31,21 @@ public class NullTypes extends RealmObject {
     public static String FIELD_BYTES_NULL = "fieldBytesNull";
     public static String FIELD_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
     public static String FIELD_BOOLEAN_NULL = "fieldBooleanNull";
+
+    public static String FIELD_BYTE_NOT_NULL = "fieldByteNotNull";
+    public static String FIELD_BYTE_NULL = "fieldByteNull";
+    public static String FIELD_SHORT_NOT_NULL = "fieldShortNotNull";
+    public static String FIELD_SHORT_NULL = "fieldShortNull";
+    public static String FIELD_INTEGER_NOT_NULL = "fieldIntegerNotNull";
+    public static String FIELD_INTEGER_NULL = "fieldIntegerNull";
+    public static String FIELD_LONG_NOT_NULL = "fieldLongNotNull";
+    public static String FIELD_LONG_NULL = "fieldLongNull";
+    public static String FIELD_FLOAT_NOT_NULL = "fieldFloatNotNull";
+    public static String FIELD_FLOAT_NULL = "fieldFloatNull";
+    public static String FIELD_DOUBLE_NOT_NULL = "fieldDoubleNotNull";
+    public static String FIELD_DOUBLE_NULL = "fieldDoubleNull";
+    public static String FIELD_DATE_NOT_NULL = "fieldDateNotNull";
+    public static String FIELD_DATE_NULL = "fieldDateNull";
 
     @PrimaryKey
     private int id;
@@ -48,6 +65,34 @@ public class NullTypes extends RealmObject {
     @Required
     private Boolean fieldBooleanNotNull;
     private Boolean fieldBooleanNull;
+
+    @Required
+    private Byte fieldByteNotNull;
+    private Byte fieldByteNull;
+
+    @Required
+    private Short fieldShortNotNull;
+    private Short fieldShortNull;
+
+    @Required
+    private Integer fieldIntegerNotNull;
+    private Integer fieldIntegerNull;
+
+    @Required
+    private Long fieldLongNotNull;
+    private Long fieldLongNull;
+
+    @Required
+    private Float fieldFloatNotNull;
+    private Float fieldFloatNull;
+
+    @Required
+    private Double fieldDoubleNotNull;
+    private Double fieldDoubleNull;
+
+    @Required
+    private Date fieldDateNotNull;
+    private Date fieldDateNull;
 
     public int getId() {
         return id;
@@ -104,4 +149,117 @@ public class NullTypes extends RealmObject {
     public void setFieldBooleanNull(Boolean fieldBooleanNull) {
         this.fieldBooleanNull = fieldBooleanNull;
     }
+
+    public Byte getFieldByteNotNull() {
+        return fieldByteNotNull;
+    }
+
+    public void setFieldByteNotNull(Byte fieldByteNotNull) {
+        this.fieldByteNotNull = fieldByteNotNull;
+    }
+
+    public Byte getFieldByteNull() {
+        return fieldByteNull;
+    }
+
+    public void setFieldByteNull(Byte fieldByteNull) {
+        this.fieldByteNull = fieldByteNull;
+    }
+
+    public Short getFieldShortNotNull() {
+        return fieldShortNotNull;
+    }
+
+    public void setFieldShortNotNull(Short fieldShortNotNull) {
+        this.fieldShortNotNull = fieldShortNotNull;
+    }
+
+    public Short getFieldShortNull() {
+        return fieldShortNull;
+    }
+
+    public void setFieldShortNull(Short fieldShortNull) {
+        this.fieldShortNull = fieldShortNull;
+    }
+
+    public Integer getFieldIntegerNotNull() {
+        return fieldIntegerNotNull;
+    }
+
+    public void setFieldIntegerNotNull(Integer fieldIntegerNotNull) {
+        this.fieldIntegerNotNull = fieldIntegerNotNull;
+    }
+
+    public Integer getFieldIntegerNull() {
+        return fieldIntegerNull;
+    }
+
+    public void setFieldIntegerNull(Integer fieldIntegerNull) {
+        this.fieldIntegerNull = fieldIntegerNull;
+    }
+
+    public Long getFieldLongNotNull() {
+        return fieldLongNotNull;
+    }
+
+    public void setFieldLongNotNull(Long fieldLongNotNull) {
+        this.fieldLongNotNull = fieldLongNotNull;
+    }
+
+    public Long getFieldLongNull() {
+        return fieldLongNull;
+    }
+
+    public void setFieldLongNull(Long fieldLongNull) {
+        this.fieldLongNull = fieldLongNull;
+    }
+
+    public Float getFieldFloatNotNull() {
+        return fieldFloatNotNull;
+    }
+
+    public void setFieldFloatNotNull(Float fieldFloatNotNull) {
+        this.fieldFloatNotNull = fieldFloatNotNull;
+    }
+
+    public Float getFieldFloatNull() {
+        return fieldFloatNull;
+    }
+
+    public void setFieldFloatNull(Float fieldFloatNull) {
+        this.fieldFloatNull = fieldFloatNull;
+    }
+
+    public Double getFieldDoubleNotNull() {
+        return fieldDoubleNotNull;
+    }
+
+    public void setFieldDoubleNotNull(Double fieldDoubleNotNull) {
+        this.fieldDoubleNotNull = fieldDoubleNotNull;
+    }
+
+    public Double getFieldDoubleNull() {
+        return fieldDoubleNull;
+    }
+
+    public void setFieldDoubleNull(Double fieldDoubleNull) {
+        this.fieldDoubleNull = fieldDoubleNull;
+    }
+
+    public Date getFieldDateNotNull() {
+        return fieldDateNotNull;
+    }
+
+    public void setFieldDateNotNull(Date fieldDateNotNull) {
+        this.fieldDateNotNull = fieldDateNotNull;
+    }
+
+    public Date getFieldDateNull() {
+        return fieldDateNull;
+    }
+
+    public void setFieldDateNull(Date fieldDateNull) {
+        this.fieldDateNull = fieldDateNull;
+    }
+
 }
