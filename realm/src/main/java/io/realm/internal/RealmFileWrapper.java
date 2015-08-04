@@ -27,24 +27,24 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 /**
- * This class wraps access to a given Realm file on a single thread including its {@link SharedGroup} and
- * {@link ImplicitTransaction}. By nature this means that this class is not thread safe and should only be used
- * from the thread that created it.
+ * This class wraps access to a given Realm file on a single thread including its {@link SharedGroup}
+ * and {@link ImplicitTransaction}. By nature this means that this class is not thread safe and
+ * should only be used from the thread that created it.
  *
- * Realm files are using a MVCC scheme (Multiversion concurrency control), which means that multiple versions of data
- * might exist in the same file. By default the file is always opened on the latest version and it is possible to advance
- * to the latest version by calling {@link #advanceRead()}.
+ * Realm files are using a MVCC scheme (Multiversion concurrency control), which means that multiple
+ * versions of data might exist in the same file. By default the file is always opened on the latest
+ * version and it is possible to advance to the latest version by calling {@link #advanceRead()}.
  *
- * Realm file access is a bit tricky as Realm must create a new reference to the file from each thread. This means that
- * any code that wants to manipulate the Realm file itself must use the static methods in this class to ensure that it
- * is safe to do so.
+ * Realm file access is a bit tricky as Realm must create a new reference to the file from each
+ * thread. This means that any code that wants to manipulate the Realm file itself must use the
+ * static methods in this class to ensure that it is safe to do so.
  */
 public class RealmFileWrapper implements Closeable {
 
-    public static final String DEFAULT_REALM_NAME = "default.realm";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
 
     // Map between all Realm file paths and all known configurations pointing to that file.
@@ -60,9 +60,13 @@ public class RealmFileWrapper implements Closeable {
     public final ImplicitTransaction transaction;
 
     /**
-     * Creates a new instance of the filewrapper for the given configuration on this thread.
+     * Creates a new instance of the FileWrapper for the given configuration on this thread.
+     *
+     * @throws IllegalArgumentException if the given configuration isn't compatible with existing
+     * configurations.
      */
     public RealmFileWrapper(RealmConfiguration configuration) {
+        validateAgainstExistingConfigurations(configuration);
         this.sharedGroup = new SharedGroup(
                 configuration.getPath(),
                 SharedGroup.IMPLICIT_TRANSACTION,
@@ -94,15 +98,18 @@ public class RealmFileWrapper implements Closeable {
 
     /**
      * Register that a file has been closed.
+     *
+     * It is necessary to be synchronized here since there is a chance that before the counter is
+     * removed, the other thread could get the counter and increase it in createAndValidate.
      */
     public static synchronized void closeFile(RealmConfiguration configuration) {
-            String canonicalPath = configuration.getPath();
-            globalPathConfigurationCache.get(canonicalPath).remove(configuration);
-            AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
-            if (counter.decrementAndGet() == 0) {
-                globalOpenInstanceCounter.remove(canonicalPath);
-            }
+        String canonicalPath = configuration.getPath();
+        globalPathConfigurationCache.get(canonicalPath).remove(configuration);
+        AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
+        if (counter.decrementAndGet() == 0) {
+            globalOpenInstanceCounter.remove(canonicalPath);
         }
+    }
 
     /**
      * Checks if a Realm file defined by the configuration is open on any thread.
@@ -114,12 +121,13 @@ public class RealmFileWrapper implements Closeable {
         return (counter != null && counter.get() > 0);
     }
 
-
     /**
-     * Make sure that the new configuration doesn't clash with any existing configurations for the Realm
-     * @param newConfiguration
+     * Make sure that the new configuration doesn't clash with any existing configurations for the
+     * Realm.
+     *
+     * @throws IllegalArgumentException If the new configuration isn't valid.
      */
-    public static void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
+    public static synchronized void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
 
         // Ensure cache state
         String realmPath = newConfiguration.getPath();
@@ -230,6 +238,28 @@ public class RealmFileWrapper implements Closeable {
      */
     public void copyToFile(File destination, byte[] key) throws IOException {
         transaction.writeToFile(destination, key);
+    }
+
+    /**
+     * Compacts a Realm file. It cannot be open when calling this method.
+     */
+    public static boolean compact(RealmConfiguration configuration) {
+        SharedGroup sharedGroup = null;
+        boolean result = false;
+        try {
+            sharedGroup = new SharedGroup(
+                    configuration.getPath(),
+                    SharedGroup.EXPLICIT_TRANSACTION,
+                    SharedGroup.Durability.FULL,
+                    configuration.getEncryptionKey(
+            ));
+            result = sharedGroup.compact();
+        } finally {
+            if (sharedGroup != null) {
+                sharedGroup.close();
+            }
+        }
+        return result;
     }
 }
 

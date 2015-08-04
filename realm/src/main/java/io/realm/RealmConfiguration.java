@@ -53,10 +53,12 @@ import io.realm.internal.modules.FilterableMediator;
  */
 public class RealmConfiguration {
 
+    public static final String DEFAULT_REALM_NAME = "default.realm";
     public static final int KEY_LENGTH = 64;
 
     private static final Object DEFAULT_MODULE;
     private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
         if (DEFAULT_MODULE != null) {

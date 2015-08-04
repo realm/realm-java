@@ -63,8 +63,10 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.RealmFileWrapper;
+import io.realm.internal.RealmInstance;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -1688,8 +1690,12 @@ public class RealmTest extends AndroidTestCase {
     // Check that FinalizerRunnable can free native resources (phantom refs)
     public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
 
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).name("myown").build();
+        Realm.deleteRealm(config);
+        testRealm = Realm.getInstance(config);
+
         // Manipulate field accessibility to facilitate testing
-        Field realmFileReference = Realm.class.getDeclaredField("realmFile");
+        Field realmFileReference = RealmInstance.class.getDeclaredField("realmFile");
         realmFileReference.setAccessible(true);
         Field contextField = SharedGroup.class.getDeclaredField("context");
         contextField.setAccessible(true);
@@ -1721,7 +1727,7 @@ public class RealmTest extends AndroidTestCase {
         long toc = System.currentTimeMillis();
         Log.d(RealmTest.class.getName(), "Insertion time: " + (toc - tic));
 
-        final int MAX_GC_RETRIES = 10;
+        final int MAX_GC_RETRIES = 5;
         int numberOfRetries = 0;
         Log.i("GCing", "Hoping for the best");
         while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
