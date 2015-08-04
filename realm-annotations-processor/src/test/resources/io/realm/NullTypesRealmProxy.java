@@ -84,6 +84,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldStringNotNull(String value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldStringNotNull in NullTypes to null.");
+        }
         row.setString(INDEX_FIELDSTRINGNOTNULL, (String) value);
     }
 
@@ -108,6 +111,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldBooleanNotNull(Boolean value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldBooleanNotNull in NullTypes to null.");
+        }
         row.setBoolean(INDEX_FIELDBOOLEANNOTNULL, (Boolean) value);
     }
 
@@ -139,6 +145,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldBytesNotNull(byte[] value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldBytesNotNull in NullTypes to null.");
+        }
         row.setBinaryByteArray(INDEX_FIELDBYTESNOTNULL, (byte[]) value);
     }
 
@@ -170,6 +179,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldByteNotNull(Byte value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldByteNotNull in NullTypes to null.");
+        }
         row.setLong(INDEX_FIELDBYTENOTNULL, (long) value);
     }
 
@@ -201,6 +213,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldShortNotNull(Short value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldShortNotNull in NullTypes to null.");
+        }
         row.setLong(INDEX_FIELDSHORTNOTNULL, (long) value);
     }
 
@@ -232,6 +247,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldIntegerNotNull(Integer value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldIntegerNotNull in NullTypes to null.");
+        }
         row.setLong(INDEX_FIELDINTEGERNOTNULL, (long) value);
     }
 
@@ -263,6 +281,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldLongNotNull(Long value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldLongNotNull in NullTypes to null.");
+        }
         row.setLong(INDEX_FIELDLONGNOTNULL, (long) value);
     }
 
@@ -294,6 +315,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldFloatNotNull(Float value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldFloatNotNull in NullTypes to null.");
+        }
         row.setFloat(INDEX_FIELDFLOATNOTNULL, (float) value);
     }
 
@@ -325,6 +349,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldDoubleNotNull(Double value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldDoubleNotNull in NullTypes to null.");
+        }
         row.setDouble(INDEX_FIELDDOUBLENOTNULL, (double) value);
     }
 
@@ -356,6 +383,9 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     @Override
     public void setFieldDateNotNull(Date value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldDateNotNull in NullTypes to null.");
+        }
         row.setDate(INDEX_FIELDDATENOTNULL, (Date) value);
     }
 
