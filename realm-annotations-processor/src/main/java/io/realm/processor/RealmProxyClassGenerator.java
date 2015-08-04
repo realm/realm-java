@@ -203,10 +203,17 @@ public class RealmProxyClassGenerator {
                 );
                 // FIXME: Make a better condition
                 if (metadata.isNullable(field) && !Utils.isString(field)) {
-                    writer.beginControlFlow("if (value == null)");
-                    writer.emitStatement("row.setNull(%s)", staticFieldIndexVarName(field));
-                    writer.emitStatement("return");
-                    writer.endControlFlow();
+                    writer.beginControlFlow("if (value == null)")
+                        .emitStatement("row.setNull(%s)", staticFieldIndexVarName(field))
+                        .emitStatement("return")
+                    .endControlFlow();
+                } else if (!metadata.isNullable(field) && !field.asType().getKind().isPrimitive()) {
+                    // FIXME: Check if this is the best condition
+                    writer
+                        .beginControlFlow("if (value == null)")
+                            .emitStatement("throw new IllegalArgumentException(\"Trying to set a non-nullable field %s in %s to null.\")",
+                                    fieldName, className)
+                        .endControlFlow();
                 }
                 writer.emitStatement(
                         "row.set%s(%s, (%s) value)",
