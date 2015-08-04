@@ -169,7 +169,7 @@ public final class Realm extends RealmInstance {
      * @return the auto-refresh status
      */
     public boolean isAutoRefresh() {
-        return autoRefresh;
+        return super.isAutoRefresh();
     }
 
     /**

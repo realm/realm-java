@@ -98,6 +98,10 @@ public abstract class RealmInstance implements Closeable {
         this.autoRefresh = autoRefresh;
     }
 
+    protected boolean isAutoRefresh() {
+        return autoRefresh;
+    }
+
     /**
      * Add a change listener to the Realm
      */
@@ -195,11 +199,11 @@ public abstract class RealmInstance implements Closeable {
             references = 0;
         }
 
-        RealmFileWrapper.closeFile(configuration);
         if (references == 1) {
             wasLastInstance = true;
             realmFile.close();
             realmFile = null;
+            RealmFileWrapper.closeFile(configuration);
         }
 
         int refCount = references - 1;
