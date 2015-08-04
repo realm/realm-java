@@ -63,6 +63,9 @@ public class AllTypesRealmProxy extends AllTypes
     @Override
     public void setColumnString(String value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field columnString in AllTypes to null.");
+        }
         row.setString(INDEX_COLUMNSTRING, (String) value);
     }
 
@@ -123,6 +126,9 @@ public class AllTypesRealmProxy extends AllTypes
     @Override
     public void setColumnDate(Date value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field columnDate in AllTypes to null.");
+        }
         row.setDate(INDEX_COLUMNDATE, (Date) value);
     }
 
@@ -135,6 +141,9 @@ public class AllTypesRealmProxy extends AllTypes
     @Override
     public void setColumnBinary(byte[] value) {
         realm.checkIfValid();
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field columnBinary in AllTypes to null.");
+        }
         row.setBinaryByteArray(INDEX_COLUMNBINARY, (byte[]) value);
     }
 
