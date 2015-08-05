@@ -691,6 +691,47 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
+    public void testDefaultValuesForNewlyCreatedObject() {
+        testRealm.beginTransaction();
+        testRealm.createObject(NullTypes.class);
+        testRealm.commitTransaction();
+
+        NullTypes nullTypes = testRealm.where(NullTypes.class).findFirst();
+        assertNotNull(nullTypes);
+
+        assertEquals(0, nullTypes.getId());
+        // 1 String
+        assertEquals("", nullTypes.getFieldStringNotNull());
+        assertNull(nullTypes.getFieldStringNull());
+        // 2 Bytes
+        assertArrayEquals(new byte[0], nullTypes.getFieldBytesNotNull());
+        assertNull(nullTypes.getFieldByteNull());
+        // 3 Boolean
+        assertFalse(nullTypes.getFieldBooleanNotNull());
+        assertNull(nullTypes.getFieldBooleanNull());
+        // 4 Byte
+        assertEquals(0, nullTypes.getFieldByteNotNull().byteValue());
+        assertNull(nullTypes.getFieldByteNull());
+        // 5 Short
+        assertEquals(0, nullTypes.getFieldShortNotNull().shortValue());
+        assertNull(nullTypes.getFieldShortNull());
+        // 6 Integer
+        assertEquals(0, nullTypes.getFieldIntegerNotNull().intValue());
+        assertNull(nullTypes.getFieldIntegerNull());
+        // 7 Long
+        assertEquals(0, nullTypes.getFieldLongNotNull().longValue());
+        assertNull(nullTypes.getFieldLongNull());
+        // 8 Float
+        assertEquals(0F, nullTypes.getFieldFloatNotNull());
+        assertNull(nullTypes.getFieldFloatNull());
+        // 9 Double
+        assertEquals(0D, nullTypes.getFieldDoubleNotNull());
+        assertNull(nullTypes.getFieldDoubleNull());
+        // 10 Date
+        assertEquals(new Date(0), nullTypes.getFieldDateNotNull());
+        assertNull(nullTypes.getFieldDateNull());
+    }
+
     public void testAccessObjectRemovalThrows() throws InterruptedException {
 
         testRealm.beginTransaction();
