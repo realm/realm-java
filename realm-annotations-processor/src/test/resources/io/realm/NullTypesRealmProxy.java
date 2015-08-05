@@ -1139,6 +1139,8 @@ public class NullTypesRealmProxy extends NullTypes
             } else {
                 realmObject.setFieldObjectNotNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNotNullObj, update, cache));
             }
+        } else {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
         }
 
         some.test.NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
@@ -1149,6 +1151,8 @@ public class NullTypesRealmProxy extends NullTypes
             } else {
                 realmObject.setFieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
             }
+        } else {
+            realmObject.setFieldObjectNull(null);
         }
         return realmObject;
     }
@@ -1183,7 +1187,7 @@ public class NullTypesRealmProxy extends NullTypes
                 realmObject.setFieldObjectNotNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNotNullObj, true, cache));
             }
         } else {
-            realmObject.setFieldObjectNotNull(null);
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
         }
         NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
         if (fieldObjectNullObj != null) {

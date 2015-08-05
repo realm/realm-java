@@ -571,27 +571,38 @@ public class RealmProxyClassGenerator {
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String fieldType = field.asType().toString();
+            String setter = metadata.getSetter(fieldName);
+            String getter = metadata.getGetter(fieldName);
+
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
+                String statementSetNullOrThrow;
+                if (metadata.isNullable(field)) {
+                    statementSetNullOrThrow = String.format("realmObject.%s(null)", setter);
+                } else {
+                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+                }
                 writer
                     .emitEmptyLine()
-                    .emitStatement("%s %sObj = newObject.%s()", fieldType, fieldName, metadata.getGetter(fieldName))
+                    .emitStatement("%s %sObj = newObject.%s()", fieldType, fieldName, getter)
                     .beginControlFlow("if (%sObj != null)", fieldName)
                         .emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
-                            .emitStatement("realmObject.%s(cache%s)", metadata.getSetter(fieldName), fieldName)
+                            .emitStatement("realmObject.%s(cache%s)", setter, fieldName)
                         .nextControlFlow("else")
                             .emitStatement("realmObject.%s(%s.copyOrUpdate(realm, %sObj, update, cache))",
                                     metadata.getSetter(fieldName),
                                     Utils.getProxyClassSimpleName(field),
                                     fieldName)
                         .endControlFlow()
+                    .nextControlFlow("else")
+                        .emitStatement(statementSetNullOrThrow)
                     .endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 writer
                     .emitEmptyLine()
-                    .emitStatement("RealmList<%s> %sList = newObject.%s()", Utils.getGenericType(field), fieldName, metadata.getGetter(fieldName))
+                    .emitStatement("RealmList<%s> %sList = newObject.%s()", Utils.getGenericType(field), fieldName, getter)
                     .beginControlFlow("if (%sList != null)", fieldName)
-                        .emitStatement("RealmList<%s> %sRealmList = realmObject.%s()", Utils.getGenericType(field), fieldName, metadata.getGetter(fieldName))
+                        .emitStatement("RealmList<%s> %sRealmList = realmObject.%s()", Utils.getGenericType(field), fieldName, getter)
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
                                 .emitStatement("%s %sItem = %sList.get(i)", Utils.getGenericType(field), fieldName, fieldName)
                                 .emitStatement("%s cache%s = (%s) cache.get(%sItem)", Utils.getGenericType(field), fieldName, Utils.getGenericType(field), fieldName)
@@ -605,7 +616,7 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine();
 
             } else {
-                writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), metadata.getGetter(fieldName));
+                writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), getter);
             }
         }
 
@@ -624,9 +635,17 @@ public class RealmProxyClassGenerator {
 
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
+            String setter = metadata.getSetter(fieldName);
+            String getter = metadata.getGetter(fieldName);
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
+                String statementSetNullOrThrow;
+                if (metadata.isNullable(field)) {
+                    statementSetNullOrThrow = String.format("realmObject.%s(null)", setter);
+                } else {
+                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+                }
                 writer
-                    .emitStatement("%s %sObj = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, metadata.getGetter(fieldName))
+                    .emitStatement("%s %sObj = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, getter)
                     .beginControlFlow("if (%sObj != null)", fieldName)
                         .emitStatement("%s cache%s = (%s) cache.get(%sObj)", Utils.getFieldTypeSimpleName(field), fieldName, Utils.getFieldTypeSimpleName(field), fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
@@ -640,12 +659,12 @@ public class RealmProxyClassGenerator {
                             )
                         .endControlFlow()
                     .nextControlFlow("else")
-                        .emitStatement("realmObject.%s(null)", metadata.getSetter(fieldName))
+                        .emitStatement(statementSetNullOrThrow)
                     .endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 writer
-                    .emitStatement("RealmList<%s> %sList = newObject.%s()", Utils.getGenericType(field), fieldName, metadata.getGetter(fieldName))
-                    .emitStatement("RealmList<%s> %sRealmList = realmObject.%s()", Utils.getGenericType(field), fieldName, metadata.getGetter(fieldName))
+                    .emitStatement("RealmList<%s> %sList = newObject.%s()", Utils.getGenericType(field), fieldName, getter)
+                    .emitStatement("RealmList<%s> %sRealmList = realmObject.%s()", Utils.getGenericType(field), fieldName, getter)
                     .emitStatement("%sRealmList.clear()", fieldName)
                     .beginControlFlow("if (%sList != null)", fieldName)
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
@@ -663,7 +682,7 @@ public class RealmProxyClassGenerator {
                 if (field == metadata.getPrimaryKey()) {
                     continue;
                 }
-                writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), metadata.getGetter(fieldName));
+                writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), getter);
             }
         }
 
