@@ -491,9 +491,9 @@ public final class Realm extends RealmBase {
             for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
-                    mediator.createTable(modelClass, realm.sharedGroup.transaction);
+                    mediator.createTable(modelClass, realm.sharedGroup.getTransaction());
                 }
-                mediator.validateTable(modelClass, realm.sharedGroup.transaction);
+                mediator.validateTable(modelClass, realm.sharedGroup.getTransaction());
                 realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
         } finally {
@@ -1326,6 +1326,14 @@ public final class Realm extends RealmBase {
         if (!getTable(clazz).hasPrimaryKey()) {
             throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
         }
+    }
+
+    /**
+     * Checks if a Realm's underlying resources are still available or not getting accessed from
+     * the wrong thread.
+     */
+    protected void checkIfValid() {
+        super.checkIfValid();
     }
 
     @Deprecated

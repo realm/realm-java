@@ -1704,10 +1704,7 @@ public class RealmTest extends AndroidTestCase {
         SharedGroupManager realmFile = (SharedGroupManager) realmFileReference.get(testRealm);
         assertNotNull(realmFile);
 
-        SharedGroup sharedGroup = realmFile.sharedGroup;
-        assertNotNull(sharedGroup);
-
-        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(sharedGroup);
+        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(realmFile.getSharedGroup());
         assertNotNull(context);
 
         List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);

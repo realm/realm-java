@@ -152,22 +152,6 @@ public abstract class RealmBase implements Closeable {
         changeListeners.clear();
     }
 
-    /**
-     * Checks if a Realm's underlying resources are still available or not getting accessed from
-     * the wrong thread.
-     */
-    protected void checkIfValid() {
-        // Check if the Realm instance has been closed
-        if (sharedGroup != null && !sharedGroup.isOpen()) {
-            throw new IllegalStateException(CLOSED_REALM_MESSAGE);
-        }
-
-        // Check if we are in the right thread
-        if (threadId != Thread.currentThread().getId()) {
-            throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
-        }
-    }
-
     protected void removeHandler(Handler handler) {
         handler.removeCallbacksAndMessages(null);
         handlers.remove(handler);
@@ -280,6 +264,18 @@ public abstract class RealmBase implements Closeable {
     protected void cancelTransaction() {
         checkIfValid();
         sharedGroup.rollbackAndContinueAsRead();
+    }
+
+    protected void checkIfValid() {
+        // Check if the Realm instance has been closed
+        if (sharedGroup != null && !sharedGroup.isOpen()) {
+            throw new IllegalStateException(RealmBase.CLOSED_REALM_MESSAGE);
+        }
+
+        // Check if we are in the right thread
+        if (threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException(RealmBase.INCORRECT_THREAD_MESSAGE);
+        }
     }
 
     protected String getPath() {

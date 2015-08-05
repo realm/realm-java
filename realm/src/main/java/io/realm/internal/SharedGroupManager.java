@@ -196,6 +196,14 @@ public class SharedGroupManager implements Closeable {
         transaction.writeToFile(destination, key);
     }
 
+    public SharedGroup getSharedGroup() {
+        return sharedGroup;
+    }
+
+    public ImplicitTransaction getTransaction() {
+        return transaction;
+    }
+
     /**
      * Compacts a Realm file. It cannot be open when calling this method.
      */
