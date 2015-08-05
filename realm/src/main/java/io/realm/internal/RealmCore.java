@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Locale;
@@ -94,40 +93,11 @@ public class RealmCore {
         System.out.println(caption + ": " + cursor);
     }
 */
-    /**
-     * Guarantee gc is done.
-     */
-    public static void gcGuaranteed(){
-        Object obj = new Object();
-        WeakReference<Object> ref = new WeakReference<Object>(obj);
-        obj = null;
-        while (ref.get()!=null)
-            System.gc();
-    }
-
-    /**
-     * Guarantee gc is done after JVM shutdown.
-     */
-    public static void gcOnExit(){
-        Runtime.getRuntime().addShutdownHook(new Thread(){
-            @Override
-            public void run(){
-                gcGuaranteed();
-            }
-        });
-    }
-
-    private static void init() {
-        // Guarantee gc is done on JVM exit to clean up any native resources
-        gcOnExit();
-    }
 
     public static void loadLibrary() {
         if (libraryIsLoaded.get())
             // only load library once
             return;
-
-        init();
 
         if (osIsWindows()) {
             loadLibraryWindows();

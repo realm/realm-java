@@ -1,3 +1,7 @@
+0.82.1
+ * Fixed a bug where String fields were ignored when updating objects from JSON with null values.
+ * Fixed a bug when calling System.exit(0), the process might hang.
+
 0.82
  * RealmConfiguration.setModules() now accept ignore null values which Realm.getDefaultModule() might return.
  * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
@@ -7,7 +11,7 @@
  * @Index annotation can also be applied to byte/short/int/long/boolean/Date now.
  * Fields with annotation @PrimaryKey are indexed automatically now.
  * Fixed a bug where RealmQuery objects are prematurely garbage collected.
- * Removed RealmQuery.between() for link queries. 
+ * Removed RealmQuery.between() for link queries.
 
 0.81.1
  * Fixed memory leak causing Realm to never release Realm objects.
@@ -22,7 +26,7 @@
  * RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
  * Realm now works with Kotlin (M12+). (thanks @cypressious)
  * Fixed a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
- * Added a check to give a better error message when null is used as value for a primary key. 
+ * Added a check to give a better error message when null is used as value for a primary key.
  * Fixed unchecked cast warnings when building with Realm.
  * Cleaned up examples (remove old test project).
  * Added checking for missing generic type in RealmList fields in annotation processor.
@@ -36,7 +40,7 @@
  * Fixed a memory leak when using RealmBaseAdapter.
  * RealmBaseAdapter now allow RealmResults to be null (thanks @zaki50).
  * Fixed a bug where a change to a model class (RealmList<A> to RealmList<B>) would not throw a RealmMigrationNeededException.
- * Fixed a bug where where setting multiple RealmLists didn't remove the previously added objects.
+ * Fixed a bug where setting multiple RealmLists didn't remove the previously added objects.
  * Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (thanks @beeender)
  * Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now. (thanks @beeender)
 

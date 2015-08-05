@@ -15,7 +15,7 @@
  *
  */
 
-package io.realm.internal;
+package io.realm.base;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -36,6 +36,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import io.realm.BuildConfig;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
+import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.SharedGroup;
+import io.realm.internal.SharedGroupManager;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
@@ -43,14 +46,12 @@ import io.realm.internal.log.RealmLog;
 /**
  * Base class for all Realm instances.
  *
- * Developer note: Due to this class being in io.realm.internal. No JavaDoc can be used from this
- * class. This means that all classes that you want JavaDoc for should be implemented in the
- * subclass :(
+ * @see io.realm.Realm
  */
 public abstract class RealmBase implements Closeable {
 
-    protected static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
-    protected static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
+    private static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
+    private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
@@ -111,8 +112,11 @@ public abstract class RealmBase implements Closeable {
 
     /**
      * Add a change listener to the Realm
+     *
+     * @param listener the change listener
+     * @see RealmChangeListener
      */
-    protected void addChangeListener(RealmChangeListener listener) {
+    public void addChangeListener(RealmChangeListener listener) {
         checkIfValid();
         for (WeakReference<RealmChangeListener> ref : changeListeners) {
             if (ref.get() == listener) {
@@ -126,8 +130,11 @@ public abstract class RealmBase implements Closeable {
 
     /**
      * Remove the specified change listener
+     *
+     * @param listener the change listener to be removed
+     * @see io.realm.RealmChangeListener
      */
-    protected void removeChangeListener(RealmChangeListener listener) {
+    public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
         WeakReference<RealmChangeListener> weakRefToRemove = null;
         for (WeakReference<RealmChangeListener> weakRef : changeListeners) {
@@ -147,17 +154,17 @@ public abstract class RealmBase implements Closeable {
      *
      * @see io.realm.RealmChangeListener
      */
-    protected void removeAllChangeListeners() {
+    public void removeAllChangeListeners() {
         checkIfValid();
         changeListeners.clear();
     }
 
-    protected void removeHandler(Handler handler) {
+    private void removeHandler(Handler handler) {
         handler.removeCallbacksAndMessages(null);
         handlers.remove(handler);
     }
 
-    protected void sendNotifications() {
+    private void sendNotifications() {
         Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
         List<WeakReference<RealmChangeListener>> toRemoveList = null;
         while (iterator.hasNext()) {
@@ -214,11 +221,33 @@ public abstract class RealmBase implements Closeable {
         return wasLastInstance;
     }
 
-    protected void writeCopyTo(File destination) throws java.io.IOException {
+    /**
+     * Write a compacted copy of the Realm to the given destination File.
+     * <p>
+     * The destination file cannot already exist.
+     * <p>
+     * Note that if this is called from within a write transaction it writes the
+     * current data, and not the data as it was when the last write transaction was committed.
+     *
+     * @param destination File to save the Realm to
+     * @throws java.io.IOException if any write operation fails
+     */
+    public void writeCopyTo(File destination) throws java.io.IOException {
         writeEncryptedCopyTo(destination, null);
     }
 
-    protected void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
+    /**
+     * Write a compacted and encrypted copy of the Realm to the given destination File.
+     * <p>
+     * The destination file cannot already exist.
+     * <p>
+     * Note that if this is called from within a write transaction it writes the
+     * current data, and not the data as it was when the last write transaction was committed.
+     * <p>
+     * @param destination File to save the Realm to
+     * @throws java.io.IOException if any write operation fails
+     */
+    public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
         if (destination == null) {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
@@ -226,17 +255,43 @@ public abstract class RealmBase implements Closeable {
         sharedGroup.copyToFile(destination, key);
     }
 
-    protected void refresh() {
+    /**
+     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it
+     */
+    public void refresh() {
         checkIfValid();
         sharedGroup.advanceRead();
     }
 
-    protected void beginTransaction() {
+    /**
+     * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
+     * or aborted by {@link io.realm.Realm#cancelTransaction()}. Write transactions are used to
+     * atomically create, update and delete objects within a realm.
+     * <br>
+     * Before beginning the write transaction, {@link io.realm.Realm#beginTransaction()} updates the
+     * realm in the case of pending updates from other threads.
+     * <br>
+     * Notice: it is not possible to nest write transactions. If you start a write
+     * transaction within a write transaction an exception is thrown.
+     * <br>
+     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
+     *
+     */
+    public void beginTransaction() {
         checkIfValid();
         sharedGroup.promoteToWrite();
     }
 
-    protected void commitTransaction() {
+    /**
+     * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the
+     * Realm reverts back to being read-only. An event is sent to notify all other realm instances
+     * that a change has occurred. When the event is received, the other Realms will get their
+     * objects and {@link io.realm.RealmResults} updated to reflect
+     * the changes from this commit.
+     *
+     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
+     */
+    public void commitTransaction() {
         checkIfValid();
         sharedGroup.commitAndContinueAsRead();
 
@@ -261,11 +316,26 @@ public abstract class RealmBase implements Closeable {
         }
     }
 
-    protected void cancelTransaction() {
+    /**
+     * Revert all writes (created, updated, or deleted objects) made in the current write
+     * transaction and end the transaction.
+     * <br>
+     * The Realm reverts back to read-only.
+     * <br>
+     * Calling this when not in a write transaction will throw an exception.
+     *
+     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
+     *                                             not in a write transaction or incorrect thread.
+     */
+    public void cancelTransaction() {
         checkIfValid();
         sharedGroup.rollbackAndContinueAsRead();
     }
 
+    /**
+     * Checks if a Realm's underlying resources are still available or not getting accessed from
+     * the wrong thread.
+     */
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
         if (sharedGroup != null && !sharedGroup.isOpen()) {
@@ -278,10 +348,20 @@ public abstract class RealmBase implements Closeable {
         }
     }
 
+    /**
+     * Returns the canonical path to where this Realm is persisted on disk.
+     *
+     * @return The canonical path to the Realm file.
+     * @see File#getCanonicalPath()
+     */
     public String getPath() {
         return configuration.getPath();
     }
 
+    /**
+     * Returns the {@link RealmConfiguration} for this Realm.
+     * @return {@link RealmConfiguration} for this Realm.
+     */
     public RealmConfiguration getConfiguration() {
         return configuration;
     }

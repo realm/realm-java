@@ -63,7 +63,7 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.SharedGroupManager;
-import io.realm.internal.RealmBase;
+import io.realm.base.RealmBase;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 

@@ -147,7 +147,7 @@ targets.each { target ->
         dependsOn "generateNdkToolchain${target.toolchain.name.capitalize()}"
         environment PATH: "${buildDir}/standalone-toolchains/${target.toolchain.name}/bin:${System.env.PATH}"
         environment CC: "${target.toolchain.commandPrefix}-${clang?'clang':'gcc'}"
-        environment STRIP: "${target.toolchain.commandPrefix}-strip"
+        environment STRIP: "${target.toolchain.commandPrefix}-strip -o librealm-jni-${target.name}-stripped.so"
         environment REALM_ANDROID: '1'
         commandLine = [
             'make',
@@ -162,11 +162,19 @@ targets.each { target ->
         ]
     }
 
-    task "copyAndroidJni${target.name.capitalize()}"(type: Copy) {
-        dependsOn "buildAndroidJni${target.name.capitalize()}"
-        from "${projectDir}/src/librealm-jni-${target.name}.so"
-        into "${projectDir}/../realm/src/main/jniLibs/${target.jniFolder}"
-        rename "librealm-jni-${target.name}.so", 'librealm-jni.so'
+    task "copyAndroidJni${target.name.capitalize()}"(dependsOn: "buildAndroidJni${target.name.capitalize()}") << {
+        copy {
+            from "${projectDir}/src/librealm-jni-${target.name}-stripped.so"
+            into "${projectDir}/../realm/src/main/jniLibs/${target.jniFolder}"
+            rename "librealm-jni-${target.name}-stripped.so", 'librealm-jni.so'
+        }
+
+        // Store the unstripped version
+        copy {
+            from "${projectDir}/src/librealm-jni-${target.name}.so"
+            into "${projectDir}/../build/output/jniLibs-unstripped/${target.jniFolder}"
+            rename "librealm-jni-${target.name}.so", 'librealm-jni.so'
+        }
     }
 }
 
