@@ -211,8 +211,7 @@ public class RealmProxyClassGenerator {
                     // FIXME: Check if this is the best condition
                     writer
                         .beginControlFlow("if (value == null)")
-                            .emitStatement("throw new IllegalArgumentException(\"Trying to set a non-nullable field %s in %s to null.\")",
-                                    fieldName, className)
+                            .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
                         .endControlFlow();
                 }
                 writer.emitStatement(
@@ -240,8 +239,12 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.beginControlFlow("if (value == null)");
-                writer.emitStatement("row.nullifyLink(%s)", staticFieldIndexVarName(field));
-                writer.emitStatement("return");
+                if (metadata.isNullable(field)) {
+                    writer.emitStatement("row.nullifyLink(%s)", staticFieldIndexVarName(field));
+                    writer.emitStatement("return");
+                } else {
+                    writer.emitStatement(String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName));
+                }
                 writer.endControlFlow();
                 writer.emitStatement("row.setLink(%s, value.row.getIndex())", staticFieldIndexVarName(field));
                 writer.endMethod();
@@ -816,7 +819,8 @@ public class RealmProxyClassGenerator {
                         fieldName,
                         qualifiedFieldType,
                         Utils.getProxyClassSimpleName(field),
-                        writer);
+                        writer,
+                        metadata.isNullable(field));
 
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
@@ -872,7 +876,8 @@ public class RealmProxyClassGenerator {
                         fieldName,
                         qualifiedFieldType,
                         Utils.getProxyClassSimpleName(field),
-                        writer);
+                        writer,
+                        metadata.isNullable(field));
 
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 RealmJsonTypeHelper.emitFillRealmListFromStream(
