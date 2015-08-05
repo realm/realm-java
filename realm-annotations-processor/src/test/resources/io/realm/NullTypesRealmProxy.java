@@ -1110,25 +1110,25 @@ public class NullTypesRealmProxy extends NullTypes
     public static NullTypes copy(Realm realm, NullTypes newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         NullTypes realmObject = realm.createObject(NullTypes.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
-        realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
+        realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull());
         realmObject.setFieldStringNull(newObject.getFieldStringNull());
-        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull() != null ? newObject.getFieldBooleanNotNull() : false);
+        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull());
         realmObject.setFieldBooleanNull(newObject.getFieldBooleanNull());
-        realmObject.setFieldBytesNotNull(newObject.getFieldBytesNotNull() != null ? newObject.getFieldBytesNotNull() : new byte[0]);
+        realmObject.setFieldBytesNotNull(newObject.getFieldBytesNotNull());
         realmObject.setFieldBytesNull(newObject.getFieldBytesNull());
-        realmObject.setFieldByteNotNull(newObject.getFieldByteNotNull() != null ? newObject.getFieldByteNotNull() : 0);
+        realmObject.setFieldByteNotNull(newObject.getFieldByteNotNull());
         realmObject.setFieldByteNull(newObject.getFieldByteNull());
-        realmObject.setFieldShortNotNull(newObject.getFieldShortNotNull() != null ? newObject.getFieldShortNotNull() : 0);
+        realmObject.setFieldShortNotNull(newObject.getFieldShortNotNull());
         realmObject.setFieldShortNull(newObject.getFieldShortNull());
-        realmObject.setFieldIntegerNotNull(newObject.getFieldIntegerNotNull() != null ? newObject.getFieldIntegerNotNull() : 0);
+        realmObject.setFieldIntegerNotNull(newObject.getFieldIntegerNotNull());
         realmObject.setFieldIntegerNull(newObject.getFieldIntegerNull());
-        realmObject.setFieldLongNotNull(newObject.getFieldLongNotNull() != null ? newObject.getFieldLongNotNull() : 0);
+        realmObject.setFieldLongNotNull(newObject.getFieldLongNotNull());
         realmObject.setFieldLongNull(newObject.getFieldLongNull());
-        realmObject.setFieldFloatNotNull(newObject.getFieldFloatNotNull() != null ? newObject.getFieldFloatNotNull() : 0);
+        realmObject.setFieldFloatNotNull(newObject.getFieldFloatNotNull());
         realmObject.setFieldFloatNull(newObject.getFieldFloatNull());
-        realmObject.setFieldDoubleNotNull(newObject.getFieldDoubleNotNull() != null ? newObject.getFieldDoubleNotNull() : 0);
+        realmObject.setFieldDoubleNotNull(newObject.getFieldDoubleNotNull());
         realmObject.setFieldDoubleNull(newObject.getFieldDoubleNull());
-        realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull() != null ? newObject.getFieldDateNotNull() : new Date(0));
+        realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull());
         realmObject.setFieldDateNull(newObject.getFieldDateNull());
 
         some.test.NullTypes fieldObjectNotNullObj = newObject.getFieldObjectNotNull();
@@ -1154,25 +1154,25 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObjectProxy> cache) {
-        realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull() != null ? newObject.getFieldStringNotNull() : "");
+        realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull());
         realmObject.setFieldStringNull(newObject.getFieldStringNull());
-        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull() != null ? newObject.getFieldBooleanNotNull() : false);
+        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull());
         realmObject.setFieldBooleanNull(newObject.getFieldBooleanNull());
-        realmObject.setFieldBytesNotNull(newObject.getFieldBytesNotNull() != null ? newObject.getFieldBytesNotNull() : new byte[0]);
+        realmObject.setFieldBytesNotNull(newObject.getFieldBytesNotNull());
         realmObject.setFieldBytesNull(newObject.getFieldBytesNull());
-        realmObject.setFieldByteNotNull(newObject.getFieldByteNotNull() != null ? newObject.getFieldByteNotNull() : 0);
+        realmObject.setFieldByteNotNull(newObject.getFieldByteNotNull());
         realmObject.setFieldByteNull(newObject.getFieldByteNull());
-        realmObject.setFieldShortNotNull(newObject.getFieldShortNotNull() != null ? newObject.getFieldShortNotNull() : 0);
+        realmObject.setFieldShortNotNull(newObject.getFieldShortNotNull());
         realmObject.setFieldShortNull(newObject.getFieldShortNull());
-        realmObject.setFieldIntegerNotNull(newObject.getFieldIntegerNotNull() != null ? newObject.getFieldIntegerNotNull() : 0);
+        realmObject.setFieldIntegerNotNull(newObject.getFieldIntegerNotNull());
         realmObject.setFieldIntegerNull(newObject.getFieldIntegerNull());
-        realmObject.setFieldLongNotNull(newObject.getFieldLongNotNull() != null ? newObject.getFieldLongNotNull() : 0);
+        realmObject.setFieldLongNotNull(newObject.getFieldLongNotNull());
         realmObject.setFieldLongNull(newObject.getFieldLongNull());
-        realmObject.setFieldFloatNotNull(newObject.getFieldFloatNotNull() != null ? newObject.getFieldFloatNotNull() : 0);
+        realmObject.setFieldFloatNotNull(newObject.getFieldFloatNotNull());
         realmObject.setFieldFloatNull(newObject.getFieldFloatNull());
-        realmObject.setFieldDoubleNotNull(newObject.getFieldDoubleNotNull() != null ? newObject.getFieldDoubleNotNull() : 0);
+        realmObject.setFieldDoubleNotNull(newObject.getFieldDoubleNotNull());
         realmObject.setFieldDoubleNull(newObject.getFieldDoubleNull());
-        realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull() != null ? newObject.getFieldDateNotNull() : new Date(0));
+        realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull());
         realmObject.setFieldDateNull(newObject.getFieldDateNull());
         NullTypes fieldObjectNotNullObj = newObject.getFieldObjectNotNull();
         if (fieldObjectNotNullObj != null) {
