@@ -575,6 +575,8 @@ public class AllTypesRealmProxy extends AllTypes
             } else {
                 realmObject.setColumnObject(AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, update, cache));
             }
+        } else {
+            realmObject.setColumnObject(null);
         }
 
         RealmList<AllTypes> columnRealmListList = newObject.getColumnRealmList();
