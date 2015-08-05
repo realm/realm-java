@@ -862,9 +862,9 @@ public class RealmProxyClassGenerator {
             String qualifiedFieldType = field.asType().toString();
 
             if (i == 0) {
-                writer.beginControlFlow("if (name.equals(\"%s\") && reader.peek() != JsonToken.NULL)", fieldName);
+                writer.beginControlFlow("if (name.equals(\"%s\"))", fieldName);
             } else {
-                writer.nextControlFlow("else if (name.equals(\"%s\")  && reader.peek() != JsonToken.NULL)", fieldName);
+                writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
             }
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(
@@ -887,7 +887,8 @@ public class RealmProxyClassGenerator {
                         metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
-                        writer);
+                        writer,
+                        metadata.isNullable(field));
             }
         }
 
