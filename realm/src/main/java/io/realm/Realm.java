@@ -47,7 +47,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.SharedGroupManager;
-import io.realm.internal.RealmBase;
+import io.realm.base.RealmBase;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
@@ -838,39 +838,6 @@ public final class Realm extends RealmBase {
     }
 
     /**
-     * Write a compacted copy of the Realm to the given destination File.
-     * <p>
-     * The destination file cannot already exist.
-     * <p>
-     * Note that if this is called from within a write transaction it writes the
-     * current data, and not the data as it was when the last write transaction was committed.
-     *
-     * @param destination File to save the Realm to
-     * @throws java.io.IOException if any write operation fails
-     */
-    @Override
-    public void writeCopyTo(File destination) throws IOException {
-        super.writeEncryptedCopyTo(destination, null);
-    }
-
-    /**
-     * Write a compacted and encrypted copy of the Realm to the given destination File.
-     * <p>
-     * The destination file cannot already exist.
-     * <p>
-     * Note that if this is called from within a write transaction it writes the
-     * current data, and not the data as it was when the last write transaction was committed.
-     * <p>
-     * @param destination File to save the Realm to
-     * @throws java.io.IOException if any write operation fails
-     */
-    @Override
-    public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
-        super.writeEncryptedCopyTo(destination, key);
-    }
-
-
-    /**
      * Instantiates and adds a new object to the Realm.
      *
      * @param clazz The Class of the object to create
@@ -1129,38 +1096,6 @@ public final class Realm extends RealmBase {
     }
 
     /**
-     * Add a change listener to the Realm
-     *
-     * @param listener the change listener
-     * @see RealmChangeListener
-     */
-    @Override
-    public void addChangeListener(RealmChangeListener listener) {
-        super.addChangeListener(listener);
-    }
-
-    /**
-     * Remove the specified change listener
-     *
-     * @param listener the change listener to be removed
-     * @see io.realm.RealmChangeListener
-     */
-    @Override
-    public void removeChangeListener(RealmChangeListener listener) {
-        super.removeChangeListener(listener);
-    }
-
-    /**
-     * Remove all user-defined change listeners
-     *
-     * @see io.realm.RealmChangeListener
-     */
-    @Override
-    public void removeAllChangeListeners() {
-        super.removeAllChangeListeners();
-    }
-
-    /**
      * Return change listeners
      * For internal testing purpose only
      *
@@ -1173,60 +1108,6 @@ public final class Realm extends RealmBase {
     @SuppressWarnings("UnusedDeclaration")
     boolean hasChanged() {
         return sharedGroup.hasChanged();
-    }
-
-    /**
-     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it
-     */
-    @Override
-    public void refresh() {
-        super.refresh();
-    }
-
-    /**
-     * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
-     * or aborted by {@link io.realm.Realm#cancelTransaction()}. Write transactions are used to
-     * atomically create, update and delete objects within a realm.
-     * <br>
-     * Before beginning the write transaction, {@link io.realm.Realm#beginTransaction()} updates the
-     * realm in the case of pending updates from other threads.
-     * <br>
-     * Notice: it is not possible to nest write transactions. If you start a write
-     * transaction within a write transaction an exception is thrown.
-     * <br>
-     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
-     *
-     */
-    public void beginTransaction() {
-        super.beginTransaction();
-    }
-
-    /**
-     * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the
-     * Realm reverts back to being read-only. An event is sent to notify all other realm instances
-     * that a change has occurred. When the event is received, the other Realms will get their
-     * objects and {@link io.realm.RealmResults} updated to reflect
-     * the changes from this commit.
-     *
-     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
-     */
-    public void commitTransaction() {
-        super.commitTransaction();
-    }
-
-    /**
-     * Revert all writes (created, updated, or deleted objects) made in the current write
-     * transaction and end the transaction.
-     * <br>
-     * The Realm reverts back to read-only.
-     * <br>
-     * Calling this when not in a write transaction will throw an exception.
-     *
-     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
-     *                                             not in a write transaction or incorrect thread.
-     */
-    public void cancelTransaction() {
-        super.cancelTransaction();
     }
 
     /**
@@ -1328,10 +1209,6 @@ public final class Realm extends RealmBase {
         }
     }
 
-    /**
-     * Checks if a Realm's underlying resources are still available or not getting accessed from
-     * the wrong thread.
-     */
     protected void checkIfValid() {
         super.checkIfValid();
     }
@@ -1547,26 +1424,6 @@ public final class Realm extends RealmBase {
         }
 
         return SharedGroupManager.compact(configuration);
-    }
-
-    /**
-     * Returns the canonical path to where this Realm is persisted on disk.
-     *
-     * @return The canonical path to the Realm file.
-     * @see File#getCanonicalPath()
-     */
-    @Override
-    public String getPath() {
-        return super.getPath();
-    }
-
-    /**
-     * Returns the {@link RealmConfiguration} for this Realm.
-     * @return {@link RealmConfiguration} for this Realm.
-     */
-    @Override
-    public RealmConfiguration getConfiguration() {
-        return super.getConfiguration();
     }
 
     // Get the canonical path for a given file
