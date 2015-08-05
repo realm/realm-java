@@ -871,19 +871,6 @@ public final class Realm extends RealmBase {
 
 
     /**
-     * Instantiates and adds a new object to the Realm.
-     *
-     * @param clazz The Class of the object to create
-     * @return The new object
-     * @throws RealmException An object could not be created
-     */
-    public <E extends RealmObject> E createObject(Class<E> clazz) {
-        Table table = getTable(clazz);
-        long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
-    }
-
-    /**
      * Creates a new object inside the Realm with the Primary key value initially set.
      * If the value violates the primary key constraint, no object will be added and a
      * {@link RealmException} will be thrown.

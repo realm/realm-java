@@ -20,6 +20,7 @@ import java.util.List;
 
 import io.realm.Realm;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmBase;
 
 /**
  * {@link io.realm.RealmList} exposed using a dynamic API. All objects in the list must have the same schema even though
@@ -28,9 +29,9 @@ import io.realm.internal.LinkView;
 public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
 
     private final LinkView linkView;
-    private final Realm realm;
+    private final RealmBase realm;
 
-    DynamicRealmList(LinkView linkView, Realm realm) {
+    DynamicRealmList(LinkView linkView, RealmBase realm) {
         this.linkView = linkView;
         this.realm = realm;
     }

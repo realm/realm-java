@@ -24,6 +24,7 @@ import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmBase;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
@@ -34,7 +35,7 @@ import io.realm.internal.UncheckedRow;
  */
 public class DynamicRealmObject extends RealmObject {
 
-     Realm realm;
+     RealmBase realm;
      Row row;
 
     /**
@@ -56,9 +57,9 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     // Create a dynamic object. Only used internally
-    DynamicRealmObject(Realm realm, CheckedRow row) {
+    DynamicRealmObject(RealmBase realm, Row row) {
         this.realm = realm;
-        this.row = row;
+        this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
     }
 
     /**

@@ -278,11 +278,11 @@ public abstract class RealmBase implements Closeable {
         }
     }
 
-    protected String getPath() {
+    public String getPath() {
         return configuration.getPath();
     }
 
-    protected RealmConfiguration getConfiguration() {
+    public RealmConfiguration getConfiguration() {
         return configuration;
     }
 

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.dynamic.DynamicRealm;
 import io.realm.internal.ColumnType;
 import io.realm.internal.LinkView;
 import io.realm.internal.Table;
