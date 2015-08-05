@@ -128,7 +128,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             INDEX_DONE = table.getColumnIndex("done");
             INDEX_ISREADY = table.getColumnIndex("isReady");
             INDEX_MCOMPLETED = table.getColumnIndex("mCompleted");
-            INDEX_ANOTHERBOOLEAN = table.getColumnIndex("anotherBoolean")
+            INDEX_ANOTHERBOOLEAN = table.getColumnIndex("anotherBoolean");
 
             if (!columnTypes.containsKey("done")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done'");
@@ -188,28 +188,28 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         Booleans obj = realm.createObject(Booleans.class);
         if (json.has("done")) {
             if (json.isNull("done")) {
-                throw new NullPointerException();
+                throw new IllegalArgumentException("Trying to set null on not-nullable done.");
             } else {
                 obj.setDone((boolean) json.getBoolean("done"));
             }
         }
         if (json.has("isReady")) {
             if (json.isNull("isReady")) {
-                throw new NullPointerException();
+                throw new IllegalArgumentException("Trying to set null on not-nullable isReady.");
             } else {
                 obj.setReady((boolean) json.getBoolean("isReady"));
             }
         }
         if (json.has("mCompleted")) {
             if (json.isNull("mCompleted")) {
-                throw new NullPointerException();
+                throw new IllegalArgumentException("Trying to set null on not-nullable mCompleted.");
             } else {
                 obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
             }
         }
         if (json.has("anotherBoolean")) {
             if (json.isNull("anotherBoolean")) {
-                throw new NullPointerException();
+                throw new IllegalArgumentException("Trying to set null on not-nullable anotherBoolean.");
             } else {
                 obj.setAnotherBoolean((boolean) json.getBoolean("anotherBoolean"));
             }
@@ -223,14 +223,34 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
-            if (name.equals("done") && reader.peek() != JsonToken.NULL) {
-                obj.setDone((boolean) reader.nextBoolean());
-            } else if (name.equals("isReady")  && reader.peek() != JsonToken.NULL) {
-                obj.setReady((boolean) reader.nextBoolean());
-            } else if (name.equals("mCompleted")  && reader.peek() != JsonToken.NULL) {
-                obj.setmCompleted((boolean) reader.nextBoolean());
-            } else if (name.equals("anotherBoolean")  && reader.peek() != JsonToken.NULL) {
-                obj.setAnotherBoolean((boolean) reader.nextBoolean());
+            if (name.equals("done")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set null on not-nullable done.");
+                } else {
+                    obj.setDone((boolean) reader.nextBoolean());
+                }
+            } else if (name.equals("isReady")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set null on not-nullable isReady.");
+                } else {
+                    obj.setReady((boolean) reader.nextBoolean());
+                }
+            } else if (name.equals("mCompleted")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set null on not-nullable mCompleted.");
+                } else {
+                    obj.setmCompleted((boolean) reader.nextBoolean());
+                }
+            } else if (name.equals("anotherBoolean")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set null on not-nullable anotherBoolean.");
+                } else {
+                    obj.setAnotherBoolean((boolean) reader.nextBoolean());
+                }
             } else {
                 reader.skipValue();
             }
