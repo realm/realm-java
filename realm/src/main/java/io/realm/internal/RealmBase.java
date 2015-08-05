@@ -84,7 +84,7 @@ public abstract class RealmBase implements Closeable {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
-    public RealmBase(RealmConfiguration configuration, boolean autoRefresh) {
+    protected RealmBase(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.sharedGroup = SharedGroupManager.getInstance(threadId, configuration);
@@ -152,7 +152,11 @@ public abstract class RealmBase implements Closeable {
         changeListeners.clear();
     }
 
-    public void checkIfValid() {
+    /**
+     * Checks if a Realm's underlying resources are still available or not getting accessed from
+     * the wrong thread.
+     */
+    protected void checkIfValid() {
         // Check if the Realm instance has been closed
         if (sharedGroup != null && !sharedGroup.isOpen()) {
             throw new IllegalStateException(CLOSED_REALM_MESSAGE);
@@ -193,7 +197,6 @@ public abstract class RealmBase implements Closeable {
      * Closes a single instance of a Realm.
      * @return {@code true} if it was the last instance close, {@code false} otherwise.
      */
-    // TODO Not threadsafe
     protected boolean closeInstance(RealmConfiguration configuration) {
         if (this.threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
@@ -283,10 +286,9 @@ public abstract class RealmBase implements Closeable {
         return configuration.getPath();
     }
 
-    public RealmConfiguration getConfiguration() {
+    protected RealmConfiguration getConfiguration() {
         return configuration;
     }
-
 
     /**
      * Make sure that the new configuration doesn't clash with any existing configurations for the
@@ -341,7 +343,6 @@ public abstract class RealmBase implements Closeable {
         // The new configuration doesn't violate existing configurations. Cache it.
         pathConfigurationCache.add(newConfiguration);
     }
-
 
     private class RealmCallback implements Handler.Callback {
         @Override

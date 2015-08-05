@@ -53,17 +53,14 @@ public class SharedGroupManager implements Closeable {
     private static final Map<Long, Map<String, SharedGroupManager>> managerCache =
             new HashMap<Long, Map<String, SharedGroupManager>>();
 
-    public SharedGroup sharedGroup;
-    public final ImplicitTransaction transaction;
+    protected SharedGroup sharedGroup;
+    protected final ImplicitTransaction transaction;
 
     /**
      * Returns the {@link SharedGroupManager} for the given configuration on this thread.
      * Wrappers can be reused across multiple Realm instances. The underlying {@link SharedGroup}
      * is reference counted, so will not be fully closed until all SharedGroupManager references
      * has been closed.
-     *
-     * @throws IllegalArgumentException If the RealmConfiguration isn't compatible with other
-     * configurations pointing to the same file.
      */
     public static synchronized SharedGroupManager getInstance(long threadId, RealmConfiguration configuration) {
         Map<String, SharedGroupManager> threadCache = managerCache.get(threadId);

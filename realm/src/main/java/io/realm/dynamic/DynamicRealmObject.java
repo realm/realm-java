@@ -264,51 +264,6 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Set the value of a field.
-     *
-     * @throws IllegalArgumentException if field name doesn't exists if the argument doesn't match the expected type for
-     * that field
-     */
-    public void set(String fieldName, Object value) {
-        long columnIndex = row.getColumnIndex(fieldName);
-
-        // This should probably be reordered after most likely to occur
-        // Otherwise replace with HashMap, but this has been tried elsewhere and the hashmap lookup is more expensive
-        // than a fairly small if/else block.
-
-        // Tried to reorder these after most likely to occur. This is just guesswork but current order is:
-        // String -> int -> boolean -> object
-        if (value == null) {
-            // TODO How to handle other Null values
-            row.nullifyLink(columnIndex); // Only null supported value currently.
-        } else if (value instanceof String) {
-            row.setString(columnIndex, (String) value);
-        } else if (value instanceof Integer) {
-            row.setLong(columnIndex, ((Integer) value).longValue());
-        } else if (value instanceof Long) {
-            row.setLong(columnIndex, ((Long) value).longValue());
-        } else if (value instanceof Short) {
-            row.setLong(columnIndex, ((Short) value).longValue());
-        } else if (value instanceof Boolean) {
-            row.setBoolean(columnIndex, (Boolean) value);
-        } else if (value instanceof Byte) {
-            row.setLong(columnIndex, ((Byte) value).longValue());
-        } else if (value instanceof Float) {
-            row.setFloat(columnIndex, ((Float) value).floatValue());
-        } else if (value instanceof Double) {
-            row.setDouble(columnIndex, ((Double) value).doubleValue());
-        } else if (value instanceof Date) {
-            row.setDate(columnIndex, (Date) value);
-        } else if (value instanceof DynamicRealmObject) {
-            setObject(fieldName, (DynamicRealmObject) value);
-        } else if (value instanceof RealmList) {
-            setList(fieldName, (DynamicRealmList) value);
-        } else if (value instanceof Byte[]) {
-            // TODO Copying to a primitive byte array -> Hello 2x memory usage :(
-        }
-    }
-
-    /**
      * Sets the {@code boolean} value of the given field.
      *
      * @param fieldName Field name to update.
