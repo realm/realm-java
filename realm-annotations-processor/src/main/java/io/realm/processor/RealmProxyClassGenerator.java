@@ -605,15 +605,7 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine();
 
             } else {
-                if (Constants.NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(field)) {
-                    writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
-                            metadata.getSetter(fieldName),
-                            metadata.getGetter(fieldName),
-                            metadata.getGetter(fieldName),
-                            Constants.NULLABLE_JAVA_TYPES.get(fieldType));
-                } else {
-                    writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), metadata.getGetter(fieldName));
-                }
+                writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), metadata.getGetter(fieldName));
             }
         }
 
@@ -671,17 +663,7 @@ public class RealmProxyClassGenerator {
                 if (field == metadata.getPrimaryKey()) {
                     continue;
                 }
-
-                String fieldType = field.asType().toString();
-                if (Constants.NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(field)) {
-                    writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
-                            metadata.getSetter(fieldName),
-                            metadata.getGetter(fieldName),
-                            metadata.getGetter(fieldName),
-                            Constants.NULLABLE_JAVA_TYPES.get(fieldType));
-                } else {
-                    writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), metadata.getGetter(fieldName));
-                }
+                writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), metadata.getGetter(fieldName));
             }
         }
 

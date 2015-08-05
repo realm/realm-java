@@ -50,23 +50,6 @@ public class Constants {
         // TODO: add support for char and Char
     }
 
-    // Types in this array are guarded by if != null and use default value if trying to insert null
-    static final Map<String, String> NULLABLE_JAVA_TYPES;
-    static {
-        NULLABLE_JAVA_TYPES = new HashMap<String, String>();
-
-        NULLABLE_JAVA_TYPES.put("java.lang.Byte", "0");
-        NULLABLE_JAVA_TYPES.put("java.lang.Short", "0");
-        NULLABLE_JAVA_TYPES.put("java.lang.Integer", "0");
-        NULLABLE_JAVA_TYPES.put("java.lang.Long", "0");
-        NULLABLE_JAVA_TYPES.put("java.lang.Float", "0");
-        NULLABLE_JAVA_TYPES.put("java.lang.Double", "0");
-        NULLABLE_JAVA_TYPES.put("java.lang.Boolean", "false");
-        NULLABLE_JAVA_TYPES.put("java.lang.String", "\"\"");
-        NULLABLE_JAVA_TYPES.put("java.util.Date", "new Date(0)");
-        NULLABLE_JAVA_TYPES.put("byte[]", "new byte[0]");
-    }
-
     static final Map<String, String> JAVA_TO_COLUMN_TYPES;
     static {
         JAVA_TO_COLUMN_TYPES = new HashMap<String, String>();
