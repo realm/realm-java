@@ -317,12 +317,14 @@ public class ClassMetaData {
                     }
                 } else {
                     // The field has the @Required annotation
-                    if (!variableElement.asType().getKind().isPrimitive()) {
+                    if (variableElement.asType().getKind().isPrimitive()) {
+                        Utils.error("@Required is not needed for primitive fields - got " + element);
+                    } else if (typeUtils.isAssignable(variableElement.asType(), realmList)) {
+                        Utils.error("@Required is not needed for RealmList fields - got " + element);
+                    } else {
                         if (nullableElements.contains(variableElement)) {
                             nullableElements.remove(variableElement);
                         }
-                    } else{
-                        Utils.error("@Required is not needed for primitive fields - got " + element);
                     }
                 }
 
