@@ -46,9 +46,7 @@ import io.realm.internal.log.RealmLog;
 /**
  * Base class for all Realm instances.
  *
- * Developer note: Due to this class being in io.realm.internal. No JavaDoc can be used from this
- * class. This means that all classes that you want JavaDoc for should be implemented in the
- * subclass :(
+ * @see io.realm.Realm
  */
 public abstract class RealmBase implements Closeable {
 
