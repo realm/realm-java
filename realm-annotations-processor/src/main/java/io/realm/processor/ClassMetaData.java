@@ -16,14 +16,12 @@
 
 package io.realm.processor;
 
-import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -34,10 +32,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -51,14 +46,7 @@ public class ClassMetaData {
     private boolean hasDefaultConstructor; // True if model has a public no-arg constructor.
     private VariableElement primaryKey; // Reference to field used as primary key, if any.
     private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
-    private List<String> fieldNames = new ArrayList<String>();
-    private List<String> ignoreFieldNames = new ArrayList<String>();
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
-    private Set<String> expectedGetters = new HashSet<String>(); // Set of fieldnames that are expected to have a getter
-    private Set<String> expectedSetters = new HashSet<String>(); // Set of fieldnames that are expected to have a setter
-    private Set<ExecutableElement> methods = new HashSet<ExecutableElement>(); // List of all methods in the model class
-    private Map<String, String> getters = new HashMap<String, String>(); // Map between fieldnames and their getters
-    private Map<String, String> setters = new HashMap<String, String>(); // Map between fieldname and their setters
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
@@ -102,48 +90,8 @@ public class ClassMetaData {
         PackageElement packageElement = (PackageElement) enclosingElement;
         packageName = packageElement.getQualifiedName().toString();
 
-        if (!categorizeClassElements()) return false;
-        if (!checkListTypes()) return  false;
-        if (!checkMethods()) return false;
-        if (!checkDefaultConstructor()) return false;
-        if (!checkRequiredGetters()) return false;
-        if (!checkRequireSetters()) return false;
+        return categorizeClassElements() && checkListTypes() && checkDefaultConstructor();
 
-        return true; // Meta data was successfully generated
-    }
-
-    // Check that only allowed methods are present in the model class
-    private boolean checkMethods() {
-        for (ExecutableElement executableElement : methods) {
-            String methodName = executableElement.getSimpleName().toString();
-
-            // Check the modifiers of the method
-            Set<Modifier> modifiers = executableElement.getModifiers();
-            if (modifiers.contains(Modifier.STATIC)) {
-                continue; // We're cool with static methods. Move along!
-            } else if (!modifiers.contains(Modifier.PUBLIC)) {
-                Utils.error("The methods of the model must be public", executableElement);
-                return false;
-            }
-
-            // Check that getters and setters are valid
-            if (methodName.startsWith("get") || methodName.startsWith("is")) {
-                if (!checkGetterMethod(methodName)) {
-                    Utils.error(String.format("Getter %s is not associated to any field", methodName), executableElement);
-                    return false;
-                }
-            } else if (methodName.startsWith("set")) {
-                if (!checkSetterMethod(methodName)) {
-                    Utils.error(String.format("Setter %s is not associated to any field", methodName), executableElement);
-                    return false;
-                }
-            } else {
-                Utils.error("Only getters and setters should be defined in model classes", executableElement);
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private boolean checkListTypes() {
@@ -156,106 +104,6 @@ public class ClassMetaData {
             }
         }
         return true;
-    }
-
-    // Verify that a setter is used to set a field in the model class.
-    // Note: This is done heuristically by comparing the name of setter with the name of the field.
-    // Annotation processors does not allow us to inspect individual statements.
-    private boolean checkSetterMethod(String methodName) {
-        boolean found = false;
-
-        String methodMinusSet = methodName.substring(3);
-        String methodMinusSetCapitalised = Utils.lowerFirstChar(methodMinusSet);
-        String methodMenusSetPlusIs = "is" + methodMinusSet;
-
-        if (fieldNames.contains(methodMinusSet)) { // mPerson -> setmPerson
-            expectedSetters.remove(methodMinusSet);
-            if (!ignoreFieldNames.contains(methodMinusSet)) {
-                setters.put(methodMinusSet, methodName);
-            }
-            found = true;
-        } else if (fieldNames.contains(methodMinusSetCapitalised)) { // person -> setPerson
-            expectedSetters.remove(methodMinusSetCapitalised);
-            if (!ignoreFieldNames.contains(methodMinusSetCapitalised)) {
-                setters.put(methodMinusSetCapitalised, methodName);
-            }
-            found = true;
-        } else if (fieldNames.contains(methodMenusSetPlusIs)) { // isReady -> setReady
-            expectedSetters.remove(methodMenusSetPlusIs);
-            if (!ignoreFieldNames.contains(methodMenusSetPlusIs)) {
-                setters.put(methodMenusSetPlusIs, methodName);
-            }
-            found = true;
-        }
-
-        return found;
-    }
-
-    // Verify that a getter is used to get a field in the model class.
-    // Note: This is done heuristically by comparing the name of getter with the name of the field.
-    // Annotation processors does not allow us to inspect individual statements.
-    private boolean checkGetterMethod(String methodName) {
-        boolean found = false;
-
-        if (methodName.startsWith("is")) {
-            String methodMinusIs = methodName.substring(2);
-            String methodMinusIsCapitalised = Utils.lowerFirstChar(methodMinusIs);
-            if (fieldNames.contains(methodName)) { // isDone -> isDone
-                expectedGetters.remove(methodName);
-                if (!ignoreFieldNames.contains(methodName)) {
-                    getters.put(methodName, methodName);
-                }
-                found = true;
-            } else if (fieldNames.contains(methodMinusIs)) {  // mDone -> ismDone
-                expectedGetters.remove(methodMinusIs);
-                if (!ignoreFieldNames.contains(methodMinusIs)) {
-                    getters.put(methodMinusIs, methodName);
-                }
-                found = true;
-            } else if (fieldNames.contains(methodMinusIsCapitalised)) { // done -> isDone
-                expectedGetters.remove(methodMinusIsCapitalised);
-                if (!ignoreFieldNames.contains(methodMinusIsCapitalised)) {
-                    getters.put(methodMinusIsCapitalised, methodName);
-                }
-                found = true;
-            }
-        }
-
-        if (!found && methodName.startsWith("get")) {
-            String methodMinusGet = methodName.substring(3);
-            String methodMinusGetCapitalised = Utils.lowerFirstChar(methodMinusGet);
-            if (fieldNames.contains(methodMinusGet)) { // mPerson -> getmPerson
-                expectedGetters.remove(methodMinusGet);
-                if (!ignoreFieldNames.contains(methodMinusGet)) {
-                    getters.put(methodMinusGet, methodName);
-                }
-                found = true;
-            } else if (fieldNames.contains(methodMinusGetCapitalised)) { // person -> getPerson
-                expectedGetters.remove(methodMinusGetCapitalised);
-                if (!ignoreFieldNames.contains(methodMinusGetCapitalised)) {
-                    getters.put(methodMinusGetCapitalised, methodName);
-                }
-                found = true;
-            }
-        }
-
-        return found;
-    }
-
-    // Report any setters that are missing
-    private boolean checkRequireSetters() {
-        for (String expectedSetter : expectedSetters) {
-            Utils.error("No setter found for field " + expectedSetter);
-        }
-        return expectedSetters.size() == 0;
-    }
-
-    // Report any getters that are missing
-    private boolean checkRequiredGetters() {
-        for (String expectedGetter : expectedGetters) {
-            Utils.error("No getter found for field " + expectedGetter);
-        }
-        return expectedGetters.size() == 0;
     }
 
     // Report if the default constructor is missing
@@ -276,19 +124,10 @@ public class ClassMetaData {
 
             if (elementKind.equals(ElementKind.FIELD)) {
                 VariableElement variableElement = (VariableElement) element;
-                String fieldName = variableElement.getSimpleName().toString();
 
                 Set<Modifier> modifiers = variableElement.getModifiers();
                 if (modifiers.contains(Modifier.STATIC)) {
                     continue; // completely ignore any static fields
-                }
-
-                if (variableElement.getAnnotation(Ignore.class) != null) {
-                    // The field has the @Ignore annotation. No need to go any further.
-                    String ignoredFieldName = variableElement.getSimpleName().toString();
-                    fieldNames.add(ignoredFieldName);
-                    ignoreFieldNames.add(ignoredFieldName);
-                    continue;
                 }
 
                 if (variableElement.getAnnotation(Index.class) != null) {
@@ -337,19 +176,10 @@ public class ClassMetaData {
                 }
 
                 fields.add(variableElement);
-                expectedGetters.add(fieldName);
-                expectedSetters.add(fieldName);
             } else if (elementKind.equals(ElementKind.CONSTRUCTOR)) {
                 hasDefaultConstructor =  hasDefaultConstructor || Utils.isDefaultConstructor(element);
 
-            } else if (elementKind.equals(ElementKind.METHOD)) {
-                ExecutableElement executableElement = (ExecutableElement) element;
-                methods.add(executableElement);
             }
-        }
-
-        for (VariableElement field : fields) {
-            fieldNames.add(field.getSimpleName().toString());
         }
 
         if (fields.size() == 0) {
@@ -370,10 +200,7 @@ public class ClassMetaData {
      */
     public boolean isModelClass() {
         String type = classType.toString();
-        if (type.equals("io.realm.dynamic.DynamicRealmObject")) {
-            return false;
-        }
-        return (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
+        return !type.equals("io.realm.dynamic.DynamicRealmObject") && (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
     }
 
     public String getPackageName() {
@@ -389,11 +216,11 @@ public class ClassMetaData {
     }
 
     public String getGetter(String fieldName) {
-        return getters.get(fieldName);
+        return "realmGetter$" + fieldName;
     }
 
     public String getSetter(String fieldName) {
-        return setters.get(fieldName);
+        return "realmSetter$" + fieldName;
     }
 
     public List<VariableElement> getIndexedFields() {
@@ -409,7 +236,7 @@ public class ClassMetaData {
     }
 
     public String getPrimaryKeyGetter() {
-        return getters.get(primaryKey.getSimpleName().toString());
+        return getGetter(primaryKey.getSimpleName().toString());
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {

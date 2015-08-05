@@ -18,14 +18,6 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -34,14 +26,19 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
 
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
     private ClassMetaData metadata;
     private final String className;
 
-    // Class metadata for generating proxy classes
-    private Elements elementUtils;
     private Types typeUtils;
     private TypeMirror realmObject;
     private DeclaredType realmList;
@@ -53,7 +50,7 @@ public class RealmProxyClassGenerator {
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
-        elementUtils = processingEnvironment.getElementUtils();
+        Elements elementUtils = processingEnvironment.getElementUtils();
         typeUtils = processingEnvironment.getTypeUtils();
         realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
         realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
@@ -168,7 +165,6 @@ public class RealmProxyClassGenerator {
                 String castingType = Constants.CASTING_TYPES.get(fieldTypeCanonicalName);
 
                 // Getter
-                writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement(
                         "realm.checkIfValid()"
@@ -727,7 +723,7 @@ public class RealmProxyClassGenerator {
                 "createOrUpdateUsingJsonObject",
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
                 Arrays.asList("Realm", "realm", "JSONObject", "json", "boolean", "update"),
-                Arrays.asList("JSONException"));
+                Collections.singletonList("JSONException"));
 
         if (!metadata.hasPrimaryKey()) {
             writer.emitStatement("%s obj = realm.createObject(%s.class)", className, className);
@@ -793,7 +789,7 @@ public class RealmProxyClassGenerator {
                 "createUsingJsonStream",
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC),
                 Arrays.asList("Realm", "realm", "JsonReader", "reader"),
-                Arrays.asList("IOException"));
+                Collections.singletonList("IOException"));
 
         writer.emitStatement("%s obj = realm.createObject(%s.class)",className, className);
         writer.emitStatement("reader.beginObject()");

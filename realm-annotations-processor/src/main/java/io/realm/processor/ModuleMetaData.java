@@ -18,7 +18,6 @@ package io.realm.processor;
 
 import io.realm.annotations.RealmModule;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import java.util.*;
@@ -48,7 +47,7 @@ public class ModuleMetaData {
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
-    public boolean generate(ProcessingEnvironment processingEnv) {
+    public boolean generate() {
 
         // Check that modules are setup correctly
         for (Element classElement : env.getElementsAnnotatedWith(RealmModule.class)) {
@@ -117,7 +116,8 @@ public class ModuleMetaData {
         AnnotationMirror annotationMirror = getAnnotationMirror(classElement);
         AnnotationValue annotationValue = getAnnotationValue(annotationMirror);
         Set<String> classes = new HashSet<String>();
-        List<? extends AnnotationValue> moduleClasses = (List<? extends AnnotationValue>) annotationValue.getValue();
+        @SuppressWarnings("unchecked") List<? extends AnnotationValue> moduleClasses =
+                (List<? extends AnnotationValue>) annotationValue.getValue();
         for (AnnotationValue classMirror : moduleClasses) {
             String fullyQualifiedClassName = classMirror.getValue().toString();
             classes.add(fullyQualifiedClassName);
@@ -133,7 +133,8 @@ public class ModuleMetaData {
         if (annotationValue == null) {
             return false;
         } else {
-            List<? extends AnnotationValue> moduleClasses = (List<? extends AnnotationValue>) annotationValue.getValue();
+            @SuppressWarnings("unchecked") List<? extends AnnotationValue> moduleClasses =
+                    (List<? extends AnnotationValue>) annotationValue.getValue();
             return moduleClasses.size() > 0;
         }
     }

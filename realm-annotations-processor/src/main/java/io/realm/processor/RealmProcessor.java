@@ -66,7 +66,7 @@ import java.util.TreeSet;
  * annotated with @RealmModule(library = true). It is not allowed to have both a class with library = true and
  * library = false in the same IntelliJ module and it will cause the annotation processor to throw an exception. If no
  * library modules are defined, we will create a DefaultRealmModule containing all known RealmObjects and with the
- * @RealmModule annotation. Realm automatically knows about this module, but it is still possible for users to create
+ * <pre>@RealmModule<pre/> annotation. Realm automatically knows about this module, but it is still possible for users to create
  * their own modules with a subset of model classes.</li>
  *
  * <li>For each class annotated with @RealmModule a matching Mediator class is created (including the default one). This
@@ -162,7 +162,7 @@ public class RealmProcessor extends AbstractProcessor {
     private boolean processModules(RoundEnvironment roundEnv) {
 
         ModuleMetaData moduleMetaData = new ModuleMetaData(roundEnv, classesToValidate);
-        if (!moduleMetaData.generate(processingEnv)) {
+        if (!moduleMetaData.generate()) {
             return false;
         }
 
@@ -170,7 +170,7 @@ public class RealmProcessor extends AbstractProcessor {
         if (moduleMetaData.shouldCreateDefaultModule()) {
             if (!createDefaultModule()) {
                 return false;
-            };
+            }
         }
 
         // Create RealmProxyMediators for all Realm modules
