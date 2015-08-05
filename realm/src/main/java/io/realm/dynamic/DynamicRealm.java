@@ -23,9 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmQuery;
-import io.realm.internal.RealmFileWrapper;
-import io.realm.internal.RealmInstance;
+import io.realm.internal.SharedGroupManager;
+import io.realm.internal.RealmBase;
 import io.realm.internal.Table;
 
 /**
@@ -40,7 +39,7 @@ import io.realm.internal.Table;
  *
  * @see io.realm.Realm
  */
-public class DynamicRealm extends RealmInstance {
+public class DynamicRealm extends RealmBase {
 
     // Cache mapping between a RealmConfiguration and already open Realm instances on this thread.
     protected static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
@@ -90,13 +89,11 @@ public class DynamicRealm extends RealmInstance {
         }
 
         // Create new Realm and cache it.
-        RealmFileWrapper.validateAgainstExistingConfigurations(configuration);
+        validateAgainstExistingConfigurations(configuration);
         realm = new DynamicRealm(configuration, autoRefresh);
         realms.put(configuration, realm);
         localRefCount.put(configuration, references + 1);
 
-        // Increment global reference counter
-        RealmFileWrapper.openFile(canonicalPath);
         return realm;
     }
 
@@ -131,6 +128,6 @@ public class DynamicRealm extends RealmInstance {
 
     // Public because of migrations
     public Table getTable(String clazz) {
-        return realmFile.getTable(clazz);
+        return sharedGroup.getTable(clazz);
     }
 }

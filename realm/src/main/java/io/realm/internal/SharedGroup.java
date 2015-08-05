@@ -57,30 +57,30 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, Durability durability, byte[] key) {
+    public SharedGroup(String canonicalPath, boolean enableImplicitTransactions, Durability durability, byte[] key) {
         if (enableImplicitTransactions) {
-            nativeReplicationPtr = nativeCreateReplication(databaseFile, key);
+            nativeReplicationPtr = nativeCreateReplication(canonicalPath, key);
             nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
             implicitTransactionsEnabled = true;
         } else {
-            nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, key);
+            nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, false, false, key);
         }
         context = new Context();
-        path = databaseFile;
+        path = canonicalPath;
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String databaseFile, Durability durability, byte[] key) {
-        path = databaseFile;
+    public SharedGroup(String canonicalPath, Durability durability, byte[] key) {
+        path = canonicalPath;
         context = new Context();
-        nativePtr = nativeCreate(databaseFile, durability.value, false, false, key);
+        nativePtr = nativeCreate(canonicalPath, durability.value, false, false, key);
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
-        path = databaseFile;
+    public SharedGroup(String canonicalPath, Durability durability, boolean fileMustExist) {
+        path = canonicalPath;
         context = new Context();
-        nativePtr = nativeCreate(databaseFile, durability.value, fileMustExist, false, null);
+        nativePtr = nativeCreate(canonicalPath, durability.value, fileMustExist, false, null);
         checkNativePtrNotZero();
     }
 
@@ -236,7 +236,7 @@ public class SharedGroup implements Closeable {
     /**
      * Returns the absolute path to the file backing this SharedGroup.
      *
-     * @return Absolute path to the Realm file.
+     * @return Canonical path to the Realm file.
      */
     public String getPath() {
         return path;

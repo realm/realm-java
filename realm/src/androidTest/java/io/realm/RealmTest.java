@@ -62,11 +62,10 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
-import io.realm.internal.RealmFileWrapper;
-import io.realm.internal.RealmInstance;
+import io.realm.internal.SharedGroupManager;
+import io.realm.internal.RealmBase;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
-import io.realm.internal.Util;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -1695,14 +1694,14 @@ public class RealmTest extends AndroidTestCase {
         testRealm = Realm.getInstance(config);
 
         // Manipulate field accessibility to facilitate testing
-        Field realmFileReference = RealmInstance.class.getDeclaredField("realmFile");
+        Field realmFileReference = RealmBase.class.getDeclaredField("sharedGroup");
         realmFileReference.setAccessible(true);
         Field contextField = SharedGroup.class.getDeclaredField("context");
         contextField.setAccessible(true);
         Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
         rowReferencesField.setAccessible(true);
 
-        RealmFileWrapper realmFile = (RealmFileWrapper) realmFileReference.get(testRealm);
+        SharedGroupManager realmFile = (SharedGroupManager) realmFileReference.get(testRealm);
         assertNotNull(realmFile);
 
         SharedGroup sharedGroup = realmFile.sharedGroup;
@@ -1732,6 +1731,7 @@ public class RealmTest extends AndroidTestCase {
         Log.i("GCing", "Hoping for the best");
         while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
             SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
+            TestHelper.allocGarbage(0);
             numberOfRetries++;
             System.gc();
         }

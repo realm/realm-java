@@ -46,8 +46,8 @@ import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
-import io.realm.internal.RealmFileWrapper;
-import io.realm.internal.RealmInstance;
+import io.realm.internal.SharedGroupManager;
+import io.realm.internal.RealmBase;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
@@ -109,7 +109,7 @@ import io.realm.internal.log.RealmLog;
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
-public final class Realm extends RealmInstance {
+public final class Realm extends RealmBase {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
     private  static final long UNVERSIONED = -1;
@@ -138,7 +138,7 @@ public final class Realm extends RealmInstance {
 
     @Override
     protected void finalize() throws Throwable {
-        if (realmFile != null && realmFile.isOpen()) {
+        if (sharedGroup != null && sharedGroup.isOpen()) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
                             "Realm " + configuration.getPath() + " is being finalized without being closed, " +
                             "this can lead to running out of native memory."
@@ -446,12 +446,10 @@ public final class Realm extends RealmInstance {
 
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
         // faulty cache data.
+        validateAgainstExistingConfigurations(configuration);
         realm = new Realm(configuration, autoRefresh);
         realms.put(configuration, realm);
         localRefCount.put(configuration, references + 1);
-
-        // Increment global reference counter
-        RealmFileWrapper.openFile(canonicalPath);
 
         // Check versions of Realm
         long currentVersion = realm.getVersion();
@@ -493,9 +491,9 @@ public final class Realm extends RealmInstance {
             for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
-                    mediator.createTable(modelClass, realm.realmFile.transaction);
+                    mediator.createTable(modelClass, realm.sharedGroup.transaction);
                 }
-                mediator.validateTable(modelClass, realm.realmFile.transaction);
+                mediator.validateTable(modelClass, realm.sharedGroup.transaction);
                 realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
         } finally {
@@ -1174,7 +1172,7 @@ public final class Realm extends RealmInstance {
 
     @SuppressWarnings("UnusedDeclaration")
     boolean hasChanged() {
-        return realmFile.hasChanged();
+        return sharedGroup.hasChanged();
     }
 
     /**
@@ -1278,16 +1276,16 @@ public final class Realm extends RealmInstance {
 
     // package protected so unit tests can access it
     long getVersion() {
-        if (!realmFile.hasTable("metadata")) {
+        if (!sharedGroup.hasTable("metadata")) {
             return UNVERSIONED;
         }
-        Table metadataTable = realmFile.getTable("metadata");
+        Table metadataTable = sharedGroup.getTable("metadata");
         return metadataTable.getLong(0, 0);
     }
 
     // package protected so unit tests can access it
     void setVersion(long version) {
-        Table metadataTable = realmFile.getTable("metadata");
+        Table metadataTable = sharedGroup.getTable("metadata");
         if (metadataTable.getColumnCount() == 0) {
             metadataTable.addColumn(ColumnType.INTEGER, "version");
             metadataTable.addEmptyRow();
@@ -1447,7 +1445,7 @@ public final class Realm extends RealmInstance {
     public static synchronized boolean deleteRealm(RealmConfiguration configuration) {
         boolean result = true;
         String canonicalPath = configuration.getPath();
-        if (RealmFileWrapper.isOpen(canonicalPath)) {
+        if (SharedGroupManager.isOpen(canonicalPath)) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
         }
@@ -1536,11 +1534,11 @@ public final class Realm extends RealmInstance {
         }
 
         String canonicalPath = configuration.getPath();
-        if (RealmFileWrapper.isOpen(canonicalPath)) {
+        if (SharedGroupManager.isOpen(canonicalPath)) {
             throw new IllegalStateException("Cannot compact an open Realm");
         }
 
-        return RealmFileWrapper.compact(configuration);
+        return SharedGroupManager.compact(configuration);
     }
 
     /**
@@ -1577,7 +1575,7 @@ public final class Realm extends RealmInstance {
         Table table = classToTable.get(clazz);
         if (table == null) {
             clazz = Util.getOriginalModelClass(clazz);
-            table = realmFile.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            table = sharedGroup.getTable(configuration.getSchemaMediator().getTableName(clazz));
             classToTable.put(clazz, table);
         }
         return table;
