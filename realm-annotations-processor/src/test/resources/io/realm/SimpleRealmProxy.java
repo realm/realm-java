@@ -146,7 +146,7 @@ public class SimpleRealmProxy extends Simple
         }
         if (json.has("age")) {
             if (json.isNull("age")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable age.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field age to null.");
             } else {
                 obj.setAge((int) json.getInt("age"));
             }
@@ -170,7 +170,7 @@ public class SimpleRealmProxy extends Simple
             } else if (name.equals("age")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable age.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field age to null.");
                 } else {
                     obj.setAge((int) reader.nextInt());
                 }

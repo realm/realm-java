@@ -63,6 +63,10 @@ public class NullTypes extends RealmObject {
     private Date fieldDateNotNull;
     private Date fieldDateNull;
 
+    @Required
+    private NullTypes fieldObjectNotNull;
+    private NullTypes fieldObjectNull;
+
 
     public String getFieldStringNotNull() {
         return fieldStringNotNull;
@@ -222,5 +226,21 @@ public class NullTypes extends RealmObject {
 
     public void setFieldDateNull(Date fieldDateNull) {
         this.fieldDateNull = fieldDateNull;
+    }
+
+    public NullTypes getFieldObjectNotNull() {
+        return fieldObjectNotNull;
+    }
+
+    public void setFieldObjectNotNull(NullTypes fieldObjectNotNull) {
+        this.fieldObjectNotNull = fieldObjectNotNull;
+    }
+
+    public NullTypes getFieldObjectNull() {
+        return fieldObjectNull;
+    }
+
+    public void setFieldObjectNull(NullTypes fieldObjectNull) {
+        this.fieldObjectNull = fieldObjectNull;
     }
 }
