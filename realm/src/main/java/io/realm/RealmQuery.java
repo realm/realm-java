@@ -58,13 +58,11 @@ public class RealmQuery<E extends RealmObject> {
     private Map<String, Long> columns = new HashMap<String, Long>();
     private Class<E> clazz;
 
-    private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
-
     public static final boolean CASE_SENSITIVE = true;
     public static final boolean CASE_INSENSITIVE = false;
 
     /**
-     * Creating a RealmQuery instance.
+     * Creates a RealmQuery instance.
      *
      * @param realm  The realm to query within.
      * @param clazz  The class to query.
@@ -100,6 +98,15 @@ public class RealmQuery<E extends RealmObject> {
         this.view = view;
         this.table = realm.getTable(clazz);
         this.columns = realm.columnIndices.getClassFields(clazz);
+    }
+
+    /**
+     * Creates a RealmQuery instance for dynamic Realms.
+     * @param dynamicRealm
+     * @param className
+     */
+    protected RealmQuery(DynamicRealm dynamicRealm, String className) {
+
     }
 
     private boolean containsDot(String s) {

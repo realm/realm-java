@@ -18,9 +18,8 @@ package io.realm.dynamic;
 import java.util.AbstractList;
 import java.util.List;
 
-import io.realm.Realm;
+import io.realm.base.RealmBase;
 import io.realm.internal.LinkView;
-import io.realm.internal.RealmBase;
 
 /**
  * {@link io.realm.RealmList} exposed using a dynamic API. All objects in the list must have the same schema even though

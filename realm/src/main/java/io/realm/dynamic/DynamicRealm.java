@@ -17,21 +17,16 @@
 
 package io.realm.dynamic;
 
-import android.media.NotProvisionedException;
 import android.os.Looper;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmObject;
-import io.realm.RealmQuery;
+import io.realm.base.RealmBase;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.SharedGroupManager;
-import io.realm.internal.RealmBase;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.Util;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -40,7 +35,7 @@ import io.realm.internal.Util;
  * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file as both a dynamic Realm and the normal
  * typed one.
  *
- * Dynamic Realms do not enforce schemaVersions and doesn't trigger migrations, even though they have been defined in
+ * Dynamic Realms do not enforce schemaVersions and doesn't trigger migrations even if they have been defined in
  * the configuration.
  *
  * @see io.realm.Realm
@@ -94,70 +89,13 @@ public final class DynamicRealm extends RealmBase {
     /**
      * Returns a RealmQuery, which can be used to query for the provided class.
      *
-     * @param clazz The class of the object which is to be queried for.
+     * @param className The class of the object which is to be queried for.
      * @return A RealmQuery, which can be used to query for specific objects of provided type.
      * @see io.realm.RealmQuery
      */
-    public RealmQuery<DynamicRealmObject> where(String clazz) {
-        // TODO
-        return null;
-//        checkIfValid();
-//        return new RealmQuery<DynamicRealmObject>(this, clazz);
-    }
-
-
-    /**
-     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it
-     */
-    @Override
-    public void refresh() {
-        super.refresh();
-    }
-
-    /**
-     * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
-     * or aborted by {@link io.realm.Realm#cancelTransaction()}. Write transactions are used to
-     * atomically create, update and delete objects within a realm.
-     * <br>
-     * Before beginning the write transaction, {@link io.realm.Realm#beginTransaction()} updates the
-     * realm in the case of pending updates from other threads.
-     * <br>
-     * Notice: it is not possible to nest write transactions. If you start a write
-     * transaction within a write transaction an exception is thrown.
-     * <br>
-     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
-     *
-     */
-    public void beginTransaction() {
-        super.beginTransaction();
-    }
-
-    /**
-     * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the
-     * Realm reverts back to being read-only. An event is sent to notify all other realm instances
-     * that a change has occurred. When the event is received, the other Realms will get their
-     * objects and {@link io.realm.RealmResults} updated to reflect
-     * the changes from this commit.
-     *
-     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
-     */
-    public void commitTransaction() {
-        super.commitTransaction();
-    }
-
-    /**
-     * Revert all writes (created, updated, or deleted objects) made in the current write
-     * transaction and end the transaction.
-     * <br>
-     * The Realm reverts back to read-only.
-     * <br>
-     * Calling this when not in a write transaction will throw an exception.
-     *
-     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
-     *                                             not in a write transaction or incorrect thread.
-     */
-    public void cancelTransaction() {
-        super.cancelTransaction();
+    public DynamicRealmQuery where(String className) {
+        checkIfValid();
+        return new DynamicRealmQuery(this, className);
     }
 
     /**
@@ -176,7 +114,6 @@ public final class DynamicRealm extends RealmBase {
             realmsCache.get().remove(configuration);
         }
     }
-
 
     private static synchronized DynamicRealm create(RealmConfiguration configuration) {
 
@@ -203,7 +140,6 @@ public final class DynamicRealm extends RealmBase {
 
         return realm;
     }
-
 
     private Table getTable(String className) {
         Table table = classToTable.get(className);

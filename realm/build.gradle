@@ -10,6 +10,7 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 20
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
 
 // TODO: re-enable once bug-fix is released
@@ -30,6 +31,8 @@ dependencies {
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
     androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
     androidTestApt files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
+    androidTestCompile 'com.android.support.test:runner:0.3'
+    androidTestCompile 'com.android.support.test:rules:0.3'
 }
 
 android.libraryVariants.all { variant ->

@@ -17,14 +17,12 @@ package io.realm.dynamic;
 
 import java.util.Date;
 
-import io.realm.Realm;
-import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.base.RealmBase;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
-import io.realm.internal.RealmBase;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
