@@ -26,9 +26,6 @@ import java.util.Map;
  * Helper class for converting between Json types and data types in Java that are supported by Realm.
  */
 public class RealmJsonTypeHelper {
-    private final static String STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE =
-            "throw new IllegalArgumentException(\"Trying to set null on not-nullable %s.\")";
-
     private static final Map<String, JsonToRealmTypeConverter> JAVA_TO_JSON_TYPES;
     static {
         JAVA_TO_JSON_TYPES = new HashMap<String, JsonToRealmTypeConverter>();
@@ -55,7 +52,7 @@ public class RealmJsonTypeHelper {
                 if (nullable) {
                     statementSetNullOrThrow = String.format("obj.%s(null)", setter);
                 } else {
-                    statementSetNullOrThrow = String.format(STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
                 }
                 writer
                     .beginControlFlow("if (json.has(\"%s\"))", fieldName)
@@ -79,7 +76,7 @@ public class RealmJsonTypeHelper {
                 if (nullable) {
                     statementSetNullOrThrow = String.format("obj.%s(null)", setter);
                 } else {
-                    statementSetNullOrThrow = String.format(STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
                 }
                 writer
                     .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
@@ -103,7 +100,7 @@ public class RealmJsonTypeHelper {
                 if (nullable) {
                     statementSetNullOrThrow = String.format("obj.%s(null)", setter);
                 } else {
-                    statementSetNullOrThrow = String.format(STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
                 }
                 writer
                     .beginControlFlow("if (json.has(\"%s\"))", fieldName)
@@ -122,7 +119,7 @@ public class RealmJsonTypeHelper {
                 if (nullable) {
                     statementSetNullOrThrow = String.format("obj.%s(null)", setter);
                 } else {
-                    statementSetNullOrThrow = String.format(STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
                 }
                 writer
                     .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
@@ -144,12 +141,17 @@ public class RealmJsonTypeHelper {
     }
 
     public static void emitFillRealmObjectWithJsonValue(String setter, String fieldName, String qualifiedFieldType,
-                                                        String proxyClass, JavaWriter writer) throws IOException {
-        // FIXME: Check nullable here!
+                                                        String proxyClass, JavaWriter writer, boolean nullable) throws IOException {
+        String statementSetNullOrThrow;
+        if (nullable) {
+            statementSetNullOrThrow = String.format("obj.%s(null)", setter);
+        } else {
+            statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+        }
         writer
             .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                 .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                    .emitStatement("obj.%s(null)", setter)
+                    .emitStatement(statementSetNullOrThrow)
                 .nextControlFlow("else")
                     .emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)",
                             qualifiedFieldType, fieldName, proxyClass, fieldName)
@@ -183,12 +185,22 @@ public class RealmJsonTypeHelper {
     }
 
     public static void emitFillRealmObjectFromStream(String setter, String fieldName, String fieldTypeCanonicalName,
-                                                     String proxyClass, JavaWriter writer) throws IOException {
-        // FIXME: Check nullable here!
+                                                     String proxyClass, JavaWriter writer, boolean nullable) throws IOException {
+        String statementSetNullOrThrow;
+        if (nullable) {
+            statementSetNullOrThrow = String.format("obj.%s(null)", setter);
+        } else {
+            statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+        }
         writer
-            .emitStatement("%s %sObj = %s.createUsingJsonStream(realm, reader)", fieldTypeCanonicalName, fieldName,
-                    proxyClass)
-            .emitStatement("obj.%s(%sObj)", setter, fieldName);
+            .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                .emitStatement("reader.skipValue()")
+                .emitStatement(statementSetNullOrThrow)
+            .nextControlFlow("else")
+                .emitStatement("%s %sObj = %s.createUsingJsonStream(realm, reader)", fieldTypeCanonicalName, fieldName,
+                        proxyClass)
+                .emitStatement("obj.%s(%sObj)", setter, fieldName)
+            .endControlFlow();
     }
 
     public static void emitFillRealmListFromStream(String getter, String setter, String fieldTypeCanonicalName,
@@ -228,7 +240,7 @@ public class RealmJsonTypeHelper {
             if (nullable) {
                 statementSetNullOrThrow = String.format("obj.%s(null)", setter);
             } else {
-                statementSetNullOrThrow = String.format(STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+                statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
             }
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
@@ -247,7 +259,7 @@ public class RealmJsonTypeHelper {
             if (nullable) {
                 statementSetNullOrThrow = String.format("obj.%s(null)", setter);
             } else {
-                statementSetNullOrThrow = String.format(STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+                statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
             }
             writer
                 .beginControlFlow("if (reader.peek() == JsonToken.NULL)")

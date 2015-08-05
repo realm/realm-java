@@ -26,7 +26,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.NullTypes;
 
-public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
+public class NullTypesRealmProxy extends NullTypes
+    implements RealmObjectProxy {
 
     private static long INDEX_FIELDSTRINGNOTNULL;
     private static long INDEX_FIELDSTRINGNULL;
@@ -48,6 +49,8 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     private static long INDEX_FIELDDOUBLENULL;
     private static long INDEX_FIELDDATENOTNULL;
     private static long INDEX_FIELDDATENULL;
+    private static long INDEX_FIELDOBJECTNOTNULL;
+    private static long INDEX_FIELDOBJECTNULL;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
@@ -72,6 +75,8 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         fieldNames.add("fieldDoubleNull");
         fieldNames.add("fieldDateNotNull");
         fieldNames.add("fieldDateNull");
+        fieldNames.add("fieldObjectNotNull");
+        fieldNames.add("fieldObjectNull");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
@@ -85,7 +90,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldStringNotNull(String value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldStringNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldStringNotNull to null.");
         }
         row.setString(INDEX_FIELDSTRINGNOTNULL, (String) value);
     }
@@ -112,7 +117,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldBooleanNotNull(Boolean value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldBooleanNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldBooleanNotNull to null.");
         }
         row.setBoolean(INDEX_FIELDBOOLEANNOTNULL, (Boolean) value);
     }
@@ -146,7 +151,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldBytesNotNull(byte[] value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldBytesNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldBytesNotNull to null.");
         }
         row.setBinaryByteArray(INDEX_FIELDBYTESNOTNULL, (byte[]) value);
     }
@@ -180,7 +185,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldByteNotNull(Byte value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldByteNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldByteNotNull to null.");
         }
         row.setLong(INDEX_FIELDBYTENOTNULL, (long) value);
     }
@@ -214,7 +219,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldShortNotNull(Short value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldShortNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldShortNotNull to null.");
         }
         row.setLong(INDEX_FIELDSHORTNOTNULL, (long) value);
     }
@@ -248,7 +253,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldIntegerNotNull(Integer value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldIntegerNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldIntegerNotNull to null.");
         }
         row.setLong(INDEX_FIELDINTEGERNOTNULL, (long) value);
     }
@@ -282,7 +287,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldLongNotNull(Long value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldLongNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldLongNotNull to null.");
         }
         row.setLong(INDEX_FIELDLONGNOTNULL, (long) value);
     }
@@ -316,7 +321,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldFloatNotNull(Float value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldFloatNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldFloatNotNull to null.");
         }
         row.setFloat(INDEX_FIELDFLOATNOTNULL, (float) value);
     }
@@ -350,7 +355,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldDoubleNotNull(Double value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldDoubleNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldDoubleNotNull to null.");
         }
         row.setDouble(INDEX_FIELDDOUBLENOTNULL, (double) value);
     }
@@ -384,7 +389,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public void setFieldDateNotNull(Date value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldDateNotNull in NullTypes to null.");
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldDateNotNull to null.");
         }
         row.setDate(INDEX_FIELDDATENOTNULL, (Date) value);
     }
@@ -406,6 +411,39 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             return;
         }
         row.setDate(INDEX_FIELDDATENULL, (Date) value);
+    }
+
+    @Override
+    public NullTypes getFieldObjectNotNull() {
+        if (row.isNullLink(INDEX_FIELDOBJECTNOTNULL)) {
+            return null;
+        }
+        return realm.getByIndex(some.test.NullTypes.class, row.getLink(INDEX_FIELDOBJECTNOTNULL));
+    }
+
+    @Override
+    public void setFieldObjectNotNull(NullTypes value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
+        }
+        row.setLink(INDEX_FIELDOBJECTNOTNULL, value.row.getIndex());
+    }
+
+    @Override
+    public NullTypes getFieldObjectNull() {
+        if (row.isNullLink(INDEX_FIELDOBJECTNULL)) {
+            return null;
+        }
+        return realm.getByIndex(some.test.NullTypes.class, row.getLink(INDEX_FIELDOBJECTNULL));
+    }
+
+    @Override
+    public void setFieldObjectNull(NullTypes value) {
+        if (value == null) {
+            row.nullifyLink(INDEX_FIELDOBJECTNULL);
+            return;
+        }
+        row.setLink(INDEX_FIELDOBJECTNULL, value.row.getIndex());
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -431,6 +469,14 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             table.addColumn(ColumnType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
             table.addColumn(ColumnType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
             table.addColumn(ColumnType.DATE, "fieldDateNull", Table.NULLABLE);
+            if (!transaction.hasTable("class_NullTypes")) {
+                NullTypesRealmProxy.initTable(transaction);
+            }
+            table.addColumnLink(ColumnType.LINK, "fieldObjectNotNull", transaction.getTable("class_NullTypes"));
+            if (!transaction.hasTable("class_NullTypes")) {
+                NullTypesRealmProxy.initTable(transaction);
+            }
+            table.addColumnLink(ColumnType.LINK, "fieldObjectNull", transaction.getTable("class_NullTypes"));
             table.setPrimaryKey("");
             return table;
         }
@@ -440,11 +486,11 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     public static void validateTable(ImplicitTransaction transaction) {
         if (transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
-            if (table.getColumnCount() != 20) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 20 but was " + table.getColumnCount());
+            if (table.getColumnCount() != 22) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 22 but was " + table.getColumnCount());
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for (long i = 0; i < 20; i++) {
+            for (long i = 0; i < 22; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
@@ -456,7 +502,6 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
                 }
                 columnIndices.put(fieldName, index);
             }
-
             INDEX_FIELDSTRINGNOTNULL = table.getColumnIndex("fieldStringNotNull");
             INDEX_FIELDSTRINGNULL = table.getColumnIndex("fieldStringNull");
             INDEX_FIELDBOOLEANNOTNULL = table.getColumnIndex("fieldBooleanNotNull");
@@ -477,6 +522,8 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             INDEX_FIELDDOUBLENULL = table.getColumnIndex("fieldDoubleNull");
             INDEX_FIELDDATENOTNULL = table.getColumnIndex("fieldDateNotNull");
             INDEX_FIELDDATENULL = table.getColumnIndex("fieldDateNull");
+            INDEX_FIELDOBJECTNOTNULL = table.getColumnIndex("fieldObjectNotNull");
+            INDEX_FIELDOBJECTNULL = table.getColumnIndex("fieldObjectNull");
 
             if (!columnTypes.containsKey("fieldStringNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNotNull'");
@@ -658,12 +705,40 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             if (!table.isColumnNullable(INDEX_FIELDDATENULL)) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldDateNull'");
             }
+            if (!columnTypes.containsKey("fieldObjectNotNull")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldObjectNotNull'");
+            }
+            if (columnTypes.get("fieldObjectNotNull") != ColumnType.LINK) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'NullTypes' for field 'fieldObjectNotNull'");
+            }
+            if (!transaction.hasTable("class_NullTypes")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing class 'class_NullTypes' for field 'fieldObjectNotNull'");
+            }
+            Table table_20 = transaction.getTable("class_NullTypes");
+            if (!table.getLinkTarget(INDEX_FIELDOBJECTNOTNULL).hasSameSchema(table_20)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmObject for field 'fieldObjectNotNull': '" + table.getLinkTarget(INDEX_FIELDOBJECTNOTNULL).getName() + "' expected - was '" + table_20.getName() + "'");
+            }
+            if (!columnTypes.containsKey("fieldObjectNull")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldObjectNull'");
+            }
+            if (columnTypes.get("fieldObjectNull") != ColumnType.LINK) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'NullTypes' for field 'fieldObjectNull'");
+            }
+            if (!transaction.hasTable("class_NullTypes")) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing class 'class_NullTypes' for field 'fieldObjectNull'");
+            }
+            Table table_21 = transaction.getTable("class_NullTypes");
+            if (!table.getLinkTarget(INDEX_FIELDOBJECTNULL).hasSameSchema(table_21)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmObject for field 'fieldObjectNull': '" + table.getLinkTarget(INDEX_FIELDOBJECTNULL).getName() + "' expected - was '" + table_21.getName() + "'");
+            }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The NullTypes class is missing from the schema for this Realm.");
         }
     }
 
-    public static String getTableName() { return "class_NullTypes"; }
+    public static String getTableName() {
+        return "class_NullTypes";
+    }
 
     public static List<String> getFieldNames() {
         return FIELD_NAMES;
@@ -674,11 +749,11 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
     }
 
     public static NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-            throws JSONException {
+        throws JSONException {
         NullTypes obj = realm.createObject(NullTypes.class);
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldStringNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldStringNotNull to null.");
             } else {
                 obj.setFieldStringNotNull((String) json.getString("fieldStringNotNull"));
             }
@@ -692,7 +767,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldBooleanNotNull")) {
             if (json.isNull("fieldBooleanNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldBooleanNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldBooleanNotNull to null.");
             } else {
                 obj.setFieldBooleanNotNull((boolean) json.getBoolean("fieldBooleanNotNull"));
             }
@@ -706,7 +781,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldBytesNotNull")) {
             if (json.isNull("fieldBytesNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldBytesNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldBytesNotNull to null.");
             } else {
                 obj.setFieldBytesNotNull(JsonUtils.stringToBytes(json.getString("fieldBytesNotNull")));
             }
@@ -720,7 +795,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldByteNotNull")) {
             if (json.isNull("fieldByteNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldByteNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldByteNotNull to null.");
             } else {
                 obj.setFieldByteNotNull((byte) json.getInt("fieldByteNotNull"));
             }
@@ -734,7 +809,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldShortNotNull")) {
             if (json.isNull("fieldShortNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldShortNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldShortNotNull to null.");
             } else {
                 obj.setFieldShortNotNull((short) json.getInt("fieldShortNotNull"));
             }
@@ -748,7 +823,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldIntegerNotNull")) {
             if (json.isNull("fieldIntegerNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldIntegerNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldIntegerNotNull to null.");
             } else {
                 obj.setFieldIntegerNotNull((int) json.getInt("fieldIntegerNotNull"));
             }
@@ -762,7 +837,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldLongNotNull")) {
             if (json.isNull("fieldLongNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldLongNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldLongNotNull to null.");
             } else {
                 obj.setFieldLongNotNull((long) json.getLong("fieldLongNotNull"));
             }
@@ -776,7 +851,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldFloatNotNull")) {
             if (json.isNull("fieldFloatNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldFloatNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldFloatNotNull to null.");
             } else {
                 obj.setFieldFloatNotNull((float) json.getDouble("fieldFloatNotNull"));
             }
@@ -790,7 +865,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldDoubleNotNull")) {
             if (json.isNull("fieldDoubleNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldDoubleNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldDoubleNotNull to null.");
             } else {
                 obj.setFieldDoubleNotNull((double) json.getDouble("fieldDoubleNotNull"));
             }
@@ -804,7 +879,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         }
         if (json.has("fieldDateNotNull")) {
             if (json.isNull("fieldDateNotNull")) {
-                throw new IllegalArgumentException("Trying to set null on not-nullable fieldDateNotNull.");
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldDateNotNull to null.");
             } else {
                 Object timestamp = json.get("fieldDateNotNull");
                 if (timestamp instanceof String) {
@@ -826,11 +901,27 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
                 }
             }
         }
+        if (json.has("fieldObjectNotNull")) {
+            if (json.isNull("fieldObjectNotNull")) {
+                throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
+            } else {
+                some.test.NullTypes fieldObjectNotNullObj = NullTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("fieldObjectNotNull"), update);
+                obj.setFieldObjectNotNull(fieldObjectNotNullObj);
+            }
+        }
+        if (json.has("fieldObjectNull")) {
+            if (json.isNull("fieldObjectNull")) {
+                obj.setFieldObjectNull(null);
+            } else {
+                some.test.NullTypes fieldObjectNullObj = NullTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("fieldObjectNull"), update);
+                obj.setFieldObjectNull(fieldObjectNullObj);
+            }
+        }
         return obj;
     }
 
     public static NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
-            throws IOException {
+        throws IOException {
         NullTypes obj = realm.createObject(NullTypes.class);
         reader.beginObject();
         while (reader.hasNext()) {
@@ -838,7 +929,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             if (name.equals("fieldStringNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldStringNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldStringNotNull to null.");
                 } else {
                     obj.setFieldStringNotNull((String) reader.nextString());
                 }
@@ -852,7 +943,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldBooleanNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldBooleanNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldBooleanNotNull to null.");
                 } else {
                     obj.setFieldBooleanNotNull((boolean) reader.nextBoolean());
                 }
@@ -866,7 +957,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldBytesNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldBytesNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldBytesNotNull to null.");
                 } else {
                     obj.setFieldBytesNotNull(JsonUtils.stringToBytes(reader.nextString()));
                 }
@@ -880,7 +971,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldByteNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldByteNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldByteNotNull to null.");
                 } else {
                     obj.setFieldByteNotNull((byte) reader.nextInt());
                 }
@@ -894,7 +985,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldShortNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldShortNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldShortNotNull to null.");
                 } else {
                     obj.setFieldShortNotNull((short) reader.nextInt());
                 }
@@ -908,7 +999,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldIntegerNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldIntegerNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldIntegerNotNull to null.");
                 } else {
                     obj.setFieldIntegerNotNull((int) reader.nextInt());
                 }
@@ -922,7 +1013,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldLongNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldLongNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldLongNotNull to null.");
                 } else {
                     obj.setFieldLongNotNull((long) reader.nextLong());
                 }
@@ -936,7 +1027,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldFloatNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldFloatNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldFloatNotNull to null.");
                 } else {
                     obj.setFieldFloatNotNull((float) reader.nextDouble());
                 }
@@ -950,7 +1041,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldDoubleNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldDoubleNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldDoubleNotNull to null.");
                 } else {
                     obj.setFieldDoubleNotNull((double) reader.nextDouble());
                 }
@@ -964,7 +1055,7 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
             } else if (name.equals("fieldDateNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set null on not-nullable fieldDateNotNull.");
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldDateNotNull to null.");
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
@@ -984,6 +1075,22 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
                     }
                 } else {
                     obj.setFieldDateNull(JsonUtils.stringToDate(reader.nextString()));
+                }
+            } else if (name.equals("fieldObjectNotNull")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
+                } else {
+                    some.test.NullTypes fieldObjectNotNullObj = NullTypesRealmProxy.createUsingJsonStream(realm, reader);
+                    obj.setFieldObjectNotNull(fieldObjectNotNullObj);
+                }
+            } else if (name.equals("fieldObjectNull")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    obj.setFieldObjectNull(null);
+                } else {
+                    some.test.NullTypes fieldObjectNullObj = NullTypesRealmProxy.createUsingJsonStream(realm, reader);
+                    obj.setFieldObjectNull(fieldObjectNullObj);
                 }
             } else {
                 reader.skipValue();
@@ -1023,6 +1130,26 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         realmObject.setFieldDoubleNull(newObject.getFieldDoubleNull());
         realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull() != null ? newObject.getFieldDateNotNull() : new Date(0));
         realmObject.setFieldDateNull(newObject.getFieldDateNull());
+
+        some.test.NullTypes fieldObjectNotNullObj = newObject.getFieldObjectNotNull();
+        if (fieldObjectNotNullObj != null) {
+            some.test.NullTypes cachefieldObjectNotNull = (some.test.NullTypes) cache.get(fieldObjectNotNullObj);
+            if (cachefieldObjectNotNull != null) {
+                realmObject.setFieldObjectNotNull(cachefieldObjectNotNull);
+            } else {
+                realmObject.setFieldObjectNotNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNotNullObj, update, cache));
+            }
+        }
+
+        some.test.NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
+        if (fieldObjectNullObj != null) {
+            some.test.NullTypes cachefieldObjectNull = (some.test.NullTypes) cache.get(fieldObjectNullObj);
+            if (cachefieldObjectNull != null) {
+                realmObject.setFieldObjectNull(cachefieldObjectNull);
+            } else {
+                realmObject.setFieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
+            }
+        }
         return realmObject;
     }
 
@@ -1047,6 +1174,28 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         realmObject.setFieldDoubleNull(newObject.getFieldDoubleNull());
         realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull() != null ? newObject.getFieldDateNotNull() : new Date(0));
         realmObject.setFieldDateNull(newObject.getFieldDateNull());
+        NullTypes fieldObjectNotNullObj = newObject.getFieldObjectNotNull();
+        if (fieldObjectNotNullObj != null) {
+            NullTypes cachefieldObjectNotNull = (NullTypes) cache.get(fieldObjectNotNullObj);
+            if (cachefieldObjectNotNull != null) {
+                realmObject.setFieldObjectNotNull(cachefieldObjectNotNull);
+            } else {
+                realmObject.setFieldObjectNotNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNotNullObj, true, cache));
+            }
+        } else {
+            realmObject.setFieldObjectNotNull(null);
+        }
+        NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
+        if (fieldObjectNullObj != null) {
+            NullTypes cachefieldObjectNull = (NullTypes) cache.get(fieldObjectNullObj);
+            if (cachefieldObjectNull != null) {
+                realmObject.setFieldObjectNull(cachefieldObjectNull);
+            } else {
+                realmObject.setFieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, true, cache));
+            }
+        } else {
+            realmObject.setFieldObjectNull(null);
+        }
         return realmObject;
     }
 
@@ -1134,6 +1283,14 @@ public class NullTypesRealmProxy extends NullTypes implements RealmObjectProxy {
         stringBuilder.append(",");
         stringBuilder.append("{fieldDateNull:");
         stringBuilder.append(getFieldDateNull() != null ? getFieldDateNull() : "null");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldObjectNotNull:");
+        stringBuilder.append(getFieldObjectNotNull() != null ? "NullTypes" : "null");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{fieldObjectNull:");
+        stringBuilder.append(getFieldObjectNull() != null ? "NullTypes" : "null");
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();
