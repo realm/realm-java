@@ -559,13 +559,13 @@ public class AllTypesRealmProxy extends AllTypes
     public static AllTypes copy(Realm realm, AllTypes newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         AllTypes realmObject = realm.createObject(AllTypes.class, newObject.getColumnString());
         cache.put(newObject, (RealmObjectProxy) realmObject);
-        realmObject.setColumnString(newObject.getColumnString() != null ? newObject.getColumnString() : "");
+        realmObject.setColumnString(newObject.getColumnString());
         realmObject.setColumnLong(newObject.getColumnLong());
         realmObject.setColumnFloat(newObject.getColumnFloat());
         realmObject.setColumnDouble(newObject.getColumnDouble());
         realmObject.setColumnBoolean(newObject.isColumnBoolean());
-        realmObject.setColumnDate(newObject.getColumnDate() != null ? newObject.getColumnDate() : new Date(0));
-        realmObject.setColumnBinary(newObject.getColumnBinary() != null ? newObject.getColumnBinary() : new byte[0]);
+        realmObject.setColumnDate(newObject.getColumnDate());
+        realmObject.setColumnBinary(newObject.getColumnBinary());
 
         some.test.AllTypes columnObjectObj = newObject.getColumnObject();
         if (columnObjectObj != null) {
@@ -599,8 +599,8 @@ public class AllTypesRealmProxy extends AllTypes
         realmObject.setColumnFloat(newObject.getColumnFloat());
         realmObject.setColumnDouble(newObject.getColumnDouble());
         realmObject.setColumnBoolean(newObject.isColumnBoolean());
-        realmObject.setColumnDate(newObject.getColumnDate() != null ? newObject.getColumnDate() : new Date(0));
-        realmObject.setColumnBinary(newObject.getColumnBinary() != null ? newObject.getColumnBinary() : new byte[0]);
+        realmObject.setColumnDate(newObject.getColumnDate());
+        realmObject.setColumnBinary(newObject.getColumnBinary());
         AllTypes columnObjectObj = newObject.getColumnObject();
         if (columnObjectObj != null) {
             AllTypes cachecolumnObject = (AllTypes) cache.get(columnObjectObj);
