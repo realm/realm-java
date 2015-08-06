@@ -49,6 +49,10 @@ public class SimpleRealmProxy extends Simple
     @Override
     public void setName(String value) {
         realm.checkIfValid();
+        if (value == null) {
+            row.setNull(INDEX_NAME);
+            return;
+        }
         row.setString(INDEX_NAME, (String) value);
     }
 

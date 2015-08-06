@@ -173,10 +173,9 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement(
                         "realm.checkIfValid()"
                 );
-                // FIXME: Use below condition when all boxed type and Date supported
-                // FIXME: Check if we should remove the isString condition
-                //if (!field.asType().getKind().isPrimitive()) {
-                if (metadata.isNullable(field) && !Utils.isString(field)) {
+
+                // For String and bytes[], null value will be returned by JNI code. Try to save one JNI call here.
+                if (metadata.isNullable(field) && !Utils.isString(field) && !Utils.isByteArray(field)) {
                     writer.beginControlFlow("if (row.isNull(%s))", staticFieldIndexVarName(field));
                     writer.emitStatement("return null");
                     writer.endControlFlow();
@@ -188,6 +187,7 @@ public class RealmProxyClassGenerator {
                     Types typeUtils = processingEnvironment.getTypeUtils();
                     castingBackType = typeUtils.unboxedType(field.asType()).toString();
                 } catch (IllegalArgumentException ignored) {
+                    // Not a boxed type, do nothing then.
                 }
                 writer.emitStatement(
                         "return (%s) row.get%s(%s)",
@@ -201,14 +201,15 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement(
                         "realm.checkIfValid()"
                 );
-                // FIXME: Make a better condition
-                if (metadata.isNullable(field) && !Utils.isString(field)) {
+                // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
+                // Compared with getter, null value won't trigger more native calls in setter which is relatively cheaper.
+                if (metadata.isNullable(field)) {
                     writer.beginControlFlow("if (value == null)")
                         .emitStatement("row.setNull(%s)", staticFieldIndexVarName(field))
                         .emitStatement("return")
                     .endControlFlow();
-                } else if (!metadata.isNullable(field) && !field.asType().getKind().isPrimitive()) {
-                    // FIXME: Check if this is the best condition
+                } else if (!metadata.isNullable(field) && !Utils.isPrimitiveType(field)) {
+                    // Same reason, throw IAE earlier.
                     writer
                         .beginControlFlow("if (value == null)")
                             .emitStatement(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName)
