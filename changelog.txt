@@ -1,3 +1,6 @@
+0.83
+ * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
+
 0.82.1
  * Fixed a bug where using the wrong encryption key first caused the right key to be seen as invalid.
  * Fixed a bug where String fields were ignored when updating objects from JSON with null values.
@@ -10,7 +13,7 @@
  * Closing realm on another thread different from where it was created now throws an exception.
  * Realm will now throw a RealmError when Realm's underlying storage engine encounters an unrecoverable error.
  * @Index annotation can also be applied to byte/short/int/long/boolean/Date now.
- * Fields with annotation @PrimaryKey are indexed automatically now.
+ * BREAKING CHANGE: Fields with annotation @PrimaryKey are indexed automatically now. Older schemas require a migration.
  * Fixed a bug where RealmQuery objects are prematurely garbage collected.
  * Removed RealmQuery.between() for link queries.
 
