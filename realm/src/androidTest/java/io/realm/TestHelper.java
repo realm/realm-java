@@ -26,7 +26,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 public class TestHelper {
@@ -112,5 +115,18 @@ public class TestHelper {
         }
 
         return garbage;
+    }
+
+    // Creates SHA512 hash of a String. Can be used as password for encrypted Realms.
+    public static byte[] SHA512(String str) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-512");
+            md.update(str.getBytes("UTF-8"), 0, str.length());
+            return md.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

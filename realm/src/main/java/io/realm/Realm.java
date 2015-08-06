@@ -192,7 +192,13 @@ public final class Realm implements Closeable {
         }
     }
 
-    // The constructor in private to enforce the use of the static one
+    /**
+     * The constructor is private to enforce the use of the static one.
+     *
+     * @param configuration Configuration used to open the Realm.
+     * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
+     * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
+     */
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
@@ -578,11 +584,11 @@ public final class Realm implements Closeable {
             return realm;
         }
 
-
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
         // faulty cache data.
         validateAgainstExistingConfigurations(configuration);
         realm = new Realm(configuration, autoRefresh);
+        globalPathConfigurationCache.get(canonicalPath).add(configuration);
         realms.put(configuration, realm);
         localRefCount.put(configuration, references + 1);
 
@@ -665,9 +671,6 @@ public final class Realm implements Closeable {
                         "configurations pointing to " + newConfiguration.getPath() + " are being used.");
             }
         }
-
-        // The new configuration doesn't violate existing configurations. Cache it.
-        pathConfigurationCache.add(newConfiguration);
     }
 
     @SuppressWarnings("unchecked")

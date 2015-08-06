@@ -1770,4 +1770,31 @@ public class RealmTest extends AndroidTestCase {
         testRealm.checkIfValid();
         testRealm.close();
     }
+
+    // We should not cache wrong configurations
+    public void testDontCacheWrongConfigurations() throws IOException {
+        String REALM_NAME = "encrypted.realm";
+        TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+
+        RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
+                .name(REALM_NAME)
+                .encryptionKey(TestHelper.SHA512("foo"))
+                .build();
+
+        RealmConfiguration rightConfig = new RealmConfiguration.Builder(getContext())
+                .name(REALM_NAME)
+                .encryptionKey(TestHelper.SHA512("realm"))
+                .build();
+
+        // Open Realm with wrong key
+        try {
+            testRealm = Realm.getInstance(wrongConfig);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Try again with proper key
+        testRealm = Realm.getInstance(rightConfig);
+        assertNotNull(testRealm);
+    }
 }
