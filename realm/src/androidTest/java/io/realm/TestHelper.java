@@ -73,7 +73,7 @@ public class TestHelper {
 
     // Deletes the old database and copies a new one into its place
     public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
-        Realm.deleteRealmFile(context, newName);
+        Realm.deleteRealm(createConfiguration(context, newName));
         TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
 
@@ -129,4 +129,30 @@ public class TestHelper {
             throw new RuntimeException(e);
         }
     }
+
+    public static RealmConfiguration createConfiguration(Context context) {
+        return createConfiguration(context, Realm.DEFAULT_REALM_NAME);
+    }
+
+    public static RealmConfiguration createConfiguration(Context context, String name) {
+        return createConfiguration(context.getFilesDir(), name);
+    }
+
+    public static RealmConfiguration createConfiguration(File folder, String name) {
+        return createConfiguration(folder, name, null);
+    }
+
+    public static RealmConfiguration createConfiguration(Context context, String name, byte[] key) {
+        return createConfiguration(context.getFilesDir(), name, key);
+    }
+
+    public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder(dir).name(name);
+        if (key != null) {
+            config.encryptionKey(key);
+        }
+
+        return config.build();
+    }
+
 }
