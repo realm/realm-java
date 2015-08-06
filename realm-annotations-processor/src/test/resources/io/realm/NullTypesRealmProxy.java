@@ -104,6 +104,10 @@ public class NullTypesRealmProxy extends NullTypes
     @Override
     public void setFieldStringNull(String value) {
         realm.checkIfValid();
+        if (value == null) {
+            row.setNull(INDEX_FIELDSTRINGNULL);
+            return;
+        }
         row.setString(INDEX_FIELDSTRINGNULL, (String) value);
     }
 
@@ -159,9 +163,6 @@ public class NullTypesRealmProxy extends NullTypes
     @Override
     public byte[] getFieldBytesNull() {
         realm.checkIfValid();
-        if (row.isNull(INDEX_FIELDBYTESNULL)) {
-            return null;
-        }
         return (byte[]) row.getBinaryByteArray(INDEX_FIELDBYTESNULL);
     }
 
