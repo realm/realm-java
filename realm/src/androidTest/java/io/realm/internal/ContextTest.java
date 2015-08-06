@@ -16,7 +16,7 @@
 
 package io.realm.internal;
 
-import junit.framework.TestCase;
+import android.test.AndroidTestCase;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -29,7 +29,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ContextTest extends TestCase {
+public class ContextTest extends AndroidTestCase {
+
+    @Override
+    public void setUp() throws Exception {
+        System.setProperty("dexmaker.dexcache", getContext().getCacheDir().toString());
+    }
 
     public void testCleanRows() throws Exception {
         // Queue queue the will contain the actual references
