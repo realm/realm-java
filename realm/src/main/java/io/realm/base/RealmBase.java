@@ -57,7 +57,7 @@ public abstract class RealmBase implements Closeable {
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
 
     // Map between all Realm file paths and all known configurations pointing to that file.
-    private static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
+    protected static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
             new HashMap<String, List<RealmConfiguration>>();
 
     // Reference count for how many open Realm instances there currently are on this thread.
@@ -92,7 +92,17 @@ public abstract class RealmBase implements Closeable {
         setAutoRefresh(autoRefresh);
     }
 
-    protected void setAutoRefresh(boolean autoRefresh) {
+    /**
+     * Set the auto-refresh status of the Realm instance.
+     * <p>
+     * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
+     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
+     * This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled thread.
+     *
+     * @param autoRefresh true will turn auto-refresh on, false will turn it off.
+     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
+     */
+    public void setAutoRefresh(boolean autoRefresh) {
         if (autoRefresh && Looper.myLooper() == null) {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }
@@ -106,7 +116,11 @@ public abstract class RealmBase implements Closeable {
         this.autoRefresh = autoRefresh;
     }
 
-    protected boolean isAutoRefresh() {
+    /**
+     * Retrieve the auto-refresh status of the Realm instance.
+     * @return the auto-refresh status
+     */
+    public boolean isAutoRefresh() {
         return autoRefresh;
     }
 
@@ -372,17 +386,13 @@ public abstract class RealmBase implements Closeable {
      *
      * @throws IllegalArgumentException If the new configuration isn't valid.
      */
+    // Make sure that the new configuration doesn't clash with any existing configurations for the Realm
     protected static void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
 
-        // Ensure cache state
         String realmPath = newConfiguration.getPath();
         List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
-        if (pathConfigurationCache == null) {
-            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-            globalPathConfigurationCache.put(realmPath, pathConfigurationCache);
-        }
 
-        if (pathConfigurationCache.size() > 0) {
+        if (pathConfigurationCache != null && pathConfigurationCache.size() > 0) {
 
             // For the current restrictions, it is enough to just check one of the existing configurations.
             RealmConfiguration cachedConfiguration = pathConfigurationCache.get(0);
@@ -415,11 +425,25 @@ public abstract class RealmBase implements Closeable {
                         "configurations pointing to " + newConfiguration.getPath() + " are being used.");
             }
         }
-
-        // The new configuration doesn't violate existing configurations. Cache it.
-        pathConfigurationCache.add(newConfiguration);
     }
 
+    /**
+     * Cache the given configuration. INVARIANT: Configuration must only be cached if it is a legal
+     * configuration.
+     *
+     * @param configuration Configuration to cache.
+     */
+    protected static void cacheConfiguration(RealmConfiguration configuration) {
+        String canonicalPath = configuration.getPath();
+        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+        if (pathConfigurationCache == null) {
+            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+        }
+        pathConfigurationCache.add(configuration);
+    }
+
+    // Internal Handler callback for Realm messages
     private class RealmCallback implements Handler.Callback {
         @Override
         public boolean handleMessage(Message message) {

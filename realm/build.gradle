@@ -316,8 +316,14 @@ task tagRepo(type: Exec) {
     commandLine 'git', 'tag', '-a', "v${version}", '-m', "v${version}"
 }
 
-task pushTag(type: Exec) {
+task pushRepo(type: Exec) {
     dependsOn tagRepo
+    workingDir rootDir
+    commandLine 'git', 'push'
+}
+
+task pushTag(type: Exec) {
+    dependsOn pushRepo
     workingDir rootDir
     commandLine 'git', 'push', '--tags'
 }

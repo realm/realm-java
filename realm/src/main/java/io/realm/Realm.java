@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -123,18 +124,23 @@ public final class Realm extends RealmBase {
         }
     };
 
-    private static RealmConfiguration defaultConfiguration;
-
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable =
             new HashMap<Class<? extends RealmObject>, Table>();
 
-    // The constructor is private in order to enforce the use of the static one
+    private static RealmConfiguration defaultConfiguration;
+    protected ColumnIndices columnIndices = new ColumnIndices();
+
+    /**
+     * The constructor is private to enforce the use of the static one.
+     *
+     * @param configuration Configuration used to open the Realm.
+     * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
+     * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
+     */
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
     }
-
-    protected ColumnIndices columnIndices = new ColumnIndices();
 
     @Override
     protected void finalize() throws Throwable {
@@ -165,28 +171,6 @@ public final class Realm extends RealmBase {
     }
 
     /**
-     * Retrieve the auto-refresh status of the Realm instance.
-     * @return the auto-refresh status
-     */
-    public boolean isAutoRefresh() {
-        return super.isAutoRefresh();
-    }
-
-    /**
-     * Set the auto-refresh status of the Realm instance.
-     * <p>
-     * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
-     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
-     * This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled thread.
-     *
-     * @param autoRefresh true will turn auto-refresh on, false will turn it off.
-     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
-     */
-    public void setAutoRefresh(boolean autoRefresh) {
-        super.setAutoRefresh(autoRefresh);
-    }
-
-    /**
      * Realm static constructor for the default Realm "default.realm".
      * {@link #close()} must be called when you are done using the Realm instance.
      * <p>
@@ -202,162 +186,9 @@ public final class Realm extends RealmBase {
      * @throws RealmException                Other errors
      */
     public static Realm getInstance(Context context) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME);
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param context  an Android {@link android.content.Context}
-     * @param fileName the name of the file to save the Realm to
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    public static Realm getInstance(Context context, String fileName) {
-        return Realm.getInstance(context, fileName, null);
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param context an Android {@link android.content.Context}
-     * @param key     a 64-byte encryption key
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    public static Realm getInstance(Context context, byte[] key) {
-        return Realm.getInstance(context, DEFAULT_REALM_NAME, key);
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param context an Android {@link android.content.Context}
-     * @param key     a 64-byte encryption key
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    public static Realm getInstance(Context context, String fileName, byte[] key) {
-        RealmConfiguration.Builder builder = new RealmConfiguration.Builder(context).name(fileName);
-        if (key != null) {
-            builder.encryptionKey(key);
-        }
-
-        return create(builder.build());
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param writableFolder a File object representing a writable folder
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(File writableFolder) {
-        return create(new RealmConfiguration.Builder(writableFolder)
-                        .name(DEFAULT_REALM_NAME)
-                        .build()
-        );
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()}
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param writableFolder a File object representing a writable folder
-     * @param fileName the name of the Realm file
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(File writableFolder, String fileName) {
-        return create(new RealmConfiguration.Builder(writableFolder)
-                        .name(fileName)
-                        .build()
-        );
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param writableFolder a File object representing a writable folder
-     * @param key     a 64-byte encryption key
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(File writableFolder, byte[] key) {
-        return create(new RealmConfiguration.Builder(writableFolder)
-                        .name(DEFAULT_REALM_NAME)
-                        .encryptionKey(key)
-                        .build()
-        );
-    }
-
-    /**
-     * Realm static constructor.
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
-     * @param writableFolder a File object representing a writable folder
-     * @param fileName the name of the Realm file
-     * @param key     a 64-byte encryption key
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
-     */
-    @Deprecated
-    @SuppressWarnings("UnusedDeclaration")
-    public static Realm getInstance(File writableFolder, String fileName, byte[] key) {
-        return create(new RealmConfiguration.Builder(writableFolder)
-                        .name(fileName)
-                        .encryptionKey(key)
-                        .build()
-        );
+        return Realm.getInstance(new RealmConfiguration.Builder(context)
+                    .name(DEFAULT_REALM_NAME)
+                    .build());
     }
 
     /**
@@ -448,6 +279,7 @@ public final class Realm extends RealmBase {
         // faulty cache data.
         validateAgainstExistingConfigurations(configuration);
         realm = new Realm(configuration, autoRefresh);
+        cacheConfiguration(configuration);
         realms.put(configuration, realm);
         localRefCount.put(configuration, references + 1);
 
@@ -1213,34 +1045,6 @@ public final class Realm extends RealmBase {
         super.checkIfValid();
     }
 
-    @Deprecated
-    public static void migrateRealmAtPath(String realmPath, RealmMigration migration) {
-        migrateRealmAtPath(realmPath, null, migration, true);
-    }
-
-    @Deprecated
-    public static void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration) {
-        migrateRealmAtPath(realmPath, key, migration, true);
-    }
-
-    @Deprecated
-    public static void migrateRealmAtPath(String realmPath, RealmMigration migration, boolean autoRefresh) {
-        migrateRealmAtPath(realmPath, null, migration, autoRefresh);
-    }
-
-    @Deprecated
-    public static synchronized void migrateRealmAtPath(String realmPath, byte[] key, RealmMigration migration,
-                                                       boolean autoUpdate) {
-        File file = new File(realmPath);
-        RealmConfiguration.Builder configuration = new RealmConfiguration.Builder(file.getParentFile())
-                .name(file.getName())
-                .migration(migration);
-        if (key != null) {
-            configuration.encryptionKey(key);
-        }
-        migrateRealm(configuration.build());
-    }
-
     /**
      * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the
      * latest version, nothing will happen.
@@ -1281,44 +1085,6 @@ public final class Realm extends RealmBase {
     }
 
     /**
-     * Deprecated: Use {@link #deleteRealm(RealmConfiguration)} instead.
-     *
-     * Delete the Realm file from the filesystem for the default Realm (named "default.realm").
-     * The Realm must be unused and closed before calling this method.
-     * WARNING: Your Realm must not be open (typically when your app launch).
-     *
-     * @param context an Android {@link android.content.Context}.
-     * @return false if a file could not be deleted. The failing file will be logged.
-     * @see io.realm.Realm#clear(Class)
-     *
-     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
-     */
-    @Deprecated
-    public static boolean deleteRealmFile(Context context) {
-        return deleteRealmFile(context, DEFAULT_REALM_NAME);
-    }
-
-    /**
-     * Deprecated: Use {@link #deleteRealm(RealmConfiguration)} instead.
-     *
-     * Delete the Realm file from the filesystem for a custom named Realm.
-     * The Realm must be unused and closed before calling this method.
-     *
-     * @param context  an Android {@link android.content.Context}.
-     * @param fileName the name of the custom Realm (i.e. "myCustomRealm.realm").
-     * @return false if a file could not be deleted. The failing file will be logged.
-     *
-     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
-     */
-    @Deprecated
-    public static boolean deleteRealmFile(Context context, String fileName) {
-        return deleteRealm(new RealmConfiguration.Builder(context)
-                        .name(fileName)
-                        .build()
-        );
-    }
-
-    /**
      * Delete the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
      * The Realm must be unused and closed before calling this method.
      *
@@ -1328,7 +1094,7 @@ public final class Realm extends RealmBase {
      * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static synchronized boolean deleteRealm(RealmConfiguration configuration) {
-        boolean result = true;
+        boolean realmDeleted = true;
         String canonicalPath = configuration.getPath();
         if (SharedGroupManager.isOpen(canonicalPath)) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
@@ -1346,57 +1112,13 @@ public final class Realm extends RealmBase {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
                 if (!deleteResult) {
-                    result = false;
+                    realmDeleted = false;
                     RealmLog.w("Could not delete the file " + fileToDelete);
                 }
             }
         }
-        return result;
-    }
 
-
-    /**
-     * Deprecated: Use {@link #compactRealm(RealmConfiguration)} instead.
-      *
-     * Compact a Realm file. A Realm file usually contain free/unused space.
-     * This method removes this free space and the file size is thereby reduced.
-     * Objects within the Realm files are untouched.
-     * <p>
-     * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the Realm file.<br>
-     * The Realm file is left untouched if any file operation fails.<br>
-     * Currently it is not possible to compact an encrypted Realm.<br>
-     *
-     * @param context an Android {@link android.content.Context}
-     * @param fileName the name of the file to compact
-     * @return true if successful, false if any file operation failed
-     *
-     * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
-     */
-    @Deprecated
-    public static synchronized boolean compactRealmFile(Context context, String fileName) {
-        return compactRealm(new RealmConfiguration.Builder(context).name(fileName).build());
-    }
-
-    /**
-     * Deprecated: Use {@link #compactRealm(RealmConfiguration)} instead.
-     *
-     * Compact a Realm file. A Realm file usually contain free/unused space.
-     * This method removes this free space and the file size is thereby reduced.
-     * Objects within the Realm files are untouched.
-     * <p>
-     * The file must be closed before this method is called.<br>
-     * The file system should have free space for at least a copy of the realm file.<br>
-     * The Realm file is left untouched if any file operation fails.<br>
-     *
-     * @param context an Android {@link android.content.Context}
-     * @return true if successful, false if any file operation failed
-     *
-     * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
-     */
-    @Deprecated
-    public static boolean compactRealmFile(Context context) {
-        return compactRealm(new RealmConfiguration.Builder(context).build());
+        return realmDeleted;
     }
 
     /**
