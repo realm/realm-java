@@ -49,7 +49,6 @@ public class NullTypesRealmProxy extends NullTypes
     private static long INDEX_FIELDDOUBLENULL;
     private static long INDEX_FIELDDATENOTNULL;
     private static long INDEX_FIELDDATENULL;
-    private static long INDEX_FIELDOBJECTNOTNULL;
     private static long INDEX_FIELDOBJECTNULL;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
@@ -75,7 +74,6 @@ public class NullTypesRealmProxy extends NullTypes
         fieldNames.add("fieldDoubleNull");
         fieldNames.add("fieldDateNotNull");
         fieldNames.add("fieldDateNull");
-        fieldNames.add("fieldObjectNotNull");
         fieldNames.add("fieldObjectNull");
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
@@ -415,22 +413,6 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @Override
-    public NullTypes getFieldObjectNotNull() {
-        if (row.isNullLink(INDEX_FIELDOBJECTNOTNULL)) {
-            return null;
-        }
-        return realm.getByIndex(some.test.NullTypes.class, row.getLink(INDEX_FIELDOBJECTNOTNULL));
-    }
-
-    @Override
-    public void setFieldObjectNotNull(NullTypes value) {
-        if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
-        }
-        row.setLink(INDEX_FIELDOBJECTNOTNULL, value.row.getIndex());
-    }
-
-    @Override
     public NullTypes getFieldObjectNull() {
         if (row.isNullLink(INDEX_FIELDOBJECTNULL)) {
             return null;
@@ -473,10 +455,6 @@ public class NullTypesRealmProxy extends NullTypes
             if (!transaction.hasTable("class_NullTypes")) {
                 NullTypesRealmProxy.initTable(transaction);
             }
-            table.addColumnLink(ColumnType.LINK, "fieldObjectNotNull", transaction.getTable("class_NullTypes"));
-            if (!transaction.hasTable("class_NullTypes")) {
-                NullTypesRealmProxy.initTable(transaction);
-            }
             table.addColumnLink(ColumnType.LINK, "fieldObjectNull", transaction.getTable("class_NullTypes"));
             table.setPrimaryKey("");
             return table;
@@ -487,11 +465,11 @@ public class NullTypesRealmProxy extends NullTypes
     public static void validateTable(ImplicitTransaction transaction) {
         if (transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
-            if (table.getColumnCount() != 22) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 22 but was " + table.getColumnCount());
+            if (table.getColumnCount() != 21) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 21 but was " + table.getColumnCount());
             }
             Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
-            for (long i = 0; i < 22; i++) {
+            for (long i = 0; i < 21; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
@@ -523,7 +501,6 @@ public class NullTypesRealmProxy extends NullTypes
             INDEX_FIELDDOUBLENULL = table.getColumnIndex("fieldDoubleNull");
             INDEX_FIELDDATENOTNULL = table.getColumnIndex("fieldDateNotNull");
             INDEX_FIELDDATENULL = table.getColumnIndex("fieldDateNull");
-            INDEX_FIELDOBJECTNOTNULL = table.getColumnIndex("fieldObjectNotNull");
             INDEX_FIELDOBJECTNULL = table.getColumnIndex("fieldObjectNull");
 
             if (!columnTypes.containsKey("fieldStringNotNull")) {
@@ -706,19 +683,6 @@ public class NullTypesRealmProxy extends NullTypes
             if (!table.isColumnNullable(INDEX_FIELDDATENULL)) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldDateNull'");
             }
-            if (!columnTypes.containsKey("fieldObjectNotNull")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldObjectNotNull'");
-            }
-            if (columnTypes.get("fieldObjectNotNull") != ColumnType.LINK) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'NullTypes' for field 'fieldObjectNotNull'");
-            }
-            if (!transaction.hasTable("class_NullTypes")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing class 'class_NullTypes' for field 'fieldObjectNotNull'");
-            }
-            Table table_20 = transaction.getTable("class_NullTypes");
-            if (!table.getLinkTarget(INDEX_FIELDOBJECTNOTNULL).hasSameSchema(table_20)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmObject for field 'fieldObjectNotNull': '" + table.getLinkTarget(INDEX_FIELDOBJECTNOTNULL).getName() + "' expected - was '" + table_20.getName() + "'");
-            }
             if (!columnTypes.containsKey("fieldObjectNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldObjectNull'");
             }
@@ -728,9 +692,9 @@ public class NullTypesRealmProxy extends NullTypes
             if (!transaction.hasTable("class_NullTypes")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing class 'class_NullTypes' for field 'fieldObjectNull'");
             }
-            Table table_21 = transaction.getTable("class_NullTypes");
-            if (!table.getLinkTarget(INDEX_FIELDOBJECTNULL).hasSameSchema(table_21)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmObject for field 'fieldObjectNull': '" + table.getLinkTarget(INDEX_FIELDOBJECTNULL).getName() + "' expected - was '" + table_21.getName() + "'");
+            Table table_20 = transaction.getTable("class_NullTypes");
+            if (!table.getLinkTarget(INDEX_FIELDOBJECTNULL).hasSameSchema(table_20)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid RealmObject for field 'fieldObjectNull': '" + table.getLinkTarget(INDEX_FIELDOBJECTNULL).getName() + "' expected - was '" + table_20.getName() + "'");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The NullTypes class is missing from the schema for this Realm.");
@@ -902,14 +866,6 @@ public class NullTypesRealmProxy extends NullTypes
                 }
             }
         }
-        if (json.has("fieldObjectNotNull")) {
-            if (json.isNull("fieldObjectNotNull")) {
-                obj.setFieldObjectNotNull(null);
-            } else {
-                some.test.NullTypes fieldObjectNotNullObj = NullTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("fieldObjectNotNull"), update);
-                obj.setFieldObjectNotNull(fieldObjectNotNullObj);
-            }
-        }
         if (json.has("fieldObjectNull")) {
             if (json.isNull("fieldObjectNull")) {
                 obj.setFieldObjectNull(null);
@@ -1077,14 +1033,6 @@ public class NullTypesRealmProxy extends NullTypes
                 } else {
                     obj.setFieldDateNull(JsonUtils.stringToDate(reader.nextString()));
                 }
-            } else if (name.equals("fieldObjectNotNull")) {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.skipValue();
-                    obj.setFieldObjectNotNull(null);
-                } else {
-                    some.test.NullTypes fieldObjectNotNullObj = NullTypesRealmProxy.createUsingJsonStream(realm, reader);
-                    obj.setFieldObjectNotNull(fieldObjectNotNullObj);
-                }
             } else if (name.equals("fieldObjectNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
@@ -1132,18 +1080,6 @@ public class NullTypesRealmProxy extends NullTypes
         realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull());
         realmObject.setFieldDateNull(newObject.getFieldDateNull());
 
-        some.test.NullTypes fieldObjectNotNullObj = newObject.getFieldObjectNotNull();
-        if (fieldObjectNotNullObj != null) {
-            some.test.NullTypes cachefieldObjectNotNull = (some.test.NullTypes) cache.get(fieldObjectNotNullObj);
-            if (cachefieldObjectNotNull != null) {
-                realmObject.setFieldObjectNotNull(cachefieldObjectNotNull);
-            } else {
-                realmObject.setFieldObjectNotNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNotNullObj, update, cache));
-            }
-        } else {
-            realmObject.setFieldObjectNotNull(null);
-        }
-
         some.test.NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
         if (fieldObjectNullObj != null) {
             some.test.NullTypes cachefieldObjectNull = (some.test.NullTypes) cache.get(fieldObjectNullObj);
@@ -1179,17 +1115,6 @@ public class NullTypesRealmProxy extends NullTypes
         realmObject.setFieldDoubleNull(newObject.getFieldDoubleNull());
         realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull());
         realmObject.setFieldDateNull(newObject.getFieldDateNull());
-        NullTypes fieldObjectNotNullObj = newObject.getFieldObjectNotNull();
-        if (fieldObjectNotNullObj != null) {
-            NullTypes cachefieldObjectNotNull = (NullTypes) cache.get(fieldObjectNotNullObj);
-            if (cachefieldObjectNotNull != null) {
-                realmObject.setFieldObjectNotNull(cachefieldObjectNotNull);
-            } else {
-                realmObject.setFieldObjectNotNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNotNullObj, true, cache));
-            }
-        } else {
-            realmObject.setFieldObjectNotNull(null);
-        }
         NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
         if (fieldObjectNullObj != null) {
             NullTypes cachefieldObjectNull = (NullTypes) cache.get(fieldObjectNullObj);
@@ -1288,10 +1213,6 @@ public class NullTypesRealmProxy extends NullTypes
         stringBuilder.append(",");
         stringBuilder.append("{fieldDateNull:");
         stringBuilder.append(getFieldDateNull() != null ? getFieldDateNull() : "null");
-        stringBuilder.append("}");
-        stringBuilder.append(",");
-        stringBuilder.append("{fieldObjectNotNull:");
-        stringBuilder.append(getFieldObjectNotNull() != null ? "NullTypes" : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldObjectNull:");
