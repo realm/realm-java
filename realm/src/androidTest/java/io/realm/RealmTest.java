@@ -16,9 +16,7 @@
 package io.realm;
 
 import android.content.Context;
-import android.os.SystemClock;
 import android.test.AndroidTestCase;
-import android.util.Log;
 
 import junit.framework.AssertionFailedError;
 
@@ -29,8 +27,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.Reference;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -43,7 +39,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllTypes;
@@ -62,7 +57,6 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
-import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -1251,7 +1245,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnFloat(1.23F);
                 obj.setColumnDouble(1.234D);
                 obj.setColumnBoolean(false);
-                obj.setColumnBinary(new byte[]{1, 2, 3});
+                obj.setColumnBinary(new byte[] {1, 2, 3});
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
@@ -1263,7 +1257,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnFloat(2.23F);
                 obj2.setColumnDouble(2.234D);
                 obj2.setColumnBoolean(true);
-                obj2.setColumnBinary(new byte[]{2, 3, 4});
+                obj2.setColumnBinary(new byte[] {2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
@@ -1280,7 +1274,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(2.23F, obj.getColumnFloat());
         assertEquals(2.234D, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertArrayEquals(new byte[]{2, 3, 4}, obj.getColumnBinary());
+        assertArrayEquals(new byte[] {2, 3, 4}, obj.getColumnBinary());
         assertEquals(new Date(2000), obj.getColumnDate());
         assertEquals("Dog3", obj.getColumnRealmObject().getName());
         assertEquals(1, obj.getColumnRealmList().size());
@@ -1683,56 +1677,6 @@ public class RealmTest extends AndroidTestCase {
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
     }
-
-    // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
-/*    // Check that FinalizerRunnable can free native resources (phantom refs)
-    public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
-        Field sharedGroupReference = Realm.class.getDeclaredField("sharedGroup");
-        sharedGroupReference.setAccessible(true);
-        SharedGroup sharedGroup = (SharedGroup) sharedGroupReference.get(testRealm);
-        assertNotNull(sharedGroup);
-
-        Field contextField = SharedGroup.class.getDeclaredField("context");
-        contextField.setAccessible(true);
-        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(sharedGroup);
-        assertNotNull(context);
-
-        Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
-        rowReferencesField.setAccessible(true);
-        List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);
-        assertNotNull(rowReferences);
-
-
-        // insert some rows, then give the thread some time to cleanup
-        // we have 8 reference so far let's add more
-        final int numberOfPopulateTest = 1000;
-        final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
-
-        long tic = System.currentTimeMillis();
-        for (int i = 0; i < numberOfPopulateTest; i++) {
-            populateTestRealm(testRealm, 20);
-        }
-        long toc = System.currentTimeMillis();
-        Log.d(RealmTest.class.getName(), "Insertion time: " + (toc - tic));
-
-        final int MAX_GC_RETRIES = 5;
-        int numberOfRetries = 0;
-        while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
-            SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
-            numberOfRetries++;
-            System.gc();
-        }
-
-        // we can't guarantee that all references have been GC'd but we should detect a decrease
-        boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
-        if (!isDecreasing) {
-            fail("Native resources are not being closed");
-
-        } else {
-            android.util.Log.d(RealmTest.class.getName(), "References freed : "
-                    + (totalNumberOfReferences - rowReferences.size()) + " out of " + totalNumberOfReferences);
-        }
-    }*/
 
     public void testCannotCreateDynamicRealmObject() {
         testRealm.beginTransaction();
