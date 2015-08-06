@@ -333,7 +333,7 @@ public class RealmProcessorTest {
     @Test
     public void compileRequiredTypes() throws IOException {
         final String validPrimaryKeyFieldTypes[] = {"Byte", "Short", "Integer", "Long", "String", "Float", "Double", "Boolean",
-                "java.util.Date", "Simple"};
+                "java.util.Date"};
 
         for (String fieldType : validPrimaryKeyFieldTypes) {
             TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
@@ -348,7 +348,7 @@ public class RealmProcessorTest {
     // Supported "Required" annotation types
     @Test
     public void compileInvalidRequiredTypes() throws IOException {
-        final String validPrimaryKeyFieldTypes[] = {"byte", "short", "int", "long", "RealmList<Simple>"};
+        final String validPrimaryKeyFieldTypes[] = {"byte", "short", "int", "long", "RealmList<Simple>", "Simple"};
 
         for (String fieldType : validPrimaryKeyFieldTypes) {
             TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
