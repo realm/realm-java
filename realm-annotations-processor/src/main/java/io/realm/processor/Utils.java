@@ -84,6 +84,19 @@ public class Utils {
                 typeString.equals("boolean") || typeString.equals("char");
     }
 
+    /**
+     * Return true if a field is a type of primitive types.
+     */
+    public static boolean isPrimitiveType(VariableElement field) {
+        if (field == null) {
+            return false;
+        }
+        return field.asType().getKind().isPrimitive();
+    }
+
+    /**
+     * Returns true if a field is of type "byte[]", false otherwise.
+     */
     public static boolean isByteArray(VariableElement field) {
         if (field == null) {
             return false;
