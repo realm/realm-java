@@ -1684,7 +1684,8 @@ public class RealmTest extends AndroidTestCase {
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
     }
 
-    // Check that FinalizerRunnable can free native resources (phantom refs)
+    // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
+/*    // Check that FinalizerRunnable can free native resources (phantom refs)
     public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
         Field sharedGroupReference = Realm.class.getDeclaredField("sharedGroup");
         sharedGroupReference.setAccessible(true);
@@ -1731,7 +1732,7 @@ public class RealmTest extends AndroidTestCase {
             android.util.Log.d(RealmTest.class.getName(), "References freed : "
                     + (totalNumberOfReferences - rowReferences.size()) + " out of " + totalNumberOfReferences);
         }
-    }
+    }*/
 
     public void testCannotCreateDynamicRealmObject() {
         testRealm.beginTransaction();
