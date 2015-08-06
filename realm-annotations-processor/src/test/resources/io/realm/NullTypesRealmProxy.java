@@ -753,7 +753,7 @@ public class NullTypesRealmProxy extends NullTypes
         NullTypes obj = realm.createObject(NullTypes.class);
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldStringNotNull to null.");
+                obj.setFieldStringNotNull(null);
             } else {
                 obj.setFieldStringNotNull((String) json.getString("fieldStringNotNull"));
             }
@@ -767,7 +767,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldBooleanNotNull")) {
             if (json.isNull("fieldBooleanNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldBooleanNotNull to null.");
+                obj.setFieldBooleanNotNull(null);
             } else {
                 obj.setFieldBooleanNotNull((boolean) json.getBoolean("fieldBooleanNotNull"));
             }
@@ -781,7 +781,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldBytesNotNull")) {
             if (json.isNull("fieldBytesNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldBytesNotNull to null.");
+                obj.setFieldBytesNotNull(null);
             } else {
                 obj.setFieldBytesNotNull(JsonUtils.stringToBytes(json.getString("fieldBytesNotNull")));
             }
@@ -795,7 +795,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldByteNotNull")) {
             if (json.isNull("fieldByteNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldByteNotNull to null.");
+                obj.setFieldByteNotNull(null);
             } else {
                 obj.setFieldByteNotNull((byte) json.getInt("fieldByteNotNull"));
             }
@@ -809,7 +809,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldShortNotNull")) {
             if (json.isNull("fieldShortNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldShortNotNull to null.");
+                obj.setFieldShortNotNull(null);
             } else {
                 obj.setFieldShortNotNull((short) json.getInt("fieldShortNotNull"));
             }
@@ -823,7 +823,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldIntegerNotNull")) {
             if (json.isNull("fieldIntegerNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldIntegerNotNull to null.");
+                obj.setFieldIntegerNotNull(null);
             } else {
                 obj.setFieldIntegerNotNull((int) json.getInt("fieldIntegerNotNull"));
             }
@@ -837,7 +837,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldLongNotNull")) {
             if (json.isNull("fieldLongNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldLongNotNull to null.");
+                obj.setFieldLongNotNull(null);
             } else {
                 obj.setFieldLongNotNull((long) json.getLong("fieldLongNotNull"));
             }
@@ -851,7 +851,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldFloatNotNull")) {
             if (json.isNull("fieldFloatNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldFloatNotNull to null.");
+                obj.setFieldFloatNotNull(null);
             } else {
                 obj.setFieldFloatNotNull((float) json.getDouble("fieldFloatNotNull"));
             }
@@ -865,7 +865,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldDoubleNotNull")) {
             if (json.isNull("fieldDoubleNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldDoubleNotNull to null.");
+                obj.setFieldDoubleNotNull(null);
             } else {
                 obj.setFieldDoubleNotNull((double) json.getDouble("fieldDoubleNotNull"));
             }
@@ -879,7 +879,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldDateNotNull")) {
             if (json.isNull("fieldDateNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldDateNotNull to null.");
+                obj.setFieldDateNotNull(null);
             } else {
                 Object timestamp = json.get("fieldDateNotNull");
                 if (timestamp instanceof String) {
@@ -903,7 +903,7 @@ public class NullTypesRealmProxy extends NullTypes
         }
         if (json.has("fieldObjectNotNull")) {
             if (json.isNull("fieldObjectNotNull")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
+                obj.setFieldObjectNotNull(null);
             } else {
                 some.test.NullTypes fieldObjectNotNullObj = NullTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("fieldObjectNotNull"), update);
                 obj.setFieldObjectNotNull(fieldObjectNotNullObj);
@@ -929,7 +929,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (name.equals("fieldStringNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldStringNotNull to null.");
+                    obj.setFieldStringNotNull(null);
                 } else {
                     obj.setFieldStringNotNull((String) reader.nextString());
                 }
@@ -943,7 +943,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldBooleanNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldBooleanNotNull to null.");
+                    obj.setFieldBooleanNotNull(null);
                 } else {
                     obj.setFieldBooleanNotNull((boolean) reader.nextBoolean());
                 }
@@ -957,7 +957,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldBytesNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldBytesNotNull to null.");
+                    obj.setFieldBytesNotNull(null);
                 } else {
                     obj.setFieldBytesNotNull(JsonUtils.stringToBytes(reader.nextString()));
                 }
@@ -971,7 +971,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldByteNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldByteNotNull to null.");
+                    obj.setFieldByteNotNull(null);
                 } else {
                     obj.setFieldByteNotNull((byte) reader.nextInt());
                 }
@@ -985,7 +985,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldShortNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldShortNotNull to null.");
+                    obj.setFieldShortNotNull(null);
                 } else {
                     obj.setFieldShortNotNull((short) reader.nextInt());
                 }
@@ -999,7 +999,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldIntegerNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldIntegerNotNull to null.");
+                    obj.setFieldIntegerNotNull(null);
                 } else {
                     obj.setFieldIntegerNotNull((int) reader.nextInt());
                 }
@@ -1013,7 +1013,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldLongNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldLongNotNull to null.");
+                    obj.setFieldLongNotNull(null);
                 } else {
                     obj.setFieldLongNotNull((long) reader.nextLong());
                 }
@@ -1027,7 +1027,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldFloatNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldFloatNotNull to null.");
+                    obj.setFieldFloatNotNull(null);
                 } else {
                     obj.setFieldFloatNotNull((float) reader.nextDouble());
                 }
@@ -1041,7 +1041,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldDoubleNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldDoubleNotNull to null.");
+                    obj.setFieldDoubleNotNull(null);
                 } else {
                     obj.setFieldDoubleNotNull((double) reader.nextDouble());
                 }
@@ -1055,7 +1055,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldDateNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldDateNotNull to null.");
+                    obj.setFieldDateNotNull(null);
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
@@ -1079,7 +1079,7 @@ public class NullTypesRealmProxy extends NullTypes
             } else if (name.equals("fieldObjectNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
+                    obj.setFieldObjectNotNull(null);
                 } else {
                     some.test.NullTypes fieldObjectNotNullObj = NullTypesRealmProxy.createUsingJsonStream(realm, reader);
                     obj.setFieldObjectNotNull(fieldObjectNotNullObj);
@@ -1140,7 +1140,7 @@ public class NullTypesRealmProxy extends NullTypes
                 realmObject.setFieldObjectNotNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNotNullObj, update, cache));
             }
         } else {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
+            realmObject.setFieldObjectNotNull(null);
         }
 
         some.test.NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
@@ -1187,7 +1187,7 @@ public class NullTypesRealmProxy extends NullTypes
                 realmObject.setFieldObjectNotNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNotNullObj, true, cache));
             }
         } else {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldObjectNotNull to null.");
+            realmObject.setFieldObjectNotNull(null);
         }
         NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
         if (fieldObjectNullObj != null) {
