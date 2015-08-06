@@ -248,7 +248,11 @@ public final class Realm implements Closeable {
             // It is necessary to be synchronized here since there is a chance that before the counter removed,
             // the other thread could get the counter and increase it in createAndValidate.
             synchronized (Realm.class) {
-                globalPathConfigurationCache.get(canonicalPath).remove(configuration);
+                List<RealmConfiguration>  pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+                pathConfigurationCache.remove(configuration);
+                if (pathConfigurationCache.isEmpty()) {
+                    globalPathConfigurationCache.remove(canonicalPath);
+                }
                 AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
                 if (counter.decrementAndGet() == 0) {
                     globalOpenInstanceCounter.remove(canonicalPath);
@@ -588,7 +592,12 @@ public final class Realm implements Closeable {
         // faulty cache data.
         validateAgainstExistingConfigurations(configuration);
         realm = new Realm(configuration, autoRefresh);
-        globalPathConfigurationCache.get(canonicalPath).add(configuration);
+        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+        if (pathConfigurationCache == null) {
+            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+        }
+        pathConfigurationCache.add(configuration);
         realms.put(configuration, realm);
         localRefCount.put(configuration, references + 1);
 
@@ -633,12 +642,8 @@ public final class Realm implements Closeable {
         // Ensure cache state
         String realmPath = newConfiguration.getPath();
         List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
-        if (pathConfigurationCache == null) {
-            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-            globalPathConfigurationCache.put(realmPath, pathConfigurationCache);
-        }
 
-        if (pathConfigurationCache.size() > 0) {
+        if (pathConfigurationCache != null && pathConfigurationCache.size() > 0) {
 
             // For the current restrictions, it is enough to just check one of the existing configurations.
             RealmConfiguration cachedConfiguration = pathConfigurationCache.get(0);

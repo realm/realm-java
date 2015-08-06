@@ -1773,6 +1773,7 @@ public class RealmTest extends AndroidTestCase {
 
     // We should not cache wrong configurations
     public void testDontCacheWrongConfigurations() throws IOException {
+        testRealm.close();
         String REALM_NAME = "encrypted.realm";
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
 
@@ -1799,6 +1800,7 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testDeletingRealmAlsoClearsConfigurationCache() throws IOException {
+        testRealm.close();
         String REALM_NAME = "encrypted.realm";
         byte[] oldPassword = TestHelper.SHA512("realm");
         byte[] newPassword = TestHelper.SHA512("realm-copy");
@@ -1813,6 +1815,7 @@ public class RealmTest extends AndroidTestCase {
         // 1. Write a copy of the encrypted Realm to a new file
         testRealm = Realm.getInstance(config);
         File copiedRealm = new File(config.getRealmFolder(), "encrypted-copy.realm");
+        copiedRealm.delete();
         testRealm.writeEncryptedCopyTo(copiedRealm, newPassword);
         testRealm.close();
         testRealm = null;
