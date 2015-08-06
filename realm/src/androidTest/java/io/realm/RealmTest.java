@@ -1770,4 +1770,71 @@ public class RealmTest extends AndroidTestCase {
         testRealm.checkIfValid();
         testRealm.close();
     }
+
+    // We should not cache wrong configurations
+    public void testDontCacheWrongConfigurations() throws IOException {
+        testRealm.close();
+        String REALM_NAME = "encrypted.realm";
+        TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+
+        RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
+                .name(REALM_NAME)
+                .encryptionKey(TestHelper.SHA512("foo"))
+                .build();
+
+        RealmConfiguration rightConfig = new RealmConfiguration.Builder(getContext())
+                .name(REALM_NAME)
+                .encryptionKey(TestHelper.SHA512("realm"))
+                .build();
+
+        // Open Realm with wrong key
+        try {
+            testRealm = Realm.getInstance(wrongConfig);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Try again with proper key
+        testRealm = Realm.getInstance(rightConfig);
+        assertNotNull(testRealm);
+    }
+
+    public void testDeletingRealmAlsoClearsConfigurationCache() throws IOException {
+        testRealm.close();
+        String REALM_NAME = "encrypted.realm";
+        byte[] oldPassword = TestHelper.SHA512("realm");
+        byte[] newPassword = TestHelper.SHA512("realm-copy");
+
+        TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext())
+                .name(REALM_NAME)
+                .encryptionKey(oldPassword)
+                .build();
+
+        // 1. Write a copy of the encrypted Realm to a new file
+        testRealm = Realm.getInstance(config);
+        File copiedRealm = new File(config.getRealmFolder(), "encrypted-copy.realm");
+        copiedRealm.delete();
+        testRealm.writeEncryptedCopyTo(copiedRealm, newPassword);
+        testRealm.close();
+        testRealm = null;
+
+        // 2. Delete the old Realm.
+        Realm.deleteRealm(config);
+
+        // 3. Rename the new file to the old file name.
+        copiedRealm.renameTo(new File(config.getRealmFolder(), REALM_NAME));
+
+        // 4. Try to open the file again with the new password
+        // If the configuration cache wasn't cleared this would fail as we would detect two
+        // configurations with 2 different passwords pointing to the same file.
+        RealmConfiguration newConfig = new RealmConfiguration.Builder(getContext())
+                .name(REALM_NAME)
+                .encryptionKey(newPassword)
+                .build();
+
+        testRealm = Realm.getInstance(newConfig);
+        assertNotNull(testRealm);
+    }
 }

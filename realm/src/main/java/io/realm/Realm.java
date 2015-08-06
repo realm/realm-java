@@ -192,7 +192,13 @@ public final class Realm implements Closeable {
         }
     }
 
-    // The constructor in private to enforce the use of the static one
+    /**
+     * The constructor is private to enforce the use of the static one.
+     *
+     * @param configuration Configuration used to open the Realm.
+     * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
+     * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
+     */
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
@@ -242,7 +248,11 @@ public final class Realm implements Closeable {
             // It is necessary to be synchronized here since there is a chance that before the counter removed,
             // the other thread could get the counter and increase it in createAndValidate.
             synchronized (Realm.class) {
-                globalPathConfigurationCache.get(canonicalPath).remove(configuration);
+                List<RealmConfiguration>  pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+                pathConfigurationCache.remove(configuration);
+                if (pathConfigurationCache.isEmpty()) {
+                    globalPathConfigurationCache.remove(canonicalPath);
+                }
                 AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
                 if (counter.decrementAndGet() == 0) {
                     globalOpenInstanceCounter.remove(canonicalPath);
@@ -578,11 +588,16 @@ public final class Realm implements Closeable {
             return realm;
         }
 
-
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
         // faulty cache data.
         validateAgainstExistingConfigurations(configuration);
         realm = new Realm(configuration, autoRefresh);
+        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+        if (pathConfigurationCache == null) {
+            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+        }
+        pathConfigurationCache.add(configuration);
         realms.put(configuration, realm);
         localRefCount.put(configuration, references + 1);
 
@@ -627,12 +642,8 @@ public final class Realm implements Closeable {
         // Ensure cache state
         String realmPath = newConfiguration.getPath();
         List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
-        if (pathConfigurationCache == null) {
-            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-            globalPathConfigurationCache.put(realmPath, pathConfigurationCache);
-        }
 
-        if (pathConfigurationCache.size() > 0) {
+        if (pathConfigurationCache != null && pathConfigurationCache.size() > 0) {
 
             // For the current restrictions, it is enough to just check one of the existing configurations.
             RealmConfiguration cachedConfiguration = pathConfigurationCache.get(0);
@@ -665,9 +676,6 @@ public final class Realm implements Closeable {
                         "configurations pointing to " + newConfiguration.getPath() + " are being used.");
             }
         }
-
-        // The new configuration doesn't violate existing configurations. Cache it.
-        pathConfigurationCache.add(newConfiguration);
     }
 
     @SuppressWarnings("unchecked")
@@ -1706,7 +1714,7 @@ public final class Realm implements Closeable {
      * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static synchronized boolean deleteRealm(RealmConfiguration configuration) {
-        boolean result = true;
+        boolean realmDeleted = true;
 
         String id = configuration.getPath();
         AtomicInteger counter = globalOpenInstanceCounter.get(id);
@@ -1726,12 +1734,13 @@ public final class Realm implements Closeable {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
                 if (!deleteResult) {
-                    result = false;
+                    realmDeleted = false;
                     RealmLog.w("Could not delete the file " + fileToDelete);
                 }
             }
         }
-        return result;
+
+        return realmDeleted;
     }
 
 
