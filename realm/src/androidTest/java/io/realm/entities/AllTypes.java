@@ -20,18 +20,21 @@ import java.util.Date;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Required;
 
 public class AllTypes extends RealmObject {
+    @Required
     private String columnString;
     private long columnLong;
     private float columnFloat;
     private double columnDouble;
     private boolean columnBoolean;
+    @Required
     private Date columnDate;
+    @Required
     private byte[] columnBinary;
     private Dog columnRealmObject;
     private RealmList<Dog> columnRealmList;
-    private Boolean columnBoxedBoolean;
 
     public String getColumnString() {
         return columnString;
@@ -103,13 +106,5 @@ public class AllTypes extends RealmObject {
 
     public void setColumnRealmList(RealmList<Dog> columnRealmList) {
         this.columnRealmList = columnRealmList;
-    }
-
-    public Boolean getColumnBoxedBoolean() {
-        return columnBoxedBoolean;
-    }
-
-    public void setColumnBoxedBoolean(Boolean columnBoxedBoolean) {
-        this.columnBoxedBoolean = columnBoxedBoolean;
     }
 }

@@ -31,7 +31,6 @@ public class NullTypes extends RealmObject {
     public static String FIELD_BYTES_NULL = "fieldBytesNull";
     public static String FIELD_BOOLEAN_NOT_NULL = "fieldBooleanNotNull";
     public static String FIELD_BOOLEAN_NULL = "fieldBooleanNull";
-
     public static String FIELD_BYTE_NOT_NULL = "fieldByteNotNull";
     public static String FIELD_BYTE_NULL = "fieldByteNull";
     public static String FIELD_SHORT_NOT_NULL = "fieldShortNotNull";
@@ -46,6 +45,8 @@ public class NullTypes extends RealmObject {
     public static String FIELD_DOUBLE_NULL = "fieldDoubleNull";
     public static String FIELD_DATE_NOT_NULL = "fieldDateNotNull";
     public static String FIELD_DATE_NULL = "fieldDateNull";
+    public static String FIELD_OBJECT_NULL = "fieldObjectNull";
+
 
     @PrimaryKey
     private int id;
@@ -89,6 +90,8 @@ public class NullTypes extends RealmObject {
     @Required
     private Date fieldDateNotNull;
     private Date fieldDateNull;
+
+    private NullTypes fieldObjectNull;
 
     public int getId() {
         return id;
@@ -258,4 +261,11 @@ public class NullTypes extends RealmObject {
         this.fieldDateNull = fieldDateNull;
     }
 
+    public NullTypes getFieldObjectNull() {
+        return fieldObjectNull;
+    }
+
+    public void setFieldObjectNull(NullTypes fieldObjectNull) {
+        this.fieldObjectNull = fieldObjectNull;
+    }
 }

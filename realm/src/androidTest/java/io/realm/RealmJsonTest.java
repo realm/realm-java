@@ -23,6 +23,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -43,7 +44,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
+        Realm.deleteRealm(new RealmConfiguration.Builder(getContext()).build());
         testRealm = Realm.getInstance(getContext());
     }
 
@@ -52,16 +53,13 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.close();
     }
 
-    private InputStream loadJsonFromAssets(String file) {
+    private InputStream loadJsonFromAssets(String file) throws IOException {
         AssetManager assetManager = getContext().getAssets();
-        InputStream input = null;
-        try {
-            input = assetManager.open(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            return input;
-        }
+        return assetManager.open(file);
+    }
+
+    private InputStream convertJsonObjectToStream(JSONObject obj) {
+        return new ByteArrayInputStream(obj.toString().getBytes());
     }
 
     public void testCreateObjectFromJson_nullObject() {
@@ -231,17 +229,10 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(1, testRealm.where(Dog.class).equalTo("name", "Fido-3").findAll().size());
     }
 
-    public void testCreateObjectFromJson_nullValues() throws JSONException {
+    // Test if Json object doesn't have the field, then the field should have default value.
+    public void testCreateObjectFromJson_noValues() throws JSONException {
         JSONObject json = new JSONObject();
-        json.put("columnString", JSONObject.NULL);
-        json.put("columnLong", JSONObject.NULL);
-        json.put("columnFloat", JSONObject.NULL);
-        json.put("columnDouble", JSONObject.NULL);
-        json.put("columnBoolean", JSONObject.NULL);
-        json.put("columnBinary", JSONObject.NULL);
-        json.put("columnDate", JSONObject.NULL);
-        json.put("columnRealmObject", JSONObject.NULL);
-        json.put("columnRealmList", JSONObject.NULL);
+        json.put("noThingHere", JSONObject.NULL);
 
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, json);
@@ -249,13 +240,13 @@ public class RealmJsonTest extends AndroidTestCase {
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
 
         // Check that all primitive types are imported correctly
-        assertNull(obj.getColumnString());
+        assertEquals("", obj.getColumnString());
         assertEquals(0L, obj.getColumnLong());
         assertEquals(0f, obj.getColumnFloat());
         assertEquals(0d, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
         assertEquals(new Date(0), obj.getColumnDate());
-        assertNull(obj.getColumnBinary());
+        assertArrayEquals(new byte[0], obj.getColumnBinary());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
@@ -416,8 +407,9 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
 
-    public void testCreateObjectFromJsonStream_nullValues() throws IOException {
-        InputStream in = loadJsonFromAssets("all_types_null.json");
+    // Test if Json object doesn't have the field, then the field should have default value. Stream version.
+    public void testCreateObjectFromJsonStream_noValues() throws IOException {
+        InputStream in = loadJsonFromAssets("all_types_no_value.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -425,13 +417,13 @@ public class RealmJsonTest extends AndroidTestCase {
 
         // Check that all primitive types are imported correctly
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
-        assertNull(obj.getColumnString());
+        assertEquals("", obj.getColumnString());
         assertEquals(0L, obj.getColumnLong());
         assertEquals(0f, obj.getColumnFloat());
         assertEquals(0d, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
         assertEquals(new Date(0), obj.getColumnDate());
-        assertNull(obj.getColumnBinary());
+        assertArrayEquals(new byte[0], obj.getColumnBinary());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
@@ -625,8 +617,80 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals("Dog5", obj.getColumnRealmList().get(0).getName());
     }
 
-    // FIXME: Update nullable to null doesn't work right now. Add a case about that
-    public void testNullTypesJSONwithNulls() throws IOException, JSONException {
+    // Check the imported object from nulltyps.json[0].
+    private void checkNullableValuesNull(NullTypes nullTypes1) {
+        // 1 String
+        assertNull(nullTypes1.getFieldStringNull());
+        assertEquals("", nullTypes1.getFieldStringNotNull());
+        // 2 Bytes
+        assertNull(nullTypes1.getFieldBytesNull());
+        assertTrue(Arrays.equals(new byte[0], nullTypes1.getFieldBytesNotNull()));
+        // 3 Boolean
+        assertNull(nullTypes1.getFieldBooleanNull());
+        assertFalse(nullTypes1.getFieldBooleanNotNull());
+        // 4 Byte
+        assertNull(nullTypes1.getFieldByteNull());
+        assertEquals(0, nullTypes1.getFieldByteNotNull().byteValue());
+        // 5 Short
+        assertNull(nullTypes1.getFieldShortNull());
+        assertEquals(0, nullTypes1.getFieldShortNotNull().shortValue());
+        // 6 Integer
+        assertNull(nullTypes1.getFieldIntegerNull());
+        assertEquals(0, nullTypes1.getFieldIntegerNotNull().intValue());
+        // 7 Long
+        assertNull(nullTypes1.getFieldLongNull());
+        assertEquals(0, nullTypes1.getFieldLongNotNull().longValue());
+        // 8 Float
+        assertNull(nullTypes1.getFieldFloatNull());
+        assertEquals(0F, nullTypes1.getFieldFloatNotNull());
+        // 9 Double
+        assertNull(nullTypes1.getFieldDoubleNull());
+        assertEquals(0D, nullTypes1.getFieldDoubleNotNull());
+        // 10 Date
+        assertNull(nullTypes1.getFieldDateNull());
+        assertEquals(new Date(0), nullTypes1.getFieldDateNotNull());
+        // 11 RealmObject
+        assertNull(nullTypes1.getFieldObjectNull());
+    }
+
+    // Check the imported object from nulltyps.json[1].
+    private void checkNullableValuesNonNull(NullTypes nullTypes2) {
+        // 1 String
+        assertEquals("", nullTypes2.getFieldStringNull());
+        assertEquals("", nullTypes2.getFieldStringNotNull());
+        // 2 Bytes
+        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNull()));
+        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNotNull()));
+        // 3 Boolean
+        assertFalse(nullTypes2.getFieldBooleanNull());
+        assertFalse(nullTypes2.getFieldBooleanNotNull());
+        // 4 Byte
+        assertEquals(0, nullTypes2.getFieldByteNull().byteValue());
+        assertEquals(0, nullTypes2.getFieldByteNotNull().byteValue());
+        // 5 Short
+        assertEquals(0, nullTypes2.getFieldShortNull().shortValue());
+        assertEquals(0, nullTypes2.getFieldShortNotNull().shortValue());
+        // 6 Integer
+        assertEquals(0, nullTypes2.getFieldIntegerNull().intValue());
+        assertEquals(0, nullTypes2.getFieldIntegerNotNull().intValue());
+        // 7 Long
+        assertEquals(0, nullTypes2.getFieldLongNull().longValue());
+        assertEquals(0, nullTypes2.getFieldLongNotNull().longValue());
+        // 8 Float
+        assertEquals(0F, nullTypes2.getFieldFloatNull());
+        assertEquals(0F, nullTypes2.getFieldFloatNotNull());
+        // 9 Double
+        assertEquals(0D, nullTypes2.getFieldDoubleNull());
+        assertEquals(0D, nullTypes2.getFieldDoubleNotNull());
+        // 10 Date
+        assertEquals(new Date(0), nullTypes2.getFieldDateNull());
+        assertEquals(new Date(0), nullTypes2.getFieldDateNotNull());
+        // 11 RealmObject
+        assertNotNull(nullTypes2.getFieldObjectNull());
+    }
+
+    // Testing create objects from Json, all nullable fields with null values or non-null values
+    public void testNullTypesJsonWithNulls() throws IOException, JSONException {
         String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes.json"));
         JSONArray array = new JSONArray(json);
         testRealm.beginTransaction();
@@ -634,111 +698,236 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         RealmResults<NullTypes> nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
-
-        assertEquals(2, nullTypesRealmResults.size());
+        assertEquals(3, nullTypesRealmResults.size());
 
         NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
-        assertNull(nullTypes1.getFieldStringNull());
-        assertEquals("", nullTypes1.getFieldStringNotNull());
-        assertNull(nullTypes1.getFieldBytesNull());
-        assertTrue(Arrays.equals(new byte[0], nullTypes1.getFieldBytesNotNull()));
-        assertNull(nullTypes1.getFieldBooleanNull());
-        assertFalse(nullTypes1.getFieldBooleanNotNull());
+        checkNullableValuesNull(nullTypes1);
 
         NullTypes nullTypes2 = nullTypesRealmResults.where().equalTo("id", 2).findFirst();
-        assertEquals("", nullTypes2.getFieldStringNull());
-        assertEquals("", nullTypes2.getFieldStringNotNull());
-        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNull()));
-        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNotNull()));
-        assertFalse(nullTypes2.getFieldBooleanNull());
-        assertFalse(nullTypes2.getFieldBooleanNotNull());
+        checkNullableValuesNonNull(nullTypes2);
     }
 
-    // Test creating objects form JSON stream, Some fields with null values.
+    // Test creating objects form JSON stream, all nullable fields with non-null values or non-null values
     public void testNullTypesStreamJSONWithNulls() throws IOException {
         testRealm.beginTransaction();
         testRealm.createAllFromJson(NullTypes.class, loadJsonFromAssets("nulltypes.json"));
         testRealm.commitTransaction();
 
         RealmResults<NullTypes> nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
+        assertEquals(3, nullTypesRealmResults.size());
 
-        assertEquals(2, nullTypesRealmResults.size());
+        NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
+        checkNullableValuesNull(nullTypes1);
 
-        NullTypes nullTypes = nullTypesRealmResults.get(0);
-        assertNull(nullTypes.getFieldStringNull());
-        assertEquals("", nullTypes.getFieldStringNotNull());
-        assertNull(nullTypes.getFieldBytesNull());
-        assertTrue(Arrays.equals(new byte[0], nullTypes.getFieldBytesNotNull()));
-        assertNull(nullTypes.getFieldBooleanNull());
-        assertFalse(nullTypes.getFieldBooleanNotNull());
-
-        NullTypes nullTypes2 = nullTypesRealmResults.get(1);
-        assertEquals("", nullTypes2.getFieldStringNull());
-        assertEquals("", nullTypes2.getFieldStringNotNull());
-        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNull()));
-        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNotNull()));
-        assertFalse(nullTypes2.getFieldBooleanNull());
-        assertFalse(nullTypes2.getFieldBooleanNotNull());
+        NullTypes nullTypes2 = nullTypesRealmResults.where().equalTo("id", 2).findFirst();
+        checkNullableValuesNonNull(nullTypes2);
     }
 
-    // Test if a nullable field already has a non-null value, update it through JSON with null value
+    // Test a nullable field already has a non-null value, update it through JSON with null value
     // of the corresponding field.
     public void testUpdateNullTypesJSONWithNulls() throws IOException, JSONException {
-        NullTypes nullTypes1 = new NullTypes();
-        nullTypes1.setId(1);
-        nullTypes1.setFieldStringNull("Something");
-        nullTypes1.setFieldStringNotNull("Something");
-        nullTypes1.setFieldBytesNull(new byte[0]);
-        nullTypes1.setFieldBytesNotNull(new byte[0]);
-
-        NullTypes nullTypes2 = new NullTypes();
-        nullTypes2.setId(2);
-        nullTypes2.setFieldStringNull("Anything");
-        nullTypes2.setFieldStringNotNull("Anything");
-        nullTypes2.setFieldBytesNull(new byte[0]);
-        nullTypes2.setFieldBytesNotNull(new byte[0]);
-
         String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes.json"));
+        JSONArray jsonArray = new JSONArray(json);
+        // Nullable fields with values
+        JSONObject jsonObject = jsonArray.getJSONObject(1);
+        jsonObject.put("id", 1);
+
+        testRealm.beginTransaction();
+        // Now object with id 1 has values for all nullable fields.
+        testRealm.createObjectFromJson(NullTypes.class, jsonObject);
+        testRealm.commitTransaction();
+        RealmResults<NullTypes> nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
+        assertEquals(2, nullTypesRealmResults.size());
+        checkNullableValuesNonNull(nullTypesRealmResults.first());
+
+        // Update object with id 1, nullable fields should have null values
         JSONArray array = new JSONArray(json);
         testRealm.beginTransaction();
-        testRealm.copyToRealm(nullTypes1);
-        testRealm.copyToRealm(nullTypes2);
         testRealm.createOrUpdateAllFromJson(NullTypes.class, array);
         testRealm.commitTransaction();
 
-        RealmResults<NullTypes> nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
+        nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
+        assertEquals(3, nullTypesRealmResults.size());
 
-        assertEquals(2, nullTypesRealmResults.size());
-
-        nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
-        assertNull(nullTypes1.getFieldStringNull());
-        assertEquals("", nullTypes1.getFieldStringNotNull());
-        assertNull(nullTypes1.getFieldBytesNull());
-        assertTrue(Arrays.equals(new byte[0], nullTypes1.getFieldBytesNotNull()));
-
-        nullTypes2 = nullTypesRealmResults.where().equalTo("id", 2).findFirst();
-        assertEquals("", nullTypes2.getFieldStringNull());
-        assertEquals("", nullTypes2.getFieldStringNotNull());
-        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNull()));
-        assertTrue(Arrays.equals(new byte[0], nullTypes2.getFieldBytesNotNull()));
+        NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
+        checkNullableValuesNull(nullTypes1);
     }
 
     // If JSON has a field with value null, and corresponding object's field is not nullable,
-    // an exception should be throw
-    public void testNullTypesJSONWithNotNulls() throws IOException, JSONException {
+    // an exception should be throw.
+    public void testNullTypesJSONToNotNullFields() throws IOException, JSONException {
         String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes_invalid.json"));
         JSONArray array = new JSONArray(json);
         testRealm.beginTransaction();
+
+        // 1 String
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(0));
             fail();
-        } catch (RealmException ignored) {
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
+        // 2 Bytes
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(1));
             fail();
-        } catch (RealmException ignored) {
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+        // 3 Boolean
+        try {
+            testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(2));
+            fail();
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+        // 4 Byte
+        try {
+            testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(3));
+            fail();
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+        // 5 Short
+        try {
+            testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(4));
+            fail();
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+        // 6 Integer
+        try {
+            testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(5));
+            fail();
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+        // 7 Long
+        try {
+            testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(6));
+            fail();
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+        // 8 Float
+        try {
+            testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(7));
+            fail();
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+        // 9 Double
+        try {
+            testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(8));
+            fail();
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        }
+        // 10 Date
+        try {
+            testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(9));
+            fail();
+        } catch (RealmException e) {
+            assertTrue(e.getCause() instanceof IllegalArgumentException);
         }
         testRealm.cancelTransaction();
+    }
+
+    // If JSON has a field with value null, and corresponding object's field is not nullable,
+    // an exception should be throw.
+    public void testNullTypesJSONStreamToNotNullFields() throws IOException, JSONException {
+        String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes_invalid.json"));
+        JSONArray array = new JSONArray(json);
+
+        // 1 String
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(0)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 2 Bytes
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(1)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 3 Boolean
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(2)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 4 Byte
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(3)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 5 Short
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(4)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 6 Integer
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(5)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 7 Long
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(6)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 8 Float
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(7)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 9 Double
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(8)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+        // 10 Date
+        try {
+            testRealm.beginTransaction();
+            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(9)));
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
     }
 }
