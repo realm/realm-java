@@ -1709,7 +1709,7 @@ public final class Realm implements Closeable {
      * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static synchronized boolean deleteRealm(RealmConfiguration configuration) {
-        boolean result = true;
+        boolean realmDeleted = true;
 
         String id = configuration.getPath();
         AtomicInteger counter = globalOpenInstanceCounter.get(id);
@@ -1729,12 +1729,13 @@ public final class Realm implements Closeable {
             if (fileToDelete.exists()) {
                 boolean deleteResult = fileToDelete.delete();
                 if (!deleteResult) {
-                    result = false;
+                    realmDeleted = false;
                     RealmLog.w("Could not delete the file " + fileToDelete);
                 }
             }
         }
-        return result;
+
+        return realmDeleted;
     }
 
 
