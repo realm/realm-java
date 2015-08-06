@@ -575,12 +575,6 @@ public class RealmProxyClassGenerator {
             String getter = metadata.getGetter(fieldName);
 
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
-                String statementSetNullOrThrow;
-                if (metadata.isNullable(field)) {
-                    statementSetNullOrThrow = String.format("realmObject.%s(null)", setter);
-                } else {
-                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
-                }
                 writer
                     .emitEmptyLine()
                     .emitStatement("%s %sObj = newObject.%s()", fieldType, fieldName, getter)
@@ -595,7 +589,8 @@ public class RealmProxyClassGenerator {
                                     fieldName)
                         .endControlFlow()
                     .nextControlFlow("else")
-                        .emitStatement(statementSetNullOrThrow)
+                        // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
+                        .emitStatement("realmObject.%s(null)", setter)
                     .endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 writer
@@ -638,12 +633,6 @@ public class RealmProxyClassGenerator {
             String setter = metadata.getSetter(fieldName);
             String getter = metadata.getGetter(fieldName);
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
-                String statementSetNullOrThrow;
-                if (metadata.isNullable(field)) {
-                    statementSetNullOrThrow = String.format("realmObject.%s(null)", setter);
-                } else {
-                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
-                }
                 writer
                     .emitStatement("%s %sObj = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, getter)
                     .beginControlFlow("if (%sObj != null)", fieldName)
@@ -659,7 +648,8 @@ public class RealmProxyClassGenerator {
                             )
                         .endControlFlow()
                     .nextControlFlow("else")
-                        .emitStatement(statementSetNullOrThrow)
+                        // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
+                        .emitStatement("realmObject.%s(null)", setter)
                     .endControlFlow();
             } else if (typeUtils.isAssignable(field.asType(), realmList)) {
                 writer
