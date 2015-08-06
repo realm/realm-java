@@ -48,16 +48,10 @@ public class RealmJsonTypeHelper {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer,
                                            boolean nullable) throws IOException {
-                String statementSetNullOrThrow;
-                if (nullable) {
-                    statementSetNullOrThrow = String.format("obj.%s(null)", setter);
-                } else {
-                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
-                }
                 writer
                     .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                         .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                            .emitStatement(statementSetNullOrThrow)
+                            .emitStatement("obj.%s(null)", setter)
                         .nextControlFlow("else")
                             .emitStatement("Object timestamp = json.get(\"%s\")", fieldName)
                             .beginControlFlow("if (timestamp instanceof String)")
@@ -72,16 +66,10 @@ public class RealmJsonTypeHelper {
             @Override
             public void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer,
                                                  boolean nullable) throws IOException {
-                String statementSetNullOrThrow;
-                if (nullable) {
-                    statementSetNullOrThrow = String.format("obj.%s(null)", setter);
-                } else {
-                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
-                }
                 writer
                     .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                         .emitStatement("reader.skipValue()")
-                        .emitStatement(statementSetNullOrThrow)
+                        .emitStatement("obj.%s(null)", setter)
                     .nextControlFlow("else if (reader.peek() == JsonToken.NUMBER)")
                         .emitStatement("long timestamp = reader.nextLong()", fieldName)
                         .beginControlFlow("if (timestamp > -1)")
@@ -96,16 +84,10 @@ public class RealmJsonTypeHelper {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer,
                                            boolean nullable) throws IOException {
-                String statementSetNullOrThrow;
-                if (nullable) {
-                    statementSetNullOrThrow = String.format("obj.%s(null)", setter);
-                } else {
-                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
-                }
                 writer
                     .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                         .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                            .emitStatement(statementSetNullOrThrow)
+                            .emitStatement("obj.%s(null)", setter)
                         .nextControlFlow("else")
                             .emitStatement("obj.%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", setter, fieldName)
                         .endControlFlow()
@@ -115,16 +97,10 @@ public class RealmJsonTypeHelper {
             @Override
             public void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer,
                                                  boolean nullable) throws IOException {
-                String statementSetNullOrThrow;
-                if (nullable) {
-                    statementSetNullOrThrow = String.format("obj.%s(null)", setter);
-                } else {
-                    statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
-                }
                 writer
                     .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                         .emitStatement("reader.skipValue()")
-                        .emitStatement(statementSetNullOrThrow)
+                        .emitStatement("obj.%s(null)", setter)
                     .nextControlFlow("else")
                         .emitStatement("obj.%s(JsonUtils.stringToBytes(reader.nextString()))", setter)
                     .endControlFlow();
@@ -142,16 +118,10 @@ public class RealmJsonTypeHelper {
 
     public static void emitFillRealmObjectWithJsonValue(String setter, String fieldName, String qualifiedFieldType,
                                                         String proxyClass, JavaWriter writer, boolean nullable) throws IOException {
-        String statementSetNullOrThrow;
-        if (nullable) {
-            statementSetNullOrThrow = String.format("obj.%s(null)", setter);
-        } else {
-            statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
-        }
         writer
             .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                 .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                    .emitStatement(statementSetNullOrThrow)
+                    .emitStatement("obj.%s(null)", setter)
                 .nextControlFlow("else")
                     .emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)",
                             qualifiedFieldType, fieldName, proxyClass, fieldName)
@@ -186,16 +156,10 @@ public class RealmJsonTypeHelper {
 
     public static void emitFillRealmObjectFromStream(String setter, String fieldName, String fieldTypeCanonicalName,
                                                      String proxyClass, JavaWriter writer, boolean nullable) throws IOException {
-        String statementSetNullOrThrow;
-        if (nullable) {
-            statementSetNullOrThrow = String.format("obj.%s(null)", setter);
-        } else {
-            statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
-        }
         writer
             .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                 .emitStatement("reader.skipValue()")
-                .emitStatement(statementSetNullOrThrow)
+                .emitStatement("obj.%s(null)", setter)
             .nextControlFlow("else")
                 .emitStatement("%s %sObj = %s.createUsingJsonStream(realm, reader)", fieldTypeCanonicalName, fieldName,
                         proxyClass)
@@ -237,10 +201,12 @@ public class RealmJsonTypeHelper {
         public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer,
                                        boolean nullable) throws IOException {
             String statementSetNullOrThrow;
-            if (nullable) {
-                statementSetNullOrThrow = String.format("obj.%s(null)", setter);
-            } else {
+            if (!nullable && Utils.isPrimitiveType(fieldType)) {
+                // Only throw exception for primitive types. For boxed types and String, exception will be thrown in
+                // the setter.
                 statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+            } else {
+                statementSetNullOrThrow = String.format("obj.%s(null)", setter);
             }
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
@@ -256,10 +222,12 @@ public class RealmJsonTypeHelper {
         public void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer,
                                              boolean nullable) throws IOException {
             String statementSetNullOrThrow;
-            if (nullable) {
-                statementSetNullOrThrow = String.format("obj.%s(null)", setter);
-            } else {
+            if (!nullable && Utils.isPrimitiveType(fieldType)) {
+                // Only throw exception for primitive types. For boxed types and String, exception will be thrown in
+                // the setter.
                 statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
+            } else {
+                statementSetNullOrThrow = String.format("obj.%s(null)", setter);
             }
             writer
                 .beginControlFlow("if (reader.peek() == JsonToken.NULL)")

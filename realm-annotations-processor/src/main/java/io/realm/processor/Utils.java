@@ -72,6 +72,18 @@ public class Utils {
         return getFieldTypeSimpleName(field).equals("String");
     }
 
+    /**
+     * Return true if a given type string represents a primitive type.
+     */
+    public static boolean isPrimitiveType(String typeString) {
+        if (typeString == null) {
+            return false;
+        }
+        return typeString.equals("byte") || typeString.equals("short") || typeString.equals("int") ||
+                typeString.equals("long") || typeString.equals("float") || typeString.equals("double") ||
+                typeString.equals("boolean") || typeString.equals("char");
+    }
+
     public static boolean isByteArray(VariableElement field) {
         if (field == null) {
             return false;

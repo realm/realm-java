@@ -371,7 +371,7 @@ public class AllTypesRealmProxy extends AllTypes
         }
         if (json.has("columnString")) {
             if (json.isNull("columnString")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field columnString to null.");
+                obj.setColumnString(null);
             } else {
                 obj.setColumnString((String) json.getString("columnString"));
             }
@@ -406,7 +406,7 @@ public class AllTypesRealmProxy extends AllTypes
         }
         if (json.has("columnDate")) {
             if (json.isNull("columnDate")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field columnDate to null.");
+                obj.setColumnDate(null);
             } else {
                 Object timestamp = json.get("columnDate");
                 if (timestamp instanceof String) {
@@ -418,7 +418,7 @@ public class AllTypesRealmProxy extends AllTypes
         }
         if (json.has("columnBinary")) {
             if (json.isNull("columnBinary")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field columnBinary to null.");
+                obj.setColumnBinary(null);
             } else {
                 obj.setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
             }
@@ -451,7 +451,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (name.equals("columnString")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field columnString to null.");
+                    obj.setColumnString(null);
                 } else {
                     obj.setColumnString((String) reader.nextString());
                 }
@@ -486,7 +486,7 @@ public class AllTypesRealmProxy extends AllTypes
             } else if (name.equals("columnDate")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field columnDate to null.");
+                    obj.setColumnDate(null);
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
@@ -498,7 +498,7 @@ public class AllTypesRealmProxy extends AllTypes
             } else if (name.equals("columnBinary")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field columnBinary to null.");
+                    obj.setColumnBinary(null);
                 } else {
                     obj.setColumnBinary(JsonUtils.stringToBytes(reader.nextString()));
                 }
