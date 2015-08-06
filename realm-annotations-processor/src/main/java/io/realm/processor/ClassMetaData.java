@@ -31,6 +31,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,15 +68,19 @@ public class ClassMetaData {
     private Map<String, String> setters = new HashMap<String, String>(); // Map between fieldname and their setters
 
     private final List<TypeMirror> validPrimaryKeyTypes;
+    private Elements elementUtils;
     private final Types typeUtils;
     private DeclaredType realmList;
+    private TypeMirror realmObject;
 
     public ClassMetaData(ProcessingEnvironment env, TypeElement clazz) {
         this.classType = clazz;
         this.className = clazz.getSimpleName().toString();
+        elementUtils = env.getElementUtils();
         typeUtils = env.getTypeUtils();
         TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
         realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmObject = elementUtils.getTypeElement("io.realm.RealmObject").asType();
         validPrimaryKeyTypes = Arrays.asList(
                 stringType,
                 typeUtils.getPrimitiveType(TypeKind.SHORT),
@@ -324,6 +329,8 @@ public class ClassMetaData {
                         Utils.error("@Required is not needed for primitive fields - got " + element);
                     } else if (typeUtils.isAssignable(variableElement.asType(), realmList)) {
                         Utils.error("@Required is not needed for RealmList fields - got " + element);
+                    } else if (typeUtils.isAssignable(variableElement.asType(), realmObject)) {
+                        Utils.error("@Required cannot be applied to RealmObject fields - got " + element);
                     } else {
                         if (nullableElements.contains(variableElement)) {
                             nullableElements.remove(variableElement);

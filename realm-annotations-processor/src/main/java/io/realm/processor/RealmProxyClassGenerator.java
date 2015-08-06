@@ -240,12 +240,8 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.beginControlFlow("if (value == null)");
-                if (metadata.isNullable(field)) {
                     writer.emitStatement("row.nullifyLink(%s)", staticFieldIndexVarName(field));
                     writer.emitStatement("return");
-                } else {
-                    writer.emitStatement(String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName));
-                }
                 writer.endControlFlow();
                 writer.emitStatement("row.setLink(%s, value.row.getIndex())", staticFieldIndexVarName(field));
                 writer.endMethod();
