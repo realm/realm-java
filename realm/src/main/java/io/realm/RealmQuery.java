@@ -240,24 +240,13 @@ public class RealmQuery<E extends RealmObject> {
      * field type
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery<E> equalTo(String fieldName, int value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.INTEGER);
-        this.query.equalTo(columnIndices, value);
-        return this;
-    }
-
-    /**
-     * Equal-to comparison
-     * @param fieldName  The field to compare
-     * @param value      The value to compare with
-     * @return The query object
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
-     * field type
-     * @throws java.lang.RuntimeException Any other error
-     */
-    public RealmQuery<E> equalTo(String fieldName, long value) {
+    public RealmQuery<E> equalTo(String fieldName, Byte value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
-        this.query.equalTo(columnIndices, value);
+        if (value == null) {
+            this.query.equalToNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
         return this;
     }
 
@@ -270,9 +259,13 @@ public class RealmQuery<E extends RealmObject> {
      * field type
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery<E> equalTo(String fieldName, double value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
-        this.query.equalTo(columnIndices, value);
+    public RealmQuery<E> equalTo(String fieldName, Short value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        if (value == null) {
+            this.query.equalToNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
         return this;
     }
 
@@ -285,9 +278,71 @@ public class RealmQuery<E extends RealmObject> {
      * field type
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery<E> equalTo(String fieldName, float value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
-        this.query.equalTo(columnIndices, value);
+    public RealmQuery<E> equalTo(String fieldName, Integer value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        if (value == null) {
+            this.query.equalToNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to comparison
+     * @param fieldName  The field to compare
+     * @param value      The value to compare with
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
+     * field type
+     * @throws java.lang.RuntimeException Any other error
+     */
+    public RealmQuery<E> equalTo(String fieldName, Long value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        if (value == null) {
+            this.query.equalToNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
+        return this;
+    }
+    /**
+     * Equal-to comparison
+     *
+     * @param fieldName The field to compare
+     * @param value     The value to compare with
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
+     *                                            field type
+     * @throws java.lang.RuntimeException         Any other error
+     */
+    public RealmQuery<E> equalTo(String fieldName, Double value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        if (value == null) {
+            this.query.equalToNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
+        return this;
+    }
+
+    /**
+     * Equal-to comparison
+     *
+     * @param fieldName The field to compare
+     * @param value     The value to compare with
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
+     *                                            field type
+     * @throws java.lang.RuntimeException         Any other error
+     */
+    public RealmQuery<E> equalTo(String fieldName, Float value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
+        if (value == null) {
+            this.query.equalToNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
         return this;
     }
 
@@ -301,8 +356,12 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> equalTo(String fieldName, Boolean value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.BOOLEAN);
-        this.query.equalTo(columnIndices, value);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.BOOLEAN);
+        if (value == null) {
+            this.query.equalToNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, value);
+        }
         return this;
     }
 
@@ -365,9 +424,13 @@ public class RealmQuery<E extends RealmObject> {
      * field type
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery<E> notEqualTo(String fieldName, int value) {
+    public RealmQuery<E> notEqualTo(String fieldName, Byte value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
-        this.query.notEqualTo(columnIndices, value);
+        if (value == null) {
+            this.query.notEqualToNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
         return this;
     }
 
@@ -380,9 +443,13 @@ public class RealmQuery<E extends RealmObject> {
      * field type
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery<E> notEqualTo(String fieldName, long value) {
+    public RealmQuery<E> notEqualTo(String fieldName, Short value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
-        this.query.notEqualTo(columnIndices, value);
+        if (value == null) {
+            this.query.notEqualToNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
         return this;
     }
 
@@ -395,9 +462,13 @@ public class RealmQuery<E extends RealmObject> {
      * field type
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery<E> notEqualTo(String fieldName, double value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DOUBLE);
-        this.query.notEqualTo(columnIndices, value);
+    public RealmQuery<E> notEqualTo(String fieldName, Integer value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        if (value == null) {
+            this.query.notEqualToNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
         return this;
     }
 
@@ -410,9 +481,53 @@ public class RealmQuery<E extends RealmObject> {
      * field type
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery<E> notEqualTo(String fieldName, float value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.FLOAT);
-        this.query.notEqualTo(columnIndices, value);
+    public RealmQuery<E> notEqualTo(String fieldName, Long value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
+        if (value == null) {
+            this.query.notEqualToNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison
+     *
+     * @param fieldName The field to compare
+     * @param value     The value to compare with
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
+     *                                            field type
+     * @throws java.lang.RuntimeException         Any other error
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, Double value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
+        if (value == null) {
+            this.query.notEqualToNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
+        return this;
+    }
+
+    /**
+     * Not-equal-to comparison
+     *
+     * @param fieldName The field to compare
+     * @param value     The value to compare with
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
+     *                                            field type
+     * @throws java.lang.RuntimeException         Any other error
+     */
+    public RealmQuery<E> notEqualTo(String fieldName, Float value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
+        if (value == null) {
+            this.query.notEqualToNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
         return this;
     }
 
@@ -425,9 +540,13 @@ public class RealmQuery<E extends RealmObject> {
      * field type
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery<E> notEqualTo(String fieldName, boolean value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.BOOLEAN);
-        this.query.equalTo(columnIndices, !value);
+    public RealmQuery<E> notEqualTo(String fieldName, Boolean value) {
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.BOOLEAN);
+        if (value == null) {
+            this.query.notEqualToNull(columnIndices);
+        } else {
+            this.query.equalTo(columnIndices, !value);
+        }
         return this;
     }
 
@@ -441,8 +560,12 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmQuery<E> notEqualTo(String fieldName, Date value) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.DATE);
-        this.query.notEqualTo(columnIndices, value);
+        long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
+        if (value == null) {
+            this.query.notEqualToNull(columnIndices);
+        } else {
+            this.query.notEqualTo(columnIndices, value);
+        }
         return this;
     }
 

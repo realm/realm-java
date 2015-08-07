@@ -30,7 +30,10 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.Random;
+
+import io.realm.entities.NullTypes;
 
 public class TestHelper {
 
@@ -155,4 +158,65 @@ public class TestHelper {
         return config.build();
     }
 
+    public static void populateTestRealmForNullTests(Realm testRealm) {
+        // 1 String
+        String[] words = {"Fish", null, "Horse"};
+        // 2 Bytes
+        byte[][] binaries = {new byte[]{0}, null, new byte[]{1, 2}};
+        // 3 Boolean
+        Boolean[] booleans = {false, null, true};
+        // Numeric fields will be 1, 0/null, 3
+        // 10 Date
+        Date[] dates = {new Date(0), null, new Date(10000)};
+
+        testRealm.beginTransaction();
+        for (int i = 0; i < words.length; i++) {
+            NullTypes nullTypes = new NullTypes();
+            nullTypes.setId(i + 1);
+            // 1 String
+            nullTypes.setFieldStringNull(words[i]);
+            if (words[i] != null) {
+                nullTypes.setFieldStringNotNull(words[i]);
+            }
+            // 2 Bytes
+            nullTypes.setFieldBytesNull(binaries[i]);
+            if (binaries[i] != null) {
+                nullTypes.setFieldBytesNotNull(binaries[i]);
+            }
+            // 3 Boolean
+            nullTypes.setFieldBooleanNull(booleans[i]);
+            if (booleans[i] != null) {
+                nullTypes.setFieldBooleanNotNull(booleans[i]);
+            }
+            if (i != 1) {
+                int n = i + 1;
+                // 4 Byte
+                nullTypes.setFieldByteNull((byte) n);
+                nullTypes.setFieldByteNotNull((byte) n);
+                // 5 Short
+                nullTypes.setFieldShortNull((short) n);
+                nullTypes.setFieldShortNotNull((short) n);
+                // 6 Integer
+                nullTypes.setFieldIntegerNull(n);
+                nullTypes.setFieldIntegerNotNull(n);
+                // 7 Long
+                nullTypes.setFieldLongNull((long) n);
+                nullTypes.setFieldLongNotNull((long) n);
+                // 8 Float
+                nullTypes.setFieldFloatNull((float) n);
+                nullTypes.setFieldFloatNotNull((float) n);
+                // 9 Double
+                nullTypes.setFieldDoubleNull((double) n);
+                nullTypes.setFieldDoubleNotNull((double) n);
+            }
+            // 10 Date
+            nullTypes.setFieldDateNull(dates[i]);
+            if (dates[i] != null) {
+                nullTypes.setFieldDateNotNull(dates[i]);
+            }
+
+            testRealm.copyToRealm(nullTypes);
+        }
+        testRealm.commitTransaction();
+    }
 }
