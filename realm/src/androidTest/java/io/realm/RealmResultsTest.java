@@ -88,18 +88,103 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     private void populateTestRealmForNullTests() {
-        String words[] = {"Fish", null, "Horse"};
+        // 1 String
+        String[] words = {"Fish", null, "Horse"};
+        // 2 Bytes
+        byte[][] binaries = {new byte[]{0}, null, new byte[]{1, 2}};
+        // 3 Boolean
+        Boolean[] booleans = {false, null, true};
+        // Numeric fields will be 1, 0/null, 3
+        // 10 Date
+        Date[] dates = {new Date(0), null, new Date(10000)};
+
         testRealm.beginTransaction();
         for (int i = 0; i < words.length; i++) {
-            String word = words[i];
             NullTypes nullTypes = new NullTypes();
             nullTypes.setId(i + 1);
-            nullTypes.setFieldStringNull(word);
-            if (word != null) {
-                nullTypes.setFieldStringNotNull(word);
+            // 1 String
+            nullTypes.setFieldStringNull(words[i]);
+            if (words[i] != null) {
+                nullTypes.setFieldStringNotNull(words[i]);
             }
+            // 2 Bytes
+            nullTypes.setFieldBytesNull(binaries[i]);
+            if (binaries[i] != null) {
+                nullTypes.setFieldBytesNotNull(binaries[i]);
+            }
+            // 3 Boolean
+            nullTypes.setFieldBooleanNull(booleans[i]);
+            if (booleans[i] != null) {
+                nullTypes.setFieldBooleanNotNull(booleans[i]);
+            }
+            if (i != 1) {
+                int n = i + 1;
+                // 4 Byte
+                nullTypes.setFieldByteNull((byte) n);
+                nullTypes.setFieldByteNotNull((byte) n);
+                // 5 Short
+                nullTypes.setFieldShortNull((short) n);
+                nullTypes.setFieldShortNotNull((short) n);
+                // 6 Integer
+                nullTypes.setFieldIntegerNull(n);
+                nullTypes.setFieldIntegerNotNull(n);
+                // 7 Long
+                nullTypes.setFieldLongNull((long) n);
+                nullTypes.setFieldLongNotNull((long) n);
+                // 8 Float
+                nullTypes.setFieldFloatNull((float) n);
+                nullTypes.setFieldFloatNotNull((float) n);
+                // 9 Double
+                nullTypes.setFieldDoubleNull((double) n);
+                nullTypes.setFieldDoubleNotNull((double) n);
+            }
+            // 10 Date
+            nullTypes.setFieldDateNull(dates[i]);
+            if (dates[i] != null) {
+                nullTypes.setFieldDateNotNull(dates[i]);
+            }
+
             testRealm.copyToRealm(nullTypes);
         }
+        testRealm.commitTransaction();
+    }
+
+    private void populateAllNullRowsForNumericTesting () {
+        NullTypes nullTypes1 = new NullTypes();
+        nullTypes1.setId(1);
+        NullTypes nullTypes2 = new NullTypes();
+        nullTypes2.setId(2);
+
+        testRealm.beginTransaction();
+        testRealm.copyToRealm(nullTypes1);
+        testRealm.copyToRealm(nullTypes2);
+        testRealm.commitTransaction();
+    }
+
+    private void populatePartialNullRowsForNumericTesting () {
+        NullTypes nullTypes1 = new NullTypes();
+        nullTypes1.setId(1);
+        nullTypes1.setFieldIntegerNull(1);
+        nullTypes1.setFieldFloatNull(2F);
+        nullTypes1.setFieldDoubleNull(3D);
+        nullTypes1.setFieldBooleanNull(true);
+        nullTypes1.setFieldStringNull("4");
+        nullTypes1.setFieldDateNull(new Date(12345));
+        NullTypes nullTypes2 = new NullTypes();
+        nullTypes2.setId(2);
+        NullTypes nullTypes3 = new NullTypes();
+        nullTypes2.setId(3);
+        nullTypes2.setFieldIntegerNull(0);
+        nullTypes2.setFieldFloatNull(0F);
+        nullTypes2.setFieldDoubleNull(0D);
+        nullTypes1.setFieldBooleanNull(false);
+        nullTypes1.setFieldStringNull("0");
+        nullTypes1.setFieldDateNull(new Date(0));
+
+        testRealm.beginTransaction();
+        testRealm.copyToRealm(nullTypes1);
+        testRealm.copyToRealm(nullTypes2);
+        testRealm.copyToRealm(nullTypes3);
         testRealm.commitTransaction();
     }
 
@@ -233,11 +318,51 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(0, minimum.intValue());
     }
 
+    // Test min on nullable rows with all null values
+    public void testMinValueForAllNullRows() {
+        populateAllNullRowsForNumericTesting();
+
+        RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
+        assertEquals(0, results.min(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(0, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+    }
+
+    // Test min on nullable rows with partial null values
+    public void testMinValueForPartialNullRows() {
+        populatePartialNullRowsForNumericTesting();
+
+        RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
+        assertEquals(1, results.min(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(2, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(3, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+    }
+
     public void testMaxValueIsMaxValue() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number maximum = resultList.max(FIELD_LONG);
         assertEquals(TEST_DATA_SIZE - 1, maximum.intValue());
+    }
+
+    // Test max on nullable rows with all null values
+    public void testMaxValueForAllNullRows() {
+        populateAllNullRowsForNumericTesting();
+
+        RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
+        assertEquals(0, results.max(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(0, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+    }
+
+    // Test max on nullable rows with partial null values
+    public void testMaxValueForPartialNullRows() {
+        populatePartialNullRowsForNumericTesting();
+
+        RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
+        assertEquals(1, results.max(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(2, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(3, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     public void testSumGivesCorrectValue() {
@@ -246,6 +371,26 @@ public class RealmResultsTest extends AndroidTestCase {
         Number sum = resultList.sum(FIELD_LONG);
         // Sum of numbers 0 to M-1: (M-1)*M/2
         assertEquals((TEST_DATA_SIZE - 1) * TEST_DATA_SIZE / 2, sum.intValue());
+    }
+
+    // Test sum on nullable rows with all null values
+    public void testSumGivesCorrectValueForAllNullRows() {
+        populateAllNullRowsForNumericTesting();
+        RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
+
+        assertEquals(0, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(0, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+    }
+
+    // Test sum on nullable rows with partial null values
+    public void testSumGivesCorrectValueForPartialNullRows() {
+        populateAllNullRowsForNumericTesting();
+        RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
+
+        assertEquals(1, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(2, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(3, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     public void testSumGivesCorrectValueWithNonLatinColumnNames() {
@@ -286,6 +431,26 @@ public class RealmResultsTest extends AndroidTestCase {
         // sum = b*N + N*(N-1)/2
         // average = sum/N = b + (N-1)/2
         assertEquals(1.234567 + 0.5 * (N - 1.0), resultList.average(FIELD_FLOAT), 0.0001);
+    }
+
+    // Test sum on nullable rows with all null values
+    public void testAvgGivesCorrectValueForAllNullRows() {
+        populateAllNullRowsForNumericTesting();
+        RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
+
+        assertEquals(0, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(0, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+    }
+
+    // Test sum on nullable rows with partial null values
+    public void testAvgGivesCorrectValueForPartialNullRows() {
+        populateAllNullRowsForNumericTesting();
+        RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
+
+        assertEquals(1, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(2, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(3, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     public void testRemove() {
@@ -334,12 +499,14 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("First excepted to be last", resultList.first().getColumnLong(), sortedList.last().getColumnLong());
 
+        @SuppressWarnings("UnnecessaryLocalVariable")
         RealmResults<AllTypes> reverseList = sortedList;
         reverseList.sort(FIELD_LONG, RealmResults.SORT_ORDER_ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("First excepted to be first", resultList.first().getColumnLong(), reverseList.first().getColumnLong());
         assertEquals("Last excepted to be last", resultList.last().getColumnLong(), reverseList.last().getColumnLong());
 
+        @SuppressWarnings("UnnecessaryLocalVariable")
         RealmResults<AllTypes> reserveSortedList = reverseList;
         reverseList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DESCENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
@@ -450,6 +617,48 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<AllTypes> reverseSortedList = reverseList.where().findAll();
         reverseSortedList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseSortedList.size());
+    }
+
+    private void doTestSortByLongWithPartialNullValues(String fieldName) {
+        RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
+        // Ascending
+        RealmResults<NullTypes> sortedList = testRealm.allObjects(NullTypes.class);
+        sortedList.sort(fieldName, RealmResults.SORT_ORDER_ASCENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(3, sortedList.first().getId());
+        // Null should always be the last one in the sorted list
+        assertEquals(2, sortedList.last().getId());
+
+        // Descending
+        sortedList = testRealm.allObjects(NullTypes.class);
+        sortedList.sort(fieldName, RealmResults.SORT_ORDER_DESCENDING);
+        assertEquals("Should have same size", resultList.size(), sortedList.size());
+        assertEquals(1, sortedList.first().getId());
+        // Null should always be the last one in the sorted list
+        assertEquals(2, sortedList.last().getId());
+    }
+
+    // Test sort on nullable field with null values partially
+    public void testSortByLongWithPartialNullValues() {
+        populatePartialNullRowsForNumericTesting();
+
+        // 1 String
+        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_STRING_NULL);
+
+        // 3 Boolean
+        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_BOOLEAN_NULL);
+
+        // 6 Integer
+        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_INTEGER_NULL);
+
+        // 7 Float
+        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_FLOAT_NULL);
+
+        // 8 Double
+        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_DOUBLE_NULL);
+
+        // 10 Date
+        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_DATE_NULL);
     }
 
     public void testSortOnNonExistingColumn() {
@@ -579,6 +788,7 @@ public class RealmResultsTest extends AndroidTestCase {
 
         assertEquals(8, sortedResult.size());
 
+        @SuppressWarnings("UnnecessaryLocalVariable")
         RealmResults<AllTypes> reverseResult = result;
         reverseResult.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
         assertEquals(8, reverseResult.size());
@@ -625,12 +835,12 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testSortWithNullThrows() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
         try {
-            result.sort((String)null);
+            result.sort(null);
             fail("Sorting with a null field name should throw an IllegalArgumentException");
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            result.sort((String[])null, (boolean[])null);
+            result.sort(null, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -714,7 +924,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, reverseList.first().getColumnLong());
 
         try {
-            RealmResults<AllTypes> none = testRealm.where(AllTypes.class).findAllSorted("invalid",
+            testRealm.where(AllTypes.class).findAllSorted("invalid",
                     RealmResults.SORT_ORDER_DESCENDING);
             fail();
         } catch (IllegalArgumentException ignored) {}
@@ -730,9 +940,9 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testIndexOf() {
         try {
             RealmResults<AllTypes> all = testRealm.allObjects(AllTypes.class);
-            int index = all.indexOf(all.first());
+            all.indexOf(all.first());
             fail();
-        } catch (NoSuchMethodError e) {}
+        } catch (NoSuchMethodError ignored) {}
     }
 
     public void testSubList() {
@@ -747,7 +957,7 @@ public class RealmResultsTest extends AndroidTestCase {
         populateTestRealmForNullTests();
         RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
 
-        // String
+        // 1 String
         try {
             testRealm.beginTransaction();
             list.first().setFieldStringNotNull(null);
@@ -759,10 +969,72 @@ public class RealmResultsTest extends AndroidTestCase {
             testRealm.cancelTransaction();
         }
 
-        // Boolean
+        // 2 Bytes
+        try {
+            testRealm.beginTransaction();
+            list.first().setFieldBytesNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+
+        // 3 Boolean
         try {
             testRealm.beginTransaction();
             list.first().setFieldBooleanNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+
+        // 4 Byte
+        try {
+            testRealm.beginTransaction();
+            list.first().setFieldBytesNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+
+        // 5 Short 6 Integer 7 Long are skipped for this case, same with Bytes
+
+        // 8 Float
+        try {
+            testRealm.beginTransaction();
+            list.first().setFieldFloatNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+
+        // 9 Double
+        try {
+            testRealm.beginTransaction();
+            list.first().setFieldDoubleNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+
+        // 10 Date
+        try {
+            testRealm.beginTransaction();
+            list.first().setFieldDateNotNull(null);
             fail();
         }
         catch (IllegalArgumentException ignored) {
@@ -777,24 +1049,61 @@ public class RealmResultsTest extends AndroidTestCase {
         populateTestRealmForNullTests();
         RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
 
-        // String
+        // 1 String
         testRealm.beginTransaction();
         list.first().setFieldStringNull(null);
         testRealm.commitTransaction();
         assertNull(testRealm.allObjects(NullTypes.class).first().getFieldStringNull());
 
-        // Boolean
+        // 2 Bytes
+        testRealm.beginTransaction();
+        list.first().setFieldBytesNull(null);
+        testRealm.commitTransaction();
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldBytesNull());
+
+        // 3 Boolean
         testRealm.beginTransaction();
         list.first().setFieldBooleanNull(null);
         testRealm.commitTransaction();
         assertNull(testRealm.allObjects(NullTypes.class).first().getFieldBooleanNull());
+
+        // 4 Byte
+        // 5 Short 6 Integer 7 Long are skipped
+        testRealm.beginTransaction();
+        list.first().setFieldByteNull(null);
+        testRealm.commitTransaction();
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldByteNull());
+
+        // 8 Float
+        testRealm.beginTransaction();
+        list.first().setFieldFloatNull(null);
+        testRealm.commitTransaction();
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldFloatNull());
+
+        // 9 Double
+        testRealm.beginTransaction();
+        list.first().setFieldDoubleNull(null);
+        testRealm.commitTransaction();
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldDoubleNull());
+
+        // 10 Date
+        testRealm.beginTransaction();
+        list.first().setFieldDateNull(null);
+        testRealm.commitTransaction();
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldDateNull());
     }
 
     public void testUnsupportedMethods() {
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
-        try { result.add(null);     fail(); } catch (UnsupportedOperationException expected) {}
-        try { result.set(0, null);  fail(); } catch (UnsupportedOperationException expected) {}
+        try { //noinspection deprecation
+            result.add(null);     fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+        try {
+            result.set(0, null);  fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
     }
 
 
@@ -802,9 +1111,21 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testMutableMethodsOutsideWriteTransactions() {
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
-        try { result.clear();       fail(); } catch (IllegalStateException expected) {}
-        try { result.remove(0);     fail(); } catch (IllegalStateException expected) {}
-        try { result.removeLast();  fail(); } catch (IllegalStateException expected) {}
+        try {
+            result.clear();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+        try {
+            result.remove(0);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+        try {
+            result.removeLast();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     // TODO: More extended tests of querying all types must be done.
