@@ -22,7 +22,17 @@ import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
-
+// Always follow below order and put comments like below to make NullTypes Related cases
+// 1 String
+// 2 Bytes
+// 3 Boolean
+// 4 Byte
+// 5 Short
+// 6 Integer
+// 7 Long
+// 8 Float
+// 9 Double
+// 10 Date
 public class NullTypes extends RealmObject {
 
     public static String FIELD_STRING_NOT_NULL = "fieldStringNotNull";
@@ -52,43 +62,43 @@ public class NullTypes extends RealmObject {
     private int id;
 
     @Required
-    private String fieldStringNotNull;
+    private String fieldStringNotNull = "";
     private String fieldStringNull;
 
     @Required
-    private byte[] fieldBytesNotNull;
+    private byte[] fieldBytesNotNull = new byte[0];
     private byte[] fieldBytesNull;
 
     @Required
-    private Boolean fieldBooleanNotNull;
+    private Boolean fieldBooleanNotNull = false;
     private Boolean fieldBooleanNull;
 
     @Required
-    private Byte fieldByteNotNull;
+    private Byte fieldByteNotNull = 0;
     private Byte fieldByteNull;
 
     @Required
-    private Short fieldShortNotNull;
+    private Short fieldShortNotNull = 0;
     private Short fieldShortNull;
 
     @Required
-    private Integer fieldIntegerNotNull;
+    private Integer fieldIntegerNotNull = 0;
     private Integer fieldIntegerNull;
 
     @Required
-    private Long fieldLongNotNull;
+    private Long fieldLongNotNull = 0L;
     private Long fieldLongNull;
 
     @Required
-    private Float fieldFloatNotNull;
+    private Float fieldFloatNotNull = 0F;
     private Float fieldFloatNull;
 
     @Required
-    private Double fieldDoubleNotNull;
+    private Double fieldDoubleNotNull = 0D;
     private Double fieldDoubleNull;
 
     @Required
-    private Date fieldDateNotNull;
+    private Date fieldDateNotNull = new Date(0);
     private Date fieldDateNull;
 
     private NullTypes fieldObjectNull;
