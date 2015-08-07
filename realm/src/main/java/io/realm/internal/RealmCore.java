@@ -25,7 +25,6 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Utility methods for Realm Core.
@@ -39,7 +38,7 @@ public class RealmCore {
     private static final String JAVA_LIBRARY_PATH = "java.library.path";
 //*/
 
-    private static AtomicBoolean libraryIsLoaded = new AtomicBoolean(false);
+    private static volatile boolean libraryIsLoaded = false;
 
 /*
     private static String getJniFileName()
@@ -94,10 +93,14 @@ public class RealmCore {
     }
 */
 
-    public static void loadLibrary() {
-        if (libraryIsLoaded.get())
-            // only load library once
+    // Although loadLibrary is synchronized internally from AOSP 4.3, for the compatibility reason,
+    // KEEP synchronized here for the old devices!
+    public static synchronized void loadLibrary() {
+        if (libraryIsLoaded) {
+            // The java native should ensure only load the lib once, but we met some problems before.
+            // So keep the flag.
             return;
+        }
 
         if (osIsWindows()) {
             loadLibraryWindows();
@@ -113,7 +116,7 @@ public class RealmCore {
             }
             System.loadLibrary(jnilib);
         }
-        libraryIsLoaded.set(true);
+        libraryIsLoaded = true;
 
         Version.coreLibVersionCompatible(true);
     }
