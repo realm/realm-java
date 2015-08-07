@@ -301,12 +301,8 @@ public class TableQuery implements Closeable {
 
     // Query for boolean values.
 
-    public TableQuery equalTo(long columnIndex[], Boolean value){
-        if (value == null) {
-            nativeEqualToNull(nativePtr, columnIndex);
-        } else {
-            nativeEqual(nativePtr, columnIndex, value);
-        }
+    public TableQuery equalTo(long columnIndex[], boolean value) {
+        nativeEqual(nativePtr, columnIndex, value);
 
         queryValidated = false;
         return this;
@@ -318,9 +314,11 @@ public class TableQuery implements Closeable {
     private final static String DATE_NULL_ERROR_MESSAGE = "Date value in query criteria must not be null.";
 
     public TableQuery equalTo(long columnIndex[], Date value){
-        if (value == null)
-            throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE);
-        nativeEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
+        if (value == null) {
+            nativeEqualToNull(nativePtr, columnIndex);
+        } else {
+            nativeEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
+        }
         queryValidated = false;
         return this;
     }
@@ -798,5 +796,17 @@ public class TableQuery implements Closeable {
     private native void nativeCloseTableHandover (long nativePtr);
 
     // Query for null values.
+    public TableQuery equalToNull(long columnIndex[]) {
+        nativeEqualToNull(nativePtr, columnIndex);
+        queryValidated = false;
+        return this;
+    }
     private native void nativeEqualToNull(long nativeQueryPtr, long columnIndexes[]);
+
+    public TableQuery notEqualToNull(long columnIndex[]) {
+        nativeNotEqualToNull(nativePtr, columnIndex);
+        queryValidated = false;
+        return this;
+    }
+    private native void nativeNotEqualToNull(long nativeQueryPtr, long columnIndexes[]);
 }

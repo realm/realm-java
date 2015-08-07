@@ -33,6 +33,7 @@ import io.realm.annotations.Required;
 // 8 Float
 // 9 Double
 // 10 Date
+// 11 Object
 public class NullTypes extends RealmObject {
 
     public static String FIELD_STRING_NOT_NULL = "fieldStringNotNull";

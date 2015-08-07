@@ -591,6 +591,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseTableHandove
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualToNull
   (JNIEnv *, jobject, jlong, jlongArray);
 
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeNotEqualToNull
+ * Signature: (J[J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualToNull
+  (JNIEnv *, jobject, jlong, jlongArray);
+
 #ifdef __cplusplus
 }
 #endif

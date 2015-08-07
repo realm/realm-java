@@ -45,6 +45,7 @@ inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colInd
     return COL_TYPE_VALID(env, TQ(nativeQueryPtr)->get_current_table().get(), colIndex, type);
 }
 
+
 //-------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv *, jclass, jlong nativeQueryPtr) {
@@ -1407,11 +1408,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                 pQuery->and_query(query);
                 break;
             }
-            case type_String: {
-                Query query = pTable->column<String>(S(columnIndex)).equal(realm::null());
-                pQuery->and_query(query);
+            case type_String:
+            case type_Binary:
+            case type_Bool:
+            case type_Int:
+            case type_Float:
+            case type_Double:
+            case type_DateTime:
+                // TODO: Why doesn't core support is_null on those columns?
+                Q(nativeQueryPtr)->equal(S(columnIndex), realm::null());
                 break;
-            }
             default:
                 // this point is inreachable
                 return ;
@@ -1502,12 +1508,36 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseTableHandove
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualToNull
   (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes) {
     GET_ARRAY()
+    Query* pQuery = Q(nativeQueryPtr);
     try {
         if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Bool)) {
+            Table* pTable = pQuery->get_table().get();
+            if (!COL_TYPE_NULLABLE(env, pTable, arr[0])) {
                 return;
             }
             Q(nativeQueryPtr)->equal(S(arr[0]), realm::null());
+        }
+        else {
+            /* TODO: Fix this.
+            Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
+            Q(nativeQueryPtr)->and_query(numeric_link_equal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
+           */
+        }
+    } CATCH_STD()
+    RELEASE_ARRAY()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualToNull
+  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes) {
+    GET_ARRAY()
+    Query* pQuery = Q(nativeQueryPtr);
+    try {
+        if (arr_len == 1) {
+            Table* pTable = pQuery->get_table().get();
+            if (!COL_TYPE_NULLABLE(env, pTable, arr[0])) {
+                return;
+            }
+            Q(nativeQueryPtr)->not_equal(S(arr[0]), realm::null());
         }
         else {
             /* TODO: Fix this.

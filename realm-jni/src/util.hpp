@@ -422,11 +422,11 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
     if (colType == type_Link || colType == type_LinkList) {
         return true;
     }
-    if (colType == type_String || colType == type_Bool) {
-        if (pTable->is_nullable(col)) {
-            return true;
-        }
+
+    if (pTable->is_nullable(col)) {
+        return true;
     }
+
     TR_ERR("Expected nullable column type")
     ThrowException(env, IllegalArgument, "Column is not nullable");
     return false;
