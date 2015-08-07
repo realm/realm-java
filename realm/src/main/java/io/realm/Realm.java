@@ -40,7 +40,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
@@ -48,7 +49,7 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.SharedGroupManager;
-import io.realm.base.RealmBase;
+import io.realm.base.BaseRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
@@ -110,10 +111,9 @@ import io.realm.internal.log.RealmLog;
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
-public final class Realm extends RealmBase {
+public final class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
-    private  static final long UNVERSIONED = -1;
 
     // Cache mapping between a RealmConfiguration and already open Realm instances on this thread.
     protected static final ThreadLocal<Map<RealmConfiguration, Realm>> realmsCache =
@@ -127,6 +127,10 @@ public final class Realm extends RealmBase {
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable =
             new HashMap<Class<? extends RealmObject>, Table>();
+
+    // Reference counter for Realm instances: <Realm, refcounter>
+    private static final Map<Realm, AtomicInteger> realmReferenceCounter =
+            new ConcurrentHashMap<Realm, AtomicInteger>();
 
     private static RealmConfiguration defaultConfiguration;
     protected ColumnIndices columnIndices = new ColumnIndices();
@@ -164,8 +168,8 @@ public final class Realm extends RealmBase {
      */
     @Override
     public void close() {
-        boolean wasLastInstance = closeInstance(configuration);
-        if (wasLastInstance) {
+        releaseInstance(configuration);
+        if (realmReferenceCounter.get(this).decrementAndGet() == 0) {
             realmsCache.get().remove(configuration);
         }
     }
@@ -187,8 +191,8 @@ public final class Realm extends RealmBase {
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(new RealmConfiguration.Builder(context)
-                    .name(DEFAULT_REALM_NAME)
-                    .build());
+                .name(DEFAULT_REALM_NAME)
+                .build());
     }
 
     /**
@@ -261,34 +265,29 @@ public final class Realm extends RealmBase {
     }
 
     private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+
         // Check if a cached instance already exists for this thread
-        String canonicalPath = configuration.getPath();
-        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
-        }
         Map<RealmConfiguration, Realm> realms = realmsCache.get();
         Realm realm = realms.get(configuration);
         if (realm != null) {
-            localRefCount.put(configuration, references + 1);
+            realmReferenceCounter.get(realm).incrementAndGet(); // Increment local cache counter
+            sharedGroupManagerReferenceAcquired(configuration);
             return realm;
         }
-
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
         // faulty cache data.
         validateAgainstExistingConfigurations(configuration);
         realm = new Realm(configuration, autoRefresh);
-        cacheConfiguration(configuration);
-        realms.put(configuration, realm);
-        localRefCount.put(configuration, references + 1);
+        realmReferenceCounter.put(realm, new AtomicInteger(1)); // Set local cache counter
+        realms.put(configuration, realm); // Cache Configuration -> Realm mapping
+        sharedGroupManagerReferenceAcquired(configuration); // Update shared cache
 
         // Check versions of Realm
         long currentVersion = realm.getVersion();
         long requiredVersion = configuration.getSchemaVersion();
         if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && validateSchema) {
             realm.close();
-            throw new RealmMigrationNeededException(canonicalPath, String.format("Realm on disc need to migrate from v%s to v%s", currentVersion, requiredVersion));
+            throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disc need to migrate from v%s to v%s", currentVersion, requiredVersion));
         }
         if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && validateSchema) {
             realm.close();
@@ -690,7 +689,7 @@ public final class Realm extends RealmBase {
      * @param clazz The Class of the object to create
      * @param primaryKeyValue Value for the primary key field.
      * @return The new object
-     * @throws {@link RealmException} if object could not be created.
+     * @throws @link RealmException} if object could not be created.
      */
     <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = getTable(clazz);
@@ -985,15 +984,6 @@ public final class Realm extends RealmBase {
             }
         }
         return null;
-    }
-
-    // package protected so unit tests can access it
-    long getVersion() {
-        if (!sharedGroup.hasTable("metadata")) {
-            return UNVERSIONED;
-        }
-        Table metadataTable = sharedGroup.getTable("metadata");
-        return metadataTable.getLong(0, 0);
     }
 
     // package protected so unit tests can access it

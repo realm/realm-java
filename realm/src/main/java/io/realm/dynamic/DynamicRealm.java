@@ -21,9 +21,11 @@ import android.os.Looper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.RealmConfiguration;
-import io.realm.base.RealmBase;
+import io.realm.base.BaseRealm;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
@@ -38,9 +40,13 @@ import io.realm.internal.UncheckedRow;
  * Dynamic Realms do not enforce schemaVersions and doesn't trigger migrations even if they have been defined in
  * the configuration.
  *
+ * Note that a DynamicRealm and a normal Realm share the same underlying resources so that also means they will
+ * share transactions, i.e. it is possible to start a transaction in a normal Realm and commit it from a
+ * dynamic Realm. Doing so is highly discouraged.
+ *
  * @see io.realm.Realm
  */
-public final class DynamicRealm extends RealmBase {
+public final class DynamicRealm extends BaseRealm {
 
     // Cache mapping between a RealmConfiguration and already open Realm instances on this thread.
     protected static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
@@ -53,6 +59,10 @@ public final class DynamicRealm extends RealmBase {
 
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<String, Table> classToTable = new HashMap<String, Table>();
+
+    // Reference counter for Realm instances: <DynamicRealm, refcounter>
+    private static final Map<DynamicRealm, AtomicInteger> realmReferenceCounter =
+            new ConcurrentHashMap<DynamicRealm, AtomicInteger>();
 
     private DynamicRealm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
@@ -95,6 +105,9 @@ public final class DynamicRealm extends RealmBase {
      */
     public DynamicRealmQuery where(String className) {
         checkIfValid();
+        if (!sharedGroup.hasTable(Table.TABLE_PREFIX + className)) {
+            throw new IllegalArgumentException("Class does not exist in the Realm so it cannot be queried: " + className);
+        }
         return new DynamicRealmQuery(this, className);
     }
 
@@ -109,8 +122,8 @@ public final class DynamicRealm extends RealmBase {
      */
     @Override
     public void close() {
-        boolean wasLastInstance = closeInstance(configuration);
-        if (wasLastInstance) {
+        releaseInstance(configuration);
+        if (realmReferenceCounter.get(this).decrementAndGet() == 0) {
             realmsCache.get().remove(configuration);
         }
     }
@@ -118,30 +131,27 @@ public final class DynamicRealm extends RealmBase {
     private static synchronized DynamicRealm create(RealmConfiguration configuration) {
 
         // Check if a cached instance already exists for this thread
-        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
-        }
-
         Map<RealmConfiguration, DynamicRealm> realms = realmsCache.get();
         DynamicRealm realm = realms.get(configuration);
         if (realm != null) {
-            localRefCount.put(configuration, references + 1);
+            realmReferenceCounter.get(realm).incrementAndGet(); // Increment local cache counter
+            sharedGroupManagerReferenceAcquired(configuration);
             return realm;
         }
-
-        // If not, create new Realm and cache it.
-        validateAgainstExistingConfigurations(configuration);
+        // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
+        // faulty cache data.
         boolean autoRefresh = Looper.myLooper() != null;
+        validateAgainstExistingConfigurations(configuration);
         realm = new DynamicRealm(configuration, autoRefresh);
-        realms.put(configuration, realm);
-        localRefCount.put(configuration, references + 1);
+        realmReferenceCounter.put(realm, new AtomicInteger(1)); // Set local cache counter
+        realms.put(configuration, realm); // Cache Configuration -> Realm mapping
+        sharedGroupManagerReferenceAcquired(configuration); // Update Shared cache
 
         return realm;
     }
 
-    private Table getTable(String className) {
+    protected Table getTable(String className) {
+        className = Table.TABLE_PREFIX + className;
         Table table = classToTable.get(className);
         if (table == null) {
             table = sharedGroup.getTable(className);
@@ -150,10 +160,14 @@ public final class DynamicRealm extends RealmBase {
         return table;
     }
 
-    private DynamicRealmObject get(String className, long rowIndex) {
+    DynamicRealmObject get(String className, long rowIndex) {
         Table table = getTable(className);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
         DynamicRealmObject result = new DynamicRealmObject(this, row);
         return result;
+    }
+
+    public void checkIsValid() {
+        super.checkIfValid();
     }
 }

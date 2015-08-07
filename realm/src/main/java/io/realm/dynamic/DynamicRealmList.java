@@ -18,7 +18,7 @@ package io.realm.dynamic;
 import java.util.AbstractList;
 import java.util.List;
 
-import io.realm.base.RealmBase;
+import io.realm.base.BaseRealm;
 import io.realm.internal.LinkView;
 
 /**
@@ -28,9 +28,9 @@ import io.realm.internal.LinkView;
 public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
 
     private final LinkView linkView;
-    private final RealmBase realm;
+    private final BaseRealm realm;
 
-    DynamicRealmList(LinkView linkView, RealmBase realm) {
+    DynamicRealmList(LinkView linkView, BaseRealm realm) {
         this.linkView = linkView;
         this.realm = realm;
     }

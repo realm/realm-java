@@ -18,49 +18,100 @@
 package io.realm;
 
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import android.test.AndroidTestCase;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import io.realm.dynamic.DynamicRealm;
+import io.realm.entities.AllTypes;
+import io.realm.internal.Util;
 
-import io.realm.entities.AllJavaTypes;
+public class DynamicRealmTest extends AndroidTestCase {
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-
-
-@RunWith(AndroidJUnit4.class)
-public class DynamicRealmTest {
-
-    private Realm realm;
-
-    @Before
+    @Override
     public void setUp() {
-        RealmConfiguration config = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).build();
-        Realm.deleteRealm(config);
-        realm = Realm.getInstance(config);
     }
 
-    @After
+    @Override
     public void tearDown() {
-        if (realm != null) {
-            realm.close();
-        }
     }
 
     // Test that the SharedGroupManager is reused across Realm/DynamicRealm on the same thread
-    @Test
+    // This is done by starting a write transaction in one Realm and verifying that all the
+    // data already written (but not committed) is available in the other Realm.
     public void testSharedGroupManageReused() {
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.createObject(AllJavaTypes.class);
-            }
-        });
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+        Realm typedRealm = Realm.getInstance(config);
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
 
-        assertThat(realm.allObjects(AllJavaTypes.class).size(), is(1));
+        assertEquals(0, typedRealm.where(AllTypes.class).count());
+        assertEquals(0, dynamicRealm.where("AllTypes").count());
+
+        typedRealm.beginTransaction();
+        try {
+            typedRealm.createObject(AllTypes.class);
+            assertEquals(1, typedRealm.where(AllTypes.class).count());
+            assertEquals(1, dynamicRealm.where("AllTypes").count());
+            typedRealm.cancelTransaction();
+        } finally {
+            typedRealm.close();
+            dynamicRealm.close();
+        }
+    }
+
+    // Test that Realms can only be deleted after all Typed and Dynamic instances are closed.
+    public void testDeleteAfterAllIsClosed() {
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+
+        Realm typedRealm = Realm.getInstance(config);
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+
+        typedRealm.close();
+        try {
+            Realm.deleteRealm(config);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        dynamicRealm.close();
+        assertTrue(Realm.deleteRealm(config));
+    }
+
+    // Test that the closed Realm isn't kept in the Realm instance cache
+    public void testRealmCacheIsCleared() {
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+
+        Realm typedRealm = Realm.getInstance(config);
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+
+        typedRealm.close(); // Still a instance open, but typed Realm cache must still be cleared.
+        dynamicRealm.close();
+
+        try {
+            typedRealm = Realm.getInstance(config);
+            assertEquals(0, typedRealm.where(AllTypes.class).count());
+        } finally {
+            typedRealm.close();
+        }
+    }
+
+    // Test that the closed DynamicRealms isn't kept in the DynamicRealm instance cache
+    public void testDynamicRealmCacheIsCleared() {
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(config);
+        Realm typedRealm = Realm.getInstance(config);
+
+        dynamicRealm.close(); // Still a instance open, but DynamicRealm cache must still be cleared.
+        typedRealm.close();
+
+        try {
+            dynamicRealm = DynamicRealm.getInstance(config);
+            assertEquals(0, dynamicRealm.getVersion());
+        } finally {
+            dynamicRealm.close();
+        }
     }
 }

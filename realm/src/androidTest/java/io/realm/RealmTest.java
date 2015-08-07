@@ -16,12 +16,9 @@
 package io.realm;
 
 import android.content.Context;
-import android.os.SystemClock;
 import android.test.AndroidTestCase;
-import android.util.Log;
 
 import junit.framework.AssertionFailedError;
-import junit.framework.Test;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,8 +27,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.Reference;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -44,7 +39,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllTypes;
@@ -63,9 +57,6 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
-import io.realm.internal.SharedGroupManager;
-import io.realm.base.RealmBase;
-import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;

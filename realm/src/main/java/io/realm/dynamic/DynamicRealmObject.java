@@ -18,7 +18,7 @@ package io.realm.dynamic;
 import java.util.Date;
 
 import io.realm.RealmObject;
-import io.realm.base.RealmBase;
+import io.realm.base.BaseRealm;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
 import io.realm.internal.InvalidRow;
@@ -33,7 +33,7 @@ import io.realm.internal.UncheckedRow;
  */
 public class DynamicRealmObject extends RealmObject {
 
-     RealmBase realm;
+     BaseRealm realm;
      Row row;
 
     /**
@@ -55,7 +55,7 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     // Create a dynamic object. Only used internally
-    DynamicRealmObject(RealmBase realm, Row row) {
+    DynamicRealmObject(BaseRealm realm, Row row) {
         this.realm = realm;
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
     }
