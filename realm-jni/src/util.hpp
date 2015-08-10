@@ -100,6 +100,7 @@ std::string num_to_string(T pNumber)
 #define Q(x)    reinterpret_cast<realm::Query*>(x)
 #define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
+#define CH(ptr) reinterpret_cast<ClientHistory*>(ptr)
 
 // Exception handling
 
@@ -223,7 +224,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     bool valid = (objPtr != NULL);
     if (valid) {
         // Check if Table is valid
-        if (realm::util::SameType<realm::Table, T>::value) {
+        if (std::is_same<realm::Table, T>::value) {
             valid = TBL(objPtr)->is_attached();
         }
         // TODO: Add check for TableView
@@ -236,7 +237,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     return valid;
 }
 
-inline bool RowIsValid(JNIEnv* env, Row* rowPtr)
+inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
 {
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
@@ -307,7 +308,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=fa
 template <class T>
 inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
-    if (realm::util::SameType<realm::Table, T>::value) {
+    if (std::is_same<realm::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
@@ -332,14 +333,14 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 template <class T>
 inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
-    if (realm::util::SameType<realm::Table, T>::value) {
+    if (std::is_same<realm::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
     return ColIndexValid(env, pTable, columnIndex);
 }
 
-inline bool RowColIndexValid(JNIEnv* env, Row* pRow, jlong columnIndex)
+inline bool RowColIndexValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex)
 {
     return RowIsValid(env, pRow) && ColIndexValid(env, pRow->get_table(), columnIndex);
 }
@@ -397,11 +398,11 @@ inline bool TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
-    if (colType == type_Link || colType == type_LinkList) {
+    if (colType == realm::type_Link || colType == realm::type_LinkList) {
         return true;
     }
 
-    TR_ERR("Expected columnType %d or %d, but got %d", type_Link, type_LinkList, colType)
+    TR_ERR("Expected columnType %d or %d, but got %d", realm::type_Link, realm::type_LinkList, colType)
     ThrowException(env, IllegalArgument, "ColumnType invalid: expected type_Link or type_LinkList");
     return false;
 }
@@ -425,7 +426,7 @@ inline bool TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnInd
         && TypeIsLinkLike(env, pTable, columnIndex);
 }
 
-inline bool RowColIndexAndTypeValid(JNIEnv* env, Row* pRow, jlong columnIndex, int expectColType)
+inline bool RowColIndexAndTypeValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex, int expectColType)
 {
     return RowIsValid(env, pRow)
         && ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
@@ -455,7 +456,7 @@ bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& data);
 
 // Utility function for appending StringData, which is returned
 // by a lot of core functions, and might potentially be NULL.
-std::string concat_stringdata(const char *message, StringData data);
+std::string concat_stringdata(const char *message, realm::StringData data);
 
 // Note: JNI offers methods to convert between modified UTF-8 and
 // UTF-16. Unfortunately these methods are not appropriate in this

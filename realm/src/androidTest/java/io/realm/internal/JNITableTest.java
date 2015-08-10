@@ -1,7 +1,6 @@
 package io.realm.internal;
 
 import android.test.AndroidTestCase;
-import android.test.MoreAsserts;
 
 import java.io.File;
 import java.util.Date;
@@ -67,7 +66,7 @@ public class JNITableTest extends AndroidTestCase {
         Table tableZeroCols = new Table();
 
         // Add rows
-        try { tableZeroCols.add("val");         fail("No columns in table"); } catch (IllegalArgumentException e) {}
+        try { tableZeroCols.add("val");         fail("No columns in table"); } catch (IndexOutOfBoundsException ignored) {}
         try { tableZeroCols.addEmptyRow();      fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
         try { tableZeroCols.addEmptyRows(10);   fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
 
@@ -78,36 +77,6 @@ public class JNITableTest extends AndroidTestCase {
         try { tableZeroCols.removeColumn(10);               fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { tableZeroCols.renameColumn(10, "newName");    fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
-
-    public void testTableBinaryTest() {
-        Table t = new Table();
-        t.addColumn(ColumnType.BINARY, "binary");
-
-        byte[] row0 = new byte[] { 1, 2, 3 };
-        byte[] row1 = new byte[] { 10, 20, 30 };
-
-        t.getInternalMethods().insertBinary(0, 0, row0);
-        t.getInternalMethods().insertDone();
-        t.getInternalMethods().insertBinary(0, 1, row1);
-        t.getInternalMethods().insertDone();
-
-        byte[] nullByte = null;
-
-        try { t.getInternalMethods().insertBinary(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
-
-
-        MoreAsserts.assertEquals(new byte[]{1, 2, 3}, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[]{1, 2, 3});
-
-        byte[] newRow0 = new byte[] { 7, 77, 77 };
-        t.setBinaryByteArray(0, 0, newRow0);
-
-        MoreAsserts.assertEquals(new byte[]{7, 77, 77}, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
-
-        try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
-    }
-
 
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
@@ -260,33 +229,16 @@ public class JNITableTest extends AndroidTestCase {
 
     }
 
-    public void testSetDataInNonExistingRow() {
-        Table t = new Table();
-        t.addColumn(ColumnType.STRING, "colName");
-        t.add("String val");
-
-        try { t.set(1, "new string val"); fail("Row 1 does not exist"); } catch (IllegalArgumentException e) { }
-    }
-
-
     public void testSetNulls() {
         Table t = new Table();
         t.addColumn(ColumnType.STRING, "");
         t.addColumn(ColumnType.DATE, "");
         t.addColumn(ColumnType.MIXED, "");
         t.addColumn(ColumnType.BINARY, "");
-        t.add("String val", new Date(), new Mixed(""), new byte[] { 1,2,3} );
+        t.add("String val", new Date(), new Mixed(""), new byte[]{1, 2, 3});
 
         try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (IllegalArgumentException e) { }
         try { t.setDate(1, 0, null);    fail("null Date not allowed"); } catch (IllegalArgumentException e) { }
-    }
-
-    public void testSetDataWithWrongColumnAmountParameters() {
-        Table t = new Table();
-        t.addColumn(ColumnType.STRING, "colName");
-        t.add("String val");
-
-        try { t.set(0, "new string val", "This column does not exist"); fail("Table only has 1 column"); } catch (IllegalArgumentException e) { }
     }
 
     public void testAddNegativeEmptyRows() {
@@ -302,14 +254,6 @@ public class JNITableTest extends AndroidTestCase {
         t.add(new Mixed(true));
 
         try { t.setMixed(0, 0, null); fail("Argument is null"); } catch (IllegalArgumentException e) { }
-    }
-
-    public void testSetDataWithWrongColumnTypes() {
-        Table t = new Table();
-        t.addColumn(ColumnType.STRING, "colName");
-        t.add("String val");
-
-        try { t.set(0, 100); fail("Table has string column, and here an integer is inserted"); } catch (IllegalArgumentException e) { }
     }
 
     public void testImmutableInsertNotAllowed() {
@@ -339,7 +283,11 @@ public class JNITableTest extends AndroidTestCase {
         try {
             Table table = rt.getTable(TABLENAME);
 
-            try {  table.addAt(1, "NewValue"); fail("Exception expected when inserting in read transaction"); } catch (IllegalStateException e) { }
+            try {
+                table.addEmptyRow();
+                fail("Exception expected when inserting in read transaction");
+            } catch (IllegalStateException ignored) {
+            }
 
         } finally {
             rt.endRead();
@@ -401,22 +349,6 @@ public class JNITableTest extends AndroidTestCase {
             // Try to hasSearchIndex() for all columnTypes
             t.hasSearchIndex(colIndex);
         }
-    }
-
-
-    /**
-     * Returns a table with a few columns and values
-     * @return
-     */
-    private Table getTableWithSimpleData(){
-        Table table =  new Table();
-        table.addColumn(ColumnType.STRING, "col");
-        table.addColumn(ColumnType.INTEGER, "int");
-        table.add("val1", 100);
-        table.add("val2", 200);
-        table.add("val3", 300);
-
-        return table;
     }
 
     public void testColumnName() {
