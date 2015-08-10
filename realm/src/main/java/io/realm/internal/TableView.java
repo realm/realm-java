@@ -532,20 +532,6 @@ public class TableView implements TableOrView, Closeable {
 
     protected native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
 
-    /**
-     * Add the value for to all cells in the column.
-     *
-     * @param columnIndex column index of the cell
-     * @param value
-     */
-    @Override
-    public void adjust(long columnIndex, long value) {
-        if (parent.isImmutable()) throwImmutable();
-        nativeAddInt(nativePtr, columnIndex, value);
-    }
-
-    protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
-
     // Methods for deleting.
     @Override
     public void clear(){
