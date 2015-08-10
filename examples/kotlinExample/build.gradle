@@ -22,6 +22,11 @@ android {
     command {
         events 2000
     }
+
+    // Incremental builds currently doesn't work with Kotlin
+    dexOptions {
+        incremental false
+    }
 }
 
 tasks.preBuild {
