@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import io.realm.RealmObject;
-import io.realm.RealmQuery;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
@@ -31,7 +30,7 @@ public abstract class BaseRealmResults<O extends RealmObject, Q extends BaseReal
 
     protected abstract void checkIsRealmValid();
     protected abstract TableOrView getTable();
-    protected abstract Q getQuery();
+    protected abstract Q getSubQuery();
     protected abstract O getObject(long sourceRowIndex);
 
     /**
@@ -43,7 +42,7 @@ public abstract class BaseRealmResults<O extends RealmObject, Q extends BaseReal
      */
     public Q where() {
         checkIsRealmValid();
-        return getQuery();
+        return getSubQuery();
     }
 
     /**

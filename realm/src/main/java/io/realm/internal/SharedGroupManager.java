@@ -17,12 +17,9 @@
 
 package io.realm.internal;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.RealmConfiguration;
 
@@ -40,76 +37,15 @@ import io.realm.RealmConfiguration;
  * thread. This means that any code that wants to manipulate the Realm file itself must use the
  * static methods in this class to ensure that it is safe to do so.
  */
-public class SharedGroupManager {
+public class SharedGroupManager implements Closeable {
 
-    // Map how many times a Realm path has been opened across all threads.
-    // This is only needed by deleteRealmFile.
-    private static final Map<String, AtomicInteger> globalOpenInstanceCounter =
-            new ConcurrentHashMap<String, AtomicInteger>();
-
-    // Thread local map between <canonicalPath> and <manager>>. Allows reusing SharedGroupManager across
-    // Realm types.
-    private static final ThreadLocal<Map<String, SharedGroupManager>> managerCache =
-            new ThreadLocal<Map<String, SharedGroupManager>>() {
-        @Override
-        protected Map<String, SharedGroupManager> initialValue() {
-            return new HashMap<String, SharedGroupManager>();
-        }
-    };
-
-    protected SharedGroup sharedGroup;
-    protected ImplicitTransaction transaction;
-
-    /**
-     * Returns the {@link SharedGroupManager} for the given configuration on this thread.
-     * Wrappers can be reused across multiple Realm instances. The underlying {@link SharedGroup}
-     * is reference counted, so will not be fully closed until all SharedGroupManager references has been released.
-     */
-    public static synchronized SharedGroupManager acquireReference(RealmConfiguration configuration) {
-
-        // Ensure cache state
-        Map<String, SharedGroupManager> threadCache = managerCache.get();
-        SharedGroupManager cachedManager = threadCache.get(configuration.getPath());
-        if (cachedManager == null) {
-            cachedManager = new SharedGroupManager(configuration);
-            threadCache.put(configuration.getPath(), cachedManager);
-        }
-
-        // Increment reference counter
-        String path = configuration.getPath();
-        AtomicInteger counter = globalOpenInstanceCounter.get(path);
-        if (counter == null) {
-            globalOpenInstanceCounter.put(path, new AtomicInteger(1));
-        } else {
-            counter.incrementAndGet();
-        }
-
-        return cachedManager;
-    }
-
-    /**
-     * Release the reference to the SharedGroupManager when closing an instance of a Realm.
-     * When the refCount = 0. All native resources will also be released
-     * @param manager
-     */
-    public static synchronized void releaseReference(SharedGroupManager manager) {
-        String path = manager.getSharedGroup().getPath();
-        AtomicInteger refCounter = globalOpenInstanceCounter.get(path);
-        int refCount = refCounter.decrementAndGet();
-        if (refCount == 0) {
-            globalOpenInstanceCounter.remove(path);
-            managerCache.get().remove(path);
-            manager.close();
-        }
-    }
+    private SharedGroup sharedGroup;
+    private ImplicitTransaction transaction;
 
     /**
      * Creates a new instance of the FileWrapper for the given configuration on this thread.
-     *
-     * @throws IllegalArgumentException if the given configuration isn't compatible with existing
-     * configurations.
      */
-    private SharedGroupManager(RealmConfiguration configuration) {
+    public  SharedGroupManager(RealmConfiguration configuration) {
         this.sharedGroup = new SharedGroup(
                 configuration.getPath(),
                 SharedGroup.IMPLICIT_TRANSACTION,
@@ -121,20 +57,11 @@ public class SharedGroupManager {
     /**
      * Close the underlying {@link SharedGroup} and free any native resources.
      */
-    private void close() {
+    @Override
+    public void close() {
         sharedGroup.close();
         sharedGroup = null;
         transaction = null;
-    }
-
-    /**
-     * Checks if a Realm file defined by the configuration is open on any thread.
-     *
-     * @return {@code true} if the Realm file is open on any thread, {@code false} otherwise.
-     */
-    public static boolean isOpen(String canonicalPath) {
-        AtomicInteger counter = globalOpenInstanceCounter.get(canonicalPath);
-        return (counter != null && counter.get() > 0);
     }
 
     /**

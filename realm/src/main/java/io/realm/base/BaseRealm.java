@@ -23,6 +23,7 @@ import android.os.Message;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,10 +33,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.BuildConfig;
+import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
+import io.realm.RealmObject;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
@@ -62,14 +66,8 @@ public abstract class BaseRealm implements Closeable {
     protected static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
             new HashMap<String, List<RealmConfiguration>>();
 
-    // Reference count for how many open Realm instances there currently are on this thread.
-    protected static final ThreadLocal<Map<RealmConfiguration, Integer>> threadGlobalReferenceCount =
-            new ThreadLocal<Map<RealmConfiguration,Integer>>() {
-                @Override
-                protected Map<RealmConfiguration, Integer> initialValue() {
-                    return new HashMap<RealmConfiguration, Integer>();
-                }
-            };
+    // Reference count on currently open Realm instances (both normal and dynamic).
+    protected static final Map<String, Integer> globalRealmFileReferenceCounter = new HashMap<String, Integer>();
 
     // Map between a Handler and the canonical path to a Realm file
     public static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -90,7 +88,7 @@ public abstract class BaseRealm implements Closeable {
     protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
-        this.sharedGroup = SharedGroupManager.acquireReference(configuration);
+        this.sharedGroup = new SharedGroupManager(configuration);
         setAutoRefresh(autoRefresh);
     }
 
@@ -175,7 +173,7 @@ public abstract class BaseRealm implements Closeable {
         changeListeners.clear();
     }
 
-    private void removeHandler(Handler handler) {
+    protected void removeHandler(Handler handler) {
         handler.removeCallbacksAndMessages(null);
         handlers.remove(handler);
     }
@@ -199,38 +197,10 @@ public abstract class BaseRealm implements Closeable {
             changeListeners.removeAll(toRemoveList);
         }
     }
-
-    /**
-     * Releases a instance of a Realm. If this was the last instance holding on to a SharedGroupManager that manager
-     * will also be freed.
-     */
-    protected void releaseInstance(RealmConfiguration configuration) {
-        if (this.threadId != Thread.currentThread().getId()) {
-            throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
-        }
-
-        Map<RealmConfiguration, Integer> localRefCount = threadGlobalReferenceCount.get();
-        String canonicalPath = configuration.getPath();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
-        }
-
-        SharedGroupManager.releaseReference(sharedGroup);
-        if (references == 1) {
-            sharedGroup = null;
-            globalPathConfigurationCache.get(canonicalPath).remove(configuration);
-        }
-
-        int refCount = references - 1;
-        if (refCount < 0) {
-            RealmLog.w("Calling close() on a Realm that is already closed: " + canonicalPath);
-        }
-        localRefCount.put(configuration, Math.max(0, refCount));
-
-        if (handler != null && refCount <= 0) {
-            removeHandler(handler);
-        }
+    // Reference to a file has been released.
+    protected static boolean isFileOpen(RealmConfiguration configuration) {
+        Integer refCount = globalRealmFileReferenceCounter.get(configuration.getPath());
+        return refCount != null && refCount > 0;
     }
 
     /**
@@ -390,6 +360,43 @@ public abstract class BaseRealm implements Closeable {
         return metadataTable.getLong(0, 0);
     }
 
+    @Override
+    public void close() {
+        if (this.threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
+        }
+    }
+
+    // Reference to a file acquired
+    protected void acquireFileReference(RealmConfiguration configuration) {
+        synchronized (BaseRealm.class) {
+            String path = configuration.getPath();
+            Integer refCount = globalRealmFileReferenceCounter.get(path);
+            if (refCount == null) {
+                refCount = 0;
+            }
+            globalRealmFileReferenceCounter.put(path, refCount + 1);
+        }
+    }
+
+    // Releases a reference to the Realm file
+    protected void releaseFileReference() {
+        synchronized (BaseRealm.class) {
+            String canonicalPath = configuration.getPath();
+            List<RealmConfiguration>  pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+            pathConfigurationCache.remove(configuration);
+            if (pathConfigurationCache.isEmpty()) {
+                globalPathConfigurationCache.remove(canonicalPath);
+            }
+
+            Integer refCount = globalRealmFileReferenceCounter.get(canonicalPath);
+            if (refCount == null || refCount == 0) {
+                throw new IllegalStateException("Trying to release a Realm file that is already closed");
+            }
+            globalRealmFileReferenceCounter.put(canonicalPath, refCount - 1);
+        }
+    }
+
     /**
      * Make sure that the new configuration doesn't clash with any existing configurations for the
      * Realm.
@@ -435,33 +442,6 @@ public abstract class BaseRealm implements Closeable {
                         "configurations pointing to " + newConfiguration.getPath() + " are being used.");
             }
         }
-    }
-
-    // Specific Realm instance opened
-    protected static void sharedGroupManagerReferenceAcquired(RealmConfiguration configuration) {
-        Map<RealmConfiguration, Integer> threadGlobalReferenceCounter = threadGlobalReferenceCount.get();
-        Integer references = threadGlobalReferenceCounter.get(configuration);
-        boolean newConfiguration = references == null;
-        threadGlobalReferenceCounter.put(configuration, newConfiguration ? 0 : references + 1);
-        if (newConfiguration) {
-            cacheConfiguration(configuration);
-        }
-    }
-
-    /**
-     * Cache the given configuration. INVARIANT: Configuration must only be cached if it is a legal
-     * configuration.
-     *
-     * @param configuration Configuration to cache.
-     */
-    private static void cacheConfiguration(RealmConfiguration configuration) {
-        String canonicalPath = configuration.getPath();
-        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-        if (pathConfigurationCache == null) {
-            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
-        }
-        pathConfigurationCache.add(configuration);
     }
 
     // Internal Handler callback for Realm messages

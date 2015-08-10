@@ -40,18 +40,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.base.BaseRealm;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
-import io.realm.internal.SharedGroupManager;
-import io.realm.base.BaseRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
+import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
 import io.realm.internal.UncheckedRow;
@@ -115,22 +115,25 @@ public final class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
-    // Cache mapping between a RealmConfiguration and already open Realm instances on this thread.
     protected static final ThreadLocal<Map<RealmConfiguration, Realm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, Realm>>() {
-        @Override
-        protected Map<RealmConfiguration, Realm> initialValue() {
-            return new HashMap<RealmConfiguration, Realm>();
-        }
-    };
+                @Override
+                protected Map<RealmConfiguration, Realm> initialValue() {
+                    return new HashMap<RealmConfiguration, Realm>();
+                }
+            };
+
+    private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
+            new ThreadLocal<Map<RealmConfiguration,Integer>>() {
+                @Override
+                protected Map<RealmConfiguration, Integer> initialValue() {
+                    return new HashMap<RealmConfiguration, Integer>();
+                }
+            };
 
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable =
             new HashMap<Class<? extends RealmObject>, Table>();
-
-    // Reference counter for Realm instances: <Realm, refcounter>
-    private static final Map<Realm, AtomicInteger> realmReferenceCounter =
-            new ConcurrentHashMap<Realm, AtomicInteger>();
 
     private static RealmConfiguration defaultConfiguration;
     protected ColumnIndices columnIndices = new ColumnIndices();
@@ -168,9 +171,31 @@ public final class Realm extends BaseRealm {
      */
     @Override
     public void close() {
-        releaseInstance(configuration);
-        if (realmReferenceCounter.get(this).decrementAndGet() == 0) {
+        super.close();
+        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
+        String canonicalPath = configuration.getPath();
+        Integer references = localRefCount.get(configuration);
+        if (references == null) {
+            references = 0;
+        }
+        if (sharedGroup != null && references == 1) {
             realmsCache.get().remove(configuration);
+            sharedGroup.close();
+            sharedGroup = null;
+
+            // It is necessary to be synchronized here since there is a chance that before the counter removed,
+            // the other thread could get the counter and increase it in createAndValidate.
+            releaseFileReference();
+        }
+
+        int refCount = references - 1;
+        if (refCount < 0) {
+            RealmLog.w("Calling close() on a Realm that is already closed: " + canonicalPath);
+        }
+        localRefCount.put(configuration, Math.max(0, refCount));
+
+        if (handler != null && refCount <= 0) {
+            removeHandler(handler);
         }
     }
 
@@ -267,20 +292,34 @@ public final class Realm extends BaseRealm {
     private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
 
         // Check if a cached instance already exists for this thread
+        String canonicalPath = configuration.getPath();
+        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
+        Integer references = localRefCount.get(configuration);
+        if (references == null) {
+            references = 0;
+        }
         Map<RealmConfiguration, Realm> realms = realmsCache.get();
         Realm realm = realms.get(configuration);
         if (realm != null) {
-            realmReferenceCounter.get(realm).incrementAndGet(); // Increment local cache counter
-            sharedGroupManagerReferenceAcquired(configuration);
+            localRefCount.put(configuration, references + 1);
             return realm;
         }
+
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
         // faulty cache data.
         validateAgainstExistingConfigurations(configuration);
         realm = new Realm(configuration, autoRefresh);
-        realmReferenceCounter.put(realm, new AtomicInteger(1)); // Set local cache counter
-        realms.put(configuration, realm); // Cache Configuration -> Realm mapping
-        sharedGroupManagerReferenceAcquired(configuration); // Update shared cache
+        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+        if (pathConfigurationCache == null) {
+            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+        }
+        pathConfigurationCache.add(configuration);
+        realms.put(configuration, realm);
+        localRefCount.put(configuration, references + 1);
+
+        // Increment global reference counter
+        realm.acquireFileReference(configuration);
 
         // Check versions of Realm
         long currentVersion = realm.getVersion();
@@ -1084,13 +1123,13 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static synchronized boolean deleteRealm(RealmConfiguration configuration) {
-        boolean realmDeleted = true;
-        String canonicalPath = configuration.getPath();
-        if (SharedGroupManager.isOpen(canonicalPath)) {
+        if (isFileOpen(configuration)) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
                     "Remember to close() all the instances of the Realm before deleting its file.");
         }
 
+        boolean realmDeleted = true;
+        String canonicalPath = configuration.getPath();
         File realmFolder = configuration.getRealmFolder();
         String realmFileName = configuration.getRealmFileName();
         List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
@@ -1130,8 +1169,7 @@ public final class Realm extends BaseRealm {
             throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
         }
 
-        String canonicalPath = configuration.getPath();
-        if (SharedGroupManager.isOpen(canonicalPath)) {
+        if (isFileOpen(configuration)) {
             throw new IllegalStateException("Cannot compact an open Realm");
         }
 

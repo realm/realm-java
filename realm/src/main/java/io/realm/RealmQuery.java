@@ -49,7 +49,7 @@ public class RealmQuery<E extends RealmObject> extends BaseRealmQuery<E, RealmQu
     private Realm realm;
 
     /**
-     * Creates a RealmQuery instance.
+     * Creating a RealmQuery instance.
      *
      * @param realm  The realm to query within.
      * @param clazz  The class to query.

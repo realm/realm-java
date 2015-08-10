@@ -33,8 +33,8 @@ public class DynamicRealmResults extends BaseRealmResults<DynamicRealmObject, Dy
     }
 
     @Override
-    protected DynamicRealmQuery getQuery() {
-        return new DynamicRealmQuery(realm, className);
+    protected DynamicRealmQuery getSubQuery() {
+        return new DynamicRealmQuery(this, className);
     }
 
     @Override

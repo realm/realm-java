@@ -81,8 +81,8 @@ public class RealmResults<E extends RealmObject> extends BaseRealmResults<E, Rea
     }
 
     @Override
-    protected RealmQuery<E> getQuery() {
-        return new RealmQuery<E>(realm, classSpec);
+    protected RealmQuery<E> getSubQuery() {
+        return new RealmQuery<E>(this, classSpec);
     }
 
     @Override

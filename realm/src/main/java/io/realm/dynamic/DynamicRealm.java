@@ -20,15 +20,19 @@ package io.realm.dynamic;
 import android.os.Looper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.base.BaseRealm;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.log.RealmLog;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -48,7 +52,6 @@ import io.realm.internal.UncheckedRow;
  */
 public final class DynamicRealm extends BaseRealm {
 
-    // Cache mapping between a RealmConfiguration and already open Realm instances on this thread.
     protected static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, DynamicRealm>>() {
                 @Override
@@ -57,12 +60,16 @@ public final class DynamicRealm extends BaseRealm {
                 }
             };
 
+    private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
+            new ThreadLocal<Map<RealmConfiguration,Integer>>() {
+                @Override
+                protected Map<RealmConfiguration, Integer> initialValue() {
+                    return new HashMap<RealmConfiguration, Integer>();
+                }
+            };
+
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<String, Table> classToTable = new HashMap<String, Table>();
-
-    // Reference counter for Realm instances: <DynamicRealm, refcounter>
-    private static final Map<DynamicRealm, AtomicInteger> realmReferenceCounter =
-            new ConcurrentHashMap<DynamicRealm, AtomicInteger>();
 
     private DynamicRealm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
@@ -122,30 +129,67 @@ public final class DynamicRealm extends BaseRealm {
      */
     @Override
     public void close() {
-        releaseInstance(configuration);
-        if (realmReferenceCounter.get(this).decrementAndGet() == 0) {
+        super.close();
+        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
+        String canonicalPath = configuration.getPath();
+        Integer references = localRefCount.get(configuration);
+        if (references == null) {
+            references = 0;
+        }
+        if (sharedGroup != null && references == 1) {
             realmsCache.get().remove(configuration);
+            sharedGroup.close();
+            sharedGroup = null;
+
+            // It is necessary to be synchronized here since there is a chance that before the counter removed,
+            // the other thread could get the counter and increase it in createAndValidate.
+            releaseFileReference();
+        }
+
+        int refCount = references - 1;
+        if (refCount < 0) {
+            RealmLog.w("Calling close() on a Realm that is already closed: " + canonicalPath);
+        }
+        localRefCount.put(configuration, Math.max(0, refCount));
+
+        if (handler != null && refCount <= 0) {
+            removeHandler(handler);
         }
     }
 
     private static synchronized DynamicRealm create(RealmConfiguration configuration) {
 
         // Check if a cached instance already exists for this thread
+        String canonicalPath = configuration.getPath();
+        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
+        Integer references = localRefCount.get(configuration);
+        if (references == null) {
+            references = 0;
+        }
         Map<RealmConfiguration, DynamicRealm> realms = realmsCache.get();
         DynamicRealm realm = realms.get(configuration);
         if (realm != null) {
-            realmReferenceCounter.get(realm).incrementAndGet(); // Increment local cache counter
-            sharedGroupManagerReferenceAcquired(configuration);
+            localRefCount.put(configuration, references + 1);
             return realm;
         }
+
         // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
         // faulty cache data.
-        boolean autoRefresh = Looper.myLooper() != null;
         validateAgainstExistingConfigurations(configuration);
+        boolean autoRefresh = Looper.myLooper() != null;
         realm = new DynamicRealm(configuration, autoRefresh);
-        realmReferenceCounter.put(realm, new AtomicInteger(1)); // Set local cache counter
-        realms.put(configuration, realm); // Cache Configuration -> Realm mapping
-        sharedGroupManagerReferenceAcquired(configuration); // Update Shared cache
+        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+        if (pathConfigurationCache == null) {
+            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+        }
+        pathConfigurationCache.add(configuration);
+        realms.put(configuration, realm);
+        localRefCount.put(configuration, references + 1);
+
+        // Increment global reference counter
+        realm.acquireFileReference(configuration);
+
 
         return realm;
     }
