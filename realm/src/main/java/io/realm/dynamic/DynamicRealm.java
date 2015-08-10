@@ -48,7 +48,7 @@ import io.realm.internal.UncheckedRow;
  */
 public class DynamicRealm extends BaseRealm {
 
-    protected static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
+    private static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, DynamicRealm>>() {
                 @Override
                 protected Map<RealmConfiguration, DynamicRealm> initialValue() {
@@ -56,7 +56,7 @@ public class DynamicRealm extends BaseRealm {
                 }
             };
 
-    protected static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
+    private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
             new ThreadLocal<Map<RealmConfiguration,Integer>>() {
                 @Override
                 protected Map<RealmConfiguration, Integer> initialValue() {

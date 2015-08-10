@@ -46,9 +46,10 @@ import io.realm.internal.log.RealmLog;
 
 /**
  * Base class for all Realm instances.
- * Specialized Realm types does not share the same underlying native resources.
+ * Specialized Realms does not share the same underlying native resources.
  *
  * @see io.realm.Realm
+ * @see io.realm.dynamic.DynamicRealm
  */
 public abstract class BaseRealm implements Closeable {
 
@@ -67,7 +68,7 @@ public abstract class BaseRealm implements Closeable {
     protected static final Map<String, Integer> globalRealmFileReferenceCounter = new HashMap<String, Integer>();
 
     // Map between a Handler and the canonical path to a Realm file
-    public static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
+    protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
     protected final List<WeakReference<RealmChangeListener>> changeListeners =
             new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();

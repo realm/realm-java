@@ -122,7 +122,7 @@ public final class Realm extends BaseRealm {
                 }
             };
 
-    protected static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
+    private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
             new ThreadLocal<Map<RealmConfiguration,Integer>>() {
                 @Override
                 protected Map<RealmConfiguration, Integer> initialValue() {
@@ -1153,6 +1153,11 @@ public final class Realm extends BaseRealm {
         } catch (IOException e) {
             throw new RealmException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
         }
+    }
+
+    // Return all handlers registered for this Realm
+    static Map<Handler, String> getHandlers() {
+        return handlers;
     }
 
     // Public because of migrations
