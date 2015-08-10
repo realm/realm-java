@@ -22,17 +22,13 @@ import android.os.Looper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.base.BaseRealm;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.log.RealmLog;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -50,7 +46,7 @@ import io.realm.internal.log.RealmLog;
  *
  * @see io.realm.Realm
  */
-public final class DynamicRealm extends BaseRealm {
+public class DynamicRealm extends BaseRealm {
 
     protected static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, DynamicRealm>>() {
@@ -60,7 +56,7 @@ public final class DynamicRealm extends BaseRealm {
                 }
             };
 
-    private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
+    protected static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
             new ThreadLocal<Map<RealmConfiguration,Integer>>() {
                 @Override
                 protected Map<RealmConfiguration, Integer> initialValue() {
@@ -118,45 +114,6 @@ public final class DynamicRealm extends BaseRealm {
         return new DynamicRealmQuery(this, className);
     }
 
-    /**
-     * Closes the Realm instance and all its resources.
-     * <p>
-     * It's important to always remember to close Realm instances when you're done with it in order
-     * not to leak memory, file descriptors or grow the size of Realm file out of measure.
-     *
-     * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the
-     * one it was created on.
-     */
-    @Override
-    public void close() {
-        super.close();
-        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-        String canonicalPath = configuration.getPath();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
-        }
-        if (sharedGroup != null && references == 1) {
-            realmsCache.get().remove(configuration);
-            sharedGroup.close();
-            sharedGroup = null;
-
-            // It is necessary to be synchronized here since there is a chance that before the counter removed,
-            // the other thread could get the counter and increase it in createAndValidate.
-            releaseFileReference();
-        }
-
-        int refCount = references - 1;
-        if (refCount < 0) {
-            RealmLog.w("Calling close() on a Realm that is already closed: " + canonicalPath);
-        }
-        localRefCount.put(configuration, Math.max(0, refCount));
-
-        if (handler != null && refCount <= 0) {
-            removeHandler(handler);
-        }
-    }
-
     private static synchronized DynamicRealm create(RealmConfiguration configuration) {
 
         // Check if a cached instance already exists for this thread
@@ -190,7 +147,6 @@ public final class DynamicRealm extends BaseRealm {
         // Increment global reference counter
         realm.acquireFileReference(configuration);
 
-
         return realm;
     }
 
@@ -211,7 +167,18 @@ public final class DynamicRealm extends BaseRealm {
         return result;
     }
 
-    public void checkIsValid() {
+    protected void checkIsValid() {
         super.checkIfValid();
     }
+
+    @Override
+    protected void lastLocalInstanceClosed() {
+        realmsCache.get().remove(configuration);
+    }
+
+    @Override
+    protected Map<RealmConfiguration, Integer> getLocalReferenceCount() {
+        return referenceCount.get();
+    }
 }
+

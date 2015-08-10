@@ -22,7 +22,6 @@ import android.test.AndroidTestCase;
 
 import io.realm.dynamic.DynamicRealm;
 import io.realm.entities.AllTypes;
-import io.realm.internal.Util;
 
 public class DynamicRealmTest extends AndroidTestCase {
 

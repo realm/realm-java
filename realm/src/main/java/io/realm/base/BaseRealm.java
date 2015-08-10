@@ -23,7 +23,6 @@ import android.os.Message;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,13 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.BuildConfig;
-import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
-import io.realm.RealmObject;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
@@ -50,6 +46,7 @@ import io.realm.internal.log.RealmLog;
 
 /**
  * Base class for all Realm instances.
+ * Specialized Realm types does not share the same underlying native resources.
  *
  * @see io.realm.Realm
  */
@@ -360,12 +357,50 @@ public abstract class BaseRealm implements Closeable {
         return metadataTable.getLong(0, 0);
     }
 
+    /**
+     * Closes the Realm instance and all its resources.
+     * <p>
+     * It's important to always remember to close Realm instances when you're done with it in order
+     * not to leak memory, file descriptors or grow the size of Realm file out of measure.
+     *
+     * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the
+     * one it was created on.
+     */
     @Override
     public void close() {
         if (this.threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
         }
+
+        Map<RealmConfiguration, Integer> localRefCount = getLocalReferenceCount();
+        String canonicalPath = configuration.getPath();
+        Integer references = localRefCount.get(configuration);
+        if (references == null) {
+            references = 0;
+        }
+        if (sharedGroup != null && references == 1) {
+            lastLocalInstanceClosed();
+            sharedGroup.close();
+            sharedGroup = null;
+            releaseFileReference();
+        }
+
+        int refCount = references - 1;
+        if (refCount < 0) {
+            RealmLog.w("Calling close() on a Realm that is already closed: " + canonicalPath);
+        }
+        localRefCount.put(configuration, Math.max(0, refCount));
+
+        if (handler != null && refCount <= 0) {
+            removeHandler(handler);
+        }
     }
+
+    // Return the thread local reference counter for the Realm type
+    protected abstract Map<RealmConfiguration,Integer> getLocalReferenceCount();
+
+    // Last thread local instance of this Realm type has been closed.
+    protected abstract void lastLocalInstanceClosed();
 
     // Reference to a file acquired
     protected void acquireFileReference(RealmConfiguration configuration) {

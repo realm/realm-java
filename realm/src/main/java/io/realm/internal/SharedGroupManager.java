@@ -158,5 +158,4 @@ public class SharedGroupManager implements Closeable {
         }
         return result;
     }
-
 }
