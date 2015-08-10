@@ -82,11 +82,11 @@ public class SharedGroup implements Closeable {
     }
 
     void advanceRead() {
-        nativeAdvanceRead(nativePtr);
+        nativeAdvanceRead(nativePtr, nativeReplicationPtr);
     }
 
     void promoteToWrite() {
-        nativePromoteToWrite(nativePtr);
+        nativePromoteToWrite(nativePtr, nativeReplicationPtr);
     }
 
     void commitAndContinueAsRead() {
@@ -94,7 +94,7 @@ public class SharedGroup implements Closeable {
     }
 
     void rollbackAndContinueAsRead() {
-        nativeRollbackAndContinueAsRead(nativePtr);
+        nativeRollbackAndContinueAsRead(nativePtr, nativeReplicationPtr);
     }
 
     public ImplicitTransaction beginImplicitTransaction() {
@@ -231,10 +231,10 @@ public class SharedGroup implements Closeable {
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
     private native long nativeCreateReplication(String databaseFile, byte[] key);
-    private native void nativeAdvanceRead(long nativePtr);
-    private native void nativePromoteToWrite(long nativePtr);
+    private native void nativeAdvanceRead(long nativePtr, long native_replication_ptr);
+    private native void nativePromoteToWrite(long nativePtr, long native_replication_ptr);
     private native void nativeCommitAndContinueAsRead(long nativePtr);
-    private native void nativeRollbackAndContinueAsRead(long nativePtr);
+    private native void nativeRollbackAndContinueAsRead(long nativePtr, long native_replication_ptr);
     private native long nativeBeginImplicit(long nativePtr);
     private native String nativeGetDefaultReplicationDatabaseFileName();
     private native void nativeReserve(long nativePtr, long bytes);
