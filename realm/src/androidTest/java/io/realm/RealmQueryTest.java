@@ -3,6 +3,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CatOwner;
@@ -479,7 +480,13 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testLargeRealmMultipleThreads() {
-        final int nObjects = 1000000;
+        final AtomicInteger finished;
+        final int nObjects = 500000;
+        final int nThreads = 3;
+
+        finished = new AtomicInteger();
+        finished.set(0);
+
         testRealm.beginTransaction();
         testRealm.clear(StringOnly.class);
         for (int i = 0; i < nObjects; i++) {
@@ -488,53 +495,37 @@ public class RealmQueryTest extends AndroidTestCase{
         }
         testRealm.commitTransaction();
 
-        Runnable runnable1 = new Runnable() {
-            @Override
-            public void run() {
-                RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
-                Realm realm = Realm.getInstance(realmConfig);
-                RealmResults<StringOnly> realmResults = realm.where(StringOnly.class).beginsWith("chars", "st").findAll();
-                int n = 0;
-                for (StringOnly stringOnly : realmResults) {
-                    n = n + 1;
-                }
-                assertEquals(nObjects, n);
-                realm.close();
-            }
-        };
-        Thread thread1 = new Thread(runnable1);
 
-        Runnable runnable2 = new Runnable() {
-            @Override
-            public void run() {
-                RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
-                Realm realm = Realm.getInstance(realmConfig);
-                RealmResults<StringOnly> realmResults = realm.where(StringOnly.class).endsWith("chars", "0").findAll();
-                int n = 0;
-                for (StringOnly stringOnly : realmResults) {
-                    n = n + 1;
-                }
-                assertEquals(nObjects / 10, n);
-                realm.close();
-            }
-        };
-        Thread thread2 = new Thread(runnable2);
-
-        thread1.start();
-        thread2.start();
-
-        RealmResults<StringOnly> realmResults = testRealm.allObjects(StringOnly.class);
-        int n = 0;
-        for (StringOnly stringOnly : realmResults) {
-            n = n + 1;
-        }
-        assertEquals(nObjects, n);
-
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        for (int i = 0; i < nThreads; i++) {
+            Thread thread = new Thread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+                            Realm realm = Realm.getInstance(realmConfig);
+                            RealmResults<StringOnly> realmResults = realm.allObjects(StringOnly.class);
+                            int n = 0;
+                            for (StringOnly stringOnly : realmResults) {
+                                n = n + 1;
+                            }
+                            assertEquals(nObjects, n);
+                            realm.close();
+                            finished.incrementAndGet();
+                        }
+                    }
+                );
+            thread.start();
         }
 
+        while (true) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (finished.get() == nThreads) {
+                break;
+            }
+        }
     }
 }
