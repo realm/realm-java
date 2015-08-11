@@ -477,4 +477,64 @@ public class RealmQueryTest extends AndroidTestCase{
             System.gc(); // if a native resource has a reference count = 0, doing GC here might lead to a crash
         }
     }
+
+    public void testLargeRealmMultipleThreads() {
+        final int nObjects = 1000000;
+        testRealm.beginTransaction();
+        testRealm.clear(StringOnly.class);
+        for (int i = 0; i < nObjects; i++) {
+            StringOnly stringOnly = testRealm.createObject(StringOnly.class);
+            stringOnly.setChars(String.format("string %d", i));
+        }
+        testRealm.commitTransaction();
+
+        Runnable runnable1 = new Runnable() {
+            @Override
+            public void run() {
+                RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+                Realm realm = Realm.getInstance(realmConfig);
+                RealmResults<StringOnly> realmResults = realm.where(StringOnly.class).beginsWith("chars", "st").findAll();
+                int n = 0;
+                for (StringOnly stringOnly : realmResults) {
+                    n = n + 1;
+                }
+                assertEquals(nObjects, n);
+                realm.close();
+            }
+        };
+        Thread thread1 = new Thread(runnable1);
+
+        Runnable runnable2 = new Runnable() {
+            @Override
+            public void run() {
+                RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+                Realm realm = Realm.getInstance(realmConfig);
+                RealmResults<StringOnly> realmResults = realm.where(StringOnly.class).endsWith("chars", "0").findAll();
+                int n = 0;
+                for (StringOnly stringOnly : realmResults) {
+                    n = n + 1;
+                }
+                assertEquals(nObjects / 10, n);
+                realm.close();
+            }
+        };
+        Thread thread2 = new Thread(runnable2);
+
+        thread1.start();
+        thread2.start();
+
+        RealmResults<StringOnly> realmResults = testRealm.allObjects(StringOnly.class);
+        int n = 0;
+        for (StringOnly stringOnly : realmResults) {
+            n = n + 1;
+        }
+        assertEquals(nObjects, n);
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
