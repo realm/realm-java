@@ -3,6 +3,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
@@ -479,13 +480,10 @@ public class RealmQueryTest extends AndroidTestCase{
         }
     }
 
-    public void testLargeRealmMultipleThreads() {
-        final AtomicInteger finished;
+    public void testLargeRealmMultipleThreads() throws InterruptedException {
         final int nObjects = 500000;
         final int nThreads = 3;
-
-        finished = new AtomicInteger();
-        finished.set(0);
+        final CountDownLatch latch = new CountDownLatch(nThreads);
 
         testRealm.beginTransaction();
         testRealm.clear(StringOnly.class);
@@ -510,22 +508,13 @@ public class RealmQueryTest extends AndroidTestCase{
                             }
                             assertEquals(nObjects, n);
                             realm.close();
-                            finished.incrementAndGet();
+                            latch.countDown();
                         }
                     }
                 );
             thread.start();
         }
 
-        while (true) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (finished.get() == nThreads) {
-                break;
-            }
-        }
+        latch.await();
     }
 }
