@@ -16,16 +16,11 @@
 
 package io.realm.internal;
 
-import android.util.Log;
-
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import io.realm.internal.log.RealmLog;
 
 public class Context {
 
