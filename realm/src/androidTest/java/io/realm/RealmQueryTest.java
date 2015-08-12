@@ -482,7 +482,7 @@ public class RealmQueryTest extends AndroidTestCase{
     public void testLargeRealmMultipleThreads() {
         final AtomicInteger finished;
         final int nObjects = 500000;
-        final int nThreads = 3;
+        final int nThreads = 5;
 
         finished = new AtomicInteger();
         finished.set(0);
