@@ -125,7 +125,6 @@ public class RealmTest extends AndroidTestCase {
             nonLatinFieldNames.setΔέλτα(i);
             nonLatinFieldNames.set베타(1.234567f + i);
             nonLatinFieldNames.setΒήτα(1.234567f + i);
-            allTypes.setColumnBoxedBoolean((i % 3) == 0);
         }
         realm.commitTransaction();
     }
@@ -400,6 +399,55 @@ public class RealmTest extends AndroidTestCase {
         // Boolean
         try {
             testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NOT_NULL, (String) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Byte
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NOT_NULL, (Byte) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Short
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NOT_NULL, (Short) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Integer
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NOT_NULL, (Integer) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Long
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NOT_NULL, (Long) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Float
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Float) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Double
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Double) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Date
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NOT_NULL, (Date) null).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException ignored) {
         }
@@ -1132,10 +1180,9 @@ public class RealmTest extends AndroidTestCase {
         AllTypes realmTypes = testRealm.copyToRealm(new AllTypes());
         testRealm.commitTransaction();
 
-        assertNull(realmTypes.getColumnString());
+        assertEquals("", realmTypes.getColumnString());
         assertEquals(new Date(0), realmTypes.getColumnDate());
-        assertNull(realmTypes.getColumnBinary());
-        assertNull(realmTypes.getColumnBoxedBoolean());
+        assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
     }
 
     // Check that using copyToRealm will set the primary key directly instead of first setting
@@ -1340,7 +1387,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(0.0D, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
         assertNull(obj.getColumnBinary());
-        assertEquals(new Date(0), obj.getColumnDate());
+        assertNull(obj.getColumnDate());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
