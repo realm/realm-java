@@ -149,9 +149,9 @@ public class RealmQuery<E extends RealmObject> {
                     throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
                 }
             }
-            columnIndices[names.length-1] = table.getColumnIndex(names[names.length-1]);
-            if (fieldType != table.getColumnType(columnIndices[names.length-1])) {
-                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", names[names.length-1]));
+            columnIndices[names.length - 1] = table.getColumnIndex(names[names.length - 1]);
+            if (fieldType != null && fieldType != table.getColumnType(columnIndices[names.length - 1])) {
+                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", names[names.length - 1]));
             }
             return columnIndices;
         } else {
@@ -160,7 +160,7 @@ public class RealmQuery<E extends RealmObject> {
             }
 
             ColumnType tableColumnType = table.getColumnType(columns.get(fieldName));
-            if (fieldType != tableColumnType) {
+            if (fieldType != null && fieldType != tableColumnType) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch. Was %s, expected %s.",
                         fieldName, fieldType, tableColumnType
                 ));
@@ -177,13 +177,10 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if field is not a RealmObject, RealmList or String
      */
     public RealmQuery<E> isNull(String fieldName) {
-        // Currently we only support querying top-level
-        if (containsDot(fieldName)) {
-            throw new IllegalArgumentException("Checking for null in nested objects is not supported.");
-        }
+        long columnIndices[] = getColumnIndices(fieldName, null);
 
         // checking that fieldName has the correct type is done in C++
-        this.query.isNull(columns.get(fieldName));
+        this.query.isNull(columnIndices);
         return this;
     }
 
