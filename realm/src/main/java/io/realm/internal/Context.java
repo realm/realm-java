@@ -19,6 +19,7 @@ package io.realm.internal;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Context {
@@ -33,7 +34,7 @@ public class Context {
     private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
 
-    List<Reference<?>> rowReferences = new ArrayList<Reference<?>>();
+    HashMap<Reference<?>, Integer> rowReferences = new HashMap<Reference<?>, Integer>();
     ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
 
     private boolean isFinalized = false;
