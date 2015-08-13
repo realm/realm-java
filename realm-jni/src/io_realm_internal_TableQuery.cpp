@@ -1392,37 +1392,81 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove(
 // isNull and isNotNull
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
-    JNIEnv *env, jobject, jlong nativeQueryPtr, jlong columnIndex)
+    JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes)
 {
+    GET_ARRAY()
+
     Query* pQuery = Q(nativeQueryPtr);
+
     try {
-        Table* pTable = pQuery->get_table().get();
+        Table* pTable;
+        jlong columnIndex;
+        if (arr_len == 1) {
+            pTable = pQuery->get_table().get();
+            columnIndex = arr[0];
+        } else {
+            pTable = getTableLink(nativeQueryPtr, arr, arr_len);
+            columnIndex = arr[arr_len-1];
+        }
         if (!COL_TYPE_NULLABLE(env, pTable, columnIndex))
             return;
 
         int col_type = pTable->get_column_type(S(columnIndex));
-        switch (col_type) {
-            case type_Link:
-            case type_LinkList: {
-                Query query = pTable->column<Link>(S(columnIndex)).is_null();
-                pQuery->and_query(query);
-                break;
+        if (arr_len == 1) {
+            switch (col_type) {
+                case type_Link:
+                case type_LinkList:
+                    pQuery->and_query(pTable->column<Link>(S(columnIndex)).is_null());
+                    break;
+                case type_String:
+                case type_Binary:
+                case type_Bool:
+                case type_Int:
+                case type_Float:
+                case type_Double:
+                case type_DateTime:
+                    Q(nativeQueryPtr)->equal(S(columnIndex), realm::null());
+                    break;
+                default:
+                    // this point is unreachable
+                    return;
             }
-            case type_String:
-            case type_Binary:
-            case type_Bool:
-            case type_Int:
-            case type_Float:
-            case type_Double:
-            case type_DateTime:
-                // TODO: Why doesn't core support is_null on those columns?
-                Q(nativeQueryPtr)->equal(S(columnIndex), realm::null());
-                break;
-            default:
-                // this point is inreachable
-                return ;
+        } else {
+            switch (col_type) {
+                case type_Link:
+                case type_LinkList:
+                    pQuery->and_query(pTable->column<Link>(S(columnIndex)).is_null());
+                    break;
+                case type_String:
+                    pQuery->and_query(pTable->column<String>(S(columnIndex)) == realm::null());
+                    break;
+                case type_Binary:
+                    // FIXME: it seems is_null query on binary is not finished yet.
+                    //pQuery->and_query(pTable->column<Binary>(S(columnIndex)).is_null());
+                    break;
+                case type_Bool:
+                    pQuery->and_query(pTable->column<Bool>(S(columnIndex)) == realm::null());
+                    break;
+                case type_Int:
+                    pQuery->and_query(pTable->column<Int>(S(columnIndex)) == realm::null());
+                    break;
+                case type_Float:
+                    pQuery->and_query(pTable->column<Float>(S(columnIndex)) == realm::null());
+                    break;
+                case type_Double:
+                    pQuery->and_query(pTable->column<Double>(S(columnIndex)) == realm::null());
+                    break;
+                case type_DateTime:
+                    pQuery->and_query(pTable->column<DateTime>(S(columnIndex)) == realm::null());
+                    break;
+                default:
+                    // this point is unreachable
+                    return ;
+            }
         }
     } CATCH_STD()
+
+    RELEASE_ARRAY()
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTableViewIntoSharedGroup

@@ -731,12 +731,13 @@ public class TableQuery implements Closeable {
 
 
     // isNull and isNotNull
-    public TableQuery isNull(long columnIndex) {
+    public TableQuery isNull(long columnIndex[]) {
+        validateQuery();
         nativeIsNull(nativePtr, columnIndex);
         return this;
     }
 
-    private native void nativeIsNull(long nativePtr, long columnIndex);
+    private native void nativeIsNull(long nativePtr, long columnIndex[]);
 
     // count
 

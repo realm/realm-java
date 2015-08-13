@@ -127,6 +127,7 @@ public class TestHelper {
         // Numeric fields will be 1, 0/null, 3
         // 10 Date
         Date[] dates = {new Date(0), null, new Date(10000)};
+        NullTypes[] nullTypesArray = new NullTypes[3];
 
         testRealm.beginTransaction();
         for (int i = 0; i < words.length; i++) {
@@ -174,8 +175,11 @@ public class TestHelper {
                 nullTypes.setFieldDateNotNull(dates[i]);
             }
 
-            testRealm.copyToRealm(nullTypes);
+            nullTypesArray[i] = testRealm.copyToRealm(nullTypes);
         }
+        nullTypesArray[0].setFieldObjectNull(nullTypesArray[0]);
+        nullTypesArray[1].setFieldObjectNull(null);
+        nullTypesArray[2].setFieldObjectNull(nullTypesArray[1]);
         testRealm.commitTransaction();
     }
 }
