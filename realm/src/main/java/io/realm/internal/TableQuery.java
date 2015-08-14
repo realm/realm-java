@@ -315,7 +315,7 @@ public class TableQuery implements Closeable {
 
     public TableQuery equalTo(long columnIndex[], Date value){
         if (value == null) {
-            nativeEqualToNull(nativePtr, columnIndex);
+            nativeIsNull(nativePtr, columnIndex);
         } else {
             nativeEqualDateTime(nativePtr, columnIndex, value.getTime()/1000);
         }
@@ -661,13 +661,21 @@ public class TableQuery implements Closeable {
 
 
     // isNull and isNotNull
-    public TableQuery isNull(long columnIndex[]) {
+    public TableQuery isNull(long columnIndices[]) {
         validateQuery();
-        nativeIsNull(nativePtr, columnIndex);
+        nativeIsNull(nativePtr, columnIndices);
         return this;
     }
 
-    private native void nativeIsNull(long nativePtr, long columnIndex[]);
+    private native void nativeIsNull(long nativePtr, long columnIndices[]);
+
+    public TableQuery isNotNull(long columnIndices[]) {
+        validateQuery();
+        nativeIsNotNull(nativePtr, columnIndices);
+        return this;
+    }
+
+    private native void nativeIsNotNull(long nativePtr, long columnIndices[]);
 
     // count
 
@@ -703,19 +711,4 @@ public class TableQuery implements Closeable {
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
-
-    // Query for null values.
-    public TableQuery equalToNull(long columnIndex[]) {
-        nativeEqualToNull(nativePtr, columnIndex);
-        queryValidated = false;
-        return this;
-    }
-    private native void nativeEqualToNull(long nativeQueryPtr, long columnIndexes[]);
-
-    public TableQuery notEqualToNull(long columnIndex[]) {
-        nativeNotEqualToNull(nativePtr, columnIndex);
-        queryValidated = false;
-        return this;
-    }
-    private native void nativeNotEqualToNull(long nativeQueryPtr, long columnIndexes[]);
 }
