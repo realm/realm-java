@@ -489,6 +489,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeIsNotNull
+ * Signature: (J[J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
+  (JNIEnv *, jobject, jlong, jlongArray);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeCount
  * Signature: (JJJJ)J
  */
@@ -502,22 +510,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_TableQuery
- * Method:    nativeEqualToNull
- * Signature: (J[J)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualToNull
-  (JNIEnv *, jobject, jlong, jlongArray);
-
-/*
- * Class:     io_realm_internal_TableQuery
- * Method:    nativeNotEqualToNull
- * Signature: (J[J)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualToNull
-  (JNIEnv *, jobject, jlong, jlongArray);
 
 #ifdef __cplusplus
 }

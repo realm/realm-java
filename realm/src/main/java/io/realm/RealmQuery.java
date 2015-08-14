@@ -192,7 +192,11 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if field is not a RealmObject, RealmList or String
      */
     public RealmQuery<E> isNotNull(String fieldName) {
-        return this.beginGroup().not().isNull(fieldName).endGroup();
+        long columnIndices[] = getColumnIndices(fieldName, null);
+
+        // checking that fieldName has the correct type is done in C++
+        this.query.isNotNull(columnIndices);
+        return this;
     }
 
     // Equal
@@ -240,7 +244,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> equalTo(String fieldName, Byte value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         if (value == null) {
-            this.query.equalToNull(columnIndices);
+            this.query.isNull(columnIndices);
         } else {
             this.query.equalTo(columnIndices, value);
         }
@@ -259,7 +263,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> equalTo(String fieldName, Short value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         if (value == null) {
-            this.query.equalToNull(columnIndices);
+            this.query.isNull(columnIndices);
         } else {
             this.query.equalTo(columnIndices, value);
         }
@@ -278,7 +282,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> equalTo(String fieldName, Integer value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         if (value == null) {
-            this.query.equalToNull(columnIndices);
+            this.query.isNull(columnIndices);
         } else {
             this.query.equalTo(columnIndices, value);
         }
@@ -297,7 +301,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> equalTo(String fieldName, Long value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         if (value == null) {
-            this.query.equalToNull(columnIndices);
+            this.query.isNull(columnIndices);
         } else {
             this.query.equalTo(columnIndices, value);
         }
@@ -316,7 +320,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> equalTo(String fieldName, Double value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         if (value == null) {
-            this.query.equalToNull(columnIndices);
+            this.query.isNull(columnIndices);
         } else {
             this.query.equalTo(columnIndices, value);
         }
@@ -336,7 +340,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> equalTo(String fieldName, Float value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         if (value == null) {
-            this.query.equalToNull(columnIndices);
+            this.query.isNull(columnIndices);
         } else {
             this.query.equalTo(columnIndices, value);
         }
@@ -355,7 +359,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> equalTo(String fieldName, Boolean value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.BOOLEAN);
         if (value == null) {
-            this.query.equalToNull(columnIndices);
+            this.query.isNull(columnIndices);
         } else {
             this.query.equalTo(columnIndices, value);
         }
@@ -424,7 +428,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> notEqualTo(String fieldName, Byte value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         if (value == null) {
-            this.query.notEqualToNull(columnIndices);
+            this.query.isNotNull(columnIndices);
         } else {
             this.query.notEqualTo(columnIndices, value);
         }
@@ -443,7 +447,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> notEqualTo(String fieldName, Short value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         if (value == null) {
-            this.query.notEqualToNull(columnIndices);
+            this.query.isNotNull(columnIndices);
         } else {
             this.query.notEqualTo(columnIndices, value);
         }
@@ -462,7 +466,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> notEqualTo(String fieldName, Integer value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         if (value == null) {
-            this.query.notEqualToNull(columnIndices);
+            this.query.isNotNull(columnIndices);
         } else {
             this.query.notEqualTo(columnIndices, value);
         }
@@ -481,7 +485,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> notEqualTo(String fieldName, Long value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
         if (value == null) {
-            this.query.notEqualToNull(columnIndices);
+            this.query.isNotNull(columnIndices);
         } else {
             this.query.notEqualTo(columnIndices, value);
         }
@@ -501,7 +505,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> notEqualTo(String fieldName, Double value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.DOUBLE);
         if (value == null) {
-            this.query.notEqualToNull(columnIndices);
+            this.query.isNotNull(columnIndices);
         } else {
             this.query.notEqualTo(columnIndices, value);
         }
@@ -521,7 +525,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> notEqualTo(String fieldName, Float value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.FLOAT);
         if (value == null) {
-            this.query.notEqualToNull(columnIndices);
+            this.query.isNotNull(columnIndices);
         } else {
             this.query.notEqualTo(columnIndices, value);
         }
@@ -540,7 +544,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> notEqualTo(String fieldName, Boolean value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.BOOLEAN);
         if (value == null) {
-            this.query.notEqualToNull(columnIndices);
+            this.query.isNotNull(columnIndices);
         } else {
             this.query.equalTo(columnIndices, !value);
         }
@@ -559,7 +563,7 @@ public class RealmQuery<E extends RealmObject> {
     public RealmQuery<E> notEqualTo(String fieldName, Date value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.DATE);
         if (value == null) {
-            this.query.notEqualToNull(columnIndices);
+            this.query.isNotNull(columnIndices);
         } else {
             this.query.notEqualTo(columnIndices, value);
         }

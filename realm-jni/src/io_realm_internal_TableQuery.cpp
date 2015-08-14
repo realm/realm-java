@@ -1252,46 +1252,80 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
     RELEASE_ARRAY()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualToNull
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
   (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes) {
     GET_ARRAY()
     Query* pQuery = Q(nativeQueryPtr);
     try {
+        Table* pTable;
+        jlong columnIndex;
         if (arr_len == 1) {
-            Table* pTable = pQuery->get_table().get();
-            if (!COL_TYPE_NULLABLE(env, pTable, arr[0])) {
-                return;
+            pTable = pQuery->get_table().get();
+            columnIndex = arr[0];
+        } else {
+            pTable = getTableLink(nativeQueryPtr, arr, arr_len);
+            columnIndex = arr[arr_len-1];
+        }
+        if (!COL_TYPE_NULLABLE(env, pTable, columnIndex))
+            return;
+
+        int col_type = pTable->get_column_type(S(columnIndex));
+        if (arr_len == 1) {
+            switch (col_type) {
+                case type_Link:
+                case type_LinkList:
+                    // FIXME: is_not_null is missing in core
+                    //pQuery->and_query(pTable->column<Link>(S(columnIndex)).is_not_null());
+                    break;
+                case type_String:
+                case type_Binary:
+                case type_Bool:
+                case type_Int:
+                case type_Float:
+                case type_Double:
+                case type_DateTime:
+                    Q(nativeQueryPtr)->not_equal(S(columnIndex), realm::null());
+                    break;
+                default:
+                    // this point is unreachable
+                    return;
             }
-            Q(nativeQueryPtr)->equal(S(arr[0]), realm::null());
         }
         else {
-            /* TODO: Fix this.
-            Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_equal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
-           */
+            switch (col_type) {
+                case type_Link:
+                case type_LinkList:
+                    // FIXME: is_not_null is missing in core
+                    //pQuery->and_query(pTable->column<Link>(S(columnIndex)).is_not_null());
+                    break;
+                case type_String:
+                    pQuery->and_query(pTable->column<String>(S(columnIndex)) != realm::null());
+                    break;
+                case type_Binary:
+                    // FIXME: it seems is_null query on binary is not finished yet.
+                    //pQuery->and_query(pTable->column<Binary>(S(columnIndex)).is_null());
+                    break;
+                case type_Bool:
+                    pQuery->and_query(pTable->column<Bool>(S(columnIndex)) != realm::null());
+                    break;
+                case type_Int:
+                    pQuery->and_query(pTable->column<Int>(S(columnIndex)) != realm::null());
+                    break;
+                case type_Float:
+                    pQuery->and_query(pTable->column<Float>(S(columnIndex)) != realm::null());
+                    break;
+                case type_Double:
+                    pQuery->and_query(pTable->column<Double>(S(columnIndex)) != realm::null());
+                    break;
+                case type_DateTime:
+                    pQuery->and_query(pTable->column<DateTime>(S(columnIndex)) != realm::null());
+                    break;
+                default:
+                    // this point is unreachable
+                    return ;
+            }
         }
     } CATCH_STD()
     RELEASE_ARRAY()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualToNull
-  (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes) {
-    GET_ARRAY()
-    Query* pQuery = Q(nativeQueryPtr);
-    try {
-        if (arr_len == 1) {
-            Table* pTable = pQuery->get_table().get();
-            if (!COL_TYPE_NULLABLE(env, pTable, arr[0])) {
-                return;
-            }
-            Q(nativeQueryPtr)->not_equal(S(arr[0]), realm::null());
-        }
-        else {
-            /* TODO: Fix this.
-            Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_equal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value));
-           */
-        }
-    } CATCH_STD()
-    RELEASE_ARRAY()
-}
