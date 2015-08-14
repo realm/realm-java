@@ -111,7 +111,7 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         RealmResults<Dog> allDogsAfter = testRealm.where(Dog.class).equalTo("name", "Rex").findAll();
-        assertEquals(0  , allDogsAfter.size());
+        assertEquals(0, allDogsAfter.size());
 
         fido.getName();
         try {
@@ -542,5 +542,84 @@ public class RealmObjectTest extends AndroidTestCase {
             fail();
         } catch (IllegalStateException ignored) {
         }
+    }
+
+    // Test NaN value on float and double columns
+    public void testFloatDoubleNaN() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.NaN);
+        allTypes.setColumnDouble(Double.NaN);
+        testRealm.commitTransaction();
+        assertEquals(Float.NaN, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.NaN, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        // NaN != NaN !!!
+        assertEquals(0, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.NaN).count());
+        assertEquals(0, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.NaN).count());
+    }
+
+    // Test max value on float and double columns
+    public void testFloatDoubleMaxValue() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.MAX_VALUE);
+        allTypes.setColumnDouble(Double.MAX_VALUE);
+        testRealm.commitTransaction();
+        assertEquals(Float.MAX_VALUE, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.MAX_VALUE, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.MAX_VALUE).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.MAX_VALUE).count());
+    }
+
+    // Test min normal value on float and double columns
+    public void testFloatDoubleMinNormal() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.MIN_NORMAL);
+        allTypes.setColumnDouble(Double.MIN_NORMAL);
+        testRealm.commitTransaction();
+        assertEquals(Float.MIN_NORMAL, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.MIN_NORMAL, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.MIN_NORMAL).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.MIN_NORMAL).count());
+    }
+
+    // Test min value on float and double columns
+    public void testFloatDoubleMinValue() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.MIN_VALUE);
+        allTypes.setColumnDouble(Double.MIN_VALUE);
+        testRealm.commitTransaction();
+        assertEquals(Float.MIN_VALUE, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.MIN_VALUE, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.MIN_VALUE).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.MIN_VALUE).count());
+    }
+
+    // Test negative infinity value on float and double columns
+    public void testFloatDoubleNegativeInfinity() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.NEGATIVE_INFINITY);
+        allTypes.setColumnDouble(Double.NEGATIVE_INFINITY);
+        testRealm.commitTransaction();
+        assertEquals(Float.NEGATIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.NEGATIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.NEGATIVE_INFINITY).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.NEGATIVE_INFINITY).count());
+    }
+
+    // Test positive infinity value on float and double columns
+    public void testFloatPositiveInfinity() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.POSITIVE_INFINITY);
+        allTypes.setColumnDouble(Double.POSITIVE_INFINITY);
+        testRealm.commitTransaction();
+        assertEquals(Float.POSITIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.POSITIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.POSITIVE_INFINITY).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.POSITIVE_INFINITY).count());
     }
 }
