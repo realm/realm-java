@@ -3,6 +3,8 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CatOwner;
@@ -476,5 +478,43 @@ public class RealmQueryTest extends AndroidTestCase{
             results = results.where().findAll();
             System.gc(); // if a native resource has a reference count = 0, doing GC here might lead to a crash
         }
+    }
+
+    public void testLargeRealmMultipleThreads() throws InterruptedException {
+        final int nObjects = 500000;
+        final int nThreads = 3;
+        final CountDownLatch latch = new CountDownLatch(nThreads);
+
+        testRealm.beginTransaction();
+        testRealm.clear(StringOnly.class);
+        for (int i = 0; i < nObjects; i++) {
+            StringOnly stringOnly = testRealm.createObject(StringOnly.class);
+            stringOnly.setChars(String.format("string %d", i));
+        }
+        testRealm.commitTransaction();
+
+
+        for (int i = 0; i < nThreads; i++) {
+            Thread thread = new Thread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+                            Realm realm = Realm.getInstance(realmConfig);
+                            RealmResults<StringOnly> realmResults = realm.allObjects(StringOnly.class);
+                            int n = 0;
+                            for (StringOnly stringOnly : realmResults) {
+                                n = n + 1;
+                            }
+                            assertEquals(nObjects, n);
+                            realm.close();
+                            latch.countDown();
+                        }
+                    }
+                );
+            thread.start();
+        }
+
+        latch.await();
     }
 }
