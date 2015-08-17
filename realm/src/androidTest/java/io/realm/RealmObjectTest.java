@@ -544,6 +544,21 @@ public class RealmObjectTest extends AndroidTestCase {
         }
     }
 
+    public void testIsValid() {
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Fido");
+        testRealm.commitTransaction();
+
+        assertTrue(dog.isValid());
+
+        testRealm.beginTransaction();
+        dog.removeFromRealm();
+        testRealm.commitTransaction();
+
+        assertFalse(dog.isValid());
+    }
+
     // Test NaN value on float and double columns
     public void testFloatDoubleNaN() {
         testRealm.beginTransaction();

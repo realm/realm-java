@@ -2,6 +2,7 @@
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
  * Fixed a bug which might cause failure when loading the native library.
  * Fixed a bug which might trigger a timeout in Context.finalize().
+ * Fixed a bug which might cause RealmObject.isValid() to throw an exception if the object is deleted.
 
 0.82.1
  * Fixed a bug where using the wrong encryption key first caused the right key to be seen as invalid.
