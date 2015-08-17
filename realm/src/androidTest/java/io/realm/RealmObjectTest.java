@@ -543,4 +543,19 @@ public class RealmObjectTest extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
     }
+
+    public void testIsValid() {
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Fido");
+        testRealm.commitTransaction();
+
+        assertTrue(dog.isValid());
+
+        testRealm.beginTransaction();
+        dog.removeFromRealm();
+        testRealm.commitTransaction();
+
+        assertFalse(dog.isValid());
+    }
 }
