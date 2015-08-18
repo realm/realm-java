@@ -267,9 +267,15 @@ public class RealmProxyClassGenerator {
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
             if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
-                writer.emitStatement("table.addColumn(%s, \"%s\")",
+                String nullableFlag;
+                if (metadata.isNullable(field)) {
+                    nullableFlag = "Table.NULLABLE";
+                } else {
+                    nullableFlag = "Table.NOT_NULLABLE";
+                }
+                writer.emitStatement("table.addColumn(%s, \"%s\", %s)",
                         Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
-                        fieldName);
+                        fieldName, nullableFlag);
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
                 writer.emitStatement("%s%s.initTable(transaction)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
@@ -360,6 +366,17 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid type '%s' for field '%s'\")",
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
+
+                // make sure that nullability matches
+                if (metadata.isNullable(field)) {
+                    writer.beginControlFlow("if (!table.isColumnNullable(%s))", staticFieldIndexVarName(field));
+                    writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Add annotation @Required or @PrimaryKey to field '%s'\")", fieldName);
+                    writer.endControlFlow();
+                } else {
+                    writer.beginControlFlow("if (table.isColumnNullable(%s))", staticFieldIndexVarName(field));
+                    writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Remove annotation @Required or @PrimaryKey from field '%s'\")", fieldName);
+                    writer.endControlFlow();
+                }
 
                 // Validate @PrimaryKey
                 if (field.equals(metadata.getPrimaryKey())) {
@@ -555,7 +572,7 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine();
 
             } else {
-                if (Constants.NULLABLE_JAVA_TYPES.containsKey(fieldType)) {
+                if (Constants.NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(field)) {
                     writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
                             metadata.getSetter(fieldName),
                             metadata.getGetter(fieldName),
@@ -623,7 +640,7 @@ public class RealmProxyClassGenerator {
                 }
 
                 String fieldType = field.asType().toString();
-                if (Constants.NULLABLE_JAVA_TYPES.containsKey(fieldType)) {
+                if (Constants.NULLABLE_JAVA_TYPES.containsKey(fieldType) && !metadata.isNullable(field)) {
                     writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
                             metadata.getSetter(fieldName),
                             metadata.getGetter(fieldName),
@@ -666,7 +683,14 @@ public class RealmProxyClassGenerator {
                         genericType,
                         metadata.getGetter(fieldName));
             } else {
-                writer.emitStatement("stringBuilder.append(%s())", metadata.getGetter(fieldName));
+                if (metadata.isNullable(field)) {
+                    writer.emitStatement("stringBuilder.append(%s() != null ? %s() : \"null\")",
+                            metadata.getGetter(fieldName),
+                            metadata.getGetter(fieldName)
+                    );
+                } else {
+                    writer.emitStatement("stringBuilder.append(%s())", metadata.getGetter(fieldName));
+                }
             }
             writer.emitStatement("stringBuilder.append(\"}\")");
 

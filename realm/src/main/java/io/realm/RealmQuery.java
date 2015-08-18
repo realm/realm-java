@@ -170,11 +170,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Test if a field is null. Only works for relationships and RealmLists.
+     * Test if a field is null. Only works for relationships, RealmLists, and Strings.
      *
      * @param fieldName - the field name
      * @return The query object
-     * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
+     * @throws java.lang.IllegalArgumentException if field is not a RealmObject, RealmList or String
      */
     public RealmQuery<E> isNull(String fieldName) {
         // Currently we only support querying top-level
@@ -188,11 +188,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Test if a field is not null. Only works for relationships and RealmLists.
+     * Test if a field is not null. Only works for relationships, RealmLists, and Strings.
      *
      * @param fieldName - the field name
      * @return The query object
-     * @throws java.lang.IllegalArgumentException if field is not a RealmObject or RealmList
+     * @throws java.lang.IllegalArgumentException if field is not a RealmObject, RealmList or String
      */
     public RealmQuery<E> isNotNull(String fieldName) {
         return this.beginGroup().not().isNull(fieldName).endGroup();

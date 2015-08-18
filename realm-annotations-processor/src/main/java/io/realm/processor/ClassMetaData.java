@@ -40,6 +40,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.Required;
+
 /**
  * Utility class for holding metadata for RealmProxy classes.
  */
@@ -54,6 +59,7 @@ public class ClassMetaData {
     private List<String> fieldNames = new ArrayList<String>();
     private List<String> ignoreFieldNames = new ArrayList<String>();
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
+    private Set<VariableElement> nullableElements = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private Set<String> expectedGetters = new HashSet<String>(); // Set of fieldnames that are expected to have a getter
     private Set<String> expectedSetters = new HashSet<String>(); // Set of fieldnames that are expected to have a setter
     private Set<ExecutableElement> methods = new HashSet<ExecutableElement>(); // List of all methods in the model class
@@ -307,6 +313,22 @@ public class ClassMetaData {
                     }
                 }
 
+                if (variableElement.getAnnotation(Required.class) == null) {
+                    // The field doesn't have the @Required annotation
+                    if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
+                        nullableElements.add(variableElement);
+                    }
+                } else {
+                    // The field has the @Required annotation
+                    if (Utils.isString(variableElement) || Utils.isByteArray(variableElement)) {
+                        if (nullableElements.contains(variableElement)) {
+                            nullableElements.remove(variableElement);
+                        }
+                    } else{
+                        Utils.error("@Required is only applicable to String and byte[] fields - got " + element);
+                    }
+                }
+
                 if (variableElement.getAnnotation(PrimaryKey.class) != null) {
                     // The field has the @PrimaryKey annotation. It is only valid for
                     // String, short, int, long and must only be present one time
@@ -410,6 +432,16 @@ public class ClassMetaData {
 
     public String getPrimaryKeyGetter() {
         return getters.get(primaryKey.getSimpleName().toString());
+    }
+
+    public boolean isNullable(VariableElement variableElement) {
+        // primary keys cannot be nullable
+        if (hasPrimaryKey()) {
+            if (variableElement.equals(getPrimaryKey())) {
+                return false;
+            }
+        }
+        return nullableElements.contains(variableElement);
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {

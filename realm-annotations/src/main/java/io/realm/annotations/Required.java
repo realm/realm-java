@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2014 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.entities;
 
+package io.realm.annotations;
 
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.Required;
+public @interface Required {
 
-public class CatOwner extends RealmObject {
-    @Required
-    private String name;
-    private RealmList<Cat> cats;
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public RealmList<Cat> getCats() {
-        return cats;
-    }
-
-    public void setCats(RealmList<Cat> cats) {
-        this.cats = cats;
-    }
 }

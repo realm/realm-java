@@ -72,6 +72,13 @@ public class Utils {
         return getFieldTypeSimpleName(field).equals("String");
     }
 
+    public static boolean isByteArray(VariableElement field) {
+        if (field == null) {
+            return false;
+        }
+        return getFieldTypeSimpleName(field).equals("byte[]");
+    }
+
     /**
      * Returns true if a given field type string is "java.lang.String", false otherwise.
      */

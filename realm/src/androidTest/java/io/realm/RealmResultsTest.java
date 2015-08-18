@@ -30,6 +30,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 
 public class RealmResultsTest extends AndroidTestCase {
@@ -84,6 +85,22 @@ public class RealmResultsTest extends AndroidTestCase {
 
     private void populateTestRealm() {
         populateTestRealm(TEST_DATA_SIZE);
+    }
+
+    private void populateTestRealmForNullTests() {
+        String words[] = {"Fish", null, "Horse"};
+        testRealm.beginTransaction();
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            NullTypes nullTypes = new NullTypes();
+            nullTypes.setId(i + 1);
+            nullTypes.setFieldStringNull(word);
+            if (word != null) {
+                nullTypes.setFieldStringNotNull(word);
+            }
+            testRealm.copyToRealm(nullTypes);
+        }
+        testRealm.commitTransaction();
     }
 
     @Override
@@ -723,6 +740,33 @@ public class RealmResultsTest extends AndroidTestCase {
         list.sort("columnLong");
         List<AllTypes> sublist = list.subList(Math.max(list.size() - 20, 0), list.size());
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
+    }
+
+    // Setting a not-nullable field to null is an error
+    public void testNullStringNotNullableField() {
+        populateTestRealmForNullTests();
+        RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
+        try {
+            testRealm.beginTransaction();
+            list.first().setFieldStringNotNull(null);
+            fail();
+        }
+        catch (IllegalArgumentException expected) {
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    // Setting a nullable field to null is not an error
+    public void testSetNullString() {
+        populateTestRealmForNullTests();
+        RealmResults<NullTypes> list = testRealm.allObjects(NullTypes.class);
+        testRealm.beginTransaction();
+        list.first().setFieldStringNull(null);
+        testRealm.commitTransaction();
+
+        assertNull(testRealm.allObjects(NullTypes.class).first().getFieldStringNull());
     }
 
     public void testUnsupportedMethods() {

@@ -215,9 +215,6 @@ public class UncheckedRow extends NativeObject implements Row {
     @Override
     public void setBinaryByteArray(long columnIndex, byte[] data) {
         parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null array is not allowed");
-        }
         nativeSetByteArray(nativePointer, columnIndex, data);
     }
 
