@@ -16,9 +16,13 @@
 
 package io.realm.processor;
 
-import io.realm.annotations.Ignore;
-import io.realm.annotations.Index;
-import io.realm.annotations.PrimaryKey;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -33,13 +37,6 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
@@ -320,7 +317,8 @@ public class ClassMetaData {
 
                 if (variableElement.getAnnotation(Required.class) == null) {
                     // The field doesn't have the @Required annotation
-                    if (!variableElement.asType().getKind().isPrimitive()) {
+                    if (!variableElement.asType().getKind().isPrimitive() &&
+                            !typeUtils.isAssignable(variableElement.asType(), realmList)) {
                         nullableElements.add(variableElement);
                     }
                 } else {
