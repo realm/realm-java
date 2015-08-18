@@ -26,11 +26,14 @@ public class Utils {
     public static Types typeUtils;
     private static Messager messager;
     private static DeclaredType realmList;
+    private static TypeMirror realmObject;
 
     public static void initialize(ProcessingEnvironment env) {
         typeUtils = env.getTypeUtils();
         messager = env.getMessager();
-        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
+        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"),
+                typeUtils.getWildcardType(null, null));
+        realmObject = env.getElementUtils().getTypeElement("io.realm.RealmObject").asType();
     }
 
     /**
@@ -112,6 +115,17 @@ public class Utils {
             return false;
         }
         return String.class.getName().equals(fieldType);
+    }
+
+    /**
+     * Returns true if a given field type is "RealmList", false otherwise.
+     */
+    public static boolean isRealmList(VariableElement field) {
+        return typeUtils.isAssignable(field.asType(), realmList);
+    }
+
+    public static boolean isRealmObject(VariableElement field) {
+        return typeUtils.isAssignable(field.asType(), realmObject);
     }
 
     /**
