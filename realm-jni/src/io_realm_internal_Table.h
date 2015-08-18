@@ -17,6 +17,10 @@ extern "C" {
 #define io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX 1LL
 #undef io_realm_internal_Table_NO_PRIMARY_KEY
 #define io_realm_internal_Table_NO_PRIMARY_KEY -2LL
+#undef io_realm_internal_Table_NULLABLE
+#define io_realm_internal_Table_NULLABLE 1L
+#undef io_realm_internal_Table_NOT_NULLABLE
+#define io_realm_internal_Table_NOT_NULLABLE 0L
 /*
  * Class:     io_realm_internal_Table
  * Method:    createNative
@@ -52,10 +56,10 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsRootTable
 /*
  * Class:     io_realm_internal_Table
  * Method:    nativeAddColumn
- * Signature: (JILjava/lang/String;)J
+ * Signature: (JILjava/lang/String;Z)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
-  (JNIEnv *, jobject, jlong, jint, jstring);
+  (JNIEnv *, jobject, jlong, jint, jstring, jboolean);
 
 /*
  * Class:     io_realm_internal_Table
@@ -80,6 +84,22 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
   (JNIEnv *, jobject, jlong, jlong, jstring);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeIsColumnNullable
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeConvertColumnToNullable
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_Table

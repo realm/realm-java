@@ -55,6 +55,7 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
@@ -389,7 +390,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testQueriesFailWithNullQueryValue() throws IOException {
         try {
-            testRealm.where(AllTypes.class).equalTo(FIELD_STRING, (String) null).findAll();
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL, (String) null).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException ignored) {
         }
@@ -1122,9 +1123,9 @@ public class RealmTest extends AndroidTestCase {
         AllTypes realmTypes = testRealm.copyToRealm(new AllTypes());
         testRealm.commitTransaction();
 
-        assertEquals("", realmTypes.getColumnString());
+        assertNull(realmTypes.getColumnString());
         assertEquals(new Date(0), realmTypes.getColumnDate());
-        assertArrayEquals(new byte[0], realmTypes.getColumnBinary());
+        assertNull(realmTypes.getColumnBinary());
     }
 
     // Check that using copyToRealm will set the primary key directly instead of first setting
@@ -1320,12 +1321,12 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(1, testRealm.allObjects(AllTypesPrimaryKey.class).size());
 
         AllTypesPrimaryKey obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
-        assertEquals("", obj.getColumnString());
+        assertNull(obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
         assertEquals(0.0F, obj.getColumnFloat());
         assertEquals(0.0D, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
-        assertArrayEquals(new byte[0], obj.getColumnBinary());
+        assertNull(obj.getColumnBinary());
         assertEquals(new Date(0), obj.getColumnDate());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());

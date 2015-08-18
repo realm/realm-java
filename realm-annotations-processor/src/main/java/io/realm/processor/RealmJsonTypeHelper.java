@@ -76,8 +76,12 @@ public class RealmJsonTypeHelper {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
                 writer
-                    .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
-                        .emitStatement("obj.%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", setter, fieldName)
+                    .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                        .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                            .emitStatement("obj.%s(null)", setter)
+                        .nextControlFlow("else")
+                            .emitStatement("obj.%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", setter, fieldName)
+                        .endControlFlow()
                     .endControlFlow();
             }
 

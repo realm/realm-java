@@ -10,6 +10,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
 
@@ -64,6 +65,22 @@ public class RealmQueryTest extends AndroidTestCase{
 
     private void populateTestRealm() {
         populateTestRealm(TEST_DATA_SIZE);
+    }
+
+    private void populateTestRealmForNullTests() {
+        String words[] = {"Fish", null, "Horse"};
+        testRealm.beginTransaction();
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            NullTypes nullTypes = new NullTypes();
+            nullTypes.setId(i+1);
+            nullTypes.setFieldStringNull(word);
+            if (word != null) {
+                nullTypes.setFieldStringNotNull(word);
+            }
+            testRealm.copyToRealm(nullTypes);
+        }
+        testRealm.commitTransaction();
     }
 
     public void testRealmQueryBetween() {
@@ -462,6 +479,75 @@ public class RealmQueryTest extends AndroidTestCase{
         for (int i = 0; i < stringOnlies2.size(); i++) {
             assertEquals(sorted[i], stringOnlies2.get(i).getChars());
         }
+    }
+
+    // Querying a non-nullable field with null is an error
+    public void testQueryNullStringNotNullableField() {
+        try {
+            RealmResults<NullTypes> nullTypeses = testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL,
+                    (String)null).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException expected) {
+        }
+    }
+
+    // Querying a non-nullable field with null is an error
+    public void testQueryNullStringsNotNullableFieldIsNull() {
+        try {
+            RealmResults<NullTypes> nullTypes = testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException expected) {
+        }
+    }
+
+    // Querying nullable fields, querying with null
+    public void testQueryNullStringsEqual() {
+        populateTestRealmForNullTests();
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, (String)null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").findAll().size());
+    }
+
+    // Querying nullable field for null
+    public void testQueryNullStringsIsNull() {
+        populateTestRealmForNullTests();
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+    }
+
+    // Querying nullable field for not null
+    public void testQueryNullStringsNotEqual() {
+        populateTestRealmForNullTests();
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
+    }
+
+    // Querying nullable field for not null
+    public void testQueryNullStringsIsNotNull() {
+        populateTestRealmForNullTests();
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+    }
+
+    // Querying nullable field with beginsWith - all strings begin with null
+    public void testQueryNullStringsBeginsWith() {
+        populateTestRealmForNullTests();
+        assertEquals("Fish", testRealm.where(NullTypes.class).beginsWith(NullTypes.FIELD_STRING_NULL,
+                (String)null).findFirst().getFieldStringNotNull());
+    }
+
+    // Querying nullable field with endsWith - all strings contain with null
+    public void testQueryNullStringsContains() {
+        populateTestRealmForNullTests();
+        assertEquals("Fish", testRealm.where(NullTypes.class).contains(NullTypes.FIELD_STRING_NULL,
+                (String)null).findFirst().getFieldStringNotNull());
+    }
+
+    // Querying nullable field with endsWith - all strings end with null
+    public void testQueryNullStringsEndsWith() {
+        populateTestRealmForNullTests();
+        assertEquals("Fish", testRealm.where(NullTypes.class).endsWith(NullTypes.FIELD_STRING_NULL,
+                (String) null).findFirst().getFieldStringNotNull());
     }
 
     // If the RealmQuery is built on a TableView, it should not crash when used after GC.

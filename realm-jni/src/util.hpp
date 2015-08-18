@@ -125,6 +125,7 @@ enum ExceptionKind {
 void ConvertException(JNIEnv* env, const char *file, int line);
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr="");
 void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr);
+void ThrowNullValueException(JNIEnv* env, Table *table, size_t col_ndx);
 
 jclass GetClass(JNIEnv* env, const char* classStr);
 
@@ -175,6 +176,7 @@ extern const char *log_tag;
 #define COL_INDEX_AND_TYPE_VALID(env,ptr,col,type)              ColIndexAndTypeValid(env, ptr, col, type)
 #define TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     TblColIndexAndTypeValid(env, ptr, col, type)
 #define TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)     TblColIndexAndLinkOrLinkList(env, ptr, col)
+#define TBL_AND_COL_NULLABLE(env,ptr,col)                       TblColIndexAndNullable(env, ptr, col)
 #define INDEX_VALID(env,ptr,col,row)                            IndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_VALID(env,ptr,col,row)                    TblIndexValid(env, ptr, col, row)
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             TblIndexInsertValid(env, ptr, col, row)
@@ -199,6 +201,7 @@ extern const char *log_tag;
 #define COL_INDEX_AND_TYPE_VALID(env,ptr,col,type)              (true)
 #define TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)     (true)
 #define TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)     (true)
+#define TBL_AND_COL_NULLABLE(env,ptr,col)                       (true)
 #define INDEX_VALID(env,ptr,col,row)                            (true)
 #define TBL_AND_INDEX_VALID(env,ptr,col,row)                    (true)
 #define TBL_AND_INDEX_INSERT_VALID(env,ptr,col,row)             (true)
@@ -408,6 +411,24 @@ inline bool TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
 }
 
 template <class T>
+inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
+{
+    size_t col = static_cast<size_t>(columnIndex);
+    int colType = pTable->get_column_type(col);
+    if (colType == type_Link || colType == type_LinkList) {
+        return true;
+    }
+    if (colType == type_String) {
+        if (pTable->is_nullable(col)) {
+            return true;
+        }
+    }
+    TR_ERR("Expected nullable column type")
+    ThrowException(env, IllegalArgument, "Column is not nullable");
+    return false;
+}
+
+template <class T>
 inline bool ColIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, int expectColType)
 {
     return ColIndexValid(env, pTable, columnIndex)
@@ -424,6 +445,12 @@ template <class T>
 inline bool TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnIndex) {
     return TableIsValid(env, pTable)
         && TypeIsLinkLike(env, pTable, columnIndex);
+}
+
+template <class T>
+inline bool TblColIndexAndNullable(JNIEnv* env, T* pTable, jlong columnIndex) {
+    return TableIsValid(env, pTable)
+        && ColIsNullable(env, pTable, columnIndex);
 }
 
 inline bool RowColIndexAndTypeValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex, int expectColType)
@@ -477,10 +504,16 @@ public:
 
     operator realm::StringData() const REALM_NOEXCEPT
     {
-        return realm::StringData(m_data.get(), m_size);
+        if (m_is_null) {
+            return realm::StringData(NULL);
+        }
+        else {
+            return realm::StringData(m_data.get(), m_size);
+        }
     }
 
 private:
+    bool m_is_null;
     std::unique_ptr<char[]> m_data;
     std::size_t m_size;
 };

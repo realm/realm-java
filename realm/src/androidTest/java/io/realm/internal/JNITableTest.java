@@ -80,7 +80,7 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
-        t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        t.add(new byte[]{1, 2, 3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
 
         assertEquals(-1, t.findFirstBoolean(1, false));
         assertEquals(-1, t.findFirstDate(2, new Date(138442314986l)));
@@ -96,7 +96,7 @@ public class JNITableTest extends AndroidTestCase {
         for (int i = 0; i < TEST_SIZE; i++) {
             t.add(new byte[]{1,2,3}, true, new Date(1000*i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
         }
-        t.add(new byte[]{1,2,3}, true, new Date(1000*TEST_SIZE), (double)TEST_SIZE, (float)TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
+        t.add(new byte[]{1, 2, 3}, true, new Date(1000 * TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
 
         assertEquals(0, t.findFirstBoolean(1, true));
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -429,4 +429,60 @@ public class JNITableTest extends AndroidTestCase {
 
     }
 
+    // testing the migration of a string column to be nullable.
+    public void testConvertToNullable() {
+        // testing various combinations of column names and nullability
+        String[] stringColumn = {"string", "__TMP__0"};
+        for (boolean nullable : new boolean[]{Table.NOT_NULLABLE, Table.NULLABLE}) {
+            for (String columnName : stringColumn) {
+                Table table = new Table();
+                long colIndex = table.addColumn(ColumnType.STRING, columnName, nullable);
+                table.addColumn(ColumnType.BOOLEAN, "bool");
+                table.addEmptyRow();
+                table.setString(colIndex, 0, "Foo");
+                try {
+                    table.addEmptyRow();
+                    table.setString(colIndex, 1, null);
+                    if (!nullable) {
+                        fail();
+                    }
+                } catch (IllegalArgumentException ignored) {}
+                table.removeLast();
+                assertEquals(1, table.size());
+
+                table.convertColumnToNullable(colIndex);
+                assertEquals(1, table.size());
+                assertEquals(2, table.getColumnCount());
+                assertTrue(table.getColumnIndex(columnName) >= 0);
+                assertEquals(colIndex, table.getColumnIndex(columnName));
+
+                table.addEmptyRow();
+                table.setString(colIndex, 1, null);
+
+                assertEquals(2, table.size());
+                assertNull(table.getString(colIndex, 1));
+            }
+        }
+    }
+
+    // migrating an float column to be nullable is not supported
+    public void testConvertFloatToNullable() {
+        Table table = new Table();
+        table.addColumn(ColumnType.FLOAT, "float", Table.NOT_NULLABLE);
+        try {
+            table.convertColumnToNullable(0);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    // add column and read back if it is nullable or not
+    public void testIsNullable() {
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "string1", Table.NOT_NULLABLE);
+        table.addColumn(ColumnType.STRING, "string2", Table.NULLABLE);
+
+        assertFalse(table.isColumnNullable(0));
+        assertTrue(table.isColumnNullable(1));
+    }
 }
