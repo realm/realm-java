@@ -264,10 +264,10 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement("LinkView links = row.getLinkList(%s)", staticFieldIndexVarName(field));
-                writer.beginControlFlow("if (value == null)");
-                writer.emitStatement("return"); // TODO: delete all the links instead
-                writer.endControlFlow();
                 writer.emitStatement("links.clear()");
+                writer.beginControlFlow("if (value == null)");
+                writer.emitStatement("return");
+                writer.endControlFlow();
                 writer.beginControlFlow("for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value)");
                 writer.emitStatement("links.add(linkedObject.row.getIndex())");
                 writer.endControlFlow();
