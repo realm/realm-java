@@ -133,15 +133,18 @@ public class RealmJsonTypeHelper {
     public static void emitFillRealmListWithJsonValue(String getter, String setter, String fieldName,
                                                       String fieldTypeCanonicalName, String proxyClass,
                                                       JavaWriter writer) throws IOException {
-        // FIXME: Check nullable here!
         writer
-            .beginControlFlow("if (!json.isNull(\"%s\"))", fieldName)
-                .emitStatement("obj.%s().clear()", getter)
-                .emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
-                .beginControlFlow("for (int i = 0; i < array.length(); i++)")
-                    .emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)",
-                            fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
-                    .emitStatement("obj.%s().add(item)", getter)
+            .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                    .emitStatement("obj.%s(null)", setter)
+                .nextControlFlow("else")
+                    .emitStatement("obj.%s().clear()", getter)
+                    .emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
+                    .beginControlFlow("for (int i = 0; i < array.length(); i++)")
+                        .emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)",
+                                fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
+                        .emitStatement("obj.%s().add(item)", getter)
+                    .endControlFlow()
                 .endControlFlow()
             .endControlFlow();
     }
@@ -169,14 +172,18 @@ public class RealmJsonTypeHelper {
 
     public static void emitFillRealmListFromStream(String getter, String setter, String fieldTypeCanonicalName,
                                                    String proxyClass, JavaWriter writer) throws IOException {
-        // FIXME: Check nullable here!
         writer
-            .emitStatement("reader.beginArray()")
-            .beginControlFlow("while (reader.hasNext())")
-                .emitStatement("%s item = %s.createUsingJsonStream(realm, reader)", fieldTypeCanonicalName, proxyClass)
-                .emitStatement("obj.%s().add(item)", getter)
-            .endControlFlow()
-            .emitStatement("reader.endArray()");
+            .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                .emitStatement("reader.skipValue()")
+                .emitStatement("obj.%s(null)", setter)
+            .nextControlFlow("else")
+                .emitStatement("reader.beginArray()")
+                .beginControlFlow("while (reader.hasNext())")
+                    .emitStatement("%s item = %s.createUsingJsonStream(realm, reader)", fieldTypeCanonicalName, proxyClass)
+                    .emitStatement("obj.%s().add(item)", getter)
+                .endControlFlow()
+                .emitStatement("reader.endArray()")
+            .endControlFlow();
     }
 
     private static class SimpleTypeConverter implements JsonToRealmTypeConverter {

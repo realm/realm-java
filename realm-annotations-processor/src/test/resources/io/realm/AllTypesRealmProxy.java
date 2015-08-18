@@ -172,10 +172,10 @@ public class AllTypesRealmProxy extends AllTypes
     @Override
     public void setColumnRealmList(RealmList<AllTypes> value) {
         LinkView links = row.getLinkList(INDEX_COLUMNREALMLIST);
+        links.clear();
         if (value == null) {
             return;
         }
-        links.clear();
         for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value) {
             links.add(linkedObject.row.getIndex());
         }
@@ -431,12 +431,16 @@ public class AllTypesRealmProxy extends AllTypes
                 obj.setColumnObject(columnObjectObj);
             }
         }
-        if (!json.isNull("columnRealmList")) {
-            obj.getColumnRealmList().clear();
-            JSONArray array = json.getJSONArray("columnRealmList");
-            for (int i = 0; i < array.length(); i++) {
-                some.test.AllTypes item = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update);
-                obj.getColumnRealmList().add(item);
+        if (json.has("columnRealmList")) {
+            if (json.isNull("columnRealmList")) {
+                obj.setColumnRealmList(null);
+            } else {
+                obj.getColumnRealmList().clear();
+                JSONArray array = json.getJSONArray("columnRealmList");
+                for (int i = 0; i < array.length(); i++) {
+                    some.test.AllTypes item = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update);
+                    obj.getColumnRealmList().add(item);
+                }
             }
         }
         return obj;
@@ -511,13 +515,17 @@ public class AllTypesRealmProxy extends AllTypes
                     obj.setColumnObject(columnObjectObj);
                 }
             } else if (name.equals("columnRealmList")) {
-                // FIXME: This needs to be checked!
-                reader.beginArray();
-                while (reader.hasNext()) {
-                    some.test.AllTypes item = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
-                    obj.getColumnRealmList().add(item);
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    obj.setColumnRealmList(null);
+                } else {
+                    reader.beginArray();
+                    while (reader.hasNext()) {
+                        some.test.AllTypes item = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
+                        obj.getColumnRealmList().add(item);
+                    }
+                    reader.endArray();
                 }
-                reader.endArray();
             } else {
                 reader.skipValue();
             }
