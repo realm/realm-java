@@ -390,7 +390,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull
     return ROW(nativeRowPtr)->is_null(columnIndex);
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
   (JNIEnv *, jobject, jlong nativeRowPtr, jlong columnIndex) {
     TR_ENTER_PTR(nativeRowPtr)
     ROW(nativeRowPtr)->set_null(columnIndex);

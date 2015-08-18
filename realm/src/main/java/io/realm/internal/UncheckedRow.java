@@ -299,5 +299,5 @@ public class UncheckedRow extends NativeObject implements Row {
     protected native boolean nativeIsAttached(long nativeRowPtr);
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
     protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
-    protected native boolean nativeSetNull(long nativeRowPtr, long columnIndex);
+    protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
 }

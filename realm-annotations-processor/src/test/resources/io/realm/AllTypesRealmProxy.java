@@ -152,7 +152,7 @@ public class AllTypesRealmProxy extends AllTypes
         if (row.isNullLink(INDEX_COLUMNOBJECT)) {
             return null;
         }
-        return realm.getByIndex(some.test.AllTypes.class, row.getLink(INDEX_COLUMNOBJECT));
+        return realm.get(some.test.AllTypes.class, row.getLink(INDEX_COLUMNOBJECT));
     }
 
     @Override
@@ -362,7 +362,7 @@ public class AllTypesRealmProxy extends AllTypes
                 if (rowIndex != TableOrView.NO_MATCH) {
                     obj = new AllTypesRealmProxy();
                     obj.realm = realm;
-                    obj.row = table.getUncheckedRowByIndex(rowIndex);
+                    obj.row = table.getUncheckedRow(rowIndex);
                 }
             }
         }
@@ -542,7 +542,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (rowIndex != TableOrView.NO_MATCH) {
                 realmObject = new AllTypesRealmProxy();
                 realmObject.realm = realm;
-                realmObject.row = table.getUncheckedRowByIndex(rowIndex);
+                realmObject.row = table.getUncheckedRow(rowIndex);
                 cache.put(object, (RealmObjectProxy) realmObject);
             } else {
                 canUpdate = false;

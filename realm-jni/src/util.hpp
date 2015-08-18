@@ -125,7 +125,7 @@ enum ExceptionKind {
 void ConvertException(JNIEnv* env, const char *file, int line);
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr="");
 void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr);
-void ThrowNullValueException(JNIEnv* env, Table *table, size_t col_ndx);
+void ThrowNullValueException(JNIEnv* env, realm::Table *table, size_t col_ndx);
 
 jclass GetClass(JNIEnv* env, const char* classStr);
 
@@ -415,7 +415,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
-    if (colType == type_Link || colType == type_LinkList) {
+    if (colType == realm::type_Link || colType == realm::type_LinkList) {
         return true;
     }
 
