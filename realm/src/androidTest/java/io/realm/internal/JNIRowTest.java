@@ -89,7 +89,7 @@ public class JNIRowTest extends TestCase {
         table.addColumn(ColumnType.BINARY, "binary");
 
         long rowIndex = table.addEmptyRow();
-        UncheckedRow row = table.getUncheckedRowByIndex(rowIndex);
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
 
         row.setString(colStringIndex, "test");
         assertEquals(row.getString(colStringIndex), "test");

@@ -258,9 +258,9 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeIsNull
 /*
  * Class:     io_realm_internal_UncheckedRow
  * Method:    nativeSetNull
- * Signature: (JJ)Z
+ * Signature: (JJ)V
  */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetNull
   (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus

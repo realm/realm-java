@@ -417,7 +417,7 @@ public class NullTypesRealmProxy extends NullTypes
         if (row.isNullLink(INDEX_FIELDOBJECTNULL)) {
             return null;
         }
-        return realm.getByIndex(some.test.NullTypes.class, row.getLink(INDEX_FIELDOBJECTNULL));
+        return realm.get(some.test.NullTypes.class, row.getLink(INDEX_FIELDOBJECTNULL));
     }
 
     @Override
