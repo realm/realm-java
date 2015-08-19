@@ -37,6 +37,12 @@ public interface TableOrView {
     void close();
 
     /**
+     * Replace the existing pointer to the new table view
+     * @param newTableViewPointer native pointer a table view
+     */
+    void swapPointer (long newTableViewPointer);
+
+    /**
      * Returns the number of entries of the table/view.
      *
      * @return

@@ -118,7 +118,21 @@ public class TableView implements TableOrView, Closeable {
             } 
         }
     }
-    
+
+    @Override
+    public void swapPointer(long newTableViewPointer) {
+        if (nativePtr != 0) {
+            nativeClose(nativePtr);
+
+            if (DEBUG)
+                System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
+
+            nativePtr = 0;
+        }
+        nativePtr = newTableViewPointer;
+    }
+
+    @Override
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
@@ -908,7 +922,8 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public String toString() {
-        return nativeToString(nativePtr, 500);
+        //return nativeToString(nativePtr, 500);
+        return "NO STRING FOR YOU";
     }
 
     @Override

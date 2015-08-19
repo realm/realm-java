@@ -93,6 +93,10 @@ public class SharedGroup implements Closeable {
         nativeAdvanceRead(nativePtr, nativeReplicationPtr);
     }
 
+    void advanceRead(VersionID versionID) {//TODO: implement call to native
+        nativeAdvanceRead(nativePtr, nativeReplicationPtr);
+    }
+
     private native void nativeAdvanceRead(long nativePtr, long nativeReplicationPtr);
 
     void promoteToWrite() {
@@ -233,6 +237,12 @@ public class SharedGroup implements Closeable {
         return nativeCompact(nativePtr);
     }
 
+    public VersionID getVersion () {
+        long[] versionId = nativeGetVersionID (nativePtr);
+        return new VersionID (versionId[0], versionId[1]);
+    }
+
+    private native long[] nativeGetVersionID (long nativePtr);
 
     /**
      * Returns the absolute path to the file backing this SharedGroup.
@@ -276,4 +286,25 @@ public class SharedGroup implements Closeable {
     protected static native void nativeClose(long nativePtr);
 
     private native void nativeCloseReplication(long nativeReplicationPtr);
+
+    public static class VersionID implements Comparable<VersionID> {
+        final long version;
+        final long index;
+
+        VersionID(long version, long index) {
+            this.version = version;
+            this.index = index;
+        }
+
+        @Override
+        public int compareTo(VersionID another) {
+            if (version > another.version) {
+                return 1;
+            } else if (version < another.version) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    }
 }

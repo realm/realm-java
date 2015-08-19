@@ -33,7 +33,7 @@ inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
             ThrowException(env, TableInvalid, "Table is closed, and no longer valid to operate on.");
             return false;
         }
-        TV(nativeViewPtr)->sync_if_needed();
+        //TV(nativeViewPtr)->sync_if_needed();
     }
     return valid;
 }
@@ -53,7 +53,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
 {
 
     try {
-        TV(dataTablePtr)->sync_if_needed();
+        //TV(dataTablePtr)->sync_if_needed();
         TableView* dataTable = TV(dataTablePtr);
         Table* resultTable = TBL(resultTablePtr);
         Table::AggrType pivotOp;
@@ -988,7 +988,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync(
         }
     }
     try {
-        return (jlong) TV(nativeViewPtr)->sync_if_needed();
+        //return (jlong) TV(nativeViewPtr)->sync_if_needed();
+        return 0;
     } CATCH_STD()
     return 0;
 }
+

@@ -30,6 +30,11 @@ public class ImplicitTransaction extends Group {
         parent.advanceRead();
     }
 
+    public void advanceRead(SharedGroup.VersionID versionID) {
+        assertNotClosed();
+        parent.advanceRead(versionID);
+    }
+
     public void promoteToWrite() {
         assertNotClosed();
         if (immutable) {

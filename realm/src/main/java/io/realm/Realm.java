@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -141,15 +142,38 @@ public final class Realm implements Closeable {
     };
 
     // keep a WeakReference list to RealmResults obtained asynchronously in order to update them
-    protected static final ThreadLocal<List<WeakReference<RealmResults<?>>>> asyncRealmResults =
-            new ThreadLocal<List<WeakReference<RealmResults<?>>>>() {
+//    protected static final ThreadLocal<List<WeakReference<RealmResults<?>>>> asyncRealmResults =
+//            new ThreadLocal<List<WeakReference<RealmResults<?>>>>() {
+//                @Override
+//                protected List<WeakReference<RealmResults<?>>> initialValue() {
+//                    return new ArrayList<WeakReference<RealmResults<?>>>();
+//                }
+//            };
+
+//    protected static final ConcurrentHashMap<Handler, Map<WeakReference<RealmResults<?>>, Long>> asyncQueries =
+//            new ConcurrentHashMap<Handler, Map<WeakReference<RealmResults<?>>, Long>>();
+//
+//    protected static final ConcurrentHashMap<WeakReference<RealmResults<?>>, WeakReference<RealmResults.QueryCallback<?>>> asyncQueriesCallback2 =
+//            new ConcurrentHashMap<WeakReference<RealmResults<?>>, WeakReference<RealmResults.QueryCallback<?>>>();
+
+    // RealmQuery is not WeakReference to prevent it from being GC'd. RealmQuery should be
+    // cleaned if RealmResults is cleaned
+    // RealmQuery contains the callback we need to call after update
+    protected static final ThreadLocal<Map<RealmResults<?>, RealmQuery<?>>> asyncQueries =
+            new ThreadLocal<Map<RealmResults<?>, RealmQuery<?>>>() {
                 @Override
-                protected List<WeakReference<RealmResults<?>>> initialValue() {
-                    return new CopyOnWriteArrayList<WeakReference<RealmResults<?>>>();
+                protected Map<RealmResults<?>, RealmQuery<?>> initialValue() {
+                    return new WeakHashMap<RealmResults<?>, RealmQuery<?>>();
                 }
             };
 
-    protected static final ThreadLocal<>
+//    protected static final ThreadLocal<Map<Long, WeakReference<RealmResults<?>>>> asyncRealmQueries =
+//            new ThreadLocal<Map<Long, WeakReference<RealmResults<?>>>>() {
+//                @Override
+//                protected Map<Long, WeakReference<RealmResults<?>>> initialValue() {
+//                    return new HashMap<Long, WeakReference<RealmResults<?>>>();
+//                }
+//            };
 
     // Map between all Realm file paths and all known configurations pointing to that file.
     private static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
@@ -165,6 +189,8 @@ public final class Realm implements Closeable {
 
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
     private static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
+    protected static final int REALM_UPDATE_ASYNC_QUERIES = 24157817;
+    protected static final int REALM_COMPLETED_ASYNC_QUERY = 39088169;
 
     private static RealmConfiguration defaultConfiguration;
 
@@ -184,7 +210,7 @@ public final class Realm implements Closeable {
 
     private long threadId;
     private RealmConfiguration configuration;
-    private SharedGroup sharedGroup;
+    protected SharedGroup sharedGroup;
     private final ImplicitTransaction transaction;
 
     private final List<WeakReference<RealmChangeListener>> changeListeners =
@@ -284,13 +310,182 @@ public final class Realm implements Closeable {
         handlers.remove(handler);
     }
 
+    private HashMap<Integer, WeakReference<RealmResults<?>>> hashToInstance = new HashMap<Integer, WeakReference<RealmResults<?>>>();
+    private Future updateAsyncQueries;
     private class RealmCallback implements Handler.Callback {
         @Override
         public boolean handleMessage(Message message) {
-            if (message.what == REALM_CHANGED) {
-                if (!threadContainsAsyncQueries()) {
-                    transaction.advanceRead();
-                    sendNotifications();
+            switch (message.what) {
+                case REALM_CHANGED: {
+                    if (threadContainsAsyncQueries()) {
+                        if (updateAsyncQueries != null && !updateAsyncQueries.isDone()) {
+                            // try to cancel any pending update since we're submitting a new one anyway
+                            updateAsyncQueries.cancel(true);
+                        }
+                        // prepare the list of RealmResults + Table query to be exported
+                        // need to keep a weak reference (when delivering onSuccess) to
+                        // RealmResults + RealmQuery (to export again the query)
+
+                        // [STEP: 1] submit a job to a scheduler & as a parameter use current handler
+                        // #getHandler() + list of exported queries to be re-run
+                        ArrayList<UpdateAsyncQueriesTask.Entry> queriesToUpdate = new ArrayList<UpdateAsyncQueriesTask.Entry>();
+                        for (Map.Entry<RealmResults<?>, RealmQuery<?>> entry : asyncQueries.get().entrySet()) {
+                            // need to call via shared_group to export the query
+                            RealmResults<?> realmResults = entry.getKey();
+                            Integer identityHash = System.identityHashCode(realmResults);
+                            hashToInstance.put(identityHash, new WeakReference<RealmResults<?>>(realmResults));
+
+                            queriesToUpdate.add(new UpdateAsyncQueriesTask.Entry(identityHash,
+                                    new UpdateAsyncQueriesTask
+                                            .UpdateQuery(entry.getValue().handoverQueryPointer(sharedGroup.getNativePointer()),
+                                            entry.getValue().getArgument())));
+                        }
+
+//                        Runnable task = new UpdateAsyncQueriesTask(getHandler(), getConfiguration(), queriesToUpdate, sharedGroup.getVersion());
+                        Runnable task = new UpdateAsyncQueriesTask(handler, getConfiguration(), queriesToUpdate, sharedGroup.getVersion());
+                        updateAsyncQueries = asyncQueryExecutor.submit(task);
+                        // submit a runnbal UpdateTask to the same pool as regular queries
+                        // maybe have a method inside RealmQuery#update since it has all the information
+                        // or create a new Callable object that has all the parameters & return a Future<List<[RR-TV]> + version
+                        // this Future could be cancelled if the task is pending & we receive a new REALM_CHANGED in the mean time
+                        // since we already have a new version of Realm.
+                        // this leans to a Worker thread caching it's Realm in a ThreadLocal (to be reused)
+                        // since all queries need to target the same version (Bg thread need to receive a version Id
+                        // (from UI Thread) in order to import correctly the query. then update everyone the deliver
+                        // this could be done by providing a ThreadFactory (but watch out- since you need to detect corectly
+                        // the destruction of this thread in order to close the Realm)
+
+
+                    } else {
+                        transaction.advanceRead();
+                        sendNotifications();
+                    }
+                    break;
+                }
+                case REALM_COMPLETED_ASYNC_QUERY: {
+                    // One async query has completed
+                    UpdateAsyncQueriesTask.Result result
+                            = (UpdateAsyncQueriesTask.Result) message.obj;
+
+                    // is this RealmResults still around, not GC'd
+                    RealmResults<?> realmResults = hashToInstance.get(result.updatedTableViews.get(result.updatedTableViews.keySet().toArray()[0])).get();
+                    if (realmResults != null) {
+                        SharedGroup.VersionID callerVersionID = sharedGroup.getVersion();
+                        int compare = callerVersionID.compareTo(result.versionID);
+                        if (compare == 0) {
+                            // if the RealmResults is empty (has not completed yet) then use the value
+                            // otherwise a task (grouped update) has already updated this RealmResults
+                            if (!realmResults.isLoaded()) {
+                                // swap pointer
+                                realmResults.swapTableViewPointer(0L);
+                                // notify callbacks
+                                realmResults.notifyChangeListeners();
+                            }
+                        } else if (compare > 0) {
+                            // we have two use cases:
+                            // 1- this RealmResults is not empty, this means that after we started the async
+                            //    query, we received a REALM_CHANGE that triggered an update of all async queries
+                            //    including the last async submitted, so no need to use the provided TableView pointer
+                            // 2- This RealmResults is still empty but this caller thread is advanced than the worker thread
+                            //    this could happen if the current thread advanced the shared_group (via a write or refresh)
+                            //    this means that we need to rerun the query against a newer worker thread.
+
+                            if (!realmResults.isLoaded()) { // UC2
+                                //TODO rerun the query
+
+                            }
+
+                        } else {
+                            // The caller thread is behind the worker thread,
+                            // no need to rerun the query, since we're going to receive the update signal
+                            // & batch update all async queries including this one
+                        }
+                    }
+
+
+                    break;
+                }
+                case REALM_UPDATE_ASYNC_QUERIES: {
+                    // This is called once the background thread completed the update of the queries
+                    // edge case: if a query has been add (to the caller thread) while the background thread
+                    // was busy updating the queries the submit again [STEP: 1]
+                    // this check could be achieved by checking that all live (non GC'd) instance of async RealmResults
+                    // are present within the response from the worker thread. so advance_read is safe to adavnce
+                    // without a risk of advancing a missed query not updated (or RR without TV pointer)
+
+
+                    UpdateAsyncQueriesTask.Result result
+                            = (UpdateAsyncQueriesTask.Result) message.obj;
+
+                    // the advance_read to the background.shared_group_version or latest?
+                    // we need to receive version + be able to advance_read to a specific version
+                    SharedGroup.VersionID callerVersionID = sharedGroup.getVersion();
+
+                    int compare = callerVersionID.compareTo(result.versionID);
+
+                    if (compare > 0) {
+                        // The caller is more advance than the updated queries ==>
+                        // need to refresh them again (if there is still queries)
+                        handler.sendEmptyMessage(REALM_CHANGED);
+
+                    } else {
+                        // We're behind or on the same version as the worker thread
+
+                        // we need to check if the received results cover all the current async RealmResults we had
+                        // otherwise ignore this results & fire a new update that should include the new add RealmResults
+                        // Missed async query will update with their own message (independently from grouped updates)
+                        // in the mean time they are empty so advance_read will not impact them
+//                        for (RealmResults<?> realmResults : asyncQueries.get().keySet()) {
+//                            if (!result.updatedTableViews.containsKey(System.identityHashCode(realmResults))) {
+//                                handler.sendEmptyMessage(REALM_CHANGED);
+//                            }
+//                        }
+
+                        // no need to remove old pointers from TableView, since they're
+                        // imperative TV, they will not rerun if the SharedGroup advance
+
+                        // only advance if we're behind
+                        if (compare != 0) {
+                            // refresh the Realm to the version provided by the worker thread
+                            // (advanceRead to the latest version may cause a version mismatch error) preventing us
+                            // from importing correctly the handover table view
+                            transaction.advanceRead(result.versionID);
+                        }
+
+                        ArrayList<RealmQuery<?>> callbacksToNotify = new ArrayList<RealmQuery<?>>(hashToInstance.size());
+                        // use updated TableViews pointers for the existing async RealmResults
+                        for (Map.Entry<Integer, Long> query :
+                                result.updatedTableViews.entrySet()) {
+                            RealmResults<?> realmResults = hashToInstance.get(query.getKey()).get();
+                            if (null != realmResults) {
+                                // retrieve the RealmResults here before we change the pointer
+                                // that may affect the hashcode (we risk not being able to retrieve it back)
+                                callbacksToNotify.add(asyncQueries.get().get(realmResults));
+
+                                // update the instance with the new pointer
+                                realmResults.swapTableViewPointer(query.getValue());
+                                // it's dangerous to notify the callback about new results here
+                                // since this callback may use another RealmResults not updated yet
+
+                            }
+                        }
+
+                        // notify callbacks
+//                        for (Integer key :
+//                                result.updatedTableViews.keySet()) {
+//                            RealmResults<?> realmResults = hashToInstance.get(key).get();
+//                            if (null != realmResults) {
+//                                // this needs to compute the hashcode again which is wrong given that we just updated the
+//                                // pointer of RealmResults
+//                                asyncQueries.get().get(realmResults).notifyUpdateCallback();
+//                            }
+//                        }
+                        for (RealmQuery<?> query: callbacksToNotify) {
+                            query.notifyUpdateCallback();
+                        }
+                        sendNotifications();
+                        updateAsyncQueries = null;
+                    }
                 }
             }
             return true;
@@ -312,8 +507,9 @@ public final class Realm implements Closeable {
      * @return {@code true} if there is at least one (non GC'd) instance of {@link RealmResults} {@code false} otherwise
      */
     private boolean threadContainsAsyncQueries () {
-        for (WeakReference<RealmResults<?>> realmResultsWeakReference : asyncRealmResults.get()) {
-            if (!realmResultsWeakReference.isEnqueued()) return true;
+        if (asyncQueries.get().keySet().size() > 0)
+        for (RealmResults<?> realmResultsWeakReference : asyncQueries.get().keySet()) {
+            if (realmResultsWeakReference != null) return true;
         }
         return false;
     }
@@ -1642,7 +1838,7 @@ public final class Realm implements Closeable {
     }
 
     // Returns the Handler for this Realm on the calling thread
-    Handler getHandler() {
+    public Handler getHandler() {
         String realmPath = configuration.getPath();
         for (Map.Entry<Handler, String> entry : handlers.entrySet()) {
             if (entry.getValue().equals(realmPath)) {

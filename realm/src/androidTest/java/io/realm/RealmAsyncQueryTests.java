@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.test.InstrumentationTestCase;
@@ -1520,6 +1521,86 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         }
     }
 
+    // *** refresh on worker thread
+    // async query without any conflicts strategy
+    public void testFindAll_refresh () throws Throwable {
+        setDebugModeForAsyncRealmQuery(NO_ADVANCED_READ, RetryPolicy.MODE_NO_RETRY, NO_RETRY);
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final Looper[] looper = new Looper[1];
+        final Throwable[] threadAssertionError = new Throwable[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                looper[0] = Looper.myLooper();
+                Realm realm = null;
+                try {
+                    realm = openRealmInstance("test_find_all");
+                    populateTestRealm(realm, 10);
+
+                    // async query (will run on different thread)
+                    final Realm finalRealm = realm;
+                    realm.where(AllTypes.class)
+                            .between("columnLong", 0, 9)
+                            .findAll(new RealmResults.QueryCallback<AllTypes>() {
+                                @Override
+                                public void onSuccess(RealmResults<AllTypes> results) {
+                                    try {
+                                        assertEquals(10, results.size());
+
+                                        // make sure access to RealmObject will not throw an Exception
+                                        for (int i = 0, size = results.size(); i < size; i++) {
+                                            assertEquals(i, results.get(i).getColumnLong());
+                                        }
+
+                                    } catch (AssertionFailedError e) {
+                                        threadAssertionError[0] = e;
+
+                                    } finally {
+                                        // call commit
+                                        finalRealm.getHandler().sendEmptyMessage(14930352);
+                                    }
+                                }
+
+                                @Override
+                                public void onError(Exception t) {
+                                    try {
+                                        threadAssertionError[0] = t;
+                                        t.printStackTrace();
+                                    } finally {
+                                        signalCallbackFinished.countDown();
+                                    }
+                                }
+                            });
+
+                    Looper.loop();// ready to receive callback
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm != null) {
+                        realm.close();
+                    }
+                }
+            }
+        });
+
+        // wait until the callback of our async query proceed
+        signalCallbackFinished.await(20, TimeUnit.MINUTES);
+        looper[0].quit();
+        executorService.shutdownNow();
+        if (null != threadAssertionError[0]) {
+            // throw any assertion errors happened in the background thread
+            throw threadAssertionError[0];
+        }
+    }
+
     // *** Helper methods ***
 
     // This could be done from #setUp but then we can't control
@@ -1587,5 +1668,90 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    public void testHashCode () {
+        Realm realm = openRealmInstance("hashcode");
+        realm.beginTransaction();
+        Dog dog1 = realm.createObject(Dog.class);
+        dog1.setName("Dog1");
+        Dog dog2 = realm.createObject(Dog.class);
+        dog2.setName("Dog2");
+        Dog dog3 = realm.createObject(Dog.class);
+        dog3.setName("Dog3");
+
+        realm.commitTransaction();
+
+        RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
+
+//        realm.executeTransaction(new Realm.Transaction() {
+//            @Override
+//            public void execute(Realm realm) {
+//                Dog dog = realm.createObject(Dog.class);
+//                dog.setName("Dog4");
+//            }
+//        });
+//
+//        assertEquals("Dog1", dogs.get(0).getName());
+//        realm.executeTransaction(new Realm.Transaction() {
+//            @Override
+//            public void execute(Realm realm) {
+//                realm.clear(Dog.class);
+//            }
+//        });
+//        assertEquals("Dog4", dogs.get(0).getName());
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.clear(Dog.class);
+            }
+        });
+
+        assertTrue(dogs.get(0).isValid());
+        assertTrue(dogs.get(1).isValid());
+        assertTrue(dogs.get(2).isValid());
+
+        assertEquals("Dog2", dogs.get(1).getName());//THROWS INDEX OUT OF BOUNDS
+        assertEquals("Dog3", dogs.get(2).getName());
+        realm.close();
+
+    }
+
+
+    public void testSalaryUpdate () {
+        Realm realm = openRealmInstance("imperative_view");
+
+        realm.beginTransaction();
+        Dog dog1 = realm.createObject(Dog.class);
+        dog1.setName("Dog1");
+        dog1.setAge(10);
+
+        Dog dog2 = realm.createObject(Dog.class);
+        dog2.setName("Dog2");
+        dog2.setAge(15);
+
+        Dog dog3 = realm.createObject(Dog.class);
+        dog3.setName("Dog3");
+        dog3.setAge(20);
+
+        realm.commitTransaction();
+
+        // dogs.age >= 15, we have only two results dog2 & dog3
+        RealmResults<Dog> dogs = realm.where(Dog.class).greaterThanOrEqualTo("age", 15).findAll();
+        assertEquals(2, dogs.size());
+
+        // we introduce a new dog with age 17
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Dog dog2 = realm.createObject(Dog.class);
+                dog2.setName("Dog4");
+                dog2.setAge(17);
+            }
+        });
+
+        // *** this should be 2 not 3 since dogs is an imperative view
+        assertEquals(3, dogs.size());
+
     }
 }

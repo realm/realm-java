@@ -114,6 +114,19 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
+    @Override
+    public void swapPointer(long newTableViewPointer) {
+        if (nativePtr != 0) {
+            nativeClose(nativePtr);
+
+            if (DEBUG)
+                System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
+
+            nativePtr = 0;
+        }
+        nativePtr = newTableViewPointer;
+    }
+
     protected static native void nativeClose(long nativeTablePtr);
     
     @Override

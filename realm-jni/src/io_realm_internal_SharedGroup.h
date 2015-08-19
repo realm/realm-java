@@ -159,6 +159,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
   (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeGetVersionID
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
+        (JNIEnv *, jobject, jlong);
+
 #ifdef __cplusplus
 }
 #endif

@@ -27,6 +27,7 @@ import java.util.ListIterator;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
@@ -511,12 +512,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 //    }
 
     private void assertRealmIsStable() {
-        long version = table.sync();
-        if (currentTableViewVersion > -1 && version != currentTableViewVersion) {
-            throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Use iterators methods instead.");
-        }
-
-        currentTableViewVersion = version;
+//        long version = table.sync();
+//        if (currentTableViewVersion > -1 && version != currentTableViewVersion) {
+//            throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Use iterators methods instead.");
+//        }
+//
+//        currentTableViewVersion = version;
     }
 
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
@@ -525,7 +526,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         int pos = -1;
 
         RealmResultsIterator() {
-            currentTableViewVersion = table.sync();
+//            currentTableViewVersion = table.sync();
         }
 
         public boolean hasNext() {
@@ -644,5 +645,16 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
          * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmResults)}
          */
         void onBackgroundQueryCompleted(Realm realm);
+    }
+
+    // called mostly when updating a RealmResults from a worker thread
+    protected void swapTableViewPointer (long tableViewPointer) {
+        table.swapPointer(tableViewPointer);
+    }
+
+    // TODO move as interface
+    public void notifyChangeListeners () {}
+    public boolean isLoaded () {
+        return false;
     }
 }

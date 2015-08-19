@@ -105,6 +105,7 @@ public class RealmQuery<E extends RealmObject> {
         this.query = table.where();
         this.columns = realm.columnIndices.getClassFields(clazz);
         this.retryPolicy = RetryPolicyFactory.get(RETRY_POLICY_MODE, MAX_NUMBER_RETRIES_POLICY);
+        this.realmResults = new WeakReference<RealmResults<E>>(new RealmResults<E>(realm, clazz));
     }
 
     /**
@@ -1260,7 +1261,11 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      * @see io.realm.RealmResults
      */
+    final WeakReference<RealmResults<E>> realmResults;
     public Request findAll(final RealmResults.QueryCallback<E> callback) {
+        // capture the sorting properties in case we want to retry the query
+        this.callbackRealmResults = callback;
+
         // will use the Looper of the caller thread to post the result
         final Handler handler = new EventHandler(callback);
 
@@ -1269,6 +1274,8 @@ public class RealmQuery<E extends RealmObject> {
 
         // Handover the query (to be used by a worker thread)
         handoverQueryPtr = query.handoverQuery(callerSharedGroupNativePtr);
+        // save query arguments (for future update)
+        argumentsHolder =  new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
 
         // We need to use the same configuration to open a background SharedGroup (i.e Realm)
         // to perform the query
@@ -1379,6 +1386,7 @@ public class RealmQuery<E extends RealmObject> {
      */
     public Request findAllSorted(String fieldName, boolean sortAscending, RealmResults.QueryCallback<E> callback) {
         // capture the sorting properties in case we want to retry the query
+        this.callbackRealmResults = callback;
         this.fieldName = fieldName;
         this.sortAscending = sortAscending;
 
@@ -1416,6 +1424,12 @@ public class RealmQuery<E extends RealmObject> {
 
                         // Run the query & handover the table view for the caller thread
                         handoverTableViewPtr = query.findAllSortedWithHandover(bgRealm.getSharedGroupPointer(), handoverQueryPtr, columnIndex, (order == TableView.Order.ascending));
+                        // save query arguments (for future update)
+                        argumentsHolder =  new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
+                        argumentsHolder.columnIndex = columnIndex;
+                        argumentsHolder.ascending = (order == TableView.Order.ascending);
+
+
                         handoverQueryPtr = -1;
                         if (IS_DEBUG && NB_ADVANCE_READ_SIMULATION-- > 0) {
                             // notify caller thread that we're about to post result to Handler
@@ -1974,9 +1988,21 @@ public class RealmQuery<E extends RealmObject> {
                                 query.importHandoverTableView(bundle.getLong(QUERY_RESULT_POINTER_ARG),
                                         bundle.getLong(CALLER_SHARED_GROUP_POINTER_ARG)),
                                 clazz);
-
+                        // instead of returning a new instance of RealmResults we swap pointers
+                        // we the empty one returned before
+                        resultList.swapTableViewPointer();
                         callbackRealmResults.onSuccess(resultList);
-                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
+                        Realm.asyncQueries.get().put(resultList, RealmQuery.this);
+                        // need also to add the handoverQuery or the original one (depends on the GC)
+                        // use the associated Handler passed thru the constructor in order to add
+                        // this couple to the correct thread
+//                        if (!Realm.asyncQueries.containsKey(/*handler*/ null)) {
+//                            Realm.asyncQueries.put(/*handler*/ null, new HashMap<WeakReference<RealmResults<?>>, Long>());
+//                        }
+//                        Realm.asyncQueries.get(/*handler*/null).put(new WeakReference<RealmResults<?>>(resultList), /*query ptr or query object as WeakRef*/ 0L);
+//                        Realm.asyncQueriesCallback.put(new WeakReference<RealmResults<?>>(resultList), new WeakReference<RealmResults.QueryCallback<?>>(callbackRealmResults));
+//
+//                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
                         callbackRealmResults = null;
                         break;
                     }
@@ -1987,7 +2013,7 @@ public class RealmQuery<E extends RealmObject> {
                                 clazz);
 
                         callbackRealmResults.onSuccess(resultList);
-                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
+//                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
                         callbackRealmResults = null;
                         break;
                     }
@@ -1998,7 +2024,7 @@ public class RealmQuery<E extends RealmObject> {
                                 clazz);
 
                         callbackRealmResults.onSuccess(resultList);
-                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
+//                        Realm.asyncRealmResults.get().add(new WeakReference<RealmResults<?>>(resultList));
                         callbackRealmResults = null;
                         break;
                     }
@@ -2074,6 +2100,34 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    protected ArgumentsHolder argumentsHolder;
+    private RealmResults.QueryCallback<E> callbackRealmResults;
+    private RealmObject.QueryCallback<E> callbackRealmObject;
+
+    // encapsulate argument (in case we want to re-query)
+    static class ArgumentsHolder {
+        public final static int TYPE_FIND_ALL = 0;
+        public final static int TYPE_FIND_ALL_SORTED = 1;
+        public final static int TYPE_FIND_ALL_MULTI_SORTED = 2;
+
+        final int type;
+        long start;
+        long end;
+        long limit;
+        long columnIndex;
+        boolean ascending;
+        long[] columnIndices;
+        boolean[] ascendings;
+
+        ArgumentsHolder(int type) {
+            this.type = type;
+        }
+    }
+
+    protected ArgumentsHolder getArgument () {
+        return argumentsHolder;
+    }
+
     private void releaseHandoverResources() {
         query.closeRowHandover(handoverRowPtr);
         handoverRowPtr = -1;
@@ -2081,6 +2135,32 @@ public class RealmQuery<E extends RealmObject> {
         handoverQueryPtr = -1;
         query.closeTableViewHandover(handoverTableViewPtr);
         handoverTableViewPtr = -1;
+    }
+
+
+//    protected long updateQuery (long handoverQueryPtr) {
+//        // call the appropriate native code operation
+//        return -1;
+//    }
+
+    //TODO replace previous call with this method
+    protected long handoverQueryPointer (long sharedGroupNativePointer) {
+        return query.handoverQuery(sharedGroupNativePointer);
+    }
+
+    protected void notifyUpdateCallback () {
+        if (callbackRealmObject != null) {
+//            callbackRealmObject.onSuccess();//TODO onUpdate
+        }
+
+        if (callbackRealmResults != null) {
+//            callbackRealmObject.onSuccess();//TODO onUpdate
+        }
+//        callback.onUpdate();
+    }
+
+    protected long exportTableQuery () { // for handover
+        return -1;
     }
 
     // Unit Test Helper
