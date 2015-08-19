@@ -30,6 +30,9 @@ public class Context {
     // whose disposal need to be handed over from the garbage 
     // collection thread to the users thread.
 
+    // Reserved to be used only as a placholder by rowReferences Map to avoid autoboxing allocations
+    static final Integer ROW_REFERENCES_VALUE = 0;
+
     private List<Long> abandonedTables = new ArrayList<Long>();
     private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
