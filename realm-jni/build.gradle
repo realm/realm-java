@@ -147,7 +147,7 @@ targets.each { target ->
         dependsOn "generateNdkToolchain${target.toolchain.name.capitalize()}"
         environment PATH: "${buildDir}/standalone-toolchains/${target.toolchain.name}/bin:${System.env.PATH}"
         environment CC: "${target.toolchain.commandPrefix}-${clang?'clang':'gcc'}"
-        environment STRIP: "${target.toolchain.commandPrefix}-strip -o librealm-jni-${target.name}-stripped.so"
+        environment STRIP: "${target.toolchain.commandPrefix}-strip -o libearthworm-${target.name}-stripped.so"
         environment REALM_ANDROID: '1'
         commandLine = [
             'make',
@@ -158,22 +158,22 @@ targets.each { target ->
             "BASE_DENOM=${target.name}",
             "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
             'LIB_SUFFIX_SHARED=.so',
-            "librealm-jni-${target.name}.so"
+            "libearthworm-${target.name}.so"
         ]
     }
 
     task "copyAndroidJni${target.name.capitalize()}"(dependsOn: "buildAndroidJni${target.name.capitalize()}") << {
         copy {
-            from "${projectDir}/src/librealm-jni-${target.name}-stripped.so"
+            from "${projectDir}/src/libearthworm-${target.name}-stripped.so"
             into "${projectDir}/../realm/src/main/jniLibs/${target.jniFolder}"
-            rename "librealm-jni-${target.name}-stripped.so", 'librealm-jni.so'
+            rename "libearthworm-${target.name}-stripped.so", 'libearthworm.so'
         }
 
         // Store the unstripped version
         copy {
-            from "${projectDir}/src/librealm-jni-${target.name}.so"
+            from "${projectDir}/src/libearthworm-${target.name}.so"
             into "${projectDir}/../build/output/jniLibs-unstripped/${target.jniFolder}"
-            rename "librealm-jni-${target.name}.so", 'librealm-jni.so'
+            rename "libearthworm-${target.name}.so", 'libearthworm.so'
         }
     }
 }

@@ -4,12 +4,12 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion '20.0.0'
+    compileSdkVersion 22
+    buildToolsVersion '22.0.1'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 20
+        targetSdkVersion 22
     }
 
 // TODO: re-enable once bug-fix is released
@@ -239,7 +239,7 @@ task copyLibrariesToEclipseFolder(dependsOn: 'androidJar') << {
     }
     abi.each() { abiName ->
         copy {
-            from "build/intermediates/eclipse/lib/${abiName}/librealm-jni.so"
+            from "build/intermediates/eclipse/lib/${abiName}/libearthworm.so"
             into "../distribution/eclipse/${abiName}"
         }
     }
