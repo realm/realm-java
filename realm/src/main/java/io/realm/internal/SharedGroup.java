@@ -30,6 +30,7 @@ public class SharedGroup implements Closeable {
     private boolean implicitTransactionsEnabled = false;
     private boolean activeTransaction;
     private final Context context;
+    private long[] lastSeenVersion = new long[]{-1L, -1L};
 
     static {
         RealmCore.loadLibrary();
@@ -81,8 +82,20 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    void advanceRead() {
+    /**
+     * Advances the transaction the to latest available data.
+     *
+     * @return {@code true} if version was advanced, {@code false} if already at the latest version.
+     */
+    boolean advanceRead() {
         nativeAdvanceRead(nativePtr);
+        long[] nextVersion = nativeGetVersionID(nativePtr);
+        if (lastSeenVersion[0] != nextVersion[0] || lastSeenVersion[1] != nextVersion[1]) {
+            lastSeenVersion = nextVersion;
+            return true;
+        }
+
+        return false;
     }
 
     void promoteToWrite() {
@@ -252,4 +265,5 @@ public class SharedGroup implements Closeable {
     private native boolean nativeCompact(long nativePtr);
     protected static native void nativeClose(long nativePtr);
     private native void nativeCloseReplication(long nativeReplicationPtr);
+    private native long[] nativeGetVersionID(long nativePtr);
 }

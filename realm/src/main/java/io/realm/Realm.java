@@ -280,8 +280,9 @@ public final class Realm implements Closeable {
         @Override
         public boolean handleMessage(Message message) {
             if (message.what == REALM_CHANGED) {
-                transaction.advanceRead();
-                sendNotifications();
+                if (transaction.advanceRead()) {
+                    sendNotifications();
+                }
             }
             return true;
         }
@@ -1326,7 +1327,9 @@ public final class Realm implements Closeable {
                     && !handler.hasMessages(REALM_CHANGED)       // The right message
                     && handler.getLooper().getThread().isAlive() // The receiving thread is alive
             ) {
-                handler.sendEmptyMessage(REALM_CHANGED);
+                if (!handler.sendEmptyMessage(REALM_CHANGED)) {
+                    RealmLog.d("Could not send onChange message on commit");
+                }
             }
         }
     }

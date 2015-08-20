@@ -25,9 +25,9 @@ public class ImplicitTransaction extends Group {
         parent = sharedGroup;
     }
 
-    public void advanceRead() {
+    public boolean advanceRead() {
         assertNotClosed();
-        parent.advanceRead();
+        return parent.advanceRead();
     }
 
     public void promoteToWrite() {
