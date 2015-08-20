@@ -75,22 +75,16 @@ public class Context {
     // Faster version used only for context.Finalize() calls. Difference is it does not modify registries but set them to null
     private void executeDelayedDisposalFinalize() {
         synchronized (this) {
-            if(abandonedTables.size() > 0) {
-                for (long nativePointer : abandonedTables) {
-                    Table.nativeClose(nativePointer);
-                }
+            for (long nativePointer : abandonedTables) {
+                Table.nativeClose(nativePointer);
             }
 
-            if(abandonedTableViews.size() > 0) {
-                for (long nativePointer : abandonedTableViews) {
-                    TableView.nativeClose(nativePointer);
-                }
+            for (long nativePointer : abandonedTableViews) {
+                TableView.nativeClose(nativePointer);
             }
 
-            if(abandonedQueries.size() > 0) {
-                for (long nativePointer : abandonedQueries) {
-                    TableQuery.nativeClose(nativePointer);
-                }
+            for (long nativePointer : abandonedQueries) {
+                TableQuery.nativeClose(nativePointer);
             }
 
             cleanRowsFinalize();
