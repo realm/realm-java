@@ -33,9 +33,9 @@ public class Context {
     // Reserved to be used only as a placholder by rowReferences Map to avoid autoboxing allocations
     static final Integer ROW_REFERENCES_VALUE = 0;
 
-    private List<Long> abandonedTables = new ArrayList<Long>();
-    private List<Long> abandonedTableViews = new ArrayList<Long>();
-    private List<Long> abandonedQueries = new ArrayList<Long>();
+    private ArrayList<Long> abandonedTables = new ArrayList<Long>();
+    private ArrayList<Long> abandonedTableViews = new ArrayList<Long>();
+    private ArrayList<Long> abandonedQueries = new ArrayList<Long>();
 
     HashMap<Reference<?>, Integer> rowReferences = new HashMap<Reference<?>, Integer>();
     ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
@@ -44,25 +44,56 @@ public class Context {
 
     public void executeDelayedDisposal() {
         synchronized (this) {
-            for (int i = 0; i < abandonedTables.size(); i++) {
-                long nativePointer = abandonedTables.get(i);
-                Table.nativeClose(nativePointer);
-            }
-            abandonedTables.clear();
+            if(abandonedTables.size() > 0) {
+                for (long nativePointer : abandonedTables) {
+                    Table.nativeClose(nativePointer);
+                }
 
-            for (int i = 0; i < abandonedTableViews.size(); i++) {
-                long nativePointer = abandonedTableViews.get(i);
-                TableView.nativeClose(nativePointer);
+                abandonedTables.clear();
             }
-            abandonedTableViews.clear();
 
-            for (int i = 0; i < abandonedQueries.size(); i++) {
-                long nativePointer = abandonedQueries.get(i);
-                TableQuery.nativeClose(nativePointer);
+            if(abandonedTableViews.size() > 0) {
+                for (long nativePointer : abandonedTableViews) {
+                    TableView.nativeClose(nativePointer);
+                }
+
+                abandonedTableViews.clear();
             }
-            abandonedQueries.clear();
+
+            if(abandonedQueries.size() > 0) {
+                for (long nativePointer : abandonedQueries) {
+                    TableQuery.nativeClose(nativePointer);
+                }
+
+                abandonedQueries.clear();
+            }
 
             cleanRows();
+        }
+    }
+
+    // Faster version used only for context.Finalize() calls. Difference is it does not modify registries but set them to null
+    private void executeDelayedDisposalFinalize() {
+        synchronized (this) {
+            if(abandonedTables.size() > 0) {
+                for (long nativePointer : abandonedTables) {
+                    Table.nativeClose(nativePointer);
+                }
+            }
+
+            if(abandonedTableViews.size() > 0) {
+                for (long nativePointer : abandonedTableViews) {
+                    TableView.nativeClose(nativePointer);
+                }
+            }
+
+            if(abandonedQueries.size() > 0) {
+                for (long nativePointer : abandonedQueries) {
+                    TableQuery.nativeClose(nativePointer);
+                }
+            }
+
+            cleanRowsFinalize();
         }
     }
 
@@ -71,6 +102,15 @@ public class Context {
         while (reference != null) {
             UncheckedRow.nativeClose(reference.nativePointer);
             rowReferences.remove(reference);
+            reference = (NativeObjectReference) referenceQueue.poll();
+        }
+    }
+
+    // used only by context.Finalize() -> executeDelayedDisposalFinalize..
+    private void cleanRowsFinalize() {
+        NativeObjectReference reference = (NativeObjectReference) referenceQueue.poll();
+        while (reference != null) {
+            UncheckedRow.nativeClose(reference.nativePointer);
             reference = (NativeObjectReference) referenceQueue.poll();
         }
     }
@@ -114,6 +154,8 @@ public class Context {
         synchronized (this) {
             isFinalized = true;
         }
-        executeDelayedDisposal();
+
+        // Call special disposal which does not need to modify registry data because we are out of scope anyways
+        executeDelayedDisposalFinalize();
     }
 }
