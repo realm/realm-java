@@ -18,7 +18,8 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
-#include "utf8.hpp"
+#include <realm/util/utf8.hpp>
+#include <realm/util/buffer.hpp>
 
 #include "util.hpp"
 #include "io_realm_internal_Util.h"
@@ -235,6 +236,19 @@ private:
 
 } // anonymous namespace
 
+string string_to_hex(const string& message, StringData& str) {
+    ostringstream ret;
+
+    const char *s = str.data();
+    ret << message << " ";
+    ret << "StringData.size = " << str.size() << "; ";
+    ret << "StringData.data = " << str.data() << "; ";
+    ret << "StringData as hex = ";
+    for (string::size_type i = 0; i < str.size(); ++i)
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
+    return ret.str();
+}
+
 string string_to_hex(const string& message, StringData& str, const char* in_begin, const char* in_end,
                      jchar* out_curr, jchar* out_end, size_t retcode, size_t error_code) {
     ostringstream ret;
@@ -256,6 +270,16 @@ string string_to_hex(const string& message, StringData& str, const char* in_begi
     return ret.str();
 }
 
+string string_to_hex(const string& message, const jchar *str, size_t size) {
+    ostringstream ret;
+
+    ret << message << "; ";
+    for (size_t i = 0; i < size; ++i)
+        ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)str[i];
+    return ret.str();
+}
+
+
 string string_to_hex(const string& message, const jchar *str, size_t size, size_t error_code) {
     ostringstream ret;
 
@@ -271,62 +295,72 @@ string concat_stringdata(const char *message, StringData strData)
     return std::string(message) + (strData != NULL ? strData.data() : "");
 }
 
-jstring to_jstring(JNIEnv* env, StringData str)
-{
-    // For efficiency, if the incoming UTF-8 string is sufficiently
-    // small, we will attempt to store the UTF-16 output into a stack
-    // allocated buffer of static size. Otherwise we will have to
-    // dynamically allocate the output buffer after calculating its
-    // size.
+jstring to_jstring(JNIEnv* env, StringData str) {
+    // Input is UTF-8 and output is UTF-16. Invalid UTF-8 input is silently
+    // converted to Unicode replacement characters.
+    // We use a small fixed size stack-allocated output buffer to avoid the cost
+    // of dynamic allocation for short input strings. If this buffer turns out
+    // to be too small, we proceed by calculating an estimate for the actually
+    // required output buffer size, and then allocate the buffer dynamically.
 
     const size_t stack_buf_size = 48;
     jchar stack_buf[stack_buf_size];
-    std::unique_ptr<jchar[]> dyn_buf;
+    Buffer <jchar> dyn_buf;
 
-    const char* in_begin = str.data();
-    const char* in_end   = str.data() + str.size();
-    jchar* out_begin = stack_buf;
-    jchar* out_curr  = stack_buf;
-    jchar* out_end   = stack_buf + stack_buf_size;
+    const char *in = str.data();
+    const char *in_end = in + str.size();
+    jchar *out = stack_buf;
+    jchar *out_begin = out;
+    jchar *out_end = out_begin + stack_buf_size;
 
-    typedef Utf8x16<jchar, JcharTraits> Xcode;
-
-    if (str.size() <= stack_buf_size) {
-        size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
-        if (retcode != 0)
-            throw runtime_error(string_to_hex("Failure when converting short string to UTF-16",  str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
-        if (in_begin == in_end)
-            goto transcode_complete;
+    for (; ;) {
+        typedef Utf8x16 <jchar, JcharTraits> Xcode;
+        Xcode::to_utf16(in, in_end, out, out_end);
+        bool end_of_input = in == in_end;
+        if (end_of_input)
+            break;
+        bool bad_input = out != out_end;
+        if (bad_input) {
+            // Discard one or more invalid bytes from the input.
+            //
+            // We follow the stardard way of doing this, which is to first
+            // discard the leading invalid byte, which must either be a sequence
+            // lead byte (11xxxxxx) or a stray continuation byte (10xxxxxx), and
+            // then discard any additional continuation bytes following the
+            // leading invalid byte.
+            for (; ;) {
+                ++in;
+                end_of_input = in == in_end;
+                if (end_of_input)
+                    break;
+                bool next_byte_is_continuation = (unsigned(*in) & 0xC0) == 0x80;
+                if (!next_byte_is_continuation)
+                    break;
+            }
+        }
+        size_t used_size = out - out_begin; // What we already have
+        size_t min_capacity = used_size;
+        min_capacity += 1; // Make space for a replacement character
+        const char *in_2 = in; // Avoid clobbering `in`
+        if (int_add_with_overflow_detect(min_capacity, Xcode::find_utf16_buf_size(in_2, in_end)))
+            throw runtime_error("Buffer size overflow");
+        bool copy_stack_buf = dyn_buf.size() == 0;
+        size_t used_dyn_buf_size = copy_stack_buf ? 0 : used_size;
+        dyn_buf.reserve(used_dyn_buf_size, min_capacity);
+        if (copy_stack_buf)
+            copy(out_begin, out, dyn_buf.data());
+        out_begin = dyn_buf.data();
+        out_end = dyn_buf.data() + dyn_buf.size();
+        out = out_begin + used_size;
+        if (bad_input)
+            *out++ = JcharTraits::to_char_type(0xFFFD); // Unicode replacement character
     }
 
-    {
-        const char* in_begin2 = in_begin;
-        size_t error_code;
-        size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
-        if (in_begin2 != in_end) 
-            throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr, out_end, size, error_code));
-        if (int_add_with_overflow_detect(size, stack_buf_size))
-            throw runtime_error("String size overflow");
-        dyn_buf.reset(new jchar[size]);
-        out_curr = copy(out_begin, out_curr, dyn_buf.get());
-        out_begin = dyn_buf.get();
-        out_end   = dyn_buf.get() + size;
-        size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
-        if (retcode != 0) 
-            throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
-        REALM_ASSERT(in_begin == in_end);
-    }
-
-  transcode_complete:
-    {
-        jsize out_size;
-        if (int_cast_with_overflow_detect(out_curr - out_begin, out_size))
-            throw runtime_error("String size overflow");
-
-        return env->NewString(out_begin, out_size);
-    }
+    jsize out_size;
+    if (int_cast_with_overflow_detect(out - out_begin, out_size))
+        throw runtime_error("String size overflow");
+    return env->NewString(out_begin, out_size);
 }
-
 
 JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
 {
@@ -349,8 +383,7 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
     else {
         const jchar* begin = chars.data();
         const jchar* end   = begin + chars.size();
-        size_t error_code;
-        buf_size = Xcode::find_utf8_buf_size(begin, end, error_code);
+        buf_size = Xcode::find_utf8_buf_size(begin, end);
     }
     m_data.reset(new char[buf_size]);  // throws
     {
@@ -358,12 +391,11 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         const jchar* in_end   = in_begin + chars.size();
         char* out_begin = m_data.get();
         char* out_end   = m_data.get() + buf_size;
-        size_t error_code;
-        if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end, error_code)) {
-            throw runtime_error(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
+        if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end)) {
+            throw runtime_error(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size()));
         }
         if (in_begin != in_end) {
-            throw runtime_error(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
+            throw runtime_error(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size()));
         }
         m_size = out_begin - m_data.get();
     }
