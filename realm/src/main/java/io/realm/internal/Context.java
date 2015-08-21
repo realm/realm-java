@@ -44,25 +44,32 @@ public class Context {
 
     public void executeDelayedDisposal() {
         synchronized (this) {
-            if(abandonedTables.size() > 0) {
-                for (long nativePointer : abandonedTables) {
-                    Table.nativeClose(nativePointer);
+            int size = abandonedTables.size();
+
+            if(size > 0) {
+                for (int i = 0; i < size; i++) {
+                    Table.nativeClose(abandonedTables.get(i));
                 }
 
                 abandonedTables.clear();
             }
 
-            if(abandonedTableViews.size() > 0) {
-                for (long nativePointer : abandonedTableViews) {
-                    TableView.nativeClose(nativePointer);
+            size = abandonedTableViews.size();
+
+            if(size > 0) {
+                for (int i = 0; i < size; i++) {
+                    TableView.nativeClose(abandonedTableViews.get(i));
                 }
 
                 abandonedTableViews.clear();
             }
 
+            size = abandonedQueries.size();
+
             if(abandonedQueries.size() > 0) {
-                for (long nativePointer : abandonedQueries) {
-                    TableQuery.nativeClose(nativePointer);
+
+                for (int i = 0; i < size; i++) {
+                    TableQuery.nativeClose(abandonedQueries.get(i));
                 }
 
                 abandonedQueries.clear();
@@ -75,6 +82,7 @@ public class Context {
     // Faster version used only for context.Finalize() calls. Difference is it does not modify registries but set them to null
     private void executeDelayedDisposalFinalize() {
         synchronized (this) {
+
             for (long nativePointer : abandonedTables) {
                 Table.nativeClose(nativePointer);
             }
