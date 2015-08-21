@@ -22,6 +22,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.objects.ReferenceArraySet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
 public class Context {
 
     // Each group of related Realm objects will have a Context object in the root.
@@ -30,14 +34,11 @@ public class Context {
     // whose disposal need to be handed over from the garbage 
     // collection thread to the users thread.
 
-    // Reserved to be used only as a placholder by rowReferences Map to avoid autoboxing allocations
-    static final Integer ROW_REFERENCES_VALUE = 0;
+    private LongArrayList abandonedTables = new LongArrayList();
+    private LongArrayList abandonedTableViews = new LongArrayList();
+    private LongArrayList abandonedQueries = new LongArrayList();
 
-    private ArrayList<Long> abandonedTables = new ArrayList<Long>();
-    private ArrayList<Long> abandonedTableViews = new ArrayList<Long>();
-    private ArrayList<Long> abandonedQueries = new ArrayList<Long>();
-
-    HashMap<Reference<?>, Integer> rowReferences = new HashMap<Reference<?>, Integer>();
+    ReferenceOpenHashSet<Reference<?>>  rowReferences = new ReferenceOpenHashSet<Reference<?>>();
     ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
 
     private boolean isFinalized = false;

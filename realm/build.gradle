@@ -10,7 +10,10 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 22
+        // Enabling multidex support.
+        multiDexEnabled true
     }
+
 
 // TODO: re-enable once bug-fix is released
 //    jacoco {
@@ -26,6 +29,8 @@ android {
 }
 
 dependencies {
+    compile 'com.android.support:multidex:1.0.0'
+    compile 'it.unimi.dsi:fastutil:7.0.7'
     compile 'com.intellij:annotations:+@jar'
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
     androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
