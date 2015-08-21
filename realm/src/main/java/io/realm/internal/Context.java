@@ -83,16 +83,29 @@ public class Context {
     private void executeDelayedDisposalFinalize() {
         synchronized (this) {
 
-            for (long nativePointer : abandonedTables) {
-                Table.nativeClose(nativePointer);
+            int size = abandonedTables.size();
+
+            if(size > 0) {
+                for (int i = 0; i < size; i++) {
+                    Table.nativeClose(abandonedTables.get(i));
+                }
             }
 
-            for (long nativePointer : abandonedTableViews) {
-                TableView.nativeClose(nativePointer);
+            size = abandonedTableViews.size();
+
+            if(size > 0) {
+                for (int i = 0; i < size; i++) {
+                    TableView.nativeClose(abandonedTableViews.get(i));
+                }
             }
 
-            for (long nativePointer : abandonedQueries) {
-                TableQuery.nativeClose(nativePointer);
+            size = abandonedQueries.size();
+
+            if(abandonedQueries.size() > 0) {
+
+                for (int i = 0; i < size; i++) {
+                    TableQuery.nativeClose(abandonedQueries.get(i));
+                }
             }
 
             cleanRowsFinalize();
