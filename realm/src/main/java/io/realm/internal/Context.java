@@ -20,6 +20,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -38,7 +39,7 @@ public class Context {
     private LongArrayList abandonedTableViews = new LongArrayList();
     private LongArrayList abandonedQueries = new LongArrayList();
 
-    ReferenceOpenHashSet<Reference<?>>  rowReferences = new ReferenceOpenHashSet<Reference<?>>();
+    HashSet<Reference<?>> rowReferences = new HashSet<Reference<?>>();
     ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
 
     private boolean isFinalized = false;
