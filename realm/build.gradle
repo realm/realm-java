@@ -4,13 +4,16 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion '20.0.0'
+    compileSdkVersion 22
+    buildToolsVersion '22.0.1'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 20
+        targetSdkVersion 22
+        // Enabling multidex support.
+        multiDexEnabled true
     }
+
 
 // TODO: re-enable once bug-fix is released
 //    jacoco {
@@ -26,6 +29,8 @@ android {
 }
 
 dependencies {
+    compile 'com.android.support:multidex:1.0.0'
+    compile 'it.unimi.dsi:fastutil:7.0.7'
     compile 'com.intellij:annotations:+@jar'
     compile files("../realm-annotations/build/libs/realm-annotations-${version}.jar")
     androidTestApt files("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
@@ -239,7 +244,7 @@ task copyLibrariesToEclipseFolder(dependsOn: 'androidJar') << {
     }
     abi.each() { abiName ->
         copy {
-            from "build/intermediates/eclipse/lib/${abiName}/librealm-jni.so"
+            from "build/intermediates/eclipse/lib/${abiName}/libearthworm.so"
             into "../distribution/eclipse/${abiName}"
         }
     }
