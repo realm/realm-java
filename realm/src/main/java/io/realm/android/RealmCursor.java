@@ -570,7 +570,7 @@ public class RealmCursor implements Cursor {
         ColumnType realmType = table.getColumnType(columnIndex);
         switch(realmType) {
             case LINK: return table.isNullLink(columnIndex, rowIndex);
-            case LINK_LIST:
+            case LINK_LIST: return table.isNullLink(columnIndex, rowIndex);
             case BOOLEAN:
             case INTEGER:
             case FLOAT:
@@ -602,18 +602,19 @@ public class RealmCursor implements Cursor {
      */
     @Override
     public boolean requery() {
-        throw new UnsupportedOperationException("Request a new cursor from the RealmResults or call Realm.refresh() instead");
+        throw new UnsupportedOperationException("requery() is not supported, request a new Cursor instead");
     }
 
     /**
      * Calling this method will close this cursor. The original RealmResults will not be affected. Trying to access any data in
-     * the cursor after calling this is illegal an the behavior is undefined.
+     * the cursor after calling this is illegal and the behavior is undefined.
      */
     @Override
     public void close() {
         closed = true;
         table = null; // Instead of closing the table, we just release it. Original RealmResults would also be closed otherwise.
         realm.removeChangeListener(changeListener);
+        contentObservable.unregisterAll();
         dataSetObservable.notifyInvalidated();
     }
 

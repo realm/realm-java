@@ -27,6 +27,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.examples.adapter.models.TimeStamp;
 
@@ -41,9 +42,10 @@ public class AdapterExampleActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my);
 
-        Realm.deleteRealmFile(this);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
+        Realm.deleteRealm(realmConfig);
+        realm = Realm.getInstance(realmConfig);
 
-        realm = Realm.getInstance(this);
         RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
         final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
         ListView listView = (ListView) findViewById(R.id.listView);

@@ -18,6 +18,7 @@ package io.realm;
 
 import io.realm.annotations.RealmClass;
 import io.realm.internal.Row;
+import io.realm.internal.InvalidRow;
 
 /**
  * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
@@ -91,6 +92,7 @@ public abstract class RealmObject {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
         row.getTable().moveLastOver(row.getIndex());
+        row = InvalidRow.INSTANCE;
     }
 
     /**
@@ -103,5 +105,23 @@ public abstract class RealmObject {
      */
     public boolean isValid() {
         return row != null && row.isAttached();
+    }
+
+    /**
+     * Returns the Realm instance this object belongs to. Internal use only.
+     *
+     * @return The Realm this object belongs to or {@code null} if it is a standalone object.
+     */
+    protected static Realm getRealm(RealmObject obj) {
+        return obj.realm;
+    }
+
+    /**
+     * Returns the {@link Row} representing this object. Internal use only.
+     *
+     * @return The {@link Row} this object belongs to or {@code null} if it is a standalone object.
+     */
+    protected static Row getRow(RealmObject obj) {
+        return obj.row;
     }
 }

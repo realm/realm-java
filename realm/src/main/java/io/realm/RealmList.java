@@ -45,7 +45,6 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
-    public static final String MANAGED_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmObjects already managed by Realm cannot be added to RealmList in non-managed mode.";
 
     private final boolean managedMode;
     private Class<E> clazz;
@@ -100,12 +99,27 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Inserts the specified object into this List at the specified location. The object is inserted before any previous
+     * element at the specified location. If the location is equal to the size of this List, the object is added at the
+     * end.
+     * <ol>
+     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
+     * objects to a un-managed RealmList they will not be copied to the Realm again if using
+     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     *
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * </ol>
+     * @param location the index at which to insert.
+     * @param object the object to add.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}
      */
     @Override
     public void add(int location, E object) {
         checkValidObject(object);
         if (managedMode) {
+            object = copyToRealmIfNeeded(object);
             view.insert(location, object.row.getIndex());
         } else {
             nonManagedList.add(location, object);
@@ -113,12 +127,24 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Adds the specified object at the end of this List.
+     * <ol>
+     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
+     * objects to a un-managed RealmList they will not be copied to the Realm again if using
+     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     *
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * </ol>
+     * @param object the object to add.
+     * @return true
      */
     @Override
     public boolean add(E object) {
         checkValidObject(object);
         if (managedMode) {
+            object = copyToRealmIfNeeded(object);
             view.add(object.row.getIndex());
         } else {
             nonManagedList.add(object);
@@ -127,20 +153,44 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Replaces the element at the specified location in this list with the
+     * specified object.
+     * <ol>
+     * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
+     * objects to a un-managed RealmList they will not be copied to the Realm again if using
+     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     *
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * </ol>
+     * @param location the index at which to put the specified object.
+     * @param object the object to add.
+     * @return the previous element at the index.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
     public E set(int location, E object) {
         checkValidObject(object);
         if (managedMode) {
-            if (object.row == null) {
-                throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
-            }
+            object = copyToRealmIfNeeded(object);
             view.set(location, object.row.getIndex());
         } else {
             nonManagedList.set(location, object);
         }
         return object;
+    }
+
+    // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
+    private E copyToRealmIfNeeded(E object) {
+        if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
+            return object;
+        }
+        if (realm.getTable(object.getClass()).hasPrimaryKey()) {
+            return realm.copyToRealmOrUpdate(object);
+        } else {
+            return realm.copyToRealm(object);
+        }
     }
 
     /**
@@ -170,7 +220,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Removes all elements from this list, leaving it empty.
+     *
+     * @see List#isEmpty
+     * @see List#size
      */
     @Override
     public void clear() {
@@ -182,7 +235,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the object at the specified location from this list.
+     *
+     * @param location the index of the object to remove.
+     * @return the removed object.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
     public E remove(int location) {
@@ -196,7 +253,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the element at the specified location in this list.
+     *
+     * @param location the index of the element to return.
+     * @return the element at the specified index.
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
     public E get(int location) {
@@ -236,12 +297,15 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the number of elements in this {@code List}.
+     *
+     * @return the number of elements in this {@code List}.
      */
     @Override
     public int size() {
         if (managedMode) {
-            return ((Long)view.size()).intValue();
+            long size = view.size();
+            return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
         } else {
             return nonManagedList.size();
         }

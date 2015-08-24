@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * Only one field pr. model class can have this annotation and it is only allowed on the following
  * types: String, short, int, long
  */
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)
 public @interface PrimaryKey {
 

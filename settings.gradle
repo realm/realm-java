@@ -8,9 +8,11 @@ include ':introExample',
         ':migrationExample',
         ':adapterExample',
         ':threadExample',
-		':jsonExample',
+        ':jsonExample',
         ':cursorExample'
-
+        ':realmModuleAppExample',
+        ':realmModuleLibraryExample',
+        ':kotlinExample'
 
 project(':introExample').projectDir = new File('examples/introExample')
 project(':gridViewExample').projectDir = new File('examples/gridViewExample')
@@ -20,6 +22,9 @@ project(':adapterExample').projectDir = new File('examples/adapterExample')
 project(':threadExample').projectDir = new File('examples/threadExample')
 project(':jsonExample').projectDir = new File('examples/jsonExample')
 project(':cursorExample').projectDir = new File('examples/cursorExample')
+project(':realmModuleAppExample').projectDir = new File('examples/realmModuleExample/app')
+project(':realmModuleLibraryExample').projectDir = new File('examples/realmModuleExample/library')
+project(':kotlinExample').projectDir = new File('examples/kotlinExample')
 
 // Experimental projects
 include ':pathExperiment'

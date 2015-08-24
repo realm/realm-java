@@ -49,14 +49,6 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(expected, t.toString());
     }
 
-    public void testGroupEquals() {
-        Table t2 = createTestTable();
-        assertEquals(true, t.equals(t2));
-        t.addEmptyRow();
-        assertEquals(false, t.equals(t2));
-    }
-
-
     public void testRowOperationsOnZeroRow(){
 
         Table t = new Table();
@@ -127,6 +119,36 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(-1, t.findFirstFloat(4, 1.0f));
         assertEquals(-1, t.findFirstLong(5, 50));
         assertEquals(-1, t.findFirstString(7, "other string"));
+    }
+
+    public void testFindFirst() {
+        final int TEST_SIZE = 10;
+        Table t = TestHelper.getTableWithAllColumnTypes();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            t.add(new byte[]{1,2,3}, true, new Date(1000*i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
+        }
+        t.add(new byte[]{1,2,3}, true, new Date(1000*TEST_SIZE), (double)TEST_SIZE, (float)TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
+
+        assertEquals(0, t.findFirstBoolean(1, true));
+        for (int i = 0; i < TEST_SIZE; i++) {
+            assertEquals(i, t.findFirstDate(2, new Date(1000*i)));
+            assertEquals(i, t.findFirstDouble(3, (double) i));
+            assertEquals(i, t.findFirstFloat(4, (float) i));
+            assertEquals(i, t.findFirstLong(5, i));
+            assertEquals(i, t.findFirstString(7, "string " + i));
+        }
+
+        assertEquals(TEST_SIZE, t.findFirstString(7, ""));
+
+        try {
+            t.findFirstString(7, null);
+            fail();
+        } catch (IllegalArgumentException expected) {}
+
+        try {
+            t.findFirstDate(2, null);
+            fail();
+        } catch (IllegalArgumentException expected) {}
     }
 
 
@@ -349,16 +371,32 @@ public class JNITableTest extends AndroidTestCase {
     public void testShouldThrowWhenSetIndexOnWrongColumnType() {
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
 
-            // Check all other column types than String throws exception when using addSearchIndex()/hasSearchIndex()
-            boolean exceptionExpected = (t.getColumnType(colIndex) != ColumnType.STRING);
+            // All types supported addSearchIndex and removeSearchIndex
+            boolean exceptionExpected = (
+                            t.getColumnType(colIndex) != ColumnType.STRING &&
+                            t.getColumnType(colIndex) != ColumnType.INTEGER &&
+                            t.getColumnType(colIndex) != ColumnType.BOOLEAN &&
+                            t.getColumnType(colIndex) != ColumnType.DATE);
 
             // Try to addSearchIndex()
             try {
                 t.addSearchIndex(colIndex);
-                if (exceptionExpected)
-                    fail("expected exception for colIndex " + colIndex);
-            } catch (IllegalArgumentException e) {
+                if (exceptionExpected) {
+                    fail("Expected exception for colIndex " + colIndex);
+                }
+            } catch (IllegalArgumentException ignored) {
             }
+
+            // Try to removeSearchIndex()
+            try {
+                // Currently core will do nothing if the column doesn't have a search index
+                t.removeSearchIndex(colIndex);
+                if (exceptionExpected) {
+                    fail("Expected exception for colIndex " + colIndex);
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
 
             // Try to hasSearchIndex() for all columnTypes
             t.hasSearchIndex(colIndex);
@@ -379,17 +417,6 @@ public class JNITableTest extends AndroidTestCase {
         table.add("val3", 300);
 
         return table;
-    }
-
-    public void testTableEquals() {
-
-        Table table1 = getTableWithSimpleData();
-        Table table2 = getTableWithSimpleData();
-
-        assertEquals(true, table1.equals(table2));
-        assertEquals(true, table1.equals(table1)); // Same table
-        assertEquals(false, table1.equals(null)); // Null object
-        assertEquals(false, table1.equals("String")); // Other object
     }
 
     public void testColumnName() {

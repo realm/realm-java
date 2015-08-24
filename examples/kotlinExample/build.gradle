@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'android-command'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "20.0.0"
+    defaultConfig {
+        applicationId 'io.realm.examples.kotlin'
+        minSdkVersion 15
+        targetSdkVersion 19
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    command {
+        events 2000
+    }
+
+    // Incremental builds currently doesn't work with Kotlin
+    dexOptions {
+        incremental false
+    }
+}
+
+tasks.preBuild {
+    dependsOn ":realm:androidJar"
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile 'org.jetbrains.anko:anko:0.6.2-19s'
+    compile files("../../realm/build/libs/realm-${version}.jar")
+
+    kapt files("../../realm/build/libs/realm-${version}.jar")
+}
+
+buildscript {
+    ext.kotlin_version = '0.12.213'
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
