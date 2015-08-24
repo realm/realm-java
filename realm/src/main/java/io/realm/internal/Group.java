@@ -26,7 +26,12 @@ import java.nio.ByteBuffer;
  * of a collection of tables.
  */
 public class Group implements Closeable {
-    
+
+    // Below values must match the values in realm::group::OpenMode in C++
+    public static final int MODE_READONLY = 0; // Open in read-only mode. Fail if the file does not already exist.
+    public static final int MODE_READWRITE = 1; // Open in read/write mode. Create the file if it doesn't exist.
+    public static final int MODE_READWRITE_NOCREATE = 2; // Open in read/write mode. Fail if the file does not already exist.
+
     protected long nativePtr;
     protected boolean immutable;
     private final Context context;
@@ -34,10 +39,6 @@ public class Group implements Closeable {
     static {
         RealmCore.loadLibrary();
     }
-
-    //
-    // Group construction and destruction
-    //
 
     private void checkNativePtrNotZero() {
         if (this.nativePtr == 0)
@@ -55,35 +56,19 @@ public class Group implements Closeable {
         checkNativePtrNotZero();
     }
 
-    protected native long createNative();
-
-    public enum OpenMode {
-        // Below values must match the values in realm::group::OpenMode in C++
-        READ_ONLY(0),
-        READ_WRITE(1),
-        READ_WRITE_NO_CREATE(2);
-        private int value;
-        OpenMode(int value) {
-            this.value = value;
-        }
-    }
-
-    public Group(String filepath, OpenMode mode) {
-        this.immutable = mode.equals(OpenMode.READ_ONLY);
-        
+    public Group(String filepath, int mode) {
+        this.immutable = (mode == MODE_READONLY);
         this.context = new Context();
-        this.nativePtr = createNative(filepath, mode.value);
+        this.nativePtr = createNative(filepath, mode);
         checkNativePtrNotZero();
     }
 
-    protected native long createNative(String filepath, int value);
-
     public Group(String filepath) {
-        this(filepath, OpenMode.READ_ONLY);
+        this(filepath, MODE_READONLY);
     }
 
     public Group(File file) {
-        this(file.getAbsolutePath(), file.canWrite() ? OpenMode.READ_WRITE : OpenMode.READ_ONLY);
+        this(file.getAbsolutePath(), file.canWrite() ? MODE_READWRITE : MODE_READONLY);
     }
 
     public Group(byte[] data) {
@@ -97,8 +82,6 @@ public class Group implements Closeable {
         }
     }
 
-    protected native long createNative(byte[] data);
-
     public Group(ByteBuffer buffer) {
         this.immutable = false;
         this.context = new Context();
@@ -109,8 +92,6 @@ public class Group implements Closeable {
             throw new IllegalArgumentException();
         }
     }
-
-    protected native long createNative(ByteBuffer buffer);
 
     Group(Context context, long nativePointer, boolean immutable) {
         this.context = context;
@@ -128,8 +109,6 @@ public class Group implements Closeable {
             }
         }
     }
-
-    protected static native void nativeClose(long nativeGroupPtr);
 
     /**
      * Checks if a group has been closed and can no longer be used.
@@ -149,10 +128,6 @@ public class Group implements Closeable {
         }
     }
 
-    //
-    // Group methods
-    //
-
     private void verifyGroupIsValid() {
         if (nativePtr == 0) {
             throw new IllegalStateException("Illegal to call methods on a closed Group.");
@@ -164,13 +139,9 @@ public class Group implements Closeable {
         return nativeSize(nativePtr);
     }
 
-    protected native long nativeSize(long nativeGroupPtr);
-
-
     public boolean isEmpty(){
         return size() == 0;
     }
-
 
     /**
      * Checks whether table exists in the Group.
@@ -183,8 +154,6 @@ public class Group implements Closeable {
         return name != null && nativeHasTable(nativePtr, name);
     }
 
-    protected native boolean nativeHasTable(long nativeGroupPtr, String name);
-
     public String getTableName(int index) {
         verifyGroupIsValid();
         long cnt = size();
@@ -195,8 +164,6 @@ public class Group implements Closeable {
         }
         return nativeGetTableName(nativePtr, index);
     }
-
-    protected native String nativeGetTableName(long nativeGroupPtr, int index);
 
     /**
      * Returns a table with the specified name.
@@ -228,11 +195,6 @@ public class Group implements Closeable {
         }
     }
 
-    protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
-
-    protected native void nativeWriteToFile(long nativeGroupPtr, String fileName, byte[] keyArray)
-            throws IOException;
-
     /**
      * Serialize the group to the specific file on the disk using encryption.
      *
@@ -254,8 +216,6 @@ public class Group implements Closeable {
         nativeWriteToFile(nativePtr, file.getAbsolutePath(), key);
     }
 
-    protected static native long nativeLoadFromMem(byte[] buffer);
-
     /**
      * Serialize the group to a memory buffer. The byte[] is owned by the JVM.
      *
@@ -266,7 +226,6 @@ public class Group implements Closeable {
         return nativeWriteToMem(nativePtr);
     }
 
-    protected native byte[] nativeWriteToMem(long nativeGroupPtr);
 /*
  * TODO: Find a way to release the malloc'ed native memory automatically
 
@@ -287,17 +246,27 @@ public class Group implements Closeable {
         return nativeToJson(nativePtr);
     }
 
-    protected native String nativeToJson(long nativeGroupPtr);
-
     public String toString() {
         return nativeToString(nativePtr);
     }
 
-    protected native void nativeCommit(long nativeGroupPtr);
-
-    protected native String nativeToString(long nativeGroupPtr);
-
     private void throwImmutable() {
         throw new IllegalStateException("Objects cannot be changed outside a transaction; see beginTransaction() for details.");
     }
+
+    protected native long createNative();
+    protected native long createNative(String filepath, int value);
+    protected native long createNative(byte[] data);
+    protected native long createNative(ByteBuffer buffer);
+    protected static native void nativeClose(long nativeGroupPtr);
+    protected native long nativeSize(long nativeGroupPtr);
+    protected native String nativeGetTableName(long nativeGroupPtr, int index);
+    protected native boolean nativeHasTable(long nativeGroupPtr, String name);
+    protected native void nativeWriteToFile(long nativeGroupPtr, String fileName, byte[] keyArray) throws IOException;
+    protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
+    protected native long nativeLoadFromMem(byte[] buffer);
+    protected native byte[] nativeWriteToMem(long nativeGroupPtr);
+    protected native String nativeToJson(long nativeGroupPtr);
+    protected native void nativeCommit(long nativeGroupPtr);
+    protected native String nativeToString(long nativeGroupPtr);
 }
