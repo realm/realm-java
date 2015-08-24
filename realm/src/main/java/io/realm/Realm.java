@@ -1324,7 +1324,6 @@ public final class Realm implements Closeable {
             // For all other threads, use the Handler
             if (
                     realmPath.equals(configuration.getPath())    // It's the right realm
-                    && !handler.hasMessages(REALM_CHANGED)       // The right message
                     && handler.getLooper().getThread().isAlive() // The receiving thread is alive
             ) {
                 if (!handler.sendEmptyMessage(REALM_CHANGED)) {
