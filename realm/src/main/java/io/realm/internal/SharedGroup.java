@@ -88,8 +88,7 @@ public class SharedGroup implements Closeable {
      * @return {@code true} if version was advanced, {@code false} if already at the latest version.
      */
     boolean advanceRead() {
-        nativeAdvanceRead(nativePtr);
-        long[] nextVersion = nativeGetVersionID(nativePtr);
+        long[] nextVersion = nativeAdvanceRead(nativePtr);
         if (lastSeenVersion[0] != nextVersion[0] || lastSeenVersion[1] != nextVersion[1]) {
             lastSeenVersion = nextVersion;
             return true;
@@ -244,7 +243,7 @@ public class SharedGroup implements Closeable {
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
     private native long nativeCreateReplication(String databaseFile, byte[] key);
-    private native void nativeAdvanceRead(long nativePtr);
+    private native long[] nativeAdvanceRead(long nativePtr);
     private native void nativePromoteToWrite(long nativePtr);
     private native void nativeCommitAndContinueAsRead(long nativePtr);
     private native void nativeRollbackAndContinueAsRead(long nativePtr);

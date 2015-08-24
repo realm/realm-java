@@ -149,14 +149,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
-(JNIEnv *env, jobject, jlong native_ptr)
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
+  (JNIEnv *env, jobject obj, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         LangBindHelper::advance_read( *SG(native_ptr) );
+        return Java_io_realm_internal_SharedGroup_nativeGetVersionID(env, obj, native_ptr);
     }
     CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite

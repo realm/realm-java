@@ -26,7 +26,12 @@ import java.nio.ByteBuffer;
  * of a collection of tables.
  */
 public class Group implements Closeable {
-    
+
+    // Below values must match the values in realm::group::OpenMode in C++
+    public static final int MODE_READONLY = 0; // Open in read-only mode. Fail if the file does not already exist.
+    public static final int MODE_READWRITE = 1; // Open in read/write mode. Create the file if it doesn't exist.
+    public static final int MODE_READWRITE_NOCREATE = 2; // Open in read/write mode. Fail if the file does not already exist.
+
     protected long nativePtr;
     protected boolean immutable;
     private final Context context;
@@ -51,31 +56,19 @@ public class Group implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public enum OpenMode {
-        // Below values must match the values in realm::group::OpenMode in C++
-        READ_ONLY(0),
-        READ_WRITE(1),
-        READ_WRITE_NO_CREATE(2);
-        private int value;
-        OpenMode(int value) {
-            this.value = value;
-        }
-    }
-
-    public Group(String filepath, OpenMode mode) {
-        this.immutable = mode.equals(OpenMode.READ_ONLY);
-        
+    public Group(String filepath, int mode) {
+        this.immutable = (mode == MODE_READONLY);
         this.context = new Context();
-        this.nativePtr = createNative(filepath, mode.value);
+        this.nativePtr = createNative(filepath, mode);
         checkNativePtrNotZero();
     }
 
     public Group(String filepath) {
-        this(filepath, OpenMode.READ_ONLY);
+        this(filepath, MODE_READONLY);
     }
 
     public Group(File file) {
-        this(file.getAbsolutePath(), file.canWrite() ? OpenMode.READ_WRITE : OpenMode.READ_ONLY);
+        this(file.getAbsolutePath(), file.canWrite() ? MODE_READWRITE : MODE_READONLY);
     }
 
     public Group(byte[] data) {
@@ -271,7 +264,7 @@ public class Group implements Closeable {
     protected native boolean nativeHasTable(long nativeGroupPtr, String name);
     protected native void nativeWriteToFile(long nativeGroupPtr, String fileName, byte[] keyArray) throws IOException;
     protected native long nativeGetTableNativePtr(long nativeGroupPtr, String name);
-    protected static native long nativeLoadFromMem(byte[] buffer);
+    protected native long nativeLoadFromMem(byte[] buffer);
     protected native byte[] nativeWriteToMem(long nativeGroupPtr);
     protected native String nativeToJson(long nativeGroupPtr);
     protected native void nativeCommit(long nativeGroupPtr);
