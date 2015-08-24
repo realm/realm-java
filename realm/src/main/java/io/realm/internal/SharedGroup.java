@@ -89,7 +89,7 @@ public class SharedGroup implements Closeable {
      */
     boolean advanceRead() {
         long[] nextVersion = nativeAdvanceRead(nativePtr);
-        if (lastSeenVersion[0] != nextVersion[0] || lastSeenVersion[1] != nextVersion[1]) {
+        if (nextVersion != null && (lastSeenVersion[0] != nextVersion[0] || lastSeenVersion[1] != nextVersion[1])) {
             lastSeenVersion = nextVersion;
             return true;
         }

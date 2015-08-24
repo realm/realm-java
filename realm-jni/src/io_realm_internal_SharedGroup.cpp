@@ -158,7 +158,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRea
         return Java_io_realm_internal_SharedGroup_nativeGetVersionID(env, obj, native_ptr);
     }
     CATCH_STD()
-    return 0;
+    return NULL;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
