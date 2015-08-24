@@ -29,6 +29,19 @@
 using namespace std;
 using namespace realm;
 
+inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type) {
+    if (!(column_type == type_String ||
+                column_type == type_Int ||
+                column_type == type_Bool ||
+                column_type == type_DateTime)) {
+        ThrowException(env, IllegalArgument,
+                "This field cannot be indexed - "
+                "Only String/byte/short/int/long/boolean/Date fields are supported.");
+        return false;
+    }
+    return true;
+}
+
 // Note: Don't modify spec on a table which has a shared_spec.
 // A spec is shared on subtables that are not in Mixed columns.
 //
@@ -731,10 +744,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return;
-    if (pTable->get_column_type (S(columnIndex)) != type_String) {
-        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+
+    DataType column_type = pTable->get_column_type (S(columnIndex));
+    if (!is_allowed_to_index(env, column_type)) {
         return;
     }
+
     try {
         pTable->add_search_index( S(columnIndex));
     } CATCH_STD()
@@ -746,8 +761,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex(
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return;
-    if (pTable->get_column_type (S(columnIndex)) != type_String) {
-        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+    DataType column_type = pTable->get_column_type (S(columnIndex));
+    if (!is_allowed_to_index(env, column_type)) {
         return;
     }
     try {
@@ -1535,4 +1550,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         pk_table->remove_column(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
     }
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
+  (JNIEnv *, jobject, jlong thisTablePtr, jlong otherTablePtr)
+{
+    return *TBL(thisTablePtr)->get_descriptor() == *TBL(otherTablePtr)->get_descriptor();
 }

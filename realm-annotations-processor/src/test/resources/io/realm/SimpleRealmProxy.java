@@ -131,8 +131,12 @@ public class SimpleRealmProxy extends Simple
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         Simple obj = realm.createObject(Simple.class);
-        if (!json.isNull("name")) {
-            obj.setName((String) json.getString("name"));
+        if (json.has("name")) {
+            if (json.isNull("name")) {
+                obj.setName("");
+            } else {
+                obj.setName((String) json.getString("name"));
+            }
         }
         if (!json.isNull("age")) {
             obj.setAge((int) json.getInt("age"));
@@ -146,8 +150,13 @@ public class SimpleRealmProxy extends Simple
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
-            if (name.equals("name") && reader.peek() != JsonToken.NULL) {
-                obj.setName((String) reader.nextString());
+            if (name.equals("name")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    obj.setName("");
+                    reader.skipValue();
+                } else {
+                    obj.setName((String) reader.nextString());
+                }
             } else if (name.equals("age")  && reader.peek() != JsonToken.NULL) {
                 obj.setAge((int) reader.nextInt());
             } else {

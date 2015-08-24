@@ -16,12 +16,19 @@
 
 package io.realm.annotations;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * This annotation will add a search index to the field. A search index will make the
  * Realm file larger and inserts slower but queries will be faster. 
- *
- * NOTICE: only String fields can be indexed.
+ * <p>
+ * NOTICE: Only String, int, byte, short, long, boolean and Date fields can be indexed.
  */
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.FIELD)
 public @interface Index {
 
 }

@@ -41,8 +41,9 @@ public class RealmJsonTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
     }
 
     @Override
@@ -429,6 +430,79 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(false, obj.isColumnBoolean());
         assertEquals(new Date(0), obj.getColumnDate());
         assertArrayEquals(new byte[0], obj.getColumnBinary());
+        assertNull(obj.getColumnRealmObject());
+        assertEquals(0, obj.getColumnRealmList().size());
+    }
+
+    // Test update a existing object with JSON stream.
+    public void testUpdateObjectFromJsonStream_nullValues() throws IOException {
+        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+        Date date = new Date(0);
+        // ID
+        obj.setColumnLong(1);
+        obj.setColumnBinary(new byte[]{1});
+        obj.setColumnBoolean(true);
+        obj.setColumnDate(date);
+        obj.setColumnDouble(1);
+        obj.setColumnFloat(1);
+        obj.setColumnString("1");
+        testRealm.beginTransaction();
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+
+        InputStream in = loadJsonFromAssets("all_types_primary_key_null.json");
+        testRealm.beginTransaction();
+        testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, in);
+        testRealm.commitTransaction();
+        in.close();
+
+        // Check that all primitive types are imported correctly
+        obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
+        // TODO: We only handle updating null for String right now.
+        //       Clean this up after nullable support for all types.
+        assertEquals("", obj.getColumnString());
+        assertEquals(1L, obj.getColumnLong());
+        assertEquals(1f, obj.getColumnFloat());
+        assertEquals(1d, obj.getColumnDouble());
+        assertEquals(true, obj.isColumnBoolean());
+        assertEquals(date, obj.getColumnDate());
+        assertArrayEquals(new byte[]{1}, obj.getColumnBinary());
+        assertNull(obj.getColumnRealmObject());
+        assertEquals(0, obj.getColumnRealmList().size());
+    }
+
+    // Test update a existing object with JSON object.
+    public void testUpdateObjectFromJsonObject_nullValues() throws IOException {
+        AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+        Date date = new Date(0);
+        // ID
+        obj.setColumnLong(1);
+        obj.setColumnBinary(new byte[]{1});
+        obj.setColumnBoolean(true);
+        obj.setColumnDate(date);
+        obj.setColumnDouble(1);
+        obj.setColumnFloat(1);
+        obj.setColumnString("1");
+        testRealm.beginTransaction();
+        testRealm.copyToRealm(obj);
+        testRealm.commitTransaction();
+
+        String json = TestHelper.streamToString(loadJsonFromAssets("all_types_primary_key_null.json"));
+        testRealm.beginTransaction();
+        testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
+        testRealm.commitTransaction();
+
+        // Check that all primitive types are imported correctly
+        obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
+        // TODO: We only handle updating String with null value right now.
+        //       Clean this up after nullable support for all types.
+        assertEquals("", obj.getColumnString());
+        assertEquals(1L, obj.getColumnLong());
+        assertEquals(1f, obj.getColumnFloat());
+        assertEquals(1d, obj.getColumnDouble());
+        assertEquals(true, obj.isColumnBoolean());
+        assertEquals(date, obj.getColumnDate());
+        assertArrayEquals(new byte[]{1}, obj.getColumnBinary());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }

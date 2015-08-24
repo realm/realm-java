@@ -38,6 +38,6 @@ public interface RealmChangeListener {
     /**
      * Called when a transaction is committed
      */
-    public void onChange();
+    void onChange();
 
 }

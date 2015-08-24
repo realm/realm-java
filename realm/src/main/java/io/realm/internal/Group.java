@@ -63,16 +63,13 @@ public class Group implements Closeable {
         READ_WRITE(1),
         READ_WRITE_NO_CREATE(2);
         private int value;
-        private OpenMode(int value) {
+        OpenMode(int value) {
             this.value = value;
         }
-    };
+    }
 
     public Group(String filepath, OpenMode mode) {
-        if (mode.equals(OpenMode.READ_ONLY))
-            this.immutable = true;
-        else
-            this.immutable = false;
+        this.immutable = mode.equals(OpenMode.READ_ONLY);
         
         this.context = new Context();
         this.nativePtr = createNative(filepath, mode.value);
@@ -183,10 +180,7 @@ public class Group implements Closeable {
      */
     public boolean hasTable(String name) {
         verifyGroupIsValid();
-        if (name == null) {
-            return false;
-        }
-        return nativeHasTable(nativePtr, name);
+        return name != null && nativeHasTable(nativePtr, name);
     }
 
     protected native boolean nativeHasTable(long nativeGroupPtr, String name);
@@ -302,20 +296,6 @@ public class Group implements Closeable {
     protected native void nativeCommit(long nativeGroupPtr);
 
     protected native String nativeToString(long nativeGroupPtr);
-
-    public boolean equals(Object other) {
-        if (other == null)
-            return false;
-        if (other == this)
-            return true;
-        if (!(other instanceof Group))
-            return false;
-
-        Group otherGroup = (Group) other;
-        return nativeEquals(nativePtr, otherGroup.nativePtr);
-    }
-
-    protected native boolean nativeEquals(long nativeGroupPtr, long nativeGroupToComparePtr);
 
     private void throwImmutable() {
         throw new IllegalStateException("Objects cannot be changed outside a transaction; see beginTransaction() for details.");

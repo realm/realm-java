@@ -108,10 +108,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
             break;
-        case Unspecified:
-            expect = "java.lang.RuntimeException: Unspecified exception. parm1";
+        case FatalError:
+            expect = "io.realm.exceptions.RealmError: Unrecoverable error. parm1";
             if (dotest)
-                ThrowException(env, Unspecified, "parm1", "parm2");
+                ThrowException(env, FatalError, "parm1", "parm2");
             break;
         case RuntimeError:
             expect = "java.lang.RuntimeException: parm1";

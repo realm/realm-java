@@ -18,6 +18,14 @@ package io.realm.processor;
 
 import com.squareup.javawriter.JavaWriter;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -26,9 +34,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.util.*;
 
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -45,82 +50,6 @@ public class RealmProxyClassGenerator {
         this.processingEnvironment = processingEnvironment;
         this.metadata = metadata;
         this.className = metadata.getSimpleClassName();
-    }
-
-    private static final Map<String, String> JAVA_TO_REALM_TYPES;
-    static {
-        JAVA_TO_REALM_TYPES = new HashMap<String, String>();
-        JAVA_TO_REALM_TYPES.put("byte", "Long");
-        JAVA_TO_REALM_TYPES.put("short", "Long");
-        JAVA_TO_REALM_TYPES.put("int", "Long");
-        JAVA_TO_REALM_TYPES.put("long", "Long");
-        JAVA_TO_REALM_TYPES.put("float", "Float");
-        JAVA_TO_REALM_TYPES.put("double", "Double");
-        JAVA_TO_REALM_TYPES.put("boolean", "Boolean");
-        JAVA_TO_REALM_TYPES.put("Byte", "Long");
-        JAVA_TO_REALM_TYPES.put("Short", "Long");
-        JAVA_TO_REALM_TYPES.put("Integer", "Long");
-        JAVA_TO_REALM_TYPES.put("Long", "Long");
-        JAVA_TO_REALM_TYPES.put("Float", "Float");
-        JAVA_TO_REALM_TYPES.put("Double", "Double");
-        JAVA_TO_REALM_TYPES.put("Boolean", "Boolean");
-        JAVA_TO_REALM_TYPES.put("java.lang.String", "String");
-        JAVA_TO_REALM_TYPES.put("java.util.Date", "Date");
-        JAVA_TO_REALM_TYPES.put("byte[]", "BinaryByteArray");
-        // TODO: add support for char and Char
-    }
-
-    // Types in this array are guarded by if != null and use default value if trying to insert null
-    private static final Map<String, String> NULLABLE_JAVA_TYPES;
-    static {
-        NULLABLE_JAVA_TYPES = new HashMap<String, String>();
-        NULLABLE_JAVA_TYPES.put("java.util.Date", "new Date(0)");
-        NULLABLE_JAVA_TYPES.put("java.lang.String", "\"\"");
-        NULLABLE_JAVA_TYPES.put("byte[]", "new byte[0]");
-    }
-
-    private static final Map<String, String> JAVA_TO_COLUMN_TYPES;
-    static {
-        JAVA_TO_COLUMN_TYPES = new HashMap<String, String>();
-        JAVA_TO_COLUMN_TYPES.put("byte", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("short", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("int", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("long", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("float", "ColumnType.FLOAT");
-        JAVA_TO_COLUMN_TYPES.put("double", "ColumnType.DOUBLE");
-        JAVA_TO_COLUMN_TYPES.put("boolean", "ColumnType.BOOLEAN");
-        JAVA_TO_COLUMN_TYPES.put("Byte", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Short", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Integer", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Long", "ColumnType.INTEGER");
-        JAVA_TO_COLUMN_TYPES.put("Float", "ColumnType.FLOAT");
-        JAVA_TO_COLUMN_TYPES.put("Double", "ColumnType.DOUBLE");
-        JAVA_TO_COLUMN_TYPES.put("Boolean", "ColumnType.BOOLEAN");
-        JAVA_TO_COLUMN_TYPES.put("java.lang.String", "ColumnType.STRING");
-        JAVA_TO_COLUMN_TYPES.put("java.util.Date", "ColumnType.DATE");
-        JAVA_TO_COLUMN_TYPES.put("byte[]", "ColumnType.BINARY");
-    }
-
-    private static final Map<String, String> CASTING_TYPES;
-    static {
-        CASTING_TYPES = new HashMap<String, String>();
-        CASTING_TYPES.put("byte", "long");
-        CASTING_TYPES.put("short", "long");
-        CASTING_TYPES.put("int", "long");
-        CASTING_TYPES.put("long", "long");
-        CASTING_TYPES.put("float", "float");
-        CASTING_TYPES.put("double", "double");
-        CASTING_TYPES.put("boolean", "boolean");
-        CASTING_TYPES.put("Byte", "long");
-        CASTING_TYPES.put("Short", "long");
-        CASTING_TYPES.put("Integer", "long");
-        CASTING_TYPES.put("Long", "long");
-        CASTING_TYPES.put("Float", "float");
-        CASTING_TYPES.put("Double", "double");
-        CASTING_TYPES.put("Boolean", "boolean");
-        CASTING_TYPES.put("java.lang.String", "String");
-        CASTING_TYPES.put("java.util.Date", "Date");
-        CASTING_TYPES.put("byte[]", "byte[]");
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
@@ -231,12 +160,12 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String fieldTypeCanonicalName = field.asType().toString();
 
-            if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
+            if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 /**
                  * Primitives and boxed types
                  */
-                String realmType = JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
-                String castingType = CASTING_TYPES.get(fieldTypeCanonicalName);
+                String realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
+                String castingType = Constants.CASTING_TYPES.get(fieldTypeCanonicalName);
 
                 // Getter
                 writer.emitAnnotation("Override");
@@ -337,9 +266,9 @@ public class RealmProxyClassGenerator {
             String fieldTypeCanonicalName = field.asType().toString();
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
-            if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
+            if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 writer.emitStatement("table.addColumn(%s, \"%s\")",
-                        JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
+                        Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName),
                         fieldName);
             } else if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
@@ -421,12 +350,13 @@ public class RealmProxyClassGenerator {
             String fieldTypeCanonicalName = field.asType().toString();
             String fieldTypeSimpleName = Utils.getFieldTypeSimpleName(field);
 
-            if (JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
+            if (Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName)) {
                 // make sure types align
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
-                writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)", fieldName, JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
+                writer.beginControlFlow("if (columnTypes.get(\"%s\") != %s)",
+                        fieldName, Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid type '%s' for field '%s'\")",
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
@@ -459,7 +389,8 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
 
                 writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, fieldTypeSimpleName);
-                writer.beginControlFlow("if (!table.getLinkTarget(%s).equals(table_%d))", staticFieldIndexVarName(field), fieldIndex);
+                writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
+                        staticFieldIndexVarName(field), fieldIndex);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid RealmObject for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
                         fieldName, staticFieldIndexVarName(field), fieldIndex);
                 writer.endControlFlow();
@@ -478,7 +409,8 @@ public class RealmProxyClassGenerator {
                 writer.endControlFlow();
 
                 writer.emitStatement("Table table_%d = transaction.getTable(\"%s%s\")", fieldIndex, Constants.TABLE_PREFIX, genericType);
-                writer.beginControlFlow("if (!table.getLinkTarget(%s).equals(table_%d))", staticFieldIndexVarName(field), fieldIndex);
+                writer.beginControlFlow("if (!table.getLinkTarget(%s).hasSameSchema(table_%d))",
+                        staticFieldIndexVarName(field), fieldIndex);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid RealmList type for field '%s': '\" + table.getLinkTarget(%s).getName() + \"' expected - was '\" + table_%d.getName() + \"'\")",
                         fieldName, staticFieldIndexVarName(field), fieldIndex);
                 writer.endControlFlow();
@@ -552,7 +484,7 @@ public class RealmProxyClassGenerator {
                 .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                     .emitStatement("realmObject = new %s()", Utils.getProxyClassName(className))
                     .emitStatement("realmObject.realm = realm")
-                    .emitStatement("realmObject.row = table.getRow(rowIndex)")
+                    .emitStatement("realmObject.row = table.getUncheckedRow(rowIndex)")
                     .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                 .nextControlFlow("else")
                     .emitStatement("canUpdate = false")
@@ -623,12 +555,12 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine();
 
             } else {
-                if (NULLABLE_JAVA_TYPES.containsKey(fieldType)) {
+                if (Constants.NULLABLE_JAVA_TYPES.containsKey(fieldType)) {
                     writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
                             metadata.getSetter(fieldName),
                             metadata.getGetter(fieldName),
                             metadata.getGetter(fieldName),
-                            NULLABLE_JAVA_TYPES.get(fieldType));
+                            Constants.NULLABLE_JAVA_TYPES.get(fieldType));
                 } else {
                     writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), metadata.getGetter(fieldName));
                 }
@@ -691,12 +623,12 @@ public class RealmProxyClassGenerator {
                 }
 
                 String fieldType = field.asType().toString();
-                if (NULLABLE_JAVA_TYPES.containsKey(fieldType)) {
+                if (Constants.NULLABLE_JAVA_TYPES.containsKey(fieldType)) {
                     writer.emitStatement("realmObject.%s(newObject.%s() != null ? newObject.%s() : %s)",
                             metadata.getSetter(fieldName),
                             metadata.getGetter(fieldName),
                             metadata.getGetter(fieldName),
-                            NULLABLE_JAVA_TYPES.get(fieldType));
+                            Constants.NULLABLE_JAVA_TYPES.get(fieldType));
                 } else {
                     writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), metadata.getGetter(fieldName));
                 }
@@ -812,7 +744,7 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                             .emitStatement("obj = new %s()", Utils.getProxyClassName(className))
                             .emitStatement("obj.realm = realm")
-                            .emitStatement("obj.row = table.getRow(rowIndex)")
+                            .emitStatement("obj.row = table.getUncheckedRow(rowIndex)")
                         .endControlFlow()
                     .endControlFlow()
                 .endControlFlow()
@@ -874,10 +806,20 @@ public class RealmProxyClassGenerator {
             String fieldName = field.getSimpleName().toString();
             String qualifiedFieldType = field.asType().toString();
 
-            if (i == 0) {
-                writer.beginControlFlow("if (name.equals(\"%s\") && reader.peek() != JsonToken.NULL)", fieldName);
+            if (Utils.isString(qualifiedFieldType)) {
+                if (i == 0) {
+                    writer.beginControlFlow("if (name.equals(\"%s\"))", fieldName);
+                } else {
+                    writer.nextControlFlow("else if (name.equals(\"%s\"))", fieldName);
+                }
             } else {
-                writer.nextControlFlow("else if (name.equals(\"%s\")  && reader.peek() != JsonToken.NULL)", fieldName);
+                // TODO: This else block should be removed after nullable support for all types
+                //       as well as the condition checking.
+                if (i == 0) {
+                    writer.beginControlFlow("if (name.equals(\"%s\") && reader.peek() != JsonToken.NULL)", fieldName);
+                } else {
+                    writer.nextControlFlow("else if (name.equals(\"%s\")  && reader.peek() != JsonToken.NULL)", fieldName);
+                }
             }
             if (typeUtils.isAssignable(field.asType(), realmObject)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(

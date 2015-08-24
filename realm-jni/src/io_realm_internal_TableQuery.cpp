@@ -221,21 +221,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JJJ(
     JNIEnv* env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes, jlong value1, jlong value2)
 {
     GET_ARRAY()
-    try {
-        if (arr_len == 1) {
-            if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Int))
-                return;
+    if (arr_len == 1) {
+        if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_Int))
+            return;
+        try {
             Q(nativeQueryPtr)->between(S(arr[0]), static_cast<int64_t>(value1), static_cast<int64_t>(value2));
-        }
-        else {
-            Q(nativeQueryPtr)->group();
-            Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value1));
-            tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<Int, int64_t, jlong>(tbl, arr[arr_len-1], value2));
-            Q(nativeQueryPtr)->end_group();
-        }
-    } CATCH_STD()
+        } CATCH_STD()
+    }
+    else {
+        ThrowException(env, IllegalArgument, "between does not support link queries.");
+    }
     RELEASE_ARRAY();
 }
 
