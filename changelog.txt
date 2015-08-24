@@ -1,5 +1,5 @@
 0.83
- * Fixed bug that could cause UI thread not to keep up with changes from background threads with many writes.Sh
+ * Fixed bug that could cause UI thread not to keep up with changes from background threads with many writes.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
  * Fixed a bug which might cause failure when loading the native library.
  * Fixed a bug which might trigger a timeout in Context.finalize().
