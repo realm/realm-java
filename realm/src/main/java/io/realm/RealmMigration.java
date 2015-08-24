@@ -59,6 +59,6 @@ public interface RealmMigration {
      * @param version The schemaVersion of the Realm at the start of the migration.
      * @return The schemaVersion of the Realm after executing the migration.
      */
-    public long execute(Realm realm, long version);
+    long execute(Realm realm, long version);
 }
 

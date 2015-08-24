@@ -63,10 +63,10 @@ public class Group implements Closeable {
         READ_WRITE(1),
         READ_WRITE_NO_CREATE(2);
         private int value;
-        private OpenMode(int value) {
+        OpenMode(int value) {
             this.value = value;
         }
-    };
+    }
 
     public Group(String filepath, OpenMode mode) {
         this.immutable = mode.equals(OpenMode.READ_ONLY);
