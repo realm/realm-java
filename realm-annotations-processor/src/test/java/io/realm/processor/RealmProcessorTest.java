@@ -17,11 +17,16 @@
 package io.realm.processor;
 
 import com.google.testing.compile.JavaFileObjects;
+
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
 
 import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
+import static com.google.testing.compile.JavaSourcesSubjectFactory.javaSources;
 import static org.truth0.Truth.ASSERT;
 
 public class RealmProcessorTest {
@@ -30,12 +35,15 @@ public class RealmProcessorTest {
     private JavaFileObject simpleProxy = JavaFileObjects.forResource("io/realm/SimpleRealmProxy.java");
     private JavaFileObject allTypesModel = JavaFileObjects.forResource("some/test/AllTypes.java");
     private JavaFileObject allTypesProxy = JavaFileObjects.forResource("io/realm/AllTypesRealmProxy.java");
+    private JavaFileObject allTypesDefaultModule = JavaFileObjects.forResource("io/realm/RealmDefaultModule.java");
+    private JavaFileObject allTypesDefaultMediator = JavaFileObjects.forResource("io/realm/RealmDefaultModuleMediator.java");
     private JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
     private JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
     private JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
     private JavaFileObject noAccessorsModel = JavaFileObjects.forResource("some/test/NoAccessors.java");
     private JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
     private JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
+    private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
 
     @Test
     public void compileSimpleFile() {
@@ -106,7 +114,71 @@ public class RealmProcessorTest {
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
-                .generatesSources(allTypesProxy);
+                .generatesSources(allTypesProxy, allTypesDefaultMediator, allTypesDefaultModule, allTypesDefaultMediator);
+    }
+
+    @Test
+    public void compileAppModuleCustomClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleCustomClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileAppModuleAllClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/AppModuleAllClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileLibraryModulesAllClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleAllClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileLibraryModulesCustomClasses() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/LibraryModuleCustomClasses.java")))
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileAppModuleMixedParametersFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleMixedParameters.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileAppModuleWrongTypeFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidAppModuleWrongType.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileLibraryModuleMixedParametersFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleMixedParameters.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileLibraryModuleWrongTypeFail() throws Exception {
+        ASSERT.about(javaSources())
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleWrongType.java")))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 
     @Test
@@ -150,6 +222,14 @@ public class RealmProcessorTest {
     }
 
     @Test
+    public void compileMissingGenericType() {
+        ASSERT.about(javaSource())
+                .that(missingGenericTypeModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
     public void compileFieldNamesFiles() {
         ASSERT.about(javaSource())
                 .that(fieldNamesModel)
@@ -163,5 +243,68 @@ public class RealmProcessorTest {
                 .that(customAccessorModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
+    }
+
+    // Supported "Index" annotation types
+    @Test
+    public void compileIndexTypes() throws IOException {
+        // TODO: Test "Byte", "Short", "Integer", "Long", "Boolean" when they are supported
+        final String validIndexFieldTypes[] = {"byte", "short", "int", "long", "boolean", "String", "java.util.Date"};
+
+        for (String fieldType : validIndexFieldTypes) {
+            TestRealmObjectFileObject javaFileObject =
+                    TestRealmObjectFileObject.getSingleFieldInstance("ValidIndexType", "Index", fieldType, "testField");
+            ASSERT.about(javaSource())
+                    .that(javaFileObject)
+                    .processedWith(new RealmProcessor())
+                    .compilesWithoutError();
+        }
+    }
+
+    // Unsupported "Index" annotation types
+    @Test
+    public void compileInvalidIndexTypes() throws IOException {
+        // TODO: Test "Float", "Double", when they are supported
+        final String invalidIndexFieldTypes[] = {"float", "double", "byte[]", "Simple", "RealmList"};
+
+        for (String fieldType : invalidIndexFieldTypes) {
+            TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
+                    "InvalidIndexType", "Index", fieldType, "testField");
+            ASSERT.about(javaSource())
+                    .that(javaFileObject)
+                    .processedWith(new RealmProcessor())
+                    .failsToCompile();
+        }
+    }
+
+    // Supported "PrimaryKey" annotation types
+    @Test
+    public void compilePrimaryKeyTypes() throws IOException {
+        final String validPrimaryKeyFieldTypes[] = {"byte", "short", "int", "long", "String"};
+
+        for (String fieldType : validPrimaryKeyFieldTypes) {
+            TestRealmObjectFileObject javaFileObject = TestRealmObjectFileObject.getSingleFieldInstance(
+                    "ValidPrimaryKeyType", "PrimaryKey", fieldType, "testField");
+            ASSERT.about(javaSource())
+                    .that(javaFileObject)
+                    .processedWith(new RealmProcessor())
+                    .compilesWithoutError();
+        }
+    }
+
+    // Unsupported "PrimaryKey" annotation types
+    @Test
+    public void compileInvalidPrimaryKeyTypes() throws IOException {
+        final String invalidPrimaryKeyFieldTypes[] = {"boolean", "java.util.Date", "Simple", "RealmList"};
+
+        for (String fieldType : invalidPrimaryKeyFieldTypes) {
+            TestRealmObjectFileObject javaFileObject =
+                    TestRealmObjectFileObject.getSingleFieldInstance(
+                            "InvalidPrimaryKeyType", "PrimaryKey", fieldType, "testField");
+            ASSERT.about(javaSource())
+                    .that(javaFileObject)
+                    .processedWith(new RealmProcessor())
+                    .failsToCompile();
+        }
     }
 }

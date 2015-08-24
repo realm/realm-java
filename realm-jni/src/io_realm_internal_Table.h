@@ -43,14 +43,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid
 
 /*
  * Class:     io_realm_internal_Table
- * Method:    nativeEquals
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeEquals
-  (JNIEnv *, jobject, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_Table
  * Method:    nativeIsRootTable
  * Signature: (J)Z
  */
@@ -507,6 +499,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeMigratePrimaryKeyTableIfNeeded
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeAddSearchIndex
  * Signature: (JJ)V
  */
@@ -863,6 +863,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeToString
  * Signature: (JJ)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeRowToString
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeHasSameSchema
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
   (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus

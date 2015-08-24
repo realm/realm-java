@@ -16,13 +16,11 @@
 package io.realm;
 
 import android.test.AndroidTestCase;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.RealmAdapter;
-import io.realm.exceptions.RealmException;
 
 public class RealmAdapterTest extends AndroidTestCase {
 
@@ -34,8 +32,9 @@ public class RealmAdapterTest extends AndroidTestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
@@ -56,12 +55,6 @@ public class RealmAdapterTest extends AndroidTestCase {
         try {
             RealmAdapter realmAdapter = new RealmAdapter(null, resultList, automaticUpdate);
             fail("Should throw exception if context is null");
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        try {
-            RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
-            fail("Should throw exception if RealmResult is null");
         } catch (IllegalArgumentException ignore) {
         }
     }
@@ -164,5 +157,27 @@ public class RealmAdapterTest extends AndroidTestCase {
         assertNotNull(view);
         assertNotNull(name);
         assertEquals(resultList.get(0).getColumnString(), name.getText());
+    }
+
+    public void testNullResults() {
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
+
+        assertEquals(0, realmAdapter.getCount());
+    }
+
+    public void testNonNullToNullResults() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
+        realmAdapter.updateRealmResults(null);
+
+        assertEquals(0, realmAdapter.getCount());
+    }
+
+    public void testNullToNonNullResults() {
+        RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
+        RealmAdapter realmAdapter = new RealmAdapter(getContext(), null, automaticUpdate);
+        realmAdapter.updateRealmResults(resultList);
+
+        assertEquals(TEST_DATA_SIZE, realmAdapter.getCount());
     }
 }

@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
+import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 
@@ -50,8 +51,9 @@ public class RealmResultsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws InterruptedException {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
         populateTestRealm();
     }
 
@@ -64,11 +66,15 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long) 1000*i));
+            allTypes.setColumnDate(new Date((long) 1000 * i));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
+            Dog d = testRealm.createObject(Dog.class);
+            d.setName("Foo " + i);
+            allTypes.setColumnRealmObject(d);
+            allTypes.getColumnRealmList().add(d);
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
             nonLatinFieldNames.setΔέλτα(i);
@@ -175,6 +181,25 @@ public class RealmResultsTest extends AndroidTestCase {
 
         AllTypes allTypes = resultList.first();
         assertTrue(allTypes.getColumnString().startsWith("test data 0"));
+    }
+
+    // first() and last() will throw an exception when no element exist
+    public void testResultListFirstLastThrowIfEmpty() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+        assertEquals(0, allTypes.size());
+        try {
+            allTypes.first();
+            fail();
+        } catch (ArrayIndexOutOfBoundsException ignored) {}
+
+        try {
+            allTypes.last();
+            fail();
+        } catch (ArrayIndexOutOfBoundsException ignored) {}
     }
 
     public void testResultListLastIsLast() {
@@ -700,6 +725,22 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
     }
 
+    public void testUnsupportedMethods() {
+        RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
+
+        try { result.add(null);     fail(); } catch (UnsupportedOperationException expected) {}
+        try { result.set(0, null);  fail(); } catch (UnsupportedOperationException expected) {}
+    }
+
+
+    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideWriteTransactions() {
+        RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
+
+        try { result.clear();       fail(); } catch (IllegalStateException expected) {}
+        try { result.remove(0);     fail(); } catch (IllegalStateException expected) {}
+        try { result.removeLast();  fail(); } catch (IllegalStateException expected) {}
+    }
 
     // TODO: More extended tests of querying all types must be done.
 }

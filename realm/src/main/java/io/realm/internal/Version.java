@@ -27,8 +27,7 @@ public class Version {
         Feature_Debug(0),
         Feature_Replication(1);
 
-        private Feature(int nativeValue)
-        {
+        Feature(int nativeValue) {
             this.nativeFeature = nativeValue;
         }
 

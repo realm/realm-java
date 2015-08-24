@@ -16,15 +16,10 @@
 
 package io.realm.processor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import io.realm.annotations.Ignore;
+import io.realm.annotations.Index;
+import io.realm.annotations.PrimaryKey;
 
-import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -33,13 +28,17 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
-
-import io.realm.annotations.Ignore;
-import io.realm.annotations.Index;
-import io.realm.annotations.PrimaryKey;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -63,12 +62,14 @@ public class ClassMetaData {
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
+    private DeclaredType realmList;
 
     public ClassMetaData(ProcessingEnvironment env, TypeElement clazz) {
         this.classType = clazz;
         this.className = clazz.getSimpleName().toString();
         typeUtils = env.getTypeUtils();
         TypeMirror stringType = env.getElementUtils().getTypeElement("java.lang.String").asType();
+        realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null));
         validPrimaryKeyTypes = Arrays.asList(
                 stringType,
                 typeUtils.getPrimitiveType(TypeKind.SHORT),
@@ -83,7 +84,7 @@ public class ClassMetaData {
      *
      * @return True if meta data was correctly created and processing can continue, false otherwise.
      */
-    public boolean generateMetaData(Messager messager) {
+    public boolean generate() {
 
         // Get the package of the class
         Element enclosingElement = classType.getEnclosingElement();
@@ -102,6 +103,7 @@ public class ClassMetaData {
         packageName = packageElement.getQualifiedName().toString();
 
         if (!categorizeClassElements()) return false;
+        if (!checkListTypes()) return  false;
         if (!checkMethods()) return false;
         if (!checkDefaultConstructor()) return false;
         if (!checkRequiredGetters()) return false;
@@ -141,6 +143,18 @@ public class ClassMetaData {
             }
         }
 
+        return true;
+    }
+
+    private boolean checkListTypes() {
+        for (VariableElement field : fields) {
+            if (typeUtils.isAssignable(field.asType(), realmList)) {
+                if (Utils.getGenericType(field) == null) {
+                    Utils.error("No generic type supplied for field", field);
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
@@ -278,13 +292,17 @@ public class ClassMetaData {
                 }
 
                 if (variableElement.getAnnotation(Index.class) != null) {
-                    // The field has the @Index annotation. It's only valid for:
-                    // * String
+                    // The field has the @Index annotation. It's only valid for column types:
+                    // STRING, DATE, INTEGER, BOOLEAN
                     String elementTypeCanonicalName = variableElement.asType().toString();
-                    if (elementTypeCanonicalName.equals("java.lang.String")) {
+                    String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
+                    if (columnType != null && (columnType.equals("ColumnType.STRING") ||
+                            columnType.equals("ColumnType.DATE") ||
+                            columnType.equals("ColumnType.INTEGER") ||
+                            columnType.equals("ColumnType.BOOLEAN"))) {
                         indexedFields.add(variableElement);
                     } else {
-                        Utils.error("@Index is only applicable to String fields - got " + element);
+                        Utils.error("@Index is not applicable to this field " + element + ".");
                         return false;
                     }
                 }
@@ -307,8 +325,8 @@ public class ClassMetaData {
 
                     primaryKey = variableElement;
 
-                    // Also add as index if the primary key is a string
-                    if (Utils.isString(variableElement) && !indexedFields.contains(variableElement)) {
+                    // Also add as index. All types of primary key can be indexed.
+                    if (!indexedFields.contains(variableElement)) {
                         indexedFields.add(variableElement);
                     }
                 }
@@ -351,7 +369,15 @@ public class ClassMetaData {
      * model classes.
      */
     public boolean isModelClass() {
-        return (!classType.toString().endsWith(".RealmObject") && !classType.toString().endsWith("RealmProxy"));
+        String type = classType.toString();
+        if (type.equals("io.realm.dynamic.DynamicRealmObject")) {
+            return false;
+        }
+        return (!type.endsWith(".RealmObject") && !type.endsWith("RealmProxy"));
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 
     public String getFullyQualifiedClassName() {

@@ -40,35 +40,40 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     protected LayoutInflater inflater;
     protected RealmResults<T> realmResults;
     protected Context context;
+    private final RealmChangeListener listener;
 
     public RealmBaseAdapter(Context context, RealmResults<T> realmResults, boolean automaticUpdate) {
         if (context == null) {
             throw new IllegalArgumentException("Context cannot be null");
         }
-        if (realmResults == null) {
-            throw new IllegalArgumentException("RealmResults cannot be null");
-        }
-
         this.context = context;
         this.realmResults = realmResults;
         this.inflater = LayoutInflater.from(context);
-        if (automaticUpdate) {
-            realmResults.getRealm().addChangeListener(new RealmChangeListener() {
-                @Override
-                public void onChange() {
-                    notifyDataSetChanged();
-                }
-            });
+        this.listener = (!automaticUpdate) ? null : new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                notifyDataSetChanged();
+            }
+        };
+
+        if (listener != null && realmResults != null) {
+            realmResults.getRealm().addChangeListener(listener);
         }
     }
 
     @Override
     public int getCount() {
+        if (realmResults == null) {
+            return 0;
+        }
         return realmResults.size();
     }
 
     @Override
     public T getItem(int i) {
+        if (realmResults == null) {
+            return null;
+        }
         return realmResults.get(i);
     }
 
@@ -90,10 +95,20 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
      * Update the RealmResults associated to the Adapter. Useful when the query has been changed.
      * If the query does not change you might consider using the automaticUpdate feature
      *
-     * @param realmResults the new RealmResults coming from the new query.
+     * @param queryResults the new RealmResults coming from the new query.
      */
-    public void updateRealmResults(RealmResults<T> realmResults) {
-        this.realmResults = realmResults;
+    public void updateRealmResults(RealmResults<T> queryResults) {
+        if (listener != null) {
+            // Making sure that Adapter is refreshed correctly if new RealmResults come from another Realm
+            if (this.realmResults != null) {
+                this.realmResults.getRealm().removeChangeListener(listener);
+            }
+            if (queryResults != null) {
+                queryResults.getRealm().addChangeListener(listener);
+            }
+        }
+
+        this.realmResults = queryResults;
         notifyDataSetChanged();
     }
 }

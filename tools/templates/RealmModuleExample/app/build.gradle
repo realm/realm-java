@@ -1,0 +1,42 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.application'
+apply plugin: 'android-command'
+
+android {
+    compileSdkVersion 20
+    buildToolsVersion "20.0.0"
+
+    defaultConfig {
+        applicationId 'io.realm.examples.appmodules'
+        minSdkVersion 14
+        targetSdkVersion 20
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("keystore/release.keystore")
+            storePassword "realm1234"
+            keyAlias "realm-introexample"
+            keyPassword "realm1234"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    command {
+        events 2000
+    }
+}
+
+dependencies {
+    compile 'io.realm:realm-android:@version@'
+    compile project(':library')
+}

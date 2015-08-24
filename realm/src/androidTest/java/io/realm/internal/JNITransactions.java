@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
+import io.realm.Realm;
+import io.realm.TestHelper;
 import io.realm.exceptions.RealmException;
 
 public class JNITransactions extends AndroidTestCase {
@@ -367,13 +369,23 @@ public class JNITransactions extends AndroidTestCase {
         Table t = getTableWithStringPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey("Foo");
         assertEquals(1, t.size());
-        assertEquals("Foo", t.getRow(rowIndex).getString(0));
+        assertEquals("Foo", t.getUncheckedRow(rowIndex).getString(0));
     }
 
     public void testAddEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey(42);
         assertEquals(1, t.size());
-        assertEquals(42, t.getRow(rowIndex).getLong(0));
+        assertEquals(42, t.getUncheckedRow(rowIndex).getLong(0));
+    }
+
+    public void testPrimaryKeyTableMigration() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "080_annotationtypes.realm", "default.realm");
+        SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
+        ImplicitTransaction tr = db.beginImplicitTransaction();
+        Table t = tr.getTable("class_AnnotationTypes");
+        assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
+        assertTrue(t.hasPrimaryKey());
+        db.close();
     }
 }

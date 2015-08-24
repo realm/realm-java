@@ -116,7 +116,7 @@ enum ExceptionKind {
     TableInvalid = 8,
     UnsupportedOperation = 9,
     OutOfMemory = 10,
-    Unspecified = 11,
+    FatalError = 11,
     RuntimeError = 12,
     RowInvalid = 13
 };
@@ -190,7 +190,7 @@ extern const char *log_tag;
 
 #define ROW_INDEXES_VALID(env,ptr,start,end, range)             (true)
 #define ROW_INDEX_VALID(env,ptr,row)                            (true)
-#defibe ROW_INDEX_VALID_OFFSET(env,ptr,row)                     (true)
+#define ROW_INDEX_VALID_OFFSET(env,ptr,row)                     (true)
 #define TBL_AND_ROW_INDEX_VALID(env,ptr,row)                    (true)
 #define TBL_AND_ROW_INDEX_VALID_OFFSET(env,ptr,row, offset)     (true)
 #define COL_INDEX_VALID(env,ptr,col)                            (true)
@@ -241,7 +241,7 @@ inline bool RowIsValid(JNIEnv* env, Row* rowPtr)
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
         TR_ERR("Row %p is no longer attached!", VOID_PTR(rowPtr))
-        ThrowException(env, RowInvalid, "Row/Object is no longer valid to operate on. Was it deleted?");
+        ThrowException(env, RowInvalid, "Object is no longer valid to operate on. Was it deleted by another thread?");
     }
     return valid;
 }
@@ -431,7 +431,6 @@ inline bool RowColIndexAndTypeValid(JNIEnv* env, Row* pRow, jlong columnIndex, i
         && ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
 }
 
-
 template <class T>
 inline bool IndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType, bool allowMixed)
 {
@@ -443,7 +442,6 @@ inline bool TblIndexAndTypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlon
 {
     return TableIsValid(env, pTable) && IndexAndTypeValid(env, pTable, columnIndex, rowIndex, expectColType, allowMixed);
 }
-
 
 template <class T>
 inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex, int expectColType)

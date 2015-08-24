@@ -24,6 +24,7 @@ import io.realm.exceptions.RealmIOException;
 
 public class SharedGroup implements Closeable {
 
+    private final String path;
     private long nativePtr;
     private long nativeReplicationPtr;
     private boolean implicitTransactionsEnabled = false;
@@ -41,52 +42,49 @@ public class SharedGroup implements Closeable {
 
         final int value;
 
-        private Durability(int value) {
+        Durability(int value) {
             this.value = value;
         }
     }
 
     public SharedGroup(String databaseFile) {
         context = new Context();
-        this.nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, null);
+        path = databaseFile;
+        nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, null);
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, byte[] key) {
+    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, Durability durability, byte[] key) {
         if (enableImplicitTransactions) {
             nativeReplicationPtr = nativeCreateReplication(databaseFile, key);
-            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, key);
+            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, key);
         }
         context = new Context();
+        path = databaseFile;
         checkNativePtrNotZero();
     }
 
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, byte[] key);
-
-    private native long nativeCreateReplication(String databaseFile, byte[] key);
-
     public SharedGroup(String databaseFile, Durability durability, byte[] key) {
+        path = databaseFile;
         context = new Context();
-        this.nativePtr = nativeCreate(databaseFile, durability.value, false, false, key);
+        nativePtr = nativeCreate(databaseFile, durability.value, false, false, key);
         checkNativePtrNotZero();
     }
 
     public SharedGroup(String databaseFile, Durability durability, boolean fileMustExist) {
+        path = databaseFile;
         context = new Context();
-        this.nativePtr = nativeCreate(databaseFile, durability.value, fileMustExist, false, null);
+        nativePtr = nativeCreate(databaseFile, durability.value, fileMustExist, false, null);
         checkNativePtrNotZero();
     }
 
-    /*
-        SharedGroup(String databaseFile, Durability durability, boolean no_create, boolean enableReplication) {
-            context = new Context();
-            this.nativePtr = nativeCreate(databaseFile, durability.value, no_create, enableReplication);
-            checkNativePtr();
-        }
-    */
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
+
+    private native long nativeCreateReplication(String databaseFile, byte[] key);
+
     void advanceRead() {
         nativeAdvanceRead(nativePtr);
     }
@@ -238,7 +236,7 @@ public class SharedGroup implements Closeable {
      * @return Absolute path to the Realm file.
      */
     public String getPath() {
-        return nativeGetDefaultReplicationDatabaseFileName();
+        return path;
     }
 
     private native String nativeGetDefaultReplicationDatabaseFileName();

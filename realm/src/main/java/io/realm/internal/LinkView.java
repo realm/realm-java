@@ -16,12 +16,15 @@
 
 package io.realm.internal;
 
+/**
+ * The LinkView class represent a core {@link ColumnType#LINK_LIST}.
+ */
 public class LinkView {
 
     private final Context context;
-    private final long nativeLinkViewPtr;
-    private final Table parent;
-    private final long columnIndexInParent;
+    final long nativeLinkViewPtr;
+    final Table parent;
+    final long columnIndexInParent;
 
     public LinkView(Context context, Table parent, long columnIndexInParent, long nativeLinkViewPtr) {
         this.context = context;
@@ -30,58 +33,72 @@ public class LinkView {
         this.nativeLinkViewPtr = nativeLinkViewPtr;
     }
 
-    protected static native void nativeClose(long nativeLinkViewPtr);
-
-    public Row get(long pos) {
-        long nativeRowPtr = nativeGetRow(nativeLinkViewPtr, pos);
-        return new Row(context, parent.getLinkTarget(columnIndexInParent), nativeRowPtr);
+    /**
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard Realm Core crash (SIGSEGV).
+     * Only use this method if you are sure that input parameters are valid, otherwise use {@link #getCheckedRow(long)}
+     * which will throw appropriate exceptions if used incorrectly.
+     *
+     * @param index Index of row to fetch.
+     * @return Unsafe row wrapper object.
+     */
+    public UncheckedRow getUncheckedRow(long index) {
+        return UncheckedRow.get(context, this, index);
     }
-    private native long nativeGetRow(long nativeLinkViewPtr, long pos);
+
+    /**
+     * Returns a wrapper for Row access. All access will be error checked at the JNI layer and will throw an
+     * appropriate {@link RuntimeException} if used incorrectly.
+     *
+     * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
+     *
+     * @param index Index of row to fetch.
+     * @return Safe row wrapper object.
+     */
+    public CheckedRow getCheckedRow(long index) {
+        return CheckedRow.get(context, this, index);
+    }
 
     public long getTargetRowIndex(long pos) {
         return nativeGetTargetRowIndex(nativeLinkViewPtr, pos);
     }
-    private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
 
     public void add(long rowIndex) {
+        checkImmutable();
         nativeAdd(nativeLinkViewPtr, rowIndex);
     }
-    private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
 
     public void insert(long pos, long rowIndex) {
+        checkImmutable();
         nativeInsert(nativeLinkViewPtr, pos, rowIndex);
     }
-    private native void nativeInsert(long nativeLinkViewPtr, long pos, long rowIndex);
 
     public void set(long pos, long rowIndex) {
+        checkImmutable();
         nativeSet(nativeLinkViewPtr, pos, rowIndex);
     }
-    private native void nativeSet(long nativeLinkViewPtr, long pos, long rowIndex);
 
     public void move(long oldPos, long newPos) {
+        checkImmutable();
         nativeMove(nativeLinkViewPtr, oldPos, newPos);
     }
-    private native void nativeMove(long nativeLinkViewPtr, long oldPos, long newPos);
 
     public void remove(long pos) {
+        checkImmutable();
         nativeRemove(nativeLinkViewPtr, pos);
     }
-    private native void nativeRemove(long nativeLinkViewPtr, long pos);
 
     public void clear() {
+        checkImmutable();
         nativeClear(nativeLinkViewPtr);
     }
-    private native void nativeClear(long nativeLinkViewPtr);
 
     public long size() {
         return nativeSize(nativeLinkViewPtr);
     }
-    private native long nativeSize(long nativeLinkViewPtr);
 
     public boolean isEmpty() {
         return nativeIsEmpty(nativeLinkViewPtr);
     }
-    private native boolean nativeIsEmpty(long nativeLinkViewPtr);
 
     public TableQuery where() {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
@@ -95,5 +112,29 @@ public class LinkView {
         }
     }
 
+    /**
+     * Returns the Table which all links point to.
+     */
+    public Table getTable() {
+        return parent;
+    }
+
+    private void checkImmutable() {
+        if (parent.isImmutable()) {
+            throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
+        }
+    }
+
+    protected static native void nativeClose(long nativeLinkViewPtr);
+    native long nativeGetRow(long nativeLinkViewPtr, long pos);
+    private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
+    private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
+    private native void nativeInsert(long nativeLinkViewPtr, long pos, long rowIndex);
+    private native void nativeSet(long nativeLinkViewPtr, long pos, long rowIndex);
+    private native void nativeMove(long nativeLinkViewPtr, long oldPos, long newPos);
+    private native void nativeRemove(long nativeLinkViewPtr, long pos);
+    private native void nativeClear(long nativeLinkViewPtr);
+    private native long nativeSize(long nativeLinkViewPtr);
+    private native boolean nativeIsEmpty(long nativeLinkViewPtr);
     protected native long nativeWhere(long nativeLinkViewPtr);
 }
