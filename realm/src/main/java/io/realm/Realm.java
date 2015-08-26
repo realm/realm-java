@@ -1276,6 +1276,7 @@ public final class Realm implements Closeable {
     public void refresh() {
         checkIfValid();
         transaction.advanceRead();
+        sendNotifications();
     }
 
     /**
