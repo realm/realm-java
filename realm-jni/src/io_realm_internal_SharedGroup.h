@@ -26,9 +26,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeCreateReplicati
 /*
  * Class:     io_realm_internal_SharedGroup
  * Method:    nativeAdvanceRead
- * Signature: (J)V
+ * Signature: (J)[J
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
   (JNIEnv *, jobject, jlong);
 
 /*
@@ -157,6 +157,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeGetVersionID
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

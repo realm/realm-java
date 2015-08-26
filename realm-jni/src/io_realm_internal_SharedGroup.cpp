@@ -149,14 +149,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_nativeBeginImplicit
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
-(JNIEnv *env, jobject, jlong native_ptr)
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
+  (JNIEnv *env, jobject obj, jlong native_ptr)
 {
     TR_ENTER_PTR(native_ptr)
     try {
         LangBindHelper::advance_read( *SG(native_ptr) );
+        return Java_io_realm_internal_SharedGroup_nativeGetVersionID(env, obj, native_ptr);
     }
     CATCH_STD()
+    return NULL;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
@@ -294,4 +296,21 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact(
     CATCH_FILE()
     CATCH_STD()
     return false;
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
+        (JNIEnv *env, jobject, jlong native_ptr)
+{
+    TR_ENTER()
+
+    SharedGroup::VersionID versionID = SG(native_ptr)->get_version_of_current_transaction();
+
+    jlong versionArray [2];
+    versionArray[0] = static_cast<jlong>(versionID.version);
+    versionArray[1] = static_cast<jlong>(versionID.index);
+
+    jlongArray versionData = env->NewLongArray(2);
+    env->SetLongArrayRegion(versionData, 0, 2, versionArray);
+
+    return versionData;
 }
