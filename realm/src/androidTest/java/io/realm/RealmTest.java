@@ -1828,7 +1828,7 @@ public class RealmTest extends AndroidTestCase {
         final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
 
         // Used by the background thread to wait for the main thread to do the write operation
-        final CountDownLatch latch = new CountDownLatch(1);
+        final CountDownLatch bgThreadLatch = new CountDownLatch(1);
 
         Thread backgroundThread = new Thread() {
             @Override
@@ -1841,7 +1841,7 @@ public class RealmTest extends AndroidTestCase {
                     }
                 });
                 try {
-                    latch.await(); // Wait for the main thread to do a write operation
+                    bgThreadLatch.await(); // Wait for the main thread to do a write operation
                     bgRealm.refresh(); // This should call the listener
                     assertTrue(listenerWasCalled.get());
                 } catch (InterruptedException e) {
@@ -1856,6 +1856,6 @@ public class RealmTest extends AndroidTestCase {
         testRealm.beginTransaction();
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
-        latch.countDown();
+        bgThreadLatch.countDown();
     }
 }
