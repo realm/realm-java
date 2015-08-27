@@ -109,16 +109,18 @@ public class RealmResultsTest extends AndroidTestCase {
         nullTypes1.setFieldBooleanNull(true);
         nullTypes1.setFieldStringNull("4");
         nullTypes1.setFieldDateNull(new Date(12345));
+
         NullTypes nullTypes2 = new NullTypes();
         nullTypes2.setId(2);
+
         NullTypes nullTypes3 = new NullTypes();
-        nullTypes2.setId(3);
-        nullTypes2.setFieldIntegerNull(0);
-        nullTypes2.setFieldFloatNull(0F);
-        nullTypes2.setFieldDoubleNull(0D);
-        nullTypes1.setFieldBooleanNull(false);
-        nullTypes1.setFieldStringNull("0");
-        nullTypes1.setFieldDateNull(new Date(0));
+        nullTypes3.setId(3);
+        nullTypes3.setFieldIntegerNull(0);
+        nullTypes3.setFieldFloatNull(0F);
+        nullTypes3.setFieldDoubleNull(0D);
+        nullTypes3.setFieldBooleanNull(false);
+        nullTypes3.setFieldStringNull("0");
+        nullTypes3.setFieldDateNull(new Date(0));
 
         testRealm.beginTransaction();
         testRealm.copyToRealm(nullTypes1);
@@ -262,9 +264,9 @@ public class RealmResultsTest extends AndroidTestCase {
         populateAllNullRowsForNumericTesting();
 
         RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
-        assertEquals(0, results.min(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(0, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(0, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(Integer.MIN_VALUE, results.min(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(Float.NEGATIVE_INFINITY, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(Double.NEGATIVE_INFINITY, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     // Test min on nullable rows with partial null values
@@ -272,9 +274,9 @@ public class RealmResultsTest extends AndroidTestCase {
         populatePartialNullRowsForNumericTesting();
 
         RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
-        assertEquals(1, results.min(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(2, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(3, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(0, results.min(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0f, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(0d, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     public void testMaxValueIsMaxValue() {
@@ -289,9 +291,9 @@ public class RealmResultsTest extends AndroidTestCase {
         populateAllNullRowsForNumericTesting();
 
         RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
-        assertEquals(0, results.max(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(0, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(0, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(Integer.MAX_VALUE, results.max(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(Float.POSITIVE_INFINITY, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(Double.POSITIVE_INFINITY, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     // Test max on nullable rows with partial null values
@@ -300,8 +302,8 @@ public class RealmResultsTest extends AndroidTestCase {
 
         RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
         assertEquals(1, results.max(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(2, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(3, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(2f, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(3d, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     public void testSumGivesCorrectValue() {
@@ -318,18 +320,18 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
         assertEquals(0, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(0, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(0, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(0f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(0d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     // Test sum on nullable rows with partial null values
     public void testSumGivesCorrectValueForPartialNullRows() {
-        populateAllNullRowsForNumericTesting();
+        populatePartialNullRowsForNumericTesting();
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
         assertEquals(1, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(2, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(3, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(2f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(3d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     public void testSumGivesCorrectValueWithNonLatinColumnNames() {
@@ -378,18 +380,18 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
         assertEquals(0, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(0, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(0, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(0f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(0d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     // Test sum on nullable rows with partial null values
     public void testAvgGivesCorrectValueForPartialNullRows() {
-        populateAllNullRowsForNumericTesting();
+        populatePartialNullRowsForNumericTesting();
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
         assertEquals(1, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(2, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(3, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(2f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
+        assertEquals(3d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
     }
 
     public void testRemove() {
@@ -558,7 +560,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, reverseSortedList.size());
     }
 
-    private void doTestSortByLongWithPartialNullValues(String fieldName) {
+    private void doTestSortOnColumnWithPartialNullValues(String fieldName) {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
         // Ascending
         RealmResults<NullTypes> sortedList = testRealm.allObjects(NullTypes.class);
@@ -577,27 +579,27 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(2, sortedList.last().getId());
     }
 
-    // Test sort on nullable field with null values partially
-    public void testSortByLongWithPartialNullValues() {
+    // Test sort on nullable fields with null values partially
+    public void testSortOnColumnWithPartialNullValues() {
         populatePartialNullRowsForNumericTesting();
 
         // 1 String
-        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_STRING_NULL);
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_STRING_NULL);
 
         // 3 Boolean
-        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_BOOLEAN_NULL);
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_BOOLEAN_NULL);
 
         // 6 Integer
-        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_INTEGER_NULL);
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_INTEGER_NULL);
 
         // 7 Float
-        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_FLOAT_NULL);
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_FLOAT_NULL);
 
         // 8 Double
-        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_DOUBLE_NULL);
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_DOUBLE_NULL);
 
         // 10 Date
-        doTestSortByLongWithPartialNullValues(NullTypes.FIELD_DATE_NULL);
+        doTestSortOnColumnWithPartialNullValues(NullTypes.FIELD_DATE_NULL);
     }
 
     public void testSortOnNonExistingColumn() {
