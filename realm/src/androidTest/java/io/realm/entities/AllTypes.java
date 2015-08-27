@@ -24,15 +24,15 @@ import io.realm.annotations.Required;
 
 public class AllTypes extends RealmObject {
     @Required
-    private String columnString;
+    private String columnString = "";
     private long columnLong;
     private float columnFloat;
     private double columnDouble;
     private boolean columnBoolean;
     @Required
-    private Date columnDate;
+    private Date columnDate = new Date(0);
     @Required
-    private byte[] columnBinary;
+    private byte[] columnBinary = new byte[0];
     private Dog columnRealmObject;
     private RealmList<Dog> columnRealmList;
 
