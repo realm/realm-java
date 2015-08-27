@@ -87,9 +87,8 @@ public class RealmTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        RealmConfiguration testConfig = new RealmConfiguration.Builder(getContext()).build();
-        Realm.deleteRealm(testConfig);
-        testRealm = Realm.getInstance(testConfig);
+        Realm.deleteRealmFile(getContext());
+        testRealm = Realm.getInstance(getContext());
     }
 
     @Override
@@ -134,6 +133,23 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testGetInstanceNullNameThrows() {
+        try {
+            Realm.getInstance(getContext(), (String) null);
+            fail("Parsing null as realm name should throw an error");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testGetInstanceCreateSubFoldersThrows() {
+        File folder = new File(getContext().getFilesDir().getAbsolutePath() + "/subfolder1/subfolder2/");
+        try {
+            Realm.getInstance(getContext(), (String) null);
+            fail("Assuming that subfolders are created automatically should fail");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
     public void testGetInstanceFolderNoWritePermissionThrows() {
         File folder = new File("/");
         try {
@@ -163,21 +179,30 @@ public class RealmTest extends AndroidTestCase {
 
     public void testGetInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
-        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey());
-        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey());
-
-        Realm.deleteRealm(configA);
-        Realm realm = Realm.getInstance(configA); // Create starting Realm with key1
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Random random = new Random();
+        byte[] key = TestHelper.getRandomKey();
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME, key); // Create starting Realm with key1
         realm.close();
+        key = TestHelper.getRandomKey();
         try {
-            Realm.getInstance(configB); // Try to open with key 2
+            Realm.getInstance(getContext(), REALM_NAME, key); // Try to open with key 2
         } catch (IllegalArgumentException expected) {
             // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
-            assertTrue(Realm.deleteRealm(configA));
-            Realm.getInstance(configB);
+            assertTrue(Realm.deleteRealmFile(getContext(), REALM_NAME));
+            Realm.getInstance(getContext(), REALM_NAME, key);
             realm.close();
         }
+    }
+
+    public void testInstanceIdForHashCollision() {
+        // Ea.hashCode() == FB.hashCode()
+        Realm.deleteRealmFile(getContext(), "Ea");
+        Realm.deleteRealmFile(getContext(), "FB");
+        Realm r1 = Realm.getInstance(getContext(), "Ea");
+        Realm r2 = Realm.getInstance(getContext(), "FB");
+        assertNotSame(r1, r2);
     }
 
     public void testRealmCache() {
@@ -188,14 +213,13 @@ public class RealmTest extends AndroidTestCase {
 
     public void testInternalRealmChangedHandlersRemoved() {
         final String REALM_NAME = "test-internalhandlers";
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
-        Realm.deleteRealm(realmConfig);
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
         Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
 
         // Open and close first instance of a Realm
         Realm realm = null;
         try {
-            realm = Realm.getInstance(realmConfig);
+            realm = Realm.getInstance(getContext(), REALM_NAME);
             assertEquals(1, Realm.handlers.size());
             realm.close();
 
@@ -203,7 +227,7 @@ public class RealmTest extends AndroidTestCase {
             assertEquals(0, Realm.handlers.size());
 
             // Open instance the 2nd time. Old handler should now be gone
-            realm = Realm.getInstance(realmConfig);
+            realm = Realm.getInstance(getContext(), REALM_NAME);
             assertEquals(1, Realm.handlers.size());
             realm.close();
 
@@ -704,9 +728,8 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void createAndTestFilename(String language, String fileName) {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), fileName);
-        Realm.deleteRealm(realmConfig);
-        Realm realm1 = Realm.getInstance(realmConfig);
+        Realm.deleteRealmFile(getContext(), fileName);
+        Realm realm1 = Realm.getInstance(getContext(), fileName);
         realm1.beginTransaction();
         Dog dog1 = realm1.createObject(Dog.class);
         dog1.setName("Rex");
@@ -716,7 +739,7 @@ public class RealmTest extends AndroidTestCase {
         File file = new File(getContext().getFilesDir(), fileName);
         assertTrue(language, file.exists());
 
-        Realm realm2 = Realm.getInstance(realmConfig);
+        Realm realm2 = Realm.getInstance(getContext(), fileName);
         Dog dog2 = realm2.allObjects(Dog.class).first();
         assertEquals(language, "Rex", dog2.getName());
         realm2.close();
@@ -830,9 +853,8 @@ public class RealmTest extends AndroidTestCase {
         }
 
         // Make sure the reference counter is per realm file
-        RealmConfiguration anotherConfig = TestHelper.createConfiguration(getContext(), "anotherRealm.realm");
-        Realm.deleteRealm(anotherConfig);
-        Realm otherRealm = Realm.getInstance(anotherConfig);
+        Realm.deleteRealmFile(getContext(), "anotherRealm.realm");
+        Realm otherRealm = Realm.getInstance(getContext(), "anotherRealm.realm");
 
         // Raise the reference
         Realm realm = null;
@@ -891,14 +913,12 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testWriteCopyTo() throws IOException {
-        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), "file1.realm");
-        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), "file2.realm");
-        Realm.deleteRealm(configA);
-        Realm.deleteRealm(configB);
+        Realm.deleteRealmFile(getContext(), "file1.realm");
+        Realm.deleteRealmFile(getContext(), "file2.realm");
 
         Realm realm1 = null;
         try {
-            realm1 = Realm.getInstance(configA);
+            realm1 = Realm.getInstance(getContext(), "file1.realm");
             realm1.beginTransaction();
             AllTypes allTypes = realm1.createObject(AllTypes.class);
             allTypes.setColumnString("Hello World");
@@ -919,7 +939,7 @@ public class RealmTest extends AndroidTestCase {
         Realm realm2 = null;
         try {
             // Contents is copied too
-            realm2 = Realm.getInstance(configB);
+            realm2 = Realm.getInstance(getContext(), "file2.realm");
             RealmResults<AllTypes> results = realm2.allObjects(AllTypes.class);
             assertEquals(1, results.size());
             assertEquals("Hello World", results.first().getColumnString());
@@ -933,7 +953,7 @@ public class RealmTest extends AndroidTestCase {
 
     public void testCompactRealmFileThrowsIfOpen() throws IOException {
         try {
-            Realm.compactRealm(TestHelper.createConfiguration(getContext()));
+            Realm.compactRealmFile(getContext());
             fail();
         } catch (IllegalStateException expected) {
         }
@@ -975,25 +995,23 @@ public class RealmTest extends AndroidTestCase {
 
     public void testCompactEmptyRealmFile() throws IOException {
         final String REALM_NAME = "test.realm";
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
-        Realm.deleteRealm(realmConfig);
-        Realm realm = Realm.getInstance(realmConfig);
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME);
         realm.close();
         long before = new File(getContext().getFilesDir(), REALM_NAME).length();
-        assertTrue(Realm.compactRealm(realmConfig));
+        assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME));
         long after = new File(getContext().getFilesDir(), REALM_NAME).length();
         assertTrue(before >= after);
     }
 
     public void testCompactPopulateRealmFile() throws IOException {
         final String REALM_NAME = "test.realm";
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
-        Realm.deleteRealm(realmConfig);
-        Realm realm = Realm.getInstance(realmConfig);
+        Realm.deleteRealmFile(getContext(), REALM_NAME);
+        Realm realm = Realm.getInstance(getContext(), REALM_NAME);
         populateTestRealm(realm, 100);
         realm.close();
         long before = new File(getContext().getFilesDir(), REALM_NAME).length();
-        assertTrue(Realm.compactRealm(realmConfig));
+        assertTrue(Realm.compactRealmFile(getContext(), REALM_NAME));
         long after = new File(getContext().getFilesDir(), REALM_NAME).length();
         assertTrue(before >= after);
     }
@@ -1028,9 +1046,8 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnString("Test");
         testRealm.commitTransaction();
 
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "other-realm");
-        Realm.deleteRealm(realmConfig);
-        Realm otherRealm = Realm.getInstance(realmConfig);
+        Realm.deleteRealmFile(getContext(), "other-realm");
+        Realm otherRealm = Realm.getInstance(getContext(), "other-realm");
         otherRealm.beginTransaction();
         AllTypes copiedAllTypes = otherRealm.copyToRealm(allTypes);
         otherRealm.commitTransaction();
@@ -1429,7 +1446,7 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(key1 != key2);
 
         final String ENCRYPTED_REALM = "differentKeys.realm";
-        Realm.deleteRealm(TestHelper.createConfiguration(getContext(), ENCRYPTED_REALM));
+        Realm.deleteRealmFile(getContext(), ENCRYPTED_REALM);
         Realm realm1 = null;
         Realm realm2 = null;
         try {
@@ -1559,22 +1576,19 @@ public class RealmTest extends AndroidTestCase {
     public void testOpenRealmFileDeletionShouldThrow() {
         final String OTHER_REALM_NAME = "yetAnotherRealm.realm";
 
-        RealmConfiguration configA = TestHelper.createConfiguration(getContext());
-        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), OTHER_REALM_NAME);
-
         // This instance is already cached because of the setUp() method so this deletion should throw
         try {
-            Realm.deleteRealm(configA);
+            Realm.deleteRealmFile(getContext());
             fail();
         } catch (IllegalStateException ignored) {
         }
 
         // Create a new Realm file
-        Realm yetAnotherRealm = Realm.getInstance(configB);
+        Realm yetAnotherRealm = Realm.getInstance(getContext(), OTHER_REALM_NAME);
 
         // Deleting it should fail
         try {
-            Realm.deleteRealm(configB);
+            Realm.deleteRealmFile(getContext(), OTHER_REALM_NAME);
             fail();
         } catch (IllegalStateException ignored) {
         }
@@ -1582,7 +1596,7 @@ public class RealmTest extends AndroidTestCase {
         // But now that we close it deletion should work
         yetAnotherRealm.close();
         try {
-            Realm.deleteRealm(configB);
+            Realm.deleteRealmFile(getContext(), OTHER_REALM_NAME);
         } catch (Exception e) {
             fail();
         }
