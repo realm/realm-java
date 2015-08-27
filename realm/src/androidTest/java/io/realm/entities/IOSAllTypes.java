@@ -15,10 +15,11 @@ public class IOSAllTypes extends RealmObject {
     private float floatCol;
     private double doubleCol;
     @Required
-    private byte[] byteCol;
+    private byte[] byteCol = new byte[0];
     @Required
-    private String stringCol;
-    private Date dateCol;
+    private String stringCol = "";
+    @Required
+    private Date dateCol = new Date(0);
     private IOSChild child;
     private RealmList<IOSChild> children;
 
