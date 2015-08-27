@@ -1224,8 +1224,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     pQuery->and_query(pTable->column<String>(S(columnIndex)) == realm::null());
                     break;
                 case type_Binary:
-                    // FIXME: it seems is_null query on binary is not finished yet.
-                    //pQuery->and_query(pTable->column<Binary>(S(columnIndex)).is_null());
+                    pQuery->and_query(pTable->where().equal(S(columnIndex),  realm::BinaryData()));
                     break;
                 case type_Bool:
                     pQuery->and_query(pTable->column<Bool>(S(columnIndex)) == realm::null());
@@ -1302,8 +1301,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     pQuery->and_query(pTable->column<String>(S(columnIndex)) != realm::null());
                     break;
                 case type_Binary:
-                    // FIXME: it seems is_null query on binary is not finished yet.
-                    //pQuery->and_query(pTable->column<Binary>(S(columnIndex)).is_null());
+                    pQuery->and_query(pTable->where().not_equal(S(columnIndex),  realm::BinaryData()));
                     break;
                 case type_Bool:
                     pQuery->and_query(pTable->column<Bool>(S(columnIndex)) != realm::null());
