@@ -236,55 +236,10 @@ private:
 
 } // anonymous namespace
 
-string string_to_hex(const string& message, StringData& str) {
-    ostringstream ret;
-
-    const char *s = str.data();
-    ret << message << " ";
-    ret << "StringData.size = " << str.size() << "; ";
-    ret << "StringData.data = " << str.data() << "; ";
-    ret << "StringData as hex = ";
-    for (string::size_type i = 0; i < str.size(); ++i)
-        ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
-    return ret.str();
-}
-
-string string_to_hex(const string& message, StringData& str, const char* in_begin, const char* in_end,
-                     jchar* out_curr, jchar* out_end, size_t retcode, size_t error_code) {
-    ostringstream ret;
-
-    const char *s = str.data();
-    ret << message << " ";
-    ret << "error_code = " << error_code << "; ";
-    ret << "retcode = " << retcode << "; ";
-    ret << "StringData.size = " << str.size() << "; ";
-    ret << "StringData.data = " << str.data() << "; ";
-    ret << "StringData as hex = ";
-    for (string::size_type i = 0; i < str.size(); ++i)
-        ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
-    ret << "; ";
-    ret << "in_begin = " << in_begin << "; ";
-    ret << "in_end = " << in_end << "; ";
-    ret << "out_curr = " << out_curr << "; ";
-    ret << "out_end = " << out_end << ";";
-    return ret.str();
-}
-
 string string_to_hex(const string& message, const jchar *str, size_t size) {
     ostringstream ret;
 
     ret << message << "; ";
-    for (size_t i = 0; i < size; ++i)
-        ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)str[i];
-    return ret.str();
-}
-
-
-string string_to_hex(const string& message, const jchar *str, size_t size, size_t error_code) {
-    ostringstream ret;
-
-    ret << message << "; ";
-    ret << "error_code = " << error_code << "; ";
     for (size_t i = 0; i < size; ++i)
         ret << " 0x" << std::hex << std::setfill('0') << std::setw(4) << (int)str[i];
     return ret.str();
