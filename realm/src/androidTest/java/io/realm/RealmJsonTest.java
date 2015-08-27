@@ -429,7 +429,8 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(0, obj.getColumnRealmList().size());
     }
 
-    // Test update a existing object with JSON stream.
+    // Test update a existing object with JSON stream. Only primary key in JSON.
+    // No value should be changed.
     public void testUpdateObjectFromJsonStream_nullValues() throws IOException {
         AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
         Date date = new Date(0);
@@ -445,7 +446,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.copyToRealm(obj);
         testRealm.commitTransaction();
 
-        InputStream in = loadJsonFromAssets("all_types_primary_key_null.json");
+        InputStream in = loadJsonFromAssets("all_types_primary_key_only.json");
         testRealm.beginTransaction();
         testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, in);
         testRealm.commitTransaction();
@@ -453,9 +454,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
         // Check that all primitive types are imported correctly
         obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
-        // TODO: We only handle updating null for String right now.
-        //       Clean this up after nullable support for all types.
-        assertEquals("", obj.getColumnString());
+        assertEquals("1", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
         assertEquals(1f, obj.getColumnFloat());
         assertEquals(1d, obj.getColumnDouble());
@@ -466,7 +465,8 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(0, obj.getColumnRealmList().size());
     }
 
-    // Test update a existing object with JSON object.
+    // Test update a existing object with JSON object with only primary key.
+    // No value should be changed.
     public void testUpdateObjectFromJsonObject_nullValues() throws IOException {
         AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
         Date date = new Date(0);
@@ -482,16 +482,14 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.copyToRealm(obj);
         testRealm.commitTransaction();
 
-        String json = TestHelper.streamToString(loadJsonFromAssets("all_types_primary_key_null.json"));
+        String json = TestHelper.streamToString(loadJsonFromAssets("all_types_primary_key_only.json"));
         testRealm.beginTransaction();
         testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
         testRealm.commitTransaction();
 
         // Check that all primitive types are imported correctly
         obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
-        // TODO: We only handle updating String with null value right now.
-        //       Clean this up after nullable support for all types.
-        assertEquals("", obj.getColumnString());
+        assertEquals("1", obj.getColumnString());
         assertEquals(1L, obj.getColumnLong());
         assertEquals(1f, obj.getColumnFloat());
         assertEquals(1d, obj.getColumnDouble());
@@ -781,7 +779,7 @@ public class RealmJsonTest extends AndroidTestCase {
         checkNullableValuesNonNull(nullTypes2);
     }
 
-    // Test creating objects form JSON stream, all nullable fields with non-null values or non-null values
+    // Test creating objects form JSON stream, all nullable fields with null values or non-null values
     public void testNullTypesStreamJSONWithNulls() throws IOException {
         testRealm.beginTransaction();
         testRealm.createAllFromJson(NullTypes.class, loadJsonFromAssets("nulltypes.json"));
@@ -908,7 +906,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     // If JSON has a field with value null, and corresponding object's field is not nullable,
-    // an exception should be throw.
+    // an exception should be throw. Stream version.
     public void testNullTypesJSONStreamToNotNullFields() throws IOException, JSONException {
         String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes_invalid.json"));
         JSONArray array = new JSONArray(json);
