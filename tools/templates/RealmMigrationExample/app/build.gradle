@@ -3,13 +3,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'android-command'
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion "20.0.0"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.0"
 
     defaultConfig {
         applicationId "io.realm.examples.realmmigrationexample"
         minSdkVersion 14
-        targetSdkVersion 20
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
