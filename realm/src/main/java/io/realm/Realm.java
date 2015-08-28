@@ -38,11 +38,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -129,7 +131,8 @@ public final class Realm implements Closeable {
     };
 
     // List of Realm files that has already been validated
-    private static final Map<String, Boolean> validatedRealmFiles = new ConcurrentHashMap<String, Boolean>();
+    private static final Set<String> validatedRealmFiles = Collections.newSetFromMap(
+            new ConcurrentHashMap<String, Boolean>());
 
     private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
             new ThreadLocal<Map<RealmConfiguration,Integer>>() {
@@ -412,7 +415,7 @@ public final class Realm implements Closeable {
     private static Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
-            boolean validateSchema = validatedRealmFiles.containsKey(configuration.getPath());
+            boolean validateSchema = validatedRealmFiles.contains(configuration.getPath());
             return createAndValidate(configuration, validateSchema, autoRefresh);
 
         } catch (RealmMigrationNeededException e) {
@@ -551,7 +554,7 @@ public final class Realm implements Closeable {
                 mediator.validateTable(modelClass, realm.transaction);
                 realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
-            validatedRealmFiles.put(realm.getPath(), Boolean.TRUE);
+            validatedRealmFiles.add(realm.getPath());
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction();
