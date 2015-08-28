@@ -15,7 +15,7 @@
  */
 
 #include <realm.hpp>
- 
+
 #include "util.hpp"
 #include "io_realm_internal_TableQuery.h"
 #include "tablequery.hpp"
@@ -705,7 +705,7 @@ void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray co
             if (value == NULL) {
                 if (tbl->is_nullable(S(arr[arr_len-1]))) {
                     ThrowException(env, IllegalArgument, "Trying to query field with null but field is not nullable.");
-                    return;    
+                    return;
                 }
             }
             switch (predicate) {
@@ -835,7 +835,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeSubtable(
         pTQuery->push_subtable(S(columnIndex));
         if (!COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Table))
             return;
- 
+
         pTQuery->subtable(S(columnIndex));
     } CATCH_STD()
 }
@@ -1273,8 +1273,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
             switch (col_type) {
                 case type_Link:
                 case type_LinkList:
-                    // FIXME: is_not_null is missing in core
-                    //pQuery->and_query(pTable->column<Link>(S(columnIndex)).is_not_null());
+                    pQuery->Not().and_query(pTable->column<Link>(S(columnIndex)).is_null());
                     break;
                 case type_String:
                 case type_Binary:
@@ -1294,8 +1293,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
             switch (col_type) {
                 case type_Link:
                 case type_LinkList:
-                    // FIXME: is_not_null is missing in core
-                    //pQuery->and_query(pTable->column<Link>(S(columnIndex)).is_not_null());
+                    pQuery->Not().and_query(pTable->column<Link>(S(columnIndex)).is_null());
                     break;
                 case type_String:
                     pQuery->and_query(pTable->column<String>(S(columnIndex)) != realm::null());
