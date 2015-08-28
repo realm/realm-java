@@ -551,7 +551,7 @@ public final class Realm implements Closeable {
                 mediator.validateTable(modelClass, realm.transaction);
                 realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
-            validatedRealmFiles.put(realm.getPath(), true);
+            validatedRealmFiles.put(realm.getPath(), Boolean.TRUE);
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction();
