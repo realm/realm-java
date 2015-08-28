@@ -1,4 +1,5 @@
 0.83
+ * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
  * Fixed a bug which might cause failure when loading the native library.
  * Fixed a bug which might trigger a timeout in Context.finalize().

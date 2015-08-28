@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -39,6 +40,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllTypes;
@@ -1817,5 +1821,39 @@ public class RealmTest extends AndroidTestCase {
 
         testRealm = Realm.getInstance(newConfig);
         assertNotNull(testRealm);
+    }
+
+    public void testValidateSchemasOverThreads() throws InterruptedException, TimeoutException, ExecutionException {
+        final RealmConfiguration config = TestHelper.createConfiguration(getContext(), "foo");
+        final CountDownLatch bgThreadLocked = new CountDownLatch(1);
+        final CountDownLatch mainThreadDone = new CountDownLatch(1);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(config);
+                realm.beginTransaction();
+                bgThreadLocked.countDown();
+                try {
+                    mainThreadDone.await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
+                realm.close();
+            }
+        }).start();
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Realm realm = Realm.getInstance(config);
+                realm.close();
+                mainThreadDone.countDown();
+                return true;
+            }
+        });
+
+        bgThreadLocked.await(2, TimeUnit.SECONDS);
+        assertTrue(future.get(2, TimeUnit.SECONDS));
     }
 }
