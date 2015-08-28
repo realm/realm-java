@@ -1823,6 +1823,8 @@ public class RealmTest extends AndroidTestCase {
 
     public void testValidateSchemasOverThreads() throws InterruptedException, TimeoutException, ExecutionException {
         final RealmConfiguration config = TestHelper.createConfiguration(getContext(), "foo");
+        Realm.deleteRealm(config);
+
         final CountDownLatch bgThreadLocked = new CountDownLatch(1);
         final CountDownLatch mainThreadDone = new CountDownLatch(1);
 
@@ -1852,6 +1854,6 @@ public class RealmTest extends AndroidTestCase {
         });
 
         bgThreadLocked.await(2, TimeUnit.SECONDS);
-        assertTrue(future.get(2, TimeUnit.SECONDS));
+        assertTrue(future.get(10, TimeUnit.SECONDS));
     }
 }

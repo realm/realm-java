@@ -415,7 +415,7 @@ public final class Realm implements Closeable {
     private static Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
-            boolean validateSchema = validatedRealmFiles.contains(configuration.getPath());
+            boolean validateSchema = !validatedRealmFiles.contains(configuration.getPath());
             return createAndValidate(configuration, validateSchema, autoRefresh);
 
         } catch (RealmMigrationNeededException e) {
