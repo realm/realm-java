@@ -28,14 +28,10 @@ import io.realm.RealmConfiguration;
  * and {@link ImplicitTransaction}. By nature this means that this class is not thread safe and
  * should only be used from the thread that created it.
  *
- * Realm files are using a MVCC scheme (Multiversion concurrency control), which means that multiple
+ * Realm is a MVCC database (Multiversion concurrency control), which means that multiple
  * versions of the data might exist in the same file. By default the file is always opened on the
  * latest version and it is possible to advance to the latest version by calling
  * {@link #advanceRead()}.
- *
- * Realm file access is a bit tricky as Realm must create a new reference to the file from each
- * thread. This means that any code that wants to manipulate the Realm file itself must use the
- * static methods in this class to ensure that it is safe to do so.
  */
 public class SharedGroupManager implements Closeable {
 
@@ -81,7 +77,7 @@ public class SharedGroupManager implements Closeable {
     }
 
     // Public because of migrations. Gets the full table name. Prefix will not be added.
-    // TODO Remove for new Migration API
+    // TODO Remove when new Migration API is introduced.
     public Table getTable(String tableName) {
         return transaction.getTable(tableName);
     }
@@ -129,10 +125,16 @@ public class SharedGroupManager implements Closeable {
         transaction.writeToFile(destination, key);
     }
 
+    /**
+     * Returns a reference to current {@link SharedGroup}.
+     */
     public SharedGroup getSharedGroup() {
         return sharedGroup;
     }
 
+    /**
+     * Returns a reference to the current {@link ImplicitTransaction}.
+     */
     public ImplicitTransaction getTransaction() {
         return transaction;
     }
@@ -148,8 +150,7 @@ public class SharedGroupManager implements Closeable {
                     configuration.getPath(),
                     SharedGroup.EXPLICIT_TRANSACTION,
                     SharedGroup.Durability.FULL,
-                    configuration.getEncryptionKey(
-                    ));
+                    configuration.getEncryptionKey());
             result = sharedGroup.compact();
         } finally {
             if (sharedGroup != null) {

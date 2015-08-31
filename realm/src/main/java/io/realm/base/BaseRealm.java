@@ -46,7 +46,7 @@ import io.realm.internal.log.RealmLog;
 
 /**
  * Base class for all Realm instances.
- * Specialized Realms does not share the same underlying native resources.
+ * Specialized Realms do not not share the same underlying native resources.
  *
  * @see io.realm.Realm
  */
@@ -74,7 +74,7 @@ public abstract class BaseRealm implements Closeable {
 
     protected long threadId;
     protected RealmConfiguration configuration;
-    protected SharedGroupManager sharedGroup;
+    protected SharedGroupManager sharedGroupManager;
     protected boolean autoRefresh;
     protected Handler handler;
 
@@ -85,7 +85,7 @@ public abstract class BaseRealm implements Closeable {
     protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
-        this.sharedGroup = new SharedGroupManager(configuration);
+        this.sharedGroupManager = new SharedGroupManager(configuration);
         setAutoRefresh(autoRefresh);
     }
 
@@ -194,7 +194,10 @@ public abstract class BaseRealm implements Closeable {
             changeListeners.removeAll(toRemoveList);
         }
     }
-    // Reference to a file has been released.
+
+    /**
+     * Checks if any open Realm instances are still referencing this file.
+     */
     protected static boolean isFileOpen(RealmConfiguration configuration) {
         Integer refCount = globalRealmFileReferenceCounter.get(configuration.getPath());
         return refCount != null && refCount > 0;
@@ -231,7 +234,7 @@ public abstract class BaseRealm implements Closeable {
             throw new IllegalArgumentException("The destination argument cannot be null");
         }
         checkIfValid();
-        sharedGroup.copyToFile(destination, key);
+        sharedGroupManager.copyToFile(destination, key);
     }
 
     /**
@@ -239,7 +242,7 @@ public abstract class BaseRealm implements Closeable {
      */
     public void refresh() {
         checkIfValid();
-        sharedGroup.advanceRead();
+        sharedGroupManager.advanceRead();
     }
 
     /**
@@ -258,7 +261,7 @@ public abstract class BaseRealm implements Closeable {
      */
     public void beginTransaction() {
         checkIfValid();
-        sharedGroup.promoteToWrite();
+        sharedGroupManager.promoteToWrite();
     }
 
     /**
@@ -272,7 +275,7 @@ public abstract class BaseRealm implements Closeable {
      */
     public void commitTransaction() {
         checkIfValid();
-        sharedGroup.commitAndContinueAsRead();
+        sharedGroupManager.commitAndContinueAsRead();
 
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();
@@ -308,7 +311,7 @@ public abstract class BaseRealm implements Closeable {
      */
     public void cancelTransaction() {
         checkIfValid();
-        sharedGroup.rollbackAndContinueAsRead();
+        sharedGroupManager.rollbackAndContinueAsRead();
     }
 
     /**
@@ -317,7 +320,7 @@ public abstract class BaseRealm implements Closeable {
      */
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
-        if (sharedGroup != null && !sharedGroup.isOpen()) {
+        if (sharedGroupManager != null && !sharedGroupManager.isOpen()) {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
         }
 
@@ -350,10 +353,10 @@ public abstract class BaseRealm implements Closeable {
      * @return The schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
-        if (!sharedGroup.hasTable("metadata")) {
+        if (!sharedGroupManager.hasTable("metadata")) {
             return UNVERSIONED;
         }
-        Table metadataTable = sharedGroup.getTable("metadata");
+        Table metadataTable = sharedGroupManager.getTable("metadata");
         return metadataTable.getLong(0, 0);
     }
 
@@ -378,10 +381,10 @@ public abstract class BaseRealm implements Closeable {
         if (references == null) {
             references = 0;
         }
-        if (sharedGroup != null && references == 1) {
+        if (sharedGroupManager != null && references == 1) {
             lastLocalInstanceClosed();
-            sharedGroup.close();
-            sharedGroup = null;
+            sharedGroupManager.close();
+            sharedGroupManager = null;
             releaseFileReference();
         }
 
@@ -396,40 +399,45 @@ public abstract class BaseRealm implements Closeable {
         }
     }
 
-    // Return the thread local reference counter for the Realm type
+    /**
+     * Returns the ThreadLocal reference counter for this Realm.
+     */
     protected abstract Map<RealmConfiguration,Integer> getLocalReferenceCount();
 
-    // Last thread local instance of this Realm type has been closed.
+    /**
+     * Callback when the last ThreadLocal instance of this Realm type has been closed.
+     */
     protected abstract void lastLocalInstanceClosed();
 
-    // Reference to a file acquired
-    protected void acquireFileReference(RealmConfiguration configuration) {
-        synchronized (BaseRealm.class) {
-            String path = configuration.getPath();
-            Integer refCount = globalRealmFileReferenceCounter.get(path);
-            if (refCount == null) {
-                refCount = 0;
-            }
-            globalRealmFileReferenceCounter.put(path, refCount + 1);
+    /**
+     * Acquire a reference to the given Realm file.
+     */
+    protected synchronized void acquireFileReference(RealmConfiguration configuration) {
+        String path = configuration.getPath();
+        Integer refCount = globalRealmFileReferenceCounter.get(path);
+        if (refCount == null) {
+            refCount = 0;
         }
+        globalRealmFileReferenceCounter.put(path, refCount + 1);
     }
 
-    // Releases a reference to the Realm file
-    protected void releaseFileReference() {
-        synchronized (BaseRealm.class) {
-            String canonicalPath = configuration.getPath();
-            List<RealmConfiguration>  pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-            pathConfigurationCache.remove(configuration);
-            if (pathConfigurationCache.isEmpty()) {
-                globalPathConfigurationCache.remove(canonicalPath);
-            }
-
-            Integer refCount = globalRealmFileReferenceCounter.get(canonicalPath);
-            if (refCount == null || refCount == 0) {
-                throw new IllegalStateException("Trying to release a Realm file that is already closed");
-            }
-            globalRealmFileReferenceCounter.put(canonicalPath, refCount - 1);
+    /**
+     * Releases a reference to the Realm file. If reference count reaches 0 any cached configurations
+     * will be removed.
+     */
+    protected synchronized void releaseFileReference() {
+        String canonicalPath = configuration.getPath();
+        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+        pathConfigurationCache.remove(configuration);
+        if (pathConfigurationCache.isEmpty()) {
+            globalPathConfigurationCache.remove(canonicalPath);
         }
+
+        Integer refCount = globalRealmFileReferenceCounter.get(canonicalPath);
+        if (refCount == null || refCount == 0) {
+            throw new IllegalStateException("Trying to release a Realm file that is already closed");
+        }
+        globalRealmFileReferenceCounter.put(canonicalPath, refCount - 1);
     }
 
     /**
@@ -438,7 +446,6 @@ public abstract class BaseRealm implements Closeable {
      *
      * @throws IllegalArgumentException If the new configuration isn't valid.
      */
-    // Make sure that the new configuration doesn't clash with any existing configurations for the Realm
     protected static void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
 
         String realmPath = newConfiguration.getPath();
@@ -484,10 +491,11 @@ public abstract class BaseRealm implements Closeable {
         @Override
         public boolean handleMessage(Message message) {
             if (message.what == REALM_CHANGED) {
-                sharedGroup.advanceRead();
+                sharedGroupManager.advanceRead();
                 sendNotifications();
             }
             return true;
         }
     }
+
 }

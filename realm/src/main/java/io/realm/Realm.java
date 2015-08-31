@@ -150,7 +150,7 @@ public final class Realm extends BaseRealm {
 
     @Override
     protected void finalize() throws Throwable {
-        if (sharedGroup != null && sharedGroup.isOpen()) {
+        if (sharedGroupManager != null && sharedGroupManager.isOpen()) {
             RealmLog.w("Remember to call close() on all Realm instances. " +
                             "Realm " + configuration.getPath() + " is being finalized without being closed, " +
                             "this can lead to running out of native memory."
@@ -249,61 +249,62 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+    private static Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+        synchronized (BaseRealm.class) {
+            // Check if a cached instance already exists for this thread
+            String canonicalPath = configuration.getPath();
+            Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
+            Integer references = localRefCount.get(configuration);
+            if (references == null) {
+                references = 0;
+            }
+            Map<RealmConfiguration, Realm> realms = realmsCache.get();
+            Realm realm = realms.get(configuration);
+            if (realm != null) {
+                localRefCount.put(configuration, references + 1);
+                return realm;
+            }
 
-        // Check if a cached instance already exists for this thread
-        String canonicalPath = configuration.getPath();
-        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
-        }
-        Map<RealmConfiguration, Realm> realms = realmsCache.get();
-        Realm realm = realms.get(configuration);
-        if (realm != null) {
+            // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
+            // faulty cache data.
+            validateAgainstExistingConfigurations(configuration);
+            realm = new Realm(configuration, autoRefresh);
+            List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+            if (pathConfigurationCache == null) {
+                pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+                globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+            }
+            pathConfigurationCache.add(configuration);
+            realms.put(configuration, realm);
             localRefCount.put(configuration, references + 1);
+
+            // Increment global reference counter
+            realm.acquireFileReference(configuration);
+
+            // Check versions of Realm
+            long currentVersion = realm.getVersion();
+            long requiredVersion = configuration.getSchemaVersion();
+            if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && validateSchema) {
+                realm.close();
+                throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disc need to migrate from v%s to v%s", currentVersion, requiredVersion));
+            }
+            if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && validateSchema) {
+                realm.close();
+                throw new IllegalArgumentException(String.format("Realm on disc is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+            }
+
+            // Initialize Realm schema if needed
+            if (validateSchema) {
+                try {
+                    initializeRealm(realm);
+                } catch (RuntimeException e) {
+                    realm.close();
+                    throw e;
+                }
+            }
+
             return realm;
         }
-
-        // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
-        // faulty cache data.
-        validateAgainstExistingConfigurations(configuration);
-        realm = new Realm(configuration, autoRefresh);
-        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-        if (pathConfigurationCache == null) {
-            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
-        }
-        pathConfigurationCache.add(configuration);
-        realms.put(configuration, realm);
-        localRefCount.put(configuration, references + 1);
-
-        // Increment global reference counter
-        realm.acquireFileReference(configuration);
-
-        // Check versions of Realm
-        long currentVersion = realm.getVersion();
-        long requiredVersion = configuration.getSchemaVersion();
-        if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && validateSchema) {
-            realm.close();
-            throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disc need to migrate from v%s to v%s", currentVersion, requiredVersion));
-        }
-        if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && validateSchema) {
-            realm.close();
-            throw new IllegalArgumentException(String.format("Realm on disc is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
-        }
-
-        // Initialize Realm schema if needed
-        if (validateSchema) {
-            try {
-                initializeRealm(realm);
-            } catch (RuntimeException e) {
-                realm.close();
-                throw e;
-            }
-        }
-
-        return realm;
     }
 
     @SuppressWarnings("unchecked")
@@ -321,9 +322,9 @@ public final class Realm extends BaseRealm {
             for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
-                    mediator.createTable(modelClass, realm.sharedGroup.getTransaction());
+                    mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
                 }
-                mediator.validateTable(modelClass, realm.sharedGroup.getTransaction());
+                mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction());
                 realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
         } finally {
@@ -937,7 +938,7 @@ public final class Realm extends BaseRealm {
 
     @SuppressWarnings("UnusedDeclaration")
     boolean hasChanged() {
-        return sharedGroup.hasChanged();
+        return sharedGroupManager.hasChanged();
     }
 
     /**
@@ -987,7 +988,7 @@ public final class Realm extends BaseRealm {
 
     // package protected so unit tests can access it
     void setVersion(long version) {
-        Table metadataTable = sharedGroup.getTable("metadata");
+        Table metadataTable = sharedGroupManager.getTable("metadata");
         if (metadataTable.getColumnCount() == 0) {
             metadataTable.addColumn(ColumnType.INTEGER, "version");
             metadataTable.addEmptyRow();
@@ -1049,7 +1050,7 @@ public final class Realm extends BaseRealm {
      * latest version, nothing will happen.
      * @param configuration
      */
-    public static synchronized void migrateRealm(RealmConfiguration configuration) {
+    public static void migrateRealm(RealmConfiguration configuration) {
         migrateRealm(configuration, null);
     }
 
@@ -1060,7 +1061,7 @@ public final class Realm extends BaseRealm {
      * @param migration {@link RealmMigration} to run on the Realm. This will override any migration set on the
      * configuration.
      */
-    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public synchronized static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
@@ -1165,7 +1166,7 @@ public final class Realm extends BaseRealm {
         Table table = classToTable.get(clazz);
         if (table == null) {
             clazz = Util.getOriginalModelClass(clazz);
-            table = sharedGroup.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
             classToTable.put(clazz, table);
         }
         return table;
