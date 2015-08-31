@@ -190,21 +190,21 @@ public class RealmTest extends AndroidTestCase {
         final String REALM_NAME = "test-internalhandlers";
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
         Realm.deleteRealm(realmConfig);
-        Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
+        Realm.getHandlers().clear(); // Make sure that handlers from other unit tests doesn't interfere.
 
         // Open and close first instance of a Realm
         Realm realm = null;
         try {
             realm = Realm.getInstance(realmConfig);
-            assertEquals(1, Realm.handlers.size());
+            assertEquals(1, Realm.getHandlers().size());
             realm.close();
 
             // All Realms closed. No handlers should be alive.
-            assertEquals(0, Realm.handlers.size());
+            assertEquals(0, Realm.getHandlers().size());
 
             // Open instance the 2nd time. Old handler should now be gone
             realm = Realm.getInstance(realmConfig);
-            assertEquals(1, Realm.handlers.size());
+            assertEquals(1, Realm.getHandlers().size());
             realm.close();
 
         } finally {
@@ -1667,43 +1667,53 @@ public class RealmTest extends AndroidTestCase {
     // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
 /*    // Check that FinalizerRunnable can free native resources (phantom refs)
     public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
-        Field sharedGroupReference = Realm.class.getDeclaredField("sharedGroup");
-        sharedGroupReference.setAccessible(true);
-        SharedGroup sharedGroup = (SharedGroup) sharedGroupReference.get(testRealm);
-        assertNotNull(sharedGroup);
 
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).name("myown").build();
+        Realm.deleteRealm(config);
+        testRealm = Realm.getInstance(config);
+
+        // Manipulate field accessibility to facilitate testing
+        Field realmFileReference = RealmBase.class.getDeclaredField("sharedGroup");
+        realmFileReference.setAccessible(true);
         Field contextField = SharedGroup.class.getDeclaredField("context");
         contextField.setAccessible(true);
-        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(sharedGroup);
-        assertNotNull(context);
-
         Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
         rowReferencesField.setAccessible(true);
+
+        SharedGroupManager realmFile = (SharedGroupManager) realmFileReference.get(testRealm);
+        assertNotNull(realmFile);
+
+        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(realmFile.getSharedGroup());
+        assertNotNull(context);
+
         List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);
         assertNotNull(rowReferences);
-
 
         // insert some rows, then give the thread some time to cleanup
         // we have 8 reference so far let's add more
         final int numberOfPopulateTest = 1000;
-        final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
+        final int numberOfObjects = 20;
+        final int totalNumberOfReferences = 8 + numberOfObjects * 2 * numberOfPopulateTest;
 
         long tic = System.currentTimeMillis();
         for (int i = 0; i < numberOfPopulateTest; i++) {
-            populateTestRealm(testRealm, 20);
+            populateTestRealm(testRealm, numberOfObjects);
         }
         long toc = System.currentTimeMillis();
         Log.d(RealmTest.class.getName(), "Insertion time: " + (toc - tic));
 
         final int MAX_GC_RETRIES = 5;
         int numberOfRetries = 0;
+        Log.i("GCing", "Hoping for the best");
         while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
             SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
+            TestHelper.allocGarbage(0);
             numberOfRetries++;
             System.gc();
         }
 
         // we can't guarantee that all references have been GC'd but we should detect a decrease
+        Log.i("GCing", "Let's check");
         boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
         if (!isDecreasing) {
             fail("Native resources are not being closed");
