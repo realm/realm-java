@@ -1821,6 +1821,7 @@ public class RealmTest extends AndroidTestCase {
         assertNotNull(testRealm);
     }
 
+    // Tests that if the same Realm file is opened on multiple threads, we only need to validate the schema on the first thread.
     public void testValidateSchemasOverThreads() throws InterruptedException, TimeoutException, ExecutionException {
         final RealmConfiguration config = TestHelper.createConfiguration(getContext(), "foo");
         Realm.deleteRealm(config);
