@@ -82,6 +82,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
 Realm Java is published under the Apache 2.0 license.  
 The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](http://realm.io/docs/java/#faq).
 
+**This product is not being made available to any person located in Cuba, Iran,
+North Korea, Sudan, Syria or the Crimea region, or to any other person that is
+not eligible to receive the product under U.S. law.**
+
 ## Feedback
 
 **_If you use Realm and are happy with it, all we ask is that you please consider sending out a tweet mentioning [@realm](http://twitter.com/realm), announce your app on [our mailing-list](https://groups.google.com/forum/#!forum/realm-java), or email [help@realm.io](mailto:help@realm.io) to let us know about it!_**

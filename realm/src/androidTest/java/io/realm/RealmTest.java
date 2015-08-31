@@ -1015,7 +1015,7 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnString("Test");
         testRealm.commitTransaction();
 
-        testRealm.commitTransaction();
+        testRealm.beginTransaction();
         AllTypes copiedAllTypes = testRealm.copyToRealm(allTypes);
         testRealm.commitTransaction();
 

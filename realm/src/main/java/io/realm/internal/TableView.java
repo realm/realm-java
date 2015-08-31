@@ -869,7 +869,7 @@ public class TableView implements TableOrView, Closeable {
 
     // Sorting
 
-    public enum Order { ascending, descending };
+    public enum Order { ascending, descending }
 
     public void sort(long columnIndex, Order order) {
         // Don't check for immutable. Sorting does not modify original table
