@@ -344,8 +344,11 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> owners6 = testRealm.where(Owner.class).lessThanOrEqualTo("dogs.birthday", new Date(10000)).findAll();
         assertEquals(1, owners6.size());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date(3000)).findAll();
-        assertEquals(1, owners7.size());
+        try {
+            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date(3000)).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignore) {}
     }
 
     public void testQueryMultipleRelationsFloat() {
