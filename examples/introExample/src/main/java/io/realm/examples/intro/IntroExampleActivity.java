@@ -28,6 +28,7 @@ import io.realm.RealmResults;
 import io.realm.examples.intro.model.Cat;
 import io.realm.examples.intro.model.Dog;
 import io.realm.examples.intro.model.Person;
+import io.realm.query.Sort;
 
 
 public class IntroExampleActivity extends Activity {
@@ -187,7 +188,7 @@ public class IntroExampleActivity extends Activity {
 
         // Sorting
         RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
-        sortedPersons.sort("age", false);
+        sortedPersons.sort("age", Sort.DESCENDING);
         assert(realm.allObjects(Person.class).last().getName() == sortedPersons.first().getName());
         status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first().getName();
 

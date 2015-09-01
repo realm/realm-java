@@ -26,6 +26,7 @@ import io.realm.Realm
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
 import io.realm.examples.kotlin.model.Person
+import io.realm.query.Sort
 import org.jetbrains.anko.async
 import org.jetbrains.anko.uiThread
 import kotlin.properties.Delegates
@@ -182,7 +183,7 @@ public class KotlinExampleActivity : Activity() {
 
         // Sorting
         val sortedPersons = realm.allObjects(javaClass<Person>())
-        sortedPersons.sort("age", false)
+        sortedPersons.sort("age", Sort.DESCENDING)
         check(realm.allObjects(javaClass<Person>()).last().name == sortedPersons.first().name)
         status += "\nSorting ${sortedPersons.last().name} == ${realm.allObjects(javaClass<Person>()).first().name}"
 
