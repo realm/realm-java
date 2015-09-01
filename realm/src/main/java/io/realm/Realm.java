@@ -38,8 +38,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -131,8 +131,7 @@ public final class Realm implements Closeable {
     };
 
     // List of Realm files that has already been validated
-    private static final Set<String> validatedRealmFiles = Collections.newSetFromMap(
-            new ConcurrentHashMap<String, Boolean>());
+    private static final Set<String> validatedRealmFiles = new HashSet<String>();
 
     private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
             new ThreadLocal<Map<RealmConfiguration,Integer>>() {
@@ -248,13 +247,13 @@ public final class Realm implements Closeable {
         }
         if (sharedGroup != null && references == 1) {
             realmsCache.get().remove(configuration);
-            validatedRealmFiles.remove(configuration.getPath());
             sharedGroup.close();
             sharedGroup = null;
 
             // It is necessary to be synchronized here since there is a chance that before the counter removed,
             // the other thread could get the counter and increase it in createAndValidate.
             synchronized (Realm.class) {
+                validatedRealmFiles.remove(configuration.getPath());
                 List<RealmConfiguration>  pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
                 pathConfigurationCache.remove(configuration);
                 if (pathConfigurationCache.isEmpty()) {
@@ -412,7 +411,7 @@ public final class Realm implements Closeable {
         defaultConfiguration = null;
     }
 
-    private static Realm create(RealmConfiguration configuration) {
+    private static synchronized Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
             boolean validateSchema = !validatedRealmFiles.contains(configuration.getPath());
@@ -429,7 +428,7 @@ public final class Realm implements Closeable {
         }
     }
 
-    private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+    private static Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
         // Check if a cached instance already exists for this thread
         String canonicalPath = configuration.getPath();
         Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
@@ -1461,7 +1460,7 @@ public final class Realm implements Closeable {
      * latest version, nothing will happen.
      * @param configuration
      */
-    public static synchronized void migrateRealm(RealmConfiguration configuration) {
+    public static void migrateRealm(RealmConfiguration configuration) {
         migrateRealm(configuration, null);
     }
 
@@ -1472,7 +1471,7 @@ public final class Realm implements Closeable {
      * @param migration {@link RealmMigration} to run on the Realm. This will override any migration set on the
      * configuration.
      */
-    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
