@@ -1,4 +1,8 @@
 0.83
+ * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants
+   has been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
+ * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants has been
+   replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
  * Fixed a bug which might cause failure when loading the native library.
  * Fixed a bug which might trigger a timeout in Context.finalize().
