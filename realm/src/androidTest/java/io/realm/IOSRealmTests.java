@@ -22,6 +22,7 @@ import java.util.Date;
 
 import io.realm.entities.IOSAllTypes;
 import io.realm.entities.IOSChild;
+import io.realm.query.Sort;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -56,7 +57,7 @@ public class IOSRealmTests extends AndroidTestCase {
     public void testIOSDatatypes() throws IOException {
         TestHelper.prepareDatabaseFromAssets(getContext(),  "ios/0.90.4-alltypes.realm", REALM_NAME);
         realm = Realm.getDefaultInstance();
-        RealmResults<IOSAllTypes> result = realm.allObjectsSorted(IOSAllTypes.class, "longCol", RealmResults.SORT_ORDER_ASCENDING);
+        RealmResults<IOSAllTypes> result = realm.allObjectsSorted(IOSAllTypes.class, "longCol", Sort.ASCENDING);
 
         IOSAllTypes obj = result.get(1);
         assertTrue(obj.isBoolCol());

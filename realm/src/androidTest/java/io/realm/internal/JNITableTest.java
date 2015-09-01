@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.Date;
 
 import io.realm.internal.test.TestHelper;
+import io.realm.query.Sort;
 
 public class JNITableTest extends AndroidTestCase {
 
@@ -240,7 +241,7 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(10d, v.getDouble(2, 2));
 
         // Get the sorted view on first column descending
-        v = t.getSortedView(0, TableView.Order.descending);
+        v = t.getSortedView(0, Sort.DESCENDING);
 
         // Check the new order
         assertEquals(3, v.getLong(0, 0));
@@ -254,9 +255,9 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(1000d, v.getDouble(2, 2));
 
         // Some out of bounds test cases
-        try { t.getSortedView(-1, TableView.Order.descending);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSortedView(-100, TableView.Order.descending);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSortedView(100, TableView.Order.descending);   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(-1, Sort.DESCENDING);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(-100, Sort.DESCENDING);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(100, Sort.DESCENDING);   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
 
     }
 

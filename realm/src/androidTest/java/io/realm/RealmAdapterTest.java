@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.RealmAdapter;
+import io.realm.query.Sort;
 
 public class RealmAdapterTest extends AndroidTestCase {
 
@@ -105,7 +106,7 @@ public class RealmAdapterTest extends AndroidTestCase {
 
     public void testSortWithAdapter() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        resultList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        resultList.sort(FIELD_STRING, Sort.DESCENDING);
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
         assertEquals(resultList.first().getColumnString(), realmAdapter.getRealmResults().first().getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());

@@ -23,6 +23,7 @@ import java.util.Date;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
+import io.realm.query.Case;
 
 public class RealmLinkTests extends AndroidTestCase {
 
@@ -275,7 +276,7 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> owners5 = testRealm.where(Owner.class).contains("cat.name", "Blackie").findAll();
         assertEquals(1, owners5.size());
 
-        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", RealmQuery.CASE_INSENSITIVE).findAll();
+        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", Case.INSENSITIVE).findAll();
         assertEquals(1, owners6.size());
     }
 
