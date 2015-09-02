@@ -102,7 +102,6 @@ std::string num_to_string(T pNumber)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
 
 // Exception handling
-
 enum ExceptionKind {
     ClassNotFound = 0,
     NoSuchField = 1,
@@ -118,7 +117,9 @@ enum ExceptionKind {
     OutOfMemory = 10,
     FatalError = 11,
     RuntimeError = 12,
-    RowInvalid = 13
+    RowInvalid = 13,
+    EncryptionNotSupported = 14
+// NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 
 void ConvertException(JNIEnv* env, const char *file, int line);
