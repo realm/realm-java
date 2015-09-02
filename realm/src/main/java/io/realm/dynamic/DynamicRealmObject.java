@@ -476,6 +476,7 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the type used by the underlying storage engine to represent this field.
+     *
      * @return The {@link ColumnType} used by Realm to represent this field.
      */
     public ColumnType getFieldType(String fieldName) {
