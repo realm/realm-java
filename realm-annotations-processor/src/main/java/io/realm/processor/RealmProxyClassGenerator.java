@@ -221,12 +221,27 @@ public class RealmProxyClassGenerator {
                  */
                 String genericType = Utils.getGenericType(field);
 
+                writer.emitField("RealmList<" + genericType + ">", fieldName + "RealmList", EnumSet.of(Modifier.PRIVATE));
                 // Getter
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-                writer.emitStatement(
-                        "return new RealmList<%s>(%s.class, row.getLinkList(%s), realm)",
-                        genericType, genericType, staticFieldIndexVarName(field));
+
+                writer.emitSingleLineComment("use the cached value if available");
+                writer.beginControlFlow("if (" + fieldName + "RealmList != null)");
+                writer.emitStatement("return " + fieldName + "RealmList");
+                writer.nextControlFlow("else");
+                writer.emitStatement("LinkView linkView = row.getLinkList(%s)", staticFieldIndexVarName(field));
+                writer.beginControlFlow("if (linkView == null)");
+                writer.emitSingleLineComment("return empty non managed RealmList if the LinkView is null");
+                writer.emitSingleLineComment("useful for non-initialized RealmObject (async query return empty Row while the query is performing)");
+                writer.emitStatement("return new RealmList<" + genericType + ">()");
+                writer.nextControlFlow("else");
+                writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, realm)",
+                        genericType, genericType);
+                writer.emitStatement("return " + fieldName + "RealmList");
+                writer.endControlFlow();
+                writer.endControlFlow();
+
                 writer.endMethod();
                 writer.emitEmptyLine();
 

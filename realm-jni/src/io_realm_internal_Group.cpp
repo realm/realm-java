@@ -140,7 +140,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeSize(
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeHasTable(
     JNIEnv* env, jobject, jlong nativeGroupPtr, jstring jTableName)
 {
-    TR_ENTER_PTR(nativeGroupPtr)
+//    TR_ENTER_PTR(nativeGroupPtr)
     try {
         JStringAccessor tableName(env, jTableName); // throws
         return G(nativeGroupPtr)->has_table(tableName);
@@ -161,7 +161,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeGetTableName(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Group_nativeGetTableNativePtr(
     JNIEnv *env, jobject, jlong nativeGroupPtr, jstring name)
 {
-    TR_ENTER_PTR(nativeGroupPtr)
+//    TR_ENTER_PTR(nativeGroupPtr)
     try {
         JStringAccessor tableName(env, name); // throws
         Table* pTable = LangBindHelper::get_or_add_table(*G(nativeGroupPtr), tableName);

@@ -628,6 +628,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetFloat(
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDouble(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jdouble value)
 {
+    TR("naruto calling nativeSetDouble")
     if (!TBL_AND_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Double))
         return;
     try {
@@ -1404,7 +1405,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsValid(
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClose(
     JNIEnv*, jclass, jlong nativeTablePtr)
 {
-    TR_ENTER_PTR(nativeTablePtr)
+//    TR_ENTER_PTR(nativeTablePtr)
     LangBindHelper::unbind_table_ptr(TBL(nativeTablePtr));
 }
 

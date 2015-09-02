@@ -35,6 +35,10 @@ android {
     command {
         events 2000
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 tasks.preBuild {

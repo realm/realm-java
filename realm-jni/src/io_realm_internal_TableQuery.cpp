@@ -15,10 +15,10 @@
  */
 
 #include <realm/group_shared.hpp>
+#include <realm/commit_log.hpp>
 #include "util.hpp"
 #include "io_realm_internal_TableQuery.h"
 #include "tablequery.hpp"
-
 using namespace realm;
 
 #if 1
@@ -868,36 +868,67 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover(
     JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong fromTableRow)
 {
+    //TODO maybe optimised we don't reuse this shared group (1 query 1 shared group)
+    // no need to end begin read at specific version
     try {
       // cast the pointer
       SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>* > (handoverQueryPtr);
+
       std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+        TR("naruto c++ handover version pointer: %lu \n", &(handoverQuery->version));
+
+        SG(bgSharedGroupPtr)->end_read();
+        TR("naruto c++ end_read");
+
+      SharedGroup::VersionID currentVersion = SG(bgSharedGroupPtr)->get_version_of_current_transaction();
+      bool isDifferentVersions = (currentVersion != handoverQuery->version);
+        TR("naruto c++ isDifferentVersions %d ", isDifferentVersions)
+        if (isDifferentVersions) {
+            SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+            TR("naruto c++ begin_read at handover version ")
+        } else {
+            SG(bgSharedGroupPtr)->begin_read();
+            TR("naruto c++ begin_read ")
+        }
+
+
+
 
       // when opening a Realm, we start implicitly a read transaction
       // we need to close it before calling begin_read
-      SG(bgSharedGroupPtr)->end_read();
+//      SG(bgSharedGroupPtr)->end_read();
 
       // set the background Realm to the same version as the caller Realm
-      SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
+//      SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
 
       // import the handover query pointer using the background SharedGroup
       std::unique_ptr<Query> pQuery = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
+        TR("naruto c++ pQuery imported ")
       Table* pTable = pQuery->get_table().get();
+        TR("naruto c++ pTable ")
 
-      if (!QUERY_VALID(env, pQuery.get()))
-           return -1;
+      if (!QUERY_VALID(env, pQuery.get())) {
+          TR("naruto c++ invalide query :(( ")
+          return -1;
+      }
+
+
 
        // It's valid to go 1 past the end index
       if ((fromTableRow < 0) || (S(fromTableRow) > pTable->size())) {
+          TR("naruto c++ It's valid to go 1 ")
         // below check will fail with appropriate exception
         (void) ROW_INDEX_VALID(env, pTable, fromTableRow);
         return -1;
       }
 
       size_t r = pQuery->find( S(fromTableRow) );
+        TR("naruto c++ size_t")
       if (r == not_found) {
+          TR("naruto c++  not found")
         return -1;
       } else {
+          TR("naruto c++  handover the result")
          // handover the result
          Row row = (*pTable)[r];
          std::unique_ptr<SharedGroup::Handover<Row> > handover = SG(bgSharedGroupPtr)->export_for_handover(row);
@@ -926,40 +957,107 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
-  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit)
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong native_replication_ptr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit)
   {
 
           // cast the pointer
           SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>* >(handoverQueryPtr);
           try {
-              std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
 
+              SG(bgSharedGroupPtr)->end_read();
+              // current version
+              SharedGroup::VersionID currentVersion = SG(bgSharedGroupPtr)->get_version_of_current_transaction();
+
+              std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+              TR("naruto c++ handover version pointer: %lu \n", &(handoverQuery->version));
+//              TR("naruto handover structure pointer %p", &handoverQuery->version)
+
+              TR("naruto c++ before SG->version>>: %d", currentVersion.version)
               // when opening a Realm, we start implicitly a read transaction
               // we need to close it before calling begin_read
-              SG(bgSharedGroupPtr)->end_read();
 
+              TR("naruto c++ handoverQuery->version>>: %d", handoverQuery->version.version)
               // set the background Realm to the same version as the caller Realm
-              SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
+
+//              handoverQuery->version = SG(bgSharedGroupPtr)->get_version_of_current_transaction();
+//              handoverQuery->version.index = 3;
+//              TR("naruto modified versions ")
+
+
+//              TR("naruto got current versionId ")
+              bool isDifferentVersions = (currentVersion != handoverQuery->version);
+              TR("naruto c++ isDifferentVersions %d ", isDifferentVersions)
+
+              if (isDifferentVersions) {
+                  TR("naruto c++ position to handover version")
+
+//                  TR("naruto before SG->version>>: %d", SG(bgSharedGroupPtr)->get_version_of_current_transaction().version)
+//                  TR("naruto again handoverQuery->version>>: %d", handoverQuery->version.version)
+                  // we need to position this SharedGroup at the same version as the caller thread
+                  // so we can safely import the handover
+
+                  //SG(bgSharedGroupPtr)->end_read(); // don't do eng_read+ begin_read as it will kills the accessor
+                  // is_attached
+
+                  //TODO group all SG(bgSharedGroupPtr) reinterpret_cast
+
+//                  TR("naruto c++ advance_read")
+
+                  // don't use begin_read handoverQuery->version use LangBindHelper::advance_read (when it' fixed)
+                  // to advance to the latest version
+                  SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+//                  realm::Group& m_group = const_cast<Group&>(SG(bgSharedGroupPtr)->begin_read(currentVersion)); // throws
+//                  TR("naruto begin_read at %d", handoverQuery->version.version)
+//                  handoverQuery->version = currentVersion;
+//                  std::unique_ptr<realm::Query, std::default_delete<realm::Query> > res = move(handoverQuery->clone);
+//                  TR("naruto got patch")
+//                  res->apply_and_consume_patch(handoverQuery->patch, m_group);
+//                  TR("naruto apply_and_consume_patch")
+//                  return -1;
+              } else {
+                  SG(bgSharedGroupPtr)->begin_read();
+              }
+             //TODO handle unusual UC where bg.version<handover.version (make sure it's possible)
 
               // import the handover query pointer using the background SharedGroup
               std::unique_ptr<Query> pQuery = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
-              Table* pTable = pQuery->get_table().get();
+              // position the shared_group to the latest version
+              // this is the expected behaviour when we rerun query, as the caller thread version
+              // is surely behind
+              if (isDifferentVersions) {
+                  TR("naruto c++ position back to latest")
+//                  LangBindHelper::advance_read(*SG(bgSharedGroupPtr), *(reinterpret_cast<realm::History*>(native_replication_ptr)) );// position to the latest version
+                  LangBindHelper::advance_read( *SG(bgSharedGroupPtr), *CH(native_replication_ptr) );
+              }
 
-              if (!QUERY_VALID(env, pQuery.get()) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
+              TR("naruto c++ import from handover")
+              Table* pTable = pQuery->get_table().get();
+              TR("naruto c++ got pTable")
+
+              if (!QUERY_VALID(env, pQuery.get()) || !ROW_INDEXES_VALID(env, pTable, start, end, limit)) {
+                  TR("naruto c++ query not valid :(")
                   return -1;
+              }
 
                 // run the query
                 TableView* pResultView = new TableView( pQuery->find_all(S(start), S(end), S(limit)) );
+                 TR("naruto c++ pResultView")
 
                 // handover the result
                 std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*pResultView, MutableSourcePayload::Move);
-
+                 TR("naruto c++ handover the result")
                 return reinterpret_cast<jlong>(handover.release());
 
           } catch (SharedGroup::BadVersion& e) {
+              TR("naruto c++ _________EXCEPTION BadVersion")
               delete hQuery;
+              TR("naruto c++ _________DELETED hQuery ")
               ThrowException(env, BadVersion, " begin_read failed");
-          } CATCH_STD()
+          }  catch (...) {
+              TR("naruto c++ _________EXCEPTION FATAL")
+                ConvertException(env, __FILE__, __LINE__);
+                ThrowException(env, FatalError, " BigBangException");
+            }
       return -1;
   }
 
@@ -1442,7 +1540,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
     if (!QUERY_VALID(env, pQuery))
         return -1;
     try {
-        std::unique_ptr<SharedGroup::Handover<Query> > handover = SG(bgSharedGroupPtr)->export_for_handover(*pQuery, MutableSourcePayload::Move);
+        std::unique_ptr<SharedGroup::Handover<Query> > handover = SG(bgSharedGroupPtr)->export_for_handover(*pQuery, ConstSourcePayload::Copy);
+        TR("naruto c++ exported_handover_version: %d VID structure pointer %ul", handover->version.version, &(handover->version))
         return reinterpret_cast<jlong>(handover.release());
     } CATCH_STD()
     return -1;

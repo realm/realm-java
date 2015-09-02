@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.io.IOError;
+import java.io.Serializable;
 import java.lang.*;
 
 import io.realm.exceptions.RealmIOException;
@@ -85,6 +86,10 @@ public class SharedGroup implements Closeable {
     
     public long getNativePointer () {
         return nativePtr;
+    }
+
+    public long getNativeReplicationPointer () {
+        return nativeReplicationPtr;
     }
 
     private native long nativeCreateReplication(String databaseFile, byte[] key);
@@ -240,6 +245,7 @@ public class SharedGroup implements Closeable {
     public VersionID getVersion () {
         long[] versionId = nativeGetVersionID (nativePtr);
         return new VersionID (versionId[0], versionId[1]);
+
     }
 
     private native long[] nativeGetVersionID (long nativePtr);
@@ -287,7 +293,8 @@ public class SharedGroup implements Closeable {
 
     private native void nativeCloseReplication(long nativeReplicationPtr);
 
-    public static class VersionID implements Comparable<VersionID> {
+    // TODO implement Parcelable? JVM
+    public static class VersionID implements Comparable<VersionID>, Serializable {
         final long version;
         final long index;
 
@@ -305,6 +312,14 @@ public class SharedGroup implements Closeable {
             } else {
                 return 0;
             }
+        }
+
+        @Override
+        public String toString() {
+            return "VersionID{" +
+                    "version=" + version +
+                    ", index=" + index +
+                    '}';
         }
     }
 }

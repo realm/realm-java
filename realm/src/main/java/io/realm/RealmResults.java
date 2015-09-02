@@ -21,14 +21,22 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
+import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 
 /**
@@ -68,6 +76,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
+
+        //TODO need to guard all calls involving table since it's null until async query returns
+        pendingQuery = null;
+        query = null;
     }
 
     public RealmResults(Realm realm, TableOrView table, Class<E> classSpec) {
@@ -312,7 +324,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public int size() {
-        return ((Long)getTable().size()).intValue();
+        if (!isLoaded()) {
+            return 0;
+        } else {
+            return ((Long)getTable().size()).intValue();
+        }
     }
 
     /**
@@ -648,13 +664,118 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     // called mostly when updating a RealmResults from a worker thread
-    protected void swapTableViewPointer (long tableViewPointer) {
-        table.swapPointer(tableViewPointer);
+    //TODO change name
+    protected void swapTableViewPointer (long handoverTableViewPointer) {
+        table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroup.getNativePointer());
+        isCompleted = true;
     }
 
-    // TODO move as interface
-    public void notifyChangeListeners () {}
-    public boolean isLoaded () {
-        return false;
+
+    // provide empty instance of RealmResults
+//    protected static <E extends RealmObject> RealmResults<E> newEmpty(Realm realm, TableQuery query, Class<E> clazz) {
+//        return new RealmResults<E>(realm, query, clazz);
+//    }
+
+    protected RealmResults(Realm realm, TableQuery query, Class<E> clazz) {
+        this.realm = realm;
+        this.classSpec = clazz;
+        this.query = query;
     }
+
+    void setPendingQuery (Future<Long> pendingQuery) {
+        this.pendingQuery = pendingQuery;
+        if (isLoaded()) { // The query completed before RealmQuery
+            // had a chance to call setPendingQuery to register the pendingQuery (used btw
+            // to determine isLoaded behaviour)
+            onCompleted();
+
+        } else {
+            // This will be handled by the Realm#handler
+            // we need a handler since the onCompleted should run on the caller
+            // thread
+            // register a listener to wait for the worker thread to finish
+            // so we can call onCompleted
+//            pendingQuery.addListener(new O)
+        }
+    }
+    // TODO move as interface
+    private Future<Long> pendingQuery;
+    private final TableQuery query;
+    private boolean isCompleted = false;
+    public boolean isLoaded () {
+        realm.checkIfValid();
+        // sync query
+        return pendingQuery == null || isCompleted;
+
+//        if (isCompleted) {
+//            return true;
+//        } else {
+//            return null == pendingQuery || pendingQuery.isDone();
+//        }
+    }
+
+    // Doesn't guarantee to import correctly the result (because the user may have advanced)
+    public void load() {
+        realm.checkIfValid();
+        if (pendingQuery != null && !pendingQuery.isDone()) {
+            onCompleted();
+        }
+    }
+
+    // should be invoked once the pendingQuery finish
+    private void onCompleted () {
+        realm.checkIfValid();
+        try {
+            long tvHandover = pendingQuery.get();// make the query blocking
+            //TODO call method to import handover
+            // this may fail with BadVersionException in this case we keep the RealmResuls empty
+            // then will wait for REALM_COMPLETED_ASYNC_QUERY fired anyway, which handle more complex
+            // use cases like retry, ignore etc
+            table = query.importHandoverTableView(tvHandover, realm.sharedGroup.getNativePointer());
+            isCompleted = true;
+            notifyChangeListeners();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    // the RealmChangeListener needs to be in the same thread
+    // otherwise ask for a handler to post results
+    void addChangeListener(RealmChangeListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        realm.checkIfValid();
+
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+
+
+    }
+
+    void deleteChangeListener(RealmChangeListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        realm.checkIfValid();
+
+        listeners.remove(listener);
+    }
+
+    void notifyChangeListeners() {
+        realm.checkIfValid();
+        for (RealmChangeListener listener: listeners) {
+            listener.onChange();
+        }
+    }
+
+    void deleteChangeListeners() {
+        realm.checkIfValid();
+        listeners.clear();
+    }
+
 }

@@ -16,9 +16,17 @@
 
 package io.realm;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import io.realm.annotations.RealmClass;
 import io.realm.internal.Row;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.Table;
+import io.realm.internal.TableQuery;
+import io.realm.internal.UncheckedRow;
 
 /**
  * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
@@ -144,5 +152,113 @@ public abstract class RealmObject {
          * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmObject)}
          */
         void onBackgroundQueryCompleted(Realm realm);
+    }
+
+    // TODO Async stuff (move as interface)
+    private Future<Long> pendingQuery;
+    private boolean isCompleted = false;
+    private Class<? extends RealmObject> clazz;
+
+    void setPendingQuery (Future<Long> pendingQuery) {
+        this.pendingQuery = pendingQuery;
+        if (isLoaded()) { // The query completed before RealmQuery
+            // had a chance to call setPendingQuery to register the pendingQuery (used btw
+            // to determine isLoaded behaviour)
+            onCompleted();
+
+        } else {
+            // This will be handled by the Realm#handler
+            // we need a handler since the onCompleted should run on the caller
+            // thread
+            // register a listener to wait for the worker thread to finish
+            // so we can call onCompleted
+//            pendingQuery.addListener(new O)
+        }
+    }
+
+    void setType (Class<? extends RealmObject> clazz) {
+        this.clazz = clazz;
+    }
+
+    public boolean isLoaded () {
+        realm.checkIfValid();
+        // sync query
+        return pendingQuery == null || isCompleted;
+    }
+
+    // Doesn't guarantee to import correctly the result (because the user may have advanced)
+    public void load() {
+        realm.checkIfValid();
+        //TODO the query could be complete but the handler didn't receive the results yet
+        //     same behaviour for RealmResults
+        if (pendingQuery != null && !pendingQuery.isDone()) {
+            onCompleted();
+        }
+    }
+
+    // should be invoked once the pendingQuery finish
+    void onCompleted () {
+        realm.checkIfValid();
+        try {
+            long nativeRowHandoverPointer = pendingQuery.get();// make the query blocking
+            onCompleted(nativeRowHandoverPointer);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void onCompleted (long nativeRowHandoverPointer) {
+        realm.checkIfValid();
+        long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(nativeRowHandoverPointer, realm.getSharedGroupPointer());
+        Table table = realm.getTable(clazz);
+        this.row = table.getUncheckedRowByPointer(nativeRowPointer);
+
+//           = query.importHandoverRow(rowHandoverPointer);
+//            //TODO call method to import handover
+//            // this may fail with BadVersionException in this case we keep the RealmResuls empty
+//            // then will wait for REALM_COMPLETED_ASYNC_QUERY fired anyway, which handle more complex
+//            // use cases like retry, ignore etc
+//            table = query.importHandoverTableView(tvHandover, realm.sharedGroup.getNativePointer());
+        isCompleted = true;
+        notifyChangeListeners();
+    }
+
+    List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    // the RealmChangeListener needs to be in the same thread
+    // otherwise ask for a handler to post results
+    public void addChangeListener(RealmChangeListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        realm.checkIfValid();
+
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+
+
+    }
+
+   public void deleteChangeListener(RealmChangeListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        realm.checkIfValid();
+
+        listeners.remove(listener);
+    }
+
+   public void notifyChangeListeners() {
+        realm.checkIfValid();
+        for (RealmChangeListener listener: listeners) {
+            listener.onChange();
+        }
+    }
+
+    public void deleteChangeListeners() {
+        realm.checkIfValid();
+        listeners.clear();
     }
 }
