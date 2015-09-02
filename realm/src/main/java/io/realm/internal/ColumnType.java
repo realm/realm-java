@@ -49,8 +49,7 @@ public enum ColumnType {
         }
     }
 
-    private ColumnType(int nativeValue)
-    {
+    ColumnType(int nativeValue) {
         this.nativeValue = nativeValue;
     }
 

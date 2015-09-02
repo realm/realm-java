@@ -1,6 +1,5 @@
 package io.realm.dynamic;
 
-import io.realm.RealmQuery;
 import io.realm.base.BaseRealmResults;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;

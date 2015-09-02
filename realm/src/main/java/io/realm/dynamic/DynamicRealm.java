@@ -108,7 +108,7 @@ public class DynamicRealm extends BaseRealm {
      */
     public DynamicRealmQuery where(String className) {
         checkIfValid();
-        if (!sharedGroup.hasTable(Table.TABLE_PREFIX + className)) {
+        if (!sharedGroupManager.hasTable(Table.TABLE_PREFIX + className)) {
             throw new IllegalArgumentException("Class does not exist in the Realm so it cannot be queried: " + className);
         }
         return new DynamicRealmQuery(this, className);
@@ -154,7 +154,7 @@ public class DynamicRealm extends BaseRealm {
         className = Table.TABLE_PREFIX + className;
         Table table = classToTable.get(className);
         if (table == null) {
-            table = sharedGroup.getTable(className);
+            table = sharedGroupManager.getTable(className);
             classToTable.put(className, table);
         }
         return table;

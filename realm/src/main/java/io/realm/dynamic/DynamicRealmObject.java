@@ -61,6 +61,33 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
+     * Returns the value for the given field. To avoid casting the value use one of the typed
+     * getters instead.
+     *
+     * @param fieldName Name of the field.
+     * @return The field value. Private types will be converted to their boxed variants.
+     */
+    public Object get(String fieldName) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        ColumnType type = row.getColumnType(columnIndex);
+        switch (type) {
+            case BOOLEAN: return row.getBoolean(columnIndex);
+            case INTEGER: return row.getLong(columnIndex);
+            case FLOAT: return row.getFloat(columnIndex);
+            case DOUBLE: return row.getDouble(columnIndex);
+            case STRING: return row.getString(columnIndex);
+            case BINARY: return row.getBinaryByteArray(columnIndex);
+            case DATE: return row.getDate(columnIndex);
+            case LINK: return getObject(fieldName);
+            case LINK_LIST: return getList(fieldName);
+            case TABLE:
+            case MIXED:
+            default:
+                throw new IllegalStateException("Field type not supported: " + type);
+        }
+    }
+
+    /**
      * Returns the {@code boolean} value for a given field.
      *
      * @param fieldName Name of field.
@@ -445,6 +472,15 @@ public class DynamicRealmObject extends RealmObject {
      */
     public String getType() {
         return row.getTable().getName().substring(Table.TABLE_PREFIX.length());
+    }
+
+    /**
+     * Returns the type used by the underlying storage engine to represent this field.
+     * @return The {@link ColumnType} used by Realm to represent this field.
+     */
+    public ColumnType getFieldType(String fieldName) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        return row.getColumnType(columnIndex);
     }
 
     @Override

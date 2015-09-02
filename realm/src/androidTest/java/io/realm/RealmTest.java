@@ -1015,7 +1015,7 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnString("Test");
         testRealm.commitTransaction();
 
-        testRealm.commitTransaction();
+        testRealm.beginTransaction();
         AllTypes copiedAllTypes = testRealm.copyToRealm(allTypes);
         testRealm.commitTransaction();
 
@@ -1673,7 +1673,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm = Realm.getInstance(config);
 
         // Manipulate field accessibility to facilitate testing
-        Field realmFileReference = RealmBase.class.getDeclaredField("sharedGroup");
+        Field realmFileReference = RealmBase.class.getDeclaredField("sharedGroupManager");
         realmFileReference.setAccessible(true);
         Field contextField = SharedGroup.class.getDeclaredField("context");
         contextField.setAccessible(true);

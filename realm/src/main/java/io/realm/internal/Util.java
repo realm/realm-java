@@ -59,8 +59,7 @@ public class Util {
         Exception_RowInvalid(13);
 
         private final int nativeTestcase;
-        private Testcase(int nativeValue)
-        {
+        Testcase(int nativeValue) {
             this.nativeTestcase = nativeValue;
         }
 
