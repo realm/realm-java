@@ -914,6 +914,7 @@ public final class Realm implements Closeable {
      * <p>
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
         if (destination == null) {
