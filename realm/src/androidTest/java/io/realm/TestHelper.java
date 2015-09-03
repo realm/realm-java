@@ -34,6 +34,8 @@ import java.util.Date;
 import java.util.Random;
 
 import io.realm.entities.NullTypes;
+import io.realm.entities.StringOnly;
+import io.realm.internal.Table;
 
 public class TestHelper {
 
@@ -73,6 +75,22 @@ public class TestHelper {
         outputStream.close();
         is.close();
     }
+
+    // Creates a simple migration step in order to support null
+    // FIXME: generate a new encrypted.realm will null support
+    public static RealmMigration prepareMigrationStep() {
+        RealmMigration realmMigration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                Table stringOnly = realm.getTable(StringOnly.class);
+                stringOnly.convertColumnToNullable(stringOnly.getColumnIndex("chars"));
+
+                return 0;
+            }
+        };
+        return realmMigration;
+    }
+
 
     // Deletes the old database and copies a new one into its place
     public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
@@ -159,6 +177,15 @@ public class TestHelper {
     }
 
     public static void populateTestRealmForNullTests(Realm testRealm) {
+
+        // +-+--------+------+---------+--------------------+
+        // | | string | link | numeric | numeric (not null) |
+        // +-+--------+------+---------+--------------------+
+        // |0| Fish   |    0 |       1 |                  1 |
+        // |1| null   | null |    null |                  0 |
+        // |2| Horse  |    1 |       3 |                  3 |
+        // +-+--------+------+---------+--------------------+
+
         // 1 String
         String[] words = {"Fish", null, "Horse"};
         // 2 Bytes

@@ -360,12 +360,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JFF(
             Q(nativeQueryPtr)->between(S(arr[0]), static_cast<float>(value1), static_cast<float>(value2));
         }
         else {
-            Q(nativeQueryPtr)->group();
-            Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<Float, float, jfloat>(tbl, arr[arr_len-1], value1));
-            tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<Float, float, jfloat>(tbl, arr[arr_len-1], value2));
-            Q(nativeQueryPtr)->end_group();
+            ThrowException(env, IllegalArgument, "between does not support link queries.");
         }
     } CATCH_STD()
     RELEASE_ARRAY();
@@ -493,12 +488,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JDD(
             Q(nativeQueryPtr)->between(S(arr[0]), static_cast<double>(value1), static_cast<double>(value2));
         }
         else {
-            Q(nativeQueryPtr)->group();
-            Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<Double, double, jdouble>(tbl, arr[arr_len-1], value1));
-            tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<Double, double, jdouble>(tbl, arr[arr_len-1], value2));
-            Q(nativeQueryPtr)->end_group();
+            ThrowException(env, IllegalArgument, "between does not support link queries.");
         }
     } CATCH_STD()
     RELEASE_ARRAY();
@@ -1196,8 +1186,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                 case type_LinkList:
                     pQuery->and_query(pTable->column<Link>(S(columnIndex)).is_null());
                     break;
-                case type_String:
                 case type_Binary:
+                    // FIXME
+                    pQuery->equal(S(columnIndex), BinaryData());
+                    //ThrowException(env, IllegalArgument, "Does not yet support binary data.");
+                    break;
+                case type_String:
                 case type_Bool:
                 case type_Int:
                 case type_Float:
@@ -1219,7 +1213,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     pQuery->and_query(pTable->column<String>(S(columnIndex)) == realm::null());
                     break;
                 case type_Binary:
-                    pQuery->and_query(pTable->where().equal(S(columnIndex),  realm::BinaryData()));
+                    // FIXME
+                    ThrowException(env, IllegalArgument, "Does not yet support binary data.");
                     break;
                 case type_Bool:
                     pQuery->and_query(pTable->column<Bool>(S(columnIndex)) == realm::null());
@@ -1270,8 +1265,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                 case type_LinkList:
                     pQuery->Not().and_query(pTable->column<Link>(S(columnIndex)).is_null());
                     break;
-                case type_String:
                 case type_Binary:
+                    // FIXME
+                    ThrowException(env, IllegalArgument, "Does not yet support binary data.");
+                    break;
+                case type_String:
                 case type_Bool:
                 case type_Int:
                 case type_Float:
@@ -1294,7 +1292,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     pQuery->and_query(pTable->column<String>(S(columnIndex)) != realm::null());
                     break;
                 case type_Binary:
-                    pQuery->and_query(pTable->where().not_equal(S(columnIndex),  realm::BinaryData()));
+                    // FIXME
+                    ThrowException(env, IllegalArgument, "Does not yet support binary data.");
                     break;
                 case type_Bool:
                     pQuery->and_query(pTable->column<Bool>(S(columnIndex)) != realm::null());

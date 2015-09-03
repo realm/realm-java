@@ -264,14 +264,14 @@ public class RealmMigrationTests extends AndroidTestCase {
         try {
             RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                     .schemaVersion(0)
-                    .schema(AllTypes.class)
+                    .schema(StringOnly.class)
                     .migration(realmMigration)
                     .build();
             Realm realm = Realm.getInstance(realmConfig);
             realm.close();
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Add annotation @Required or @PrimaryKey to field 'columnString'")) {
+            if (!e.getMessage().equals("Add annotation @Required or @PrimaryKey to field 'chars'")) {
                 fail(e.getMessage());
             }
         }
@@ -285,22 +285,21 @@ public class RealmMigrationTests extends AndroidTestCase {
         RealmMigration migration = new RealmMigration() {
             @Override
             public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AllTypes.class);
-                table.convertColumnToNullable(table.getColumnIndex("columnString"));
-                table.convertColumnToNullable(table.getColumnIndex("columnBinary"));
+                Table table = realm.getTable(StringOnly.class);
+                table.convertColumnToNullable(table.getColumnIndex("chars"));
                 return 1;
             }
         };
 
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AllTypes.class)
+                .schema(StringOnly.class)
                 .migration(migration)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
-        AllTypes allTypes = realm.createObject(AllTypes.class);
-        allTypes.setColumnString(null);
+        StringOnly stringOnly = realm.createObject(StringOnly.class);
+        stringOnly.setChars(null);
         realm.commitTransaction();
         realm.close();
     }
@@ -312,14 +311,14 @@ public class RealmMigrationTests extends AndroidTestCase {
         TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(0)
-                .schema(StringOnly.class)
+                .schema(AllTypes.class)
                 .build();
         Realm realm = Realm.getInstance(realmConfig);
 
         realm.beginTransaction();
         try {
-            StringOnly stringOnly = realm.createObject(StringOnly.class);
-            stringOnly.setChars(null);
+            AllTypes allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnString(null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }

@@ -1822,15 +1822,20 @@ public class RealmTest extends AndroidTestCase {
         testRealm.close();
         String REALM_NAME = "encrypted.realm";
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        RealmMigration realmMigration = TestHelper.prepareMigrationStep();
 
         RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("foo"))
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         RealmConfiguration rightConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("realm"))
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         // Open Realm with wrong key
@@ -1852,10 +1857,13 @@ public class RealmTest extends AndroidTestCase {
         byte[] newPassword = TestHelper.SHA512("realm-copy");
 
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        RealmMigration realmMigration = TestHelper.prepareMigrationStep();
 
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(oldPassword)
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         // 1. Write a copy of the encrypted Realm to a new file
@@ -1878,6 +1886,8 @@ public class RealmTest extends AndroidTestCase {
         RealmConfiguration newConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(newPassword)
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         testRealm = Realm.getInstance(newConfig);
