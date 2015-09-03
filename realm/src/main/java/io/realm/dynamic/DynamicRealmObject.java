@@ -290,6 +290,67 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
+     * Set the value for the given field. This method will automatically try to convert numbers and
+     * booleans that are given as Strings to their appropriate type. E.g. {@code "10"} will be
+     * converted to {@code 10} if the field type is {@code int}.
+     *
+     * Using the typed setters will be faster than using this method.
+     *
+     * @throws IllegalArgumentException if field name doesn't exists or if the input value cannot be converted
+     * to the appropriate input type.
+     * @throws NumberFormatException if a String based number cannot be converted properly.
+     */
+    public void set(String fieldName, Object value) {
+        boolean isString = (value instanceof String);
+        String strValue = isString ? (String) value : null;
+
+        // Do implicit conversion if needed
+        long columnIndex = row.getColumnIndex(fieldName);
+        ColumnType type = row.getColumnType(columnIndex);
+        if (isString && type != ColumnType.STRING) {
+            switch(type) {
+                case BOOLEAN: value = Boolean.parseBoolean(strValue); break;
+                case INTEGER: value = Long.parseLong(strValue); break;
+                case FLOAT: value = Float.parseFloat(strValue); break;
+                case DOUBLE: value = Double.parseDouble(strValue); break;
+                default:
+                    throw new IllegalArgumentException(String.format("Field %s is not a String field, " +
+                            "and the provide value could not be automatically converted: %s. Use a typed" +
+                            "setter instead", fieldName, value));
+            }
+        }
+
+        // Handle setters as normal
+        if (value instanceof Boolean) {
+            setBoolean(fieldName, (Boolean) value);
+        } else if (value instanceof Short) {
+            setShort(fieldName, (Short) value);
+        } else if (value instanceof Integer) {
+            setInt(fieldName, (Integer) value);
+        } else if (value instanceof Long) {
+            setLong(fieldName, (Long) value);
+        } else if (value instanceof Byte) {
+            setByte(fieldName, (Byte) value);
+        } else if (value instanceof Float) {
+            setFloat(fieldName, (Float) value);
+        } else if (value instanceof Double) {
+            setDouble(fieldName, (Double) value);
+        } else if (value instanceof String) {
+            setString(fieldName, (String) value);
+        } else if (value instanceof Date) {
+            setDate(fieldName, (Date) value);
+        } else if (value instanceof byte[]) {
+            setBlob(fieldName, (byte[]) value);
+        } else if (value instanceof DynamicRealmObject) {
+            setObject(fieldName, (DynamicRealmObject) value);
+        } else if (value instanceof DynamicRealmList) {
+            setList(fieldName, (DynamicRealmList) value);
+        } else {
+            throw new IllegalArgumentException("Value is of an type not supported by Realm: " + value);
+        }
+    }
+
+    /**
      * Sets the {@code boolean} value of the given field.
      *
      * @param fieldName Field name to update.
