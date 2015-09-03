@@ -33,8 +33,7 @@ import io.realm.internal.UncheckedRow;
  */
 public class DynamicRealmObject extends RealmObject {
 
-     BaseRealm realm;
-     Row row;
+    private BaseRealm realm;
 
     /**
      * Creates a dynamic Realm object based on a existing object.
@@ -623,5 +622,13 @@ public class DynamicRealmObject extends RealmObject {
         sb.replace(sb.length() - 2, sb.length(), "");
         sb.append("]");
         return sb.toString();
+    }
+
+    Row getRow() {
+        return row;
+    }
+
+    BaseRealm getRealm() {
+        return realm;
     }
 }

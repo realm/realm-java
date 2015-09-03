@@ -31,7 +31,7 @@ public abstract class BaseRealmResults<O extends RealmObject, Q extends BaseReal
     protected abstract void checkIsRealmValid();
     protected abstract TableOrView getTable();
     protected abstract Q getSubQuery();
-    protected abstract O getObject(long sourceRowIndex);
+    protected abstract O getObject(long rowIndex);
 
     /**
      * Returns a typed {@link io.realm.RealmQuery}, which can be used to query for specific

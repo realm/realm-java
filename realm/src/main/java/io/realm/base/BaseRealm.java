@@ -316,8 +316,11 @@ public abstract class BaseRealm implements Closeable {
     /**
      * Checks if a Realm's underlying resources are still available or not getting accessed from
      * the wrong thread.
+     *
+     * @throws IllegalStateException if the Realm is closed or this method is called from the wrong
+     * thread.
      */
-    protected void checkIfValid() {
+    public void checkIfValid() {
         // Check if the Realm instance has been closed
         if (sharedGroupManager != null && !sharedGroupManager.isOpen()) {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);

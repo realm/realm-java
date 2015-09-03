@@ -45,7 +45,7 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
     @Override
     public boolean add(DynamicRealmObject object) {
         checkIsValidObject(object);
-        linkView.add(object.row.getIndex());
+        linkView.add(object.getRow().getIndex());
         return true;
     }
 
@@ -101,7 +101,7 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
     public DynamicRealmObject set(int location, DynamicRealmObject object) {
         checkIsValidObject(object);
         checkValidIndex(location);
-        linkView.set(location, object.row.getIndex());
+        linkView.set(location, object.getRow().getIndex());
         return object;
     }
 
@@ -120,12 +120,12 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
         if (object == null) {
             throw new IllegalArgumentException("DynamicRealmList does not accept null values");
         }
-        if (!realm.getConfiguration().equals(object.realm.getConfiguration())) {
+        if (!realm.getConfiguration().equals(object.getRealm().getConfiguration())) {
             throw new IllegalArgumentException("Cannot add an object belonging to another Realm");
         }
-        if (!linkView.getTable().hasSameSchema(object.row.getTable())) {
+        if (!linkView.getTable().hasSameSchema(object.getRow().getTable())) {
             String expectedClass = linkView.getTable().getName();
-            String objectClassName = object.row.getTable().getName();
+            String objectClassName = object.getRow().getTable().getName();
             throw new IllegalArgumentException("Object is of type " + objectClassName + ". Expected " + expectedClass);
         }
     }

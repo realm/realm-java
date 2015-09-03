@@ -39,7 +39,7 @@ import io.realm.internal.TableView;
  * @see RealmQuery
  * @see io.realm.dynamic.DynamicRealmQuery
  */
-public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQuery<O, Q>> {
+public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQuery<O, Q, R>, R extends BaseRealmResults<O,Q>> {
 
     public static final boolean CASE_SENSITIVE = true;
     public static final boolean CASE_INSENSITIVE = false;
@@ -121,7 +121,7 @@ public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQ
     protected abstract Q getSelf();
 
     // Construct the query results
-    protected abstract RealmResults<O> getResults(TableView queryResult);
+    protected abstract R getResults(TableView queryResult);
 
     // Construct a RealmObject from the rowIndex
     protected abstract O getObject(long rowIndex);
@@ -1106,7 +1106,7 @@ public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQ
      * @see io.realm.RealmResults
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmResults<O> findAll() {
+    public R findAll() {
         return getResults(query.findAll());
     }
 
@@ -1123,7 +1123,7 @@ public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQ
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
-    public RealmResults<O> findAllSorted(String fieldName, boolean sortAscending) {
+    public R findAllSorted(String fieldName, boolean sortAscending) {
         TableView tableView = query.findAll();
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
         Long columnIndex = columns.get(fieldName);
@@ -1146,7 +1146,7 @@ public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQ
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
-    public RealmResults<O> findAllSorted(String fieldName) {
+    public R findAllSorted(String fieldName) {
         return findAllSorted(fieldName, true);
     }
 
@@ -1163,7 +1163,7 @@ public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQ
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public RealmResults<O> findAllSorted(String fieldNames[], boolean sortAscending[]) {
+    public R findAllSorted(String fieldNames[], boolean sortAscending[]) {
         if (fieldNames == null) {
             throw new IllegalArgumentException("fieldNames cannot be 'null'.");
         } else if (sortAscending == null) {
@@ -1211,7 +1211,7 @@ public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQ
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public RealmResults<O> findAllSorted(String fieldName1, boolean sortAscending1,
+    public R findAllSorted(String fieldName1, boolean sortAscending1,
                                          String fieldName2, boolean sortAscending2) {
         return findAllSorted(new String[]{fieldName1, fieldName2}, new boolean[]{sortAscending1, sortAscending2});
     }
@@ -1233,7 +1233,7 @@ public abstract class BaseRealmQuery<O extends RealmObject, Q extends BaseRealmQ
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public RealmResults<O> findAllSorted(String fieldName1, boolean sortAscending1,
+    public R findAllSorted(String fieldName1, boolean sortAscending1,
                                          String fieldName2, boolean sortAscending2,
                                          String fieldName3, boolean sortAscending3) {
         return findAllSorted(new String[]{fieldName1, fieldName2, fieldName3},

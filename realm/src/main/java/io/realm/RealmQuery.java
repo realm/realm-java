@@ -35,17 +35,17 @@ import io.realm.internal.TableView;
  * <p>
  * A RealmQuery cannot be passed between different threads.
  *
- * @param <E> The class of the objects to be queried.
+ * @param <O> The class of the objects to be queried.
  * @see <a href="http://en.wikipedia.org/wiki/Builder_pattern">Builder pattern</a>
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmObject> extends BaseRealmQuery<E, RealmQuery<E>> {
+public class RealmQuery<O extends RealmObject> extends BaseRealmQuery<O, RealmQuery<O>, RealmResults<O>> {
 
     public static final boolean CASE_SENSITIVE = true;
     public static final boolean CASE_INSENSITIVE = false;
 
-    private final Class<E> clazz;
+    private final Class<O> clazz;
     private Realm realm;
 
     /**
@@ -55,7 +55,7 @@ public class RealmQuery<E extends RealmObject> extends BaseRealmQuery<E, RealmQu
      * @param clazz  The class to query.
      * @throws java.lang.RuntimeException Any other error.
      */
-    public RealmQuery(Realm realm, Class<E> clazz) {
+    public RealmQuery(Realm realm, Class<O> clazz) {
         this.realm = realm;
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
@@ -70,7 +70,7 @@ public class RealmQuery<E extends RealmObject> extends BaseRealmQuery<E, RealmQu
      * @param clazz       The class to query
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery(RealmResults realmList, Class<E> clazz) {
+    public RealmQuery(RealmResults realmList, Class<O> clazz) {
         this.realm = realmList.getRealm();
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
@@ -78,7 +78,7 @@ public class RealmQuery<E extends RealmObject> extends BaseRealmQuery<E, RealmQu
         this.columns = realm.columnIndices.getClassFields(clazz);
     }
 
-    RealmQuery(Realm realm, LinkView view, Class<E> clazz) {
+    RealmQuery(Realm realm, LinkView view, Class<O> clazz) {
         this.realm = realm;
         this.clazz = clazz;
         this.query = view.where();
@@ -93,12 +93,12 @@ public class RealmQuery<E extends RealmObject> extends BaseRealmQuery<E, RealmQu
     }
 
     @Override
-    protected RealmResults<E> getResults(TableView queryResult) {
-        return new RealmResults<E>(realm, queryResult, clazz);
+    protected RealmResults<O> getResults(TableView queryResult) {
+        return new RealmResults<O>(realm, queryResult, clazz);
     }
 
     @Override
-    protected E getObject(long rowIndex) {
+    protected O getObject(long rowIndex) {
         return realm.get(clazz ,rowIndex);
     }
 }

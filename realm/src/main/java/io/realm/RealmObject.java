@@ -17,6 +17,7 @@
 package io.realm;
 
 import io.realm.annotations.RealmClass;
+import io.realm.base.BaseRealm;
 import io.realm.internal.Row;
 import io.realm.internal.InvalidRow;
 

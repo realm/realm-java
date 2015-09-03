@@ -19,7 +19,7 @@ public class DynamicRealmResults extends BaseRealmResults<DynamicRealmObject, Dy
     }
 
     public DynamicRealm getRealm() {
-        return null;
+        return realm;
     }
 
     @Override
@@ -37,12 +37,12 @@ public class DynamicRealmResults extends BaseRealmResults<DynamicRealmObject, Dy
     }
 
     @Override
-    protected DynamicRealmObject getObject(long sourceRowIndex) {
-        return null;
+    protected DynamicRealmObject getObject(long rowIndex) {
+        return realm.get(className, rowIndex);
     }
 
     @Override
     protected void checkIsRealmValid() {
-        realm.checkIsValid();
+        realm.checkIfValid();
     }
 }

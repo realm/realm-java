@@ -45,7 +45,7 @@ import io.realm.internal.TableView;
  * @see DynamicRealm#where(String)
  * @see RealmResults#where()
  */
-public class DynamicRealmQuery extends BaseRealmQuery<DynamicRealmObject, DynamicRealmQuery> {
+public class DynamicRealmQuery extends BaseRealmQuery<DynamicRealmObject, DynamicRealmQuery, DynamicRealmResults> {
 
     private final DynamicRealm realm;
     private final String className;
@@ -95,8 +95,8 @@ public class DynamicRealmQuery extends BaseRealmQuery<DynamicRealmObject, Dynami
     }
 
     @Override
-    protected RealmResults<DynamicRealmObject> getResults(TableView queryResult) {
-        return null;
+    protected DynamicRealmResults getResults(TableView queryResult) {
+        return new DynamicRealmResults(realm, queryResult, className);
     }
 
     @Override

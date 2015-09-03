@@ -167,10 +167,6 @@ public class DynamicRealm extends BaseRealm {
         return result;
     }
 
-    protected void checkIsValid() {
-        super.checkIfValid();
-    }
-
     @Override
     protected void lastLocalInstanceClosed() {
         realmsCache.get().remove(configuration);

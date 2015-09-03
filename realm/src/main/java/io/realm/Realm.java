@@ -1031,10 +1031,6 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    protected void checkIfValid() {
-        super.checkIfValid();
-    }
-
     @Override
     protected Map<RealmConfiguration, Integer> getLocalReferenceCount() {
         return referenceCount.get();
