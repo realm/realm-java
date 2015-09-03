@@ -6,6 +6,7 @@
  * Updated Realm core to version 0.89.7
    - fixed a potential stack overflow issue which might cause a crash when encryption was used.
    - embedded crypto functions from OpenSSL into Realm dynamic lib to avoid random issues on some devices.
+ * Fixed an issue preventing the call of listeners on refresh().
 
 0.82.1
  * Fixed a bug where using the wrong encryption key first caused the right key to be seen as invalid.
