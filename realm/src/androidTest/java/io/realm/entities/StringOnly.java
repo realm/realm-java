@@ -17,10 +17,8 @@
 package io.realm.entities;
 
 import io.realm.RealmObject;
-import io.realm.annotations.Required;
 
 public class StringOnly extends RealmObject {
-    @Required
     private String chars;
 
     public String getChars() {

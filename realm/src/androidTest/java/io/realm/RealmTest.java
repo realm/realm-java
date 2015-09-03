@@ -16,12 +16,9 @@
 package io.realm;
 
 import android.content.Context;
-import android.os.SystemClock;
 import android.test.AndroidTestCase;
-import android.util.Log;
 
 import junit.framework.AssertionFailedError;
-import junit.framework.Test;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,8 +27,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.Reference;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -44,7 +39,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllTypes;
@@ -64,7 +58,6 @@ import io.realm.entities.PrimaryKeyMix;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
-import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
@@ -1080,7 +1073,7 @@ public class RealmTest extends AndroidTestCase {
         allTypes.setColumnString("Test");
         testRealm.commitTransaction();
 
-        testRealm.commitTransaction();
+        testRealm.beginTransaction();
         AllTypes copiedAllTypes = testRealm.copyToRealm(allTypes);
         testRealm.commitTransaction();
 
@@ -1825,15 +1818,20 @@ public class RealmTest extends AndroidTestCase {
         testRealm.close();
         String REALM_NAME = "encrypted.realm";
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        RealmMigration realmMigration = TestHelper.prepareMigrationStep();
 
         RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("foo"))
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         RealmConfiguration rightConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("realm"))
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         // Open Realm with wrong key
@@ -1855,10 +1853,13 @@ public class RealmTest extends AndroidTestCase {
         byte[] newPassword = TestHelper.SHA512("realm-copy");
 
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        RealmMigration realmMigration = TestHelper.prepareMigrationStep();
 
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(oldPassword)
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         // 1. Write a copy of the encrypted Realm to a new file
@@ -1881,6 +1882,8 @@ public class RealmTest extends AndroidTestCase {
         RealmConfiguration newConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(newPassword)
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         testRealm = Realm.getInstance(newConfig);
