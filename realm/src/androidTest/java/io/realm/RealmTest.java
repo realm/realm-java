@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -39,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllTypes;
@@ -76,6 +78,8 @@ public class RealmTest extends AndroidTestCase {
     private final static String FIELD_BOOLEAN = "columnBoolean";
     private final static String FIELD_DATE = "columnDate";
 
+    private RealmConfiguration testConfig;
+
     protected void setColumnData() {
         columnData.add(0, FIELD_BOOLEAN);
         columnData.add(1, FIELD_DATE);
@@ -87,7 +91,7 @@ public class RealmTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        RealmConfiguration testConfig = new RealmConfiguration.Builder(getContext()).build();
+        testConfig = new RealmConfiguration.Builder(getContext()).build();
         Realm.deleteRealm(testConfig);
         testRealm = Realm.getInstance(testConfig);
     }
@@ -1228,7 +1232,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnFloat(1.23F);
                 obj.setColumnDouble(1.234D);
                 obj.setColumnBoolean(false);
-                obj.setColumnBinary(new byte[]{1, 2, 3});
+                obj.setColumnBinary(new byte[] {1, 2, 3});
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
@@ -1240,7 +1244,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnFloat(2.23F);
                 obj2.setColumnDouble(2.234D);
                 obj2.setColumnBoolean(true);
-                obj2.setColumnBinary(new byte[]{2, 3, 4});
+                obj2.setColumnBinary(new byte[] {2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
@@ -1257,7 +1261,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(2.23F, obj.getColumnFloat());
         assertEquals(2.234D, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertArrayEquals(new byte[]{2, 3, 4}, obj.getColumnBinary());
+        assertArrayEquals(new byte[] {2, 3, 4}, obj.getColumnBinary());
         assertEquals(new Date(2000), obj.getColumnDate());
         assertEquals("Dog3", obj.getColumnRealmObject().getName());
         assertEquals(1, obj.getColumnRealmList().size());
@@ -1817,5 +1821,41 @@ public class RealmTest extends AndroidTestCase {
 
         testRealm = Realm.getInstance(newConfig);
         assertNotNull(testRealm);
+    }
+
+    public void testProcessLocalListenersAfterRefresh() {
+        // Used to validate the result
+        final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
+
+        // Used by the background thread to wait for the main thread to do the write operation
+        final CountDownLatch bgThreadLatch = new CountDownLatch(1);
+
+        Thread backgroundThread = new Thread() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(testConfig);
+                bgRealm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        listenerWasCalled.set(true);
+                    }
+                });
+                try {
+                    bgThreadLatch.await(); // Wait for the main thread to do a write operation
+                    bgRealm.refresh(); // This should call the listener
+                    assertTrue(listenerWasCalled.get());
+                } catch (InterruptedException e) {
+                    fail();
+                } finally {
+                    bgRealm.close();
+                }
+            }
+        };
+        backgroundThread.start();
+
+        testRealm.beginTransaction();
+        testRealm.createObject(Dog.class);
+        testRealm.commitTransaction();
+        bgThreadLatch.countDown();
     }
 }
