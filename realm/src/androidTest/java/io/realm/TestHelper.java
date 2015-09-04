@@ -35,6 +35,7 @@ import java.util.Random;
 
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
+import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
 public class TestHelper {
@@ -250,4 +251,78 @@ public class TestHelper {
         nullTypesArray[2].setFieldObjectNull(nullTypesArray[1]);
         testRealm.commitTransaction();
     }
+
+    // Helper function to create all columns except the given excluding field for NullTypes.
+    public static void initNullTypesTableExcludes(Realm realm, String excludingField) {
+        Table table = realm.getTable(NullTypes.class);
+        if (!excludingField.equals("id")) {
+            table.addColumn(ColumnType.INTEGER, "id", Table.NOT_NULLABLE);
+            table.addSearchIndex(table.getColumnIndex("id"));
+            table.setPrimaryKey("id");
+        }
+        if (!excludingField.equals("fieldStringNotNull")) {
+            table.addColumn(ColumnType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldStringNull")) {
+            table.addColumn(ColumnType.STRING, "fieldStringNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldBytesNotNull")) {
+            table.addColumn(ColumnType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldBytesNull")) {
+            table.addColumn(ColumnType.BINARY, "fieldBytesNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldBooleanNotNull")) {
+            table.addColumn(ColumnType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldBooleanNull")) {
+            table.addColumn(ColumnType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldByteNotNull")) {
+            table.addColumn(ColumnType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldByteNull")) {
+            table.addColumn(ColumnType.INTEGER, "fieldByteNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldShortNotNull")) {
+            table.addColumn(ColumnType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldShortNull")) {
+            table.addColumn(ColumnType.INTEGER, "fieldShortNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldIntegerNotNull")) {
+            table.addColumn(ColumnType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldIntegerNull")) {
+            table.addColumn(ColumnType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldLongNotNull")) {
+            table.addColumn(ColumnType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldLongNull")) {
+            table.addColumn(ColumnType.INTEGER, "fieldLongNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldFloatNotNull")) {
+            table.addColumn(ColumnType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldFloatNull")) {
+            table.addColumn(ColumnType.FLOAT, "fieldFloatNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldDoubleNotNull")) {
+            table.addColumn(ColumnType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldDoubleNull")) {
+            table.addColumn(ColumnType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldDateNotNull")) {
+            table.addColumn(ColumnType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldDateNull")) {
+            table.addColumn(ColumnType.DATE, "fieldDateNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldObjectNull")) {
+            table.addColumnLink(ColumnType.LINK, "fieldObjectNull", table);
+        }
+    }
+
 }
