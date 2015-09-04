@@ -189,21 +189,21 @@ public class RealmTest extends AndroidTestCase {
         final String REALM_NAME = "test-internalhandlers";
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
         Realm.deleteRealm(realmConfig);
-        Realm.getHandlers().clear(); // Make sure that handlers from other unit tests doesn't interfere.
+        Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
 
         // Open and close first instance of a Realm
         Realm realm = null;
         try {
             realm = Realm.getInstance(realmConfig);
-            assertEquals(1, Realm.getHandlers().size());
+            assertEquals(1, Realm.handlers.size());
             realm.close();
 
             // All Realms closed. No handlers should be alive.
-            assertEquals(0, Realm.getHandlers().size());
+            assertEquals(0, Realm.handlers.size());
 
             // Open instance the 2nd time. Old handler should now be gone
             realm = Realm.getInstance(realmConfig);
-            assertEquals(1, Realm.getHandlers().size());
+            assertEquals(1, Realm.handlers.size());
             realm.close();
 
         } finally {

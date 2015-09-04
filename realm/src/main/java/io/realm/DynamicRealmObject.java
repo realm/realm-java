@@ -31,8 +31,6 @@ import io.realm.internal.UncheckedRow;
  */
 public class DynamicRealmObject extends RealmObject {
 
-    private BaseRealm realm;
-
     /**
      * Creates a dynamic Realm object based on a existing object.
      *

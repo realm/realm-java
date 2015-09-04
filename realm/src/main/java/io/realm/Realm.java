@@ -1134,11 +1134,6 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    // Return all handlers registered for this Realm
-    static Map<Handler, String> getHandlers() {
-        return handlers;
-    }
-
     /**
      * Returns the default Realm module. This module contains all Realm classes in the current project, but not
      * those from library or project dependencies. Realm classes in these should be exposed using their own module.
