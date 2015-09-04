@@ -4,7 +4,7 @@
  * Fixed a bug which might trigger a timeout in Context.finalize().
  * Fixed a bug which might cause RealmObject.isValid() to throw an exception if the object is deleted.
  * Fixed an issue preventing the call of listeners on refresh().
- * Updated Realm core to version 0.89.8
+ * Updated Realm core to version 0.89.9
    - Fixed a potential stack overflow issue which might cause a crash when encryption was used.
    - Embedded crypto functions into Realm dynamic lib to avoid random issues on some devices.
    - Throw RealmEncryptionNotSupportedException if the device doesn't support Realm encryption. At least one device type (HTX One X) contains system bugs that prevents Realm's encryption from functioning properly. This is now detected, and an exception is thrown when trying to open/create an encrypted Realm file. It's up to the application to catch this and decide if it's OK to proceed without encryption instead.
