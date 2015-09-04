@@ -33,9 +33,8 @@ public class RealmListTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(realmConfig);
-        testRealm = Realm.getInstance(realmConfig);
+        Realm.deleteRealmFile(getContext());
+        testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
         Owner owner = testRealm.createObject(Owner.class);

@@ -1,8 +1,11 @@
-0.83
- * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
+0.82.2
  * Fixed a bug which might cause failure when loading the native library.
  * Fixed a bug which might trigger a timeout in Context.finalize().
  * Fixed a bug which might cause RealmObject.isValid() to throw an exception if the object is deleted.
+ * Updated Realm core to version 0.89.9
+   - Fixed a potential stack overflow issue which might cause a crash when encryption was used.
+   - Embedded crypto functions into Realm dynamic lib to avoid random issues on some devices.
+   - Throw RealmEncryptionNotSupportedException if the device doesn't support Realm encryption. At least one device type (HTX One X) contains system bugs that prevents Realm's encryption from functioning properly. This is now detected, and an exception is thrown when trying to open/create an encrypted Realm file. It's up to the application to catch this and decide if it's OK to proceed without encryption instead.
 
 0.82.1
  * Fixed a bug where using the wrong encryption key first caused the right key to be seen as invalid.
@@ -16,7 +19,7 @@
  * Closing realm on another thread different from where it was created now throws an exception.
  * Realm will now throw a RealmError when Realm's underlying storage engine encounters an unrecoverable error.
  * @Index annotation can also be applied to byte/short/int/long/boolean/Date now.
- * BREAKING CHANGE: Fields with annotation @PrimaryKey are indexed automatically now. Older schemas require a migration.
+ * Fields with annotation @PrimaryKey are indexed automatically now.
  * Fixed a bug where RealmQuery objects are prematurely garbage collected.
  * Removed RealmQuery.between() for link queries.
 

@@ -32,9 +32,8 @@ public class RealmAdapterTest extends AndroidTestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(realmConfig);
-        testRealm = Realm.getInstance(realmConfig);
+        Realm.deleteRealmFile(getContext());
+        testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {

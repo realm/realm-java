@@ -40,9 +40,8 @@ public class SortTest extends AndroidTestCase {
         // 1: (4, "Brian")
         // 2: (4, "Adam")
         // 3: (5, "Adam")
-        RealmConfiguration config = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(config);
-        testRealm = Realm.getInstance(config);
+        Realm.deleteRealmFile(getContext());
+        testRealm = Realm.getInstance(getContext());
 
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
