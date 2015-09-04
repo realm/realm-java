@@ -534,18 +534,18 @@ public class TableQuery implements Closeable {
         return nativeFindAllWithHandover(bgSharedGroupPtr, nativeReplicationPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE);
     }
 
-    public long findAllSortedWithHandover(long bgSharedGroupPtr, long ptrQuery, long columnIndex, boolean ascending) {
+    public long findAllSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long ptrQuery, long columnIndex, boolean ascending) {
         validateQuery();
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
-        return nativeFindAllSortedWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndex, ascending);
+        return nativeFindAllSortedWithHandover(bgSharedGroupPtr, nativeReplicationPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndex, ascending);
     }
 
-    public long findAllMultiSortedWithHandover(long bgSharedGroupPtr, long ptrQuery, long[] columnIndices, boolean[] ascending) {
+    public long findAllMultiSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long ptrQuery, long[] columnIndices, boolean[] ascending) {
         validateQuery();
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
-        return nativeFindAllMultiSortedWithHandover(bgSharedGroupPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndices, ascending);
+        return nativeFindAllMultiSortedWithHandover(bgSharedGroupPtr, nativeReplicationPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE, columnIndices, ascending);
     }
 
     // Suppose to be called from the caller SharedGroup thread
@@ -577,10 +577,10 @@ public class TableQuery implements Closeable {
 
     private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
     //TODO fix scope
-    private native long nativeFindAllSortedWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit, long columnIndex, boolean ascending);
+    public static native long nativeFindAllSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit, long columnIndex, boolean ascending);
     public static native long nativeFindAllWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit);
     public static native long nativeFindWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long fromTableRow);
-    private native long nativeFindAllMultiSortedWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long start, long end, long limit, long[] columnIndices, boolean[] ascending);
+    public static native long nativeFindAllMultiSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit, long[] columnIndices, boolean[] ascending);
     private native long nativeImportHandoverTableViewIntoSharedGroup(long handoverTableViewPtr, long callerSharedGroupPtr);
     public static native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedGroupPtr);
     private native long nativeHandoverQuery(long callerSharedGroupPtr, long nativeQueryPtr);

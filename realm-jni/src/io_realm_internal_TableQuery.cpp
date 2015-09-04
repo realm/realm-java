@@ -959,7 +959,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
   (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong native_replication_ptr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit)
   {
-
           // cast the pointer
           SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>* >(handoverQueryPtr);
           try {
@@ -1062,22 +1061,32 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
   }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
-  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong native_replication_ptr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
   {
+      // cast the pointer
+      SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>*>(handoverQueryPtr);
       try {
-          // cast the pointer
-          SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>*>(handoverQueryPtr);
-          std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
-
-          // when opening a Realm, we start implicitly a read transaction
-          // we need to close it before calling begin_read
           SG(bgSharedGroupPtr)->end_read();
 
-          // set the background Realm to the same version as the caller Realm
-          SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
+          // current version
+          SharedGroup::VersionID currentVersion = SG(bgSharedGroupPtr)->get_version_of_current_transaction();
+
+          std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+
+          bool isDifferentVersions = (currentVersion != handoverQuery->version);
+
+          if (isDifferentVersions) {
+              SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+          } else {
+              SG(bgSharedGroupPtr)->begin_read();
+          }
 
           // import the handover query pointer using the background SharedGroup
           std::unique_ptr<Query> pQuery (SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery)));
+          if (isDifferentVersions) {
+              LangBindHelper::advance_read( *SG(bgSharedGroupPtr), *CH(native_replication_ptr) );
+          }
+
           Table* pTable = pQuery->get_table().get();
 
           if (!QUERY_VALID(env, pQuery.get()) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))
@@ -1115,19 +1124,20 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
   }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
-  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong native_replication_ptr, jlong handoverQueryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
   {
+
+      // cast the pointer
+      SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>*>(handoverQueryPtr);
       try {
-          // cast the pointer
-          SharedGroup::Handover<Query>* hQuery = reinterpret_cast<SharedGroup::Handover<Query>*>(handoverQueryPtr);
-          std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+
 
           // when opening a Realm, we start implicitly a read transaction
           // we need to close it before calling begin_read
-          SG(bgSharedGroupPtr)->end_read();
+
 
           // set the background Realm to the same version as the caller Realm
-          SG(bgSharedGroupPtr)->begin_read(handoverQuery->version); // throws
+           // throws
 
           jsize arr_len = env->GetArrayLength(columnIndices);
           jsize asc_len = env->GetArrayLength(ascending);
@@ -1148,8 +1158,28 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
               return -1;
           }
 
+          //TODO is it necessary to end_read (the goal is to read a version
+          SG(bgSharedGroupPtr)->end_read();
+
+          SharedGroup::VersionID currentVersion = SG(bgSharedGroupPtr)->get_version_of_current_transaction();
+
+          std::unique_ptr<SharedGroup::Handover<Query> > handoverQuery (hQuery);
+//          SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+
+          bool isDifferentVersions = (currentVersion != handoverQuery->version);
+
+          if (isDifferentVersions) {
+              SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+          } else {
+              SG(bgSharedGroupPtr)->begin_read();
+          }
+
           // import the handover query pointer using the background SharedGroup
           std::unique_ptr<Query> pQuery = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
+          if (isDifferentVersions) {
+              LangBindHelper::advance_read( *SG(bgSharedGroupPtr), *CH(native_replication_ptr) );
+          }
+
           Table* pTable = pQuery->get_table().get();
 
           if (!QUERY_VALID(env, pQuery.get()) || !ROW_INDEXES_VALID(env, pTable, start, end, limit))

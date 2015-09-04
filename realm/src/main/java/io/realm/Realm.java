@@ -19,12 +19,10 @@ package io.realm;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.JsonReader;
-import android.util.Log;
 
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
@@ -75,6 +73,8 @@ import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
+import io.realm.internal.async.QueryUpdateTask;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -201,8 +201,11 @@ public final class Realm implements Closeable {
             new ConcurrentHashMap<String, AtomicInteger>();
 
     // Thread Pool for all async operations (Query & Write transaction)
-    // TODO make private
-    public static final ExecutorService asyncQueryExecutor = new PausableThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 2 + 1);
+    // TODO make private &define cancel policy (important for callback to notify onError if job was rejected)
+    // use threadfactory to set daemon and or thread priority for all thread
+    // http://www.nurkiewicz.com/2014/11/executorservice-10-tips-and-tricks.html
+//    public static final ExecutorService asyncQueryExecutor = new PausableThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 2 + 1);
+    static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
 //    public static final ExecutorService asyncQueryExecutor = new PausableThreadPoolExecutor(1);
 
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -349,7 +352,12 @@ public final class Realm implements Closeable {
 
                         // [STEP: 1] submit a job to a scheduler & as a parameter use current handler
                         // #getHandler() + list of exported queries to be re-run
-                        ArrayList<UpdateAsyncQueriesTask.Entry> queriesToUpdate = new ArrayList<UpdateAsyncQueriesTask.Entry>();
+                        QueryUpdateTask.Builder.UpdateQueryStep updateQueryStep = QueryUpdateTask.newBuilder()
+                                .realmConfiguration(getConfiguration());
+                        QueryUpdateTask.Builder.RealmResultsQueryStep realmResultsQueryStep = null;
+
+//                        ArrayList<WeakReference<RealmResults<?>>> queriesToUpdate = new ArrayList<WeakReference<RealmResults<?>>>(asyncQueries.get().size());
+//                        ArrayList<UpdateAsyncQueriesTask.Entry> queriesToUpdate = new ArrayList<UpdateAsyncQueriesTask.Entry>();
                         Iterator<Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>>> iterator = asyncQueries.get().entrySet().iterator();
                         while (iterator.hasNext()) {
                             Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>> entry = iterator.next();
@@ -360,6 +368,10 @@ public final class Realm implements Closeable {
                             if (realmResults == null) {
                                 iterator.remove();
 //                                asyncQueries.get().remove(weakReference);
+                            } else {
+                                realmResultsQueryStep = updateQueryStep.add(weakReference,
+                                                  entry.getValue().handoverQueryPointer(sharedGroup.getNativePointer()),
+                                                  entry.getValue().getArgument());
                             }
 
 //                            Integer identityHash = System.identityHashCode(realmResults);
@@ -372,16 +384,23 @@ public final class Realm implements Closeable {
                             //
                             //       watch out when you debug, as you're IDE try to evaluate RealmResults
                             //       which break the Thread confinement constraints.
-                            queriesToUpdate.add(UpdateAsyncQueriesTask.Entry.newRealmResultsEntry(weakReference,
-                                    new UpdateAsyncQueriesTask
-                                            .UpdateQuery(entry.getValue().handoverQueryPointer(sharedGroup.getNativePointer()),
-                                            entry.getValue().getArgument())));
+//                            queriesToUpdate.add(UpdateAsyncQueriesTask.Entry.newRealmResultsEntry(weakReference,
+//                                    new UpdateAsyncQueriesTask
+//                                            .UpdateQuery(entry.getValue().handoverQueryPointer(sharedGroup.getNativePointer()),
+//                                            entry.getValue().getArgument())));
+                        }
+                        if (realmResultsQueryStep != null) {
+                            QueryUpdateTask queryUpdateTask = realmResultsQueryStep
+                                    .sendToHandler(handler, REALM_UPDATE_ASYNC_QUERIES)
+                                    .build();
+                            updateAsyncQueries = asyncQueryExecutor.submit(queryUpdateTask);
                         }
 
-                        RealmLog.d("REALM_CHANGED updating " + queriesToUpdate.size() + " async queries");
+//                        RealmLog.d("REALM_CHANGED updating " + queriesToUpdate.size() + " async queries");
 //                        Runnable task = new UpdateAsyncQueriesTask(getHandler(), getConfiguration(), queriesToUpdate, sharedGroup.getVersion());
-                        Runnable task = new UpdateAsyncQueriesTask(handler, getConfiguration(), REALM_UPDATE_ASYNC_QUERIES, queriesToUpdate, sharedGroup.getVersion());
-                        updateAsyncQueries = asyncQueryExecutor.submit(task);
+
+//                        Runnable task = new UpdateAsyncQueriesTask(handler, getConfiguration(), REALM_UPDATE_ASYNC_QUERIES, queriesToUpdate, sharedGroup.getVersion());
+//                        updateAsyncQueries = asyncQueryExecutor.submit(task);
                         // submit a runnbal UpdateTask to the same pool as regular queries
                         // maybe have a method inside RealmQuery#update since it has all the information
                         // or create a new Callable object that has all the parameters & return a Future<List<[RR-TV]> + version
@@ -408,9 +427,10 @@ public final class Realm implements Closeable {
                     // should aim to ignore
 
                     // One async query has completed
-                    UpdateAsyncQueriesTask.Result result
-                            = (UpdateAsyncQueriesTask.Result) message.obj;
+                    QueryUpdateTask.Result result
+                            = (QueryUpdateTask.Result) message.obj;
                     //TODO assert result should contain at least one weak RR
+                    //     otherwise java.lang.ArrayIndexOutOfBoundsException: length=0; index=0
                     WeakReference<RealmResults<?>> weakRealmResults = (WeakReference<RealmResults<?>>) result.updatedTableViews.keySet().toArray()[0];
                     RealmResults<?> realmResults = weakRealmResults.get();
                     if (realmResults == null) {
@@ -445,16 +465,26 @@ public final class Realm implements Closeable {
 
                             if (!realmResults.isLoaded()) { // UC2
                                 // UC covered by this test: RealmAsyncQueryTests#testFindAllAsyncRetry
-                                RealmLog.d("[REALM_COMPLETED_ASYNC_QUERY "+ weakRealmResults + "] , caller is more advanced & RealmResults is not loaded, rerunning the query against the latest version");
-                                ArrayList<UpdateAsyncQueriesTask.Entry> queriesToUpdate = new ArrayList<UpdateAsyncQueriesTask.Entry>(1);
-                                RealmQuery<?> query = asyncQueries.get().get(weakRealmResults);
-                                queriesToUpdate.add(UpdateAsyncQueriesTask.Entry.newRealmResultsEntry(weakRealmResults,
-                                        new UpdateAsyncQueriesTask
-                                                .UpdateQuery(query.handoverQueryPointer(sharedGroup.getNativePointer()),
-                                                query.getArgument())));
+                                RealmLog.d("[REALM_COMPLETED_ASYNC_QUERY " + weakRealmResults + "] , caller is more advanced & RealmResults is not loaded, rerunning the query against the latest version");
 
-                                Runnable task = new UpdateAsyncQueriesTask(handler, getConfiguration(), REALM_COMPLETED_ASYNC_QUERY, queriesToUpdate, sharedGroup.getVersion());
-                                updateAsyncQueries = asyncQueryExecutor.submit(task);
+
+//                                ArrayList<UpdateAsyncQueriesTask.Entry> queriesToUpdate = new ArrayList<UpdateAsyncQueriesTask.Entry>(1);
+                                RealmQuery<?> query = asyncQueries.get().get(weakRealmResults);
+                                QueryUpdateTask queryUpdateTask = QueryUpdateTask.newBuilder()
+                                                                    .realmConfiguration(getConfiguration())
+                                                                    .add(weakRealmResults,
+                                                                            query.handoverQueryPointer(sharedGroup.getNativePointer()),
+                                                                            query.getArgument())
+                                                                    .sendToHandler(handler, REALM_COMPLETED_ASYNC_QUERY)
+                                                                    .build();
+
+//                                queriesToUpdate.add(UpdateAsyncQueriesTask.Entry.newRealmResultsEntry(weakRealmResults,
+//                                        new UpdateAsyncQueriesTask
+//                                                .UpdateQuery(query.handoverQueryPointer(sharedGroup.getNativePointer()),
+//                                                query.getArgument())));
+//
+//                                Runnable task = new UpdateAsyncQueriesTask(handler, getConfiguration(), REALM_COMPLETED_ASYNC_QUERY, queriesToUpdate, sharedGroup.getVersion());
+                                updateAsyncQueries = asyncQueryExecutor.submit(queryUpdateTask);
 
                             } else {
                                 // UC covered by this test: RealmAsyncQueryTests#testFindAllCallerIsAdvanced
@@ -481,8 +511,8 @@ public final class Realm implements Closeable {
                     // without a risk of advancing a missed query not updated (or RR without TV pointer)
 
 
-                    UpdateAsyncQueriesTask.Result result
-                            = (UpdateAsyncQueriesTask.Result) message.obj;
+                    QueryUpdateTask.Result result
+                            = (QueryUpdateTask.Result) message.obj;
 
                     // the advance_read to the background.shared_group_version or latest?
                     // we need to receive version + be able to advance_read to a specific version
@@ -564,7 +594,7 @@ public final class Realm implements Closeable {
                     break;
                 }
                 case REALM_COMPLETED_ASYNC_FIND_FIRST: {
-                    UpdateAsyncQueriesTask.Result result = (UpdateAsyncQueriesTask.Result) message.obj;
+                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
                     WeakReference<RealmObject> realmObjectWeakReference = (WeakReference<RealmObject>) result.updatedRow.keySet().toArray()[0];
 
 
@@ -585,14 +615,21 @@ public final class Realm implements Closeable {
                         } else if (compare > 0) { // the caller has advanced we need to
                             // retry against the current version of the caller
                             RealmQuery<?> realmQuery = asyncRealmObjects.get().get(realmObjectWeakReference);
-                            ArrayList<UpdateAsyncQueriesTask.Entry> queryToUpdate = new ArrayList<UpdateAsyncQueriesTask.Entry>(1);
-                            queryToUpdate.add(UpdateAsyncQueriesTask.Entry.newRealmObjectEntry(realmObjectWeakReference,
-                                    new UpdateAsyncQueriesTask
-                                            .UpdateQuery(realmQuery.handoverQueryPointer(sharedGroup.getNativePointer()),
-                                            realmQuery.getArgument())));
+//                            ArrayList<UpdateAsyncQueriesTask.Entry> queryToUpdate = new ArrayList<UpdateAsyncQueriesTask.Entry>(1);
+                            QueryUpdateTask queryUpdateTask = QueryUpdateTask.newBuilder()
+                                    .realmConfiguration(getConfiguration())
+                                    .addObject(realmObjectWeakReference,
+                                            realmQuery.handoverQueryPointer(sharedGroup.getNativePointer()),
+                                            realmQuery.getArgument())
+                                    .sendToHandler(handler, REALM_COMPLETED_ASYNC_FIND_FIRST)
+                                    .build();
+//                            queryToUpdate.add(UpdateAsyncQueriesTask.Entry.newRealmObjectEntry(realmObjectWeakReference,
+//                                    new UpdateAsyncQueriesTask
+//                                            .UpdateQuery(realmQuery.handoverQueryPointer(sharedGroup.getNativePointer()),
+//                                            realmQuery.getArgument())));
 
-                            Runnable task = new UpdateAsyncQueriesTask(handler, getConfiguration(), REALM_COMPLETED_ASYNC_FIND_FIRST, queryToUpdate, sharedGroup.getVersion());
-                            updateAsyncQueries = asyncQueryExecutor.submit(task);
+//                            Runnable task = new UpdateAsyncQueriesTask(handler, getConfiguration(), REALM_COMPLETED_ASYNC_FIND_FIRST, queryToUpdate, sharedGroup.getVersion());
+                            updateAsyncQueries = asyncQueryExecutor.submit(queryUpdateTask);
 
                         } else {
                             // should not happen, since the the baground thread position itself against the provided version
@@ -1891,7 +1928,7 @@ public final class Realm implements Closeable {
      * @param callback optional, to receive the result of this query
      * @return A {@link io.realm.RealmQuery.Request} representing a cancellable task
      */
-    public RealmQuery.Request executeTransaction(final Transaction transaction, @Nullable final Transaction.Callback callback) {
+    public RealmQuery.Request executeAsyncTransaction(final Transaction transaction, @Nullable final Transaction.Callback callback) {
         if (transaction == null)
             throw new IllegalArgumentException("transaction should not be null");
 
@@ -1915,7 +1952,9 @@ public final class Realm implements Closeable {
 
                         if (!Thread.currentThread().isInterrupted()) {
                             bgRealm.commitTransaction();
-                            if (callback != null) {
+                            if (callback != null
+                                    && !Thread.currentThread().isInterrupted()
+                                    && handler.getLooper().getThread().isAlive()) {
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
@@ -1929,7 +1968,9 @@ public final class Realm implements Closeable {
 
                     } catch (final RuntimeException e) {
                         bgRealm.cancelTransaction();
-                        if (callback != null && !Thread.currentThread().isInterrupted()) {
+                        if (callback != null
+                                && !Thread.currentThread().isInterrupted()
+                                && handler.getLooper().getThread().isAlive()) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1939,7 +1980,9 @@ public final class Realm implements Closeable {
                         }
                     } catch (final Error e) {
                         bgRealm.cancelTransaction();
-                        if (callback != null && !Thread.currentThread().isInterrupted()) {
+                        if (callback != null
+                                && !Thread.currentThread().isInterrupted()
+                                && handler.getLooper().getThread().isAlive()) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -2349,52 +2392,52 @@ public final class Realm implements Closeable {
     }
 
     // pausable thread pool
-    public static class PausableThreadPoolExecutor extends ThreadPoolExecutor {
-        private boolean isPaused;
-        private ReentrantLock pauseLock = new ReentrantLock();
-        private Condition unpaused = pauseLock.newCondition();
-
-        public PausableThreadPoolExecutor(int nThreads) {
-            this(nThreads, nThreads,
-                    0L, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<Runnable>());
-        }
-
-        public PausableThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
-            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-        }
-
-//        public PausableThreadPoolExecutor(...) { super(...);
-
-        protected void beforeExecute(Thread t, Runnable r) {
-            super.beforeExecute(t, r);
-            pauseLock.lock();
-            try {
-                while (isPaused) unpaused.await();
-            } catch (InterruptedException ie) {
-                t.interrupt();
-            } finally {
-                pauseLock.unlock();
-            }
-        }
-
-        public void pause() {
-            pauseLock.lock();
-            try {
-                isPaused = true;
-            } finally {
-                pauseLock.unlock();
-            }
-        }
-
-        public void resume() {
-            pauseLock.lock();
-            try {
-                isPaused = false;
-                unpaused.signalAll();
-            } finally {
-                pauseLock.unlock();
-            }
-        }
-    }
+//    public static class PausableThreadPoolExecutor extends ThreadPoolExecutor {
+//        private boolean isPaused;
+//        private ReentrantLock pauseLock = new ReentrantLock();
+//        private Condition unpaused = pauseLock.newCondition();
+//
+//        public PausableThreadPoolExecutor(int nThreads) {
+//            this(nThreads, nThreads,
+//                    0L, TimeUnit.MILLISECONDS,
+//                    new LinkedBlockingQueue<Runnable>());
+//        }
+//
+//        public PausableThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+//            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+//        }
+//
+////        public PausableThreadPoolExecutor(...) { super(...);
+//
+//        protected void beforeExecute(Thread t, Runnable r) {
+//            super.beforeExecute(t, r);
+//            pauseLock.lock();
+//            try {
+//                while (isPaused) unpaused.await();
+//            } catch (InterruptedException ie) {
+//                t.interrupt();
+//            } finally {
+//                pauseLock.unlock();
+//            }
+//        }
+//
+//        public void pause() {
+//            pauseLock.lock();
+//            try {
+//                isPaused = true;
+//            } finally {
+//                pauseLock.unlock();
+//            }
+//        }
+//
+//        public void resume() {
+//            pauseLock.lock();
+//            try {
+//                isPaused = false;
+//                unpaused.signalAll();
+//            } finally {
+//                pauseLock.unlock();
+//            }
+//        }
+//    }
 }

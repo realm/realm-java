@@ -386,18 +386,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeFindAllSortedWithHandover
- * Signature: (JJJJJJZ)J
+ * Signature: (JJJJJJJZ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong, jboolean);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeFindAllMultiSortedWithHandover
- * Signature: (JJJJJ[J[Z)J
+ * Signature: (JJJJJJ[J[Z)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlongArray, jbooleanArray);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong, jlongArray, jbooleanArray);
 
 /*
  * Class:     io_realm_internal_TableQuery

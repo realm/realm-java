@@ -43,6 +43,8 @@ import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.BadVersionException;
+import io.realm.internal.async.QueryUpdateTask;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.async.RetryPolicy;
 import io.realm.internal.async.RetryPolicyFactory;
 
@@ -1363,8 +1365,7 @@ public class RealmQuery<E extends RealmObject> {
         // TODO: Need to clear all params of this query, as user may use the same instance to
         // call multiple findAllAsync
 
-        //TODO check that caller has a looper
-        final Handler handler = realm.getHandler();//use caller Looper
+        final Handler handler = realm.getHandler();//use caller Realm Looper
 
         // just need to build a query configuration that we need to add to the list
         // of current async queries
@@ -1391,6 +1392,7 @@ public class RealmQuery<E extends RealmObject> {
         final Future<Long> pendingQuery = asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
+                //TODO emable thread priority & check for interruption
                // android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 //                if (!Thread.currentThread().isInterrupted() && (asyncRequest == null || !asyncRequest.isCancelled())) {
 //                    Realm bgRealm = null;
@@ -1414,9 +1416,12 @@ public class RealmQuery<E extends RealmObject> {
 //                        UpdateAsyncQueriesTask.Result
                         // we need to post 'like the update job' to the handler
                         // using the signal REALM_COMPLETED_ASYNC_QUERY
-                        IdentityHashMap<WeakReference<RealmResults<?>>, Long> updatedTV = new IdentityHashMap<WeakReference<RealmResults<?>>, Long>(1);
-                        updatedTV.put(weakRealmResults, handoverTableViewPtr);
-                        UpdateAsyncQueriesTask.Result result =  UpdateAsyncQueriesTask.Result.newRealmResults(updatedTV, sharedGroup.getVersion());
+                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResults();
+                        result.updatedTableViews.put(weakRealmResults, handoverTableViewPtr);
+                        result.versionID = sharedGroup.getVersion();
+//                        IdentityHashMap<WeakReference<RealmResults<?>>, Long> updatedTV = new IdentityHashMap<WeakReference<RealmResults<?>>, Long>(1);
+//                        updatedTV.put(weakRealmResults, handoverTableViewPtr);
+//                        UpdateAsyncQueriesTask.Result result =  UpdateAsyncQueriesTask.Result.newRealmResults(updatedTV, );
 
                         // notify caller thread
                         if (handler.getLooper().getThread().isAlive()) {
@@ -1517,10 +1522,12 @@ public class RealmQuery<E extends RealmObject> {
 
                     handoverRowPtr = query.findWithHandover(sharedGroup.getNativePointer(), handoverQueryPointer);
 
-                    IdentityHashMap<WeakReference<RealmObject>, Long> updatedRow = new IdentityHashMap<WeakReference<RealmObject>, Long>(1);
-                    updatedRow.put(realmObjectWeakReference, handoverRowPtr);
-                    UpdateAsyncQueriesTask.Result result =  UpdateAsyncQueriesTask.Result.newRealmObject(updatedRow, sharedGroup.getVersion());
-
+                    QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmObject();
+                    result.updatedRow.put(realmObjectWeakReference, handoverRowPtr);
+                    result.versionID = sharedGroup.getVersion();
+//                    IdentityHashMap<WeakReference<RealmObject>, Long> updatedRow = new IdentityHashMap<WeakReference<RealmObject>, Long>(1);
+//                    updatedRow.put(realmObjectWeakReference, handoverRowPtr);
+//                    UpdateAsyncQueriesTask.Result result =  UpdateAsyncQueriesTask.Result.newRealmObject(updatedRow, );
 
                     // notify caller thread
                     if (handler.getLooper().getThread().isAlive()) {
@@ -1806,7 +1813,7 @@ public class RealmQuery<E extends RealmObject> {
                         bgRealm = Realm.getInstance(realmConfiguration);
 
                         // Run the query & handover the table view for the caller thread
-                        handoverTableViewPtr = query.findAllSortedWithHandover(bgRealm.getSharedGroupPointer(), handoverQueryPtr, columnIndex, (order == TableView.Order.ascending));
+                        handoverTableViewPtr = query.findAllSortedWithHandover(bgRealm.getSharedGroupPointer(), bgRealm.sharedGroup.getNativeReplicationPointer(), handoverQueryPtr, columnIndex, (order == TableView.Order.ascending));
                         // save query arguments (for future update)
                         argumentsHolder =  new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
                         argumentsHolder.columnIndex = columnIndex;
@@ -1865,6 +1872,82 @@ public class RealmQuery<E extends RealmObject> {
         }
         return asyncRequest;
     }
+
+    public RealmResults<E> findAllSortedAsync(String fieldName, boolean sortAscending) {
+        final TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
+        final Long columnIndex = columns.get(fieldName);
+        if (columnIndex == null || columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        // capture the query arguments for future retries & update
+        argumentsHolder =  new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
+        argumentsHolder.ascending = sortAscending;
+        argumentsHolder.columnIndex = columnIndex;
+
+        // will use the Looper of the caller Realm to post the result
+        final Handler handler = realm.getHandler();
+
+        // Handover the query (to be used by a worker thread)
+        handoverQueryPtr = query.handoverQuery(realm.getSharedGroupPointer());
+
+        // We need to use the same configuration to open a background SharedGroup to perform the query
+        final RealmConfiguration realmConfiguration = realm.getConfiguration();
+
+        RealmResults<E> realmResults = new RealmResults<E>(realm, query, clazz);
+        final WeakReference<RealmResults<?>> weakRealmResults = new WeakReference<RealmResults<?>>(realmResults);
+        Realm.asyncQueries.get().put(weakRealmResults, this);
+
+        final Future<Long> pendingQuery = asyncQueryExecutor.submit(new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+                if (!Thread.currentThread().isInterrupted() && (asyncRequest == null || !asyncRequest.isCancelled())) {
+                    SharedGroup sharedGroup = null;
+
+                    try {
+                        sharedGroup = new SharedGroup(realmConfiguration.getPath(),
+                                true, realmConfiguration.getDurability(),
+                                realmConfiguration.getEncryptionKey());
+
+                        // Run the query & handover the table view for the caller thread
+                        handoverTableViewPtr = query.findAllSortedWithHandover(sharedGroup.getNativePointer(), sharedGroup.getNativeReplicationPointer(), handoverQueryPtr, columnIndex, (order == TableView.Order.ascending));
+
+                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResults();
+                        result.updatedTableViews.put(weakRealmResults, handoverTableViewPtr);
+                        result.versionID = sharedGroup.getVersion();
+
+                        if (handler.getLooper().getThread().isAlive()) {
+                            Message message = handler.obtainMessage(Realm.REALM_COMPLETED_ASYNC_QUERY, result);
+                            handler.sendMessage(message);
+                        }
+
+                        return handoverTableViewPtr;
+
+                    } catch (BadVersionException e) {
+                        e.printStackTrace();
+                        return INVALID_TABLE_VIEW_POINTER;
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return INVALID_TABLE_VIEW_POINTER;
+
+                    } finally {
+                        if (sharedGroup != null) {
+                            sharedGroup.close();
+                        }
+                    }
+                } else {
+                    //TODO is there any releaseHandoverResources() to release?
+
+                }
+                return INVALID_TABLE_VIEW_POINTER;
+            }
+        });
+        realmResults.setPendingQuery(pendingQuery);
+        return realmResults;
+    }
+
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field name in
@@ -2003,7 +2086,7 @@ public class RealmQuery<E extends RealmObject> {
                             bgRealm = Realm.getInstance(realmConfiguration);
 
                             // Run the query & handover the table view for the caller thread
-                            handoverTableViewPtr = query.findAllMultiSortedWithHandover(bgRealm.getSharedGroupPointer(), handoverQueryPtr, indices, sortAscendings);
+                            handoverTableViewPtr = query.findAllMultiSortedWithHandover(bgRealm.getSharedGroupPointer(), bgRealm.sharedGroup.getNativeReplicationPointer(), handoverQueryPtr, indices, sortAscendings);
                             handoverQueryPtr = -1;
                             if (IS_DEBUG && NB_ADVANCE_READ_SIMULATION-- > 0) {
                                 // notify caller thread that we're about to post result to Handler
@@ -2054,6 +2137,104 @@ public class RealmQuery<E extends RealmObject> {
                 asyncRequest = new Request(pendingQuery);
             }
             return asyncRequest;
+        }
+    }
+
+
+    public RealmResults<E> findAllSortedAsync(String fieldNames[], final boolean [] sortAscendings) {
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames cannot be 'null'.");
+        } else if (sortAscendings == null) {
+            throw new IllegalArgumentException("sortAscending cannot be 'null'.");
+        } else if (fieldNames.length == 0) {
+            throw new IllegalArgumentException("At least one field name must be specified.");
+        } else if (fieldNames.length != sortAscendings.length) {
+            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortAscendings.length));
+        }
+
+        if (fieldNames.length == 1 && sortAscendings.length == 1) {
+            return findAllSortedAsync(fieldNames[0], sortAscendings[0]);
+
+        } else {
+
+            // will use the Looper of the caller Realm to post the result
+            final Handler handler = realm.getHandler();
+
+            // Handover the query (to be used by a worker thread)
+            handoverQueryPtr = query.handoverQuery(realm.getSharedGroupPointer());
+
+            // We need to use the same configuration to open a background SharedGroup to perform the query
+            final RealmConfiguration realmConfiguration = realm.getConfiguration();
+
+            final long indices[] = new long[fieldNames.length];
+            for (int i = 0; i < fieldNames.length; i++) {
+                String fieldName = fieldNames[i];
+                Long columnIndex = columns.get(fieldName);
+                if (columnIndex == null || columnIndex < 0) {
+                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+                }
+                indices[i] = columnIndex;
+            }
+
+            // capture the query arguments for future retries & update
+            argumentsHolder =  new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED);
+            argumentsHolder.ascendings = sortAscendings;
+            argumentsHolder.columnIndices = indices;
+
+            // prepare the promise result
+            RealmResults<E> realmResults = new RealmResults<E>(realm, query, clazz);
+            final WeakReference<RealmResults<?>> weakRealmResults = new WeakReference<RealmResults<?>>(realmResults);
+            Realm.asyncQueries.get().put(weakRealmResults, this);
+
+            final Future<Long> pendingQuery = asyncQueryExecutor.submit(new Callable<Long>() {
+                @Override
+                public Long call() throws Exception {
+                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+                    if (!Thread.currentThread().isInterrupted() && (asyncRequest == null || !asyncRequest.isCancelled())) {
+                        SharedGroup sharedGroup = null;
+
+                        try {
+                            sharedGroup = new SharedGroup(realmConfiguration.getPath(),
+                                    true, realmConfiguration.getDurability(),
+                                    realmConfiguration.getEncryptionKey());
+
+                            // Run the query & handover the table view for the caller thread
+                            handoverTableViewPtr = query.findAllMultiSortedWithHandover(sharedGroup.getNativePointer(), sharedGroup.getNativeReplicationPointer(), handoverQueryPtr, indices, sortAscendings);
+
+                            QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResults();
+                            result.updatedTableViews.put(weakRealmResults, handoverTableViewPtr);
+                            result.versionID = sharedGroup.getVersion();
+
+                            if (handler.getLooper().getThread().isAlive()) {
+                                Message message = handler.obtainMessage(Realm.REALM_COMPLETED_ASYNC_QUERY, result);
+                                handler.sendMessage(message);
+                            }
+
+                            return handoverTableViewPtr;
+
+                        } catch (BadVersionException e) {
+                            e.printStackTrace();
+                            return INVALID_TABLE_VIEW_POINTER;
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return INVALID_TABLE_VIEW_POINTER;
+
+                        } finally {
+                            if (sharedGroup != null) {
+                                sharedGroup.close();
+                            }
+                        }
+                    } else {
+                        //TODO is there any releaseHandoverResources() to release?
+
+                    }
+                    return INVALID_TABLE_VIEW_POINTER;
+                }
+            });
+
+            realmResults.setPendingQuery(pendingQuery);
+            return realmResults;
         }
     }
 
@@ -2267,6 +2448,19 @@ public class RealmQuery<E extends RealmObject> {
         public void cancel() {
             pendingQuery.cancel(true);
             isCancelled = true;
+            Realm.asyncQueryExecutor.getQueue().remove(pendingQuery);
+            // Cancelled tasks are never executed, but may
+            // accumulate in work queues, which may causes a memory leak
+            // if the task hold references (to an enclosing class for example)
+            //TODO call explicitly purge from the ThreadPoolExecutor
+            /*
+            One caveat applies: if a second thread attempts to add something to the pool (suing the execute() method) at the same time the first thread is attempting to purge the queue the attempt to purge the queue fails and the canceled objects remain in the queue.
+A better way to cancel objects with thread pools os to use the remove() method of the thread pool, which immediatelt removes the task
+from the thread pool queue. The remove() method can be used with runnable objects
+
+             */
+//            Realm.asyncQueryExecutor.purge(); remove
+
         }
 
         private void setPendingQuery(Future<?> pendingQuery) {
@@ -2490,27 +2684,27 @@ public class RealmQuery<E extends RealmObject> {
     // encapsulate argument (in case we want to re-query)
     // act like a bundle (in Android) that help recreate a state
     // in our UC all the information needed to rerun the query
-    static class ArgumentsHolder {
+    public static class ArgumentsHolder {
         public final static int TYPE_FIND_ALL = 0;
         public final static int TYPE_FIND_ALL_SORTED = 1;
         public final static int TYPE_FIND_ALL_MULTI_SORTED = 2;
         public final static int TYPE_FIND_FIRST = 3;
 
-        final int type;
-        long start;
-        long end;
-        long limit;
-        long columnIndex;
-        boolean ascending;
-        long[] columnIndices;
-        boolean[] ascendings;
+        public final int type;
+//        long start;
+//        long end;
+//        long limit;
+        public long columnIndex;
+        public boolean ascending;
+        public long[] columnIndices;
+        public boolean[] ascendings;
 
         ArgumentsHolder(int type) {
             this.type = type;
         }
     }
 
-    protected ArgumentsHolder getArgument () {
+    public ArgumentsHolder getArgument () {
         return argumentsHolder;
     }
 
