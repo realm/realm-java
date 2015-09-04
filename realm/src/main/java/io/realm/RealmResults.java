@@ -55,8 +55,8 @@ import io.realm.internal.TableView;
 public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     BaseRealm realm;
-    Class<E> classSpec;   // Typed Realms
-    String className;     // Dynamic Realms
+    Class<E> classSpec;   // Return type
+    String className;     // Class name for DynamicRealmObjects
     private TableOrView table = null;
 
     public static final boolean SORT_ORDER_ASCENDING = true;
@@ -108,9 +108,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(location));
+            obj = realm.get(classSpec, className, ((TableView)table).getSourceRowIndex(location));
         } else {
-            obj = realm.get(classSpec, location);
+            obj = realm.get(classSpec, className, location);
         }
 
         return obj;

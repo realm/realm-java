@@ -33,14 +33,11 @@ import io.realm.internal.UncheckedRow;
  * done using Strings instead of classes.
  *
  * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file as both a dynamic Realm and the normal
- * typed one.
+ * typed one. A Realm file can both be open in dynamic and typed mode at the same time, but modifying
+ * the schema while doing so is highly discouraged and will most likely crash the typed Realm.
  *
  * Dynamic Realms do not enforce schemaVersions and doesn't trigger migrations even if they have been defined in
  * the configuration.
- *
- * Note that a DynamicRealm and a normal Realm share the same underlying resources so that also means they will
- * share transactions, i.e. it is possible to start a transaction in a normal Realm and commit it from a
- * dynamic Realm. Doing so is highly discouraged.
  *
  * @see io.realm.Realm
  */
@@ -91,7 +88,7 @@ public class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className) {
         Table table = getTable(className);
         long rowIndex = table.addEmptyRow();
-        return get(className, rowIndex);
+        return get(DynamicRealmObject.class, className, rowIndex);
     }
 
     /**

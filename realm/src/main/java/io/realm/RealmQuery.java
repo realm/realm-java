@@ -1368,11 +1368,7 @@ public class RealmQuery<E extends RealmObject> {
     public E findFirst() {
         long rowIndex = this.query.find();
         if (rowIndex >= 0) {
-            if (className != null) {
-                return (E) realm.get(className, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
-            } else {
-                return realm.get(clazz, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
-            }
+            return realm.get(clazz, className, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
         } else {
             return null;
         }

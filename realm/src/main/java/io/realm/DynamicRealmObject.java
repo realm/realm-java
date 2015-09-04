@@ -50,6 +50,10 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     // Create a dynamic object. Only used internally
+    DynamicRealmObject() {
+
+    }
+
     DynamicRealmObject(BaseRealm realm, Row row) {
         this.realm = realm;
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();

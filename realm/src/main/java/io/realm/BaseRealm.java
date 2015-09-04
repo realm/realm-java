@@ -23,7 +23,6 @@ import android.os.Message;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -522,6 +521,7 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    // Used by proxy classes
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
@@ -531,10 +531,21 @@ abstract class BaseRealm implements Closeable {
         return result;
     }
 
-    DynamicRealmObject get(String className, long rowIndex) {
-        Table table = getTable(className);
+    // Used by RealmList/RealmResults
+    // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
+    <E extends RealmObject> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
+        Table table;
+        E result;
+        if (dynamicClassName != null) {
+            table = getTable(dynamicClassName);
+            result = (E) new DynamicRealmObject();
+        } else {
+            table = getTable(clazz);
+            result = configuration.getSchemaMediator().newInstance(clazz);
+        }
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        DynamicRealmObject result = new DynamicRealmObject(this, row);
+        result.row = row;
+        result.realm = this;
         return result;
     }
 
