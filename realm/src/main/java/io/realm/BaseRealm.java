@@ -15,7 +15,7 @@
  *
  */
 
-package io.realm.base;
+package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -23,6 +23,7 @@ import android.os.Message;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,13 +34,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.realm.BuildConfig;
-import io.realm.RealmChangeListener;
-import io.realm.RealmConfiguration;
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
+import io.realm.internal.UncheckedRow;
+import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
@@ -49,7 +50,7 @@ import io.realm.internal.log.RealmLog;
  *
  * @see io.realm.Realm
  */
-public abstract class BaseRealm implements Closeable {
+abstract class BaseRealm implements Closeable {
 
     private static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
     protected static final long UNVERSIONED = -1;
@@ -68,8 +69,17 @@ public abstract class BaseRealm implements Closeable {
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
+    // Caches Dynamic Class objects (both model classes and proxy classes) to Realm Tables
+    private final Map<String, Table> dynamicClassToTable = new HashMap<String, Table>();
+
+    // Caches Class objects (both model classes and proxy classes) to Realm Tables
+    private final Map<Class<? extends RealmObject>, Table> classToTable =
+            new HashMap<Class<? extends RealmObject>, Table>();
+
     protected final List<WeakReference<RealmChangeListener>> changeListeners =
             new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
+
+    protected ColumnIndices columnIndices = new ColumnIndices();
 
     protected long threadId;
     protected RealmConfiguration configuration;
@@ -442,6 +452,30 @@ public abstract class BaseRealm implements Closeable {
         globalRealmFileReferenceCounter.put(canonicalPath, refCount - 1);
     }
 
+    // Public because of migrations
+    @Deprecated
+    public Table getTable(Class<? extends RealmObject> clazz) {
+        Table table = classToTable.get(clazz);
+        if (table == null) {
+            clazz = Util.getOriginalModelClass(clazz);
+            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            classToTable.put(clazz, table);
+        }
+        return table;
+    }
+
+    // Public because of migrations
+    @Deprecated
+    public Table getTable(String className) {
+        className = Table.TABLE_PREFIX + className;
+        Table table = dynamicClassToTable.get(className);
+        if (table == null) {
+            table = sharedGroupManager.getTable(className);
+            dynamicClassToTable.put(className, table);
+        }
+        return table;
+    }
+
     /**
      * Make sure that the new configuration doesn't clash with any existing configurations for the
      * Realm.
@@ -486,6 +520,22 @@ public abstract class BaseRealm implements Closeable {
                         "configurations pointing to " + newConfiguration.getPath() + " are being used.");
             }
         }
+    }
+
+    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
+        Table table = getTable(clazz);
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        E result = configuration.getSchemaMediator().newInstance(clazz);
+        result.row = row;
+        result.realm = this;
+        return result;
+    }
+
+    DynamicRealmObject get(String className, long rowIndex) {
+        Table table = getTable(className);
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        DynamicRealmObject result = new DynamicRealmObject(this, row);
+        return result;
     }
 
     // Internal Handler callback for Realm messages

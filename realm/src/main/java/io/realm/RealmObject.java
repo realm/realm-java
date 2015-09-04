@@ -17,7 +17,6 @@
 package io.realm;
 
 import io.realm.annotations.RealmClass;
-import io.realm.base.BaseRealm;
 import io.realm.internal.Row;
 import io.realm.internal.InvalidRow;
 
@@ -77,7 +76,7 @@ import io.realm.internal.InvalidRow;
 public abstract class RealmObject {
 
     protected Row row;
-    protected Realm realm;
+    protected BaseRealm realm;
 
     /**
      * Removes the object from the Realm it is currently associated to.
@@ -113,7 +112,7 @@ public abstract class RealmObject {
      *
      * @return The Realm this object belongs to or {@code null} if it is a standalone object.
      */
-    protected static Realm getRealm(RealmObject obj) {
+    protected static BaseRealm getRealm(RealmObject obj) {
         return obj.realm;
     }
 

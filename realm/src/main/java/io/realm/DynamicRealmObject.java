@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.dynamic;
+package io.realm;
 
 import java.util.Date;
 
-import io.realm.RealmObject;
-import io.realm.base.BaseRealm;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
 import io.realm.internal.InvalidRow;
@@ -223,16 +221,17 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Returns the {@link io.realm.RealmList} of objects being linked to from this field. This list is returned
-     * as a {@link DynamicRealmList}.
+     * Returns the {@link RealmList} of objects being linked to from this field.
      *
      * @param fieldName Name of field.
-     * @return the {@link DynamicRealmList} representation of the RealmList.
+     * @return The {@link RealmList} data for this field.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain a list of links.
      */
-    public DynamicRealmList getList(String fieldName) {
+    public RealmList<DynamicRealmObject> getList(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        return new DynamicRealmList(row.getLinkList(columnIndex), realm);
+        LinkView linkView = row.getLinkList(columnIndex);
+        String className = linkView.getTable().getName().substring(Table.TABLE_PREFIX.length());
+        return new RealmList<DynamicRealmObject>(className, linkView, realm);
     }
 
     /**
@@ -342,8 +341,8 @@ public class DynamicRealmObject extends RealmObject {
             setBlob(fieldName, (byte[]) value);
         } else if (value instanceof DynamicRealmObject) {
             setObject(fieldName, (DynamicRealmObject) value);
-        } else if (value instanceof DynamicRealmList) {
-            setList(fieldName, (DynamicRealmList) value);
+        } else if (value instanceof RealmList) {
+            setList(fieldName, (RealmList<DynamicRealmObject>) value);
         } else {
             throw new IllegalArgumentException("Value is of an type not supported by Realm: " + value);
         }
@@ -499,14 +498,14 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Sets the reference to a {@link DynamicRealmList} on the given field.
+     * Sets the reference to a {@link RealmList} on the given field.
      *
      * @param fieldName Field name.
      * @param list List of references.
      * @throws IllegalArgumentException if field name doesn't exists, it doesn't contain a list of links or the type
      * of the object represented by the DynamicRealmObject doesn't match.
      */
-    public void setList(String fieldName, DynamicRealmList list) {
+    public void setList(String fieldName, RealmList<DynamicRealmObject> list) {
         long columnIndex = row.getColumnIndex(fieldName);
         LinkView links = row.getLinkList(columnIndex);
         links.clear();
@@ -537,7 +536,7 @@ public class DynamicRealmObject extends RealmObject {
     /**
      * Returns the type used by the underlying storage engine to represent this field.
      *
-     * @return The {@link ColumnType} used by Realm to represent this field.
+     * @return The ColumnType used by Realm to represent this field.
      */
     public ColumnType getFieldType(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -622,13 +621,5 @@ public class DynamicRealmObject extends RealmObject {
         sb.replace(sb.length() - 2, sb.length(), "");
         sb.append("]");
         return sb.toString();
-    }
-
-    Row getRow() {
-        return row;
-    }
-
-    BaseRealm getRealm() {
-        return realm;
     }
 }

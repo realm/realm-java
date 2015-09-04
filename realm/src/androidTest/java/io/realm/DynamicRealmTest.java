@@ -20,11 +20,7 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
-import io.realm.dynamic.DynamicRealm;
-import io.realm.dynamic.DynamicRealmObject;
-import io.realm.dynamic.DynamicRealmResults;
 import io.realm.entities.AllTypes;
-import io.realm.internal.ReadTransaction;
 
 public class DynamicRealmTest extends AndroidTestCase {
 
@@ -62,7 +58,7 @@ public class DynamicRealmTest extends AndroidTestCase {
         realm.createObject("AllTypes");
         realm.commitTransaction();
 
-        DynamicRealmResults results = realm.where("AllTypes").findAll();
+        RealmResults<DynamicRealmObject> results = realm.where("AllTypes").findAll();
         assertEquals(1, results.size());
     }
 

@@ -21,8 +21,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import io.realm.dynamic.DynamicRealmList;
-import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Dog;
 
@@ -255,7 +253,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     // List is not a simple getter, test separately.
     public void testGetList() {
-        DynamicRealmList list = dObj.getList(AllJavaTypes.FIELD_LIST);
+        RealmList<DynamicRealmObject> list = dObj.getList(AllJavaTypes.FIELD_LIST);
         assertEquals(1, list.size());
         assertEquals(dObj, list.get(0));
     }

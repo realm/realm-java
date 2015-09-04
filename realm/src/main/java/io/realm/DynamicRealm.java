@@ -15,7 +15,7 @@
  *
  */
 
-package io.realm.dynamic;
+package io.realm;
 
 import android.os.Looper;
 
@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.realm.RealmConfiguration;
-import io.realm.base.BaseRealm;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
@@ -63,9 +61,6 @@ public class DynamicRealm extends BaseRealm {
                     return new HashMap<RealmConfiguration, Integer>();
                 }
             };
-
-    // Caches Class objects (both model classes and proxy classes) to Realm Tables
-    private final Map<String, Table> classToTable = new HashMap<String, Table>();
 
     private DynamicRealm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
@@ -106,12 +101,12 @@ public class DynamicRealm extends BaseRealm {
      * @return A RealmQuery, which can be used to query for specific objects of provided type.
      * @see io.realm.RealmQuery
      */
-    public DynamicRealmQuery where(String className) {
+    public RealmQuery<DynamicRealmObject> where(String className) {
         checkIfValid();
         if (!sharedGroupManager.hasTable(Table.TABLE_PREFIX + className)) {
             throw new IllegalArgumentException("Class does not exist in the Realm so it cannot be queried: " + className);
         }
-        return new DynamicRealmQuery(this, className);
+        return RealmQuery.createDynamicQuery(this, className);
     }
 
     private static synchronized DynamicRealm create(RealmConfiguration configuration) {
@@ -148,23 +143,6 @@ public class DynamicRealm extends BaseRealm {
         realm.acquireFileReference(configuration);
 
         return realm;
-    }
-
-    protected Table getTable(String className) {
-        className = Table.TABLE_PREFIX + className;
-        Table table = classToTable.get(className);
-        if (table == null) {
-            table = sharedGroupManager.getTable(className);
-            classToTable.put(className, table);
-        }
-        return table;
-    }
-
-    DynamicRealmObject get(String className, long rowIndex) {
-        Table table = getTable(className);
-        UncheckedRow row = table.getUncheckedRow(rowIndex);
-        DynamicRealmObject result = new DynamicRealmObject(this, row);
-        return result;
     }
 
     @Override

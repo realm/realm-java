@@ -42,19 +42,15 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.realm.base.BaseRealm;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
-import io.realm.internal.UncheckedRow;
-import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -130,12 +126,7 @@ public final class Realm extends BaseRealm {
                 }
             };
 
-    // Caches Class objects (both model classes and proxy classes) to Realm Tables
-    private final Map<Class<? extends RealmObject>, Table> classToTable =
-            new HashMap<Class<? extends RealmObject>, Table>();
-
     private static RealmConfiguration defaultConfiguration;
-    protected ColumnIndices columnIndices = new ColumnIndices();
 
     /**
      * The constructor is private to enforce the use of the static one.
@@ -701,15 +692,6 @@ public final class Realm extends BaseRealm {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
-    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
-        Table table = getTable(clazz);
-        UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz);
-        result.row = row;
-        result.realm = this;
-        return result;
-    }
-
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
@@ -804,7 +786,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
         checkIfValid();
-        return new RealmQuery<E>(this, clazz);
+        return RealmQuery.createQuery(this, clazz);
     }
 
     /**
@@ -1155,17 +1137,6 @@ public final class Realm extends BaseRealm {
     // Return all handlers registered for this Realm
     static Map<Handler, String> getHandlers() {
         return handlers;
-    }
-
-    // Public because of migrations
-    public Table getTable(Class<? extends RealmObject> clazz) {
-        Table table = classToTable.get(clazz);
-        if (table == null) {
-            clazz = Util.getOriginalModelClass(clazz);
-            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
-            classToTable.put(clazz, table);
-        }
-        return table;
     }
 
     /**

@@ -47,9 +47,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
 
     private final boolean managedMode;
-    private Class<E> clazz;
-    private LinkView view;
-    private Realm realm;
+    protected Class<E> clazz;
+    protected String className;
+    protected LinkView view;
+    protected BaseRealm realm;
     private List<E> nonManagedList;
 
     /**
@@ -88,14 +89,21 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * Creates a RealmList from a LinkView, so its elements are managed by Realm.
      *
      * @param clazz Type of elements in the Array
-     * @param view  Backing LinkView
+     * @param linkView  Backing LinkView
      * @param realm Reference to Realm containing the data
      */
-    RealmList(Class<E> clazz, LinkView view, Realm realm) {
+    RealmList(Class<E> clazz, LinkView linkView, BaseRealm realm) {
         this.managedMode = true;
         this.clazz = clazz;
-        this.view = view;
+        this.view = linkView;
         this.realm = realm;
+    }
+
+    RealmList(String className, LinkView linkView, BaseRealm realm) {
+        this.managedMode = true;
+        this.view = linkView;
+        this.realm = realm;
+        this.className = className;
     }
 
     /**
@@ -183,6 +191,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
+        if (!(realm instanceof Realm))  {
+            throw new IllegalStateException("Not supported for RealmList containing DynamicRealmObjects");
+        }
+        Realm realm = (Realm) this.realm;
         if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
@@ -262,7 +274,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E get(int location) {
         if (managedMode) {
-            return realm.get(clazz, view.getTargetRowIndex(location));
+            long rowIndex = view.getTargetRowIndex(location);
+            if (clazz != null) {
+                return realm.get(clazz, rowIndex);
+            } else {
+                return (E) realm.get(className, rowIndex);
+            }
         } else {
             return nonManagedList.get(location);
         }
@@ -319,7 +336,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     public RealmQuery<E> where() {
         if (managedMode) {
-            return new RealmQuery<E>(this.realm, view, clazz);
+            return RealmQuery.createSubquery(this);
         } else {
             throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
