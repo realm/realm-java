@@ -1,9 +1,11 @@
 0.83
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
+ * Fixed an issue preventing the call of listeners on refresh().
+
+0.82.2
  * Fixed a bug which might cause failure when loading the native library.
  * Fixed a bug which might trigger a timeout in Context.finalize().
  * Fixed a bug which might cause RealmObject.isValid() to throw an exception if the object is deleted.
- * Fixed an issue preventing the call of listeners on refresh().
  * Updated Realm core to version 0.89.9
    - Fixed a potential stack overflow issue which might cause a crash when encryption was used.
    - Embedded crypto functions into Realm dynamic lib to avoid random issues on some devices.
