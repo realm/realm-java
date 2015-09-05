@@ -9,7 +9,7 @@
  * Updated Realm core to version 0.89.9
    - Fixed a potential stack overflow issue which might cause a crash when encryption was used.
    - Embedded crypto functions into Realm dynamic lib to avoid random issues on some devices.
-   - Throw RealmEncryptionNotSupportedException if the device doesn't support Realm encryption. At least one device type (HTX One X) contains system bugs that prevents Realm's encryption from functioning properly. This is now detected, and an exception is thrown when trying to open/create an encrypted Realm file. It's up to the application to catch this and decide if it's OK to proceed without encryption instead.
+   - Throw RealmEncryptionNotSupportedException if the device doesn't support Realm encryption. At least one device type (HTC One X) contains system bugs that prevents Realm's encryption from functioning properly. This is now detected, and an exception is thrown when trying to open/create an encrypted Realm file. It's up to the application to catch this and decide if it's OK to proceed without encryption instead.
 
 0.82.1
  * Fixed a bug where using the wrong encryption key first caused the right key to be seen as invalid.
