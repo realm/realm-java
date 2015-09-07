@@ -214,8 +214,8 @@ namespace {
 // non-sign value bits, that is, an unsigned 16-bit integer, or any
 // signed or unsigned integer with more than 16 bits.
 struct JcharTraits {
-    static jchar to_int_type(jchar c)  REALM_NOEXCEPT { return c; }
-    static jchar to_char_type(jchar i) REALM_NOEXCEPT { return i; }
+    static jchar to_int_type(jchar c)  noexcept { return c; }
+    static jchar to_char_type(jchar i) noexcept { return i; }
 };
 
 struct JStringCharsAccessor {
@@ -225,8 +225,8 @@ struct JStringCharsAccessor {
     {
         m_env->ReleaseStringChars(m_string, m_data);
     }
-    const jchar* data() const REALM_NOEXCEPT { return m_data; }
-    size_t size() const REALM_NOEXCEPT { return m_size; }
+    const jchar* data() const noexcept { return m_data; }
+    size_t size() const noexcept { return m_size; }
 
 private:
     JNIEnv* const m_env;
