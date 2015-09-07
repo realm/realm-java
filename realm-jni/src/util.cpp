@@ -18,6 +18,7 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
+#include <realm/util/encryption_not_supported_exception.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
@@ -32,6 +33,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     std::ostringstream ss;
     try {
         throw;
+    }
+    catch (realm::util::EncryptionNotSupportedOnThisDevice& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, EncryptionNotSupported, ss.str());
     }
     catch (std::bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -126,6 +131,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = "Illegal State: " + classStr;
             break;
+
+        case EncryptionNotSupported:
+            jExceptionClass = env->FindClass("io/realm/exceptions/RealmEncryptionNotSupportedException");
+            message = classStr;
+            break;
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());
@@ -214,8 +224,8 @@ namespace {
 // non-sign value bits, that is, an unsigned 16-bit integer, or any
 // signed or unsigned integer with more than 16 bits.
 struct JcharTraits {
-    static jchar to_int_type(jchar c)  REALM_NOEXCEPT { return c; }
-    static jchar to_char_type(jchar i) REALM_NOEXCEPT { return i; }
+    static jchar to_int_type(jchar c)  noexcept { return c; }
+    static jchar to_char_type(jchar i) noexcept { return i; }
 };
 
 struct JStringCharsAccessor {
@@ -225,8 +235,8 @@ struct JStringCharsAccessor {
     {
         m_env->ReleaseStringChars(m_string, m_data);
     }
-    const jchar* data() const REALM_NOEXCEPT { return m_data; }
-    size_t size() const REALM_NOEXCEPT { return m_size; }
+    const jchar* data() const noexcept { return m_data; }
+    size_t size() const noexcept { return m_size; }
 
 private:
     JNIEnv* const m_env;

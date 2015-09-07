@@ -103,7 +103,6 @@ std::string num_to_string(T pNumber)
 #define CH(ptr) reinterpret_cast<ClientHistory*>(ptr)
 
 // Exception handling
-
 enum ExceptionKind {
     ClassNotFound = 0,
     NoSuchField = 1,
@@ -119,7 +118,9 @@ enum ExceptionKind {
     OutOfMemory = 10,
     FatalError = 11,
     RuntimeError = 12,
-    RowInvalid = 13
+    RowInvalid = 13,
+    EncryptionNotSupported = 14
+// NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 
 void ConvertException(JNIEnv* env, const char *file, int line);
@@ -502,7 +503,7 @@ class JStringAccessor {
 public:
     JStringAccessor(JNIEnv*, jstring);  // throws
 
-    operator realm::StringData() const REALM_NOEXCEPT
+    operator realm::StringData() const noexcept
     {
         if (m_is_null) {
             return realm::StringData(NULL);
