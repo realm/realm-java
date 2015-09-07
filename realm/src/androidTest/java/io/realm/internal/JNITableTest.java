@@ -79,47 +79,6 @@ public class JNITableTest extends AndroidTestCase {
         try { tableZeroCols.renameColumn(10, "newName");    fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
-    public void testTableBinaryTest() {
-        Table t = new Table();
-        t.addColumn(ColumnType.BINARY, "binary");
-
-        byte[] row0 = new byte[]{1, 2, 3};
-        byte[] row1 = new byte[]{10, 20, 30};
-
-        t.getInternalMethods().insertBinary(0, 0, row0);
-        t.getInternalMethods().insertDone();
-        t.getInternalMethods().insertBinary(0, 1, row1);
-        t.getInternalMethods().insertDone();
-
-        byte[] nullByte = null;
-
-
-        MoreAsserts.assertEquals(new byte[]{1, 2, 3}, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[]{1, 2, 3});
-
-        byte[] newRow0 = new byte[]{7, 77, 77};
-        t.setBinaryByteArray(0, 0, newRow0);
-
-        MoreAsserts.assertEquals(new byte[]{7, 77, 77}, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[]{1, 2, 3});
-    }
-
-    public void testTableNotNullableBinaryTest() {
-        Table t = new Table();
-        t.addColumn(ColumnType.BINARY, "binary", false);
-
-        byte[] nullByte = null;
-
-        try {
-            t.getInternalMethods().insertBinary(0, 2, nullByte);
-            fail("Inserting null array");
-        } catch (IllegalArgumentException e) {
-        }
-
-        t.addEmptyRow();
-        try { t.setBinaryByteArray(0, 0, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
-    }
-
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
         t.add(new byte[]{1, 2, 3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
