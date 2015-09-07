@@ -476,7 +476,7 @@ class JStringAccessor {
 public:
     JStringAccessor(JNIEnv*, jstring);  // throws
 
-    operator realm::StringData() const REALM_NOEXCEPT
+    operator realm::StringData() const noexcept
     {
         return realm::StringData(m_data.get(), m_size);
     }
