@@ -1187,9 +1187,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     pQuery->and_query(pTable->column<Link>(S(columnIndex)).is_null());
                     break;
                 case type_Binary:
-                    // FIXME
                     pQuery->equal(S(columnIndex), BinaryData());
-                    //ThrowException(env, IllegalArgument, "Does not yet support binary data.");
                     break;
                 case type_String:
                 case type_Bool:
@@ -1213,8 +1211,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     pQuery->and_query(pTable->column<String>(S(columnIndex)) == realm::null());
                     break;
                 case type_Binary:
-                    // FIXME
-                    ThrowException(env, IllegalArgument, "Does not yet support binary data.");
+                    pQuery->and_query(pTable->column<Binary>(S(columnIndex)) == BinaryData());
                     break;
                 case type_Bool:
                     pQuery->and_query(pTable->column<Bool>(S(columnIndex)) == realm::null());
@@ -1266,8 +1263,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     pQuery->Not().and_query(pTable->column<Link>(S(columnIndex)).is_null());
                     break;
                 case type_Binary:
-                    // FIXME
-                    ThrowException(env, IllegalArgument, "Does not yet support binary data.");
+                    pQuery->not_equal(S(columnIndex), realm::BinaryData());
                     break;
                 case type_String:
                 case type_Bool:
@@ -1275,7 +1271,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                 case type_Float:
                 case type_Double:
                 case type_DateTime:
-                    Q(nativeQueryPtr)->not_equal(S(columnIndex), realm::null());
+                    pQuery->not_equal(S(columnIndex), realm::null());
                     break;
                 default:
                     // this point is unreachable
@@ -1292,8 +1288,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     pQuery->and_query(pTable->column<String>(S(columnIndex)) != realm::null());
                     break;
                 case type_Binary:
-                    // FIXME
-                    ThrowException(env, IllegalArgument, "Does not yet support binary data.");
+                    pQuery->Not().and_query(pTable->column<Binary>(S(columnIndex)) != realm::BinaryData());
                     break;
                 case type_Bool:
                     pQuery->and_query(pTable->column<Bool>(S(columnIndex)) != realm::null());
