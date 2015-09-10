@@ -587,7 +587,8 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        signalCallbackFinished.await(7, TimeUnit.SECONDS);
+//        signalCallbackFinished.await(7, TimeUnit.SECONDS);
+        signalCallbackFinished.await();
         assertEquals(2, numberOfNotificationsQuery1.get());
         assertEquals(2, numberOfNotificationsQuery2.get());
 

@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +144,9 @@ public final class Realm implements Closeable {
             return new HashMap<RealmConfiguration, Integer>();
         }
     };
+
+    // List of Realm files that has already been validated
+    private static final Set<String> validatedRealmFiles = new HashSet<String>();
 
     // keep a WeakReference list to RealmResults obtained asynchronously in order to update them
     // RealmQuery is not WeakReference to prevent it from being GC'd. RealmQuery should be
@@ -276,6 +280,7 @@ public final class Realm implements Closeable {
             // It is necessary to be synchronized here since there is a chance that before the counter removed,
             // the other thread could get the counter and increase it in createAndValidate.
             synchronized (Realm.class) {
+                validatedRealmFiles.remove(configuration.getPath());
                 List<RealmConfiguration>  pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
                 pathConfigurationCache.remove(configuration);
                 if (pathConfigurationCache.isEmpty()) {
@@ -699,10 +704,12 @@ public final class Realm implements Closeable {
         defaultConfiguration = null;
     }
 
-    private static Realm create(RealmConfiguration configuration) {
+    private static synchronized Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
-            return createAndValidate(configuration, true, autoRefresh);
+            boolean validateSchema = !validatedRealmFiles.contains(configuration.getPath());
+            return createAndValidate(configuration, validateSchema, autoRefresh);
+
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
                 deleteRealm(configuration);
@@ -714,7 +721,7 @@ public final class Realm implements Closeable {
         }
     }
 
-    private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+    private static Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
         // Check if a cached instance already exists for this thread
         String canonicalPath = configuration.getPath();
         Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
@@ -839,6 +846,7 @@ public final class Realm implements Closeable {
                 mediator.validateTable(modelClass, realm.transaction);
                 realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
+            validatedRealmFiles.add(realm.getPath());
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction();
@@ -1825,7 +1833,7 @@ public final class Realm implements Closeable {
      * latest version, nothing will happen.
      * @param configuration
      */
-    public static synchronized void migrateRealm(RealmConfiguration configuration) {
+    public static void migrateRealm(RealmConfiguration configuration) {
         migrateRealm(configuration, null);
     }
 
@@ -1836,7 +1844,7 @@ public final class Realm implements Closeable {
      * @param migration {@link RealmMigration} to run on the Realm. This will override any migration set on the
      * configuration.
      */
-    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
@@ -1851,6 +1859,7 @@ public final class Realm implements Closeable {
             realm.beginTransaction();
             realm.setVersion(realmMigration.execute(realm, realm.getVersion()));
             realm.commitTransaction();
+            validatedRealmFiles.remove(configuration.getPath());
         } finally {
             if (realm != null) {
                 realm.close();

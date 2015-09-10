@@ -1,7 +1,8 @@
 0.83
+ * Support async queries & transactions.
+ * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
  * Fixed an issue preventing the call of listeners on refresh().
- * Support async queries & transactions.
 
 0.82.2
  * Fixed a bug which might cause failure when loading the native library.
