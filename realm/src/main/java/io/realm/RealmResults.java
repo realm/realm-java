@@ -779,7 +779,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     void notifyChangeListeners() {
         realm.checkIfValid();
-        for (RealmChangeListener listener: listeners) {
+        for (RealmChangeListener listener : listeners) {
             listener.onChange();
         }
     }

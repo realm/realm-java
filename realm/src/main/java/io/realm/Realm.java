@@ -485,7 +485,7 @@ public final class Realm implements Closeable {
                             }
                         }
 
-                        for (RealmResults<?> query: callbacksToNotify) {
+                        for (RealmResults<?> query : callbacksToNotify) {
                             query.notifyChangeListeners();
                         }
 
