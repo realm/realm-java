@@ -42,7 +42,7 @@ public class NotificationsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
+        Realm.deleteRealm(TestHelper.createConfiguration(getContext()));
     }
 
     @Override
@@ -347,9 +347,10 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testHandlerNotRemovedToSoon() {
-        Realm.deleteRealmFile(getContext(), "private-realm");
-        Realm instance1 = Realm.getInstance(getContext(), "private-realm");
-        Realm instance2 = Realm.getInstance(getContext(), "private-realm");
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "private-realm");
+        Realm.deleteRealm(realmConfig);
+        Realm instance1 = Realm.getInstance(realmConfig);
+        Realm instance2 = Realm.getInstance(realmConfig);
         assertEquals(instance1.getPath(), instance2.getPath());
         assertNotNull(instance1.getHandler());
 

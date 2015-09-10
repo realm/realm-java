@@ -29,8 +29,9 @@ public class RealmLinkTests extends AndroidTestCase {
     protected Realm testRealm;
 
     protected void setUp() {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
         testRealm.clear(Dog.class);

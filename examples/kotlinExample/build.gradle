@@ -23,8 +23,9 @@ android {
         events 2000
     }
 
-    lintOptions {
-        abortOnError false
+    // Incremental builds currently doesn't work with Kotlin
+    dexOptions {
+        incremental false
     }
 }
 

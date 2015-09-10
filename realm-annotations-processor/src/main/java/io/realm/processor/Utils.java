@@ -1,5 +1,10 @@
 package io.realm.processor;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -12,10 +17,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.xml.bind.DatatypeConverter;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
 
 /**
  * Utility methods working with the Realm processor.
@@ -69,6 +70,16 @@ public class Utils {
             return false;
         }
         return getFieldTypeSimpleName(field).equals("String");
+    }
+
+    /**
+     * Returns true if a given field type string is "java.lang.String", false otherwise.
+     */
+    public static boolean isString(String fieldType) {
+        if (fieldType == null) {
+            return false;
+        }
+        return String.class.getName().equals(fieldType);
     }
 
     /**

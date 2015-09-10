@@ -349,8 +349,12 @@ public class AllTypesRealmProxy extends AllTypes
         if (obj == null) {
             obj = realm.createObject(AllTypes.class);
         }
-        if (!json.isNull("columnString")) {
-            obj.setColumnString((String) json.getString("columnString"));
+        if (json.has("columnString")) {
+            if (json.isNull("columnString")) {
+                obj.setColumnString("");
+            } else {
+                obj.setColumnString((String) json.getString("columnString"));
+            }
         }
         if (!json.isNull("columnLong")) {
             obj.setColumnLong((long) json.getLong("columnLong"));
@@ -396,8 +400,13 @@ public class AllTypesRealmProxy extends AllTypes
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
-            if (name.equals("columnString") && reader.peek() != JsonToken.NULL) {
-                obj.setColumnString((String) reader.nextString());
+            if (name.equals("columnString")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    obj.setColumnString("");
+                    reader.skipValue();
+                } else {
+                    obj.setColumnString((String) reader.nextString());
+                }
             } else if (name.equals("columnLong")  && reader.peek() != JsonToken.NULL) {
                 obj.setColumnLong((long) reader.nextLong());
             } else if (name.equals("columnFloat")  && reader.peek() != JsonToken.NULL) {

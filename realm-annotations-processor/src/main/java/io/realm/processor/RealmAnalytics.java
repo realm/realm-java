@@ -16,7 +16,6 @@
 
 package io.realm.processor;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -97,8 +96,7 @@ public class RealmAnalytics {
             connection.setRequestMethod("GET");
             connection.connect();
             connection.getResponseCode();
-        } catch (IOException ignored) {
-        } catch (NoSuchAlgorithmException ignored) {
+        } catch (Exception ignored) {
         }
     }
 
@@ -112,7 +110,9 @@ public class RealmAnalytics {
         backgroundThread.start();
         try {
             backgroundThread.join(CONNECT_TIMEOUT + READ_TIMEOUT);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
+            // We ignore this exception on purpose not to break the build system if this class fails
+        } catch (IllegalArgumentException ignored) {
             // We ignore this exception on purpose not to break the build system if this class fails
         }
     }

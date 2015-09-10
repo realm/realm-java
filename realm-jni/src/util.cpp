@@ -18,6 +18,7 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
+//#include <realm/util/encryption_not_supported_exception.hpp> DISABLED until core merge this hotfix from 0.89.9 to a 0.9x branch (containing handover feature)
 #include "utf8.hpp"
 
 #include "util.hpp"
@@ -33,6 +34,11 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     try {
         throw;
     }
+//    DISABLED until core merge this hotfix from 0.89.9 to a 0.9x branch (containing handover feature)
+//    catch (realm::util::EncryptionNotSupportedOnThisDevice& e) {
+//        ss << e.what() << " in " << file << " line " << line;
+//        ThrowException(env, EncryptionNotSupported, ss.str());
+//    }
     catch (std::bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, OutOfMemory, ss.str());
@@ -125,6 +131,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
         case RowInvalid:
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = "Illegal State: " + classStr;
+            break;
+
+        case EncryptionNotSupported:
+            jExceptionClass = env->FindClass("io/realm/exceptions/RealmEncryptionNotSupportedException");
+            message = classStr;
             break;
 
         case BadVersion:

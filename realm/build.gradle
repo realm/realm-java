@@ -211,6 +211,7 @@ task generateDistributionExamplesBuildFiles << {
 task populateDistributionFolder(dependsOn: ['androidJar', 'bundleJavadocRelease']) << {
     copy {
         from '../changelog.txt'
+        from '../LICENSE'
         from "build/libs/realm-${version}.jar"
         from "build/libs/realm-${version}-javadoc.jar"
         into '../distribution'
@@ -314,8 +315,14 @@ task tagRepo(type: Exec) {
     commandLine 'git', 'tag', '-a', "v${version}", '-m', "v${version}"
 }
 
-task pushTag(type: Exec) {
+task pushRepo(type: Exec) {
     dependsOn tagRepo
+    workingDir rootDir
+    commandLine 'git', 'push'
+}
+
+task pushTag(type: Exec) {
+    dependsOn pushRepo
     workingDir rootDir
     commandLine 'git', 'push', '--tags'
 }

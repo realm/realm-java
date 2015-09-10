@@ -89,7 +89,7 @@ public abstract class RealmObject {
     private Future<Long> pendingQuery;
     private Class<? extends RealmObject> clazz;
     private boolean isCompleted = false;
-    
+
     /**
      * Removes the object from the Realm it is currently associated to.
      * <p/>

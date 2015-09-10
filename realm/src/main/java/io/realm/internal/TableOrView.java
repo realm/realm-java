@@ -23,7 +23,7 @@ import java.util.Date;
  */
 public interface TableOrView {
 
-    public static final int NO_MATCH = -1;
+    int NO_MATCH = -1;
 
     void clear();
 
@@ -366,7 +366,7 @@ public interface TableOrView {
 
     long count(long columnIndex, String value);
 
-    public enum PivotType {
+    enum PivotType {
         COUNT(0),
         SUM(1),
         AVG(2),
@@ -375,12 +375,12 @@ public interface TableOrView {
 
         final int value; // Package protected, accessible from Table and TableView
 
-        private PivotType(int value) {
+        PivotType(int value) {
             this.value = value;
         }
     }
 
-    public Table pivot(long stringCol, long intCol, PivotType pivotType);
+    Table pivot(long stringCol, long intCol, PivotType pivotType);
 
     /**
      * Syncs the tableview with the underlying table data. It is not required to call this
@@ -388,5 +388,5 @@ public interface TableOrView {
      *
      * @return Version number for the updated tableview.
      */
-    public long sync();
+    long sync();
 }

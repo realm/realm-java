@@ -36,7 +36,7 @@ public class Migration implements RealmMigration {
         /*
             // Version 0
             class Person
-                String fullName;
+                String firstName;
                 String lastName;
                 int    age;
 
