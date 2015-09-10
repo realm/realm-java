@@ -566,16 +566,16 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<NullTypes> sortedList = testRealm.allObjects(NullTypes.class);
         sortedList.sort(fieldName, RealmResults.SORT_ORDER_ASCENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
-        assertEquals(3, sortedList.first().getId());
-        // Null should always be the last one in the sorted list
-        assertEquals(2, sortedList.last().getId());
+        // Null should always be the first one in the ascending sorted list
+        assertEquals(2, sortedList.first().getId());
+        assertEquals(1, sortedList.last().getId());
 
         // Descending
         sortedList = testRealm.allObjects(NullTypes.class);
         sortedList.sort(fieldName, RealmResults.SORT_ORDER_DESCENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
         assertEquals(1, sortedList.first().getId());
-        // Null should always be the last one in the sorted list
+        // Null should always be the last one in the descending sorted list
         assertEquals(2, sortedList.last().getId());
     }
 
