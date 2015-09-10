@@ -3,6 +3,7 @@ package io.realm.internal.async;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -57,6 +58,11 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
 
 
     @Override
+    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+        return super.newTaskFor(callable);
+    }
+
+    @Override
     public Future<?> submit(Runnable task) {
         return super.submit(new BgPriorityRunnable(task));
     }
@@ -66,9 +72,18 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         return super.submit(new BgPriorityCallable<T>(task));
     }
 
+    public <T> Future<T> submit(Callable<T> task, long handoverQueryPointer) {
+        //TODO add the pointer handoverQueryPointer to the BgPriorityCallable
+        // then when newTask is called Override with custom FutureTask implementation
+        // that override done() so it will close the pointer (pass an Object array Long as object)
+        // so if the query succeed set 0 to avoid closing a consumed pointer
+        // we still need a way to test if the pointer was closed
+        return super.submit(new BgPriorityCallable<T>(task));
+    }
+
     @Override
     protected void beforeExecute(Thread t, Runnable r) {
-        super.beforeExecute(t, r);
+            super.beforeExecute(t, r);
         pauseLock.lock();
         try {
             while (isPaused) unpaused.await();
@@ -79,12 +94,12 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         }
     }
 
-//    @Override
-//    protected void afterExecute(Runnable r, Throwable t) {
-//        super.afterExecute(r, t);
-//        // clean up the Queue from the background thread?
-//        //purge();
-//    }
+    @Override
+    protected void afterExecute(Runnable r, Throwable t) {
+        super.afterExecute(r, t);
+        // clean up the Queue from the background thread?
+        //purge();
+    }
 
     public void pause() {
 //        ((PausableArrayBlockingQueue<Runnable>) getQueue()).pause();

@@ -156,6 +156,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceReadToVersion
+(JNIEnv *env, jobject, jlong native_ptr, jlong native_replication_ptr, jlong version, jlong index)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        SharedGroup::VersionID versionId(version, index);
+        LangBindHelper::advance_read( *SG(native_ptr), *CH(native_replication_ptr), versionId);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
   (JNIEnv *env, jobject, jlong native_ptr, jlong native_replication_ptr)
 {

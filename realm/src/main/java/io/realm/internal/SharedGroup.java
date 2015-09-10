@@ -98,11 +98,12 @@ public class SharedGroup implements Closeable {
         nativeAdvanceRead(nativePtr, nativeReplicationPtr);
     }
 
-    void advanceRead(VersionID versionID) {//TODO: implement call to native
-        nativeAdvanceRead(nativePtr, nativeReplicationPtr);
+    void advanceRead(VersionID versionID) {
+        nativeAdvanceReadToVersion(nativePtr, nativeReplicationPtr, versionID.version, versionID.index);
     }
 
     private native void nativeAdvanceRead(long nativePtr, long nativeReplicationPtr);
+    private native void nativeAdvanceReadToVersion(long nativePtr, long nativeReplicationPtr, long version, long index);
 
     void promoteToWrite() {
         nativePromoteToWrite(nativePtr, nativeReplicationPtr);

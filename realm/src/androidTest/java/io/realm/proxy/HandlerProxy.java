@@ -10,6 +10,7 @@ public abstract class HandlerProxy extends Handler {
     private final Handler handler;
 
     public HandlerProxy(Handler handler) {
+        if (null == handler) throw new IllegalArgumentException("null handler");
         this.handler = handler;
     }
 

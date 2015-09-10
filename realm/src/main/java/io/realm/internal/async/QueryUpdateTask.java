@@ -1,7 +1,6 @@
 package io.realm.internal.async;
 
 import android.os.Handler;
-import android.os.Message;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ import io.realm.RealmResults;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.TableView;
+import io.realm.internal.log.RealmLog;
 
 /**
  * Created by Nabil on 02/09/15.
@@ -57,24 +56,25 @@ public class QueryUpdateTask implements Runnable {
                     realmConfiguration.getEncryptionKey());
 
             Result result;
+            boolean updateSuccessful = false;
             if (isUpdatingRealmResults) {
                 result = Result.newRealmResults();
-                updateRealmResultsQueries(sharedGroup, result);
+                updateSuccessful = updateRealmResultsQueries(sharedGroup, result);
                 result.versionID = sharedGroup.getVersion();
 
             } else {
                 result = Result.newRealmObject();
-                updateRealmObjectQuery(sharedGroup, result);
+                updateSuccessful = updateRealmObjectQuery(sharedGroup, result);
                 result.versionID = sharedGroup.getVersion();
             }
 
             Handler handler = callerHandler.get();
-            if (!isTaskCancelled() && isAliveHandler(handler)) {
-                Message msg = handler.obtainMessage(message, result);
-                handler.sendMessage(msg);
+            if (updateSuccessful && !isTaskCancelled() && isAliveHandler(handler)) {
+                handler.obtainMessage(message, result).sendToTarget();
             }
 
-        } catch (Throwable e) {
+        } catch (Exception e) {
+            RealmLog.e(e.getMessage());
             e.fillInStackTrace();
 
         } finally {
@@ -84,7 +84,7 @@ public class QueryUpdateTask implements Runnable {
         }
     }
 
-    private void updateRealmResultsQueries(SharedGroup sharedGroup, Result result) {
+    private boolean updateRealmResultsQueries(SharedGroup sharedGroup, Result result) {
         for (Builder.QueryEntry<RealmResults<?>>  queryEntry : realmResultsEntries) {
             if (!isTaskCancelled()) {
                 switch (queryEntry.queryArguments.type) {
@@ -94,6 +94,9 @@ public class QueryUpdateTask implements Runnable {
                                         sharedGroup.getNativeReplicationPointer(),
                                         queryEntry.handoverQueryPointer, 0, Table.INFINITE, Table.INFINITE);
                         result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
+                        // invalidate the handover query pointer, in case this task is cancelled
+                        // we will not try to close/delete a consumed pointer
+                        queryEntry.handoverQueryPointer = 0L;
                         break;
                     }
                     case RealmQuery.ArgumentsHolder.TYPE_FIND_ALL_SORTED: {
@@ -108,6 +111,7 @@ public class QueryUpdateTask implements Runnable {
                                 queryEntry.queryArguments.ascending);
 
                         result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
+                        queryEntry.handoverQueryPointer = 0L;
                         break;
                     }
                     case RealmQuery.ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED:
@@ -120,27 +124,42 @@ public class QueryUpdateTask implements Runnable {
                                 queryEntry.queryArguments.ascendings);
 
                         result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
+                        queryEntry.handoverQueryPointer = 0L;
                         break;
                     default:
                         throw new IllegalArgumentException("Query mode " + queryEntry.queryArguments.type + " not supported");
                 }
+            } else {
+                for (Long handoverQueryPointer : result.updatedTableViews.values()) {
+                    if (handoverQueryPointer != 0) {
+                        TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
+                    }
+                }
+                return false;
             }
         }
+        return true;
     }
 
-    private void updateRealmObjectQuery(SharedGroup sharedGroup, Result result) {
+    private boolean updateRealmObjectQuery(SharedGroup sharedGroup, Result result) {
         if (!isTaskCancelled()) {
             switch (realmObjectEntry.queryArguments.type) {
-                case RealmQuery.ArgumentsHolder.TYPE_FIND_FIRST:
+                case RealmQuery.ArgumentsHolder.TYPE_FIND_FIRST: {
                     long handoverRowPointer = TableQuery.
                             nativeFindWithHandover(sharedGroup.getNativePointer(),
+                                    sharedGroup.getNativeReplicationPointer(),
                                     realmObjectEntry.handoverQueryPointer, 0);
                     result.updatedRow.put(realmObjectEntry.element, handoverRowPointer);
                     break;
+                }
                 default:
                     throw new IllegalArgumentException("Query mode " + realmObjectEntry.queryArguments.type + " not supported");
             }
+        } else {
+            TableQuery.nativeCloseQueryHandover(realmObjectEntry.handoverQueryPointer);
+            return false;
         }
+        return true;
     }
 
     private boolean isTaskCancelled() {
@@ -272,12 +291,11 @@ public class QueryUpdateTask implements Runnable {
                         callerHandler,
                         message);
             }
-
         }
 
         private static class QueryEntry<T> {
             final WeakReference<T> element;
-            final long handoverQueryPointer;
+            long handoverQueryPointer;
             final RealmQuery.ArgumentsHolder queryArguments;
 
             private QueryEntry(WeakReference<T> element, long handoverQueryPointer, RealmQuery.ArgumentsHolder queryArguments) {

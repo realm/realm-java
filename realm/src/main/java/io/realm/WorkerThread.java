@@ -37,7 +37,7 @@
 //    @Override
 //    public void onChange() {
 //        // update registered RealmResults per Thread
-//        for (Map.Entry<Handler, Map<WeakReference<RealmResults<?>>, Long>> entry : Realm.asyncQueries.entrySet()) {
+//        for (Map.Entry<Handler, Map<WeakReference<RealmResults<?>>, Long>> entry : Realm.asyncRealmResults.entrySet()) {
 //            updateRealmResultsForThread(entry.getKey(), entry.getValue());
 //        }
 //    }

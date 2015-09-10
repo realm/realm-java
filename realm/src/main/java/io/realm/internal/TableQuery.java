@@ -480,12 +480,12 @@ public class TableQuery implements Closeable {
         return nativeFind(nativePtr, 0);
     }
 
-    public long findWithHandover(long bgSharedGroupPtr, long ptrQuery) {
+    public long findWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long ptrQuery) {
         validateQuery();
 
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
-        return nativeFindWithHandover(bgSharedGroupPtr, ptrQuery, 0);
+        return nativeFindWithHandover(bgSharedGroupPtr, nativeReplicationPtr, ptrQuery, 0);
     }
 
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
@@ -519,18 +519,14 @@ public class TableQuery implements Closeable {
         }
     }
 
-    /**
-     * This will use the background SharedGroup to import the query (using the handover object)
-     * run the query, and return the table view to the caller SharedGroup using the handover object.
-     * @param bgSharedGroupPtr Background shared group native pointer
-     * @param ptrQuery handover pointer to the query (coming from the caller SharedGroup)
-     * @return handover pointer to the table view results
-     */
+    // handover find* methods
+    // this will use a background SharedGroup to import the query (using the handover object)
+    // run the query, and return the table view to the caller SharedGroup using the handover object.
     public long findAllWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr,  long ptrQuery) {
         validateQuery();
 
         // Execute the disposal of abandoned realm objects each time a new realm object is created
-        context.executeDelayedDisposal();// TODO bottleneck. when freeing tables become thread safe in core use FinalizerRunnable
+        context.executeDelayedDisposal();
         return nativeFindAllWithHandover(bgSharedGroupPtr, nativeReplicationPtr, ptrQuery, 0, Table.INFINITE, Table.INFINITE);
     }
 
@@ -562,10 +558,6 @@ public class TableQuery implements Closeable {
         }
     }
 
-    public long importHandoverRow(long handoverPtr, long callerSharedGroupPtr) {
-      return nativeImportHandoverRowIntoSharedGroup(handoverPtr, callerSharedGroupPtr);
-    }
-
     /**
      * Handover the query, so it can be used by other SharedGroup (in different thread)
      * @param callerSharedGroupPtr native pointer to the SharedGroup holding the query
@@ -576,13 +568,13 @@ public class TableQuery implements Closeable {
     }
 
     private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
-    //TODO fix scope
     public static native long nativeFindAllSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit, long columnIndex, boolean ascending);
     public static native long nativeFindAllWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit);
-    public static native long nativeFindWithHandover(long bgSharedGroupPtr, long nativeQueryPtr, long fromTableRow);
+    public static native long nativeFindWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long fromTableRow);
     public static native long nativeFindAllMultiSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit, long[] columnIndices, boolean[] ascending);
-    private native long nativeImportHandoverTableViewIntoSharedGroup(long handoverTableViewPtr, long callerSharedGroupPtr);
     public static native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedGroupPtr);
+    public static native void nativeCloseQueryHandover (long nativePtr);
+    private native long nativeImportHandoverTableViewIntoSharedGroup(long handoverTableViewPtr, long callerSharedGroupPtr);
     private native long nativeHandoverQuery(long callerSharedGroupPtr, long nativeQueryPtr);
     //
     // Aggregation methods
@@ -791,27 +783,4 @@ public class TableQuery implements Closeable {
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
-
-    // Handover
-    public void closeRowHandover (long nativePtr) {
-        if (nativePtr != -1) {
-            nativeCloseRowHandover(nativePtr);
-        }
-    }
-    private native void nativeCloseRowHandover (long nativePtr);// closed from bg realm
-
-    public void closeQueryHandover (long nativePtr) {
-        if (nativePtr != -1) {
-            nativeCloseQueryHandover (nativePtr);
-        }
-    }
-    private native void nativeCloseQueryHandover (long nativePtr);
-
-    public void closeTableViewHandover (long nativePtr) {
-        if (nativePtr != -1) {
-            nativeCloseTableHandover (nativePtr);
-        }
-    }
-    private native void nativeCloseTableHandover (long nativePtr);
-
 }

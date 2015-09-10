@@ -18,59 +18,58 @@ package io.realm;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.RealmClass;
-import io.realm.internal.Row;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
-import io.realm.internal.UncheckedRow;
+import io.realm.internal.log.RealmLog;
 
 /**
  * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
  * persisted. You then create your objects within a Realm, and use your custom subclasses instead
  * of using the RealmObject class directly.
- * <p>
+ * <p/>
  * An annotation processor will create a proxy class for your RealmObject subclass. The getters and
  * setters should not contain any custom code of logic as they are overridden as part of the annotation
  * process.
- * <p>
+ * <p/>
  * A RealmObject is currently limited to the following:
- *
+ * <p/>
  * <ul>
- *   <li>Private fields.</li>
- *   <li>Getter and setters for these fields.</li>
- *   <li>Static methods.</li>
+ * <li>Private fields.</li>
+ * <li>Getter and setters for these fields.</li>
+ * <li>Static methods.</li>
  * </ul>
- * <p>
+ * <p/>
  * The following field data types are supported (no boxed types):
  * <ul>
- *   <li>boolean</li>
- *   <li>short</li>
- *   <li>int</li>
- *   <li>long</li>
- *   <li>float</li>
- *   <li>double</li>
- *   <li>byte[]</li>
- *   <li>String</li>
- *   <li>Date</li>
- *   <li>Any RealmObject subclass</li>
- *   <li>RealmList</li>
+ * <li>boolean</li>
+ * <li>short</li>
+ * <li>int</li>
+ * <li>long</li>
+ * <li>float</li>
+ * <li>double</li>
+ * <li>byte[]</li>
+ * <li>String</li>
+ * <li>Date</li>
+ * <li>Any RealmObject subclass</li>
+ * <li>RealmList</li>
  * </ul>
- * <p>
+ * <p/>
  * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code>
  * when storing within a Realm.
- * <p>
+ * <p/>
  * Getter and setter names must have the name {@code getXXX} or {@code setXXX} if
  * the field name is {@code XXX}. Getters for fields of type boolean can be called {@code isXXX} as
  * well. Fields with a m-prefix must have getters and setters named setmXXX and getmXXX which is
  * the default behavior when Android Studio automatically generates the getters and setters.
- * <p>
+ * <p/>
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and
  * don't require either a getter or setter.
- * <p>
+ * <p/>
  * Realm will create indexes for fields annotated with {@link io.realm.annotations.Index}. This
  * will speedup queries but will have a negative impact on inserts and updates.
  * * <p>
@@ -86,9 +85,14 @@ public abstract class RealmObject {
     protected Row row;
     protected Realm realm;
 
+    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    private Future<Long> pendingQuery;
+    private Class<? extends RealmObject> clazz;
+    private boolean isCompleted = false;
+    
     /**
      * Removes the object from the Realm it is currently associated to.
-     * <p>
+     * <p/>
      * After this method is called the object will be invalid and any operation (read or write)
      * performed on it will fail with an IllegalStateException
      */
@@ -134,100 +138,96 @@ public abstract class RealmObject {
     }
 
     /**
-     * Encapsulates an async {@link RealmQuery}.
-     * <p>
-     * This will run the {@link RealmQuery} on a worker thread, then invoke this callback on the caller thread
+     * Set the Future instance returned by the worker thread, we need this instance
+     * to force {@link #load()} an async query, we use it to determine if the current
+     * RealmResults is a sync or async one
+     *
+     * @param pendingQuery pending query
      */
-    public interface QueryCallback<E extends RealmObject> {
-        void onSuccess (E result);
-        void onError (Exception t);
-    }
-
-    /**
-     * Used for debugging/testing purpose to add any logic (within the caller's thread)
-     * before we return the results
-     */
-    interface DebugRealmObjectQueryCallback<E extends RealmObject> extends RealmObject.QueryCallback<E> {
-        /**
-         * Runs on the caller's thread just before we hand over the result to {@link #onSuccess(RealmObject)}
-         */
-        void onBackgroundQueryCompleted(Realm realm);
-    }
-
-    // TODO Async stuff (move as interface)
-    private Future<Long> pendingQuery;
-    private boolean isCompleted = false;
-    private Class<? extends RealmObject> clazz;
-
-    void setPendingQuery (Future<Long> pendingQuery) {
+    void setPendingQuery(Future<Long> pendingQuery) {
         this.pendingQuery = pendingQuery;
-        if (isLoaded()) { // The query completed before RealmQuery
+        if (isLoaded()) {
+            // the query completed before RealmQuery
             // had a chance to call setPendingQuery to register the pendingQuery (used btw
             // to determine isLoaded behaviour)
             onCompleted();
 
-        } else {
-            // This will be handled by the Realm#handler
-            // we need a handler since the onCompleted should run on the caller
-            // thread
-            // register a listener to wait for the worker thread to finish
-            // so we can call onCompleted
-//            pendingQuery.addListener(new O)
-        }
+        } // else, it will be handled by the Realm#handler
     }
 
-    void setType (Class<? extends RealmObject> clazz) {
+    /**
+     * Set the class type of this RealmObject, we need it to figure out the {@link Table}
+     *
+     * @param clazz type/table
+     */
+    void setType(Class<? extends RealmObject> clazz) {
         this.clazz = clazz;
     }
 
-    public boolean isLoaded () {
+    /**
+     * Determine if the current RealmObject is obtained synchronously or asynchronously (from
+     * a worker thread). Synchronously RealmObjects are by definition blocking hence this method
+     * will always return {@code true} for them.
+     *
+     * @return {@code true} if the query has completed & the data is available {@code false} if the
+     * query is in progress.
+     */
+    public boolean isLoaded() {
         realm.checkIfValid();
-        // sync query
         return pendingQuery == null || isCompleted;
     }
 
-    // Doesn't guarantee to import correctly the result (because the user may have advanced)
-    public void load() {
+    /**
+     * make an asynchronous query blocking.
+     *
+     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
+     */
+    public boolean load() {
+        // doesn't guarantee to import correctly the result (because the user may have advanced)
+        // in this case the Realm#handler will be responsible of retrying
         realm.checkIfValid();
-        //TODO the query could be complete but the handler didn't receive the results yet
-        //     same behaviour for RealmResults
-        if (pendingQuery != null && !pendingQuery.isDone()) {
-            onCompleted();
+        if (pendingQuery != null && !pendingQuery.isDone() && !isCompleted) {
+            return onCompleted();
         }
+        return false;
     }
 
-    // should be invoked once the pendingQuery finish
-    void onCompleted () {
+    /**
+     * called to import the handover row pointer & notify listeners.
+     *
+     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
+     */
+    boolean onCompleted() {
         realm.checkIfValid();
         try {
-            long nativeRowHandoverPointer = pendingQuery.get();// make the query blocking
-            onCompleted(nativeRowHandoverPointer);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            Long handoverResult = pendingQuery.get();// make the query blocking
+            // this may fail with BadVersionException if the caller and/or the worker thread
+            // are not in sync. REALM_COMPLETED_ASYNC_FIND_FIRST will be fired by the worker thread
+            // this is should handle more complex use cases like retry, ignore etc
+            onCompleted(handoverResult);
+        } catch (Exception e) {
+            RealmLog.d(e.getMessage());
+            return false;
         }
+        return true;
     }
 
-    void onCompleted (long nativeRowHandoverPointer) {
+    void onCompleted(Long handoverRowPointer) {
         realm.checkIfValid();
-        long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(nativeRowHandoverPointer, realm.getSharedGroupPointer());
-        Table table = realm.getTable(clazz);
-        this.row = table.getUncheckedRowByPointer(nativeRowPointer);
-
-//           = query.importHandoverRow(rowHandoverPointer);
-//            //TODO call method to import handover
-//            // this may fail with BadVersionException in this case we keep the RealmResuls empty
-//            // then will wait for REALM_COMPLETED_ASYNC_QUERY fired anyway, which handle more complex
-//            // use cases like retry, ignore etc
-//            table = query.importHandoverTableView(tvHandover, realm.sharedGroup.getNativePointer());
-        isCompleted = true;
-        notifyChangeListeners();
+        if (!isCompleted) {
+            isCompleted = true;
+            long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroup.getNativePointer());
+            Table table = realm.getTable(clazz);
+            this.row = table.getUncheckedRowByPointer(nativeRowPointer);
+            notifyChangeListeners();
+        }// else: already loaded query no need to import again the pointer
     }
 
-    List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
-    // the RealmChangeListener needs to be in the same thread
-    // otherwise ask for a handler to post results
+    /**
+     * add a change listener to this RealmResults
+     *
+     * @param listener the change listener to be notified
+     */
     public void addChangeListener(RealmChangeListener listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
@@ -237,11 +237,13 @@ public abstract class RealmObject {
         if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
-
-
     }
 
-   public void deleteChangeListener(RealmChangeListener listener) {
+    /**
+     * remove a previously registered listener
+     * @param listener the instance to be removed
+     */
+    public void removeChangeListener(RealmChangeListener listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -250,15 +252,21 @@ public abstract class RealmObject {
         listeners.remove(listener);
     }
 
-   public void notifyChangeListeners() {
-        realm.checkIfValid();
-        for (RealmChangeListener listener: listeners) {
-            listener.onChange();
-        }
-    }
-
+    /**
+     * remove all registered listeners
+     */
     public void deleteChangeListeners() {
         realm.checkIfValid();
         listeners.clear();
+    }
+
+    /**
+     * notify all registered listeners
+     */
+    public void notifyChangeListeners() {
+        realm.checkIfValid();
+        for (RealmChangeListener listener : listeners) {
+            listener.onChange();
+        }
     }
 }

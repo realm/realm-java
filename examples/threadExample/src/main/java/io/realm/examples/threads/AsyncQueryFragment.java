@@ -23,6 +23,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,18 +32,20 @@ import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.RealmQuery;
+import io.realm.RealmBaseAdapter;
+import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.examples.threads.model.Dot;
+import io.realm.internal.log.RealmLog;
 
 /**
  * This fragment demonstrates how you can perform asynchronous queries with Realm
  */
-public class AsyncQueryFragment extends Fragment implements View.OnClickListener {
+public class AsyncQueryFragment extends Fragment implements View.OnClickListener, RealmChangeListener {
     private Realm realm;
-    private DotAdapter mAdapter;
-    private RealmQuery.Request mAsyncRequest;
-    private RealmQuery.Request mAsyncTransaction;
+    private DotAdapter mDotAdapter;
+    private RealmResults<Dot> mAllSortedDots;
+    private Realm.Request mAsyncTransaction;
 
 
     @Override
@@ -52,8 +55,8 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         rootView.findViewById(R.id.translate_button).setOnClickListener(this);
 
         ListView listView = (ListView) rootView.findViewById(android.R.id.list);
-        mAdapter = new DotAdapter(getActivity());
-        listView.setAdapter(mAdapter);
+        mDotAdapter = new DotAdapter(getActivity());
+        listView.setAdapter(mDotAdapter);
         return rootView;
     }
 
@@ -62,15 +65,26 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         super.onStart();
         // Create Realm instance for the UI thread
         realm = Realm.getDefaultInstance();
+        RealmLog.d("AsyncQueryFragment onStart opening realm");
+        mAllSortedDots = realm.where(Dot.class)
+                .between("x", 25, 75)
+                .between("y", 0, 50)
+                .findAllSortedAsync(
+                        "x", RealmResults.SORT_ORDER_ASCENDING,
+                        "y", RealmResults.SORT_ORDER_DESCENDING);
+        mDotAdapter.updateList(mAllSortedDots);
+        mAllSortedDots.addChangeListener(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
         // Remember to close the Realm instance when done with it.
-        cancelRequest();
         cancelTransaction();
+        mAllSortedDots.deleteChangeListener(this);
+        mAllSortedDots = null;
         realm.close();
+        RealmLog.d("AsyncQueryFragment onStop closing realm");
     }
 
     @Override
@@ -78,79 +92,109 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         switch (view.getId()) {
             case R.id.start_button: {
                 // cancel any previously running request
-                cancelRequest();
-
-                mAsyncRequest = realm.where(Dot.class)
-                        .between("x", 25, 75)
-                        .between("y", 0, 50)
-                        .findAllSorted(
-                                "x", RealmResults.SORT_ORDER_ASCENDING,
-                                "y", RealmResults.SORT_ORDER_ASCENDING,
-                                new RealmResults.QueryCallback<Dot>() {
-                                    @Override
-                                    public void onSuccess(RealmResults<Dot> results) {
-                                        mAdapter.updateList(results);
-                                    }
-
-                                    @Override
-                                    public void onError(Exception t) {
-                                        t.printStackTrace();
-                                    }
-                                });
+//                cancelRequest();
+//
+//                RealmResults<Dot> allSortedDots = realm.where(Dot.class)
+//                        .between("x", 25, 75)
+//                        .between("y", 0, 50)
+//                        .findAllSortedAsync(
+//                                "x", RealmResults.SORT_ORDER_ASCENDING,
+//                                "y", RealmResults.SORT_ORDER_ASCENDING);
+                //mAdapter.updateList(results);
                 break;
             }
             case R.id.translate_button: {
                 cancelTransaction();
                 // translate all points coordinates using an async transaction
                 mAsyncTransaction = realm.executeTransaction(new Realm.Transaction() {
-                                            @Override
-                                            public void execute(Realm realm) {
-                                                // query for all points
-                                                RealmResults<Dot> dots = realm.where(Dot.class).findAll();
+                    @Override
+                    public void execute(Realm realm) {
+                        // query for all points
+                        RealmResults<Dot> dots = realm.where(Dot.class).findAll();
 
-                                                // Iterating backwards to avoid https://github.com/realm/realm-java/issues/640
-                                                for (int i = dots.size()-1; i>=0; i--) {
-                                                    Dot dot = dots.get(i);
-                                                    if (dot.isValid()) {
-                                                        int x = dot.getX();
-                                                        int y = dot.getY();
-                                                        dot.setX(y);
-                                                        dot.setY(x);
-                                                    }
-                                                }
-                                            }
-                                        }, new Realm.Transaction.Callback() {
-                                            @Override
-                                            public void onSuccess() {
-                                                if (isAdded()) {
-                                                    Toast.makeText(getActivity(), "Translation completed", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
+                        // Iterating backwards to avoid https://github.com/realm/realm-java/issues/640
+                        for (int i = dots.size() - 1; i >= 0; i--) {
+                            Dot dot = dots.get(i);
+                            if (dot.isValid()) {
+                                int x = dot.getX();
+                                int y = dot.getY();
+                                dot.setX(y);
+                                dot.setY(x);
+                            }
+                        }
+                    }
+                }, new Realm.Transaction.Callback() {
+                    @Override
+                    public void onSuccess() {
+                        if (isAdded()) {
+                            Toast.makeText(getActivity(), "Translation completed", Toast.LENGTH_SHORT).show();
+                        }
+                    }
 
-                                            @Override
-                                            public void onError(Throwable e) {
-                                                if (isAdded()) {
-                                                    Toast.makeText(getActivity(), "Error while translating dots", Toast.LENGTH_SHORT).show();
-                                                    e.printStackTrace();
-                                                }
-                                            }
-                                        });
+                    @Override
+                    public void onError(Exception e) {
+                        if (isAdded()) {
+                            Toast.makeText(getActivity(), "Error while translating dots", Toast.LENGTH_SHORT).show();
+                            e.printStackTrace();
+                        }
+                    }
+                });
                 break;
             }
         }
     }
 
-    private void cancelRequest() {
-        if (mAsyncRequest != null && !mAsyncRequest.isCancelled()) {
-            mAsyncRequest.cancel();
-            mAsyncRequest = null;
-        }
-    }
+//    private void cancelRequest() {
+//        if (mAsyncRequest != null && !mAsyncRequest.isCancelled()) {
+//            mAsyncRequest.cancel();
+//            mAsyncRequest = null;
+//        }
+//    }
 
     private void cancelTransaction() {
         if (mAsyncTransaction != null && !mAsyncTransaction.isCancelled()) {
             mAsyncTransaction.cancel();
             mAsyncTransaction = null;
+        }
+    }
+
+    @Override
+    public void onChange() {
+        mDotAdapter.notifyDataSetChanged();
+    }
+
+
+    private class MyAdapter extends RealmBaseAdapter<Dot> implements ListAdapter {
+
+        public MyAdapter(Context context, int resId, RealmResults<Dot> realmResults, boolean automaticUpdate) {
+            super(context, realmResults, automaticUpdate);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ViewHolder viewHolder;
+            if (convertView == null) {
+                convertView = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+                viewHolder = new ViewHolder(convertView);
+                convertView.setTag(viewHolder);
+            } else {
+                viewHolder = (ViewHolder) convertView.getTag();
+            }
+
+            Dot item = realmResults.get(position);
+            viewHolder.text.setText("[X= " + item.getX() + " Y= " + item.getY() + "]");
+            return convertView;
+        }
+
+        public RealmResults<Dot> getRealmResults() {
+            return realmResults;
+        }
+
+        private class ViewHolder {
+            TextView text;
+            ViewHolder(View view) {
+                text = (TextView) view.findViewById(android.R.id.text1);
+            }
         }
     }
 
@@ -162,7 +206,7 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
             this.inflater = LayoutInflater.from(context);
         }
 
-        void updateList(List<Dot> dots) {
+        void updateList(RealmResults<Dot> dots) {
             this.dots = dots;
             notifyDataSetChanged();
         }

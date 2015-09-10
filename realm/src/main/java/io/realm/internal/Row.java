@@ -101,6 +101,7 @@ public interface Row {
 
     /**
      * Checks if the row is still valid.
+     *
      * @return Returns true {@code true} if the row is still valid and attached to the underlying
      * data. {@code false} otherwise.
      */
@@ -108,8 +109,151 @@ public interface Row {
 
     /**
      * Returns {@code true} if the field name exists.
+     *
      * @param fieldName Field name to check.
      * @return {@code true} if field name exists, {@code false} otherwise.
      */
     boolean hasColumn(String fieldName);
+
+    Row EMPTY_ROW = new Row() {
+        @Override
+        public long getColumnCount() {
+            return 0;
+        }
+
+        @Override
+        public String getColumnName(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public long getColumnIndex(String columnName) {
+            return 0;
+        }
+
+        @Override
+        public ColumnType getColumnType(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public Table getTable() {
+            return null;
+        }
+
+        @Override
+        public long getIndex() {
+            return 0;
+        }
+
+        @Override
+        public long getLong(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public boolean getBoolean(long columnIndex) {
+            return false;
+        }
+
+        @Override
+        public float getFloat(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public double getDouble(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public Date getDate(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public String getString(long columnIndex) {
+            return "";
+        }
+
+        @Override
+        public byte[] getBinaryByteArray(long columnIndex) {
+            return new byte[0];
+        }
+
+        @Override
+        public Mixed getMixed(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public ColumnType getMixedType(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public long getLink(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public boolean isNullLink(long columnIndex) {
+            return true;
+        }
+
+        @Override
+        public LinkView getLinkList(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public void setLong(long columnIndex, long value) {
+        }
+
+        @Override
+        public void setBoolean(long columnIndex, boolean value) {
+        }
+
+        @Override
+        public void setFloat(long columnIndex, float value) {
+        }
+
+        @Override
+        public void setDouble(long columnIndex, double value) {
+        }
+
+        @Override
+        public void setDate(long columnIndex, Date date) {
+        }
+
+        @Override
+        public void setString(long columnIndex, String value) {
+        }
+
+        @Override
+        public void setBinaryByteArray(long columnIndex, byte[] data) {
+        }
+
+        @Override
+        public void setMixed(long columnIndex, Mixed data) {
+        }
+
+        @Override
+        public void setLink(long columnIndex, long value) {
+        }
+
+        @Override
+        public void nullifyLink(long columnIndex) {
+        }
+
+        @Override
+        public boolean isAttached() {
+            return false;
+        }
+
+        @Override
+        public boolean hasColumn(String fieldName) {
+            return false;
+        }
+    };
 }
