@@ -52,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
@@ -203,6 +204,7 @@ public final class Realm implements Closeable {
      * @param configuration Configuration used to open the Realm.
      * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
@@ -381,6 +383,7 @@ public final class Realm implements Closeable {
      *
      * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
      * model classes or version has has changed so a migration is required.
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
@@ -920,6 +923,7 @@ public final class Realm implements Closeable {
      * <p>
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
         if (destination == null) {
@@ -1191,7 +1195,14 @@ public final class Realm implements Closeable {
     // Notifications
 
     /**
-     * Add a change listener to the Realm
+     * Add a change listener to the Realm.
+     * <p>
+     * The listeners will be executed:
+     * <ul>
+     *     <li>Immediately if a change was committed by the local thread</li>
+     *     <li>On every loop of a Handler thread if changes were committed by another thread</li>
+     *     <li>On every call to {@link io.realm.Realm#refresh()}</li>
+     * </ul>
      *
      * @param listener the change listener
      * @see io.realm.RealmChangeListener
@@ -1279,12 +1290,14 @@ public final class Realm implements Closeable {
      */
 
     /**
-     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it
+     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it.
+     * It also calls the listeners associated to the Realm instance.
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
         checkIfValid();
         transaction.advanceRead();
+        sendNotifications();
     }
 
     /**
