@@ -554,5 +554,8 @@ private:
     jbyte* m_ptr;
 };
 
+jobject NewLong(JNIEnv* env, int64_t value);
+jobject NewDouble(JNIEnv* env, double value);
+jobject NewFloat(JNIEnv* env, float value);
 
 #endif // REALM_JAVA_UTIL_HPP

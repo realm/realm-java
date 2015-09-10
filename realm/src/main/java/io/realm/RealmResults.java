@@ -319,7 +319,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName   The field to look for a minimum on. Only int, float, and double
      *                    are supported.
-     * @return            The minimum value.
+     * @return            If the given field has 0 rows or all rows with null values, null will be returned.
+     *                    Otherwise return the minimum value.
      * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number min(String fieldName) {
@@ -342,7 +343,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName  The field to look for the minimum date. If fieldName is not of Date type,
      *                   an exception is thrown.
-     * @return           The minimum date.
+     * @return           If the given date field has 0 rows or all rows with null values, null will be returned.
+     *                   Otherwise return the minimum date.
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date minDate(String fieldName) {
@@ -360,7 +362,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Find the maximum value of a field.
      *
      * @param fieldName   The field to look for a maximum on. Only int, float, and double are supported.
-     * @return            The maximum value.
+     * @return            If the given field has 0 rows or all rows with null values, null will be returned.
+     *                    Otherwise return the maximum value.
      * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
     public Number max(String fieldName) {
@@ -383,7 +386,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName  The field to look for the maximum date. If fieldName is not of Date type,
      *                   an exception is thrown.
-     * @return           The maximum date.
+     * @return           If the given date field has 0 rows or all rows with null values, null will be returned.
+     *                   Otherwise return the maximum date.
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date maxDate(String fieldName) {

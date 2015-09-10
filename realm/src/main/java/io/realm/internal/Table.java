@@ -1125,14 +1125,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeSumInt(long nativePtr, long columnIndex);
 
     @Override
-    public long maximumLong(long columnIndex) {
+    public Long maximumLong(long columnIndex) {
         return nativeMaximumInt(nativePtr, columnIndex);
     }
 
     protected native long nativeMaximumInt(long nativePtr, long columnIndex);
 
     @Override
-    public long minimumLong(long columnIndex) {
+    public Long minimumLong(long columnIndex) {
         return nativeMinimumInt(nativePtr, columnIndex);
     }
 
@@ -1154,14 +1154,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native double nativeSumFloat(long nativePtr, long columnIndex);
 
     @Override
-    public float maximumFloat(long columnIndex) {
+    public Float maximumFloat(long columnIndex) {
         return nativeMaximumFloat(nativePtr, columnIndex);
     }
 
     protected native float nativeMaximumFloat(long nativePtr, long columnIndex);
 
     @Override
-    public float minimumFloat(long columnIndex) {
+    public Float minimumFloat(long columnIndex) {
         return nativeMinimumFloat(nativePtr, columnIndex);
     }
 
@@ -1183,14 +1183,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native double nativeSumDouble(long nativePtr, long columnIndex);
 
     @Override
-    public double maximumDouble(long columnIndex) {
+    public Double maximumDouble(long columnIndex) {
         return nativeMaximumDouble(nativePtr, columnIndex);
     }
 
     protected native double nativeMaximumDouble(long nativePtr, long columnIndex);
 
     @Override
-    public double minimumDouble(long columnIndex) {
+    public Double minimumDouble(long columnIndex) {
         return nativeMinimumDouble(nativePtr, columnIndex);
     }
 

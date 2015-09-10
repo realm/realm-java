@@ -398,3 +398,25 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         m_size = out_begin - m_data.get();
     }
 }
+
+jobject NewLong(JNIEnv* env, int64_t value)
+{
+    jclass cls = env->FindClass("java/lang/Long");
+    jmethodID methodID = env->GetMethodID(cls, "<init>", "(J)V");
+    return env->NewObject(cls, methodID, value);
+}
+
+jobject NewDouble(JNIEnv* env, double value)
+{
+    jclass cls = env->FindClass("java/lang/Double");
+    jmethodID methodID = env->GetMethodID(cls, "<init>", "(D)V");
+    return env->NewObject(cls, methodID, value);
+}
+
+jobject NewFloat(JNIEnv* env, float value)
+{
+    jclass cls = env->FindClass("java/lang/Float");
+    jmethodID methodID = env->GetMethodID(cls, "<init>", "(F)V");
+    return env->NewObject(cls, methodID, value);
+}
+
