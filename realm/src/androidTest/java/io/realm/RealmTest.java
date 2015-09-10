@@ -40,6 +40,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.dynamic.DynamicRealmObject;
@@ -1821,6 +1823,43 @@ public class RealmTest extends AndroidTestCase {
 
         testRealm = Realm.getInstance(newConfig);
         assertNotNull(testRealm);
+    }
+
+    // Tests that if the same Realm file is opened on multiple threads, we only need to validate the schema on the first thread.
+    public void testValidateSchemasOverThreads() throws InterruptedException, TimeoutException, ExecutionException {
+        final RealmConfiguration config = TestHelper.createConfiguration(getContext(), "foo");
+        Realm.deleteRealm(config);
+
+        final CountDownLatch bgThreadLocked = new CountDownLatch(1);
+        final CountDownLatch mainThreadDone = new CountDownLatch(1);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(config);
+                realm.beginTransaction();
+                bgThreadLocked.countDown();
+                try {
+                    mainThreadDone.await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
+                realm.close();
+            }
+        }).start();
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Realm realm = Realm.getInstance(config);
+                realm.close();
+                mainThreadDone.countDown();
+                return true;
+            }
+        });
+
+        bgThreadLocked.await(2, TimeUnit.SECONDS);
+        assertTrue(future.get(10, TimeUnit.SECONDS));
     }
 
     public void testProcessLocalListenersAfterRefresh() {
