@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal.async;
 
 import android.os.Handler;
@@ -17,7 +33,7 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
 
 /**
- * Created by Nabil on 02/09/15.
+ * Manage the update of async queries.
  */
 public class QueryUpdateTask implements Runnable {
     // true if updating RealmResults, false if updating RealmObject, can't mix both
@@ -100,8 +116,6 @@ public class QueryUpdateTask implements Runnable {
                         break;
                     }
                     case RealmQuery.ArgumentsHolder.TYPE_FIND_ALL_SORTED: {
-                        // TODO calling statically the native method willnot trigger executeDelayedDisposal
-                        //      make the java method static
                         long handoverTableViewPointer = TableQuery.nativeFindAllSortedWithHandover(
                                 sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(),
@@ -175,11 +189,6 @@ public class QueryUpdateTask implements Runnable {
     public static class Result {
         public IdentityHashMap<WeakReference<RealmResults<?>>, Long> updatedTableViews;
         public IdentityHashMap<WeakReference<RealmObject>, Long> updatedRow;
-        //TODO maybe inline parameters or updateRow
-
-        // communicate the version used to update the queries
-        // the caller thread need to advance to this version (may not be the latest version yet)
-        // in order to import without (handover mismatch) the exported tableView
         public SharedGroup.VersionID versionID;
 
         public static Result newRealmResults () {
@@ -197,20 +206,22 @@ public class QueryUpdateTask implements Runnable {
 
     // builder pattern
 
-    /**
-     * Example of call
-     * QueryUpdateTask task = QueryUpdateTask.newBuilder()
-     .realmConfiguration(null, null)
-     .add(null, 0, null)
-     .add(null, 0, null)
-     .sendToHandler(null, 0)
-     .build();
+    /*
+      This uses the step builder pattern to guide the caller throughout the creation of the instance
+      http://rdafbn.blogspot.ie/2012/07/step-builder-pattern_28.html
+      Example of call:
+      QueryUpdateTask task = QueryUpdateTask.newBuilder()
+         .realmConfiguration(null, null)
+         .add(null, 0, null)
+         .add(null, 0, null)
+         .sendToHandler(null, 0)
+         .build();
 
      QueryUpdateTask task2 = QueryUpdateTask.newBuilder()
-     .realmConfiguration(null, null)
-     .addObject(null, 0, null)
-     .sendToHandler(null, 0)
-     .build();
+         .realmConfiguration(null, null)
+         .addObject(null, 0, null)
+         .sendToHandler(null, 0)
+         .build();
      */
     public static class Builder {
         public interface RealmConfigurationStep {

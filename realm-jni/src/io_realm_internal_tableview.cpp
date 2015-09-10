@@ -989,8 +989,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync(
     }
     try {
         return (jlong) TV(nativeViewPtr)->sync_if_needed();
-        return 0;
     } CATCH_STD()
     return 0;
 }
-

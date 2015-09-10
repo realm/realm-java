@@ -127,6 +127,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, EncryptionNotSupported, "parm1", "parm2");
             break;
+        case BadVersion:
+            expect = "io.realm.internal.async.BadVersionException: parm1";
+            if (dotest)
+                ThrowException(env, BadVersion, "parm1", "parm2");
+            break;
+
     }
     if (dotest) {
         return NULL;

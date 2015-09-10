@@ -140,7 +140,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
 
         case BadVersion:
             jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
-            message = "Handover failed due to version mismatch: " + classStr;
+            message = classStr;
             break;
     }
     if (jExceptionClass != NULL) {

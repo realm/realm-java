@@ -23,7 +23,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,11 +31,9 @@ import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.RealmBaseAdapter;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.examples.threads.model.Dot;
-import io.realm.internal.log.RealmLog;
 
 /**
  * This fragment demonstrates how you can perform asynchronous queries with Realm
@@ -51,7 +48,6 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_async_query, container, false);
-        rootView.findViewById(R.id.start_button).setOnClickListener(this);
         rootView.findViewById(R.id.translate_button).setOnClickListener(this);
 
         ListView listView = (ListView) rootView.findViewById(android.R.id.list);
@@ -65,7 +61,6 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         super.onStart();
         // Create Realm instance for the UI thread
         realm = Realm.getDefaultInstance();
-        RealmLog.d("AsyncQueryFragment onStart opening realm");
         mAllSortedDots = realm.where(Dot.class)
                 .between("x", 25, 75)
                 .between("y", 0, 50)
@@ -81,28 +76,14 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         super.onStop();
         // Remember to close the Realm instance when done with it.
         cancelTransaction();
-        mAllSortedDots.deleteChangeListener(this);
+        mAllSortedDots.removeChangeListener(this);
         mAllSortedDots = null;
         realm.close();
-        RealmLog.d("AsyncQueryFragment onStop closing realm");
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.start_button: {
-                // cancel any previously running request
-//                cancelRequest();
-//
-//                RealmResults<Dot> allSortedDots = realm.where(Dot.class)
-//                        .between("x", 25, 75)
-//                        .between("y", 0, 50)
-//                        .findAllSortedAsync(
-//                                "x", RealmResults.SORT_ORDER_ASCENDING,
-//                                "y", RealmResults.SORT_ORDER_ASCENDING);
-                //mAdapter.updateList(results);
-                break;
-            }
             case R.id.translate_button: {
                 cancelTransaction();
                 // translate all points coordinates using an async transaction
@@ -144,13 +125,6 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         }
     }
 
-//    private void cancelRequest() {
-//        if (mAsyncRequest != null && !mAsyncRequest.isCancelled()) {
-//            mAsyncRequest.cancel();
-//            mAsyncRequest = null;
-//        }
-//    }
-
     private void cancelTransaction() {
         if (mAsyncTransaction != null && !mAsyncTransaction.isCancelled()) {
             mAsyncTransaction.cancel();
@@ -163,40 +137,6 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         mDotAdapter.notifyDataSetChanged();
     }
 
-
-    private class MyAdapter extends RealmBaseAdapter<Dot> implements ListAdapter {
-
-        public MyAdapter(Context context, int resId, RealmResults<Dot> realmResults, boolean automaticUpdate) {
-            super(context, realmResults, automaticUpdate);
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder viewHolder;
-            if (convertView == null) {
-                convertView = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
-                viewHolder = new ViewHolder(convertView);
-                convertView.setTag(viewHolder);
-            } else {
-                viewHolder = (ViewHolder) convertView.getTag();
-            }
-
-            Dot item = realmResults.get(position);
-            viewHolder.text.setText("[X= " + item.getX() + " Y= " + item.getY() + "]");
-            return convertView;
-        }
-
-        public RealmResults<Dot> getRealmResults() {
-            return realmResults;
-        }
-
-        private class ViewHolder {
-            TextView text;
-            ViewHolder(View view) {
-                text = (TextView) view.findViewById(android.R.id.text1);
-            }
-        }
-    }
 
     private class DotAdapter extends BaseAdapter {
         private List<Dot> dots = Collections.emptyList();

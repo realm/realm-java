@@ -19,7 +19,6 @@ package io.realm.internal;
 import java.io.Closeable;
 import java.io.IOError;
 import java.io.Serializable;
-import java.lang.*;
 
 import io.realm.exceptions.RealmIOException;
 
@@ -55,10 +54,12 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String databaseFile, boolean enableImplicitTransactions, Durability durability, byte[] key) {
+    public SharedGroup(String databaseFile, boolean enableImplicitTransactions,
+                       Durability durability, byte[] key) {
         if (enableImplicitTransactions) {
             nativeReplicationPtr = nativeCreateReplication(databaseFile, key);
-            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
+            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr,
+                    durability.value, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, key);
@@ -87,7 +88,8 @@ public class SharedGroup implements Closeable {
     }
 
     void advanceRead(VersionID versionID) {
-        nativeAdvanceReadToVersion(nativePtr, nativeReplicationPtr, versionID.version, versionID.index);
+        nativeAdvanceReadToVersion(nativePtr, nativeReplicationPtr, versionID.version,
+                versionID.index);
     }
 
     void promoteToWrite() {
@@ -150,7 +152,8 @@ public class SharedGroup implements Closeable {
 
     void endRead() {
         if (isClosed())
-            throw new IllegalStateException("Can't endRead() on closed group. ReadTransaction is invalid.");
+            throw new IllegalStateException("Can't endRead() on closed group. " +
+                    "ReadTransaction is invalid.");
         nativeEndRead(nativePtr);
         activeTransaction = false;
     }
@@ -277,7 +280,8 @@ public class SharedGroup implements Closeable {
         }
     }
 
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
+                                                             int durability, byte[] key);
     private native long nativeCreateReplication(String databaseFile, byte[] key);
     private native void nativeAdvanceRead(long nativePtr);
     private native void nativePromoteToWrite(long nativePtr);
@@ -285,7 +289,7 @@ public class SharedGroup implements Closeable {
     private native void nativeRollbackAndContinueAsRead(long nativePtr);
     private native long nativeBeginImplicit(long nativePtr);
     private native String nativeGetDefaultReplicationDatabaseFileName();
-    
+
     private native void nativeReserve(long nativePtr, long bytes);
     private native boolean nativeHasChanged(long nativePtr);
     private native long nativeBeginRead(long nativePtr);
@@ -304,6 +308,7 @@ public class SharedGroup implements Closeable {
     private native void nativeRollbackAndContinueAsRead(long nativePtr, long nativeReplicationPtr);
     private native long[] nativeGetVersionID (long nativePtr);
     private native void nativeAdvanceRead(long nativePtr, long nativeReplicationPtr);
-    private native void nativeAdvanceReadToVersion(long nativePtr, long nativeReplicationPtr, long version, long index);
+    private native void nativeAdvanceReadToVersion(long nativePtr, long nativeReplicationPtr,
+                                                   long version, long index);
     private native void nativePromoteToWrite(long nativePtr, long nativeReplicationPtr);
 }

@@ -69,6 +69,7 @@ import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.async.RealmThreadPoolExecutor;
+import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -203,8 +204,7 @@ public final class Realm implements Closeable {
     final ColumnIndices columnIndices = new ColumnIndices();
 
     static {
-//        RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
-        RealmLog.add(new DebugAndroidLogger() );
+        RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
     protected void checkIfValid() {
@@ -305,18 +305,6 @@ public final class Realm implements Closeable {
         handlers.remove(handler);
     }
 
-    private void cleanRR () {
-        Iterator<Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>>> iterator =
-                asyncRealmResults.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>> entry = iterator.next();
-            RealmResults<?> weakReference = entry.getKey().get();
-            if (weakReference == null) {
-                iterator.remove();
-            }
-        }
-    }
-
     private class RealmCallback implements Handler.Callback {
         @Override
         public boolean handleMessage(Message message) {
@@ -367,7 +355,7 @@ public final class Realm implements Closeable {
                         }
 
                     } else {
-                        RealmLog.d("REALM_CHANGED realm:"+ Realm.this + "no async queries, advance_read");
+                        RealmLog.d("REALM_CHANGED realm:"+ Realm.this + " no async queries, advance_read");
                         transaction.advanceRead();
                         sendNotifications();
                     }
@@ -586,19 +574,7 @@ public final class Realm implements Closeable {
         return !isEmpty;
     }
 
-    private void triggerGC () {
-        // From the AOSP FinalizationTest:
-        // https://android.googlesource.com/platform/libcore/+/master/support/src/test/java/libcore/
-        // java/lang/ref/FinalizationTester.java
-        // System.gc() does not garbage collect every time. Runtime.gc() is
-        // more likely to perform a gc.
-        Runtime.getRuntime().gc();
-//        enqueueReferences();
-//        System.runFinalization();
-    }
-//
-
-    private void deleteWeakReferences() {//TODO could also use isEnqueued instead
+    private void deleteWeakReferences() {
         // From the AOSP FinalizationTest:
         // https://android.googlesource.com/platform/libcore/+/master/support/src/test/java/libcore/
         // java/lang/ref/FinalizationTester.java
@@ -664,8 +640,8 @@ public final class Realm implements Closeable {
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(new RealmConfiguration.Builder(context)
-                    .name(DEFAULT_REALM_NAME)
-                    .build());
+                .name(DEFAULT_REALM_NAME)
+                .build());
     }
 
     /**
@@ -1282,15 +1258,6 @@ public final class Realm implements Closeable {
         return result;
     }
 
-    <E extends RealmObject> E getByPointer(Class<E> clazz, long nativeRowPointer) {
-        Table table = getTable(clazz);
-        UncheckedRow row = table.getUncheckedRowByPointer(nativeRowPointer);
-        E result = configuration.getSchemaMediator().newInstance(clazz);
-        result.row = row;
-        result.realm = this;
-        return result;
-    }
-
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
@@ -1786,19 +1753,20 @@ public final class Realm implements Closeable {
         getTable(clazz).clear();
     }
 
+    // package protected so unit tests can access it
+
     // Returns the Handler for this Realm on the calling thread
     Handler getHandler() {
         return handler;
     }
 
-    void setHandler (Handler handler) {//was setting for the wrong Thread
+    void setHandler (Handler handler) {
         // remove the old one
         handlers.remove(this.handler);
         handlers.put(handler, configuration.getPath());
         this.handler = handler;
     }
 
-    // package protected so unit tests can access it
     long getVersion() {
         if (!transaction.hasTable("metadata")) {
             return UNVERSIONED;

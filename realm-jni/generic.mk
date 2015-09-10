@@ -1799,6 +1799,7 @@ SHARED_LIBRARY_RULE = $(SHARED_LIBRARY_RULE_DEFAULT)
 define SHARED_LIBRARY_RULE_DEFAULT
 $(1): $(2)
 	$$(strip $(3)) -o $(1)
+	$(STRIP) -s $(1)
 endef
 
 ifeq ($(OS),Linux)

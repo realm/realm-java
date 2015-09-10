@@ -1,20 +1,36 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal.async;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Created by Nabil on 04/09/15.
+ * Custom thread pool settings, instances of this executor can be paused, and resumed.
  */
 public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     // reduce context switch by using a number of thread proportionate to the number of cores
     private static final int CORE_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2 + 1;
+    private static final int QUEUE_SIZE = 100;
 
     private boolean isPaused;
     private ReentrantLock pauseLock = new ReentrantLock();
@@ -33,33 +49,10 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         return instance;
     }
 
-//    private AtomicInteger numberOfProcessed
     private RealmThreadPoolExecutor() {
         super(CORE_POOL_SIZE, CORE_POOL_SIZE,
                 0L, TimeUnit.MILLISECONDS, //terminated idle thread
-                new ArrayBlockingQueue<Runnable>(100));
-    }
-
-//    private RealmThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
-//        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-////        setThreadFactory(new ThreadFactory() {
-////            @Override
-////            public Thread newThread(Runnable r) {
-////                Thread thread = new Thread(r);
-//////                android.os.Process.setThreadPriority()
-////
-////                thread.setPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-////                return null;
-////            }
-////        });
-//    }
-
-//        public RealmThreadPoolExecutor(...) { super(...);
-
-
-    @Override
-    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
-        return super.newTaskFor(callable);
+                new ArrayBlockingQueue<Runnable>(QUEUE_SIZE));
     }
 
     @Override
@@ -69,15 +62,6 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        return super.submit(new BgPriorityCallable<T>(task));
-    }
-
-    public <T> Future<T> submit(Callable<T> task, long handoverQueryPointer) {
-        //TODO add the pointer handoverQueryPointer to the BgPriorityCallable
-        // then when newTask is called Override with custom FutureTask implementation
-        // that override done() so it will close the pointer (pass an Object array Long as object)
-        // so if the query succeed set 0 to avoid closing a consumed pointer
-        // we still need a way to test if the pointer was closed
         return super.submit(new BgPriorityCallable<T>(task));
     }
 
@@ -94,15 +78,7 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         }
     }
 
-    @Override
-    protected void afterExecute(Runnable r, Throwable t) {
-        super.afterExecute(r, t);
-        // clean up the Queue from the background thread?
-        //purge();
-    }
-
     public void pause() {
-//        ((PausableArrayBlockingQueue<Runnable>) getQueue()).pause();
         pauseLock.lock();
         try {
             isPaused = true;
@@ -112,7 +88,6 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     }
 
     public void resume() {
-//        ((PausableArrayBlockingQueue<Runnable>) getQueue()).resume();
         pauseLock.lock();
         try {
             isPaused = false;
@@ -121,6 +96,4 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
             pauseLock.unlock();
         }
     }
-
-
 }

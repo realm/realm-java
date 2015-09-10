@@ -19,6 +19,7 @@
 #include "util.hpp"
 #include "io_realm_internal_TableQuery.h"
 #include "tablequery.hpp"
+
 using namespace realm;
 
 #if 1

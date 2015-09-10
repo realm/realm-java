@@ -16,7 +16,6 @@
 
 package io.realm.examples.threads;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
@@ -33,7 +32,6 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.examples.threads.model.Dot;
 import io.realm.examples.threads.widget.DotsView;
-import io.realm.internal.log.RealmLog;
 
 /**
  * This fragment demonstrates how Realm can interact with a background thread.
@@ -44,6 +42,7 @@ public class ThreadFragment extends Fragment {
     private Random random = new Random();
     private Thread backgroundThread;
     private DotsView dotsView;
+
     // Realm change listener that refreshes the UI when there is changes to Realm.
     private RealmChangeListener realmListener = new RealmChangeListener() {
         @Override
@@ -59,26 +58,9 @@ public class ThreadFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        RealmLog.d("ThreadFragment onAttach creating new realm");
-        // Create Realm instance for the UI thread
-        realm = Realm.getDefaultInstance();
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_thread, container, false);
         dotsView = (DotsView) rootView.findViewById(R.id.dots);
-
-        // Create a RealmQuery on the UI thread and send the results to the custom view. The
-        // RealmResults will automatically be updated whenever the Realm data is changed.
-        // We still need to invalidate the UI to show the changes however. See the RealmChangeListener.
-        //
-        // Note that the query gets updated by rerunning it on the thread it was
-        // created. This can negatively effect frame rates if it is a complicated query or a very
-        // large data set.
-        dotsView.setRealmResults(realm.allObjects(Dot.class));
         return rootView;
     }
 
@@ -114,12 +96,28 @@ public class ThreadFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        // Create Realm instance for the UI thread
+        realm = Realm.getDefaultInstance();
+
+        // Create a RealmQuery on the UI thread and send the results to the custom view. The
+        // RealmResults will automatically be updated whenever the Realm data is changed.
+        // We still need to invalidate the UI to show the changes however. See the RealmChangeListener.
+        //
+        // Note that the query gets updated by rerunning it on the thread it was
+        // created. This can negatively effect frame rates if it is a complicated query or a very
+        // large data set.
+        dotsView.setRealmResults(realm.allObjects(Dot.class));
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
         // Enable UI refresh while the fragment is active.
         realm.addChangeListener(realmListener);
-        RealmLog.d("ThreadFragment onResume enable change listener");
+
         // Create background thread that add a new dot every 0.5 second.
         backgroundThread = new Thread() {
 
@@ -129,7 +127,6 @@ public class ThreadFragment extends Fragment {
                 // instance on the background thread.
                 int redColor = getResources().getColor(R.color.realm_red);
                 Realm backgroundThreadRealm = Realm.getInstance(getActivity());
-                RealmLog.d("ThreadFragment onResume opening bg realm");
                 while (!backgroundThread.isInterrupted()) {
                     backgroundThreadRealm.beginTransaction();
 
@@ -146,7 +143,6 @@ public class ThreadFragment extends Fragment {
 
                 // Also close Realm instances used in background threads.
                 backgroundThreadRealm.close();
-                RealmLog.d("ThreadFragment onResume closing bg realm");
             }
         };
         backgroundThread.start();
@@ -155,17 +151,16 @@ public class ThreadFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        RealmLog.d("ThreadFragment onPause disable change listener");
+
         // Disable UI refresh while the fragment is no longer active.
         realm.removeChangeListener(realmListener);
         backgroundThread.interrupt();
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStop() {
+        super.onStop();
         // Remember to close the Realm instance when done with it.
         realm.close();
-        RealmLog.d("ThreadFragment onDestroy closing realm");
     }
 }

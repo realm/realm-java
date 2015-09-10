@@ -407,7 +407,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                             } finally {
                                 signalCallbackFinished.countDown();
                             }
-
                         }
                     });
 

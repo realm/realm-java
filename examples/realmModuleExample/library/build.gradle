@@ -18,10 +18,6 @@ android {
 
     productFlavors {
     }
-
-    lintOptions {
-        abortOnError false
-    }
 }
 
 tasks.preBuild {

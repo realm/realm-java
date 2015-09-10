@@ -485,7 +485,7 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     // different instances of Realm sharing the same configuration
-    // should have different handler
+    // should have different handlers
     public void testSameConfigurationDifferentHandler() throws InterruptedException {
         final CountDownLatch threadReady = new CountDownLatch(2);
         final Realm[] realms = new Realm[2];
@@ -494,7 +494,7 @@ public class NotificationsTest extends AndroidTestCase {
             public void run() {
                 Looper.prepare();
                 RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(getContext())
-                        .name("toto")
+                        .name("mobius")
                         .build();
                 realms[0] = Realm.getInstance(realmConfiguration);
                 threadReady.countDown();
@@ -506,7 +506,7 @@ public class NotificationsTest extends AndroidTestCase {
             public void run() {
                 Looper.prepare();
                 RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(getContext())
-                        .name("toto")
+                        .name("mobius")
                         .build();
                 realms[1] = Realm.getInstance(realmConfiguration);
                 threadReady.countDown();
@@ -522,5 +522,4 @@ public class NotificationsTest extends AndroidTestCase {
 
         assertNotSame(handlerThread1, handlerThread2);
     }
-
 }

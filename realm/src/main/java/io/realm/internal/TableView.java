@@ -922,8 +922,7 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public String toString() {
-        //return nativeToString(nativePtr, 500);
-        return "NO STRING FOR YOU";
+        return nativeToString(nativePtr, 500);
     }
 
     @Override
