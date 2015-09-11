@@ -1,6 +1,7 @@
 0.83
- * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
+ * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous version Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
+ * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
  * Fixed an issue preventing the call of listeners on refresh().
 
 0.82.2
