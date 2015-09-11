@@ -483,4 +483,40 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(0, counter.get());
         assertEquals(0, realm.getChangeListeners().size());
     }
+
+    // different instances of Realm sharing the same configuration
+    // should have different handlers
+    public void testSameConfigurationDifferentHandler() throws InterruptedException {
+        final CountDownLatch threadReady = new CountDownLatch(2);
+        final Handler[] handlers = new Handler[2];
+        new Thread("thread1") {
+            @Override
+            public void run() {
+                Looper.prepare();
+                RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(getContext())
+                        .name("mobius")
+                        .build();
+                handlers[0] = Realm.getInstance(realmConfiguration).getHandler();
+                threadReady.countDown();
+            }
+        }.start();
+
+        new Thread("thread2") {
+            @Override
+            public void run() {
+                Looper.prepare();
+                RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(getContext())
+                        .name("mobius")
+                        .build();
+                handlers[1] = Realm.getInstance(realmConfiguration).getHandler();
+                threadReady.countDown();
+            }
+
+        }.start();
+
+        threadReady.await();
+
+        // check handler are not the same
+        assertNotSame(handlers[0], handlers[1]);
+    }
 }

@@ -276,6 +276,7 @@ public final class Realm implements Closeable {
 
         if (handler != null && refCount <= 0) {
             removeHandler(handler);
+            handler = null;
         }
     }
 
@@ -355,8 +356,8 @@ public final class Realm implements Closeable {
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(new RealmConfiguration.Builder(context)
-                    .name(DEFAULT_REALM_NAME)
-                    .build());
+                .name(DEFAULT_REALM_NAME)
+                .build());
     }
 
     /**
@@ -1405,13 +1406,7 @@ public final class Realm implements Closeable {
 
     // Returns the Handler for this Realm on the calling thread
     Handler getHandler() {
-        String realmPath = configuration.getPath();
-        for (Map.Entry<Handler, String> entry : handlers.entrySet()) {
-            if (entry.getValue().equals(realmPath)) {
-                return entry.getKey();
-            }
-        }
-        return null;
+        return handler;
     }
 
     // package protected so unit tests can access it
