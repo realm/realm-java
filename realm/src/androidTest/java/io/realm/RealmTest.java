@@ -1902,9 +1902,6 @@ public class RealmTest extends AndroidTestCase {
                     assertEquals(7, allBg.get(1).getColumnLong());
 
                     backgroundRealm.close();
-
-
-
                 } catch (InterruptedException e) {
                     threadAssertionError[0] = e;
                 } catch (AssertionFailedError e) {
@@ -1918,6 +1915,7 @@ public class RealmTest extends AndroidTestCase {
 
         callerThreadCompleted.countDown();
         signalBgFinished.await();
+        realm.close();
         if (threadAssertionError[0] != null)
             throw threadAssertionError[0];
     }
