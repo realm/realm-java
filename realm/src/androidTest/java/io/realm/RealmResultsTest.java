@@ -88,18 +88,6 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
 
-    private void populateAllNullRowsForNumericTesting () {
-        NullTypes nullTypes1 = new NullTypes();
-        nullTypes1.setId(1);
-        NullTypes nullTypes2 = new NullTypes();
-        nullTypes2.setId(2);
-
-        testRealm.beginTransaction();
-        testRealm.copyToRealm(nullTypes1);
-        testRealm.copyToRealm(nullTypes2);
-        testRealm.commitTransaction();
-    }
-
     private void populatePartialNullRowsForNumericTesting () {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
@@ -259,14 +247,24 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(0, minimum.intValue());
     }
 
+    // Test min on empty columns
+    public void testMinValueForEmptyColumns() {
+        RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
+        assertNull(results.min(NullTypes.FIELD_INTEGER_NOT_NULL));
+        assertNull(results.min(NullTypes.FIELD_FLOAT_NOT_NULL));
+        assertNull(results.min(NullTypes.FIELD_DOUBLE_NOT_NULL));
+        assertNull(results.minDate(NullTypes.FIELD_DATE_NOT_NULL));
+    }
+
     // Test min on nullable rows with all null values
     public void testMinValueForAllNullRows() {
-        populateAllNullRowsForNumericTesting();
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
-        assertEquals(Integer.MIN_VALUE, results.min(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(Float.NEGATIVE_INFINITY, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(Double.NEGATIVE_INFINITY, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertNull(results.max(NullTypes.FIELD_INTEGER_NULL));
+        assertNull(results.max(NullTypes.FIELD_FLOAT_NULL));
+        assertNull(results.max(NullTypes.FIELD_DOUBLE_NULL));
+        assertNull(results.maxDate(NullTypes.FIELD_DATE_NULL));
     }
 
     // Test min on nullable rows with partial null values
@@ -286,14 +284,24 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, maximum.intValue());
     }
 
+    // Test max on empty columns
+    public void testMaxValueForEmptyColumns() {
+        RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
+        assertNull(results.max(NullTypes.FIELD_INTEGER_NOT_NULL));
+        assertNull(results.max(NullTypes.FIELD_FLOAT_NOT_NULL));
+        assertNull(results.max(NullTypes.FIELD_DOUBLE_NOT_NULL));
+        assertNull(results.maxDate(NullTypes.FIELD_DATE_NOT_NULL));
+    }
+
     // Test max on nullable rows with all null values
     public void testMaxValueForAllNullRows() {
-        populateAllNullRowsForNumericTesting();
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
-        assertEquals(Integer.MAX_VALUE, results.max(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(Float.POSITIVE_INFINITY, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(Double.POSITIVE_INFINITY, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertNull(results.max(NullTypes.FIELD_INTEGER_NULL));
+        assertNull(results.max(NullTypes.FIELD_FLOAT_NULL));
+        assertNull(results.max(NullTypes.FIELD_DOUBLE_NULL));
+        assertNull(results.maxDate(NullTypes.FIELD_DATE_NULL));
     }
 
     // Test max on nullable rows with partial null values
@@ -316,9 +324,9 @@ public class RealmResultsTest extends AndroidTestCase {
 
     // Test sum on nullable rows with all null values
     public void testSumGivesCorrectValueForAllNullRows() {
-        populateAllNullRowsForNumericTesting();
-        RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
+        RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
         assertEquals(0, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
         assertEquals(0f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
         assertEquals(0d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
@@ -374,14 +382,23 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(1.234567 + 0.5 * (N - 1.0), resultList.average(FIELD_FLOAT), 0.0001);
     }
 
-    // Test sum on nullable rows with all null values
-    public void testAvgGivesCorrectValueForAllNullRows() {
-        populateAllNullRowsForNumericTesting();
+    // Test average on empty columns
+    public void testAvgGivesCorrectValueForEmptyColumns() {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
-        assertEquals(0, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(0f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(0d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(0d, resultList.average(NullTypes.FIELD_INTEGER_NOT_NULL));
+        assertEquals(0d, resultList.average(NullTypes.FIELD_FLOAT_NOT_NULL));
+        assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NOT_NULL));
+    }
+
+    // Test average on nullable rows with all null values
+    public void testAvgGivesCorrectValueForAllNullRows() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
+        assertEquals(0d, resultList.average(NullTypes.FIELD_INTEGER_NULL));
+        assertEquals(0d, resultList.average(NullTypes.FIELD_FLOAT_NULL));
+        assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NULL));
     }
 
     // Test sum on nullable rows with partial null values
@@ -566,16 +583,16 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<NullTypes> sortedList = testRealm.allObjects(NullTypes.class);
         sortedList.sort(fieldName, RealmResults.SORT_ORDER_ASCENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
-        assertEquals(3, sortedList.first().getId());
-        // Null should always be the last one in the sorted list
-        assertEquals(2, sortedList.last().getId());
+        // Null should always be the first one in the ascending sorted list
+        assertEquals(2, sortedList.first().getId());
+        assertEquals(1, sortedList.last().getId());
 
         // Descending
         sortedList = testRealm.allObjects(NullTypes.class);
         sortedList.sort(fieldName, RealmResults.SORT_ORDER_DESCENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
         assertEquals(1, sortedList.first().getId());
-        // Null should always be the last one in the sorted list
+        // Null should always be the last one in the descending sorted list
         assertEquals(2, sortedList.last().getId());
     }
 
