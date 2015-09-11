@@ -283,10 +283,7 @@ public class SharedGroup implements Closeable {
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
                                                              int durability, byte[] key);
     private native long nativeCreateReplication(String databaseFile, byte[] key);
-    private native void nativeAdvanceRead(long nativePtr);
-    private native void nativePromoteToWrite(long nativePtr);
     private native void nativeCommitAndContinueAsRead(long nativePtr);
-    private native void nativeRollbackAndContinueAsRead(long nativePtr);
     private native long nativeBeginImplicit(long nativePtr);
     private native String nativeGetDefaultReplicationDatabaseFileName();
 

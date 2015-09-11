@@ -19,6 +19,7 @@
 #include "util.hpp"
 
 #include <realm/group_shared.hpp>
+#include <realm/replication.hpp>
 #include <realm/commit_log.hpp>
 
 #include "util.hpp"
@@ -151,7 +152,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
 {
     TR_ENTER_PTR(native_ptr)
     try {
-        LangBindHelper::advance_read( *SG(native_ptr), *CH(native_replication_ptr) );
+        LangBindHelper::advance_read(*SG(native_ptr), *CH(native_replication_ptr));
     }
     CATCH_STD()
 }
@@ -172,7 +173,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
 {
     TR_ENTER_PTR(native_ptr) 
     try {
-        LangBindHelper::promote_to_write( *SG(native_ptr), *CH(native_replication_ptr) );
+        LangBindHelper::promote_to_write(*SG(native_ptr), *CH(native_replication_ptr));
     }
     CATCH_STD()
 }

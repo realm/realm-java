@@ -313,7 +313,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=fa
 template <class T>
 inline bool TblRowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=false)
 {
-    if (std::is_same<Table, T>::value) {
+    if (std::is_same<realm::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
@@ -338,7 +338,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 template <class T>
 inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
 {
-    if (std::is_same<Table, T>::value) {
+    if (std::is_same<realm::Table, T>::value) {
         if (!TableIsValid(env, TBL(pTable)))
             return false;
     }
@@ -431,7 +431,7 @@ inline bool TblColIndexAndLinkOrLinkList(JNIEnv* env, T* pTable, jlong columnInd
         && TypeIsLinkLike(env, pTable, columnIndex);
 }
 
-inline bool RowColIndexAndTypeValid(JNIEnv* env, Row* pRow, jlong columnIndex, int expectColType)
+inline bool RowColIndexAndTypeValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex, int expectColType)
 {
     return RowIsValid(env, pRow)
         && ColIndexAndTypeValid(env, pRow->get_table(), columnIndex, expectColType);
@@ -480,7 +480,7 @@ class JStringAccessor {
 public:
     JStringAccessor(JNIEnv*, jstring);  // throws
 
-    operator StringData() const REALM_NOEXCEPT
+    operator realm::StringData() const noexcept
     {
         return StringData(m_data.get(), m_size);
     }

@@ -102,8 +102,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeMove
             ThrowException(env, IndexOutOfBounds,
                 "Indices must be within range [0, " + num_to_string(size) + "[. " +
                 "Yours were (" + num_to_string(old_pos) + "," + num_to_string(new_pos) + ")");
+            return;
         }
-        return LV(nativeLinkViewPtr)->move( S(old_pos), S(new_pos) );
+        LV(nativeLinkViewPtr)->move( S(old_pos), S(new_pos) );
     } CATCH_STD()
 }
 
