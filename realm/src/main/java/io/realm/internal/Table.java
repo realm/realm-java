@@ -304,7 +304,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
-     * Get the type of a column identified by the columnIdex.
+     * Get the type of a column identified by the columnIndex.
      *
      * @param columnIndex index of the column.
      * @return Type of the particular column.
@@ -1287,7 +1287,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeMinimumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMinimumInt(long nativePtr, long columnnIndex);
+    protected native long nativeMinimumInt(long nativePtr, long columnIndex);
 
     @Override
     public double averageLong(long columnIndex) {
@@ -1316,7 +1316,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeMinimumFloat(nativePtr, columnIndex);
     }
 
-    protected native float nativeMinimumFloat(long nativePtr, long columnnIndex);
+    protected native float nativeMinimumFloat(long nativePtr, long columnIndex);
 
     @Override
     public double averageFloat(long columnIndex) {
@@ -1345,7 +1345,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeMinimumDouble(nativePtr, columnIndex);
     }
 
-    protected native double nativeMinimumDouble(long nativePtr, long columnnIndex);
+    protected native double nativeMinimumDouble(long nativePtr, long columnIndex);
 
     @Override
     public double averageDouble(long columnIndex) {
@@ -1368,7 +1368,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return new Date(nativeMinimumDate(nativePtr, columnIndex) * 1000);
     }
 
-    protected native long nativeMinimumDate(long nativePtr, long columnnIndex);
+    protected native long nativeMinimumDate(long nativePtr, long columnIndex);
 
 
     //

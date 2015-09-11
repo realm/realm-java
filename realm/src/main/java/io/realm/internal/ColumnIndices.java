@@ -32,8 +32,8 @@ public class ColumnIndices {
     /**
      * Add column indices from a given model class
      */
-    public void addClass(Class<? extends RealmObject> clazz, Map<String, Long> indicies) {
-        classes.put(clazz, indicies);
+    public void addClass(Class<? extends RealmObject> clazz, Map<String, Long> indices) {
+        classes.put(clazz, indices);
     }
 
     /**
