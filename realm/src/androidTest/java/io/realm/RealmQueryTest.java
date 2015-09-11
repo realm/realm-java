@@ -871,6 +871,46 @@ public class RealmQueryTest extends AndroidTestCase{
         }
     }
 
+    // Test min on empty columns
+    public void testMinValueForEmptyColumns() {
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertNull(query.min(NullTypes.FIELD_INTEGER_NOT_NULL));
+        assertNull(query.min(NullTypes.FIELD_FLOAT_NOT_NULL));
+        assertNull(query.min(NullTypes.FIELD_DOUBLE_NOT_NULL));
+        assertNull(query.minimumDate(NullTypes.FIELD_DATE_NOT_NULL));
+    }
+
+    // Test min on columns with all null rows
+    public void testMinValueForAllNullColumns() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertNull(query.min(NullTypes.FIELD_INTEGER_NULL));
+        assertNull(query.min(NullTypes.FIELD_FLOAT_NULL));
+        assertNull(query.min(NullTypes.FIELD_DOUBLE_NULL));
+        assertNull(query.minimumDate(NullTypes.FIELD_DATE_NULL));
+    }
+
+    // Test max on empty columns
+    public void testMaxValueForEmptyColumns() {
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertNull(query.max(NullTypes.FIELD_INTEGER_NOT_NULL));
+        assertNull(query.max(NullTypes.FIELD_FLOAT_NOT_NULL));
+        assertNull(query.max(NullTypes.FIELD_DOUBLE_NOT_NULL));
+        assertNull(query.maximumDate(NullTypes.FIELD_DATE_NOT_NULL));
+    }
+
+    // Test max on columns with all null rows
+    public void testMaxValueForAllNullColumns() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertNull(query.max(NullTypes.FIELD_INTEGER_NULL));
+        assertNull(query.max(NullTypes.FIELD_FLOAT_NULL));
+        assertNull(query.max(NullTypes.FIELD_DOUBLE_NULL));
+        assertNull(query.maximumDate(NullTypes.FIELD_DATE_NULL));
+    }
+
     // Test isNull on link's nullable field.
     public void testIsNullOnLinkField() {
         TestHelper.populateTestRealmForNullTests(testRealm);

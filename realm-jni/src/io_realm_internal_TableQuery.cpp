@@ -900,7 +900,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeSumInt(
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -909,14 +909,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return NULL;
     try {
-        return pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+        size_t ndx;
+        int64_t result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
+        if (ndx != npos) {
+            return NewLong(env, result);
+        }
     } CATCH_STD()
-    return 0;
+    return NULL;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -925,11 +929,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Int) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return NULL;
     try {
-        return pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+        size_t ndx;
+        int64_t result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
+        if (ndx != npos) {
+            return NewLong(env, result);
+        }
     } CATCH_STD()
-    return 0;
+    return NULL;
 }
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageInt(
@@ -971,7 +979,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumFloat(
     return 0;
 }
 
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -980,14 +988,18 @@ JNIEXPORT jfloat JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return NULL;
     try {
-        return pQuery->maximum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
+        size_t ndx;
+        float result = pQuery->maximum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
+        if (ndx != npos) {
+            return NewFloat(env, result);
+        }
     } CATCH_STD()
-    return 0;
+    return NULL;
 }
 
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -996,11 +1008,15 @@ JNIEXPORT jfloat JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Float) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return NULL;
     try {
-        return pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit));
+        size_t ndx;
+        float result = pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
+        if (ndx != npos) {
+            return NewFloat(env, result);
+        }
     } CATCH_STD()
-    return 0;
+    return NULL;
 }
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(
@@ -1039,7 +1055,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(
     return 0;
 }
 
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -1048,14 +1064,18 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return NULL;
     try {
-        return pQuery->maximum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
+        size_t ndx;
+        double result = pQuery->maximum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
+        if (ndx != npos) {
+            return NewDouble(env, result);
+        }
     } CATCH_STD()
-    return 0;
+    return NULL;
 }
 
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -1064,11 +1084,15 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_Double) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return NULL;
     try {
-        return pQuery->minimum_double(S(columnIndex), NULL, S(start), S(end), S(limit));
+        size_t ndx;
+        double result = pQuery->minimum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
+        if (ndx != npos) {
+            return NewDouble(env, result);
+        }
     } CATCH_STD()
-    return 0;
+    return NULL;
 }
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
@@ -1093,7 +1117,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
 
 // date aggregates
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -1102,15 +1126,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_DateTime) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return NULL;
     try {
-        // This exploits the fact that dates are stored as int in core
-        return pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+        size_t ndx;
+        DateTime result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
+        if (ndx != npos) {
+            return NewLong(env, result.get_datetime());
+        }
     } CATCH_STD()
-    return 0;
+    return NULL;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate(
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate(
     JNIEnv* env, jobject, jlong nativeQueryPtr,
     jlong columnIndex, jlong start, jlong end, jlong limit)
 {
@@ -1119,12 +1146,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate(
     if (!QUERY_VALID(env, pQuery) ||
         !COL_INDEX_AND_TYPE_VALID(env, pTable, columnIndex, type_DateTime) ||
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
-        return 0;
+        return NULL;
     try {
-        // This exploits the fact that dates are stored as int in core
-        return pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit));
+        size_t ndx;
+        DateTime result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
+        if (ndx != npos) {
+            return NewLong(env, result.get_datetime());
+        }
     } CATCH_STD()
-    return 0;
+    return NULL;
 }
 
 // Count, Remove

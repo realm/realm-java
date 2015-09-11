@@ -252,6 +252,18 @@ public class TestHelper {
         testRealm.commitTransaction();
     }
 
+    public static void populateAllNullRowsForNumericTesting(Realm realm) {
+        NullTypes nullTypes1 = new NullTypes();
+        nullTypes1.setId(1);
+        NullTypes nullTypes2 = new NullTypes();
+        nullTypes2.setId(2);
+
+        realm.beginTransaction();
+        realm.copyToRealm(nullTypes1);
+        realm.copyToRealm(nullTypes2);
+        realm.commitTransaction();
+    }
+
     // Helper function to create all columns except the given excluding field for NullTypes.
     public static void initNullTypesTableExcludes(Realm realm, String excludingField) {
         Table table = realm.getTable(NullTypes.class);
