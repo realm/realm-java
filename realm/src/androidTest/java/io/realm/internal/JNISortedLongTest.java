@@ -39,7 +39,7 @@ public class JNISortedLongTest extends TestCase {
         assertEquals(4, table.lowerBoundLong(0, 40));
         assertEquals(5, table.upperBoundLong(0, 40));
 
-        // find mindle (nonexisting)
+        // find middle (nonexisting)
         assertEquals(5, table.lowerBoundLong(0, 41));
         assertEquals(5, table.upperBoundLong(0, 41));
 

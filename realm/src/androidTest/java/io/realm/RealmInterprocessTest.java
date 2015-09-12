@@ -185,7 +185,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
     }
 
     // Return the service info if it is alive.
-    // When this method return null, it doesn't mean the remote process is not exsited. An 'empty' process could
+    // When this method return null, it doesn't mean the remote process is not existed. An 'empty' process could
     // be retained by the system to be used next time.
     // Use getRemoteProcessInfo if you want to check the existence of remote process.
     private ActivityManager.RunningServiceInfo getServiceInfo() {
