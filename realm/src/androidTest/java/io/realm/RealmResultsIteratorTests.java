@@ -37,8 +37,9 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
     @Override
     protected void setUp() throws InterruptedException {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
         testRealm.beginTransaction();
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
@@ -250,7 +251,8 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
     public void DISABLEDtestRemovingObjectsFromOtherThreadWhileIterating() throws InterruptedException, ExecutionException {
 
         // Prefill
-        Realm realm = Realm.getInstance(getContext(), "test");
+        final RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "test");
+        Realm realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
         realm.clear(AllTypes.class);
         AllTypes o1 = realm.createObject(AllTypes.class);
@@ -269,7 +271,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         Callable<Boolean> backgroundWorker = new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                Realm backgroundRealm = Realm.getInstance(getContext(), "test");
+                Realm backgroundRealm = Realm.getInstance(realmConfig);
                 backgroundRealm.beginTransaction();
                 RealmResults<AllTypes> backgroundResult = backgroundRealm.allObjects(AllTypes.class);
                 if (backgroundResult.size() != 2) {

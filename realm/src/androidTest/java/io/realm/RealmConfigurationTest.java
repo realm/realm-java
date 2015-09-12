@@ -79,6 +79,15 @@ public class RealmConfigurationTest extends AndroidTestCase {
         }
     }
 
+    public void testGetInstanceCreateSubFoldersThrows() {
+        File folder = new File(getContext().getFilesDir().getAbsolutePath() + "/subfolder1/subfolder2/");
+        try {
+            new RealmConfiguration.Builder(folder).build();
+            fail("Assuming that subfolders are created automatically should fail");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
     public void testNullNameThrows() {
         try {
             new RealmConfiguration.Builder(getContext()).name(null).build();
@@ -93,6 +102,18 @@ public class RealmConfigurationTest extends AndroidTestCase {
             fail();
         } catch (IllegalArgumentException expected) {
         }
+    }
+
+    public void testInstanceIdForHashCollision() {
+        // Ea.hashCode() == FB.hashCode()
+        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), "Ea");
+        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), "FB");
+        Realm.deleteRealm(configA);
+        Realm.deleteRealm(configB);
+
+        Realm r1 = Realm.getInstance(configA);
+        Realm r2 = Realm.getInstance(configB);
+        assertNotSame(r1, r2);
     }
 
     public void testNullKeyThrows() {

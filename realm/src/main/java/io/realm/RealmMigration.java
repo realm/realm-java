@@ -44,11 +44,11 @@ package io.realm;
  * </pre>
  *
  * During development when model classes can change frequently, it is possible to use
- * {@link io.realm.Realm#deleteRealmFile(android.content.Context)}. This will delete the database
+ * {@link io.realm.Realm#deleteRealm(RealmConfiguration)}. This will delete the database
  * file and eliminate the need for any migrations.
  *
- * @see Realm#migrateRealmAtPath(String, byte[], RealmMigration)
- * @see Realm#migrateRealmAtPath(String, RealmMigration)
+ * @see Realm#migrateRealm(RealmConfiguration)
+ * @see Realm#migrateRealm(RealmConfiguration, RealmMigration)
  */
 public interface RealmMigration {
 
@@ -59,6 +59,6 @@ public interface RealmMigration {
      * @param version The schemaVersion of the Realm at the start of the migration.
      * @return The schemaVersion of the Realm after executing the migration.
      */
-    public long execute(Realm realm, long version);
+    long execute(Realm realm, long version);
 }
 

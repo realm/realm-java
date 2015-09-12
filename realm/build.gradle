@@ -164,7 +164,7 @@ project.afterEvaluate {
     preBuild.dependsOn(['compileJni', 'compileAnnotations', 'buildApt'])
 }
 
-// exampleDir : [distributionDir, [ exampleSrcParentDir, distibutionSrcParentDir], ...]
+// exampleDir : [distributionDir, [ exampleSrcParentDir, distributionSrcParentDir], ...]
 // exampleDir -> Name of example dir
 // distributionDir -> Name of distribution dir
 // [ exampleModuleDir, distModuleDir ] -> where to find module dir to copy. Add one for each submodule.
@@ -213,6 +213,7 @@ task generateDistributionExamplesBuildFiles << {
 task populateDistributionFolder(dependsOn: ['androidJar', 'bundleJavadocRelease']) << {
     copy {
         from '../changelog.txt'
+        from '../LICENSE'
         from "build/libs/realm-${version}.jar"
         from "build/libs/realm-${version}-javadoc.jar"
         into '../distribution'
