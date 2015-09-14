@@ -1,5 +1,8 @@
 // Realm projects
 include 'realm'
+include 'realm-annotations'
+include 'realm-annotations-processor'
+include 'realm-jni'
 
 // Example projects
 include ':introExample',

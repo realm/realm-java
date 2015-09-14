@@ -57,19 +57,10 @@ def targets = [
     new Target( name:'x86', jniFolder:'x86', toolchain:toolchains.find{it.name == 'x86'}, cflags:[] )
 ]
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'de.undercouch:gradle-download-task:1.0'
-    }
-}
-
 apply plugin: 'download-task'
 
 Properties localProperties = new Properties()
-localProperties.load(new FileInputStream("${projectDir}/../local.properties"))
+localProperties.load(new FileInputStream("${rootDir}/local.properties"))
 localProperties.entrySet().each() { entry ->
     project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
 }
@@ -95,12 +86,12 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     doLast {
         download {
             src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
-            dest new File(buildDir, "core-android-${project.coreVersion}.tar.gz")
+            dest file("${buildDir}/core-android-${project.coreVersion}.tar.gz")
             onlyIfNewer true
         }
         copy {
-            from tarTree(new File(buildDir, "core-android-${project.coreVersion}.tar.gz"))
-            into "../core-${project.coreVersion}"
+            from tarTree(file("${buildDir}/core-android-${project.coreVersion}.tar.gz"))
+            into "${rootDir}/core-${project.coreVersion}"
         }
         for (target in targets) {
             exec {
@@ -153,10 +144,10 @@ targets.each { target ->
             'make',
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
-            "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+            "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${rootDir}/core-${project.coreVersion}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
+            "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${rootDir}/core-${project.coreVersion} -Wl,--gc-sections -flto",
             'LIB_SUFFIX_SHARED=.so',
             "librealm-jni-${target.name}.so"
         ]
@@ -165,14 +156,14 @@ targets.each { target ->
     task "copyAndroidJni${target.name.capitalize()}"(dependsOn: "buildAndroidJni${target.name.capitalize()}") << {
         copy {
             from "${projectDir}/src/librealm-jni-${target.name}-stripped.so"
-            into "${projectDir}/../realm/src/main/jniLibs/${target.jniFolder}"
+            into "${rootDir}/realm/src/main/jniLibs/${target.jniFolder}"
             rename "librealm-jni-${target.name}-stripped.so", 'librealm-jni.so'
         }
 
         // Store the unstripped version
         copy {
             from "${projectDir}/src/librealm-jni-${target.name}.so"
-            into "${projectDir}/../build/output/jniLibs-unstripped/${target.jniFolder}"
+            into "${rootDir}/build/output/jniLibs-unstripped/${target.jniFolder}"
             rename "librealm-jni-${target.name}.so", 'librealm-jni.so'
         }
     }
