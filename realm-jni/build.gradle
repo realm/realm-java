@@ -115,9 +115,9 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
         }
         exec {
             commandLine = [
-                    'rm',
-                    '-rf',
-                    "${projectDir}/build/*"
+                    'sh',
+                    '-c',
+                    "rm -rf \"${projectDir}/build/\"*"
             ]
         }
     }
@@ -198,9 +198,9 @@ task clean(group: 'build', description: 'Clean the make artifacts') << {
     }
     exec {
         commandLine = [
-            'rm',
-            '-rf',
-            "${projectDir}/build/*"
+            'sh',
+            '-c',
+            "rm -rf \"${projectDir}/build/\"*"
         ]
     }
 }
