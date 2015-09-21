@@ -241,9 +241,6 @@ public interface TableOrView {
      */
     void setLink(long columnIndex, long rowIndex, long value);
 
-    //Increments all rows in the specified column with the provided value
-    void adjust(long columnIndex, long value);
-
     long sumLong(long columnIndex);
 
     long maximumLong(long columnIndex);
