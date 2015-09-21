@@ -55,7 +55,7 @@ public class ClassMetaData {
     private List<String> fieldNames = new ArrayList<String>();
     private List<String> ignoreFieldNames = new ArrayList<String>();
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
-    private Set<VariableElement> nullableElements = new HashSet<VariableElement>(); // Set of fields which can be nullable
+    private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
     private Set<String> expectedGetters = new HashSet<String>(); // Set of fieldnames that are expected to have a getter
     private Set<String> expectedSetters = new HashSet<String>(); // Set of fieldnames that are expected to have a setter
     private Set<ExecutableElement> methods = new HashSet<ExecutableElement>(); // List of all methods in the model class
@@ -308,22 +308,29 @@ public class ClassMetaData {
                 }
 
                 if (variableElement.getAnnotation(Required.class) == null) {
-                    // The field doesn't have the @Required annotation
-                    if (!Utils.isPrimitiveType(variableElement) &&
-                            !Utils.isRealmList(variableElement)) {
-                        nullableElements.add(variableElement);
+                    // The field doesn't have the @Required annotation.
+                    // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
+                    // nullableFields.
+                    // RealmList and Primitive types are NOT nullable always. @Required annotation is not needed.
+                    if (!Utils.isPrimitiveType(variableElement) && !Utils.isRealmList(variableElement)) {
+                        nullableFields.add(variableElement);
                     }
                 } else {
                     // The field has the @Required annotation
                     if (Utils.isPrimitiveType(variableElement)) {
-                        Utils.error("@Required is not needed for primitive fields - got " + element);
+                        Utils.error("@Required is not needed for primitive fields. Annotated field " + element +
+                                " has the type " + element.asType());
                     } else if (Utils.isRealmList(variableElement)) {
-                        Utils.error("@Required is not needed for RealmList fields - got " + element);
+                        Utils.error("@Required is invalid for RealmList fields. Annotated field " + element +
+                                " has the type " + element.asType());
                     } else if (Utils.isRealmObject(variableElement)) {
-                        Utils.error("@Required cannot be applied to RealmObject fields - got " + element);
+                        Utils.error("@Required is invalid for RealmObject fields. Annotated field " + element +
+                                " has the type " + element.asType());
                     } else {
-                        if (nullableElements.contains(variableElement)) {
-                            nullableElements.remove(variableElement);
+                        // Should never get here.
+                        if (nullableFields.contains(variableElement)) {
+                            Utils.error("Annotated field " + element + " with type " + element.asType() +
+                                    " has been added to the nullableFields before.");
                         }
                     }
                 }
@@ -440,7 +447,7 @@ public class ClassMetaData {
                 return false;
             }
         }
-        return nullableElements.contains(variableElement);
+        return nullableFields.contains(variableElement);
     }
 
     private boolean isValidPrimaryKeyType(TypeMirror type) {
