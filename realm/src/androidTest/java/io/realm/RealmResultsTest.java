@@ -31,7 +31,6 @@ import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
-import io.realm.query.Sort;
 
 public class RealmResultsTest extends AndroidTestCase {
     protected final static int TEST_DATA_SIZE = 2516;

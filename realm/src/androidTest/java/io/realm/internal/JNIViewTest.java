@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 import java.util.Date;
 
 import io.realm.internal.test.TestHelper;
-import io.realm.query.Sort;
+import io.realm.Sort;
 
 @SuppressWarnings("deprecation")
 public class JNIViewTest extends TestCase {

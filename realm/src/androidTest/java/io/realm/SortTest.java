@@ -20,7 +20,6 @@ import android.test.AndroidTestCase;
 
 import io.realm.entities.AllTypes;
 import io.realm.internal.TableView;
-import io.realm.query.Sort;
 
 public class SortTest extends AndroidTestCase {
     private Realm testRealm = null;

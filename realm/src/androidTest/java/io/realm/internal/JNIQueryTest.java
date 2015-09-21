@@ -5,8 +5,8 @@ import junit.framework.TestCase;
 import java.util.Date;
 
 import io.realm.internal.test.TestHelper;
-import io.realm.query.Case;
-import io.realm.query.Sort;
+import io.realm.Case;
+import io.realm.Sort;
 
 public class JNIQueryTest extends TestCase {
 

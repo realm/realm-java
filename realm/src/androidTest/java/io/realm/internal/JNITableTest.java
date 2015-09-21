@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.Date;
 
 import io.realm.internal.test.TestHelper;
-import io.realm.query.Sort;
+import io.realm.Sort;
 
 public class JNITableTest extends AndroidTestCase {
 

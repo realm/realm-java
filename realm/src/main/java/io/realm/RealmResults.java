@@ -29,7 +29,6 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
-import io.realm.query.Sort;
 
 /**
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects

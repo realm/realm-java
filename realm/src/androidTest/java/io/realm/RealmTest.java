@@ -62,8 +62,6 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
-import io.realm.query.Case;
-import io.realm.query.Sort;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 

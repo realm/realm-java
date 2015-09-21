@@ -4,7 +4,6 @@ import android.test.AndroidTestCase;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CatOwner;
@@ -12,8 +11,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
-import io.realm.query.Case;
-import io.realm.query.Sort;
 
 public class RealmQueryTest extends AndroidTestCase{
 

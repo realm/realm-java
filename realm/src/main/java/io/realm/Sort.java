@@ -1,4 +1,4 @@
-package io.realm.query;
+package io.realm;
 
 /**
  * This class describes the sorting order used in Realm queries.

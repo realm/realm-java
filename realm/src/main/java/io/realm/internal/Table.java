@@ -18,11 +18,10 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.Date;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
-import io.realm.query.Sort;
+import io.realm.Sort;
 
 
 /**

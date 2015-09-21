@@ -28,8 +28,6 @@ import io.realm.internal.LinkView;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
-import io.realm.query.Case;
-import io.realm.query.Sort;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults}
@@ -338,7 +336,7 @@ public class RealmQuery<E extends RealmObject> {
      * Not-equal-to comparison
      * @param fieldName  The field to compare
      * @param value      The value to compare with
-     * @param casing     How casing is handled. {@link io.realm.query.Case#INSENSITIVE} works only for the English locale characters.
+     * @param casing     How casing is handled. {@link Case#INSENSITIVE} works only for the English locale characters.
      * @return The query object
      * @throws java.lang.IllegalArgumentException One or more arguments do not match class or
      * field type

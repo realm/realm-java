@@ -20,7 +20,7 @@ import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
 
-import io.realm.query.Sort;
+import io.realm.Sort;
 
 
 /**

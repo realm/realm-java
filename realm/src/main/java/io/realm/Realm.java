@@ -66,7 +66,6 @@ import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
-import io.realm.query.Sort;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It

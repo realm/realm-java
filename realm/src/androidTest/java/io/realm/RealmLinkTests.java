@@ -23,7 +23,6 @@ import java.util.Date;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
-import io.realm.query.Case;
 
 public class RealmLinkTests extends AndroidTestCase {
 

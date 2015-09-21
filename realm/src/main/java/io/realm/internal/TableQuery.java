@@ -19,7 +19,7 @@ package io.realm.internal;
 import java.io.Closeable;
 import java.util.Date;
 
-import io.realm.query.Case;
+import io.realm.Case;
 
 public class TableQuery implements Closeable {
     protected boolean DEBUG = false;

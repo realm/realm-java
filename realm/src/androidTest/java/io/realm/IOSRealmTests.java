@@ -22,7 +22,6 @@ import java.util.Date;
 
 import io.realm.entities.IOSAllTypes;
 import io.realm.entities.IOSChild;
-import io.realm.query.Sort;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 

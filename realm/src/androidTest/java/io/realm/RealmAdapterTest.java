@@ -21,7 +21,6 @@ import android.widget.TextView;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.RealmAdapter;
-import io.realm.query.Sort;
 
 public class RealmAdapterTest extends AndroidTestCase {
 

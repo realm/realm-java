@@ -29,7 +29,6 @@ import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
 import io.realm.exceptions.RealmException;
-import io.realm.query.Sort;
 
 public class RealmResultsIteratorTests extends AndroidTestCase {
 
