@@ -86,7 +86,7 @@ public class JNITableInsertTest extends TestCase {
         }
     }
 
-    public void testWhenColumnNameIsExcactly63CharLong() {
+    public void testWhenColumnNameIsExactly63CharLong() {
 
         Table table = new Table();
         table.addColumn(ColumnType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");

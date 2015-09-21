@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * <p>
  * A RealmModule can either be a library module or an app module. The distinction is made by setting
  * {@code library = true}. Setting {@code library = true} is normally only relevant for library authors. See below for
- * futher details.
+ * further details.
  *
  *
  * <h2>RealmModules and libraries</h2>
@@ -49,7 +49,7 @@ import java.lang.annotation.Target;
  * included in the app project that also uses Realm. This means that library projects that uses Realm internally are
  * required to specify a specific module using {@code RealmConfiguration.setModules()}.
  * <p>
- * App developers are not required to specify any modules, as they implicitely use the {@code DefaultRealmModule}, but
+ * App developers are not required to specify any modules, as they implicitly use the {@code DefaultRealmModule}, but
  * they now has the option of adding the library project classes to their schema using
  * {@code RealmConfiguration.addModule()}.
  *
@@ -62,7 +62,7 @@ public @interface RealmModule {
 
     /**
      * Setting this to true will mark this module as a library module. This will prevent Realm from generating the
-     * {@code DefaultRealmModule} containing all classes. This is required by libraries so they do notintefer with
+     * {@code DefaultRealmModule} containing all classes. This is required by libraries so they do not interfere with
      * Realms running in app code, but it also means that all libraries using Realm must explicitly use a module and
      * cannot  rely on the default module being present.
      *

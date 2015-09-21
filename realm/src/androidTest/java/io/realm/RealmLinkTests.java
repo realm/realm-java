@@ -189,10 +189,11 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(12, owners6.first().getCat().getAge());
 
         try {
-            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date(10000)).findAll();
+            testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date(10000)).findAll();
             fail();
+        } catch (IllegalArgumentException ignored) {
+            // Between does not support link queries.
         }
-        catch (IllegalArgumentException ignored) {}
     }
 
     public void testQuerySingleRelationFloat() {
@@ -352,8 +353,9 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date(3000)).findAll();
             fail();
+        } catch (IllegalArgumentException ignore) {
+            // Between does not support link queries.
         }
-        catch (IllegalArgumentException ignored) {}
     }
 
     public void testQueryMultipleRelationsFloat() {

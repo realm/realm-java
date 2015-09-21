@@ -1,7 +1,6 @@
 package io.realm.internal;
 
 import android.test.AndroidTestCase;
-import android.test.MoreAsserts;
 
 import java.io.File;
 import java.util.Date;
@@ -354,8 +353,8 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testColumnName() {
         Table t = new Table();
-        try { t.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
-        t.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
+        try { t.addColumn(ColumnType.STRING, "I am 64 characters.............................................."); fail("Only 63 characters supported"); } catch (IllegalArgumentException e) { }
+        t.addColumn(ColumnType.STRING, "I am 63 characters.............................................");
     }
 
     public void testTableNumbers() {

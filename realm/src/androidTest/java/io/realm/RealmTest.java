@@ -40,6 +40,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.dynamic.DynamicRealmObject;
@@ -1203,7 +1205,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testCopyToRealmDontCopyNestedRealmObjets() {
+    public void testCopyToRealmDontCopyNestedRealmObjects() {
         testRealm.beginTransaction();
         CyclicTypePrimaryKey childObj = testRealm.createObject(CyclicTypePrimaryKey.class);
         childObj.setName("Child");
@@ -1768,7 +1770,7 @@ public class RealmTest extends AndroidTestCase {
             System.gc();
         }
 
-        // we can't guarantee that all references have been GC'd but we should detect a decrease
+        // we can't guarantee that all references have been GC'ed but we should detect a decrease
         boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
         if (!isDecreasing) {
             fail("Native resources are not being closed");
@@ -1892,6 +1894,101 @@ public class RealmTest extends AndroidTestCase {
 
         testRealm = Realm.getInstance(newConfig);
         assertNotNull(testRealm);
+    }
+
+    // Tests that if the same Realm file is opened on multiple threads, we only need to validate the schema on the first thread.
+    public void testValidateSchemasOverThreads() throws InterruptedException, TimeoutException, ExecutionException {
+        final RealmConfiguration config = TestHelper.createConfiguration(getContext(), "foo");
+        Realm.deleteRealm(config);
+
+        final CountDownLatch bgThreadLocked = new CountDownLatch(1);
+        final CountDownLatch mainThreadDone = new CountDownLatch(1);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(config);
+                realm.beginTransaction();
+                bgThreadLocked.countDown();
+                try {
+                    mainThreadDone.await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
+                realm.close();
+            }
+        }).start();
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                Realm realm = Realm.getInstance(config);
+                realm.close();
+                mainThreadDone.countDown();
+                return true;
+            }
+        });
+
+        bgThreadLocked.await(2, TimeUnit.SECONDS);
+        assertTrue(future.get(10, TimeUnit.SECONDS));
+    }
+
+    // Realm validation & initialization is done once, still ColumnIndices
+    // should be populated for the subsequent Realm sharing the same configuration
+    // even if we skip initialization & validation
+    public void testColumnIndicesIsPopulatedWhenSkippingInitialization() throws Throwable {
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final CountDownLatch callerThreadCompleted = new CountDownLatch(1);
+        final CountDownLatch signalBgFinished = new CountDownLatch(1);
+        final RealmConfiguration realmConfiguration = TestHelper.
+                createConfiguration(getContext(), "testColumnIndicesIsPopulatedWhenSkippingInitialization");
+        Realm.deleteRealm(realmConfiguration);
+        Realm realm = Realm.getInstance(realmConfiguration);
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class).setColumnLong(42);
+        realm.commitTransaction();
+
+        RealmResults<AllTypes> all = realm.where(AllTypes.class).findAll();
+        assertNotNull(all);
+        assertEquals(1, all.size());
+        assertEquals(42, all.get(0).getColumnLong());
+
+        // open a background Realm
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    callerThreadCompleted.await();
+                    Realm backgroundRealm = Realm.getInstance(realmConfiguration);
+
+                    backgroundRealm.beginTransaction();
+                    backgroundRealm.createObject(AllTypes.class).setColumnLong(7);
+                    backgroundRealm.commitTransaction();
+
+                    RealmResults<AllTypes> allBg = backgroundRealm.where(AllTypes.class).findAll();
+                    assertNotNull(allBg);
+                    assertEquals(2, allBg.size());
+                    assertEquals(42, allBg.get(0).getColumnLong());
+                    assertEquals(7, allBg.get(1).getColumnLong());
+
+                    backgroundRealm.close();
+                } catch (InterruptedException e) {
+                    threadAssertionError[0] = e;
+                } catch (AssertionFailedError e) {
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    signalBgFinished.countDown();
+                }
+            }
+        }.start();
+
+        callerThreadCompleted.countDown();
+        signalBgFinished.await();
+        realm.close();
+        if (threadAssertionError[0] != null)
+            throw threadAssertionError[0];
     }
 
     public void testProcessLocalListenersAfterRefresh() {
