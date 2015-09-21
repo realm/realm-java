@@ -146,6 +146,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                             try {
                                 assertTrue(results[0].isLoaded());
                                 assertEquals(5, results[0].size());
+                                assertTrue(results[0].get(0).isValid());
                             } catch (AssertionFailedError e) {
                                 threadAssertionError[0] = e;
                             } finally {
@@ -223,6 +224,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                             try {
                                 assertTrue(realmResults.isLoaded());
                                 assertEquals(5, realmResults.size());
+                                assertTrue(realmResults.get(4).isValid());
                             } catch (AssertionFailedError e) {
                                 threadAssertionError[0] = e;
                             } finally {
@@ -958,6 +960,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                         public void onChange() {
                             try {
                                 assertTrue(realmResults.isLoaded());
+                                assertTrue(realmResults.isValid());
                                 assertEquals("test data 4", realmResults.getColumnString());
                             } catch (AssertionFailedError e) {
                                 threadAssertionError[0] = e;
@@ -968,7 +971,12 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     });
 
                     assertFalse(realmResults.isLoaded());
+                    assertFalse(realmResults.isValid());
                     assertEquals("", realmResults.getColumnString());
+                    try {
+                        realmResults.setColumnString("should fail");
+                        fail("Accessing an unloaded object should throw");
+                    } catch (IllegalAccessError ignore) {}
 
                     Realm.asyncQueryExecutor.resume();
 
