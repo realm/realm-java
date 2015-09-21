@@ -1,4 +1,9 @@
+import java.security.MessageDigest
+
 ext.coreVersion = '0.93.0'
+// empty or comment out this to disable hash checking
+ext.coreSha256Hash = '90044150ff6019a31c044306becccc513c7394f7486ffc8ba4880121c1ef46fa'
+ext.forceDownloadCore = false
 ext.clang = false // gcc is default for the NDK. It also produces smaller binaries
 
 def commonCflags = [ '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
@@ -59,19 +64,25 @@ def targets = [
 
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
-        classpath 'de.undercouch:gradle-download-task:1.0'
+        classpath 'de.undercouch:gradle-download-task:2.0.0'
     }
 }
 
-apply plugin: 'download-task'
+apply plugin: 'de.undercouch.download'
 
 Properties localProperties = new Properties()
 localProperties.load(new FileInputStream("${projectDir}/../local.properties"))
 localProperties.entrySet().each() { entry ->
     project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
+}
+if (project.clang instanceof String) {
+    ext.clang = Boolean.parseBoolean(project.clang)
+}
+if (project.forceDownloadCore instanceof String) {
+    ext.forceDownloadCore = Boolean.parseBoolean(project.forceDownloadCore)
 }
 
 task checkProperties(group: 'check', description: 'Check the user provided gradle.properties') << {
@@ -89,18 +100,91 @@ task checkProperties(group: 'check', description: 'Check the user provided gradl
     }
 }
 
-// TODO: Split this task into smaller subtasks
+ext.coreArchiveFile = project.file("../core-android-${project.coreVersion}.tar.gz")
+ext.coreDir = new File(buildDir, "core-${project.coreVersion}")
+
+def coreDownloaded = false
+
 task downloadCore(group: 'build setup', description: 'Download the latest version of realm core', dependsOn: checkProperties) {
-    outputs.dir "../core-${project.coreVersion}"
+    def isHashCheckingEnabled = {
+        return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
+    }
+
+    def calcSha256Hash = {File targetFile ->
+        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        Formatter hexHash = new Formatter()
+        sha.digest(targetFile.bytes).each { b -> hexHash.format('%02x', b) }
+        return hexHash.toString()
+    }
+
+    def shouldDownloadCore = {
+        if (!project.coreArchiveFile.exists()) {
+            return true
+        }
+        if (project.forceDownloadCore) {
+            return true;
+        }
+        if (!isHashCheckingEnabled()) {
+            println "Skipping hash check(empty \'coreSha256Hash\')."
+            return false
+        }
+
+        def calculatedHash = calcSha256Hash(project.coreArchiveFile)
+        if (project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
+            return false
+        }
+
+        println "Existing archive hash mismatch(Expected: ${project.coreSha256Hash.toLowerCase()}" +
+                " but got ${calculatedHash.toLowerCase()}). Download new version."
+        return true
+    }
+
     doLast {
-        download {
-            src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
-            dest new File(buildDir, "core-android-${project.coreVersion}.tar.gz")
-            onlyIfNewer true
+        if (shouldDownloadCore()) {
+            download {
+                src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
+                dest project.coreArchiveFile
+                onlyIfNewer false
+            }
+            coreDownloaded = true
+
+            if (isHashCheckingEnabled()) {
+                def calculatedHash = calcSha256Hash(project.coreArchiveFile)
+                if (!project.coreSha256Hash.equalsIgnoreCase(calculatedHash)) {
+                    throw new GradleException("Invalid checksum for file '" +
+                            "${project.coreArchiveFile.getName()}'. Expected " +
+                            "${project.coreSha256Hash.toLowerCase()} but got " +
+                            "${calculatedHash.toLowerCase()}.");
+                }
+            } else {
+                println 'Skipping hash check(empty \'coreSha256Hash\').'
+            }
+        }
+    }
+}
+
+task deployCore(group: 'build setup', description: 'Deploy the latest version of realm core') {
+    dependsOn { downloadCore }
+
+    outputs.upToDateWhen {
+        if (coreDownloaded) {
+            return false
+        }
+
+        return project.coreDir.exists()
+    }
+
+    doLast {
+        exec {
+            commandLine = [
+                    'rm',
+                    '-rf',
+                    project.coreDir.getAbsolutePath()
+            ]
         }
         copy {
-            from tarTree(new File(buildDir, "core-android-${project.coreVersion}.tar.gz"))
-            into "../core-${project.coreVersion}"
+            from tarTree(project.coreArchiveFile)
+            into project.coreDir
         }
         for (target in targets) {
             exec {
@@ -112,13 +196,6 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
                         'clean'
                 ]
             }
-        }
-        exec {
-            commandLine = [
-                    'rm',
-                    '-rf',
-                    "${projectDir}/build/*"
-            ]
         }
     }
 }
@@ -143,7 +220,7 @@ targets.each { target ->
     task "buildAndroidJni${target.name.capitalize()}"(type: Exec) {
         group 'build'
         description "Build the Android JNI shared library for the ${target.name.capitalize()} platform"
-        dependsOn downloadCore
+        dependsOn deployCore
         dependsOn "generateNdkToolchain${target.toolchain.name.capitalize()}"
         environment PATH: "${buildDir}/standalone-toolchains/${target.toolchain.name}/bin:${System.env.PATH}"
         environment CC: "${target.toolchain.commandPrefix}-${clang?'clang':'gcc'}"
@@ -153,10 +230,10 @@ targets.each { target ->
             'make',
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
-            "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${projectDir}/../core-${project.coreVersion}/include",
+            "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${projectDir}/../core-${project.coreVersion} -Wl,--gc-sections -flto",
+            "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -flto",
             'LIB_SUFFIX_SHARED=.so',
             "librealm-jni-${target.name}.so"
         ]
