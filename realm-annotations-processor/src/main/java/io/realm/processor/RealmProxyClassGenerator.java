@@ -30,6 +30,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 
@@ -168,13 +169,13 @@ public class RealmProxyClassGenerator {
                     writer.endControlFlow();
                 }
 
-                // For Boxed types, this would be the corresponding primitive types. Others remain the same.
-                String castingBackType = fieldTypeCanonicalName;
-                try {
+                // For Boxed types, this should be the corresponding primitive types. Others remain the same.
+                String castingBackType;
+                if (Utils.isBoxedType(field.asType().toString())) {
                     Types typeUtils = processingEnvironment.getTypeUtils();
                     castingBackType = typeUtils.unboxedType(field.asType()).toString();
-                } catch (IllegalArgumentException ignored) {
-                    // Not a boxed type, do nothing then.
+                } else {
+                    castingBackType = fieldTypeCanonicalName;
                 }
                 writer.emitStatement(
                         "return (%s) row.get%s(%s)",

@@ -76,7 +76,7 @@ public class Utils {
     }
 
     /**
-     * Return true if a given type string represents a primitive type.
+     * Return true if a field is a primitive type.
      */
     public static boolean isPrimitiveType(String typeString) {
         if (typeString == null) {
@@ -85,6 +85,19 @@ public class Utils {
         return typeString.equals("byte") || typeString.equals("short") || typeString.equals("int") ||
                 typeString.equals("long") || typeString.equals("float") || typeString.equals("double") ||
                 typeString.equals("boolean") || typeString.equals("char");
+    }
+
+    /**
+     * Return true if a field is a boxed type.
+     */
+    public static boolean isBoxedType(String typeString) {
+        if (typeString == null) {
+            return false;
+        }
+        return typeString.equals(Byte.class.getName()) || typeString.equals(Short.class.getName()) ||
+                typeString.equals(Integer.class.getName()) || typeString.equals(Long.class.getName()) ||
+                typeString.equals(Float.class.getName()) || typeString.equals(Double.class.getName()) ||
+                typeString.equals(Boolean.class.getName());
     }
 
     /**
