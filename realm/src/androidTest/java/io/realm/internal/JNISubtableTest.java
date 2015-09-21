@@ -160,13 +160,13 @@ public class JNISubtableTest extends TestCase {
 
         TableSchema addresses = persons.getSubtableSchema(0);
         try {
-            addresses.addColumn(ColumnType.STRING, "I am 64 chracters...............................................");
-            fail("Only 63 chracters supported"); }
+            addresses.addColumn(ColumnType.STRING, "I am 64 characters..............................................");
+            fail("Only 63 characters supported"); }
         catch (IllegalArgumentException e) {
             assertNotNull(e);
         }
 
-        addresses.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
+        addresses.addColumn(ColumnType.STRING, "I am 63 characters.............................................");
     }
 
     public void testRemoveColumnFromSubtable() {

@@ -162,7 +162,7 @@ project.afterEvaluate {
     preBuild.dependsOn(['compileJni', 'compileAnnotations', 'buildApt'])
 }
 
-// exampleDir : [distributionDir, [ exampleSrcParentDir, distibutionSrcParentDir], ...]
+// exampleDir : [distributionDir, [ exampleSrcParentDir, distributionSrcParentDir], ...]
 // exampleDir -> Name of example dir
 // distributionDir -> Name of distribution dir
 // [ exampleModuleDir, distModuleDir ] -> where to find module dir to copy. Add one for each submodule.

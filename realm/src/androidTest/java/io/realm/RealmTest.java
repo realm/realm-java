@@ -1150,7 +1150,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testCopyToRealmDontCopyNestedRealmObjets() {
+    public void testCopyToRealmDontCopyNestedRealmObjects() {
         testRealm.beginTransaction();
         CyclicTypePrimaryKey childObj = testRealm.createObject(CyclicTypePrimaryKey.class);
         childObj.setName("Child");
@@ -1712,7 +1712,7 @@ public class RealmTest extends AndroidTestCase {
             System.gc();
         }
 
-        // we can't guarantee that all references have been GC'd but we should detect a decrease
+        // we can't guarantee that all references have been GC'ed but we should detect a decrease
         boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
         if (!isDecreasing) {
             fail("Native resources are not being closed");

@@ -78,16 +78,16 @@ public class Migration implements RealmMigration {
         if (version == 1) {
             Table personTable = realm.getTable(Person.class);
             Table petTable = realm.getTable(Pet.class);
-            long nameColumn = petTable.addColumn(ColumnType.STRING, "name");
-            long typeColumn = petTable.addColumn(ColumnType.STRING, "type");
+            long nameColumnIndex = petTable.addColumn(ColumnType.STRING, "name");
+            long typeColumnIndex = petTable.addColumn(ColumnType.STRING, "type");
             long petsIndex = personTable.addColumnLink(ColumnType.LINK_LIST, "pets", petTable);
             long fullNameIndex = getIndexForProperty(personTable, "fullName");
 
             for (int i = 0; i < personTable.size(); i++) {
                 if (personTable.getString(fullNameIndex, i).equals("JP McDonald")) {
                     long rowIndex = petTable.addEmptyRow();
-                    petTable.setString(nameColumn, rowIndex, "Jimbo");
-                    petTable.setString(typeColumn, rowIndex, "dog");
+                    petTable.setString(nameColumnIndex, rowIndex, "Jimbo");
+                    petTable.setString(typeColumnIndex, rowIndex, "dog");
                     personTable.getUncheckedRowByIndex(i).getLinkList(petsIndex).add(rowIndex);
                 }
             }
