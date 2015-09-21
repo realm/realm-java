@@ -94,7 +94,7 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     outputs.dir "../core-${project.coreVersion}"
     doLast {
         download {
-            src "http://static.realm.io/downloads/core/android-${project.coreVersion}.tar.gz"
+            src "http://static.realm.io/downloads/core/realm-core-android-${project.coreVersion}.tar.gz"
             dest new File(buildDir, "core-android-${project.coreVersion}.tar.gz")
             onlyIfNewer true
         }
