@@ -794,8 +794,8 @@ public class RealmProxyClassGenerator {
                         fieldName,
                         qualifiedFieldType,
                         Utils.getProxyClassSimpleName(field),
-                        writer,
-                        metadata.isNullable(field));
+                        writer
+                );
 
             } else if (Utils.isRealmList(field)) {
                 RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
@@ -811,8 +811,8 @@ public class RealmProxyClassGenerator {
                         metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
-                        writer,
-                        metadata.isNullable(field));
+                        writer
+                );
             }
         }
 
@@ -851,8 +851,8 @@ public class RealmProxyClassGenerator {
                         fieldName,
                         qualifiedFieldType,
                         Utils.getProxyClassSimpleName(field),
-                        writer,
-                        metadata.isNullable(field));
+                        writer
+                );
 
             } else if (Utils.isRealmList(field)) {
                 RealmJsonTypeHelper.emitFillRealmListFromStream(
@@ -867,8 +867,8 @@ public class RealmProxyClassGenerator {
                         metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
-                        writer,
-                        metadata.isNullable(field));
+                        writer
+                );
             }
         }
 
