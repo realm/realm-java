@@ -39,10 +39,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
@@ -129,6 +132,9 @@ public final class Realm implements Closeable {
         }
     };
 
+    // List of Realm files that has already been validated
+    private static final Set<String> validatedRealmFiles = new HashSet<String>();
+
     private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
             new ThreadLocal<Map<RealmConfiguration,Integer>>() {
         @Override
@@ -199,6 +205,7 @@ public final class Realm implements Closeable {
      * @param configuration Configuration used to open the Realm.
      * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
@@ -249,6 +256,7 @@ public final class Realm implements Closeable {
             // It is necessary to be synchronized here since there is a chance that before the counter removed,
             // the other thread could get the counter and increase it in createAndValidate.
             synchronized (Realm.class) {
+                validatedRealmFiles.remove(configuration.getPath());
                 List<RealmConfiguration>  pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
                 pathConfigurationCache.remove(configuration);
                 if (pathConfigurationCache.isEmpty()) {
@@ -376,6 +384,7 @@ public final class Realm implements Closeable {
      *
      * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
      * model classes or version has has changed so a migration is required.
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
@@ -406,10 +415,12 @@ public final class Realm implements Closeable {
         defaultConfiguration = null;
     }
 
-    private static Realm create(RealmConfiguration configuration) {
+    private static synchronized Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
-            return createAndValidate(configuration, true, autoRefresh);
+            boolean validateSchema = !validatedRealmFiles.contains(configuration.getPath());
+            return createAndValidate(configuration, validateSchema, autoRefresh);
+
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
                 deleteRealm(configuration);
@@ -421,7 +432,7 @@ public final class Realm implements Closeable {
         }
     }
 
-    private static synchronized Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+    private static Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
         // Check if a cached instance already exists for this thread
         String canonicalPath = configuration.getPath();
         Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
@@ -479,6 +490,8 @@ public final class Realm implements Closeable {
                 realm.close();
                 throw e;
             }
+        } else {
+            loadMediatorClasses(realm);
         }
 
         return realm;
@@ -546,12 +559,20 @@ public final class Realm implements Closeable {
                 mediator.validateTable(modelClass, realm.transaction);
                 realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
+            validatedRealmFiles.add(realm.getPath());
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction();
             } else {
                 realm.cancelTransaction();
             }
+        }
+    }
+
+    private static void loadMediatorClasses(Realm realm) {
+        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+        for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
+            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 
@@ -912,6 +933,7 @@ public final class Realm implements Closeable {
      * <p>
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws IOException {
         if (destination == null) {
@@ -1182,7 +1204,14 @@ public final class Realm implements Closeable {
     // Notifications
 
     /**
-     * Add a change listener to the Realm
+     * Add a change listener to the Realm.
+     * <p>
+     * The listeners will be executed:
+     * <ul>
+     *     <li>Immediately if a change was committed by the local thread</li>
+     *     <li>On every loop of a Handler thread if changes were committed by another thread</li>
+     *     <li>On every call to {@link io.realm.Realm#refresh()}</li>
+     * </ul>
      *
      * @param listener the change listener
      * @see io.realm.RealmChangeListener
@@ -1270,12 +1299,14 @@ public final class Realm implements Closeable {
      */
 
     /**
-     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it
+     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it.
+     * It also calls the listeners associated to the Realm instance.
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
         checkIfValid();
         transaction.advanceRead();
+        sendNotifications();
     }
 
     /**
@@ -1451,7 +1482,7 @@ public final class Realm implements Closeable {
      * latest version, nothing will happen.
      * @param configuration
      */
-    public static synchronized void migrateRealm(RealmConfiguration configuration) {
+    public static void migrateRealm(RealmConfiguration configuration) {
         migrateRealm(configuration, null);
     }
 
@@ -1462,7 +1493,7 @@ public final class Realm implements Closeable {
      * @param migration {@link RealmMigration} to run on the Realm. This will override any migration set on the
      * configuration.
      */
-    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
@@ -1477,6 +1508,7 @@ public final class Realm implements Closeable {
             realm.beginTransaction();
             realm.setVersion(realmMigration.execute(realm, realm.getVersion()));
             realm.commitTransaction();
+            validatedRealmFiles.remove(configuration.getPath());
         } finally {
             if (realm != null) {
                 realm.close();

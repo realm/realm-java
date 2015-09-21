@@ -652,7 +652,7 @@ public class JNIQueryTest extends TestCase {
     }
 
     
-    public void testQueryOnViewWithalreadyQueriedTable() {
+    public void testQueryOnViewWithAlreadyQueriedTable() {
         Table table = new Table();
 
         // Specify the column types and names
