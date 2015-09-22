@@ -137,7 +137,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'done'");
             }
             if (table.isColumnNullable(INDEX_DONE)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'done'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'done' is not required. Use corresponding boxed type for field 'done'.");
             }
             if (!columnTypes.containsKey("isReady")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'isReady'");
@@ -146,7 +146,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'isReady'");
             }
             if (table.isColumnNullable(INDEX_ISREADY)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'isReady'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'isReady' is not required. Use corresponding boxed type for field 'isReady'.");
             }
             if (!columnTypes.containsKey("mCompleted")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'mCompleted'");
@@ -155,7 +155,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted'");
             }
             if (table.isColumnNullable(INDEX_MCOMPLETED)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'mCompleted'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'mCompleted' is not required. Use corresponding boxed type for field 'mCompleted'.");
             }
             if (!columnTypes.containsKey("anotherBoolean")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'anotherBoolean'");
@@ -164,7 +164,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'anotherBoolean'");
             }
             if (table.isColumnNullable(INDEX_ANOTHERBOOLEAN)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'anotherBoolean'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'anotherBoolean' is not required. Use corresponding boxed type for field 'anotherBoolean'.");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The Booleans class is missing from the schema for this Realm.");

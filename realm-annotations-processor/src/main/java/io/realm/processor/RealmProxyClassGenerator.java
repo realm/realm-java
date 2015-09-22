@@ -388,11 +388,28 @@ public class RealmProxyClassGenerator {
                 // make sure that nullability matches
                 if (metadata.isNullable(field)) {
                     writer.beginControlFlow("if (!table.isColumnNullable(%s))", staticFieldIndexVarName(field));
-                    writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Add annotation @Required or @PrimaryKey to field '%s'\")", fieldName);
+                    if (Utils.isBoxedType(fieldTypeCanonicalName)) {
+                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
+                                " \"Field '%s' is required." +
+                                " Either set @Required or use the primitive type for field '%s'.\")",
+                                fieldName, fieldName);
+                    } else {
+                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
+                                " \"Field '%s' is required. Add annotation @Required to field '%s'.\")",
+                                fieldName, fieldName);
+                    }
                     writer.endControlFlow();
                 } else {
                     writer.beginControlFlow("if (table.isColumnNullable(%s))", staticFieldIndexVarName(field));
-                    writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Remove annotation @Required or @PrimaryKey from field '%s'\")", fieldName);
+                    if (Utils.isPrimitiveType(fieldTypeCanonicalName)) {
+                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
+                                " \"Field '%s' is not required. Use corresponding boxed type for field '%s'.\")",
+                                field, fieldName);
+                    } else {
+                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
+                                " \"Field '%s' is not required. Remove annotation @Required or @PrimaryKey from field '%s'.\")",
+                                field, fieldName);
+                    }
                     writer.endControlFlow();
                 }
 

@@ -242,7 +242,7 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'columnString'");
             }
             if (table.isColumnNullable(INDEX_COLUMNSTRING)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'columnString'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'columnString' is not required. Remove annotation @Required or @PrimaryKey from field 'columnString'.");
             }
             if (table.getPrimaryKey() != table.getColumnIndex("columnString")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Primary key not defined for field 'columnString'");
@@ -257,7 +257,7 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'long' for field 'columnLong'");
             }
             if (table.isColumnNullable(INDEX_COLUMNLONG)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'columnLong'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'columnLong' is not required. Use corresponding boxed type for field 'columnLong'.");
             }
             if (!columnTypes.containsKey("columnFloat")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnFloat'");
@@ -266,7 +266,7 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'float' for field 'columnFloat'");
             }
             if (table.isColumnNullable(INDEX_COLUMNFLOAT)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'columnFloat'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'columnFloat' is not required. Use corresponding boxed type for field 'columnFloat'.");
             }
             if (!columnTypes.containsKey("columnDouble")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnDouble'");
@@ -275,7 +275,7 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'double' for field 'columnDouble'");
             }
             if (table.isColumnNullable(INDEX_COLUMNDOUBLE)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'columnDouble'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'columnDouble' is not required. Use corresponding boxed type for field 'columnDouble'.");
             }
             if (!columnTypes.containsKey("columnBoolean")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnBoolean'");
@@ -284,7 +284,7 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'columnBoolean'");
             }
             if (table.isColumnNullable(INDEX_COLUMNBOOLEAN)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'columnBoolean'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'columnBoolean' is not required. Use corresponding boxed type for field 'columnBoolean'.");
             }
             if (!columnTypes.containsKey("columnDate")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnDate'");
@@ -293,7 +293,7 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Date' for field 'columnDate'");
             }
             if (table.isColumnNullable(INDEX_COLUMNDATE)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'columnDate'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'columnDate' is not required. Remove annotation @Required or @PrimaryKey from field 'columnDate'.");
             }
             if (!columnTypes.containsKey("columnBinary")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnBinary'");
@@ -302,7 +302,7 @@ public class AllTypesRealmProxy extends AllTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'byte[]' for field 'columnBinary'");
             }
             if (table.isColumnNullable(INDEX_COLUMNBINARY)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'columnBinary'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'columnBinary' is not required. Remove annotation @Required or @PrimaryKey from field 'columnBinary'.");
             }
             if (!columnTypes.containsKey("columnObject")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnObject'");

@@ -1824,7 +1824,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.close();
         String REALM_NAME = "encrypted.realm";
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
-        RealmMigration realmMigration = TestHelper.prepareMigrationStep();
+        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
         RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
@@ -1859,7 +1859,7 @@ public class RealmTest extends AndroidTestCase {
         byte[] newPassword = TestHelper.SHA512("realm-copy");
 
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
-        RealmMigration realmMigration = TestHelper.prepareMigrationStep();
+        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)

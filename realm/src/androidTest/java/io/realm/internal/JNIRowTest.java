@@ -81,7 +81,7 @@ public class JNIRowTest extends TestCase {
         Table table = new Table();
 
         long colStringIndex = table.addColumn(ColumnType.STRING, "string", true);
-        //long colIntIndex = table.addColumn(ColumnType.INTEGER, "integer", true);
+        long colIntIndex = table.addColumn(ColumnType.INTEGER, "integer", true);
         table.addColumn(ColumnType.FLOAT, "float");
         table.addColumn(ColumnType.DOUBLE, "double");
         long colBoolIndex = table.addColumn(ColumnType.BOOLEAN, "boolean", true);
@@ -96,12 +96,10 @@ public class JNIRowTest extends TestCase {
         row.setNull(colStringIndex);
         assertNull(row.getString(colStringIndex));
 
-        /*
         row.setLong(colIntIndex, 1);
         assertFalse(row.isNull(colIntIndex));
         row.setNull(colIntIndex);
         assertTrue(row.isNull(colIntIndex));
-        */
 
         row.setBoolean(colBoolIndex, true);
         assertFalse(row.isNull(colBoolIndex));
