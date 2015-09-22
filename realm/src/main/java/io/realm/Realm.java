@@ -490,6 +490,8 @@ public final class Realm implements Closeable {
                 realm.close();
                 throw e;
             }
+        } else {
+            loadMediatorClasses(realm);
         }
 
         return realm;
@@ -564,6 +566,13 @@ public final class Realm implements Closeable {
             } else {
                 realm.cancelTransaction();
             }
+        }
+    }
+
+    private static void loadMediatorClasses(Realm realm) {
+        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+        for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
+            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 

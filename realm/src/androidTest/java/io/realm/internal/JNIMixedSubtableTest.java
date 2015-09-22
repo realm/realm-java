@@ -74,7 +74,7 @@ public class JNIMixedSubtableTest extends TestCase {
         subspec.addColumn(ColumnType.INTEGER, "num");
         table.updateFromSpec(tableSpec);
 
-        // Shouln't work: no Mixed stored yet
+        // Shouldn't work: no Mixed stored yet
         //Mixed m1 = table.getMixed(1, 0);
         //ColumnType mt = table.getMixedType(1,0);
 

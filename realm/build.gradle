@@ -152,6 +152,11 @@ task compileJni(type: GradleBuild) {
     tasks = ['buildAndroidJni']
 }
 
+task cleanJni(type: GradleBuild) {
+    dir = file('../realm-jni')
+    tasks = ['clean']
+}
+
 task compileAnnotations(type: GradleBuild) {
     dir = file('../realm-annotations')
     tasks = ['assemble']
@@ -159,9 +164,10 @@ task compileAnnotations(type: GradleBuild) {
 
 project.afterEvaluate {
     preBuild.dependsOn(['compileJni', 'compileAnnotations', 'buildApt'])
+    clean.dependsOn(['cleanJni'])
 }
 
-// exampleDir : [distributionDir, [ exampleSrcParentDir, distibutionSrcParentDir], ...]
+// exampleDir : [distributionDir, [ exampleSrcParentDir, distributionSrcParentDir], ...]
 // exampleDir -> Name of example dir
 // distributionDir -> Name of distribution dir
 // [ exampleModuleDir, distModuleDir ] -> where to find module dir to copy. Add one for each submodule.
