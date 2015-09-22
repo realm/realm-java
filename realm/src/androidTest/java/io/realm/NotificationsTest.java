@@ -19,6 +19,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.test.AndroidTestCase;
 
+import junit.framework.AssertionFailedError;
+
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -488,12 +490,14 @@ public class NotificationsTest extends AndroidTestCase {
     // prevents commitTransaction from accidentally posting messages to Handlers which might reference a closed Realm.
     public void testDoNotUseClosedHandler() throws InterruptedException {
         final RealmConfiguration realmConfiguration = TestHelper.createConfiguration(getContext());
+        final AssertionFailedError[] threadAssertionError = new AssertionFailedError[1]; // Keep track of errors in test threads.
         Realm.deleteRealm(realmConfiguration);
 
         final CountDownLatch handlerNotified = new CountDownLatch(1);
 
         // Create Handler on Thread1 by opening a Realm instance
         new Thread("thread1") {
+
             @Override
             public void run() {
                 Looper.prepare();
@@ -519,7 +523,12 @@ public class NotificationsTest extends AndroidTestCase {
                 RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        fail("This handler should not be notified");
+                        try {
+                            fail("This handler should not be notified");
+                        } catch (AssertionFailedError e) {
+                            threadAssertionError[0] = e;
+                            handlerNotified.countDown(); // Make sure that that await() doesn't fail instead.
+                        }
                     }
                 };
                 realm.addChangeListener(listener);
@@ -534,9 +543,15 @@ public class NotificationsTest extends AndroidTestCase {
         realm.beginTransaction();
         realm.commitTransaction();
         try {
-            handlerNotified.await(5, TimeUnit.SECONDS);
+            if (!handlerNotified.await(5, TimeUnit.SECONDS)) {
+                fail("Handler didn't receive message");
+            }
         } finally {
             realm.close();
+        }
+
+        if (threadAssertionError[0] != null) {
+            throw threadAssertionError[0];
         }
     }
 }
