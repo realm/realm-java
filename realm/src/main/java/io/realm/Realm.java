@@ -168,7 +168,7 @@ public final class Realm implements Closeable {
     @SuppressWarnings("UnusedDeclaration")
     private static SharedGroup.Durability defaultDurability = SharedGroup.Durability.FULL;
     private boolean autoRefresh;
-    private Handler handler;
+    Handler handler;
 
     private long threadId;
     private RealmConfiguration configuration;
@@ -1411,11 +1411,6 @@ public final class Realm implements Closeable {
      */
     public void clear(Class<? extends RealmObject> clazz) {
         getTable(clazz).clear();
-    }
-
-    // Returns the Handler for this Realm on the calling thread
-    Handler getHandler() {
-        return handler;
     }
 
     // package protected so unit tests can access it

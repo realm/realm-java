@@ -300,7 +300,7 @@ public class NotificationsTest extends AndroidTestCase {
 
                 // Find the current Handler for the thread now. All message and references will be
                 // cleared once we call close().
-                Handler threadHandler = realm.getHandler();
+                Handler threadHandler = realm.handler;
                 realm.close(); // Close native resources + associated handlers.
 
                 // Looper now reads the update message from the main thread if the Handler was not
@@ -352,14 +352,14 @@ public class NotificationsTest extends AndroidTestCase {
         Realm instance1 = Realm.getInstance(realmConfig);
         Realm instance2 = Realm.getInstance(realmConfig);
         assertEquals(instance1.getPath(), instance2.getPath());
-        assertNotNull(instance1.getHandler());
+        assertNotNull(instance1.handler);
 
         // If multiple instances are open on the same thread, don't remove handler on that thread
         // until last instance is closed.
         instance2.close();
-        assertNotNull(instance1.getHandler());
+        assertNotNull(instance1.handler);
         instance1.close();
-        assertNull(instance1.getHandler());
+        assertNull(instance1.handler);
     }
 
     public void testImmediateNotificationsOnSameThread() {
@@ -484,39 +484,59 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(0, realm.getChangeListeners().size());
     }
 
-    // different instances of Realm sharing the same configuration
-    // should have different handlers
-    public void testSameConfigurationDifferentHandler() throws InterruptedException {
-        final CountDownLatch threadReady = new CountDownLatch(2);
-        final Handler[] handlers = new Handler[2];
+    // Tests that if the same configuration is used on 2 different Looper threads that each gets its own Handler. This
+    // prevents commitTransaction from accidentally posting messages to Handlers which might reference a closed Realm.
+    public void testDoNotUseClosedHandler() throws InterruptedException {
+        final RealmConfiguration realmConfiguration = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfiguration);
+
+        final CountDownLatch handlerNotified = new CountDownLatch(1);
+
+        // Create Handler on Thread1 by opening a Realm instance
         new Thread("thread1") {
             @Override
             public void run() {
                 Looper.prepare();
-                RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(getContext())
-                        .name("mobius")
-                        .build();
-                handlers[0] = Realm.getInstance(realmConfiguration).getHandler();
-                threadReady.countDown();
+                final Realm realm = Realm.getInstance(realmConfiguration);
+                RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        handlerNotified.countDown();
+                        realm.close();
+                    }
+                };
+                realm.addChangeListener(listener);
+                Looper.loop();
             }
         }.start();
 
+        // Create Handler on Thread2 for the same Realm path and close the Realm instance again.
         new Thread("thread2") {
             @Override
             public void run() {
                 Looper.prepare();
-                RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(getContext())
-                        .name("mobius")
-                        .build();
-                handlers[1] = Realm.getInstance(realmConfiguration).getHandler();
-                threadReady.countDown();
+                Realm realm = Realm.getInstance(realmConfiguration);
+                RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        fail("This handler should not be notified");
+                    }
+                };
+                realm.addChangeListener(listener);
+                realm.close();
+                Looper.loop();
             }
 
         }.start();
 
-        threadReady.await();
-
-        // check handler are not the same
-        assertNotSame(handlers[0], handlers[1]);
+        // Any REALM_CHANGED message should now only reach the open Handler on Thread1
+        Realm realm = Realm.getInstance(realmConfiguration);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        try {
+            handlerNotified.await(5, TimeUnit.SECONDS);
+        } finally {
+            realm.close();
+        }
     }
 }
