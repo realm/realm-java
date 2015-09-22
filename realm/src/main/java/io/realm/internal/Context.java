@@ -23,6 +23,12 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Context {
+    public Context() {
+    }
+
+    public Context(ReferenceQueue<NativeObject> referenceQueue) {
+        this.referenceQueue = referenceQueue;
+    }
 
     // Each group of related Realm objects will have a Context object in the root.
     // The root can be a table, a group, or a shared group.

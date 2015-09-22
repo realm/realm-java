@@ -1669,57 +1669,7 @@ public class RealmTest extends AndroidTestCase {
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
         try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
     }
-
-    // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
-/*    // Check that FinalizerRunnable can free native resources (phantom refs)
-    public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
-        Field sharedGroupReference = Realm.class.getDeclaredField("sharedGroup");
-        sharedGroupReference.setAccessible(true);
-        SharedGroup sharedGroup = (SharedGroup) sharedGroupReference.get(testRealm);
-        assertNotNull(sharedGroup);
-
-        Field contextField = SharedGroup.class.getDeclaredField("context");
-        contextField.setAccessible(true);
-        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(sharedGroup);
-        assertNotNull(context);
-
-        Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
-        rowReferencesField.setAccessible(true);
-        List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);
-        assertNotNull(rowReferences);
-
-
-        // insert some rows, then give the thread some time to cleanup
-        // we have 8 reference so far let's add more
-        final int numberOfPopulateTest = 1000;
-        final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
-
-        long tic = System.currentTimeMillis();
-        for (int i = 0; i < numberOfPopulateTest; i++) {
-            populateTestRealm(testRealm, 20);
-        }
-        long toc = System.currentTimeMillis();
-        Log.d(RealmTest.class.getName(), "Insertion time: " + (toc - tic));
-
-        final int MAX_GC_RETRIES = 5;
-        int numberOfRetries = 0;
-        while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
-            SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
-            numberOfRetries++;
-            System.gc();
-        }
-
-        // we can't guarantee that all references have been GC'ed but we should detect a decrease
-        boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
-        if (!isDecreasing) {
-            fail("Native resources are not being closed");
-
-        } else {
-            android.util.Log.d(RealmTest.class.getName(), "References freed : "
-                    + (totalNumberOfReferences - rowReferences.size()) + " out of " + totalNumberOfReferences);
-        }
-    }*/
-
+    
     public void testCannotCreateDynamicRealmObject() {
         testRealm.beginTransaction();
         try {
