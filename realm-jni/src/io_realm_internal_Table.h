@@ -103,6 +103,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
 
 /*
  * Class:     io_realm_internal_Table
+ * Method:    nativeConvertColumnToNotNullable
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNullable
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_Table
  * Method:    nativeUpdateFromSpec
  * Signature: (JLio/realm/internal/TableSpec;)V
  */

@@ -184,8 +184,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
 
         std::string column_name = table->get_column_name(column_index);
         DataType column_type = table->get_column_type(column_index);
-        if (column_type != type_String && column_type != type_Binary) {
-            ThrowException(env, IllegalArgument, "Only String and bytes[] fields can be nullable.");
+        if (column_type == type_Link ||
+            column_type == type_LinkList ||
+            column_type == type_Mixed ||
+            column_type == type_Table) {
+            ThrowException(env, IllegalArgument, "Wrong type - cannot be converted to nullable.");
         }
 
         std::string tmp_column_name;
@@ -209,10 +212,137 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
                     table->set_binary(column_index, i, table->get_binary(column_index + 1, i));
                     break;
                 case type_Int:
+                    table->set_int(column_index, i, table->get_int(column_index + 1, i));
+                    break;
                 case type_Bool:
+                    table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
+                    break;
                 case type_DateTime:
+                    table->set_datetime(column_index, i, table->get_datetime(column_index + 1, i));
+                    break;
                 case type_Float:
+                    table->set_float(column_index, i, table->get_float(column_index + 1, i));
+                    break;
                 case type_Double:
+                    table->set_double(column_index, i, table->get_double(column_index + 1, i));
+                    break;
+                case type_Link:
+                case type_LinkList:
+                case type_Mixed:
+                case type_Table:
+                    // checked previously
+                    break;
+            }
+        }
+        if (table->has_search_index(column_index + 1)) {
+            table->add_search_index(column_index);
+        }
+        table->remove_column(column_index + 1);
+        table->rename_column(table->get_column_index(tmp_column_name), column_name);
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNullable
+  (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
+{
+    Table *table = TBL(nativeTablePtr);
+    if (!TBL_AND_COL_INDEX_VALID(env, table, columnIndex)) {
+        return;
+    }
+    if (table->has_shared_type()) {
+        ThrowException(env, UnsupportedOperation, "Not allowed to convert column in subtable.");
+        return;
+    }
+    try {
+        size_t column_index = S(columnIndex);
+        if (!table->is_nullable(column_index)) {
+            return; // column is already not nullable
+        } 
+
+        std::string column_name = table->get_column_name(column_index);
+        DataType column_type = table->get_column_type(column_index);
+        if (column_type == type_Link ||
+            column_type == type_LinkList ||
+            column_type == type_Mixed ||
+            column_type == type_Table) {
+            ThrowException(env, IllegalArgument, "Wrong type - cannot be converted to nullable.");
+        }
+
+        std::string tmp_column_name;
+        size_t i = 0;
+        while (true) {
+            std::ostringstream ss;
+            ss << std::string("__TMP__") << i;
+            if (table->get_column_index(ss.str()) == realm::not_found) {
+                table->insert_column(column_index, column_type, ss.str(), true);
+                tmp_column_name = ss.str();
+                break;
+            }
+            i++;
+        }
+
+        for(size_t i = 0; i < table->size(); ++i) {
+            switch (column_type) { // FIXME: respect user-specified default values
+                case type_String: {
+                    StringData sd = table->get_string(column_index + 1, i);
+                    if (sd == realm::null()) {
+                        table->set_string(column_index, i, "");
+                    }
+                    else {
+                        table->set_string(column_index, i, sd);
+                    }
+                    break;
+                }
+                case type_Binary: {
+                    BinaryData bd = table->get_binary(column_index + 1, i);
+                    if (bd.is_null()) {
+                        table->set_binary(column_index, i, BinaryData(""));
+                    }
+                    else {
+                        table->set_binary(column_index, i, bd);
+                    }
+                    break;
+                }
+                case type_Int:
+                    if (table->is_null(column_index + 1, i)) {
+                        table->set_int(column_index, i, 0);
+                    }
+                    else {
+                        table->set_int(column_index, i, table->get_int(column_index + 1, i));
+                    }
+                    break;
+                case type_Bool:
+                    if (table->is_null(column_index + 1, i)) {
+                        table->set_bool(column_index, i, false);
+                    }
+                    else {
+                        table->set_bool(column_index, i, table->get_bool(column_index + 1, i));
+                    }
+                    break;
+                case type_DateTime:
+                    if (table->is_null(column_index + 1, i)) {
+                        table->set_datetime(column_index, i, static_cast<time_t>(0));
+                    }
+                    else {
+                        table->set_datetime(column_index, i, table->get_datetime(column_index + 1, i));
+                    }
+                    break;
+                case type_Float:
+                    if (table->is_null(column_index + 1, i)) {
+                        table->set_float(column_index, i, 0.0);
+                    }
+                    else {
+                        table->set_float(column_index, i, table->get_float(column_index + 1, i));
+                    }
+                    break;
+                case type_Double:
+                    if (table->is_null(column_index + 1, i)) {
+                        table->set_double(column_index, i, 0.0);
+                    }
+                    else {
+                        table->set_double(column_index, i, table->get_double(column_index + 1, i));
+                    }
+                    break;
                 case type_Link:
                 case type_LinkList:
                 case type_Mixed:

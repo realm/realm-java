@@ -245,6 +245,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native void nativeConvertColumnToNullable(long nativeTablePtr, long columnIndex);
 
     /**
+     * Convert a column to be not nullable. null values will be converted to default values.
+     * @param columnIndex
+     */
+    public void convertColumnToNotNullable(long columnIndex) {
+        nativeConvertColumnToNotNullable(nativePtr, columnIndex);
+    }
+
+    protected native void nativeConvertColumnToNotNullable(long nativePtr, long columnIndex);
+
+    /**
      * Updates a table specification from a Table specification structure.
      */
     public void updateFromSpec(TableSpec tableSpec) {
