@@ -110,7 +110,7 @@ public class SimpleRealmProxy extends Simple
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name'");
             }
             if (!table.isColumnNullable(INDEX_NAME)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'name'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'name' is required. Add annotation @Required to field 'name'.");
             }
             if (!columnTypes.containsKey("age")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age'");
@@ -119,7 +119,7 @@ public class SimpleRealmProxy extends Simple
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age'");
             }
             if (table.isColumnNullable(INDEX_AGE)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'age'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'age' is not required. Use corresponding boxed type for field 'age'.");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the schema for this Realm.");

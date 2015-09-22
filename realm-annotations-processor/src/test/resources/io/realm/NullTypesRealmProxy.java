@@ -510,7 +510,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDSTRINGNOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldStringNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldStringNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldStringNotNull'.");
             }
             if (!columnTypes.containsKey("fieldStringNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNull'");
@@ -519,7 +519,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDSTRINGNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldStringNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldStringNull' is required. Add annotation @Required to field 'fieldStringNull'.");
             }
             if (!columnTypes.containsKey("fieldBooleanNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBooleanNotNull'");
@@ -528,7 +528,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Boolean' for field 'fieldBooleanNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDBOOLEANNOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldBooleanNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldBooleanNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldBooleanNotNull'.");
             }
             if (!columnTypes.containsKey("fieldBooleanNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBooleanNull'");
@@ -537,7 +537,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Boolean' for field 'fieldBooleanNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDBOOLEANNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldBooleanNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldBooleanNull' is required. Either set @Required or use the primitive type for field 'fieldBooleanNull'.");
             }
             if (!columnTypes.containsKey("fieldBytesNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBytesNotNull'");
@@ -546,7 +546,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'byte[]' for field 'fieldBytesNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDBYTESNOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldBytesNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldBytesNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldBytesNotNull'.");
             }
             if (!columnTypes.containsKey("fieldBytesNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBytesNull'");
@@ -555,7 +555,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'byte[]' for field 'fieldBytesNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDBYTESNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldBytesNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldBytesNull' is required. Add annotation @Required to field 'fieldBytesNull'.");
             }
             if (!columnTypes.containsKey("fieldByteNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldByteNotNull'");
@@ -564,7 +564,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Byte' for field 'fieldByteNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDBYTENOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldByteNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldByteNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldByteNotNull'.");
             }
             if (!columnTypes.containsKey("fieldByteNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldByteNull'");
@@ -573,7 +573,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Byte' for field 'fieldByteNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDBYTENULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldByteNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldByteNull' is required. Either set @Required or use the primitive type for field 'fieldByteNull'.");
             }
             if (!columnTypes.containsKey("fieldShortNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldShortNotNull'");
@@ -582,7 +582,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Short' for field 'fieldShortNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDSHORTNOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldShortNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldShortNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldShortNotNull'.");
             }
             if (!columnTypes.containsKey("fieldShortNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldShortNull'");
@@ -591,7 +591,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Short' for field 'fieldShortNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDSHORTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldShortNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldShortNull' is required. Either set @Required or use the primitive type for field 'fieldShortNull'.");
             }
             if (!columnTypes.containsKey("fieldIntegerNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldIntegerNotNull'");
@@ -600,7 +600,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Integer' for field 'fieldIntegerNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDINTEGERNOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldIntegerNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldIntegerNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldIntegerNotNull'.");
             }
             if (!columnTypes.containsKey("fieldIntegerNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldIntegerNull'");
@@ -609,7 +609,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Integer' for field 'fieldIntegerNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDINTEGERNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldIntegerNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldIntegerNull' is required. Either set @Required or use the primitive type for field 'fieldIntegerNull'.");
             }
             if (!columnTypes.containsKey("fieldLongNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldLongNotNull'");
@@ -618,7 +618,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Long' for field 'fieldLongNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDLONGNOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldLongNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldLongNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldLongNotNull'.");
             }
             if (!columnTypes.containsKey("fieldLongNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldLongNull'");
@@ -627,7 +627,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Long' for field 'fieldLongNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDLONGNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldLongNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldLongNull' is required. Either set @Required or use the primitive type for field 'fieldLongNull'.");
             }
             if (!columnTypes.containsKey("fieldFloatNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldFloatNotNull'");
@@ -636,7 +636,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Float' for field 'fieldFloatNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDFLOATNOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldFloatNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldFloatNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldFloatNotNull'.");
             }
             if (!columnTypes.containsKey("fieldFloatNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldFloatNull'");
@@ -645,7 +645,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Float' for field 'fieldFloatNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDFLOATNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldFloatNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldFloatNull' is required. Either set @Required or use the primitive type for field 'fieldFloatNull'.");
             }
             if (!columnTypes.containsKey("fieldDoubleNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldDoubleNotNull'");
@@ -654,7 +654,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Double' for field 'fieldDoubleNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDDOUBLENOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldDoubleNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldDoubleNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldDoubleNotNull'.");
             }
             if (!columnTypes.containsKey("fieldDoubleNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldDoubleNull'");
@@ -663,7 +663,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Double' for field 'fieldDoubleNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDDOUBLENULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldDoubleNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldDoubleNull' is required. Either set @Required or use the primitive type for field 'fieldDoubleNull'.");
             }
             if (!columnTypes.containsKey("fieldDateNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldDateNotNull'");
@@ -672,7 +672,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Date' for field 'fieldDateNotNull'");
             }
             if (table.isColumnNullable(INDEX_FIELDDATENOTNULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Remove annotation @Required or @PrimaryKey from field 'fieldDateNotNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldDateNotNull' is not required. Remove annotation @Required or @PrimaryKey from field 'fieldDateNotNull'.");
             }
             if (!columnTypes.containsKey("fieldDateNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldDateNull'");
@@ -681,7 +681,7 @@ public class NullTypesRealmProxy extends NullTypes
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Date' for field 'fieldDateNull'");
             }
             if (!table.isColumnNullable(INDEX_FIELDDATENULL)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Add annotation @Required or @PrimaryKey to field 'fieldDateNull'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'fieldDateNull' is required. Add annotation @Required to field 'fieldDateNull'.");
             }
             if (!columnTypes.containsKey("fieldObjectNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldObjectNull'");
