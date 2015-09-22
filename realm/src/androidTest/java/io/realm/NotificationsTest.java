@@ -506,8 +506,8 @@ public class NotificationsTest extends AndroidTestCase {
                 RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        handlerNotified.countDown();
                         realm.close();
+                        handlerNotified.countDown();
                     }
                 };
                 realm.addChangeListener(listener);
