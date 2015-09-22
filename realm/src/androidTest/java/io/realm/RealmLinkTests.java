@@ -224,7 +224,8 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.height", 0.2f, 2.2f).findAll();
         }
-        catch (IllegalArgumentException ignored) {}
+        catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testQuerySingleRelationDouble() {
@@ -256,7 +257,8 @@ public class RealmLinkTests extends AndroidTestCase {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.weight", 0.2, 2.2).findAll();
             fail();
         }
-        catch (IllegalArgumentException ignored) {}
+        catch (IllegalArgumentException ignored) {
+        }
     }
 
 
@@ -322,7 +324,8 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.age", 9, 11).findAll();
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testQueryMultipleRelationsDate() {
@@ -387,7 +390,8 @@ public class RealmLinkTests extends AndroidTestCase {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.height", 0.2f, 2.2f).findAll();
             fail();
         }
-        catch (IllegalArgumentException ignored) {}
+        catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testQueryMultipleRelationsDouble() {
@@ -419,7 +423,8 @@ public class RealmLinkTests extends AndroidTestCase {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.weight", 0.2, 12.2).findAll();
             fail();
         }
-        catch (IllegalArgumentException ignored) {}
+        catch (IllegalArgumentException ignored) {
+        }
     }
 
 
@@ -535,9 +540,9 @@ public class RealmLinkTests extends AndroidTestCase {
     public void testIsNullWrongType() {
         try {
             // AllTypes.columnFloat is not nullable
-            RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).isNull("columnFloat").findAll();
+            testRealm.where(AllTypes.class).isNull("columnFloat").findAll();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 }

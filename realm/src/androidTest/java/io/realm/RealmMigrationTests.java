@@ -272,9 +272,8 @@ public class RealmMigrationTests extends AndroidTestCase {
             realm.close();
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Add annotation @Required or @PrimaryKey to field 'chars'")) {
-                fail(e.getMessage());
-            }
+            assertEquals("Field 'chars' is required. Add annotation @Required to field 'chars'.",
+                    e.getMessage());
         }
     }
 
@@ -384,7 +383,8 @@ public class RealmMigrationTests extends AndroidTestCase {
                 realm = Realm.getInstance(realmConfig);
                 fail("Failed on " + field);
             } catch (RealmMigrationNeededException e) {
-                assertEquals("Remove annotation @Required or @PrimaryKey from field '" + field + "'",
+                assertEquals("Field '" + field + "' is not required." +
+                        " Remove annotation @Required or @PrimaryKey from field '" + field + "'.",
                         e.getMessage());
             }
         }
@@ -445,8 +445,16 @@ public class RealmMigrationTests extends AndroidTestCase {
                 realm = Realm.getInstance(realmConfig);
                 fail("Failed on " + field);
             } catch (RealmMigrationNeededException e) {
-                assertEquals("Add annotation @Required or @PrimaryKey to field '" + field + "'",
-                        e.getMessage());
+                if (field.equals("fieldStringNull") || field.equals("fieldBytesNull") || field.equals("fieldDateNull")) {
+                    assertEquals("Field '" + field + "' is required. Add annotation @Required to field '" +
+                                    field + "'.",
+                            e.getMessage());
+                } else {
+                    assertEquals("Field '" + field + "' is required." +
+                                    " Either set @Required or use the primitive type for field '"
+                                    + field + "'.",
+                            e.getMessage());
+                }
             }
         }
     }

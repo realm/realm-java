@@ -79,7 +79,7 @@ public class TestHelper {
 
     // Creates a simple migration step in order to support null
     // FIXME: generate a new encrypted.realm will null support
-    public static RealmMigration prepareMigrationStep() {
+    public static RealmMigration prepareMigrationToNullSupportStep() {
         RealmMigration realmMigration = new RealmMigration() {
             @Override
             public long execute(Realm realm, long version) {

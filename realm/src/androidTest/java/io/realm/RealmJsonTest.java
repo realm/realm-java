@@ -184,7 +184,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.beginTransaction();
         try {
             testRealm.createObjectFromJson(Dog.class, "{ name \"Foo\" }");
-        } catch (RealmException e) {
+        } catch (RealmException expected) {
             return;
         } finally {
             testRealm.commitTransaction();
@@ -261,7 +261,7 @@ public class RealmJsonTest extends AndroidTestCase {
         try {
             testRealm.beginTransaction();
             testRealm.createObjectFromJson(AllTypes.class, json);
-        } catch (RealmException e) {
+        } catch (RealmException expected) {
             // Ignore
         } finally {
             testRealm.commitTransaction();
@@ -299,7 +299,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.beginTransaction();
         try {
             testRealm.createAllFromJson(Dog.class, "[{ name : \"Foo\" ]");
-        } catch (RealmException e) {
+        } catch (RealmException expected) {
             return;
         } finally {
             testRealm.commitTransaction();
@@ -410,7 +410,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
     // Test if Json object doesn't have the field, then the field should have default value. Stream version.
     public void testCreateObjectFromJsonStream_noValues() throws IOException {
-        InputStream in = loadJsonFromAssets("all_types_no_value.json");
+        InputStream in = loadJsonFromAssets("other_json_object.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -690,7 +690,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     // Check the imported object from nulltyps.json[0].
-    private void checkNullableValuesNull(NullTypes nullTypes1) {
+    private void checkNullableValuesAreNull(NullTypes nullTypes1) {
         // 1 String
         assertNull(nullTypes1.getFieldStringNull());
         assertEquals("", nullTypes1.getFieldStringNotNull());
@@ -726,7 +726,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     // Check the imported object from nulltyps.json[1].
-    private void checkNullableValuesNonNull(NullTypes nullTypes2) {
+    private void checkNullableValuesAreNotNull(NullTypes nullTypes2) {
         // 1 String
         assertEquals("", nullTypes2.getFieldStringNull());
         assertEquals("", nullTypes2.getFieldStringNotNull());
@@ -773,10 +773,10 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(3, nullTypesRealmResults.size());
 
         NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
-        checkNullableValuesNull(nullTypes1);
+        checkNullableValuesAreNull(nullTypes1);
 
         NullTypes nullTypes2 = nullTypesRealmResults.where().equalTo("id", 2).findFirst();
-        checkNullableValuesNonNull(nullTypes2);
+        checkNullableValuesAreNotNull(nullTypes2);
     }
 
     // Test creating objects form JSON stream, all nullable fields with null values or non-null values
@@ -789,10 +789,10 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(3, nullTypesRealmResults.size());
 
         NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
-        checkNullableValuesNull(nullTypes1);
+        checkNullableValuesAreNull(nullTypes1);
 
         NullTypes nullTypes2 = nullTypesRealmResults.where().equalTo("id", 2).findFirst();
-        checkNullableValuesNonNull(nullTypes2);
+        checkNullableValuesAreNotNull(nullTypes2);
     }
 
     // Test a nullable field already has a non-null value, update it through JSON with null value
@@ -810,7 +810,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.commitTransaction();
         RealmResults<NullTypes> nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
         assertEquals(2, nullTypesRealmResults.size());
-        checkNullableValuesNonNull(nullTypesRealmResults.first());
+        checkNullableValuesAreNotNull(nullTypesRealmResults.first());
 
         // Update object with id 1, nullable fields should have null values
         JSONArray array = new JSONArray(json);
@@ -822,7 +822,7 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(3, nullTypesRealmResults.size());
 
         NullTypes nullTypes1 = nullTypesRealmResults.where().equalTo("id", 1).findFirst();
-        checkNullableValuesNull(nullTypes1);
+        checkNullableValuesAreNull(nullTypes1);
     }
 
     // If JSON has a field with value null, and corresponding object's field is not nullable,
@@ -836,71 +836,71 @@ public class RealmJsonTest extends AndroidTestCase {
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(0));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 2 Bytes
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(1));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 3 Boolean
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(2));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 4 Byte
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(3));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 5 Short
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(4));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 6 Integer
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(5));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 7 Long
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(6));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 8 Float
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(7));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 9 Double
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(8));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         // 10 Date
         try {
             testRealm.createObjectFromJson(NullTypes.class, array.getJSONObject(9));
             fail();
-        } catch (RealmException e) {
-            assertTrue(e.getCause() instanceof IllegalArgumentException);
+        } catch (RealmException expected) {
+            assertTrue(expected.getCause() instanceof IllegalArgumentException);
         }
         testRealm.cancelTransaction();
     }
