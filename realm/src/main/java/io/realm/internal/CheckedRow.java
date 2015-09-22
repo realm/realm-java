@@ -89,17 +89,22 @@ public class CheckedRow extends UncheckedRow {
     @Override
     public boolean isNull(long columnIndex) {
         ColumnType columnType = getColumnType(columnIndex);
-        if (columnType == ColumnType.BOOLEAN) {
-            return super.isNull(columnIndex);
-        } else {
-            return false; // Unsupported types always return false
-        }
+        return super.isNull(columnIndex);
     }
 
     @Override
     public void setNull(long columnIndex) {
         ColumnType columnType = getColumnType(columnIndex);
-        if (columnType == ColumnType.BOOLEAN) {
+        if (columnType == ColumnType.STRING) {
+            super.setString(columnIndex, null);
+        }
+        else if (columnType == ColumnType.BINARY) {
+            super.setBinaryByteArray(columnIndex, null);
+        }
+        else {
+            if (!this.getTable().isColumnNullable(columnIndex)) {
+                throw new IllegalArgumentException("field is not nullable");
+            }
             super.setNull(columnIndex);
         }
     }
