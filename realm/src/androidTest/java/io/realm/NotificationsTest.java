@@ -494,6 +494,7 @@ public class NotificationsTest extends AndroidTestCase {
         Realm.deleteRealm(realmConfiguration);
 
         final CountDownLatch handlerNotified = new CountDownLatch(1);
+        final CountDownLatch backgroundThreadClosed = new CountDownLatch(1);
 
         // Create Handler on Thread1 by opening a Realm instance
         new Thread("thread1") {
@@ -533,12 +534,14 @@ public class NotificationsTest extends AndroidTestCase {
                 };
                 realm.addChangeListener(listener);
                 realm.close();
+                backgroundThreadClosed.countDown();
                 Looper.loop();
             }
 
         }.start();
 
         // Any REALM_CHANGED message should now only reach the open Handler on Thread1
+        backgroundThreadClosed.await();
         Realm realm = Realm.getInstance(realmConfiguration);
         realm.beginTransaction();
         realm.commitTransaction();
