@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
 
+import io.realm.RealmFieldType;
 
 /**
  * This class represents a view of a particular table. We can think of
@@ -212,8 +213,8 @@ public class TableView implements TableOrView, Closeable {
      * @return Type of the particular column.
      */
     @Override
-    public ColumnType getColumnType(long columnIndex) {
-        return ColumnType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
+    public RealmFieldType getColumnType(long columnIndex) {
+        return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
     }
 
     protected native int nativeGetColumnType(long nativeViewPtr, long columnIndex);
@@ -327,8 +328,8 @@ public class TableView implements TableOrView, Closeable {
     protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
 
     @Override
-    public ColumnType getMixedType(long columnIndex, long rowIndex) {
-        return ColumnType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
+    public RealmFieldType getMixedType(long columnIndex, long rowIndex) {
+        return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
     }
 
     protected native int nativeGetMixedType(long nativeViewPtr, long columnIndex, long rowIndex);
@@ -722,7 +723,7 @@ public class TableView implements TableOrView, Closeable {
      * tableview.
      *
      * Note: the type of the column marked by the columnIndex has to be of
-     * type ColumnType.ColumnTypeInt.
+     * type RealmFieldType.ColumnTypeInt.
      *
      * @param columnIndex column index
      * @return the sum of the values in the column
@@ -738,7 +739,7 @@ public class TableView implements TableOrView, Closeable {
      * Returns the maximum value of the cells in a column.
      *
      * Note: for this method to work the Type of the column
-     * identified by the columnIndex has to be ColumnType.ColumnTypeInt.
+     * identified by the columnIndex has to be RealmFieldType.ColumnTypeInt.
      *
      * @param columnIndex column index
      * @return the maximum value
@@ -754,7 +755,7 @@ public class TableView implements TableOrView, Closeable {
      * Returns the minimum value of the cells in a column.
      *
      * Note: for this method to work the Type of the column
-     * identified by the columnIndex has to be ColumnType.ColumnTypeInt.
+     * identified by the columnIndex has to be RealmFieldType.ColumnTypeInt.
      *
      * @param columnIndex column index
      * @return the minimum value
@@ -942,9 +943,9 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType){
-        if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
+        if (! this.getColumnType(stringCol).equals(RealmFieldType.STRING ))
             throw new UnsupportedOperationException("Group by column must be of type String");
-        if (! this.getColumnType(intCol).equals(ColumnType.INTEGER ))
+        if (! this.getColumnType(intCol).equals(RealmFieldType.INTEGER ))
             throw new UnsupportedOperationException("Aggregation column must be of type Int");
         Table result = new Table();
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);

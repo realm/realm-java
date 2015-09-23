@@ -3,10 +3,10 @@ package io.realm;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.RealmFieldType;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
@@ -94,10 +94,10 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-            table.addColumn(ColumnType.BOOLEAN, "done");
-            table.addColumn(ColumnType.BOOLEAN, "isReady");
-            table.addColumn(ColumnType.BOOLEAN, "mCompleted");
-            table.addColumn(ColumnType.BOOLEAN, "anotherBoolean");
+            table.addColumn(RealmFieldType.BOOLEAN, "done");
+            table.addColumn(RealmFieldType.BOOLEAN, "isReady");
+            table.addColumn(RealmFieldType.BOOLEAN, "mCompleted");
+            table.addColumn(RealmFieldType.BOOLEAN, "anotherBoolean");
             table.setPrimaryKey("");
             return table;
         }
@@ -112,7 +112,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
             }
 
-            Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
+            Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 4; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
@@ -133,25 +133,25 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             if (!columnTypes.containsKey("done")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done'");
             }
-            if (columnTypes.get("done") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("done") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'done'");
             }
             if (!columnTypes.containsKey("isReady")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'isReady'");
             }
-            if (columnTypes.get("isReady") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("isReady") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'isReady'");
             }
             if (!columnTypes.containsKey("mCompleted")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'mCompleted'");
             }
-            if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("mCompleted") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted'");
             }
             if (!columnTypes.containsKey("anotherBoolean")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'anotherBoolean'");
             }
-            if (columnTypes.get("anotherBoolean") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("anotherBoolean") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'anotherBoolean'");
             }
         } else {
