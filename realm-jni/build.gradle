@@ -261,23 +261,23 @@ task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared 
     }
 }
 
-task clean(group: 'build', description: 'Clean the make artifacts') << {
-    targets.each { target ->
-        exec {
-            commandLine = [
-                'make',
-                '-C', "${projectDir}/src",
-                "BASE_DENOM=${target.name}",
-                'LIB_SUFFIX_SHARED=.so',
-                'clean'
-            ]
+task clean(type: Delete) {
+    delete project.buildDir
+
+    delete fileTree(dir: "${projectDir}/../realm/src/main/jniLibs/", include: '**/librealm-jni*.so')
+    delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
+
+    doLast {
+        targets.each { target ->
+            exec {
+                commandLine = [
+                        'make',
+                        '-C', "${projectDir}/src",
+                        "BASE_DENOM=${target.name}",
+                        'LIB_SUFFIX_SHARED=.so',
+                        'clean'
+                ]
+            }
         }
-    }
-    exec {
-        commandLine = [
-            'rm',
-            '-rf',
-            "${projectDir}/build/*"
-        ]
     }
 }
