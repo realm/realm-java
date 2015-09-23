@@ -171,11 +171,12 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Test if a field is null. Only works for relationships, RealmLists, and Strings.
+     * Test if a field is null. Only works for not required types.
      *
-     * @param fieldName - the field name
-     * @return The query object
-     * @throws java.lang.IllegalArgumentException if field is not a RealmObject, RealmList or String
+     * @param fieldName - the field name.
+     * @return The query object.
+     * @throws java.lang.IllegalArgumentException if the field is annotated with @{@link io.realm.annotations.Required}
+     * or the field is with the type {@link RealmList}.
      */
     public RealmQuery<E> isNull(String fieldName) {
         long columnIndices[] = getColumnIndices(fieldName, null);
@@ -186,11 +187,12 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Test if a field is not null. Only works for relationships, RealmLists, and Strings.
+     * Test if a field is not null. Only works for not required types.
      *
-     * @param fieldName - the field name
-     * @return The query object
-     * @throws java.lang.IllegalArgumentException if field is not a RealmObject, RealmList or String
+     * @param fieldName - the field name.
+     * @return The query object.
+     * @throws java.lang.IllegalArgumentException if the field is annotated with @{@link io.realm.annotations.Required}
+     * or the field is with the type {@link RealmList}.
      */
     public RealmQuery<E> isNotNull(String fieldName) {
         long columnIndices[] = getColumnIndices(fieldName, null);

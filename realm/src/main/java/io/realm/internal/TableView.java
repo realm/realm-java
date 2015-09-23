@@ -858,7 +858,7 @@ public class TableView implements TableOrView, Closeable {
         return new Date(result * 1000);
     }
 
-    protected native Long nativeMinimumDate(long nativePtr, long columnnIndex);
+    protected native Long nativeMinimumDate(long nativePtr, long columnIndex);
 
 
     // Sorting

@@ -35,6 +35,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public static final long INFINITE = -1;
     public static final String STRING_DEFAULT_VALUE = "";
     public static final long INTEGER_DEFAULT_VALUE = 0;
+    public static final boolean NULLABLE = true;
+    public static final boolean NOT_NULLABLE = false;
 
     private static final String PRIMARY_KEY_TABLE_NAME = "pk";
     private static final String PRIMARY_KEY_CLASS_COLUMN_NAME = "pk_table";
@@ -42,9 +44,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private static final String PRIMARY_KEY_FIELD_COLUMN_NAME = "pk_property";
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
-
-    public static final boolean NULLABLE = true;
-    public static final boolean NOT_NULLABLE = false;
 
     protected long nativePtr;
 
@@ -130,8 +129,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
         }
 
-        if (DEBUG)
+        if (DEBUG) {
             System.err.println("==== FINALIZE " + tableNo + "...");
+        }
     }
 
     /*
