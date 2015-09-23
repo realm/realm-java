@@ -3,8 +3,11 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
@@ -26,8 +29,9 @@ public class RealmQueryTest extends AndroidTestCase{
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
     }
 
     @Override
@@ -458,5 +462,59 @@ public class RealmQueryTest extends AndroidTestCase{
         for (int i = 0; i < stringOnlies2.size(); i++) {
             assertEquals(sorted[i], stringOnlies2.get(i).getChars());
         }
+    }
+
+    // If the RealmQuery is built on a TableView, it should not crash when used after GC.
+    // See issue #1161 for more details.
+    public void testBuildQueryFromResultsGC() {
+        // According to the testing, setting this to 10 can almost certainly trigger the GC.
+        // Use 30 here can ensure GC happen. (Tested with 4.3 1G Ram and 5.0 3G Ram)
+        final int count = 30;
+        RealmResults<CatOwner> results = testRealm.where(CatOwner.class).findAll();
+
+        for (int i=1; i<=count; i++) {
+            @SuppressWarnings({"unused"})
+            byte garbage[] = TestHelper.allocGarbage(0);
+            results = results.where().findAll();
+            System.gc(); // if a native resource has a reference count = 0, doing GC here might lead to a crash
+        }
+    }
+
+    public void testLargeRealmMultipleThreads() throws InterruptedException {
+        final int nObjects = 500000;
+        final int nThreads = 3;
+        final CountDownLatch latch = new CountDownLatch(nThreads);
+
+        testRealm.beginTransaction();
+        testRealm.clear(StringOnly.class);
+        for (int i = 0; i < nObjects; i++) {
+            StringOnly stringOnly = testRealm.createObject(StringOnly.class);
+            stringOnly.setChars(String.format("string %d", i));
+        }
+        testRealm.commitTransaction();
+
+
+        for (int i = 0; i < nThreads; i++) {
+            Thread thread = new Thread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+                            Realm realm = Realm.getInstance(realmConfig);
+                            RealmResults<StringOnly> realmResults = realm.allObjects(StringOnly.class);
+                            int n = 0;
+                            for (StringOnly stringOnly : realmResults) {
+                                n = n + 1;
+                            }
+                            assertEquals(nObjects, n);
+                            realm.close();
+                            latch.countDown();
+                        }
+                    }
+                );
+            thread.start();
+        }
+
+        latch.await();
     }
 }

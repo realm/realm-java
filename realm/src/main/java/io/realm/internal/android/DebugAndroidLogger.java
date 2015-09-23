@@ -8,6 +8,6 @@ import io.realm.internal.log.RealmLog;
 public class DebugAndroidLogger extends AndroidLogger {
 
     public DebugAndroidLogger() {
-        setMinimumLogLevel(RealmLog.WARN);
+        setMinimumLogLevel(RealmLog.VERBOSE);
     }
 }

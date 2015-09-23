@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <!-- ignore all issues in resource generation -->
+        <Class name="~.*\.R\$.*"/>
+    </Match>
+    <Match>
+        <Class name="~.*\.Manifest\$.*"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.internal.ImplicitTransaction" />
+        <Method name="finalize" />
+        <Bug pattern="FI_NULLIFY_SUPER" />
+    </Match>
+    <Match>
+        <Class name="io.realm.internal.ReadTransaction" />
+        <Method name="finalize" />
+        <Bug pattern="FI_NULLIFY_SUPER" />
+    </Match>
+    <Match>
+        <Class name="io.realm.internal.WriteTransaction" />
+        <Method name="finalize" />
+        <Bug pattern="FI_NULLIFY_SUPER" />
+    </Match>
+    <Match>
+        <Class name="io.realm.Realm" />
+        <Method name="checkHasPrimaryKey" />
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.RealmBaseAdapter" />
+        <Field name="context" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+    <Match>
+        <Class name="io.realm.RealmBaseAdapter" />
+        <Field name="inflater" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+</FindBugsFilter>

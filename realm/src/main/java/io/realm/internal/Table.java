@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.Date;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
 
@@ -29,6 +31,7 @@ import io.realm.exceptions.RealmException;
  */
 public class Table implements TableOrView, TableSchema, Closeable {
 
+    public static final String TABLE_PREFIX = "class_";
     public static final long INFINITE = -1;
     public static final String STRING_DEFAULT_VALUE = "";
     public static final long INTEGER_DEFAULT_VALUE = 0;
@@ -49,7 +52,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     // test:
     protected int tableNo;
     protected boolean DEBUG = false;
-    protected static int TableCount = 0;
+    static AtomicInteger tableCount = new AtomicInteger(0);
 
     static {
         RealmCore.loadLibrary();
@@ -72,7 +75,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw new java.lang.OutOfMemoryError("Out of native memory.");
         }
         if (DEBUG) {
-            tableNo = ++TableCount;
+            tableNo = tableCount.incrementAndGet();
             System.err.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
         }
     }
@@ -85,7 +88,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         this.nativePtr = nativePointer;
 
         if (DEBUG) {
-            tableNo = ++TableCount;
+            tableNo = tableCount.incrementAndGet();
             System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
     }
@@ -103,8 +106,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
             if (nativePtr != 0) {
                 nativeClose(nativePtr);
                 if (DEBUG) {
-                    TableCount--;
-                    System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + TableCount);
+                    tableCount.decrementAndGet();
+                    System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + tableCount.get());
                 }
                 
                 nativePtr = 0;
@@ -141,24 +144,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native boolean nativeIsValid(long nativeTablePtr);
 
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (other == null) {
-            return false;
-        }
-        if (!(other instanceof Table)) {
-            return false; // Has to work for all the typed tables as well
-        }
-
-        Table otherTable = (Table) other;
-        return nativeEquals(nativePtr, otherTable.nativePtr);
-    }
-
-    protected native boolean nativeEquals(long nativeTablePtr, long nativeTableToComparePtr);
-
     private void verifyColumnName(String name) {
         if (name.length() > 63) {
             throw new IllegalArgumentException("Column names are currently limited to max 63 characters.");
@@ -167,7 +152,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public TableSchema getSubtableSchema(long columnIndex) {
-        if(!nativeIsRootTable(nativePtr)) {
+        if (!nativeIsRootTable(nativePtr)) {
             throw new UnsupportedOperationException("This is a subtable. Can only be called on root table.");
         }
 
@@ -320,7 +305,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
-     * Get the type of a column identified by the columnIdex.
+     * Get the type of a column identified by the columnIndex.
      *
      * @param columnIndex index of the column.
      * @return Type of the particular column.
@@ -394,7 +379,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long primaryKeyColumnIndex = getPrimaryKey();
         ColumnType type = getColumnType(primaryKeyColumnIndex);
         long rowIndex;
-        Row row;
+        UncheckedRow row;
 
         // Add with primary key initially set
         switch (type) {
@@ -406,14 +391,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getRow(rowIndex);
+                row = getUncheckedRow(rowIndex);
                 row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
                 break;
 
             case INTEGER:
                 long pkValue;
                 try {
-                    pkValue = Long.valueOf(primaryKeyValue.toString());
+                    pkValue = Long.parseLong(primaryKeyValue.toString());
                 } catch (RuntimeException e) {
                     throw new IllegalArgumentException("Primary key value is not a long: " + primaryKeyValue);
                 }
@@ -421,7 +406,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(pkValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getRow(rowIndex);
+                row = getUncheckedRow(rowIndex);
                 row.setLong(primaryKeyColumnIndex, pkValue);
                 break;
 
@@ -450,31 +435,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
-     * Appends the specified row to the end of the table
+     * Appends the specified row to the end of the table.
+     * For internal testing usage only.
+     *
      * @param values
      * @return The row index of the appended row
      */
-    public long add(Object... values) {
-        long rowIndex = size();
-        addAt(rowIndex, values);
-        return rowIndex;
-    }
+    protected long add(Object... values) {
+        long rowIndex = addEmptyRow();
 
-
-    /**
-     * Inserts a row at the specified row index. Shifts the row currently at that row index and any subsequent rows down (adds one to their row index).
-     * @param rowIndex
-     * @param values
-     */
-    public void addAt(long rowIndex, Object... values) {
         checkImmutable();
-
-        // Check index
-        long size = size();
-        if (rowIndex > size) {
-            throw new IllegalArgumentException("rowIndex " + String.valueOf(rowIndex) +
-                    " must be <= table.size() " + String.valueOf(size) + ".");
-        }
 
         // Check values types
         int columns = (int)getColumnCount();
@@ -507,70 +477,52 @@ public class Table implements TableOrView, TableSchema, Closeable {
             Object value = values[(int)columnIndex];
             switch (colTypes[(int)columnIndex]) {
             case BOOLEAN:
-                nativeInsertBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
+                nativeSetBoolean(nativePtr, columnIndex, rowIndex, (Boolean)value);
                 break;
             case INTEGER:
                 long intValue = ((Number) value).longValue();
                 checkIntValueIsLegal(columnIndex, rowIndex, intValue);
-                nativeInsertLong(nativePtr, columnIndex, rowIndex, intValue);
+                nativeSetLong(nativePtr, columnIndex, rowIndex, intValue);
                 break;
             case FLOAT:
-                nativeInsertFloat(nativePtr, columnIndex, rowIndex, (Float) value);
+                nativeSetFloat(nativePtr, columnIndex, rowIndex, (Float) value);
                 break;
             case DOUBLE:
-                nativeInsertDouble(nativePtr, columnIndex, rowIndex, (Double) value);
+                nativeSetDouble(nativePtr, columnIndex, rowIndex, (Double) value);
                 break;
             case STRING:
                 String stringValue = (String) value;
                 checkStringValueIsLegal(columnIndex, rowIndex, stringValue);
-                nativeInsertString(nativePtr, columnIndex, rowIndex, (String)value);
+                nativeSetString(nativePtr, columnIndex, rowIndex, (String)value);
                 break;
             case DATE:
-                nativeInsertDate(nativePtr, columnIndex, rowIndex, ((Date)value).getTime()/1000);
+                if (value == null)
+                    throw new IllegalArgumentException("Null Date is not allowed.");
+                nativeSetDate(nativePtr, columnIndex, rowIndex, ((Date)value).getTime()/1000);
                 break;
             case MIXED:
-                nativeInsertMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
+                if (value == null)
+                    throw new IllegalArgumentException("Null Mixed data is not allowed");
+                nativeSetMixed(nativePtr, columnIndex, rowIndex, Mixed.mixedValue(value));
                 break;
             case BINARY:
-                nativeInsertByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
+                if (value == null)
+                    throw new IllegalArgumentException("Null Array is not allowed");
+                nativeSetByteArray(nativePtr, columnIndex, rowIndex, (byte[])value);
                 break;
             case TABLE:
-                nativeInsertSubtable(nativePtr, columnIndex, rowIndex);
-                insertSubtableValues(rowIndex, columnIndex, value);
+                insertSubTable(columnIndex, rowIndex, value);
                 break;
             default:
                 throw new RuntimeException("Unexpected columnType: " + String.valueOf(colTypes[(int)columnIndex]));
             }
         }
-        //Insert done. Use native, no need to check for immutable again here
-        nativeInsertDone(nativePtr);
-
+        return rowIndex;
     }
 
     private boolean isPrimaryKeyColumn(long columnIndex) {
         return columnIndex == getPrimaryKey();
     }
-
-    private void insertSubtableValues(long rowIndex, long columnIndex, Object value) {
-        if (value != null) {
-            // insert rows in subtable recursively
-            Table subtable = getSubtableDuringInsert(columnIndex, rowIndex);
-            int rows = ((Object[])value).length;
-            for (int i=0; i<rows; ++i) {
-                Object rowArr = ((Object[])value)[i];
-                subtable.addAt(i, (Object[])rowArr);
-            }
-        }
-    }
-
-    // LinkList
-
-    public void insertLinkList(long columnIndex, long rowIndex) {
-        nativeInsertLinkList(nativePtr, columnIndex, rowIndex);
-        getInternalMethods().insertDone();
-    }
-
-    private native void nativeInsertLinkList(long nativePtr, long columnIndex, long rowIndex);
 
     /**
      * Returns a view sorted by the specified column and order
@@ -614,54 +566,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeGetSortedViewMulti(long nativeTableViewPtr, long[] columnIndices, boolean[] ascending);
 
     /**
-     * Replaces the row at the specified position with the specified row.
-     * @param rowIndex
-     * @param values
-     */
-    public void set(long rowIndex, Object... values) {
-        checkImmutable();
-
-        // Check index
-        long size = size();
-        if (rowIndex >= size) {
-            throw new IllegalArgumentException("rowIndex " + String.valueOf(rowIndex) +
-                    " must be < table.size() " + String.valueOf(size) + ".");
-        }
-
-        // Verify number of 'values'
-        int columns = (int)getColumnCount();
-        if (columns != values.length) {
-            throw new IllegalArgumentException("The number of value parameters (" +
-                    String.valueOf(values.length) +
-                    ") does not match the number of columns in the table (" +
-                    String.valueOf(columns) + ").");
-        }
-
-        // Verify type of 'values'
-        for (int columnIndex = 0; columnIndex < columns; columnIndex++) {
-            Object value = values[columnIndex];
-            ColumnType colType = getColumnType(columnIndex);
-            if (!colType.matchObject(value)) {
-                throw new IllegalArgumentException("Invalid argument no " + String.valueOf(1 + columnIndex) +
-                        ". Expected a value compatible with column type " + colType + ", but got " + value.getClass() + ".");
-            }
-        }
-
-        // Now that all values are verified, we can remove the row and insert it again.
-        // TODO: Can be optimized to only set the values (but clear any subtables)
-        remove(rowIndex);
-        addAt(rowIndex, values);
-    }
-
-    //Instance of the inner class InternalMethods.
-    private InternalMethods internal = new InternalMethods();
-
-    //Returns InternalMethods instance with public internal methods. Should only be called by AbstractTable
-    public InternalMethods getInternalMethods(){
-        return this.internal;
-    }
-
-    /**
      * Returns the column index for the primary key.
      *
      * @return Column index or {@code #NO_MATCH} if no primary key is set.
@@ -676,7 +580,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
             long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
             if (rowIndex != NO_MATCH) {
-                String pkColumnName = pkTable.getRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
             } else {
                 cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
@@ -727,107 +631,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private void throwDuplicatePrimaryKeyException(Object value) {
         throw new RealmException("Primary key constraint broken. Value already exists: " + value);
     }
-
-    //Holds methods that must be publicly available for AbstractClass.
-    //Should not be called when using the dynamic interface. The methods can be accessed by calling getInternalMethods() in Table class
-    public class InternalMethods{
-
-        public void insertLong(long columnIndex, long rowIndex, long value) {
-            checkImmutable();
-            nativeInsertLong(nativePtr, columnIndex, rowIndex, value);
-        }
-
-        public void insertDouble(long columnIndex, long rowIndex, double value) {
-            checkImmutable();
-            nativeInsertDouble(nativePtr, columnIndex, rowIndex, value);
-        }
-
-        public void insertFloat(long columnIndex, long rowIndex, float value) {
-            checkImmutable();
-            nativeInsertFloat(nativePtr, columnIndex, rowIndex, value);
-        }
-
-        public void insertBoolean(long columnIndex, long rowIndex, boolean value) {
-            checkImmutable();
-            nativeInsertBoolean(nativePtr, columnIndex, rowIndex, value);
-        }
-
-        public void insertDate(long columnIndex, long rowIndex, Date date) {
-            checkImmutable();
-            nativeInsertDate(nativePtr, columnIndex, rowIndex, date.getTime()/1000);
-        }
-
-        public void insertString(long columnIndex, long rowIndex, String value) {
-            checkImmutable();
-            nativeInsertString(nativePtr, columnIndex, rowIndex, value);
-        }
-
-        public void insertMixed(long columnIndex, long rowIndex, Mixed data) {
-            checkImmutable();
-            nativeInsertMixed(nativePtr, columnIndex, rowIndex, data);
-        }
-
-        /*
-
-        public void insertBinary(long columnIndex, long rowIndex, ByteBuffer data) {
-            if (immutable) throwImmutable();
-            //System.err.printf("\ninsertBinary(col %d, row %d, ByteBuffer)\n", columnIndex, rowIndex);
-            //System.err.println("-- HasArray: " + (data.hasArray() ? "yes":"no") + " len= " + data.array().length);
-            if (data.isDirect())
-                nativeInsertByteBuffer(nativePtr, columnIndex, rowIndex, data);
-            else
-                throw new RuntimeException("Currently ByteBuffer must be allocateDirect().");   // FIXME: support other than allocateDirect
-        }
-
-         */
-
-        public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
-            checkImmutable();
-            if(data != null)
-                nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
-            else
-                throw new IllegalArgumentException("byte[] must not be null. Alternatively insert empty array.");
-        }
-
-        public void insertSubtable(long columnIndex, long rowIndex, Object[][] values) {
-            checkImmutable();
-            nativeInsertSubtable(nativePtr, columnIndex, rowIndex);
-            insertSubtableValues(rowIndex, columnIndex, values);
-        }
-
-        public void insertDone() {
-            checkImmutable();
-            nativeInsertDone(nativePtr);
-        }
-    }
-
-    protected native void nativeInsertFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
-
-    protected native void nativeInsertDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
-
-    protected native void nativeInsertLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
-
-    protected native void nativeInsertBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
-
-    protected native void nativeInsertDate(long nativePtr, long columnIndex, long rowIndex, long dateTimeValue);
-
-    protected native void nativeInsertString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
-
-    protected native void nativeInsertMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed mixed);
-
-
-    /* public void insertBinary(long columnIndex, long rowIndex, byte[] data) {
-        if (data == null)
-            throw new IllegalArgumentException("Null Array");
-        if (immutable) throwImmutable();
-        nativeInsertByteArray(nativePtr, columnIndex, rowIndex, data);
-    }*/
-
-    protected native void nativeInsertByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
-
-    protected native void nativeInsertSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
-
-    protected native void nativeInsertDone(long nativeTablePtr);
 
     //
     // Getters
@@ -1006,10 +809,28 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
+    /**
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
+     * If error checking is required, use {@link #getCheckedRow(long)} instead.
+     *
+     * @param index Index of row to fetch.
+     * @return Unsafe row wrapper object.
+     */
+    public UncheckedRow getUncheckedRow(long index) {
+        return UncheckedRow.get(context, this, index);
+    }
 
-    public Row getRow(long index) {
-        long nativeRowPtr = nativeGetRowPtr(nativePtr, index);
-        return new Row(context, this, nativeRowPtr);
+    /**
+     * Returns a wrapper around Row access. All access will be error checked in JNI and will throw an
+     * appropriate {@link RuntimeException} if used incorrectly.
+     *
+     * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
+     *
+     * @param index Index of row to fetch./
+     * @return Safe row wrapper object.
+     */
+    public CheckedRow getCheckedRow(long index) {
+        return CheckedRow.get(context, this, index);
     }
 
     protected native long nativeGetRowPtr(long nativePtr, long index);
@@ -1134,20 +955,19 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
-    /**
-     * Add the value for to all cells in the column.
-     *
-     * @param columnIndex column index of the cell
-     * @param value
-     */
-    //!!!TODO: New. Support in highlevel API
-    @Override
-    public void adjust(long columnIndex, long value) {
+    //TODO: Clean up this function
+    private void insertSubTable(long columnIndex, long rowIndex, Object value) {
         checkImmutable();
-        nativeAddInt(nativePtr, columnIndex, value);
+        if (value != null) {
+            // insert rows in subtable recursively
+            Table subtable = getSubtableDuringInsert(columnIndex, rowIndex);
+            int rows = ((Object[])value).length;
+            for (int i=0; i<rows; ++i) {
+                Object rowArr = ((Object[])value)[i];
+                subtable.add((Object[])rowArr);
+            }
+        }
     }
-
-    protected native void nativeAddInt(long nativeViewPtr, long columnIndex, long value);
 
     public void addSearchIndex(long columnIndex) {
         checkImmutable();
@@ -1285,7 +1105,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeMinimumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMinimumInt(long nativePtr, long columnnIndex);
+    protected native long nativeMinimumInt(long nativePtr, long columnIndex);
 
     @Override
     public double averageLong(long columnIndex) {
@@ -1314,7 +1134,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeMinimumFloat(nativePtr, columnIndex);
     }
 
-    protected native float nativeMinimumFloat(long nativePtr, long columnnIndex);
+    protected native float nativeMinimumFloat(long nativePtr, long columnIndex);
 
     @Override
     public double averageFloat(long columnIndex) {
@@ -1343,7 +1163,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeMinimumDouble(nativePtr, columnIndex);
     }
 
-    protected native double nativeMinimumDouble(long nativePtr, long columnnIndex);
+    protected native double nativeMinimumDouble(long nativePtr, long columnIndex);
 
     @Override
     public double averageDouble(long columnIndex) {
@@ -1366,7 +1186,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return new Date(nativeMinimumDate(nativePtr, columnIndex) * 1000);
     }
 
-    protected native long nativeMinimumDate(long nativePtr, long columnnIndex);
+    protected native long nativeMinimumDate(long nativePtr, long columnIndex);
 
 
     //
@@ -1450,6 +1270,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public long findFirstDate(long columnIndex, Date date) {
+        if (date == null) {
+            throw new IllegalArgumentException("null is not supported");
+        }
         return nativeFindFirstDate(nativePtr, columnIndex, date.getTime() / 1000);
     }
 
@@ -1457,6 +1280,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public long findFirstString(long columnIndex, String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("null is not supported");
+        }
         return nativeFindFirstString(nativePtr, columnIndex, value);
     }
 
@@ -1647,4 +1473,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private void throwImmutable() {
         throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
     }
+
+    /**
+     * Compares the schema of the current instance of Table with another instance.
+     * @param table The instance to compare with. It cannot be null.
+     * @return true if the two instances have the same schema (column names and types)
+     */
+    public boolean hasSameSchema(Table table) {
+        if (table == null) {
+            throw new IllegalArgumentException("The argument cannot be null");
+        }
+        return nativeHasSameSchema(this.nativePtr, table.nativePtr);
+    }
+
+    protected native boolean nativeHasSameSchema(long thisTable, long otherTable);
 }

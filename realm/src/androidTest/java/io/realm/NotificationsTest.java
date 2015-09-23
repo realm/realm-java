@@ -42,7 +42,7 @@ public class NotificationsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
+        Realm.deleteRealm(TestHelper.createConfiguration(getContext()));
     }
 
     @Override
@@ -135,7 +135,7 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(1, counter.get());
     }
 
-    public void testNotificationsNumber () throws InterruptedException, ExecutionException {
+    public void testNotificationsNumber() throws InterruptedException, ExecutionException {
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicBoolean isReady = new AtomicBoolean(false);
         final Looper[] looper = new Looper[1];
@@ -173,10 +173,10 @@ public class NotificationsTest extends AndroidTestCase {
         while (!isReady.get()) {
             Thread.sleep(5);
         }
-        Thread.sleep(100); 
+        Thread.sleep(100);
 
         // Trigger OnRealmChanged on background thread
-        Realm realm = Realm.getInstance(getContext());
+        realm = Realm.getInstance(getContext());
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setName("Rex");
@@ -347,9 +347,10 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testHandlerNotRemovedToSoon() {
-        Realm.deleteRealmFile(getContext(), "private-realm");
-        Realm instance1 = Realm.getInstance(getContext(), "private-realm");
-        Realm instance2 = Realm.getInstance(getContext(), "private-realm");
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "private-realm");
+        Realm.deleteRealm(realmConfig);
+        Realm instance1 = Realm.getInstance(realmConfig);
+        Realm instance2 = Realm.getInstance(realmConfig);
         assertEquals(instance1.getPath(), instance2.getPath());
         assertNotNull(instance1.getHandler());
 
@@ -471,7 +472,7 @@ public class NotificationsTest extends AndroidTestCase {
 
         // There is no guaranteed way to release the WeakReference,
         // just clear it.
-        for (WeakReference<RealmChangeListener> weakRef: realm.getChangeListeners()) {
+        for (WeakReference<RealmChangeListener> weakRef : realm.getChangeListeners()) {
             weakRef.clear();
         }
 

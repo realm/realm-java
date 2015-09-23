@@ -33,6 +33,7 @@ import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 
 /**
  * This class is able to merge different RealmProxyMediators, so they look like one.
@@ -94,7 +95,7 @@ public class CompositeMediator extends RealmProxyMediator {
 
     @Override
     public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
-        RealmProxyMediator mediator = getMediator(object.getClass());
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
         return mediator.copyOrUpdate(realm, object, update, cache);
     }
 
@@ -110,6 +111,7 @@ public class CompositeMediator extends RealmProxyMediator {
         return mediator.createUsingJsonStream(clazz, realm, reader);
     }
 
+    // Returns the mediator for a given model class (not RealmProxy) or throws exception
     private RealmProxyMediator getMediator(Class<? extends RealmObject> clazz) {
         RealmProxyMediator mediator = mediators.get(clazz);
         if (mediator == null) {

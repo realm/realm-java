@@ -1,7 +1,6 @@
 package io.realm.internal;
 
 import android.test.AndroidTestCase;
-import android.test.MoreAsserts;
 
 import java.io.File;
 import java.util.Date;
@@ -49,14 +48,6 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(expected, t.toString());
     }
 
-    public void testGroupEquals() {
-        Table t2 = createTestTable();
-        assertEquals(true, t.equals(t2));
-        t.addEmptyRow();
-        assertEquals(false, t.equals(t2));
-    }
-
-
     public void testRowOperationsOnZeroRow(){
 
         Table t = new Table();
@@ -75,7 +66,7 @@ public class JNITableTest extends AndroidTestCase {
         Table tableZeroCols = new Table();
 
         // Add rows
-        try { tableZeroCols.add("val");         fail("No columns in table"); } catch (IllegalArgumentException e) {}
+        try { tableZeroCols.add("val");         fail("No columns in table"); } catch (IndexOutOfBoundsException ignored) {}
         try { tableZeroCols.addEmptyRow();      fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
         try { tableZeroCols.addEmptyRows(10);   fail("No columns in table"); } catch (IndexOutOfBoundsException e) {}
 
@@ -87,36 +78,6 @@ public class JNITableTest extends AndroidTestCase {
         try { tableZeroCols.renameColumn(10, "newName");    fail("No columns in table"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
-    public void testTableBinaryTest() {
-        Table t = new Table();
-        t.addColumn(ColumnType.BINARY, "binary");
-
-        byte[] row0 = new byte[] { 1, 2, 3 };
-        byte[] row1 = new byte[] { 10, 20, 30 };
-
-        t.getInternalMethods().insertBinary(0, 0, row0);
-        t.getInternalMethods().insertDone();
-        t.getInternalMethods().insertBinary(0, 1, row1);
-        t.getInternalMethods().insertDone();
-
-        byte[] nullByte = null;
-
-        try { t.getInternalMethods().insertBinary(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
-
-
-        MoreAsserts.assertEquals(new byte[]{1, 2, 3}, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[]{1, 2, 3});
-
-        byte[] newRow0 = new byte[] { 7, 77, 77 };
-        t.setBinaryByteArray(0, 0, newRow0);
-
-        MoreAsserts.assertEquals(new byte[]{7, 77, 77}, t.getBinaryByteArray(0, 0));
-        assertEquals(false, t.getBinaryByteArray(0, 0) == new byte[] { 1, 2, 3 });
-
-        try { t.setBinaryByteArray(0, 2, nullByte); fail("Inserting null array"); } catch(IllegalArgumentException e) { }
-    }
-
-
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
         t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
@@ -127,6 +88,36 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(-1, t.findFirstFloat(4, 1.0f));
         assertEquals(-1, t.findFirstLong(5, 50));
         assertEquals(-1, t.findFirstString(7, "other string"));
+    }
+
+    public void testFindFirst() {
+        final int TEST_SIZE = 10;
+        Table t = TestHelper.getTableWithAllColumnTypes();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            t.add(new byte[]{1,2,3}, true, new Date(1000*i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
+        }
+        t.add(new byte[]{1,2,3}, true, new Date(1000*TEST_SIZE), (double)TEST_SIZE, (float)TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
+
+        assertEquals(0, t.findFirstBoolean(1, true));
+        for (int i = 0; i < TEST_SIZE; i++) {
+            assertEquals(i, t.findFirstDate(2, new Date(1000*i)));
+            assertEquals(i, t.findFirstDouble(3, (double) i));
+            assertEquals(i, t.findFirstFloat(4, (float) i));
+            assertEquals(i, t.findFirstLong(5, i));
+            assertEquals(i, t.findFirstString(7, "string " + i));
+        }
+
+        assertEquals(TEST_SIZE, t.findFirstString(7, ""));
+
+        try {
+            t.findFirstString(7, null);
+            fail();
+        } catch (IllegalArgumentException expected) {}
+
+        try {
+            t.findFirstDate(2, null);
+            fail();
+        } catch (IllegalArgumentException expected) {}
     }
 
 
@@ -238,33 +229,16 @@ public class JNITableTest extends AndroidTestCase {
 
     }
 
-    public void testSetDataInNonExistingRow() {
-        Table t = new Table();
-        t.addColumn(ColumnType.STRING, "colName");
-        t.add("String val");
-
-        try { t.set(1, "new string val"); fail("Row 1 does not exist"); } catch (IllegalArgumentException e) { }
-    }
-
-
     public void testSetNulls() {
         Table t = new Table();
         t.addColumn(ColumnType.STRING, "");
         t.addColumn(ColumnType.DATE, "");
         t.addColumn(ColumnType.MIXED, "");
         t.addColumn(ColumnType.BINARY, "");
-        t.add("String val", new Date(), new Mixed(""), new byte[] { 1,2,3} );
+        t.add("String val", new Date(), new Mixed(""), new byte[]{1, 2, 3});
 
         try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (IllegalArgumentException e) { }
         try { t.setDate(1, 0, null);    fail("null Date not allowed"); } catch (IllegalArgumentException e) { }
-    }
-
-    public void testSetDataWithWrongColumnAmountParameters() {
-        Table t = new Table();
-        t.addColumn(ColumnType.STRING, "colName");
-        t.add("String val");
-
-        try { t.set(0, "new string val", "This column does not exist"); fail("Table only has 1 column"); } catch (IllegalArgumentException e) { }
     }
 
     public void testAddNegativeEmptyRows() {
@@ -280,14 +254,6 @@ public class JNITableTest extends AndroidTestCase {
         t.add(new Mixed(true));
 
         try { t.setMixed(0, 0, null); fail("Argument is null"); } catch (IllegalArgumentException e) { }
-    }
-
-    public void testSetDataWithWrongColumnTypes() {
-        Table t = new Table();
-        t.addColumn(ColumnType.STRING, "colName");
-        t.add("String val");
-
-        try { t.set(0, 100); fail("Table has string column, and here an integer is inserted"); } catch (IllegalArgumentException e) { }
     }
 
     public void testImmutableInsertNotAllowed() {
@@ -317,7 +283,11 @@ public class JNITableTest extends AndroidTestCase {
         try {
             Table table = rt.getTable(TABLENAME);
 
-            try {  table.addAt(1, "NewValue"); fail("Exception expected when inserting in read transaction"); } catch (IllegalStateException e) { }
+            try {
+                table.addEmptyRow();
+                fail("Exception expected when inserting in read transaction");
+            } catch (IllegalStateException ignored) {
+            }
 
         } finally {
             rt.endRead();
@@ -349,53 +319,42 @@ public class JNITableTest extends AndroidTestCase {
     public void testShouldThrowWhenSetIndexOnWrongColumnType() {
         for (long colIndex = 0; colIndex < t.getColumnCount(); colIndex++) {
 
-            // Check all other column types than String throws exception when using addSearchIndex()/hasSearchIndex()
-            boolean exceptionExpected = (t.getColumnType(colIndex) != ColumnType.STRING);
+            // All types supported addSearchIndex and removeSearchIndex
+            boolean exceptionExpected = (
+                            t.getColumnType(colIndex) != ColumnType.STRING &&
+                            t.getColumnType(colIndex) != ColumnType.INTEGER &&
+                            t.getColumnType(colIndex) != ColumnType.BOOLEAN &&
+                            t.getColumnType(colIndex) != ColumnType.DATE);
 
             // Try to addSearchIndex()
             try {
                 t.addSearchIndex(colIndex);
-                if (exceptionExpected)
-                    fail("expected exception for colIndex " + colIndex);
-            } catch (IllegalArgumentException e) {
+                if (exceptionExpected) {
+                    fail("Expected exception for colIndex " + colIndex);
+                }
+            } catch (IllegalArgumentException ignored) {
             }
+
+            // Try to removeSearchIndex()
+            try {
+                // Currently core will do nothing if the column doesn't have a search index
+                t.removeSearchIndex(colIndex);
+                if (exceptionExpected) {
+                    fail("Expected exception for colIndex " + colIndex);
+                }
+            } catch (IllegalArgumentException ignored) {
+            }
+
 
             // Try to hasSearchIndex() for all columnTypes
             t.hasSearchIndex(colIndex);
         }
     }
 
-
-    /**
-     * Returns a table with a few columns and values
-     * @return
-     */
-    private Table getTableWithSimpleData(){
-        Table table =  new Table();
-        table.addColumn(ColumnType.STRING, "col");
-        table.addColumn(ColumnType.INTEGER, "int");
-        table.add("val1", 100);
-        table.add("val2", 200);
-        table.add("val3", 300);
-
-        return table;
-    }
-
-    public void testTableEquals() {
-
-        Table table1 = getTableWithSimpleData();
-        Table table2 = getTableWithSimpleData();
-
-        assertEquals(true, table1.equals(table2));
-        assertEquals(true, table1.equals(table1)); // Same table
-        assertEquals(false, table1.equals(null)); // Null object
-        assertEquals(false, table1.equals("String")); // Other object
-    }
-
     public void testColumnName() {
         Table t = new Table();
-        try { t.addColumn(ColumnType.STRING, "I am 64 chracters..............................................."); fail("Only 63 chracters supported"); } catch (IllegalArgumentException e) { }
-        t.addColumn(ColumnType.STRING, "I am 63 chracters..............................................");
+        try { t.addColumn(ColumnType.STRING, "I am 64 characters.............................................."); fail("Only 63 characters supported"); } catch (IllegalArgumentException e) { }
+        t.addColumn(ColumnType.STRING, "I am 63 characters.............................................");
     }
 
     public void testTableNumbers() {

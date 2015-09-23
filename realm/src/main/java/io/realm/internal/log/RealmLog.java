@@ -47,61 +47,61 @@ public final class RealmLog {
 
     public static void v(String message) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).v(message);
+            LOGGERS.get(i).v(message);
         }
     }
 
     public static void v(String message, Throwable t) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).v(message, t);
+            LOGGERS.get(i).v(message, t);
         }
     }
 
     public static void d(String message) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).d(message);
+            LOGGERS.get(i).d(message);
         }
     }
 
     public static void d(String message, Throwable t) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).d(message, t);
+            LOGGERS.get(i).d(message, t);
         }
     }
 
     public static void i(String message) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).i(message);
+            LOGGERS.get(i).i(message);
         }
     }
 
     public static void i(String message, Throwable t) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).i(message, t);
+            LOGGERS.get(i).i(message, t);
         }
     }
 
     public static void w(String message) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).w(message);
+            LOGGERS.get(i).w(message);
         }
     }
 
     public static void w(String message, Throwable t) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).w(message, null);
+            LOGGERS.get(i).w(message, null);
         }
     }
 
     public static void e(String message)  {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).e(message);
+            LOGGERS.get(i).e(message);
         }
     }
 
     public static void e(String message, Throwable t) {
         for (int i = 0; i < LOGGERS.size(); i++) {
-            LOGGERS.get(0).v(message, t);
+            LOGGERS.get(i).v(message, t);
         }
     }
 }

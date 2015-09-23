@@ -9,6 +9,6 @@ import io.realm.internal.log.RealmLog;
 public class ReleaseAndroidLogger extends AndroidLogger {
 
     public ReleaseAndroidLogger() {
-        setMinimumLogLevel(RealmLog.VERBOSE);
+        setMinimumLogLevel(RealmLog.WARN);
     }
 }

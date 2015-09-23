@@ -16,19 +16,12 @@
 
 package io.realm.processor;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import io.realm.annotations.RealmModule;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
-
-import io.realm.annotations.internal.RealmModule;
+import javax.lang.model.element.*;
+import java.util.*;
 
 /**
  * Utility class for holding metadata for the Realm modules.
@@ -39,7 +32,7 @@ public class ModuleMetaData {
     private final RoundEnvironment env;
     private Map<String, Set<ClassMetaData>> modules = new HashMap<String, Set<ClassMetaData>>();
     private Map<String, Set<ClassMetaData>> libraryModules = new HashMap<String, Set<ClassMetaData>>();
-    private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>();
+    private Map<String, ClassMetaData> classMetaData = new HashMap<String, ClassMetaData>(); // <FullyQualifiedClassName, ClassMetaData>
     private boolean shouldCreateDefaultModule;
 
     public ModuleMetaData(RoundEnvironment env, Set<ClassMetaData> availableClasses) {
@@ -69,8 +62,8 @@ public class ModuleMetaData {
 
             // Check that allClasses and classes are not set at the same time
             RealmModule module = classElement.getAnnotation(RealmModule.class);
-            Utils.note("Processing " + classSimpleName);
-            if (module.allClasses() && module.classes().length > 0) {
+            Utils.note("Processing module " + classSimpleName);
+            if (module.allClasses() && hasCustomClassList(classElement)) {
                 Utils.error("Setting @RealmModule(allClasses=true) will override @RealmModule(classes={...}) in " + classSimpleName);
                 return false;
             }
@@ -82,16 +75,12 @@ public class ModuleMetaData {
                 classes = availableClasses;
             } else {
                 classes = new HashSet<ClassMetaData>();
-                for (Class<?> clazz : module.classes()) {
-                    if (!clazz.getSuperclass().toString().endsWith("RealmObject")) {
-                        Utils.error(clazz.getSimpleName() + " is not extending RealmObject. Only RealmObjects can be " +
-                                "part of a module.");
-                        return false;
-                    }
-                    ClassMetaData metadata = classMetaData.get(clazz.getName());
+                Set<String> classNames = getClassMetaDataFromModule(classElement);
+                for (String fullyQualifiedClassName : classNames) {
+                    ClassMetaData metadata = classMetaData.get(fullyQualifiedClassName);
                     if (metadata == null) {
-                        Utils.error(Utils.stripPackage(qualifiedName) + " could not be added to the module. It is not " +
-                                "possible to add classes which are part of another library.");
+                        Utils.error(Utils.stripPackage(fullyQualifiedClassName) + " could not be added to the module. " +
+                                "Only classes extending RealmObject, which are part of this project, can be added.");
                         return false;
                     }
                     classes.add(metadata);
@@ -122,6 +111,58 @@ public class ModuleMetaData {
         return true;
     }
 
+    // Detour needed to access the class elements in the array
+    // See http://blog.retep.org/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
+    private Set<String> getClassMetaDataFromModule(Element classElement) {
+        AnnotationMirror annotationMirror = getAnnotationMirror(classElement);
+        AnnotationValue annotationValue = getAnnotationValue(annotationMirror);
+        Set<String> classes = new HashSet<String>();
+        List<? extends AnnotationValue> moduleClasses = (List<? extends AnnotationValue>) annotationValue.getValue();
+        for (AnnotationValue classMirror : moduleClasses) {
+            String fullyQualifiedClassName = classMirror.getValue().toString();
+            classes.add(fullyQualifiedClassName);
+        }
+        return classes;
+    }
+
+    // Work around for asking for a Class primitive array which would otherwise throw a TypeMirrorException
+    // https://community.oracle.com/thread/1184190
+    private boolean hasCustomClassList(Element classElement) {
+        AnnotationMirror annotationMirror = getAnnotationMirror(classElement);
+        AnnotationValue annotationValue = getAnnotationValue(annotationMirror);
+        if (annotationValue == null) {
+            return false;
+        } else {
+            List<? extends AnnotationValue> moduleClasses = (List<? extends AnnotationValue>) annotationValue.getValue();
+            return moduleClasses.size() > 0;
+        }
+    }
+
+    private AnnotationMirror getAnnotationMirror(Element classElement) {
+        AnnotationMirror annotationMirror = null;
+        for (AnnotationMirror am : classElement.getAnnotationMirrors()) {
+            if (am.getAnnotationType().toString().equals(RealmModule.class.getCanonicalName())) {
+                annotationMirror = am;
+                break;
+            }
+        }
+        return annotationMirror;
+    }
+
+    private AnnotationValue getAnnotationValue(AnnotationMirror annotationMirror) {
+        if (annotationMirror == null) {
+            return null;
+        }
+        AnnotationValue annotationValue = null;
+        for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotationMirror.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().toString().equals("classes")) {
+                annotationValue = entry.getValue();
+                break;
+            }
+        }
+        return annotationValue;
+    }
+
     /**
      * Returns all module classes and the RealmObjects they know of.
      */
@@ -133,7 +174,7 @@ public class ModuleMetaData {
     }
 
     /**
-     * Returns true if the DefaultRealmModule.java file should be created.
+     * Returns {@code true} if the DefaultRealmModule.java file should be created.
      */
     public boolean shouldCreateDefaultModule() {
         return shouldCreateDefaultModule;

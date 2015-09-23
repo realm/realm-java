@@ -23,9 +23,9 @@
 
 class TableQuery : public realm::Query {
     // 'subtables' is used to figure out which subtable the query
-    // is currectly working on, so that we can lookup the correct
+    // is currently working on, so that we can lookup the correct
     // table and verify the parameters related to that table.
-    std::vector<size_t> subtables;  // holds subtable column indeces 
+    std::vector<size_t> subtables;  // holds subtable column indices
 
 public:
     TableQuery(const Query& copy) : realm::Query(copy, realm::Query::TCopyExpressionTag{}) {};

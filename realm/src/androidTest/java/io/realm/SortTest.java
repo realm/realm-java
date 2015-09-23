@@ -40,8 +40,9 @@ public class SortTest extends AndroidTestCase {
         // 1: (4, "Brian")
         // 2: (4, "Adam")
         // 3: (5, "Adam")
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+        testRealm = Realm.getInstance(config);
 
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
@@ -133,7 +134,7 @@ public class SortTest extends AndroidTestCase {
 
     private void checkSortTwoFieldsIntString(RealmResults<AllTypes> results) {
         // Sorted Long (ascending), String (descending)
-        // Expected outout:
+        // Expected output:
         // (4, "Adam"), row index = 2
         // (4, "Brian"), row index = 1
         // (5, "Adam"), row index = 0 - stable sort!

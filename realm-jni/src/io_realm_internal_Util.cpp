@@ -102,16 +102,15 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, UnsupportedOperation, "parm1", "parm2");
             break;
-                ThrowException(env, OutOfMemory, "parm1", "parm2");
         case OutOfMemory:
             expect = "io.realm.internal.OutOfMemoryError: parm1 parm2";
             if (dotest)
                 ThrowException(env, OutOfMemory, "parm1", "parm2");
             break;
-        case Unspecified:
-            expect = "java.lang.RuntimeException: Unspecified exception. parm1";
+        case FatalError:
+            expect = "io.realm.exceptions.RealmError: Unrecoverable error. parm1";
             if (dotest)
-                ThrowException(env, Unspecified, "parm1", "parm2");
+                ThrowException(env, FatalError, "parm1", "parm2");
             break;
         case RuntimeError:
             expect = "java.lang.RuntimeException: parm1";
@@ -121,7 +120,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
         case RowInvalid:
             expect = "java.lang.IllegalStateException: Illegal State: parm1";
             if (dotest)
-                ThrowException(env, TableInvalid, "parm1", "parm2");
+                ThrowException(env, RowInvalid, "parm1", "parm2");
+            break;
+        case EncryptionNotSupported:
+            expect = "io.realm.exceptions.RealmEncryptionNotSupportedException: parm1";
+            if (dotest)
+                ThrowException(env, EncryptionNotSupported, "parm1", "parm2");
             break;
     }
     if (dotest) {

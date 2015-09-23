@@ -47,7 +47,7 @@ public class IntroExampleActivity extends Activity {
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
 
-        // Open the default realm ones for the UI thread.
+        // Open the default realm for the UI thread.
         realm = Realm.getInstance(this);
 
         basicCRUD(realm);
@@ -58,7 +58,7 @@ public class IntroExampleActivity extends Activity {
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... voids) {
-                String info = null;
+                String info;
                 info = complexReadWrite();
                 info += complexQuery();
                 return info;

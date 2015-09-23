@@ -51,8 +51,9 @@ public class RealmResultsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws InterruptedException {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
         populateTestRealm();
     }
 
@@ -180,6 +181,25 @@ public class RealmResultsTest extends AndroidTestCase {
 
         AllTypes allTypes = resultList.first();
         assertTrue(allTypes.getColumnString().startsWith("test data 0"));
+    }
+
+    // first() and last() will throw an exception when no element exist
+    public void testResultListFirstLastThrowIfEmpty() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.commitTransaction();
+
+        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
+        assertEquals(0, allTypes.size());
+        try {
+            allTypes.first();
+            fail();
+        } catch (ArrayIndexOutOfBoundsException ignored) {}
+
+        try {
+            allTypes.last();
+            fail();
+        } catch (ArrayIndexOutOfBoundsException ignored) {}
     }
 
     public void testResultListLastIsLast() {

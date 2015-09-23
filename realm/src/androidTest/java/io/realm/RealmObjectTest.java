@@ -23,10 +23,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
@@ -38,6 +40,7 @@ import io.realm.internal.Row;
 public class RealmObjectTest extends AndroidTestCase {
 
     private Realm testRealm;
+    private RealmConfiguration realmConfig;
 
     private static final int TEST_SIZE = 5;
     private static final boolean REMOVE_FIRST = true;
@@ -45,8 +48,9 @@ public class RealmObjectTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        realmConfig = new RealmConfiguration.Builder(getContext()).build();
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
     }
 
     @Override
@@ -91,73 +95,73 @@ public class RealmObjectTest extends AndroidTestCase {
 
     // removing original object and see if has been removed
     public void testRemoveFromRealm() {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        Dog rex = realm.createObject(Dog.class);
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        Dog rex = testRealm.createObject(Dog.class);
         rex.setName("Rex");
-        Dog fido = realm.createObject(Dog.class);
+        Dog fido = testRealm.createObject(Dog.class);
         fido.setName("Fido");
-        realm.commitTransaction();
+        testRealm.commitTransaction();
 
-        RealmResults<Dog> allDogsBefore = realm.where(Dog.class).equalTo("name", "Rex").findAll();
+        RealmResults<Dog> allDogsBefore = testRealm.where(Dog.class).equalTo("name", "Rex").findAll();
         assertEquals(1, allDogsBefore.size());
 
-        realm.beginTransaction();
+        testRealm.beginTransaction();
         rex.removeFromRealm();
-        realm.commitTransaction();
+        testRealm.commitTransaction();
 
-        RealmResults<Dog> allDogsAfter = realm.where(Dog.class).equalTo("name", "Rex").findAll();
-        assertEquals(0  , allDogsAfter.size());
+        RealmResults<Dog> allDogsAfter = testRealm.where(Dog.class).equalTo("name", "Rex").findAll();
+        assertEquals(0, allDogsAfter.size());
 
         fido.getName();
         try {
             rex.getName();
-            realm.close();
+            testRealm.close();
             fail();
         } catch (IllegalStateException ignored) {}
 
         // deleting rex twice should fail
-        realm.beginTransaction();
+        testRealm.beginTransaction();
         try {
             rex.removeFromRealm();
-            realm.close();
+            testRealm.close();
             fail();
         } catch (IllegalStateException ignored) {}
-        realm.commitTransaction();
-        realm.close();
+        testRealm.commitTransaction();
+        testRealm.close();
     }
 
     // query for an object, remove it and see it has been removed from realm
     public void testRemoveResultFromRealm() {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        realm.clear(Dog.class);
-        Dog dogToAdd = realm.createObject(Dog.class);
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        testRealm.clear(Dog.class);
+        Dog dogToAdd = testRealm.createObject(Dog.class);
         dogToAdd.setName("Rex");
-        realm.commitTransaction();
+        testRealm.commitTransaction();
 
-        assertEquals(1, realm.allObjects(Dog.class).size());
+        assertEquals(1, testRealm.allObjects(Dog.class).size());
 
-        Dog dogToRemove = realm.where(Dog.class).findFirst();
+        Dog dogToRemove = testRealm.where(Dog.class).findFirst();
         assertNotNull(dogToRemove);
-        realm.beginTransaction();
+        testRealm.beginTransaction();
         dogToRemove.removeFromRealm();
-        realm.commitTransaction();
+        testRealm.commitTransaction();
 
-        assertEquals(0, realm.allObjects(Dog.class).size());
+        assertEquals(0, testRealm.allObjects(Dog.class).size());
         try {
             dogToAdd.getName();
-            realm.close();
+            testRealm.close();
             fail();
         }
         catch (IllegalStateException ignored) {}
         try {
             dogToRemove.getName();
-            realm.close();
+            testRealm.close();
             fail();
         }
         catch (IllegalStateException ignored) {}
-        realm.close();
+        testRealm.close();
     }
 
     public void removeOneByOne(boolean atFirst) {
@@ -209,11 +213,11 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public boolean methodWrongThread(final boolean callGetter) throws ExecutionException, InterruptedException {
-        Realm realm = Realm.getInstance(getContext());
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();
-        final AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+        testRealm = Realm.getInstance(getContext());
+        testRealm.beginTransaction();
+        testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        final AllTypes allTypes = testRealm.where(AllTypes.class).findFirst();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
@@ -232,7 +236,7 @@ public class RealmObjectTest extends AndroidTestCase {
         });
 
         Boolean result = future.get();
-        realm.close();
+        testRealm.close();
         return result;
     }
 
@@ -484,8 +488,9 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public void testIsValidClosedRealm() {
-        Realm.deleteRealmFile(getContext(), "other-realm");
-        Realm testRealm = Realm.getInstance(getContext(), "other-realm");
+        RealmConfiguration otherConfig = new RealmConfiguration.Builder(getContext()).name("other-realm").build();
+        Realm.deleteRealm(otherConfig);
+        Realm testRealm = Realm.getInstance(otherConfig);
         testRealm.beginTransaction();
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
         assertTrue(allTypes.isValid());
@@ -509,5 +514,127 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(allTypes.isValid());
         testRealm.commitTransaction();
         assertTrue(allTypes.isValid());
+    }
+
+    public void testAccessObjectRemovalThrows() throws InterruptedException {
+
+        testRealm.beginTransaction();
+        AllTypes obj = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+
+        final CountDownLatch objectDeletedInBackground = new CountDownLatch(1);
+        new java.lang.Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                realm.beginTransaction();
+                realm.clear(AllTypes.class);
+                realm.commitTransaction();
+                realm.close();
+                objectDeletedInBackground.countDown();
+            }
+        }).start();
+        objectDeletedInBackground.await(2, TimeUnit.SECONDS);
+        testRealm.refresh(); // Move to version where underlying object is deleted.
+
+        try {
+            obj.getColumnLong();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    public void testIsValid() {
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Fido");
+        testRealm.commitTransaction();
+
+        assertTrue(dog.isValid());
+
+        testRealm.beginTransaction();
+        dog.removeFromRealm();
+        testRealm.commitTransaction();
+
+        assertFalse(dog.isValid());
+    }
+
+    // Test NaN value on float and double columns
+    public void testFloatDoubleNaN() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.NaN);
+        allTypes.setColumnDouble(Double.NaN);
+        testRealm.commitTransaction();
+        assertEquals(Float.NaN, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.NaN, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        // NaN != NaN !!!
+        assertEquals(0, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.NaN).count());
+        assertEquals(0, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.NaN).count());
+    }
+
+    // Test max value on float and double columns
+    public void testFloatDoubleMaxValue() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.MAX_VALUE);
+        allTypes.setColumnDouble(Double.MAX_VALUE);
+        testRealm.commitTransaction();
+        assertEquals(Float.MAX_VALUE, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.MAX_VALUE, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.MAX_VALUE).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.MAX_VALUE).count());
+    }
+
+    // Test min normal value on float and double columns
+    public void testFloatDoubleMinNormal() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.MIN_NORMAL);
+        allTypes.setColumnDouble(Double.MIN_NORMAL);
+        testRealm.commitTransaction();
+        assertEquals(Float.MIN_NORMAL, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.MIN_NORMAL, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.MIN_NORMAL).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.MIN_NORMAL).count());
+    }
+
+    // Test min value on float and double columns
+    public void testFloatDoubleMinValue() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.MIN_VALUE);
+        allTypes.setColumnDouble(Double.MIN_VALUE);
+        testRealm.commitTransaction();
+        assertEquals(Float.MIN_VALUE, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.MIN_VALUE, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.MIN_VALUE).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.MIN_VALUE).count());
+    }
+
+    // Test negative infinity value on float and double columns
+    public void testFloatDoubleNegativeInfinity() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.NEGATIVE_INFINITY);
+        allTypes.setColumnDouble(Double.NEGATIVE_INFINITY);
+        testRealm.commitTransaction();
+        assertEquals(Float.NEGATIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.NEGATIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.NEGATIVE_INFINITY).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.NEGATIVE_INFINITY).count());
+    }
+
+    // Test positive infinity value on float and double columns
+    public void testFloatPositiveInfinity() {
+        testRealm.beginTransaction();
+        AllTypes allTypes = testRealm.createObject(AllTypes.class);
+        allTypes.setColumnFloat(Float.POSITIVE_INFINITY);
+        allTypes.setColumnDouble(Double.POSITIVE_INFINITY);
+        testRealm.commitTransaction();
+        assertEquals(Float.POSITIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnFloat());
+        assertEquals(Double.POSITIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.POSITIVE_INFINITY).count());
+        assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.POSITIVE_INFINITY).count());
     }
 }

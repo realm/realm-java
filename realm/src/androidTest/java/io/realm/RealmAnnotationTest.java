@@ -18,6 +18,7 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.PrimaryKeyAsLong;
@@ -30,8 +31,9 @@ public class RealmAnnotationTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
         testRealm.beginTransaction();
         AnnotationTypes object = testRealm.createObject(AnnotationTypes.class);
         object.setNotIndexString("String 1");
@@ -50,22 +52,30 @@ public class RealmAnnotationTest extends AndroidTestCase {
         assertEquals(-1, table.getColumnIndex("ignoreString"));
     }
 
+    // Test if "index" annotation works with supported types
     public void testIndex() {
-        Table table = testRealm.getTable(AnnotationTypes.class);
+        Table table = testRealm.getTable(AnnotationIndexTypes.class);
+
         assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
         assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexString")));
-    }
 
-    public void testHasPrimaryKeyNoIntIndex() {
-        Table table = testRealm.getTable(AnnotationTypes.class);
-        assertTrue(table.hasPrimaryKey());
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("id")));
-    }
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexInt")));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexInt")));
 
-    public void testHasPrimaryKeyStringIndex() {
-        Table table = testRealm.getTable(PrimaryKeyAsString.class);
-        assertTrue(table.hasPrimaryKey());
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("name")));
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexByte")));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexByte")));
+
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexShort")));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexShort")));
+
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexLong")));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexLong")));
+
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexBoolean")));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexBoolean")));
+
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexDate")));
+        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexDate")));
     }
 
     // Test migrating primary key from string to long with existing data
@@ -182,7 +192,11 @@ public class RealmAnnotationTest extends AndroidTestCase {
     public void testPrimaryKeyIsIndexed() {
         Table table = testRealm.getTable(PrimaryKeyAsString.class);
         assertTrue(table.hasPrimaryKey());
-        assertTrue(table.hasSearchIndex(0));
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("name")));
+
+        table = testRealm.getTable(PrimaryKeyAsLong.class);
+        assertTrue(table.hasPrimaryKey());
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
     }
 
     // Annotation processor honors common naming conventions

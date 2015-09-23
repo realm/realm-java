@@ -9,6 +9,13 @@ public class CyclicType extends RealmObject {
     private CyclicType object;
     private RealmList<CyclicType> objects;
 
+    public CyclicType() {
+    }
+
+    public CyclicType(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }

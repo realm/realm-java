@@ -29,6 +29,19 @@
 using namespace std;
 using namespace realm;
 
+inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type) {
+    if (!(column_type == type_String ||
+                column_type == type_Int ||
+                column_type == type_Bool ||
+                column_type == type_DateTime)) {
+        ThrowException(env, IllegalArgument,
+                "This field cannot be indexed - "
+                "Only String/byte/short/int/long/boolean/Date fields are supported.");
+        return false;
+    }
+    return true;
+}
+
 // Note: Don't modify spec on a table which has a shared_spec.
 // A spec is shared on subtables that are not in Mixed columns.
 //
@@ -263,15 +276,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddEmptyRow(
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertLinkList
-  (JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_LinkList))
-        return;
-
-    TBL(nativeTablePtr)->insert_linklist( S(columnIndex), S(rowIndex) );
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemove(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong rowIndex)
 {
@@ -302,80 +306,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMoveLastOver
     } CATCH_STD()
 }
 
-
-// ----------------- Insert cell
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertLong(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong value)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Int))
-        return;
-    try {
-        TBL(nativeTablePtr)->insert_int( S(columnIndex), S(rowIndex), value);
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertBoolean(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jboolean value)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Bool))
-        return;
-    try {
-        TBL(nativeTablePtr)->insert_bool( S(columnIndex), S(rowIndex), value != 0 ? true : false);
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertFloat(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jfloat value)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Float))
-        return;
-    try {
-        TBL(nativeTablePtr)->insert_float( S(columnIndex), S(rowIndex), value);
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertDouble(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jdouble value)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Double))
-        return;
-    try {
-        TBL(nativeTablePtr)->insert_double( S(columnIndex), S(rowIndex), value);
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertDate(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jlong dateTimeValue)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_DateTime))
-        return;
-    try {
-        TBL(nativeTablePtr)->insert_datetime( S(columnIndex), S(rowIndex), static_cast<time_t>(dateTimeValue));
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertString(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jstring value)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_String))
-        return;
-    try {
-        JStringAccessor value2(env, value); // throws
-        TBL(nativeTablePtr)->insert_string( S(columnIndex), S(rowIndex), value2);
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertMixed(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
-{
-    if (!TBL_AND_INDEX_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex))
-        return;
-    try {
-        tbl_nativeDoMixed(&Table::insert_mixed, TBL(nativeTablePtr), env, columnIndex, rowIndex, jMixedValue);
-    } CATCH_STD()
-}
-
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject jMixedValue)
 {
@@ -385,30 +315,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed(
         tbl_nativeDoMixed(&Table::set_mixed, TBL(nativeTablePtr), env, columnIndex, rowIndex, jMixedValue);
     } CATCH_STD()
 }
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertSubtable(
-    JNIEnv* env, jobject jTable, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Table))
-        return;
-
-    TR("nativeInsertSubtable(jTable:%p, nativeTablePtr: %p, colIdx: %" PRId64 ", rowIdx: %" PRId64 ")",
-        VOID_PTR(jTable), VOID_PTR(nativeTablePtr),  S64(columnIndex), S64(rowIndex))
-    try {
-        TBL(nativeTablePtr)->insert_subtable( S(columnIndex), S(rowIndex));
-    } CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertDone(
-    JNIEnv* env, jobject, jlong nativeTablePtr)
-{
-    if (!TABLE_VALID(env, TBL(nativeTablePtr)))
-        return;
-    try {
-        TBL(nativeTablePtr)->insert_done();
-    } CATCH_STD()
-}
-
 
 // ----------------- Get cell
 
@@ -654,17 +560,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteBuffer(
     } CATCH_STD()
 }
 */
-/*
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertByteBuffer(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jobject byteBuffer)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary))
-        return;
-    try {
-        tbl_nativeDoBinary(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, byteBuffer);
-    } CATCH_STD()
-}
-*/
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jbyteArray dataArray)
@@ -675,33 +570,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
         tbl_nativeDoByteArray(&Table::set_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
     } CATCH_STD()
 }
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeInsertByteArray(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex, jbyteArray dataArray)
-{
-    if (!TBL_AND_INDEX_AND_TYPE_INSERT_VALID(env, TBL(nativeTablePtr), columnIndex, rowIndex, type_Binary))
-        return;
-    try {
-        tbl_nativeDoByteArray(&Table::insert_binary, TBL(nativeTablePtr), env, columnIndex, rowIndex, dataArray);
-    } CATCH_STD()
-}
-
-
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddInt(
-    JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong value)
-{
-    Table* pTable = TBL(nativeTablePtr);
-    if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
-        return;
-    if (pTable->get_column_type (S(columnIndex)) != type_Int) {
-        ThrowException(env, IllegalArgument, "Invalid columntype - only Long columns are supported at the moment.");
-        return;
-    }
-    try {
-        TBL(nativeTablePtr)->add_int( S(columnIndex), value);
-    } CATCH_STD()
-}
-
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClearSubtable(
     JNIEnv* env, jobject, jlong nativeTablePtr, jlong columnIndex, jlong rowIndex)
@@ -731,10 +599,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeAddSearchIndex(
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return;
-    if (pTable->get_column_type (S(columnIndex)) != type_String) {
-        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+
+    DataType column_type = pTable->get_column_type (S(columnIndex));
+    if (!is_allowed_to_index(env, column_type)) {
         return;
     }
+
     try {
         pTable->add_search_index( S(columnIndex));
     } CATCH_STD()
@@ -746,8 +616,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveSearchIndex(
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return;
-    if (pTable->get_column_type (S(columnIndex)) != type_String) {
-        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported at the moment.");
+    DataType column_type = pTable->get_column_type (S(columnIndex));
+    if (!is_allowed_to_index(env, column_type)) {
         return;
     }
     try {
@@ -1535,4 +1405,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
         pk_table->remove_column(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
     }
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
+  (JNIEnv *, jobject, jlong thisTablePtr, jlong otherTablePtr)
+{
+    return *TBL(thisTablePtr)->get_descriptor() == *TBL(otherTablePtr)->get_descriptor();
 }

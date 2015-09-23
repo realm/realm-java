@@ -127,14 +127,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Group_nativeCommit
 JNIEXPORT jstring JNICALL Java_io_realm_internal_Group_nativeToString
   (JNIEnv *, jobject, jlong);
 
-/*
- * Class:     io_realm_internal_Group
- * Method:    nativeEquals
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Group_nativeEquals
-  (JNIEnv *, jobject, jlong, jlong);
-
 #ifdef __cplusplus
 }
 #endif

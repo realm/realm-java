@@ -1,5 +1,10 @@
 package io.realm.processor;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -8,8 +13,10 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * Utility methods working with the Realm processor.
@@ -66,6 +73,16 @@ public class Utils {
     }
 
     /**
+     * Returns true if a given field type string is "java.lang.String", false otherwise.
+     */
+    public static boolean isString(String fieldType) {
+        if (fieldType == null) {
+            return false;
+        }
+        return String.class.getName().equals(fieldType);
+    }
+
+    /**
      * Returns the simple type name for a field.
      */
     public static String getFieldTypeSimpleName(VariableElement field) {
@@ -83,7 +100,12 @@ public class Utils {
      * Returns the generic type for Lists of the form {@code List<type>}
      */
     public static String getGenericType(VariableElement field) {
-        String genericCanonicalType = ((DeclaredType) field.asType()).getTypeArguments().get(0).toString();
+        TypeMirror fieldType = field.asType();
+        List<? extends TypeMirror> typeArguments = ((DeclaredType) fieldType).getTypeArguments();
+        if (typeArguments.size() == 0) {
+            return null;
+        }
+        String genericCanonicalType = (String) typeArguments.get(0).toString();
         String genericType;
         if (genericCanonicalType.contains(".")) {
             genericType = genericCanonicalType.substring(genericCanonicalType.lastIndexOf('.') + 1);
@@ -119,5 +141,40 @@ public class Utils {
 
     public static Element getSuperClass(TypeElement classType) {
         return typeUtils.asElement(classType.getSuperclass());
+    }
+
+    /**
+     * Encode the given string with Base64
+     * @param data the string to encode
+     * @return the encoded string
+     * @throws UnsupportedEncodingException
+     */
+    public static String base64Encode(String data) throws UnsupportedEncodingException {
+        return DatatypeConverter.printBase64Binary(data.getBytes("UTF-8"));
+    }
+
+    /**
+     * Compute the SHA-256 hash of the given byte array
+     * @param data the byte array to hash
+     * @return the hashed byte array
+     * @throws NoSuchAlgorithmException
+     */
+    public static byte[] sha256Hash(byte[] data) throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        return messageDigest.digest(data);
+    }
+
+    /**
+     * Convert a byte array to its hex-string
+     * @param data the byte array to convert
+     * @return the hex-string of the byte array
+     */
+    public static String hexStringify(byte[] data) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (byte singleByte : data) {
+            stringBuilder.append(Integer.toString((singleByte & 0xff) + 0x100, 16).substring(1));
+        }
+
+        return stringBuilder.toString();
     }
 }

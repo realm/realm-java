@@ -18,7 +18,6 @@ package io.realm.examples.realmgridview;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -27,7 +26,6 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
@@ -36,18 +34,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
-import io.realm.internal.Row;
 
 public class GridViewExampleActivity extends Activity implements AdapterView.OnItemClickListener {
-
-    public static final String TAG = GridViewExampleActivity.class.getName();
 
     private GridView mGridView;
     private CityAdapter mAdapter;
@@ -59,11 +54,13 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
 
+        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(this).build();
+
         // Clear the realm from last time
-        Realm.deleteRealmFile(this);
+        Realm.deleteRealm(realmConfiguration);
 
         // Create a new empty instance of Realm
-        realm = Realm.getInstance(this);
+        realm = Realm.getInstance(realmConfiguration);
     }
 
     @Override
@@ -96,7 +93,7 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
     private List<City> loadCities() {
         // In this case we're loading from local assets.
         // NOTE: could alternatively easily load from network
-        InputStream stream = null;
+        InputStream stream;
         try {
             stream = getAssets().open("cities.json");
         } catch (IOException e) {
@@ -134,8 +131,6 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
     }
 
     public void updateCities() {
-        Realm realm = Realm.getInstance(this);
-
         // Pull all the cities from the realm
         RealmResults<City> cities = realm.where(City.class).findAll();
 
@@ -148,9 +143,6 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         City modifiedCity = (City)mAdapter.getItem(position);
-
-        // Update the realm object affected by the user
-        Realm realm = Realm.getInstance(this);
 
         // Acquire the list of realm cities matching the name of the clicked City.
         City city = realm.where(City.class).equalTo("name", modifiedCity.getName()).findFirst();

@@ -17,12 +17,15 @@
 package io.realm.internal;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Date;
 
 public class Mixed {
 
     public static final int BINARY_TYPE_BYTE_ARRAY = 0;
     public static final int BINARY_TYPE_BYTE_BUFFER = 1;
+
+    private Object value;
 
     public Mixed(long value) {
         this.value = value;
@@ -68,51 +71,36 @@ public class Mixed {
         this.value = value;
     }
 
-    public boolean equals(Object second) {
-        if (second == null)
-            return false;
-        if (!(second instanceof Mixed))
-            return false;
-        Mixed secondMixed = (Mixed) second;
-        if (value == null) {
-            if (secondMixed.value == null) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        if (!getType().equals(secondMixed.getType())) {
-            return false;
-        }
-        if (value instanceof byte[]) {
-            if (!(secondMixed.value instanceof byte[])) {
-                return false;
-            }
-            byte[] firstBytes = (byte[]) value;
-            byte[] secondBytes = (byte[]) secondMixed.value;
-            if (firstBytes.length != secondBytes.length) {
-                return false;
-            }
-            for (int i = 0; i < firstBytes.length; i++) {
-                if (firstBytes[i] != secondBytes[i]) {
-                    return false;
-                }
-            }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Mixed mixed = (Mixed) obj;
+
+        if (value.getClass() != mixed.value.getClass()) {
+            return false;
+        }
+
+        if (value instanceof byte[]) {
+            return Arrays.equals((byte[]) value, (byte[]) mixed.value);
         }
         if (value instanceof ByteBuffer) {
-            ByteBuffer firstByteBuffer = (ByteBuffer) value;
-            ByteBuffer secondByteBuffer = (ByteBuffer) secondMixed.value;
-            if (firstByteBuffer.capacity() != secondByteBuffer.capacity()) {
-                return false;
-            }
-            for (int i = 0; i < firstByteBuffer.capacity(); i++) {
-                if (firstByteBuffer.get(i) != secondByteBuffer.get(i))
-                    return false;
-            }
-            return true;
+            return ((ByteBuffer) value).compareTo((ByteBuffer) mixed.value) == 0;
         }
-        return this.value.equals(secondMixed.value);
+        return value.equals(mixed.value);
+    }
+
+    @Override
+    public int hashCode() {
+        if (value instanceof byte[]) {
+            return Arrays.hashCode((byte[]) value);
+        }
+        return value.hashCode();
     }
 
     public ColumnType getType() {
@@ -167,38 +155,38 @@ public class Mixed {
 
     public long getLongValue() {
         if (!(value instanceof Long)) {
-            throw new IllegalMixedTypeException("Can't get a long from a Mixed containg a " + getType());
+            throw new IllegalMixedTypeException("Can't get a long from a Mixed containing a " + getType());
         }
-        return ((Long)value).longValue();
+        return (Long) value;
     }
 
     public boolean getBooleanValue() {
         if (!(value instanceof Boolean))
-            throw new IllegalMixedTypeException("Can't get a boolean from a Mixed containg a " + getType());
-        return ((Boolean) value).booleanValue();
+            throw new IllegalMixedTypeException("Can't get a boolean from a Mixed containing a " + getType());
+        return (Boolean) value;
     }
 
     public float getFloatValue() {
         if (!(value instanceof Float))
-            throw new IllegalMixedTypeException("Can't get a float from a Mixed containg a " + getType());
-        return ((Float) value).floatValue();
+            throw new IllegalMixedTypeException("Can't get a float from a Mixed containing a " + getType());
+        return (Float) value;
     }
 
     public double getDoubleValue() {
         if (!(value instanceof Double))
-            throw new IllegalMixedTypeException("Can't get a double from a Mixed containg a " + getType());
-        return ((Double) value).doubleValue();
+            throw new IllegalMixedTypeException("Can't get a double from a Mixed containing a " + getType());
+        return (Double) value;
     }
 
     public String getStringValue() {
         if (!(value instanceof String))
-            throw new IllegalMixedTypeException("Can't get a String from a Mixed containg a " + getType());
+            throw new IllegalMixedTypeException("Can't get a String from a Mixed containing a " + getType());
         return (String) value;
     }
 
     public Date getDateValue() {
         if (!(value instanceof Date)) {
-            throw new IllegalMixedTypeException("Can't get a Date from a Mixed containg a " + getType());
+            throw new IllegalMixedTypeException("Can't get a Date from a Mixed containing a " + getType());
         }
         return (Date) value;
     }
@@ -209,14 +197,14 @@ public class Mixed {
 
     public ByteBuffer getBinaryValue() {
         if (!(value instanceof ByteBuffer)) {
-            throw new IllegalMixedTypeException("Can't get a ByteBuffer from a Mixed containg a " + getType());
+            throw new IllegalMixedTypeException("Can't get a ByteBuffer from a Mixed containing a " + getType());
         }
         return (ByteBuffer) value;
     }
 
     public byte[] getBinaryByteArray() {
         if (!(value instanceof byte[])) {
-            throw new IllegalMixedTypeException("Can't get a byte[] from a Mixed containg a " + getType());
+            throw new IllegalMixedTypeException("Can't get a byte[] from a Mixed containing a " + getType());
         }
         return (byte[]) value;
     }
@@ -230,8 +218,6 @@ public class Mixed {
         }
         return -1;
     }
-
-    private Object value;
 
     public Object getValue() {
         return value;

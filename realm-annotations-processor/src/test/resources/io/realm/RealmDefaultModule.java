@@ -1,7 +1,7 @@
 package io.realm;
 
 
-@io.realm.annotations.internal.RealmModule(allClasses = true)
+@io.realm.annotations.RealmModule(allClasses = true)
 class DefaultRealmModule {
 
 }

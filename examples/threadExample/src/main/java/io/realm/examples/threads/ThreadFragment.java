@@ -63,7 +63,7 @@ public class ThreadFragment extends Fragment {
         super.onAttach(activity);
 
         // Create Realm instance for the UI thread
-        realm = Realm.getInstance(getActivity());
+        realm = Realm.getDefaultInstance();
     }
 
     @Override

@@ -124,11 +124,25 @@ public abstract class RealmProxyMediator {
      *
      * @param clazz     Type of RealmObject
      * @param realm     Reference to Realm where to create the object.
-     * @param reader    Reference to the InputStream containg the JSON data.
+     * @param reader    Reference to the InputStream containing the JSON data.
      * @return The created RealmObject
      * @throws IOException if an error occurs with the inputstream.
      */
     public abstract <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws java.io.IOException;
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof RealmProxyMediator)) {
+            return false;
+        }
+        RealmProxyMediator other = (RealmProxyMediator) o;
+        return getModelClasses().equals(other.getModelClasses());
+    }
+
+    @Override
+    public int hashCode() {
+        return getModelClasses().hashCode();
+    }
 
     protected static void checkClass(Class<? extends RealmObject> clazz) {
         if (clazz == null) {
@@ -137,6 +151,6 @@ public abstract class RealmProxyMediator {
     }
 
     protected static RealmException getMissingProxyClassException(Class<? extends RealmObject> clazz) {
-        return new RealmException("Could not find the generated proxy class for " + clazz + ". Annotation processor may not have been executed.");
+        return new RealmException(clazz + " is not part of the schema for this Realm.");
     }
 }

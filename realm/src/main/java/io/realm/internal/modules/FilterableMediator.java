@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
+import io.realm.internal.Util;
 
 /**
  * Specialized version of a RealmProxyMediator that can further filter the available classes based on provided filter
@@ -49,12 +51,14 @@ public class FilterableMediator extends RealmProxyMediator {
      * @param originalMediator      Original auto generated mediator.
      * @param allowedClasses                Subset of classes from original mediator to allow.
      */
-    public FilterableMediator(RealmProxyMediator originalMediator, List<Class<? extends RealmObject>> allowedClasses) {
+    public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>> allowedClasses) {
         this.originalMediator = originalMediator;
-        List<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
-        for (Class<? extends RealmObject> clazz : allowedClasses) {
-            if (originalClasses.contains(clazz)) {
-                this.allowedClasses.add(clazz);
+        if (originalMediator != null) {
+            List<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
+            for (Class<? extends RealmObject> clazz : allowedClasses) {
+                if (originalClasses.contains(clazz)) {
+                    this.allowedClasses.add(clazz);
+                }
             }
         }
     }
@@ -106,7 +110,7 @@ public class FilterableMediator extends RealmProxyMediator {
 
     @Override
     public <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
-        checkSchemaHasClass(object.getClass());
+        checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
         return originalMediator.copyOrUpdate(realm, object, update, cache);
     }
 
@@ -122,6 +126,7 @@ public class FilterableMediator extends RealmProxyMediator {
         return originalMediator.createUsingJsonStream(clazz, realm, reader);
     }
 
+    // Validate if a model class (not RealmProxy) is part of this Schema.
     private void checkSchemaHasClass(Class<? extends RealmObject> clazz) {
         if (!allowedClasses.contains(clazz)) {
             throw new IllegalArgumentException(clazz.getSimpleName() + " is not part of the schema for this Realm");

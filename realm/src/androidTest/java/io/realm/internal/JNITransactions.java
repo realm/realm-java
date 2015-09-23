@@ -244,11 +244,8 @@ public class JNITransactions extends AndroidTestCase {
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.addAt(0, 0, false);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.add(0, false);                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.addEmptyRow();                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.addEmptyRows(1);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.adjust(0,0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.clear();                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.clearSubtable(0,0);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.optimize();                     fail();} catch (IllegalStateException e) {assertNotNull(e);}
@@ -268,7 +265,6 @@ public class JNITransactions extends AndroidTestCase {
         try { q.remove(0,0);                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         TableView v = q.findAll();
-        try { v.adjust(0, 0);                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.clear();                            fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.clearSubtable(0, 0);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.remove(0);                          fail();} catch (IllegalStateException e) {assertNotNull(e);}
@@ -369,14 +365,14 @@ public class JNITransactions extends AndroidTestCase {
         Table t = getTableWithStringPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey("Foo");
         assertEquals(1, t.size());
-        assertEquals("Foo", t.getRow(rowIndex).getString(0));
+        assertEquals("Foo", t.getUncheckedRow(rowIndex).getString(0));
     }
 
     public void testAddEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey(42);
         assertEquals(1, t.size());
-        assertEquals(42, t.getRow(rowIndex).getLong(0));
+        assertEquals(42, t.getUncheckedRow(rowIndex).getLong(0));
     }
 
     public void testPrimaryKeyTableMigration() throws IOException {

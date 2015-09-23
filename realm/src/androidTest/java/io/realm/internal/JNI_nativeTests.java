@@ -6,7 +6,7 @@ public class JNI_nativeTests extends TestCase {
 
     public void testNativeExceptions() {
         String expect = "";
-        for (Util.Testcase test: Util.Testcase.values()) {
+        for (Util.Testcase test : Util.Testcase.values()) {
             expect = test.expectedResult(0);
             try {
                 test.execute(0);

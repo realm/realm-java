@@ -459,18 +459,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeNullifyLink
     } CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeAddInt(
-    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex, jlong value)
-{
-    try {
-        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
-            !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
-            return;
-        TV(nativeViewPtr)->add_int( S(columnIndex), value);
-    } CATCH_STD()
-}
-
-
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeClear(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {
@@ -962,9 +950,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeRowToString(
     return NULL;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere
-  (JNIEnv *env, jobject, jlong nativeViewPtr)
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
+    JNIEnv *env, jobject, jlong nativeViewPtr)
 {
+    TR_ENTER_PTR(nativeViewPtr)
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return 0;
