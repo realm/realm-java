@@ -23,15 +23,9 @@
 using namespace realm;
 
 #if 1
-#define COL_TYPE_VALID(env,ptr,col, type)           TBL_AND_COL_INDEX_AND_TYPE_VALID(env,ptr,col, type)
-#define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      TBL_AND_COL_INDEX_AND_LINK_OR_LINKLIST(env,ptr,col)
-#define COL_TYPE_NULLABLE(env,ptr,col)              TBL_AND_COL_NULLABLE(env,ptr,col)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  query_col_type_valid(env, jPtr, col, type)
 #define QUERY_VALID(env, pQuery)                    query_valid(env, pQuery)
 #else
-#define COL_TYPE_VALID(env,ptr,col, type)           (true)
-#define COL_TYPE_LINK_OR_LINKLIST(env,ptr,col)      (true)
-#define COL_TYPE_NULLABLE(env,ptr,col)              (true)
 #define QUERY_COL_TYPE_VALID(env, jPtr, col, type)  (true)
 #define QUERY_VALID(env, pQuery)                    (true)
 #endif
@@ -43,7 +37,7 @@ inline bool query_valid(JNIEnv* env, Query* pQuery)
 
 inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colIndex, DataType type)
 {
-    return COL_TYPE_VALID(env, TQ(nativeQueryPtr)->get_current_table().get(), colIndex, type);
+    return TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TQ(nativeQueryPtr)->get_current_table().get(), colIndex, type);
 }
 
 
@@ -669,7 +663,7 @@ void TableQuery_StringPredicate(JNIEnv *env, jlong nativeQueryPtr, jlongArray co
     GET_ARRAY()
     try {
         if (value == NULL) {
-            if (!COL_TYPE_NULLABLE(env, getTableByArray(nativeQueryPtr, arr, arr_len).get(), arr[arr_len-1]))
+            if (!TBL_AND_COL_NULLABLE(env, getTableByArray(nativeQueryPtr, arr, arr_len).get(), arr[arr_len-1]))
                 return;
         }
         bool is_case_sensitive = caseSensitive ? true : false;
@@ -915,9 +909,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
-        size_t ndx;
-        int64_t result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        int64_t result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
+        if (return_ndx != npos) {
             return NewLong(env, result);
         }
     } CATCH_STD()
@@ -935,9 +929,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
-        size_t ndx;
-        int64_t result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        int64_t result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
+        if (return_ndx != npos) {
             return NewLong(env, result);
         }
     } CATCH_STD()
@@ -994,9 +988,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
-        size_t ndx;
-        float result = pQuery->maximum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        float result = pQuery->maximum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
+        if (return_ndx != npos) {
             return NewFloat(env, result);
         }
     } CATCH_STD()
@@ -1014,9 +1008,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
-        size_t ndx;
-        float result = pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        float result = pQuery->minimum_float(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
+        if (return_ndx != npos) {
             return NewFloat(env, result);
         }
     } CATCH_STD()
@@ -1070,9 +1064,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
-        size_t ndx;
-        double result = pQuery->maximum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        double result = pQuery->maximum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
+        if (return_ndx != npos) {
             return NewDouble(env, result);
         }
     } CATCH_STD()
@@ -1090,9 +1084,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
-        size_t ndx;
-        double result = pQuery->minimum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        double result = pQuery->minimum_double(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
+        if (return_ndx != npos) {
             return NewDouble(env, result);
         }
     } CATCH_STD()
@@ -1132,9 +1126,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate(
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
-        size_t ndx;
-        DateTime result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        DateTime result = pQuery->maximum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
+        if (return_ndx != npos) {
             return NewLong(env, result.get_datetime());
         }
     } CATCH_STD()
@@ -1152,9 +1146,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate(
         !ROW_INDEXES_VALID(env, pTable, start, end, limit))
         return NULL;
     try {
-        size_t ndx;
-        DateTime result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        DateTime result = pQuery->minimum_int(S(columnIndex), NULL, S(start), S(end), S(limit), &return_ndx);
+        if (return_ndx != npos) {
             return NewLong(env, result.get_datetime());
         }
     } CATCH_STD()
@@ -1204,7 +1198,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
         TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, arr, arr_len);
         jlong column_idx = arr[arr_len-1];
         TableRef table_ref = getTableByArray(nativeQueryPtr, arr, arr_len);
-        if (!COL_TYPE_NULLABLE(env, table_ref.get(), column_idx))
+        if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx))
             return;
 
         int col_type = table_ref->get_column_type(S(column_idx));
@@ -1214,7 +1208,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     pQuery->and_query(src_table_ref->column<Link>(S(column_idx)).is_null());
                     break;
                 case type_LinkList:
-                    // Cannot get here. Exception will be thrown in COL_TYPE_NULLABLE
+                    // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
                     ThrowException(env, FatalError, "This is not reachable.");
                     break;
                 case type_Binary:
@@ -1239,7 +1233,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
                     pQuery->and_query(src_table_ref->column<Link>(S(column_idx)).is_null());
                     break;
                 case type_LinkList:
-                    // Cannot get here. Exception will be thrown in COL_TYPE_NULLABLE
+                    // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
                     ThrowException(env, FatalError, "This is not reachable.");
                     break;
                 case type_String:
@@ -1283,7 +1277,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
         jlong column_idx = arr[arr_len-1];
         TableRef table_ref = getTableByArray(nativeQueryPtr, arr, arr_len);
 
-        if (!COL_TYPE_NULLABLE(env, table_ref.get(), column_idx))
+        if (!TBL_AND_COL_NULLABLE(env, table_ref.get(), column_idx))
             return;
 
         int col_type = table_ref->get_column_type(S(column_idx));
@@ -1293,7 +1287,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     pQuery->Not().and_query(src_table_ref->column<Link>(S(column_idx)).is_null());
                     break;
                 case type_LinkList:
-                    // Cannot get here. Exception will be thrown in COL_TYPE_NULLABLE
+                    // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
                     ThrowException(env, FatalError, "This is not reachable.");
                     break;
                 case type_Binary:
@@ -1319,7 +1313,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     pQuery->Not().and_query(src_table_ref->column<Link>(S(column_idx)).is_null());
                     break;
                 case type_LinkList:
-                    // Cannot get here. Exception will be thrown in COL_TYPE_NULLABLE
+                    // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
                     ThrowException(env, FatalError, "This is not reachable.");
                     break;
                 case type_String:

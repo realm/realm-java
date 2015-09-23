@@ -680,9 +680,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumInt(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
             return NULL;
-        size_t ndx;
-        int64_t result = TV(nativeViewPtr)->maximum_int( S(columnIndex), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        int64_t result = TV(nativeViewPtr)->maximum_int( S(columnIndex), &return_ndx);
+        if (return_ndx != npos) {
             return NewLong(env, result);
         }
     } CATCH_STD()
@@ -696,9 +696,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumInt(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Int))
             return NULL;
-        size_t ndx;
-        int64_t result = TV(nativeViewPtr)->minimum_int( S(columnIndex), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        int64_t result = TV(nativeViewPtr)->minimum_int( S(columnIndex), &return_ndx);
+        if (return_ndx != npos) {
             return NewLong(env, result);
         }
     } CATCH_STD()
@@ -738,9 +738,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumFloat(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
             return NULL;
-        size_t ndx;
-        float result = TV(nativeViewPtr)->maximum_float( S(columnIndex), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        float result = TV(nativeViewPtr)->maximum_float( S(columnIndex), &return_ndx);
+        if (return_ndx != npos) {
             return NewFloat(env, result);
         }
     } CATCH_STD()
@@ -754,9 +754,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumFloat(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Float))
             return NULL;
-        size_t ndx;
-        float result = TV(nativeViewPtr)->minimum_float( S(columnIndex), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        float result = TV(nativeViewPtr)->minimum_float( S(columnIndex), &return_ndx);
+        if (return_ndx != npos) {
             return NewFloat(env, result);
         }
     } CATCH_STD()
@@ -796,9 +796,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumDouble(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
             return NULL;
-        size_t ndx;
-        double result = TV(nativeViewPtr)->maximum_double( S(columnIndex), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        double result = TV(nativeViewPtr)->maximum_double( S(columnIndex), &return_ndx);
+        if (return_ndx != npos) {
             return NewDouble(env, result);
         }
     } CATCH_STD()
@@ -812,9 +812,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDouble(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_Double))
             return NULL;
-        size_t ndx;
-        double result = TV(nativeViewPtr)->minimum_double( S(columnIndex), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        double result = TV(nativeViewPtr)->minimum_double( S(columnIndex), &return_ndx);
+        if (return_ndx != npos) {
             return NewDouble(env, result);
         }
     } CATCH_STD()
@@ -832,9 +832,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumDate(
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
             return NULL;
 
-        size_t ndx;
-        DateTime result = TV(nativeViewPtr)->maximum_datetime( S(columnIndex), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        DateTime result = TV(nativeViewPtr)->maximum_datetime( S(columnIndex), &return_ndx);
+        if (return_ndx != npos) {
             return NewLong(env, result.get_datetime());
         }
     } CATCH_STD()
@@ -849,9 +849,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDate(
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
             return NULL;
 
-        size_t ndx;
-        DateTime result = TV(nativeViewPtr)->minimum_datetime( S(columnIndex), &ndx);
-        if (ndx != npos) {
+        size_t return_ndx;
+        DateTime result = TV(nativeViewPtr)->minimum_datetime( S(columnIndex), &return_ndx);
+        if (return_ndx != npos) {
             return NewLong(env, result.get_datetime());
         }
     } CATCH_STD()

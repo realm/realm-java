@@ -52,7 +52,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumn
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
         return 0;
     if (TBL(nativeTablePtr)->has_shared_type()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubtableSchema() on root table instead.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to add field in subtable. Use getSubtableSchema() on root table instead.");
         return 0;
     }
     try {
@@ -74,7 +74,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink
     if (!TABLE_VALID(env, TBL(nativeTablePtr)))
             return 0;
         if (TBL(nativeTablePtr)->has_shared_type()) {
-            ThrowException(env, UnsupportedOperation, "Not allowed to add column in subtable. Use getSubtableSchema() on root table instead.");
+            ThrowException(env, UnsupportedOperation, "Not allowed to add field in subtable. Use getSubtableSchema() on root table instead.");
             return 0;
         }
         if (!TBL(targetTablePtr)->is_group_level()) {
@@ -127,7 +127,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRemoveColumn
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
     if (TBL(nativeTablePtr)->has_shared_type()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to remove column in subtable. Use getSubtableSchema() on root table instead.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to remove field in subtable. Use getSubtableSchema() on root table instead.");
         return;
     }
     try {
@@ -141,7 +141,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeRenameColumn
     if (!TBL_AND_COL_INDEX_VALID(env, TBL(nativeTablePtr), columnIndex))
         return;
     if (TBL(nativeTablePtr)->has_shared_type()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to rename column in subtable. Use getSubtableSchema() on root table instead.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to rename field in subtable. Use getSubtableSchema() on root table instead.");
         return;
     }
     try {
@@ -158,7 +158,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
         return false;
     }
     if (table->has_shared_type()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to convert column in subtable.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to convert field in subtable.");
         return false;
     }
     size_t column_index = S(columnIndex);
@@ -173,7 +173,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
         return;
     }
     if (table->has_shared_type()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to convert column in subtable.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to convert field in subtable.");
         return;
     }
     try {
@@ -192,18 +192,20 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
         }
 
         std::string tmp_column_name;
-        size_t i = 0;
+
+        size_t j = 0;
         while (true) {
             std::ostringstream ss;
-            ss << std::string("__TMP__") << i;
+            ss << std::string("__TMP__") << j;
             if (table->get_column_index(ss.str()) == realm::not_found) {
                 table->insert_column(column_index, column_type, ss.str(), true);
                 tmp_column_name = ss.str();
                 break;
             }
-            i++;
+            j++;
         }
-        for(size_t i = 0; i < table->size(); ++i) {
+
+        for (size_t i = 0; i < table->size(); ++i) {
             switch (column_type) {
                 case type_String:
                     table->set_string(column_index, i, table->get_string(column_index + 1, i));
@@ -250,7 +252,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         return;
     }
     if (table->has_shared_type()) {
-        ThrowException(env, UnsupportedOperation, "Not allowed to convert column in subtable.");
+        ThrowException(env, UnsupportedOperation, "Not allowed to convert field in subtable.");
         return;
     }
     try {
@@ -269,19 +271,19 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
         }
 
         std::string tmp_column_name;
-        size_t i = 0;
+        size_t j = 0;
         while (true) {
             std::ostringstream ss;
-            ss << std::string("__TMP__") << i;
+            ss << std::string("__TMP__") << j;
             if (table->get_column_index(ss.str()) == realm::not_found) {
                 table->insert_column(column_index, column_type, ss.str(), true);
                 tmp_column_name = ss.str();
                 break;
             }
-            i++;
+            j++;
         }
 
-        for(size_t i = 0; i < table->size(); ++i) {
+        for (size_t i = 0; i < table->size(); ++i) {
             switch (column_type) { // FIXME: respect user-specified default values
                 case type_String: {
                     StringData sd = table->get_string(column_index + 1, i);
@@ -749,8 +751,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetString(
         return;
     try {
         if (value == NULL) {
-            if (!TBL(nativeTablePtr)->is_nullable(S(columnIndex))) {
-                ThrowNullValueException(env, TBL(nativeTablePtr), S(columnIndex));
+            if (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex)) {
                 return;
             }
         }
@@ -788,8 +789,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(
         return;
     try {
         if (dataArray == NULL) {
-            if (!TBL(nativeTablePtr)->is_nullable(S(columnIndex))) {
-                ThrowNullValueException(env, TBL(nativeTablePtr), S(columnIndex));
+            if (!TBL_AND_COL_NULLABLE(env, TBL(nativeTablePtr), columnIndex)) {
                 return;
             }
             TBL(nativeTablePtr)->set_binary(S(columnIndex), S(rowIndex), BinaryData());
