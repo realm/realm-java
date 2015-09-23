@@ -501,18 +501,6 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners2.size());
     }
 
-    public void testLinkListIsNull() {
-        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNull("dogs").findAll();
-        assertEquals(0, owners1.size());
-
-        testRealm.beginTransaction();
-        testRealm.clear(Dog.class);
-        testRealm.commitTransaction();
-
-        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("dogs").findAll();
-        assertEquals(1, owners2.size());
-    }
-
     public void testLinkIsNotNull() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotNull("cat").findAll();
         assertEquals(1, owners1.size());
@@ -522,18 +510,6 @@ public class RealmLinkTests extends AndroidTestCase {
         testRealm.commitTransaction();
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("cat").findAll();
-        assertEquals(0, owners2.size());
-    }
-
-    public void testLinkListIsNotNull() {
-        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotNull("dogs").findAll();
-        assertEquals(1, owners1.size());
-
-        testRealm.beginTransaction();
-        testRealm.clear(Dog.class);
-        testRealm.commitTransaction();
-
-        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("dogs").findAll();
         assertEquals(0, owners2.size());
     }
 

@@ -416,8 +416,13 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
-    if (colType == realm::type_Link || colType == realm::type_LinkList) {
+    if (colType == realm::type_Link) {
         return true;
+    }
+
+    if (colType == realm::type_LinkList) {
+        ThrowException(env, IllegalArgument, "RealmList is not nullable.");
+        return false;
     }
 
     if (pTable->is_nullable(col)) {
@@ -425,7 +430,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
     }
 
     TR_ERR("Expected nullable column type")
-    ThrowException(env, IllegalArgument, "Column is not nullable");
+    ThrowException(env, IllegalArgument, "This filed is not nullable.");
     return false;
 }
 

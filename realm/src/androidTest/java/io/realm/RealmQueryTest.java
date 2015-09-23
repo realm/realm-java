@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
@@ -1146,6 +1147,40 @@ public class RealmQueryTest extends AndroidTestCase{
         } catch (IllegalArgumentException ignored) {
         }
         // 11 Object skipped
+    }
+
+    // Calling isNull on fields with the RealmList type will trigger an exception
+    public void testIsNullOnRealmListFieldThrows() {
+        try {
+            testRealm.where(Owner.class).isNull("dogs");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+        }
+
+        try {
+            testRealm.where(Cat.class).isNull("owner.dogs");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+        }
+    }
+
+    // Calling isNotNull on fields with the RealmList type will trigger an exception
+    public void testIsNotNullOnRealmListFieldThrows() {
+        try {
+            testRealm.where(Owner.class).isNotNull("dogs");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+        }
+
+        try {
+            testRealm.where(Cat.class).isNotNull("owner.dogs");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+        }
     }
 
     public void NOtestLargeRealmMultipleThreads() throws InterruptedException {
