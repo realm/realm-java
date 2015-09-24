@@ -27,9 +27,9 @@ import java.util.Map;
  */
 public class RealmJsonTypeHelper {
 
-    private static final Map<String, JsonToRealmTypeConverter> JAVA_TO_JSON_TYPES;
+    private static final Map<String, JsonToRealmFieldTypeConverter> JAVA_TO_JSON_TYPES;
     static {
-        JAVA_TO_JSON_TYPES = new HashMap<String, JsonToRealmTypeConverter>();
+        JAVA_TO_JSON_TYPES = new HashMap<String, JsonToRealmFieldTypeConverter>();
         JAVA_TO_JSON_TYPES.put("byte", new SimpleTypeConverter("byte", "Int"));
         JAVA_TO_JSON_TYPES.put("short", new SimpleTypeConverter("short", "Int"));
         JAVA_TO_JSON_TYPES.put("int", new SimpleTypeConverter("int", "Int"));
@@ -45,7 +45,7 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("Double", new SimpleTypeConverter("Double", "Double"));
         JAVA_TO_JSON_TYPES.put("Boolean", new SimpleTypeConverter("Boolean", "Boolean"));
         JAVA_TO_JSON_TYPES.put("java.lang.String", new SimpleTypeConverter("String", "String"));
-        JAVA_TO_JSON_TYPES.put("java.util.Date", new JsonToRealmTypeConverter() {
+        JAVA_TO_JSON_TYPES.put("java.util.Date", new JsonToRealmFieldTypeConverter() {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
                 writer
@@ -72,7 +72,7 @@ public class RealmJsonTypeHelper {
                     .endControlFlow();
             }
         });
-        JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmTypeConverter() {
+        JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmFieldTypeConverter() {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException {
                 writer
@@ -89,7 +89,7 @@ public class RealmJsonTypeHelper {
     }
 
     public static void emitFillJavaTypeWithJsonValue(String setter, String fieldName, String qualifiedFieldType, JavaWriter writer) throws IOException {
-        JsonToRealmTypeConverter typeEmitter = JAVA_TO_JSON_TYPES.get(qualifiedFieldType);
+        JsonToRealmFieldTypeConverter typeEmitter = JAVA_TO_JSON_TYPES.get(qualifiedFieldType);
         if (typeEmitter != null) {
             typeEmitter.emitTypeConversion(setter, fieldName, qualifiedFieldType, writer);
         }
@@ -143,7 +143,7 @@ public class RealmJsonTypeHelper {
             .emitStatement("reader.endArray()");
     }
 
-    private static class SimpleTypeConverter implements JsonToRealmTypeConverter {
+    private static class SimpleTypeConverter implements JsonToRealmFieldTypeConverter {
 
         private final String castType;
         private final String jsonType;
@@ -214,7 +214,7 @@ public class RealmJsonTypeHelper {
         }
     }
 
-    private interface JsonToRealmTypeConverter {
+    private interface JsonToRealmFieldTypeConverter {
         public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException;
         public void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException;
     }

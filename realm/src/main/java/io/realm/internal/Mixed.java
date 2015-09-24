@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
 
+import io.realm.RealmFieldType;
+
 public class Mixed {
 
     public static final int BINARY_TYPE_BYTE_ARRAY = 0;
@@ -39,9 +41,9 @@ public class Mixed {
         this.value = value;
     }
 
-    public Mixed(ColumnType columnType) {
+    public Mixed(RealmFieldType columnType) {
         // It's actually ok to call with any columnType - it will however be assumed to be a ColumnTypeTable.
-        if (columnType == null  || columnType == ColumnType.TABLE) {
+        if (columnType == null  || columnType == RealmFieldType.UNSUPPORTED_TABLE) {
             throw new AssertionError();
         }
         this.value = null;
@@ -103,24 +105,24 @@ public class Mixed {
         return value.hashCode();
     }
 
-    public ColumnType getType() {
+    public RealmFieldType getType() {
         if (value == null) {
-            return ColumnType.TABLE;
+            return RealmFieldType.UNSUPPORTED_TABLE;
         }
         if (value instanceof String)
-            return ColumnType.STRING;
+            return RealmFieldType.STRING;
         else if (value instanceof Long)
-            return ColumnType.INTEGER;
+            return RealmFieldType.INTEGER;
         else if (value instanceof Float)
-            return ColumnType.FLOAT;
+            return RealmFieldType.FLOAT;
         else if (value instanceof Double)
-            return ColumnType.DOUBLE;
+            return RealmFieldType.DOUBLE;
         else if (value instanceof Date)
-            return ColumnType.DATE;
+            return RealmFieldType.DATE;
         else if (value instanceof Boolean)
-            return ColumnType.BOOLEAN;
+            return RealmFieldType.BOOLEAN;
         else if (value instanceof ByteBuffer || (value instanceof byte[])) {
-            return ColumnType.BINARY;
+            return RealmFieldType.BINARY;
         }
 
         throw new IllegalStateException("Unknown column type!");
@@ -224,7 +226,7 @@ public class Mixed {
     }
 
     public String getReadableValue() {
-        ColumnType type = getType();
+        RealmFieldType type = getType();
         try {
             switch (type) {
             case BINARY:
@@ -241,9 +243,9 @@ public class Mixed {
                 return String.valueOf(getLongValue());
             case STRING:
                 return String.valueOf(getStringValue());
-            case TABLE:
+            case UNSUPPORTED_TABLE:
                 return "Subtable";
-            case MIXED:
+            case UNSUPPORTED_MIXED:
                 break; // error
             }
         } catch (Exception e) {
