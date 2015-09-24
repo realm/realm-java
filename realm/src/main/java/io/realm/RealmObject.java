@@ -216,7 +216,7 @@ public abstract class RealmObject {
         realm.checkIfValid();
         if (!isCompleted) {
             isCompleted = true;
-            long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroup.getNativePointer());
+            long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());
             Table table = realm.getTable(clazz);
             this.row = table.getUncheckedRowByPointer(nativeRowPointer);
             notifyChangeListeners();

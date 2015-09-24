@@ -2,6 +2,8 @@
  * Support async queries & transactions.
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
+ * Added support for x86_64.
+ * Fixed an issue where opening the same Realm file on two Looper threads could potentially lead to an IllegalStateException being thrown.
  * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
  * Fixed an issue preventing the call of listeners on refresh().
 
@@ -20,13 +22,13 @@
  * Fixed a bug when calling System.exit(0), the process might hang.
 
 0.82
+ * BREAKING CHANGE: Fields with annotation @PrimaryKey are indexed automatically now. Older schemas require a migration.
  * RealmConfiguration.setModules() now accept ignore null values which Realm.getDefaultModule() might return.
  * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
  * Added in-memory Realm support.
  * Closing realm on another thread different from where it was created now throws an exception.
  * Realm will now throw a RealmError when Realm's underlying storage engine encounters an unrecoverable error.
  * @Index annotation can also be applied to byte/short/int/long/boolean/Date now.
- * BREAKING CHANGE: Fields with annotation @PrimaryKey are indexed automatically now. Older schemas require a migration.
  * Fixed a bug where RealmQuery objects are prematurely garbage collected.
  * Removed RealmQuery.between() for link queries.
 
@@ -173,9 +175,7 @@
     and dates after 2038-01-19 are not supported on 32 bit systems
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying
-
-
-
+  
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes

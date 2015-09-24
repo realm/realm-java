@@ -669,7 +669,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param handoverTableViewPointer handover pointer to the new table_view
      */
     void swapTableViewPointer (long handoverTableViewPointer) {
-        table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroup.getNativePointer());
+        table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
         isCompleted = true;
     }
 
@@ -728,7 +728,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             // this may fail with BadVersionException if the caller and/or the worker thread
             // are not in sync. REALM_COMPLETED_ASYNC_QUERY will be fired by the worker thread
             // this is should handle more complex use cases like retry, ignore etc
-            table = query.importHandoverTableView(tvHandover, realm.sharedGroup.getNativePointer());
+            table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
             isCompleted = true;
             notifyChangeListeners();
         } catch (Exception e) {
