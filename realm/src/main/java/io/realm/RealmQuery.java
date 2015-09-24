@@ -50,12 +50,12 @@ import io.realm.internal.TableView;
  */
 public class RealmQuery<E extends RealmObject> {
 
-    private Realm realm;
-    private Table table;
-    private LinkView view;
-    private TableQuery query;
-    private Map<String, Long> columns = new HashMap<String, Long>();
-    private Class<E> clazz;
+    private final Realm realm;
+    private final Table table;
+    private final LinkView view;
+    private final TableQuery query;
+    private final Map<String, Long> columns;
+    private final Class<E> clazz;
 
     private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
 
@@ -73,6 +73,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = realm;
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
+        view = null;
         this.query = table.where();
         this.columns = realm.columnIndices.getClassFields(clazz);
     }
@@ -88,6 +89,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = realmList.getRealm();
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
+        view = null;
         this.query = realmList.getTable().where();
         this.columns = realm.columnIndices.getClassFields(clazz);
     }
