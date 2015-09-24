@@ -1859,58 +1859,39 @@ public class RealmTest extends AndroidTestCase {
     // should be populated for the subsequent Realm sharing the same configuration
     // even if we skip initialization & validation
     public void testColumnIndicesIsPopulatedWhenSkippingInitialization() throws Throwable {
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final CountDownLatch callerThreadCompleted = new CountDownLatch(1);
-        final CountDownLatch signalBgFinished = new CountDownLatch(1);
-        final RealmConfiguration realmConfiguration = TestHelper.
-                createConfiguration(getContext(), "testColumnIndicesIsPopulatedWhenSkippingInitialization");
+        final RealmConfiguration realmConfiguration = TestHelper.createConfiguration(getContext(), "columnIndices");
         Realm.deleteRealm(realmConfiguration);
-        Realm realm = Realm.getInstance(realmConfiguration);
+        final Exception threadError[] = new Exception[1];
+        final CountDownLatch bgRealmOpened = new CountDownLatch(1);
+        final CountDownLatch mainThreadRealmDone = new CountDownLatch(1);
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
 
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnLong(42);
-        realm.commitTransaction();
-
-        RealmResults<AllTypes> all = realm.where(AllTypes.class).findAll();
-        assertNotNull(all);
-        assertEquals(1, all.size());
-        assertEquals(42, all.get(0).getColumnLong());
-
-        // open a background Realm
-        new Thread() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
+                Realm realm = Realm.getInstance(realmConfiguration); // This will populate columnIndices
                 try {
-                    callerThreadCompleted.await();
-                    Realm backgroundRealm = Realm.getInstance(realmConfiguration);
-
-                    backgroundRealm.beginTransaction();
-                    backgroundRealm.createObject(AllTypes.class).setColumnLong(7);
-                    backgroundRealm.commitTransaction();
-
-                    RealmResults<AllTypes> allBg = backgroundRealm.where(AllTypes.class).findAll();
-                    assertNotNull(allBg);
-                    assertEquals(2, allBg.size());
-                    assertEquals(42, allBg.get(0).getColumnLong());
-                    assertEquals(7, allBg.get(1).getColumnLong());
-
-                    backgroundRealm.close();
-                } catch (InterruptedException e) {
-                    threadAssertionError[0] = e;
-                } catch (AssertionFailedError e) {
-                    threadAssertionError[0] = e;
-
+                    bgRealmOpened.countDown();
+                    awaitOrFail(mainThreadRealmDone);
+                    realm.close();
+                    bgRealmClosed.countDown();
+                } catch (Exception e) {
+                    threadError[0] = e;
                 } finally {
-                    signalBgFinished.countDown();
+                    realm.close();
                 }
             }
-        }.start();
+        }).start();
 
-        callerThreadCompleted.countDown();
-        signalBgFinished.await();
+        awaitOrFail(bgRealmOpened);
+        Realm realm = Realm.getInstance(realmConfiguration);
+        realm.where(AllTypes.class).equalTo("columnString", "Foo").findAll(); // This would crash if columnIndices == null
         realm.close();
-        if (threadAssertionError[0] != null)
-            throw threadAssertionError[0];
+        mainThreadRealmDone.countDown();
+        awaitOrFail(bgRealmClosed);
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
     }
 
     public void testProcessLocalListenersAfterRefresh() {
@@ -1947,5 +1928,15 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         bgThreadLatch.countDown();
+    }
+
+    private void awaitOrFail(CountDownLatch latch) {
+        try {
+            if (!latch.await(5, TimeUnit.SECONDS)) {
+                fail();
+            }
+        } catch (InterruptedException e) {
+            fail();
+        }
     }
 }

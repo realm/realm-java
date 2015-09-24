@@ -308,8 +308,16 @@ public final class Realm extends BaseRealm {
                     throw e;
                 }
             }
+            setupColumnIndices(realm);
 
             return realm;
+        }
+    }
+
+    private static void setupColumnIndices(Realm realm) {
+        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+        for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
+            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 
@@ -331,7 +339,6 @@ public final class Realm extends BaseRealm {
                     mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
                 }
                 mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction());
-                realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
             validatedRealmFiles.add(realm.getPath());
         } finally {
