@@ -1134,7 +1134,7 @@ public final class Realm implements Closeable {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
-                                                               Sort sortOrder1, String fieldName2,
+                                                                    Sort sortOrder1, String fieldName2,
                                                                     Sort sortOrder2) {
         return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1,
                 sortOrder2});
