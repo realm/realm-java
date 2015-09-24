@@ -1,7 +1,12 @@
 0.83
+ * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants
+   has been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
+ * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants has been
+   replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
-  * Fixed an issue where opening the same Realm file on two Looper threads could potentially lead to an IllegalStateException being thrown.
+ * Added support for x86_64.
+ * Fixed an issue where opening the same Realm file on two Looper threads could potentially lead to an IllegalStateException being thrown.
  * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
  * Fixed an issue preventing the call of listeners on refresh().
 

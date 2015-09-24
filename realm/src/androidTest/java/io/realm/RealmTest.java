@@ -68,7 +68,6 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 public class RealmTest extends AndroidTestCase {
 
     protected final static int TEST_DATA_SIZE = 10;
-
     protected Realm testRealm;
 
     protected List<String> columnData = new ArrayList<String>();
@@ -93,7 +92,7 @@ public class RealmTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        testConfig = new RealmConfiguration.Builder(getContext()).build();
+        testConfig = TestHelper.createConfiguration(getContext());
         Realm.deleteRealm(testConfig);
         testRealm = Realm.getInstance(testConfig);
     }
@@ -143,7 +142,7 @@ public class RealmTest extends AndroidTestCase {
     public void testGetInstanceFolderNoWritePermissionThrows() {
         File folder = new File("/");
         try {
-            Realm realm = Realm.getInstance(new RealmConfiguration.Builder(folder).build());
+            Realm.getInstance(new RealmConfiguration.Builder(folder).build());
             fail("Pointing to a folder with no write permission should throw an IllegalArgumentException");
         } catch (IllegalArgumentException expected) {
         }
@@ -169,8 +168,8 @@ public class RealmTest extends AndroidTestCase {
 
     public void testGetInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
-        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey());
-        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey());
+        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(42));
+        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(43));
 
         Realm.deleteRealm(configA);
         Realm realm = Realm.getInstance(configA); // Create starting Realm with key1
@@ -181,7 +180,7 @@ public class RealmTest extends AndroidTestCase {
             // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
             assertTrue(Realm.deleteRealm(configA));
-            Realm.getInstance(configB);
+            realm = Realm.getInstance(configB);
             realm.close();
         }
     }
@@ -193,10 +192,11 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testInternalRealmChangedHandlersRemoved() {
+        testRealm.close(); // Clear handler created by testRealm in setUp()
+
         final String REALM_NAME = "test-internalhandlers";
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
         Realm.deleteRealm(realmConfig);
-        Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
 
         // Open and close first instance of a Realm
         Realm realm = null;
@@ -292,10 +292,10 @@ public class RealmTest extends AndroidTestCase {
         resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0").findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0", RealmQuery.CASE_INSENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "test data 0", Case.INSENSITIVE).findAll();
         assertEquals(1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Test data 0", RealmQuery.CASE_SENSITIVE).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_STRING, "Test data 0", Case.SENSITIVE).findAll();
         assertEquals(0, resultList.size());
     }
 
@@ -403,16 +403,16 @@ public class RealmTest extends AndroidTestCase {
 
     public void testAllObjectsSorted() {
         populateTestRealm();
-        RealmResults<AllTypes> sortedList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, RealmResults.SORT_ORDER_ASCENDING);
+        RealmResults<AllTypes> sortedList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("test data 0", sortedList.first().getColumnString());
 
-        RealmResults<AllTypes> reverseList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        RealmResults<AllTypes> reverseList = testRealm.allObjectsSorted(AllTypes.class, FIELD_STRING, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("test data 0", reverseList.last().getColumnString());
 
         try {
-            RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", RealmResults.SORT_ORDER_ASCENDING);
+            RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", Sort.ASCENDING);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -423,7 +423,7 @@ public class RealmTest extends AndroidTestCase {
 
         RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
                 new String[]{FIELD_STRING, FIELD_LONG},
-                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
 
         assertEquals(3, results1.size());
 
@@ -438,7 +438,7 @@ public class RealmTest extends AndroidTestCase {
 
         RealmResults<AllTypes> results2 = testRealm.allObjectsSorted(AllTypes.class,
                 new String[]{FIELD_LONG, FIELD_STRING},
-                new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
 
         assertEquals(3, results2.size());
 
@@ -457,7 +457,7 @@ public class RealmTest extends AndroidTestCase {
 
         // zero fields specified
         try {
-            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
+            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new Sort[]{});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -466,14 +466,14 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.allObjectsSorted(AllTypes.class,
                     new String[]{FIELD_STRING},
-                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                    new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // null is not allowed
         try {
-            testRealm.allObjectsSorted(AllTypes.class, null, null);
+            testRealm.allObjectsSorted(AllTypes.class, null, (Sort[])null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -487,7 +487,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.allObjectsSorted(AllTypes.class,
                     new String[]{FIELD_STRING, "dont-exist"},
-                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                    new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -497,7 +497,7 @@ public class RealmTest extends AndroidTestCase {
         populateTestRealm();
         RealmResults<AllTypes> sortedList = testRealm.allObjectsSorted(AllTypes.class,
                 new String[]{FIELD_LONG},
-                new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+                new Sort[]{Sort.DESCENDING});
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());

@@ -23,6 +23,7 @@ import android.util.Log
 import android.widget.LinearLayout
 import android.widget.TextView
 import io.realm.Realm
+import io.realm.Sort
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
 import io.realm.examples.kotlin.model.Person
@@ -182,7 +183,7 @@ public class KotlinExampleActivity : Activity() {
 
         // Sorting
         val sortedPersons = realm.allObjects(javaClass<Person>())
-        sortedPersons.sort("age", false)
+        sortedPersons.sort("age", Sort.DESCENDING)
         check(realm.allObjects(javaClass<Person>()).last().name == sortedPersons.first().name)
         status += "\nSorting ${sortedPersons.last().name} == ${realm.allObjects(javaClass<Person>()).first().name}"
 

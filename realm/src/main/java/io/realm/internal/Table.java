@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmException;
+import io.realm.Sort;
 
 
 /**
@@ -531,10 +532,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param order
      * @return
      */
-    public TableView getSortedView(long columnIndex, TableView.Order order){
+    public TableView getSortedView(long columnIndex, Sort sortOrder){
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
-        long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, (order == TableView.Order.ascending));
+        long nativeViewPtr = nativeGetSortedView(nativePtr, columnIndex, sortOrder.getValue());
         try {
             return new TableView(this.context, this, nativeViewPtr);
         } catch (RuntimeException e) {
@@ -558,9 +559,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
 
 
-    public TableView getSortedView(long columnIndices[], boolean orders[]) {
+    public TableView getSortedView(long columnIndices[], Sort sortOrders[]) {
         context.executeDelayedDisposal();
-        long nativeViewPtr = nativeGetSortedViewMulti(nativePtr, columnIndices, orders);
+        boolean[] nativeSortOrder = new boolean[sortOrders.length];
+        for (int i = 0; i < sortOrders.length; i++) {
+            nativeSortOrder[i] = sortOrders[i].getValue();
+        }
+        long nativeViewPtr = nativeGetSortedViewMulti(nativePtr, columnIndices, nativeSortOrder);
         return new TableView(this.context, this, nativeViewPtr);
     }
 

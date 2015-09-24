@@ -8,6 +8,7 @@ import java.util.Date;
 
 import io.realm.RealmFieldType;
 import io.realm.internal.test.TestHelper;
+import io.realm.Sort;
 
 @SuppressWarnings("deprecation")
 public class JNIViewTest extends TestCase {
@@ -80,7 +81,7 @@ public class JNIViewTest extends TestCase {
         assertEquals("dd", view.getString(0, 3));
 
         //Sort descending - creating a new view
-        view.sort(2, TableView.Order.descending);
+        view.sort(2, Sort.DESCENDING);
         assertEquals(35, view.getLong(2, 0));
         assertEquals(24, view.getLong(2, 1));
         assertEquals(22, view.getLong(2, 2));
@@ -89,7 +90,7 @@ public class JNIViewTest extends TestCase {
 
         //Sort ascending.
         TableView view2 = t.where().findAll();
-        view2.sort(2, TableView.Order.ascending);
+        view2.sort(2, Sort.ASCENDING);
         assertEquals(22, view2.getLong(2, 0));
         assertEquals(22, view2.getLong(2, 1));
         assertEquals(24, view2.getLong(2, 2));
