@@ -68,7 +68,6 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 public class RealmTest extends AndroidTestCase {
 
     protected final static int TEST_DATA_SIZE = 10;
-
     protected Realm testRealm;
 
     protected List<String> columnData = new ArrayList<String>();
@@ -93,7 +92,7 @@ public class RealmTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        testConfig = new RealmConfiguration.Builder(getContext()).build();
+        testConfig = TestHelper.createConfiguration(getContext());
         Realm.deleteRealm(testConfig);
         testRealm = Realm.getInstance(testConfig);
     }
@@ -143,7 +142,7 @@ public class RealmTest extends AndroidTestCase {
     public void testGetInstanceFolderNoWritePermissionThrows() {
         File folder = new File("/");
         try {
-            Realm realm = Realm.getInstance(new RealmConfiguration.Builder(folder).build());
+            Realm.getInstance(new RealmConfiguration.Builder(folder).build());
             fail("Pointing to a folder with no write permission should throw an IllegalArgumentException");
         } catch (IllegalArgumentException expected) {
         }
@@ -169,8 +168,8 @@ public class RealmTest extends AndroidTestCase {
 
     public void testGetInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
-        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey());
-        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey());
+        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(42));
+        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(43));
 
         Realm.deleteRealm(configA);
         Realm realm = Realm.getInstance(configA); // Create starting Realm with key1
@@ -181,7 +180,7 @@ public class RealmTest extends AndroidTestCase {
             // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
             assertTrue(Realm.deleteRealm(configA));
-            Realm.getInstance(configB);
+            realm = Realm.getInstance(configB);
             realm.close();
         }
     }
@@ -193,10 +192,11 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testInternalRealmChangedHandlersRemoved() {
+        testRealm.close(); // Clear handler created by testRealm in setUp()
+
         final String REALM_NAME = "test-internalhandlers";
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
         Realm.deleteRealm(realmConfig);
-        Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
 
         // Open and close first instance of a Realm
         Realm realm = null;
