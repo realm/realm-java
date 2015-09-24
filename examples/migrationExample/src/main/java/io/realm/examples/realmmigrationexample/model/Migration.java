@@ -80,7 +80,7 @@ public class Migration implements RealmMigration {
             Table petTable = realm.getTable(Pet.class);
             long nameColumnIndex = petTable.addColumn(RealmFieldType.STRING, "name");
             long typeColumnIndex = petTable.addColumn(RealmFieldType.STRING, "type");
-            long petsIndex = personTable.addColumnLink(RealmFieldType.LINK_LIST, "pets", petTable);
+            long petsIndex = personTable.addColumnLink(RealmFieldType.LIST, "pets", petTable);
             long fullNameIndex = getIndexForProperty(personTable, "fullName");
 
             for (int i = 0; i < personTable.size(); i++) {
