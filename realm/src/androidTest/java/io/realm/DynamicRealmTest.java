@@ -32,8 +32,7 @@ public class DynamicRealmTest extends AndroidTestCase {
         defaultConfig = TestHelper.createConfiguration(getContext());
         Realm.deleteRealm(defaultConfig);
 
-        // Initialize schema. DynamicRealm will not do that, so let a normal Realm create the file
-        // first.
+        // Initialize schema. DynamicRealm will not do that, so let a normal Realm create the file first.
         Realm.getInstance(defaultConfig).close();
     }
 

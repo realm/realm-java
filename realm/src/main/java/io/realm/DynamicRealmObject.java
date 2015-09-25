@@ -290,7 +290,7 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Set the value for the given field. This method will automatically try to convert numbers and
-     * booleans that are given as Strings to their appropriate type. E.g. {@code "10"} will be
+     * booleans that are given as {@code String} to their appropriate type. E.g. {@code "10"} will be
      * converted to {@code 10} if the field type is {@code int}.
      *
      * Using the typed setters will be faster than using this method.
@@ -537,7 +537,7 @@ public class DynamicRealmObject extends RealmObject {
     /**
      * Returns the type used by the underlying storage engine to represent this field.
      *
-     * @return The ColumnType used by Realm to represent this field.
+     * @return The underlying type used by Realm to represent this field.
      */
     public RealmFieldType getFieldType(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);

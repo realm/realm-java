@@ -32,12 +32,11 @@ import io.realm.internal.UncheckedRow;
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
  * done using Strings instead of classes.
  *
- * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file as both a dynamic Realm and the normal
- * typed one. A Realm file can both be open in dynamic and typed mode at the same time, but modifying
- * the schema while doing so is highly discouraged and will most likely crash the typed Realm.
+ * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file in both dynamic and typed mode, but
+ * modifying the schema while doing so is highly discouraged and will most likely crash the typed Realm.
  *
- * Dynamic Realms do not enforce schemaVersions and doesn't trigger migrations even if they have been defined in
- * the configuration.
+ * Dynamic Realms do not enforce schemas and schema versions and doesn't trigger migrations even if they have been
+ * defined in the configuration.
  *
  * @see io.realm.Realm
  */
@@ -97,6 +96,7 @@ public class DynamicRealm extends BaseRealm {
      * @param className The class of the object which is to be queried for.
      * @return A RealmQuery, which can be used to query for specific objects of provided type.
      * @see io.realm.RealmQuery
+     * @throws IllegalArgumentException if the class doesn't exist.
      */
     public RealmQuery<DynamicRealmObject> where(String className) {
         checkIfValid();
@@ -105,6 +105,7 @@ public class DynamicRealm extends BaseRealm {
         }
         return RealmQuery.createDynamicQuery(this, className);
     }
+
 
     private static synchronized DynamicRealm create(RealmConfiguration configuration) {
 
