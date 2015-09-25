@@ -316,7 +316,10 @@ public final class Realm extends BaseRealm {
 
     private static void setupColumnIndices(Realm realm) {
         RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-        for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
+        List<Class<? extends RealmObject>> modelClasses = mediator.getModelClasses();
+        int size = modelClasses.size();
+        for (int i = 0; i < size; i++) {
+            Class<? extends RealmObject> modelClass = modelClasses.get(i);
             realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
