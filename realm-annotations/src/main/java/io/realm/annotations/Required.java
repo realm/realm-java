@@ -17,11 +17,11 @@
 package io.realm.annotations;
 
 /**
- * This annotation will mark the field as not nullable. When the field is @{@link Required},
- * null value cannot be applied to it.
+ * This annotation will mark the field as not nullable. When the field is {@link Required},
+ * it cannot be set to {@code null}.
  * <p>
  * Only {@code Boolean, Byte, Short, Integer, Long, Float, Double, String, byte[], Date} can be annotated
- * with @{@link Required}. Compiling will fail when fields with other types have @{@link Required} annotation.
+ * with {@link Required}. Compiling will fail when fields with other types have {@link Required} annotation.
  * Fields with primitive types and the {@link io.realm.RealmList} type are required implicitly.
  * Fields with {@link io.realm.RealmObject} type are always nullable.
  */

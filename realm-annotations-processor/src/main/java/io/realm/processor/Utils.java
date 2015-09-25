@@ -66,7 +66,7 @@ public class Utils {
     }
 
     /**
-     * Returns true if a field is of type "java.lang.String", false otherwise.
+     * Returns {@code true} if a field is of type "java.lang.String", {@code false} otherwise.
      */
     public static boolean isString(VariableElement field) {
         if (field == null) {
@@ -76,7 +76,7 @@ public class Utils {
     }
 
     /**
-     * Return true if a field is a primitive type.
+     * Returns {@code true} if a field is a primitive type, {@code false} otherwise.
      */
     public static boolean isPrimitiveType(String typeString) {
         if (typeString == null) {
@@ -88,7 +88,7 @@ public class Utils {
     }
 
     /**
-     * Return true if a field is a boxed type.
+     * Returns {@code true} if a field is a boxed type, {@code false} otherwise.
      */
     public static boolean isBoxedType(String typeString) {
         if (typeString == null) {
@@ -101,7 +101,7 @@ public class Utils {
     }
 
     /**
-     * Return true if a field is a type of primitive types.
+     * Returns {@code true} if a field is a type of primitive types, {@code false} otherwise.
      */
     public static boolean isPrimitiveType(VariableElement field) {
         if (field == null) {
@@ -111,7 +111,7 @@ public class Utils {
     }
 
     /**
-     * Returns true if a field is of type "byte[]", false otherwise.
+     * Returns {@code true} if a field is of type "byte[]", {@code false} otherwise.
      */
     public static boolean isByteArray(VariableElement field) {
         if (field == null) {
@@ -121,7 +121,7 @@ public class Utils {
     }
 
     /**
-     * Returns true if a given field type string is "java.lang.String", false otherwise.
+     * Returns {@code true} if a given field type string is "java.lang.String", {@code false} otherwise.
      */
     public static boolean isString(String fieldType) {
         if (fieldType == null) {
@@ -131,12 +131,15 @@ public class Utils {
     }
 
     /**
-     * Returns true if a given field type is "RealmList", false otherwise.
+     * Returns {@code true} if a given field type is "RealmList", {@code false} otherwise.
      */
     public static boolean isRealmList(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmList);
     }
 
+    /**
+     * Returns {@code true} if a given field type is "RealmObject", {@code false} otherwise.
+     */
     public static boolean isRealmObject(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmObject);
     }

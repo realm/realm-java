@@ -64,7 +64,7 @@ public class AllTypesRealmProxy extends AllTypes
     public void setColumnString(String value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field columnString to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field columnString to null.");
         }
         row.setString(INDEX_COLUMNSTRING, (String) value);
     }
@@ -127,7 +127,7 @@ public class AllTypesRealmProxy extends AllTypes
     public void setColumnDate(Date value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field columnDate to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field columnDate to null.");
         }
         row.setDate(INDEX_COLUMNDATE, (Date) value);
     }
@@ -142,7 +142,7 @@ public class AllTypesRealmProxy extends AllTypes
     public void setColumnBinary(byte[] value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field columnBinary to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field columnBinary to null.");
         }
         row.setBinaryByteArray(INDEX_COLUMNBINARY, (byte[]) value);
     }
@@ -378,28 +378,28 @@ public class AllTypesRealmProxy extends AllTypes
         }
         if (json.has("columnLong")) {
             if (json.isNull("columnLong")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field columnLong to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field columnLong to null.");
             } else {
                 obj.setColumnLong((long) json.getLong("columnLong"));
             }
         }
         if (json.has("columnFloat")) {
             if (json.isNull("columnFloat")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field columnFloat to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field columnFloat to null.");
             } else {
                 obj.setColumnFloat((float) json.getDouble("columnFloat"));
             }
         }
         if (json.has("columnDouble")) {
             if (json.isNull("columnDouble")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field columnDouble to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field columnDouble to null.");
             } else {
                 obj.setColumnDouble((double) json.getDouble("columnDouble"));
             }
         }
         if (json.has("columnBoolean")) {
             if (json.isNull("columnBoolean")) {
-                throw new IllegalArgumentException("Trying to set a non-nullable field columnBoolean to null.");
+                throw new IllegalArgumentException("Trying to set non-nullable field columnBoolean to null.");
             } else {
                 obj.setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
             }
@@ -462,28 +462,28 @@ public class AllTypesRealmProxy extends AllTypes
             } else if (name.equals("columnLong")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field columnLong to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field columnLong to null.");
                 } else {
                     obj.setColumnLong((long) reader.nextLong());
                 }
             } else if (name.equals("columnFloat")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field columnFloat to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field columnFloat to null.");
                 } else {
                     obj.setColumnFloat((float) reader.nextDouble());
                 }
             } else if (name.equals("columnDouble")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field columnDouble to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field columnDouble to null.");
                 } else {
                     obj.setColumnDouble((double) reader.nextDouble());
                 }
             } else if (name.equals("columnBoolean")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    throw new IllegalArgumentException("Trying to set a non-nullable field columnBoolean to null.");
+                    throw new IllegalArgumentException("Trying to set non-nullable field columnBoolean to null.");
                 } else {
                     obj.setColumnBoolean((boolean) reader.nextBoolean());
                 }

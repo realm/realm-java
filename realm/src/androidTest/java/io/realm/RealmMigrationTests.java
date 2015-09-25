@@ -251,7 +251,7 @@ public class RealmMigrationTests extends AndroidTestCase {
 
     // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
     // migrated the file format. But @Required must be added, and forgetting so will give you
-    // a MigrationNeeded exception.
+    // a RealmMigrationNeeded exception.
     public void testOpenPreNullRealmRequiredMissing() throws IOException {
         TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
         RealmMigration realmMigration = new RealmMigration() {
@@ -337,7 +337,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             final RealmMigration migration = new RealmMigration() {
                 @Override
                 public long execute(Realm realm, long version) {
-                    if (version == -1) {
+                    if (version == -1) { // -1 == UNVERSIONED i.e., not initialized
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
                         Table table = realm.getTable(NullTypes.class);
@@ -399,7 +399,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             final RealmMigration migration = new RealmMigration() {
                 @Override
                 public long execute(Realm realm, long version) {
-                    if (version == -1) {
+                    if (version == -1) {  // -1 == UNVERSIONED i.e., not been initialized
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
                         Table table = realm.getTable(NullTypes.class);
@@ -446,14 +446,12 @@ public class RealmMigrationTests extends AndroidTestCase {
                 fail("Failed on " + field);
             } catch (RealmMigrationNeededException e) {
                 if (field.equals("fieldStringNull") || field.equals("fieldBytesNull") || field.equals("fieldDateNull")) {
-                    assertEquals("Field '" + field + "' is required. Add annotation @Required to field '" +
-                                    field + "'.",
-                            e.getMessage());
+                    assertEquals("Field '" + field + "' is required. Add annotation @Required to field '"
+                                    +  field + "'.", e.getMessage());
                 } else {
-                    assertEquals("Field '" + field + "' is required." +
-                                    " Either set @Required or use the primitive type for field '"
-                                    + field + "'.",
-                            e.getMessage());
+                    assertEquals("Field '" + field + "' is required."
+                                    + " Either set @Required or use the primitive type for field '"
+                                    + field + "'.",  e.getMessage());
                 }
             }
         }

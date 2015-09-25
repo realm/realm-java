@@ -311,26 +311,26 @@ public class ClassMetaData {
                     // The field doesn't have the @Required annotation.
                     // Without @Required annotation, boxed types/RealmObject/Date/String/bytes should be added to
                     // nullableFields.
-                    // RealmList and Primitive types are NOT nullable always. @Required annotation is not needed.
+                    // RealmList and Primitive types are NOT nullable always. @Required annotation is not supported.
                     if (!Utils.isPrimitiveType(variableElement) && !Utils.isRealmList(variableElement)) {
                         nullableFields.add(variableElement);
                     }
                 } else {
                     // The field has the @Required annotation
                     if (Utils.isPrimitiveType(variableElement)) {
-                        Utils.error("@Required is not needed for primitive fields. Annotated field " + element +
-                                " has the type " + element.asType());
+                        Utils.error("@Required is not needed for field " + element +
+                                " with the type " + element.asType());
                     } else if (Utils.isRealmList(variableElement)) {
-                        Utils.error("@Required is invalid for RealmList fields. Annotated field " + element +
-                                " has the type " + element.asType());
+                        Utils.error("@Required is invalid for field " + element +
+                                " with the type " + element.asType());
                     } else if (Utils.isRealmObject(variableElement)) {
-                        Utils.error("@Required is invalid for RealmObject fields. Annotated field " + element +
-                                " has the type " + element.asType());
+                        Utils.error("@Required is invalid for field " + element +
+                                " with the type " + element.asType());
                     } else {
-                        // Should never get here.
+                        // Should never get here - user should remove @Required
                         if (nullableFields.contains(variableElement)) {
                             Utils.error("Annotated field " + element + " with type " + element.asType() +
-                                    " has been added to the nullableFields before.");
+                                    " has been added to the nullableFields before. Consider to remove @Required.");
                         }
                     }
                 }

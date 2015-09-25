@@ -88,7 +88,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldStringNotNull(String value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldStringNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldStringNotNull to null.");
         }
         row.setString(INDEX_FIELDSTRINGNOTNULL, (String) value);
     }
@@ -119,7 +119,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldBooleanNotNull(Boolean value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldBooleanNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldBooleanNotNull to null.");
         }
         row.setBoolean(INDEX_FIELDBOOLEANNOTNULL, (Boolean) value);
     }
@@ -153,7 +153,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldBytesNotNull(byte[] value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldBytesNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldBytesNotNull to null.");
         }
         row.setBinaryByteArray(INDEX_FIELDBYTESNOTNULL, (byte[]) value);
     }
@@ -184,7 +184,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldByteNotNull(Byte value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldByteNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldByteNotNull to null.");
         }
         row.setLong(INDEX_FIELDBYTENOTNULL, (long) value);
     }
@@ -218,7 +218,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldShortNotNull(Short value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldShortNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldShortNotNull to null.");
         }
         row.setLong(INDEX_FIELDSHORTNOTNULL, (long) value);
     }
@@ -252,7 +252,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldIntegerNotNull(Integer value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldIntegerNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldIntegerNotNull to null.");
         }
         row.setLong(INDEX_FIELDINTEGERNOTNULL, (long) value);
     }
@@ -286,7 +286,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldLongNotNull(Long value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldLongNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldLongNotNull to null.");
         }
         row.setLong(INDEX_FIELDLONGNOTNULL, (long) value);
     }
@@ -320,7 +320,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldFloatNotNull(Float value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldFloatNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldFloatNotNull to null.");
         }
         row.setFloat(INDEX_FIELDFLOATNOTNULL, (float) value);
     }
@@ -354,7 +354,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldDoubleNotNull(Double value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldDoubleNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldDoubleNotNull to null.");
         }
         row.setDouble(INDEX_FIELDDOUBLENOTNULL, (double) value);
     }
@@ -388,7 +388,7 @@ public class NullTypesRealmProxy extends NullTypes
     public void setFieldDateNotNull(Date value) {
         realm.checkIfValid();
         if (value == null) {
-            throw new IllegalArgumentException("Trying to set a non-nullable field fieldDateNotNull to null.");
+            throw new IllegalArgumentException("Trying to set non-nullable field fieldDateNotNull to null.");
         }
         row.setDate(INDEX_FIELDDATENOTNULL, (Date) value);
     }

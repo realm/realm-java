@@ -171,7 +171,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Test if a field is null. Only works for not required types.
+     * Test if a field is {@code null}. Only works for not required types.
      *
      * @param fieldName - the field name.
      * @return The query object.
@@ -187,7 +187,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Test if a field is not null. Only works for not required types.
+     * Test if a field is not {@code null}. Only works for not required types.
      *
      * @param fieldName - the field name.
      * @return The query object.
@@ -1173,7 +1173,7 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName   The field to look for a minimum on. Only int, float, and double
      *                    are supported.
-     * @return            If the given field has 0 rows or all rows with null values, null will be returned.
+     * @return            If the given field has 0 rows or all rows with null values, {@code null} will be returned.
      *                    Otherwise return the minimum value.
      * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
      */
@@ -1197,7 +1197,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName  The field name
      * @return The minimum value
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
-     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with null values.
+     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with {@code null} values.
      * @deprecated Please use {@link #min(String)} instead.
      */
     public long minimumInt(String fieldName) {
@@ -1210,7 +1210,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName  The field name
      * @return The minimum value
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
-     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with null values.
+     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with {@code null} values.
      * @deprecated Please use {@link #min(String)} instead.
      */
     public double minimumDouble(String fieldName) {
@@ -1223,7 +1223,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName  The field name
      * @return The minimum value
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
-     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with null values.
+     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with {@code null} values.
      * @deprecated Please use {@link #min(String)} instead.
      */
     public float minimumFloat(String fieldName) {
@@ -1234,7 +1234,7 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find the minimum value of a field
      * @param fieldName  The field name
-     * @return If the given field has 0 rows or all rows with null values, null will be returned.
+     * @return If the given field has 0 rows or all rows with {@code null} values, {@code null} will be returned.
      *         Otherwise return the minimum value.
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
@@ -1250,7 +1250,7 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName   The field to look for a maximum on. Only int, float, and double
      *                    are supported.
-     * @return If the given field has 0 rows or all rows with null values, null will be returned.
+     * @return If the given field has 0 rows or all rows with {@code null} values, {@code null} will be returned.
      *         Otherwise return the maximum value.
      * @throws java.lang.IllegalArgumentException if field is not int, float or double.
      */
@@ -1274,7 +1274,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName  The field name
      * @return The maximum value
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
-     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with null values.
+     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with {@code null} values.
      * @deprecated Please use {@link #max(String)} instead.
      */
     public long maximumInt(String fieldName) {
@@ -1287,7 +1287,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName  The field name
      * @return The maximum value
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
-     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with null values.
+     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with {@code null} values.
      * @deprecated Please use {@link #max(String)} instead.
      */
     public double maximumDouble(String fieldName) {
@@ -1300,7 +1300,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName  The field name
      * @return The maximum value
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
-     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with null values.
+     * @throws java.lang.NullPointerException If the given field has 0 rows or all rows with {@code null} values.
      * @deprecated Please use {@link #max(String)} instead.
      */
     public float maximumFloat(String fieldName) {

@@ -105,7 +105,6 @@ public class RealmProcessorTest {
                 .generatesSources(nullTypesProxy);
     }
 
-
     @Test
     public void compileAllTypesFile() {
         ASSERT.about(javaSource())
