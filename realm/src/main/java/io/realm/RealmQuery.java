@@ -73,7 +73,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = realm;
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
-        view = null;
+        this.view = null;
         this.query = table.where();
         this.columns = realm.columnIndices.getClassFields(clazz);
     }
@@ -89,7 +89,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = realmList.getRealm();
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
-        view = null;
+        this.view = null;
         this.query = realmList.getTable().where();
         this.columns = realm.columnIndices.getClassFields(clazz);
     }
