@@ -18,7 +18,6 @@ package io.realm;
 import java.util.Date;
 
 import io.realm.internal.CheckedRow;
-import io.realm.internal.ColumnType;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
@@ -41,11 +40,11 @@ public class DynamicRealmObject extends RealmObject {
         if (obj == null) {
             throw new IllegalArgumentException("Non-null object must be provided.");
         }
-        Row row = RealmObject.getRow(obj);
+        Row row = obj.row;
         if (row == null) {
             throw new IllegalArgumentException("A object managed by Realm must be provided. This is a standalone object.");
         }
-        this.realm = RealmObject.getRealm(obj);
+        this.realm = obj.realm;
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
     }
 
@@ -68,7 +67,7 @@ public class DynamicRealmObject extends RealmObject {
      */
     public Object get(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        ColumnType type = row.getColumnType(columnIndex);
+        RealmFieldType type = row.getColumnType(columnIndex);
         switch (type) {
             case BOOLEAN: return row.getBoolean(columnIndex);
             case INTEGER: return row.getLong(columnIndex);
@@ -77,10 +76,10 @@ public class DynamicRealmObject extends RealmObject {
             case STRING: return row.getString(columnIndex);
             case BINARY: return row.getBinaryByteArray(columnIndex);
             case DATE: return row.getDate(columnIndex);
-            case LINK: return getObject(fieldName);
-            case LINK_LIST: return getList(fieldName);
-            case TABLE:
-            case MIXED:
+            case OBJECT: return getObject(fieldName);
+            case LIST: return getList(fieldName);
+            case UNSUPPORTED_TABLE:
+            case UNSUPPORTED_MIXED:
             default:
                 throw new IllegalStateException("Field type not supported: " + type);
         }
@@ -245,10 +244,10 @@ public class DynamicRealmObject extends RealmObject {
      */
     public boolean isNull(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        ColumnType type = row.getColumnType(columnIndex);
+        RealmFieldType type = row.getColumnType(columnIndex);
         switch (type) {
-            case LINK:
-            case LINK_LIST:
+            case OBJECT:
+            case LIST:
                 return row.isNullLink(columnIndex);
             case BOOLEAN:
             case INTEGER:
@@ -257,8 +256,8 @@ public class DynamicRealmObject extends RealmObject {
             case STRING:
             case BINARY:
             case DATE:
-            case TABLE:
-            case MIXED:
+            case UNSUPPORTED_TABLE:
+            case UNSUPPORTED_MIXED:
             default:
                 return false;
         }
@@ -306,8 +305,8 @@ public class DynamicRealmObject extends RealmObject {
 
         // Do implicit conversion if needed
         long columnIndex = row.getColumnIndex(fieldName);
-        ColumnType type = row.getColumnType(columnIndex);
-        if (isString && type != ColumnType.STRING) {
+        RealmFieldType type = row.getColumnType(columnIndex);
+        if (isString && type != RealmFieldType.STRING) {
             switch(type) {
                 case BOOLEAN: value = Boolean.parseBoolean(strValue); break;
                 case INTEGER: value = Long.parseLong(strValue); break;
@@ -540,7 +539,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @return The ColumnType used by Realm to represent this field.
      */
-    public ColumnType getFieldType(String fieldName) {
+    public RealmFieldType getFieldType(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         return row.getColumnType(columnIndex);
     }
@@ -592,7 +591,7 @@ public class DynamicRealmObject extends RealmObject {
         String[] fields = getFieldNames();
         for (String field : fields) {
             long columnIndex = row.getColumnIndex(field);
-            ColumnType type = row.getColumnType(columnIndex);
+            RealmFieldType type = row.getColumnType(columnIndex);
             sb.append("{");
             switch (type) {
                 case BOOLEAN: sb.append(field + ": " + row.getBoolean(columnIndex)); break;
@@ -602,19 +601,19 @@ public class DynamicRealmObject extends RealmObject {
                 case STRING: sb.append(field + ": " + row.getString(columnIndex)); break;
                 case BINARY: sb.append(field + ": " + row.getBinaryByteArray(columnIndex)); break;
                 case DATE: sb.append(field + ": " + row.getDate(columnIndex)); break;
-                case LINK:
+                case OBJECT:
                     if (row.isNullLink(columnIndex)) {
                         sb.append("null");
                     } else {
                         sb.append(field + ": " + row.getTable().getLinkTarget(columnIndex).getName());
                     }
                     break;
-                case LINK_LIST:
+                case LIST:
                     String targetType = row.getTable().getLinkTarget(columnIndex).getName();
                     sb.append(String.format("%s: RealmList<%s>[%s]", field, targetType, row.getLinkList(columnIndex).size()));
                     break;
-                case TABLE:
-                case MIXED:
+                case UNSUPPORTED_TABLE:
+                case UNSUPPORTED_MIXED:
                 default:
                     sb.append(field + ": ?");
             }

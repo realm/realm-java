@@ -27,6 +27,11 @@ public class SharedGroup implements Closeable {
     public static final boolean IMPLICIT_TRANSACTION = true;
     public static final boolean EXPLICIT_TRANSACTION = false;
 
+    private static final boolean CREATE_FILE_YES = false;
+    private static final boolean CREATE_FILE_NO = true;
+    private static final boolean ENABLE_REPLICATION = true;
+    private static final boolean DISABLE_REPLICATION = false;
+
     private final String path;
     private long nativePtr;
     private long nativeReplicationPtr;
@@ -53,7 +58,7 @@ public class SharedGroup implements Closeable {
     public SharedGroup(String databaseFile) {
         context = new Context();
         path = databaseFile;
-        nativePtr = nativeCreate(databaseFile, Durability.FULL.value, false, false, null);
+        nativePtr = nativeCreate(databaseFile, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, null);
         checkNativePtrNotZero();
     }
 
@@ -63,7 +68,7 @@ public class SharedGroup implements Closeable {
             nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
             implicitTransactionsEnabled = true;
         } else {
-            nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, false, false, key);
+            nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, key);
         }
         context = new Context();
         path = canonicalPath;
@@ -77,19 +82,12 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    public SharedGroup(String canonicalPath, Durability durability, boolean fileMustExist) {
-        path = canonicalPath;
-        context = new Context();
-        nativePtr = nativeCreate(canonicalPath, durability.value, fileMustExist, false, null);
-        checkNativePtrNotZero();
-    }
-
     void advanceRead() {
-        nativeAdvanceRead(nativePtr);
+        nativeAdvanceRead(nativePtr, nativeReplicationPtr);
     }
 
     void promoteToWrite() {
-        nativePromoteToWrite(nativePtr);
+        nativePromoteToWrite(nativePtr, nativeReplicationPtr);
     }
 
     void commitAndContinueAsRead() {
@@ -97,7 +95,7 @@ public class SharedGroup implements Closeable {
     }
 
     void rollbackAndContinueAsRead() {
-        nativeRollbackAndContinueAsRead(nativePtr);
+        nativeRollbackAndContinueAsRead(nativePtr, nativeReplicationPtr);
     }
 
     public ImplicitTransaction beginImplicitTransaction() {
@@ -234,10 +232,10 @@ public class SharedGroup implements Closeable {
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
     private native long nativeCreateReplication(String databaseFile, byte[] key);
-    private native void nativeAdvanceRead(long nativePtr);
-    private native void nativePromoteToWrite(long nativePtr);
+    private native void nativeAdvanceRead(long nativePtr, long native_replication_ptr);
+    private native void nativePromoteToWrite(long nativePtr, long native_replication_ptr);
     private native void nativeCommitAndContinueAsRead(long nativePtr);
-    private native void nativeRollbackAndContinueAsRead(long nativePtr);
+    private native void nativeRollbackAndContinueAsRead(long nativePtr, long native_replication_ptr);
     private native long nativeBeginImplicit(long nativePtr);
     private native String nativeGetDefaultReplicationDatabaseFileName();
     private native void nativeReserve(long nativePtr, long bytes);
@@ -249,7 +247,7 @@ public class SharedGroup implements Closeable {
     private native void nativeRollback(long nativePtr);
     private native long nativeCreate(String databaseFile,
                                      int durabilityValue,
-                                     boolean no_create,
+                                     boolean dontCreateFile,
                                      boolean enableReplication,
                                      byte[] key);
     private native boolean nativeCompact(long nativePtr);

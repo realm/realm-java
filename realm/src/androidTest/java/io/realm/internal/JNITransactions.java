@@ -10,6 +10,7 @@ import java.util.Date;
 
 import io.realm.Realm;
 import io.realm.TestHelper;
+import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmException;
 
 public class JNITransactions extends AndroidTestCase {
@@ -42,7 +43,7 @@ public class JNITransactions extends AndroidTestCase {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         WriteTransaction trans = db.beginWrite();
         Table t = trans.getTable("TestTable");
-        t.addColumn(ColumnType.STRING, "colName");
+        t.addColumn(RealmFieldType.STRING, "colName");
         t.setPrimaryKey("colName");
         return t;
     }
@@ -51,7 +52,7 @@ public class JNITransactions extends AndroidTestCase {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         WriteTransaction trans = db.beginWrite();
         Table t = trans.getTable("TestTable");
-        t.addColumn(ColumnType.INTEGER, "colName");
+        t.addColumn(RealmFieldType.INTEGER, "colName");
         t.setPrimaryKey("colName");
         return t;
     }
@@ -65,8 +66,8 @@ public class JNITransactions extends AndroidTestCase {
     protected void writeOneTransaction(SharedGroup db, long rows) {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(ColumnType.STRING, "name");
-        tbl.addColumn(ColumnType.INTEGER, "number");
+        tbl.addColumn(RealmFieldType.STRING, "name");
+        tbl.addColumn(RealmFieldType.INTEGER, "number");
 
 
         for (long row=0; row < rows; row++)
@@ -138,7 +139,7 @@ public class JNITransactions extends AndroidTestCase {
             Table tbl = rt.getTable("EmployeeTable");
             rt.endRead();
             try {
-                tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
+                tbl.addColumn(RealmFieldType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
                 fail();
             } catch (IllegalStateException e) {
                 //assertNotNull(e);
@@ -172,7 +173,7 @@ public class JNITransactions extends AndroidTestCase {
 
         try {
             Table tbl = trans.getTable("EmployeeTable");
-            tbl.addColumn(ColumnType.STRING, "name");
+            tbl.addColumn(RealmFieldType.STRING, "name");
             trans.commit();
             try {
                 trans.commit(); // should throw
@@ -204,8 +205,8 @@ public class JNITransactions extends AndroidTestCase {
         {
             WriteTransaction trans = db.beginWrite();
             Table tbl = trans.getTable("EmployeeTable");
-            tbl.addColumn(ColumnType.STRING, "name");
-            tbl.addColumn(ColumnType.INTEGER, "number");
+            tbl.addColumn(RealmFieldType.STRING, "name");
+            tbl.addColumn(RealmFieldType.INTEGER, "number");
 
             // allow commit before any changes
             assertEquals(0, tbl.size());
@@ -244,11 +245,8 @@ public class JNITransactions extends AndroidTestCase {
         ReadTransaction t = db.beginRead();
         Table table = t.getTable("EmployeeTable");
 
-        try { table.addAt(0, 0, false);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.add(0, false);                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.addEmptyRow();                  fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.addEmptyRows(1);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
-        try { table.adjust(0,0);                    fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.clear();                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.clearSubtable(0,0);             fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { table.optimize();                     fail();} catch (IllegalStateException e) {assertNotNull(e);}
@@ -268,7 +266,6 @@ public class JNITransactions extends AndroidTestCase {
         try { q.remove(0,0);                        fail();} catch (IllegalStateException e) {assertNotNull(e);}
 
         TableView v = q.findAll();
-        try { v.adjust(0, 0);                       fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.clear();                            fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.clearSubtable(0, 0);                fail();} catch (IllegalStateException e) {assertNotNull(e);}
         try { v.remove(0);                          fail();} catch (IllegalStateException e) {assertNotNull(e);}
@@ -289,8 +286,8 @@ public class JNITransactions extends AndroidTestCase {
 
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(ColumnType.STRING, "name");
-        tbl.addColumn(ColumnType.INTEGER, "number");
+        tbl.addColumn(RealmFieldType.STRING, "name");
+        tbl.addColumn(RealmFieldType.INTEGER, "number");
         tbl.setPrimaryKey("name");
 
         tbl.add("Foo", 42);
@@ -316,7 +313,7 @@ public class JNITransactions extends AndroidTestCase {
 
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(ColumnType.STRING, "name");
+        tbl.addColumn(RealmFieldType.STRING, "name");
         tbl.setPrimaryKey("name");
 
         // Create first entry with name "foo"

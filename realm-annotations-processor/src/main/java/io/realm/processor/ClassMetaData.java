@@ -296,10 +296,10 @@ public class ClassMetaData {
                     // STRING, DATE, INTEGER, BOOLEAN
                     String elementTypeCanonicalName = variableElement.asType().toString();
                     String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
-                    if (columnType != null && (columnType.equals("ColumnType.STRING") ||
-                            columnType.equals("ColumnType.DATE") ||
-                            columnType.equals("ColumnType.INTEGER") ||
-                            columnType.equals("ColumnType.BOOLEAN"))) {
+                    if (columnType != null && (columnType.equals("RealmFieldType.STRING") ||
+                            columnType.equals("RealmFieldType.DATE") ||
+                            columnType.equals("RealmFieldType.INTEGER") ||
+                            columnType.equals("RealmFieldType.BOOLEAN"))) {
                         indexedFields.add(variableElement);
                     } else {
                         Utils.error("@Index is not applicable to this field " + element + ".");

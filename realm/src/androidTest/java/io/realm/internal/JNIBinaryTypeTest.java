@@ -2,6 +2,8 @@ package io.realm.internal;
 
 import junit.framework.TestCase;
 
+import io.realm.RealmFieldType;
+
 public class JNIBinaryTypeTest extends TestCase {
 
     protected Table table;
@@ -13,7 +15,7 @@ public class JNIBinaryTypeTest extends TestCase {
         //util.setDebugLevel(0); //Set to 1 to see more JNI debug messages
 
         table = new Table();
-        table.addColumn(ColumnType.BINARY, "bin");
+        table.addColumn(RealmFieldType.BINARY, "bin");
     }
 
     @Override

@@ -105,7 +105,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     }
 
     // Test that all getters fail if given invalid field name
-    public void testSetXXXIllegalFieldnameThrows() {
+    public void testSetXXXIllegalFieldNameThrows() {
 
         // Set arguments
         String linkedField = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING;

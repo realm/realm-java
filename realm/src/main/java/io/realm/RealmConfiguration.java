@@ -283,6 +283,10 @@ public class RealmConfiguration {
 
         /**
          * Sets the 64 bit key used to encrypt and decrypt the Realm file.
+         * <p>
+         * Note that a few older devices do not support the encryption used by Realm. These devices will instead throw a
+         * {@link io.realm.exceptions.RealmEncryptionNotSupportedException } when the Realm is opened. See
+         * {@link io.realm.exceptions.RealmEncryptionNotSupportedException } for further details.
          */
         public Builder encryptionKey(byte[] key) {
             if (key == null) {

@@ -35,22 +35,24 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -126,6 +128,13 @@ public final class Realm extends BaseRealm {
                 }
             };
 
+    // List of Realm files that has already been validated
+    private static final Set<String> validatedRealmFiles = new HashSet<String>();
+
+    // Caches Class objects (both model classes and proxy classes) to Realm Tables
+    private final Map<Class<? extends RealmObject>, Table> classToTable =
+            new HashMap<Class<? extends RealmObject>, Table>();
+
     private static RealmConfiguration defaultConfiguration;
 
     /**
@@ -134,6 +143,7 @@ public final class Realm extends BaseRealm {
      * @param configuration Configuration used to open the Realm.
      * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
@@ -195,6 +205,7 @@ public final class Realm extends BaseRealm {
      *
      * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
      * model classes or version has has changed so a migration is required.
+     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
@@ -225,10 +236,12 @@ public final class Realm extends BaseRealm {
         defaultConfiguration = null;
     }
 
-    private static Realm create(RealmConfiguration configuration) {
+    private static synchronized Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
-            return createAndValidate(configuration, true, autoRefresh);
+            boolean validateSchema = !validatedRealmFiles.contains(configuration.getPath());
+            return createAndValidate(configuration, validateSchema, autoRefresh);
+
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
                 deleteRealm(configuration);
@@ -277,11 +290,11 @@ public final class Realm extends BaseRealm {
             long requiredVersion = configuration.getSchemaVersion();
             if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && validateSchema) {
                 realm.close();
-                throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disc need to migrate from v%s to v%s", currentVersion, requiredVersion));
+                throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
             }
             if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && validateSchema) {
                 realm.close();
-                throw new IllegalArgumentException(String.format("Realm on disc is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+                throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
             }
 
             // Initialize Realm schema if needed
@@ -318,6 +331,7 @@ public final class Realm extends BaseRealm {
                 mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction());
                 realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
             }
+            validatedRealmFiles.add(realm.getPath());
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction();
@@ -680,7 +694,7 @@ public final class Realm extends BaseRealm {
      * @param clazz The Class of the object to create
      * @param primaryKeyValue Value for the primary key field.
      * @return The new object
-     * @throws @link RealmException} if object could not be created.
+     * @throws RealmException if object could not be created.
      */
     <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = getTable(clazz);
@@ -808,21 +822,20 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz the Class to get objects of.
      * @param fieldName the field name to sort by.
-     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param sortOrder how to sort the results.
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName,
-                                                                    boolean sortAscending) {
+                                                                    Sort sortOrder) {
         checkIfValid();
         Table table = getTable(clazz);
-        TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
         long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
 
-        TableView tableView = table.getSortedView(columnIndex, order);
+        TableView tableView = table.getSortedView(columnIndex, sortOrder);
         return new RealmResults<E>(this, tableView, clazz);
     }
 
@@ -834,17 +847,17 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
-     * @param sortAscending1 sort order for first field.
+     * @param sortOrder1 sort order for first field.
      * @param fieldName2 second field name to sort by.
-     * @param sortAscending2 sort order for second field.
+     * @param sortOrder2 sort order for second field.
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
-                                                                    boolean sortAscending1, String fieldName2,
-                                                                    boolean sortAscending2) {
-        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new boolean[]{sortAscending1,
-                sortAscending2});
+                                                                    Sort sortOrder1, String fieldName2,
+                                                                    Sort sortOrder2) {
+        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1,
+                sortOrder2});
     }
 
     /**
@@ -854,20 +867,20 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
-     * @param sortAscending1 sort order for first field.
+     * @param sortOrder1 sort order for first field.
      * @param fieldName2 second field name to sort by.
-     * @param sortAscending2 sort order for second field.
+     * @param sortOrder2 sort order for second field.
      * @param fieldName3 third field name to sort by.
-     * @param sortAscending3 sort order for third field.
+     * @param sortOrder3 sort order for third field.
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
-                                                                    boolean sortAscending1,
-                                                                    String fieldName2, boolean sortAscending2,
-                                                                    String fieldName3, boolean sortAscending3) {
+                                                                    Sort sortOrder1,
+                                                                    String fieldName2, Sort sortOrder2,
+                                                                    String fieldName3, Sort sortOrder3) {
         return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2, fieldName3},
-                new boolean[]{sortAscending1, sortAscending2, sortAscending3});
+                new Sort[]{sortOrder1, sortOrder2, sortOrder3});
     }
 
     /**
@@ -876,7 +889,7 @@ public final class Realm extends BaseRealm {
      * objects instead.
      *
      * @param clazz the Class to get objects of.
-     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
      * @param fieldNames an array of field names to sort objects by.
      *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
      * @return A sorted RealmResults containing the objects.
@@ -884,11 +897,11 @@ public final class Realm extends BaseRealm {
      */
     @SuppressWarnings("unchecked")
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
-                                                                    boolean sortAscending[]) {
+                                                                    Sort sortOrders[]) {
         if (fieldNames == null) {
             throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortAscending == null) {
-            throw new IllegalArgumentException("sortAscending must be provided.");
+        } else if (sortOrders == null) {
+            throw new IllegalArgumentException("sortOrders must be provided.");
         }
 
         // Convert field names to column indices
@@ -904,7 +917,7 @@ public final class Realm extends BaseRealm {
         }
 
         // Perform sort
-        TableView tableView = table.getSortedView(columnIndices, sortAscending);
+        TableView tableView = table.getSortedView(columnIndices, sortOrders);
         return new RealmResults(this, tableView, clazz);
     }
 
@@ -957,27 +970,6 @@ public final class Realm extends BaseRealm {
         getTable(clazz).clear();
     }
 
-    // Returns the Handler for this Realm on the calling thread
-    Handler getHandler() {
-        String realmPath = configuration.getPath();
-        for (Map.Entry<Handler, String> entry : handlers.entrySet()) {
-            if (entry.getValue().equals(realmPath)) {
-                return entry.getKey();
-            }
-        }
-        return null;
-    }
-
-    // package protected so unit tests can access it
-    void setVersion(long version) {
-        Table metadataTable = sharedGroupManager.getTable("metadata");
-        if (metadataTable.getColumnCount() == 0) {
-            metadataTable.addColumn(ColumnType.INTEGER, "version");
-            metadataTable.addEmptyRow();
-        }
-        metadataTable.setLong(0, 0, version);
-    }
-
     @SuppressWarnings("unchecked")
     private <E extends RealmObject> Class<? extends RealmObject> getRealmClassFromObject(E object) {
         if (object.realm != null) {
@@ -1020,6 +1012,7 @@ public final class Realm extends BaseRealm {
 
     @Override
     protected void lastLocalInstanceClosed() {
+        validatedRealmFiles.remove(configuration.getPath());
         realmsCache.get().remove(configuration);
     }
 
@@ -1040,26 +1033,18 @@ public final class Realm extends BaseRealm {
      * configuration.
      */
     public synchronized static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
-        if (configuration == null) {
-            throw new IllegalArgumentException("RealmConfiguration must be provided");
-        }
-        if (migration == null && configuration.getMigration() == null) {
-            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
-        }
+        BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
 
-        RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
-        Realm realm = null;
-        try {
-            realm = Realm.createAndValidate(configuration, false, Looper.myLooper() != null);
-            realm.beginTransaction();
-            realm.setVersion(realmMigration.execute(realm, realm.getVersion()));
-            realm.commitTransaction();
-        } finally {
-            if (realm != null) {
-                realm.close();
+            @Override
+            public BaseRealm getRealm(RealmConfiguration configuration) {
+                return Realm.createAndValidate(configuration, false, Looper.myLooper() != null);
+           }
+
+            @Override
+            public void migrationComplete() {
                 realmsCache.remove();
             }
-        }
+        });
     }
 
     /**
@@ -1071,32 +1056,8 @@ public final class Realm extends BaseRealm {
      *
      * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
-    public static synchronized boolean deleteRealm(RealmConfiguration configuration) {
-        if (isFileOpen(configuration)) {
-            throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
-                    "Remember to close() all the instances of the Realm before deleting its file.");
-        }
-
-        boolean realmDeleted = true;
-        String canonicalPath = configuration.getPath();
-        File realmFolder = configuration.getRealmFolder();
-        String realmFileName = configuration.getRealmFileName();
-        List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
-                new File(realmFolder, realmFileName + ".lock"),
-                new File(realmFolder, realmFileName + ".lock_a"),
-                new File(realmFolder, realmFileName + ".lock_b"),
-                new File(realmFolder, realmFileName + ".log"));
-        for (File fileToDelete : filesToDelete) {
-            if (fileToDelete.exists()) {
-                boolean deleteResult = fileToDelete.delete();
-                if (!deleteResult) {
-                    realmDeleted = false;
-                    RealmLog.w("Could not delete the file " + fileToDelete);
-                }
-            }
-        }
-
-        return realmDeleted;
+    public static boolean deleteRealm(RealmConfiguration configuration) {
+        return BaseRealm.deleteRealm(configuration);
     }
 
     /**
@@ -1114,15 +1075,7 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
-        if (configuration.getEncryptionKey() != null) {
-            throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
-        }
-
-        if (isFileOpen(configuration)) {
-            throw new IllegalStateException("Cannot compact an open Realm");
-        }
-
-        return SharedGroupManager.compact(configuration);
+        return BaseRealm.compactRealm(configuration);
     }
 
     // Get the canonical path for a given file
@@ -1132,6 +1085,22 @@ public final class Realm extends BaseRealm {
         } catch (IOException e) {
             throw new RealmException("Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath());
         }
+    }
+
+    // Return all handlers registered for this Realm
+    static Map<Handler, String> getHandlers() {
+        return handlers;
+    }
+
+    // Public because of migrations
+    public Table getTable(Class<? extends RealmObject> clazz) {
+        Table table = classToTable.get(clazz);
+        if (table == null) {
+            clazz = Util.getOriginalModelClass(clazz);
+            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            classToTable.put(clazz, table);
+        }
+        return table;
     }
 
     /**

@@ -1,8 +1,23 @@
 0.83
+ * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants
+   has been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
+ * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants has been
+   replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
+ * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
+ * Added support for x86_64.
+ * Fixed an issue where opening the same Realm file on two Looper threads could potentially lead to an IllegalStateException being thrown.
+ * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
+ * Fixed an issue preventing the call of listeners on refresh().
+
+0.82.2
  * Fixed a bug which might cause failure when loading the native library.
  * Fixed a bug which might trigger a timeout in Context.finalize().
  * Fixed a bug which might cause RealmObject.isValid() to throw an exception if the object is deleted.
+ * Updated Realm core to version 0.89.9
+   - Fixed a potential stack overflow issue which might cause a crash when encryption was used.
+   - Embedded crypto functions into Realm dynamic lib to avoid random issues on some devices.
+   - Throw RealmEncryptionNotSupportedException if the device doesn't support Realm encryption. At least one device type (HTC One X) contains system bugs that prevents Realm's encryption from functioning properly. This is now detected, and an exception is thrown when trying to open/create an encrypted Realm file. It's up to the application to catch this and decide if it's OK to proceed without encryption instead.
 
 0.82.1
  * Fixed a bug where using the wrong encryption key first caused the right key to be seen as invalid.
@@ -10,13 +25,13 @@
  * Fixed a bug when calling System.exit(0), the process might hang.
 
 0.82
+ * BREAKING CHANGE: Fields with annotation @PrimaryKey are indexed automatically now. Older schemas require a migration.
  * RealmConfiguration.setModules() now accept ignore null values which Realm.getDefaultModule() might return.
  * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
  * Added in-memory Realm support.
  * Closing realm on another thread different from where it was created now throws an exception.
  * Realm will now throw a RealmError when Realm's underlying storage engine encounters an unrecoverable error.
  * @Index annotation can also be applied to byte/short/int/long/boolean/Date now.
- * BREAKING CHANGE: Fields with annotation @PrimaryKey are indexed automatically now. Older schemas require a migration.
  * Fixed a bug where RealmQuery objects are prematurely garbage collected.
  * Removed RealmQuery.between() for link queries.
 
@@ -163,9 +178,7 @@
     and dates after 2038-01-19 are not supported on 32 bit systems
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying
-
-
-
+  
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes
