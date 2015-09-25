@@ -60,8 +60,6 @@ public class RealmQuery<E extends RealmObject> {
     private LinkView view;
     private TableQuery query;
 
-    private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
-
     // Factory constructors
 
     /**
@@ -95,7 +93,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmObject> RealmQuery<E> createSubquery(RealmResults<E> queryResults) {
+    public static <E extends RealmObject> RealmQuery<E> createSubQuery(RealmResults<E> queryResults) {
         if (queryResults.classSpec != null) {
             return new RealmQuery(queryResults, queryResults.classSpec);
         } else {
@@ -110,7 +108,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
-    public static <E extends RealmObject> RealmQuery<E> createSubquery(RealmList<E> list) {
+    public static <E extends RealmObject> RealmQuery<E> createSubQuery(RealmList<E> list) {
         if (list.clazz != null) {
             return new RealmQuery(list.realm, list.view, list.clazz);
         } else {

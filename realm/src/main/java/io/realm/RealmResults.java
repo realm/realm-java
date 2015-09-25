@@ -88,7 +88,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public RealmQuery<E> where() {
         realm.checkIfValid();
-        return RealmQuery.createSubquery(this);
+        return RealmQuery.createSubQuery(this);
     }
 
     /**

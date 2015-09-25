@@ -132,7 +132,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Add a change listener to the Realm.
-     * <p>
+     * <p/>
      * The listeners will be executed:
      * <ul>
      * <li>Immediately if a change was committed by the local thread</li>
@@ -221,9 +221,9 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Write a compacted copy of the Realm to the given destination File.
-     * <p>
+     * <p/>
      * The destination file cannot already exist.
-     * <p>
+     * <p/>
      * Note that if this is called from within a write transaction it writes the
      * current data, and not the data as it was when the last write transaction was committed.
      *
@@ -236,12 +236,12 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Write a compacted and encrypted copy of the Realm to the given destination File.
-     * <p>
+     * <p/>
      * The destination file cannot already exist.
-     * <p>
+     * <p/>
      * Note that if this is called from within a write transaction it writes the
      * current data, and not the data as it was when the last write transaction was committed.
-     * <p>
+     * <p/>
      *
      * @param destination File to save the Realm to
      * @throws java.io.IOException                  if any write operation fails
@@ -385,7 +385,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Closes the Realm instance and all its resources.
-     * <p>
+     * <p/>
      * It's important to always remember to close Realm instances when you're done with it in order
      * not to leak memory, file descriptors or grow the size of Realm file out of measure.
      *
