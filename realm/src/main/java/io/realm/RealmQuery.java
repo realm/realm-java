@@ -1171,11 +1171,11 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find the minimum value of a field.
      *
-     * @param fieldName   The field to look for a minimum on. Only int, float, and double
+     * @param fieldName   The field to look for a minimum on. Only integer and floating-point fields
      *                    are supported.
      * @return            If the given field has 0 rows or all rows with null values, {@code null} will be returned.
      *                    Otherwise return the minimum value.
-     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if type of the field is not integer or floating-point.
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
@@ -1248,11 +1248,11 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find the maximum value of a field.
      *
-     * @param fieldName   The field to look for a maximum on. Only int, float, and double
+     * @param fieldName   The field to look for a maximum on. Only integer or floating-point fields
      *                    are supported.
      * @return If the given field has 0 rows or all rows with {@code null} values, {@code null} will be returned.
      *         Otherwise return the maximum value.
-     * @throws java.lang.IllegalArgumentException if field is not int, float or double.
+     * @throws java.lang.IllegalArgumentException if the type of the field is integer or floating-point.
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
