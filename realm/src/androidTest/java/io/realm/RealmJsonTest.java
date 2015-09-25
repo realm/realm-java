@@ -446,7 +446,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.copyToRealm(obj);
         testRealm.commitTransaction();
 
-        InputStream in = loadJsonFromAssets("all_types_primary_key_only.json");
+        InputStream in = loadJsonFromAssets("all_types_primary_key_field_only.json");
         testRealm.beginTransaction();
         testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, in);
         testRealm.commitTransaction();
@@ -482,7 +482,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.copyToRealm(obj);
         testRealm.commitTransaction();
 
-        String json = TestHelper.streamToString(loadJsonFromAssets("all_types_primary_key_only.json"));
+        String json = TestHelper.streamToString(loadJsonFromAssets("all_types_primary_key_field_only.json"));
         testRealm.beginTransaction();
         testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
         testRealm.commitTransaction();
