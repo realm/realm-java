@@ -898,27 +898,11 @@ public final class Realm extends BaseRealm {
     @SuppressWarnings("unchecked")
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                     Sort sortOrders[]) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortOrders == null) {
-            throw new IllegalArgumentException("sortOrders must be provided.");
-        }
-
-        // Convert field names to column indices
+        checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(clazz);
-        long columnIndices[] = new long[fieldNames.length];
-        for (int i = 0; i < fieldNames.length; i++) {
-            String fieldName = fieldNames[i];
-            long columnIndex = table.getColumnIndex(fieldName);
-            if (columnIndex == -1) {
-                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-            }
-            columnIndices[i] = columnIndex;
-        }
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        // Perform sort
-        TableView tableView = table.getSortedView(columnIndices, sortOrders);
-        return new RealmResults(this, tableView, clazz);
+        return new RealmResults(this, tableView, DynamicRealmObject.class);
     }
 
     /**
@@ -929,11 +913,6 @@ public final class Realm extends BaseRealm {
      */
     protected List<WeakReference<RealmChangeListener>> getChangeListeners() {
         return changeListeners;
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    boolean hasChanged() {
-        return sharedGroupManager.hasChanged();
     }
 
     /**

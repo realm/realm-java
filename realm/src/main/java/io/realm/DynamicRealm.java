@@ -26,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
+import io.realm.internal.TableView;
 import io.realm.internal.UncheckedRow;
 
 /**
@@ -106,6 +107,116 @@ public class DynamicRealm extends BaseRealm {
         return RealmQuery.createDynamicQuery(this, className);
     }
 
+    /**
+     * Removes all objects of the specified class.
+     *
+     * @param className The class for which all objects should be removed.
+     */
+    public void clear(String className) {
+        getTable(className).clear();
+    }
+
+    /**
+     * Executes a given transaction on the DynamicRealm. {@link #beginTransaction()} and
+     * {@link #commitTransaction()} will be called automatically. If any exception is thrown
+     * during the transaction {@link #cancelTransaction()} will be called instead of {@link #commitTransaction()}.
+     *
+     * @param transaction {@link io.realm.DynamicRealm.Transaction} to execute.
+     * @throws RealmException if any error happened during the transaction.
+     */
+    public void executeTransaction(Transaction transaction) {
+        if (transaction == null)
+            return;
+        beginTransaction();
+        try {
+            transaction.execute(this);
+            commitTransaction();
+        } catch (RuntimeException e) {
+            cancelTransaction();
+            throw new RealmException("Error during transaction.", e);
+        } catch (Error e) {
+            cancelTransaction();
+            throw e;
+        }
+    }
+
+    /**
+     * Get all objects of a specific class name.
+     *
+     * @param className the Class to get objects of
+     * @return A RealmResult list containing the objects. If no results where found, an empty list
+     * will be returned.
+     * @see io.realm.RealmResults
+     */
+    public RealmResults<DynamicRealmObject> allObjects(String className) {
+        return where(className).findAll();
+    }
+
+    /**
+     * Get all objects of a specific class name sorted by a field.  If no objects exist, the returned
+     * RealmResults will not be null. The RealmResults.size() to check the number of objects instead.
+     *
+     * @param className The class to get all objects from.
+     * @param fieldName the field name to sort by.
+     * @param sortOrder how to sort the results.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     */
+    public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName, Sort sortOrder) {
+        checkIfValid();
+        Table table = getTable(className);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        TableView tableView = table.getSortedView(columnIndex, sortOrder);
+        return new RealmResults<DynamicRealmObject>(this, tableView, DynamicRealmObject.class);
+    }
+
+
+    /**
+     * Get all objects of a specific class name sorted by two specific field names.  If no objects exist,
+     * the returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * objects instead.
+
+     * @param className The class to get all objects from.
+     * @param fieldName1 The first field name to sort by.
+     * @param sortOrder1 How to sort the first field.
+     * @param fieldName2 The second field name to sort by.
+     * @param sortOrder2 How to sort the second field.
+     * @return A sorted RealmResults containing the objects. If no results where found an empty list
+     * is returned.
+     * @throws java.lang.IllegalArgumentException if a field name used for sorting does not exist.
+     */
+    public <E extends RealmObject> RealmResults<E> allObjectsSorted(String className, String fieldName1,
+                                                                    Sort sortOrder1, String fieldName2,
+                                                                    Sort sortOrder2) {
+        return allObjectsSorted(className, new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1,
+                sortOrder2});
+    }
+
+    /**
+     * Get all objects of a specific class name sorted by multiple fields.  If no objects exist, the
+     * returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * objects instead.
+     *
+     * @param className The class to get all objects from.
+     * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param fieldNames an array of field names to sort objects by.
+     *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
+     * @return A sorted RealmResults containing the objects.
+     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     */
+    @SuppressWarnings("unchecked")
+    public <E extends RealmObject> RealmResults<E> allObjectsSorted(String className, String fieldNames[],
+                                                                    Sort sortOrders[]) {
+        checkAllObjectsSortedParameters(fieldNames, sortOrders);
+        Table table = this.getTable(className);
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
+
+        return new RealmResults(this, tableView, DynamicRealmObject.class);
+    }
 
     private static synchronized DynamicRealm create(RealmConfiguration configuration) {
 
@@ -151,6 +262,17 @@ public class DynamicRealm extends BaseRealm {
     @Override
     protected Map<RealmConfiguration, Integer> getLocalReferenceCount() {
         return referenceCount.get();
+    }
+
+    /**
+     * Encapsulates a Realm transaction.
+     * <p>
+     * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()}
+     * If any exception is thrown during the transaction {@link #cancelTransaction()} will be called
+     * instead of {@link #commitTransaction()}.
+     */
+    public interface Transaction {
+        void execute(DynamicRealm realm);
     }
 }
 

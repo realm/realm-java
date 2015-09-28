@@ -40,6 +40,7 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
+import io.realm.internal.TableView;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
@@ -488,6 +489,10 @@ abstract class BaseRealm implements Closeable {
         return table;
     }
 
+    boolean hasChanged() {
+        return sharedGroupManager.hasChanged();
+    }
+
     // package protected so unit tests can access it
     void setVersion(long version) {
         Table metadataTable = sharedGroupManager.getTable("metadata");
@@ -496,6 +501,32 @@ abstract class BaseRealm implements Closeable {
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
+    }
+
+    /**
+     * Sort a table using the given field names and sorting directions. If a field name doesn not
+     * exist in the table an {@link IllegalArgumentException} will be thrown.
+     */
+    protected TableView doMultiFieldSort(String[] fieldNames, Sort sortOrders[], Table table) {
+        long columnIndices[] = new long[fieldNames.length];
+        for (int i = 0; i < fieldNames.length; i++) {
+            String fieldName = fieldNames[i];
+            long columnIndex = table.getColumnIndex(fieldName);
+            if (columnIndex == -1) {
+                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+            }
+            columnIndices[i] = columnIndex;
+        }
+
+        return table.getSortedView(columnIndices, sortOrders);
+    }
+
+    protected void checkAllObjectsSortedParameters(String[] fieldNames, Sort[] sortOrders) {
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames must be provided.");
+        } else if (sortOrders == null) {
+            throw new IllegalArgumentException("sortOrders must be provided.");
+        }
     }
 
     /**
