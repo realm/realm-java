@@ -53,8 +53,6 @@ public class RealmResultsTest extends AndroidTestCase {
     protected void setUp() throws InterruptedException {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
         Realm.deleteRealm(realmConfig);
-        testRealm = Realm.getInstance(realmConfig);
-        populateTestRealm();
     }
 
     private void populateTestRealm(int objects) {
@@ -75,11 +73,15 @@ public class RealmResultsTest extends AndroidTestCase {
             d.setName("Foo " + i);
             allTypes.setColumnRealmObject(d);
             allTypes.getColumnRealmList().add(d);
-            NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
-            nonLatinFieldNames.set델타(i);
-            nonLatinFieldNames.setΔέλτα(i);
         }
         testRealm.commitTransaction();
+    }
+
+    @Override
+    protected void setUp() throws InterruptedException {
+        Realm.deleteRealmFile(getContext());
+        testRealm = Realm.getInstance(getContext());
+        populateTestRealm();
     }
 
     private void populateTestRealm() {
@@ -90,7 +92,6 @@ public class RealmResultsTest extends AndroidTestCase {
     protected void tearDown() throws Exception {
         testRealm.close();
     }
-
 
     public void testMethodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
         for (Method method : Method.values()) {
@@ -232,6 +233,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testSumGivesCorrectValueWithNonLatinColumnNames() {
+        TestHelper.populateTestRealmWithNonLatinData(testRealm, TEST_DATA_SIZE);
         RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).findAll();
 
         Number sum = resultList.sum(FIELD_KOREAN_CHAR);

@@ -25,6 +25,7 @@ public class AnnotationNameConventions extends RealmObject {
     private boolean isObject;
     private boolean hasObject;
     private long mObject;
+    private long _id;
 
     public long getId_object() {
         return id_object;
@@ -64,5 +65,13 @@ public class AnnotationNameConventions extends RealmObject {
 
     public void setmObject(long mObject) {
         this.mObject = mObject;
+    }
+
+    public long get_id() {
+        return _id;
+    }
+
+    public void set_id(long _id) {
+        this._id = _id;
     }
 }

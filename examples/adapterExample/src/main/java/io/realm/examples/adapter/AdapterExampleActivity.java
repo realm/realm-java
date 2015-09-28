@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package io.realm.examples.realmadapters;
+package io.realm.examples.adapter;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Message;
 import android.view.Menu;
@@ -28,7 +29,7 @@ import android.widget.ListView;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
-import io.realm.examples.realmadapters.models.TimeStamp;
+import io.realm.examples.adapter.models.TimeStamp;
 
 
 public class AdapterExampleActivity extends Activity {
@@ -82,18 +83,26 @@ public class AdapterExampleActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.my, menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_add) {
-            Message message = buildMessage(WorkerHandler.ADD_TIMESTAMP, Long.toString(System.currentTimeMillis()));
-            workerThread.workerHandler.sendMessage(message);
+        switch(id) {
+            case R.id.action_add:
+                Message message = buildMessage(WorkerHandler.ADD_TIMESTAMP, Long.toString(System.currentTimeMillis()));
+                workerThread.workerHandler.sendMessage(message);
+                return true;
+
+            case R.id.action_cursorexample:
+                Intent intent = new Intent(this, ContentProviderExampleActivity.class);
+                startActivity(intent);
+                return true;
         }
-        return true;
+
+        return super.onOptionsItemSelected(item);
     }
 
     private static Message buildMessage(int action, String timeStamp) {
