@@ -39,8 +39,8 @@ public enum RealmFieldType {
     FLOAT(9),
     DOUBLE(10),
     OBJECT(12),
-    LIST(13),
-    BACKLINK(14);
+    LIST(13);
+    // BACKLINK(14); Not exposed until needed
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static RealmFieldType[] typeList = new RealmFieldType[15];

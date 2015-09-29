@@ -34,7 +34,7 @@ public class DynamicRealmObject extends RealmObject {
      * Creates a dynamic Realm object based on a existing object.
      *
      * @param obj Realm object to convert to a dynamic object. Only objects managed by Realm can be used.
-     * @throws IllegalArgumentException if object isn't managed by a Realm.
+     * @throws IllegalArgumentException if object isn't managed by Realm.
      */
     public DynamicRealmObject(RealmObject obj) {
         if (obj == null) {
@@ -42,10 +42,11 @@ public class DynamicRealmObject extends RealmObject {
         }
         Row row = obj.row;
         if (row == null) {
-            throw new IllegalArgumentException("A object managed by Realm must be provided. This is a standalone object.");
+            throw new IllegalArgumentException("A object managed by Realm must be provided. This " +
+                    "is a standalone object.");
         }
         this.realm = obj.realm;
-        this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
+        this.row = (row instanceof CheckedRow) ? row : ((UncheckedRow) row).convertToChecked();
     }
 
     // Create a dynamic object. Only used internally
@@ -299,6 +300,7 @@ public class DynamicRealmObject extends RealmObject {
      * to the appropriate input type.
      * @throws NumberFormatException if a String based number cannot be converted properly.
      */
+    @SuppressWarnings("unchecked")
     public void set(String fieldName, Object value) {
         boolean isString = (value instanceof String);
         String strValue = isString ? (String) value : null;
@@ -319,8 +321,10 @@ public class DynamicRealmObject extends RealmObject {
             }
         }
 
-        // Handle setters as normal
-        if (value instanceof Boolean) {
+        if (value == null) {
+            row.nullifyLink(row.getColumnIndex(fieldName));
+            // TODO Add support for other types when Null is merged.
+        } else if (value instanceof Boolean) {
             setBoolean(fieldName, (Boolean) value);
         } else if (value instanceof Short) {
             setShort(fieldName, (Short) value);
@@ -343,7 +347,15 @@ public class DynamicRealmObject extends RealmObject {
         } else if (value instanceof DynamicRealmObject) {
             setObject(fieldName, (DynamicRealmObject) value);
         } else if (value instanceof RealmList) {
-            setList(fieldName, (RealmList<DynamicRealmObject>) value);
+            // We need to verify that the list only contain DynamicRealmObjects.
+            // No real way of verifying the generic type, so just catch the exception if it happens
+            // and convert it to something nicer.
+            try {
+                setList(fieldName, (RealmList<DynamicRealmObject>) value);
+            } catch (ClassCastException e) {
+                throw new IllegalArgumentException("Only RealmList containg DynamicRealmObjects " +
+                        "can be added.");
+            }
         } else {
             throw new IllegalArgumentException("Value is of an type not supported by Realm: " + value);
         }
