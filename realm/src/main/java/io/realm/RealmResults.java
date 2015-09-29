@@ -55,19 +55,46 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     BaseRealm realm;
     Class<E> classSpec;   // Return type
-    String className;     // Class name for DynamicRealmObjects
+    String className;     // Class name for DynamicRealmObjects -> TODO This is not set properly
     private TableOrView table = null;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private long currentTableViewVersion = -1;
 
-    RealmResults(BaseRealm realm, Class<E> classSpec) {
+
+    static <E extends RealmObject> RealmResults<E> createFromClass(BaseRealm realm, Class<E> clazz) {
+        return new RealmResults<E>(realm, clazz);
+    }
+
+    static <E extends RealmObject> RealmResults<E> createFromQuery(BaseRealm realm, TableOrView table, Class<E> clazz) {
+        return new RealmResults<E>(realm, table, clazz);
+    }
+
+    static RealmResults<DynamicRealmObject> createFromDynamicClass(BaseRealm realm, String className) {
+        return new RealmResults<DynamicRealmObject>(realm, className);
+    }
+
+    static RealmResults<DynamicRealmObject> createFromDynamicQuery(BaseRealm realm, TableOrView table, String className) {
+        return new RealmResults<DynamicRealmObject>(realm, table, className);
+    }
+
+    private RealmResults(BaseRealm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
     }
 
-    RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
+    private RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
         this(realm, classSpec);
+        this.table = table;
+    }
+
+    private RealmResults(BaseRealm realm, String className) {
+        this.realm = realm;
+        this.className = className;
+    }
+
+    private RealmResults(BaseRealm realm, TableOrView table, String className) {
+        this(realm, className);
         this.table = table;
     }
 

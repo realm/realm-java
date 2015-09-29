@@ -684,21 +684,18 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testFindAllSorted() {
-        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG,
-                Sort.ASCENDING);
+        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, allTypes.size());
         assertEquals(0, allTypes.first().getColumnLong());
         assertEquals(TEST_DATA_SIZE - 1, allTypes.last().getColumnLong());
 
-        RealmResults<AllTypes> reverseList = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG,
-                Sort.DESCENDING);
+        RealmResults<AllTypes> reverseList = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals(0, reverseList.last().getColumnLong());
         assertEquals(TEST_DATA_SIZE - 1, reverseList.first().getColumnLong());
 
         try {
-            RealmResults<AllTypes> none = testRealm.where(AllTypes.class).findAllSorted("invalid",
-                    Sort.DESCENDING);
+            RealmResults<AllTypes> none = testRealm.where(AllTypes.class).findAllSorted("invalid", Sort.DESCENDING);
             fail();
         } catch (IllegalArgumentException ignored) {}
     }

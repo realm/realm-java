@@ -836,7 +836,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return new RealmResults<E>(this, tableView, clazz);
+        return RealmResults.createFromQuery(this, tableView, clazz);
     }
 
 
@@ -902,7 +902,7 @@ public final class Realm extends BaseRealm {
         Table table = this.getTable(clazz);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return new RealmResults(this, tableView, DynamicRealmObject.class);
+        return RealmResults.createFromQuery(this, tableView, clazz);
     }
 
     /**

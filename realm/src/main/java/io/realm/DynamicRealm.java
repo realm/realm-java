@@ -27,7 +27,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
-import io.realm.internal.UncheckedRow;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -171,7 +170,7 @@ public class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return new RealmResults<DynamicRealmObject>(this, tableView, DynamicRealmObject.class);
+        return RealmResults.createFromDynamicQuery(this, tableView, className);
     }
 
 
@@ -189,7 +188,7 @@ public class DynamicRealm extends BaseRealm {
      * is returned.
      * @throws java.lang.IllegalArgumentException if a field name used for sorting does not exist.
      */
-    public <E extends RealmObject> RealmResults<E> allObjectsSorted(String className, String fieldName1,
+    public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName1,
                                                                     Sort sortOrder1, String fieldName2,
                                                                     Sort sortOrder2) {
         return allObjectsSorted(className, new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1,
@@ -209,13 +208,13 @@ public class DynamicRealm extends BaseRealm {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     @SuppressWarnings("unchecked")
-    public <E extends RealmObject> RealmResults<E> allObjectsSorted(String className, String fieldNames[],
+    public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[],
                                                                     Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return new RealmResults(this, tableView, DynamicRealmObject.class);
+        return RealmResults.createFromDynamicQuery(this, tableView, className);
     }
 
     private static synchronized DynamicRealm create(RealmConfiguration configuration) {

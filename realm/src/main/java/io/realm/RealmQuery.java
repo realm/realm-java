@@ -60,8 +60,6 @@ public class RealmQuery<E extends RealmObject> {
     private LinkView view;
     private TableQuery query;
 
-    // Factory constructors
-
     /**
      * Creates a query for objects of a given class from a {@link Realm}.
      *
@@ -71,7 +69,7 @@ public class RealmQuery<E extends RealmObject> {
      * to run it.
      */
     public static <E extends RealmObject> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
-        return new RealmQuery(realm, clazz);
+        return new RealmQuery<E>(realm, clazz);
     }
 
     /**
@@ -83,7 +81,7 @@ public class RealmQuery<E extends RealmObject> {
      * to run it.
      */
     public static <E extends RealmObject> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
-        return new RealmQuery(realm, className);
+        return new RealmQuery<E>(realm, className);
     }
 
     /**
@@ -93,9 +91,11 @@ public class RealmQuery<E extends RealmObject> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
+
+    @SuppressWarnings("unchecked")
     public static <E extends RealmObject> RealmQuery<E> createSubQuery(RealmResults<E> queryResults) {
         if (queryResults.classSpec != null) {
-            return new RealmQuery(queryResults, queryResults.classSpec);
+            return new RealmQuery<E>(queryResults, queryResults.classSpec);
         } else {
             return new RealmQuery(queryResults, queryResults.className);
         }
@@ -108,6 +108,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
+    @SuppressWarnings("unchecked")
     public static <E extends RealmObject> RealmQuery<E> createSubQuery(RealmList<E> list) {
         if (list.clazz != null) {
             return new RealmQuery(list.realm, list.view, list.clazz);
@@ -1211,8 +1212,13 @@ public class RealmQuery<E extends RealmObject> {
      * @see io.realm.RealmResults
      * @throws java.lang.RuntimeException Any other error
      */
+    @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
-        return new RealmResults<E>(realm, query.findAll(), clazz);
+        if (isDynamicQuery()) {
+            return (RealmResults<E>) RealmResults.createFromDynamicQuery(realm, query.findAll(), className);
+        } else {
+            return RealmResults.createFromQuery(realm, query.findAll(), clazz);
+        }
     }
 
     /**
@@ -1227,6 +1233,7 @@ public class RealmQuery<E extends RealmObject> {
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
+    @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         TableView tableView = query.findAll();
         Long columnIndex = columns.get(fieldName);
@@ -1234,7 +1241,12 @@ public class RealmQuery<E extends RealmObject> {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
         tableView.sort(columnIndex, sortOrder);
-        return new RealmResults<E>(realm, tableView, clazz);
+
+        if (isDynamicQuery()) {
+            return (RealmResults<E>) RealmResults.createFromDynamicQuery(realm, tableView, className);
+        } else {
+            return RealmResults.createFromQuery(realm, tableView, clazz);
+        }
     }
 
 
@@ -1266,6 +1278,7 @@ public class RealmQuery<E extends RealmObject> {
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
+    @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
         if (fieldNames == null) {
             throw new IllegalArgumentException("fieldNames cannot be 'null'.");
@@ -1291,8 +1304,17 @@ public class RealmQuery<E extends RealmObject> {
                 columnIndices.add(columnIndex);
             }
             tableView.sort(columnIndices, sortOrders);
-            return new RealmResults<E>(realm, tableView, clazz);
+
+            if (isDynamicQuery()) {
+                return (RealmResults<E>) RealmResults.createFromDynamicQuery(realm, tableView, className);
+            } else {
+                return RealmResults.createFromQuery(realm, tableView, clazz);
+            }
         }
+    }
+
+    private boolean isDynamicQuery() {
+        return className != null;
     }
 
     /**
@@ -1312,7 +1334,7 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmResults<E> findAllSorted(String fieldName1, Sort sortOrder1,
                                    String fieldName2, Sort sortOrder2) {
-        return findAllSorted(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
+        return findAllSorted(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
 

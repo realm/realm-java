@@ -2,6 +2,8 @@ package io.realm.internal.test;
 
 import java.util.Date;
 
+import io.realm.DynamicRealm;
+import io.realm.DynamicRealmObject;
 import io.realm.Realm;
 import io.realm.RealmFieldType;
 import io.realm.entities.AllTypes;
@@ -62,20 +64,27 @@ public class TestHelper {
         return t;
     }
 
-    public static void populateForMultiSort(Realm testRealm) {
-        testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
-        AllTypes object1 = testRealm.createObject(AllTypes.class);
-        object1.setColumnLong(5);
-        object1.setColumnString("Adam");
+    public static void populateForMultiSort(Realm typedRealm) {
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(typedRealm.getConfiguration());
+        populateForMultiSort(dynamicRealm);
+        dynamicRealm.close();
+        typedRealm.refresh();
+    }
 
-        AllTypes object2 = testRealm.createObject(AllTypes.class);
-        object2.setColumnLong(4);
-        object2.setColumnString("Brian");
+    public static void populateForMultiSort(DynamicRealm realm) {
+        realm.beginTransaction();
+        realm.clear(AllTypes.CLASS_NAME);
+        DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
+        object1.setLong(AllTypes.FIELD_LONG, 5);
+        object1.setString(AllTypes.FIELD_STRING, "Adam");
 
-        AllTypes object3 = testRealm.createObject(AllTypes.class);
-        object3.setColumnLong(4);
-        object3.setColumnString("Adam");
-        testRealm.commitTransaction();
+        DynamicRealmObject object2 = realm.createObject(AllTypes.CLASS_NAME);
+        object2.setLong(AllTypes.FIELD_LONG, 4);
+        object2.setString(AllTypes.FIELD_STRING, "Brian");
+
+        DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
+        object3.setLong(AllTypes.FIELD_LONG, 4);
+        object3.setString(AllTypes.FIELD_STRING, "Adam");
+        realm.commitTransaction();
     }
 }
