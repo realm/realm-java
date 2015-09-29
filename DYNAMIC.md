@@ -38,22 +38,13 @@ be pasted in would be fairly straight forward.
 
 To support the above goals I suggest adding the following new classes:
 
-io.realm.dynamic
-
 DynamicRealm       // Copy of Realm interfaces to allow dynamic access
 DynamicRealmObject // Wrapper for all current model classes
 
-io.realm.schmea
+RealmSchema        // Object for controlling Realm-Core tables 
+RealmObjectSchema // Object for controlling Realm-Core columns
 
-RealmSchema        // Object for controlling Realm-Core tables RealmObjectSchema
-// Object for controlling Realm-Core columns
-
-It looks like we can reuse our current RealmList, RealmQuery and RealmResults
-classes as they are. It would propably require adding new dynamic constructors.
-This would probably be an acceptable tradeoff compared to introducing a whole
-new class? This might change if we decide to remove the RealmObject class at one
-point. This should be investigated.
-
+RealmList, RealmQuery and RealmResults can be reused as they are, which minimizes the number of new classes.
 
 ## Examples
 
@@ -69,7 +60,6 @@ DynamicRealm.setDefaultInstance(dynamic);
 
 Realm realm = Realm.getDefaultInstance(); // Typed version
 DynamicRealm dynamicRealm = DynamicRealm.getDefaultInstance() // Dynamic version
-
 
 // Creating objects
 DynamicRealmObject obj = dynamicRealm.createObject("Dog"); // Dog is name of typed class
@@ -90,8 +80,6 @@ DynamicRealmObjet dog = query.findFirst();
 // DynamicRealm allows schema access
 RealmSchema schema = dynamicRealm.getSchema();
 schema.addClass("Cat");
-
-
 
 // Migrations now just become a special case of using the dynamic Realm
 // The DynamicRealm is used to query, create, delete objects
@@ -169,7 +157,6 @@ Some arguments already brough up:
 
 - Is this an acceptable approach?
 - Determine naming of concepts
-- Investigate tradeoffs reusing RealmQuery, RealmList and RealmResults for dynamic access.
 - Investigate impact of removing RealmObject on this suggestion
 
 
@@ -178,16 +165,11 @@ Some arguments already brough up:
 
 *DynamicRealm*
 
+// Dynamic Realm is a "smaller" version of the Realm API. Most static methods have been removed. All JSON methods are not available.
 public class DynamicRealm {
 
     // Static methods
-    static DynamicRealm getInstance(Context context);
     static DynamicRealm getInstance(RealmConfiguration config);
-    static DynamicRealm setDefaultInstance(RealmConfiguration config);
-    static void removeDefaultInstance();
-    static Object getDefaultModule();
-    static boolean compactRealm(RealmConfiguration configuration);
-    static boolean deleteRealm(RealmConfiguration configuration);
 
     // Does migrating a Dynamic Realm makes sense?
     static void migrateRealm(RealmConfiguration configuration, RealmMigration migration)
@@ -195,42 +177,24 @@ public class DynamicRealm {
 
     // New method for accessing schema
     RealmSchema getSchema();            
-        
-    // All public methods on Realm converted to use Strings and/or DynamicRealmObject
+
+    // Old methods. Those with Class parameters have been converted to use String instead.
     void close();
     boolean isAutoRefresh();
     void setAutoRefresh(boolean autoRefresh);
-    void createAllFromJson(String clazz, JSONArray json);
-    void createOrUpdateAllFromJson(String clazz, JSONArray json);
-    void createAllFromJson(String clazz, String json);
-    void createOrUpdateAllFromJson(String clazz, String json);
-    void createAllFromJson(String clazz, InputStream inputStream) throws IOException;
-    void createOrUpdateAllFromJson(String clazz, InputStream in) throws IOException;
-    void createObjectFromJson(String clazz, JSONObject json);
-    DynamicRealmObject createOrUpdateObjectFromJson(String clazz, JSONObject json);
-    DynamicRealmObject createObjectFromJson(String clazz, String json);
-    DynamicRealmObject createOrUpdateObjectFromJson(String clazz, String json);
-    DynamicRealmObject createObjectFromJson(String clazz, InputStream inputStream) throws IOException;
-    DynamicRealmObject createOrUpdateObjectFromJson(String clazz, InputStream in) throws IOException;
-    void writeCopyTo(File destination) throws IOException;
-    void writeEncryptedCopyTo(File destination, byte[] key) throws IOException;
     DynamicRealmObject createObject(String clazz);
-    DynamicRealmObject copyToRealm(DynamicRealmObject object);
-    DynamicRealmObject copyToRealmOrUpdate(DynamicRealmObject object);
-    List<DynamicRealmObject> copyToRealm(Iterable<DynamicRealmObject> objects);
-    List<DynamicRealmObject> copyToRealmOrUpdate(Iterable<DynamicRealmObject> objects);
     RealmQuery<DynamicRealmObject> where(String clazz);
     RealmResults<DynamicRealmObject> allObjects(String clazz);
-    RealmResults<DynamicRealmObject> allObjectsSorted(String clazz, String fieldName,
+    RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName,
                                                              boolean sortAscending);
-    RealmResults<DynamicRealmObject> allObjectsSorted(String clazz, String fieldName1,
+    RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName1,
                                                              boolean sortAscending1, String fieldName2,
                                                              boolean sortAscending2);
-    RealmResults<DynamicRealmObject> allObjectsSorted(String clazz, String fieldName1,
+    RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName1,
                                                              boolean sortAscending1,
                                                              String fieldName2, boolean sortAscending2,
                                                              String fieldName3, boolean sortAscending3);
-    RealmResults<DynamicRealmObject> allObjectsSorted(String clazz, String fieldNames[],
+    RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[],
                                                              boolean sortAscending[]);
     void addChangeListener(RealmChangeListener listener);
     void removeChangeListener(RealmChangeListener listener);
@@ -240,7 +204,7 @@ public class DynamicRealm {
     void commitTransaction();
     void cancelTransaction();
     void executeTransaction(DynamicRealm.Transaction transaction);
-    void clear(String clazz);
+    void clear(String className);
     String getPath();
     RealmConfiguration getConfiguration();
 }
@@ -249,6 +213,12 @@ public class DynamicRealm {
 *DynamicRealmObject*
 
 public class DynamicRealmObject {
+
+    // Generic get/set
+    void set(String fieldName, Object value); // General set that automatically converts to proper type
+    Object get(String fieldName); // General get
+
+    // Typed get/set
     boolean getBoolean(String fieldName);
     int getInt(String fieldName);
     short getShort(String fieldName);
@@ -273,6 +243,9 @@ public class DynamicRealmObject {
     void setDate(String fieldName, Date value);
     void setObject(String fieldName, DynamicRealmObject value);
     void setList(String fieldName, RealmList<DynamicRealmObjet> list);
+
+    // Meta data information
+    RealmFieldType getFieldType(String fieldName); // expose underlying Realm data type
     boolean isNull(String fieldName);
     boolean hasField(String fieldName);
     String[] getFieldNames();
