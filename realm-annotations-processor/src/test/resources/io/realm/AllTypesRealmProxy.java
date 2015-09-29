@@ -185,11 +185,11 @@ public class AllTypesRealmProxy extends AllTypes
             if (!transaction.hasTable("class_AllTypes")) {
                 AllTypesRealmProxy.initTable(transaction);
             }
-            table.addColumnLink(RealmFieldType.LINK, "columnObject", transaction.getTable("class_AllTypes"));
+            table.addColumnLink(RealmFieldType.OBJECT, "columnObject", transaction.getTable("class_AllTypes"));
             if (!transaction.hasTable("class_AllTypes")) {
                 AllTypesRealmProxy.initTable(transaction);
             }
-            table.addColumnLink(RealmFieldType.LINK_LIST, "columnRealmList", transaction.getTable("class_AllTypes"));
+            table.addColumnLink(RealmFieldType.LIST, "columnRealmList", transaction.getTable("class_AllTypes"));
             table.addSearchIndex(table.getColumnIndex("columnString"));
             table.setPrimaryKey("columnString");
             return table;
@@ -277,7 +277,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnObject")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnObject'");
             }
-            if (columnTypes.get("columnObject") != RealmFieldType.LINK) {
+            if (columnTypes.get("columnObject") != RealmFieldType.OBJECT) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'AllTypes' for field 'columnObject'");
             }
             if (!transaction.hasTable("class_AllTypes")) {
@@ -290,7 +290,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnRealmList")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnRealmList'");
             }
-            if (columnTypes.get("columnRealmList") != RealmFieldType.LINK_LIST) {
+            if (columnTypes.get("columnRealmList") != RealmFieldType.LIST) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'AllTypes' for field 'columnRealmList'");
             }
             if (!transaction.hasTable("class_AllTypes")) {
