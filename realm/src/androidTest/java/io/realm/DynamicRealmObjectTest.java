@@ -451,6 +451,51 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
+    public void testUntypedSetIllegalImplicitConversionThrows() {
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        DynamicRealmObject dObj = new DynamicRealmObject(obj);
+        try {
+            for (SupportedType type : SupportedType.values()) {
+                try {
+                    switch (type) {
+                        case SHORT:
+                            dObj.set(AllJavaTypes.FIELD_SHORT, "foo");
+                            break;
+                        case INT:
+                            dObj.set(AllJavaTypes.FIELD_INT, "foo");
+                            break;
+                        case LONG:
+                            dObj.set(AllJavaTypes.FIELD_LONG, "foo");
+                            break;
+                        case FLOAT:
+                            dObj.set(AllJavaTypes.FIELD_FLOAT, "foo");
+                            break;
+                        case DOUBLE:
+                            dObj.set(AllJavaTypes.FIELD_DOUBLE, "foo");
+                            break;
+
+                        // These types doesn't have a string representation that should be parsed.
+                        case BOOLEAN: // Boolean is special as it returns false for all strings != "true"
+                        case OBJECT:
+                        case LIST:
+                        case STRING:
+                        case BINARY:
+                        case DATE:
+                        default:
+                            continue;
+                    }
+                    fail(type + " failed");
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+
+
     public void testIsNullWithNullNotSupportedField() {
         assertFalse(dObj.isNull(AllJavaTypes.FIELD_INT));
     }
