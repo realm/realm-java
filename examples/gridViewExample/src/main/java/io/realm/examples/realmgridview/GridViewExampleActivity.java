@@ -131,8 +131,6 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
     }
 
     public void updateCities() {
-        Realm realm = Realm.getInstance(this);
-
         // Pull all the cities from the realm
         RealmResults<City> cities = realm.where(City.class).findAll();
 
@@ -145,9 +143,6 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         City modifiedCity = (City)mAdapter.getItem(position);
-
-        // Update the realm object affected by the user
-        Realm realm = Realm.getInstance(this);
 
         // Acquire the list of realm cities matching the name of the clicked City.
         City city = realm.where(City.class).equalTo("name", modifiedCity.getName()).findFirst();

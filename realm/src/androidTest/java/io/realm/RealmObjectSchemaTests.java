@@ -22,19 +22,15 @@ import android.test.AndroidTestCase;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.realm.dynamic.DynamicRealmObject;
-import io.realm.dynamic.RealmModifier;
-import io.realm.dynamic.DynamicRealmObjectSchema;
-import io.realm.dynamic.DynamicRealmSchema;
 import io.realm.entities.AllJavaTypes;
 import io.realm.exceptions.RealmException;
 
 public class RealmObjectSchemaTests extends AndroidTestCase {
 
-    private DynamicRealmObjectSchema DOG_SCHEMA;
+    private RealmObjectSchema DOG_SCHEMA;
     private Realm realm;
-    private DynamicRealmObjectSchema schema;
-    private DynamicRealmSchema realmSchema;
+    private RealmObjectSchema schema;
+    private RealmSchema realmSchema;
 
     @Override
     protected void setUp() throws Exception {
@@ -120,7 +116,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddedAndRemovable(fieldName);
                     break;
                 case BLOB:
-                    fieldName = AllJavaTypes.FIELD_BLOB;
+                    fieldName = AllJavaTypes.FIELD_BINARY;
                     schema.addBlob(fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
@@ -300,7 +296,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     });
                     break;
                 case BLOB:
-                    checkAddFieldTwice(AllJavaTypes.FIELD_BLOB, new FieldRunnable() {
+                    checkAddFieldTwice(AllJavaTypes.FIELD_BINARY, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
                             schema.addBlob(fieldName);
@@ -484,7 +480,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     case BOOLEAN: schema.addBoolean(AllJavaTypes.FIELD_BOOLEAN, modifiers); break;
                     case FLOAT: schema.addFloat(AllJavaTypes.FIELD_FLOAT, modifiers); break;
                     case DOUBLE: schema.addDouble(AllJavaTypes.FIELD_DOUBLE, modifiers); break;
-                    case BLOB: schema.addBlob(AllJavaTypes.FIELD_BLOB, modifiers); break;
+                    case BLOB: schema.addBlob(AllJavaTypes.FIELD_BINARY, modifiers); break;
                     case DATE: schema.addDate(AllJavaTypes.FIELD_DATE, modifiers); break;
                     default:
                         fail();
@@ -625,7 +621,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         dog2.setInt("age", 2);
 
         final AtomicInteger totalAge = new AtomicInteger(0);
-        DOG_SCHEMA.forEach(new DynamicRealmObjectSchema.Iterator() {
+        DOG_SCHEMA.forEach(new RealmObjectSchema.Iterator() {
             @Override
             public void next(DynamicRealmObject obj) {
                 totalAge.addAndGet(obj.getInt("age"));

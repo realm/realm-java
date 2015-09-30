@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import io.realm.RealmFieldType;
+
 /**
  * Wrapper around a Row in Realm Core.
  *
@@ -50,7 +52,7 @@ public class UncheckedRow extends NativeObject implements Row {
     public static UncheckedRow get(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
         UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
-        context.rowReferences.add(new NativeObjectReference(row, context.referenceQueue));
+        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), context.ROW_REFERENCES_VALUE);
         return row;
     }
 
@@ -64,7 +66,7 @@ public class UncheckedRow extends NativeObject implements Row {
     public static UncheckedRow get(Context context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.nativeLinkViewPtr, index);
         UncheckedRow row = new UncheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent), nativeRowPointer);
-        context.rowReferences.add(new NativeObjectReference(row, context.referenceQueue));
+        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), context.ROW_REFERENCES_VALUE);
         return row;
     }
 
@@ -88,8 +90,8 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     @Override
-    public ColumnType getColumnType(long columnIndex) {
-        return ColumnType.fromNativeValue(nativeGetColumnType(nativePointer, columnIndex));
+    public RealmFieldType getColumnType(long columnIndex) {
+        return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePointer, columnIndex));
     }
 
     // Getters
@@ -145,8 +147,8 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     @Override
-    public ColumnType getMixedType(long columnIndex) {
-        return ColumnType.fromNativeValue(nativeGetMixedType(nativePointer, columnIndex));
+    public RealmFieldType getMixedType(long columnIndex) {
+        return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePointer, columnIndex));
     }
 
     @Override

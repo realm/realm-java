@@ -32,8 +32,9 @@ public class RealmAdapterTest extends AndroidTestCase {
 
     protected void setUp() throws Exception {
         super.setUp();
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
         for (int i = 0; i < TEST_DATA_SIZE; ++i) {
@@ -104,7 +105,7 @@ public class RealmAdapterTest extends AndroidTestCase {
 
     public void testSortWithAdapter() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
-        resultList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        resultList.sort(FIELD_STRING, Sort.DESCENDING);
         RealmAdapter realmAdapter = new RealmAdapter(getContext(), resultList, automaticUpdate);
         assertEquals(resultList.first().getColumnString(), realmAdapter.getRealmResults().first().getColumnString());
         assertEquals(resultList.size(), realmAdapter.getRealmResults().size());

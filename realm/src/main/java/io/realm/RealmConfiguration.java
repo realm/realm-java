@@ -53,10 +53,12 @@ import io.realm.internal.modules.FilterableMediator;
  */
 public class RealmConfiguration {
 
+    public static final String DEFAULT_REALM_NAME = "default.realm";
     public static final int KEY_LENGTH = 64;
 
     private static final Object DEFAULT_MODULE;
     private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
         if (DEFAULT_MODULE != null) {
@@ -281,6 +283,10 @@ public class RealmConfiguration {
 
         /**
          * Sets the 64 bit key used to encrypt and decrypt the Realm file.
+         * <p>
+         * Note that a few older devices do not support the encryption used by Realm. These devices will instead throw a
+         * {@link io.realm.exceptions.RealmEncryptionNotSupportedException } when the Realm is opened. See
+         * {@link io.realm.exceptions.RealmEncryptionNotSupportedException } for further details.
          */
         public Builder encryptionKey(byte[] key) {
             if (key == null) {

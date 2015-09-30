@@ -2,14 +2,16 @@ package io.realm.internal;
 
 import junit.framework.TestCase;
 
+import io.realm.RealmFieldType;
+
 public class JNISortedLongTest extends TestCase {
     Table table;
     TableView view;
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.INTEGER, "number");
-        table.addColumn(ColumnType.STRING, "name");
+        table.addColumn(RealmFieldType.INTEGER, "number");
+        table.addColumn(RealmFieldType.STRING, "name");
 
         table.add(1, "A");
         table.add(10, "B");
@@ -39,7 +41,7 @@ public class JNISortedLongTest extends TestCase {
         assertEquals(4, table.lowerBoundLong(0, 40));
         assertEquals(5, table.upperBoundLong(0, 40));
 
-        // find mindle (nonexisting)
+        // find middle (nonexisting)
         assertEquals(5, table.lowerBoundLong(0, 41));
         assertEquals(5, table.upperBoundLong(0, 41));
 

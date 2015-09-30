@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.dynamic;
+package io.realm;
 
 import java.util.Collections;
 import java.util.Set;
 
-import io.realm.Realm;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -34,9 +32,9 @@ import io.realm.internal.TableOrView;
  *
  * @see io.realm.RealmMigration
  */
-public final class DynamicRealmObjectSchema {
+public final class RealmObjectSchema {
 
-    private final Realm realm;
+    private final BaseRealm realm;
     private final Table table;
     private final ImplicitTransaction transaction;
 
@@ -46,7 +44,7 @@ public final class DynamicRealmObjectSchema {
      * @param transaction Transaction object for the current Realm.
      * @param table Table representation of the Realm class
      */
-    DynamicRealmObjectSchema(Realm realm, ImplicitTransaction transaction, Table table) {
+    RealmObjectSchema(BaseRealm realm, ImplicitTransaction transaction, Table table) {
         this.realm = realm;
         this.transaction = transaction;
         this.table = table;
@@ -59,7 +57,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addString(String fieldName) {
+    public RealmObjectSchema addString(String fieldName) {
         return addString(fieldName, Collections.EMPTY_SET);
     }
 
@@ -71,10 +69,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addString(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addString(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.STRING, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.STRING, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -86,7 +84,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addShort(String fieldName) {
+    public RealmObjectSchema addShort(String fieldName) {
         return addShort(fieldName, Collections.EMPTY_SET);
     }
 
@@ -98,10 +96,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addShort(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addShort(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -113,7 +111,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addInt(String fieldName) {
+    public RealmObjectSchema addInt(String fieldName) {
         return addInt(fieldName, Collections.EMPTY_SET);
     }
 
@@ -125,10 +123,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addInt(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addInt(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -140,7 +138,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addLong(String fieldName) {
+    public RealmObjectSchema addLong(String fieldName) {
         return addLong(fieldName, Collections.EMPTY_SET);
     }
 
@@ -152,10 +150,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addLong(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addLong(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -167,7 +165,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addByte(String fieldName) {
+    public RealmObjectSchema addByte(String fieldName) {
         return addByte(fieldName, Collections.EMPTY_SET);
     }
 
@@ -179,10 +177,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addByte(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addByte(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.INTEGER, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -195,7 +193,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addBoolean(String fieldName) {
+    public RealmObjectSchema addBoolean(String fieldName) {
         return addBoolean(fieldName, Collections.EMPTY_SET);
     }
 
@@ -207,10 +205,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addBoolean(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addBoolean(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.BOOLEAN, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.BOOLEAN, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -222,7 +220,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addBlob(String fieldName) {
+    public RealmObjectSchema addBlob(String fieldName) {
         return addBlob(fieldName, Collections.EMPTY_SET);
     }
 
@@ -234,10 +232,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addBlob(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addBlob(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.BINARY, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.BINARY, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -249,7 +247,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addFloat(String fieldName) {
+    public RealmObjectSchema addFloat(String fieldName) {
         return addFloat(fieldName, Collections.EMPTY_SET);
     }
 
@@ -262,10 +260,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addFloat(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addFloat(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.FLOAT, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.FLOAT, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -277,7 +275,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addDouble(String fieldName) {
+    public RealmObjectSchema addDouble(String fieldName) {
         return addDouble(fieldName, Collections.EMPTY_SET);
     }
 
@@ -289,10 +287,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addDouble(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addDouble(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.DOUBLE, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.DOUBLE, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -304,7 +302,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addDate(String fieldName) {
+    public RealmObjectSchema addDate(String fieldName) {
         return addDate(fieldName, Collections.EMPTY_SET);
     }
 
@@ -316,10 +314,10 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addDate(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addDate(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(ColumnType.DATE, fieldName);
+        long columnIndex = table.addColumn(RealmFieldType.DATE, fieldName);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -328,14 +326,14 @@ public final class DynamicRealmObjectSchema {
      * Adds a field that links to another Realm object.
      *
      * @param fieldName Name of field to add.
-     * @param objectSchema {@link DynamicRealmObjectSchema} for the object to link to.
+     * @param objectSchema {@link RealmObjectSchema} for the object to link to.
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addObject(String fieldName, DynamicRealmObjectSchema objectSchema) {
+    public RealmObjectSchema addObject(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(ColumnType.LINK, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 
@@ -343,14 +341,14 @@ public final class DynamicRealmObjectSchema {
      * Adds a field that links to a {@link io.realm.RealmList} of other Realm objects.
      *
      * @param fieldName Name of field to add
-     * @param objectSchema {@link DynamicRealmObjectSchema} for the object to link to.
+     * @param objectSchema {@link RealmObjectSchema} for the object to link to.
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public DynamicRealmObjectSchema addList(String fieldName, DynamicRealmObjectSchema objectSchema) {
+    public RealmObjectSchema addList(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(ColumnType.LINK_LIST, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.LIST, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
         return this;
     }
 
@@ -361,7 +359,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema
      * @throws IllegalArgumentException if field name doesn't exists.
      */
-    public DynamicRealmObjectSchema removeField(String fieldName) {
+    public RealmObjectSchema removeField(String fieldName) {
         checkLegalName(fieldName);
         if (!hasField(fieldName)) {
             throw new IllegalStateException(fieldName + " does not exist.");
@@ -380,7 +378,7 @@ public final class DynamicRealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exists or if the new field name already
      * exists.
      */
-    public DynamicRealmObjectSchema renameField(String currentFieldName, String newFieldName) {
+    public RealmObjectSchema renameField(String currentFieldName, String newFieldName) {
         checkLegalName(currentFieldName);
         checkFieldExists(currentFieldName);
         checkLegalName(newFieldName);
@@ -407,7 +405,7 @@ public final class DynamicRealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be indexed or it already has a
      * index defined.
      */
-    public DynamicRealmObjectSchema addIndex(String fieldName) {
+    public RealmObjectSchema addIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
@@ -425,7 +423,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if field name doesn't exists or the field doesn't have an index.
      */
-    public DynamicRealmObjectSchema removeIndex(String fieldName) {
+    public RealmObjectSchema removeIndex(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         long columnIndex = getColumnIndex(fieldName);
@@ -444,7 +442,7 @@ public final class DynamicRealmObjectSchema {
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be a primary key or it already
      * has a primary key defined.
      */
-    public DynamicRealmObjectSchema addPrimaryKey(String fieldName) {
+    public RealmObjectSchema addPrimaryKey(String fieldName) {
         checkLegalName(fieldName);
         checkFieldExists(fieldName);
         if (table.hasPrimaryKey()) {
@@ -461,7 +459,7 @@ public final class DynamicRealmObjectSchema {
      * @return The updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
      */
-    public DynamicRealmObjectSchema removePrimaryKey() {
+    public RealmObjectSchema removePrimaryKey() {
         if (!table.hasPrimaryKey()) {
             throw new IllegalStateException(getClassName() + " doesn't have a primary key.");
         }
@@ -470,11 +468,11 @@ public final class DynamicRealmObjectSchema {
     }
 
 
-    public DynamicRealmObjectSchema setNullable(String fieldName) {
+    public RealmObjectSchema setNullable(String fieldName) {
         throw new RealmException("Waiting for Null support");
     }
 
-    public DynamicRealmObjectSchema setNotNullable(String fieldName) {
+    public RealmObjectSchema setNotNullable(String fieldName) {
         throw new RealmException("Waiting for Null support");
     }
 
@@ -534,7 +532,7 @@ public final class DynamicRealmObjectSchema {
      *
      * @return The updated schema
      */
-    public DynamicRealmObjectSchema forEach(Iterator iterator) {
+    public RealmObjectSchema forEach(Iterator iterator) {
         if (iterator != null) {
             long size = table.size();
             for (long i = 0; i < size; i++) {

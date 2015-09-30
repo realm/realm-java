@@ -19,6 +19,7 @@ package io.realm.internal;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Context {
@@ -29,11 +30,14 @@ public class Context {
     // whose disposal need to be handed over from the garbage 
     // collection thread to the users thread.
 
+    // Reserved to be used only as a placeholder by rowReferences Map to avoid autoboxing allocations
+    static final Integer ROW_REFERENCES_VALUE = 0;
+
     private List<Long> abandonedTables = new ArrayList<Long>();
     private List<Long> abandonedTableViews = new ArrayList<Long>();
     private List<Long> abandonedQueries = new ArrayList<Long>();
 
-    List<Reference<?>> rowReferences = new ArrayList<Reference<?>>();
+    HashMap<Reference<?>, Integer> rowReferences = new HashMap<Reference<?>, Integer>();
     ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
 
     private boolean isFinalized = false;

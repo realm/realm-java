@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.dynamic;
+package io.realm;
 
 /**
  * This class contains all modifiers for a Realm field.

@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 
+import io.realm.RealmFieldType;
 import io.realm.internal.test.ColumnTypeData;
 
 public class JNITableSpecTest extends TestCase {
@@ -33,14 +34,14 @@ public class JNITableSpecTest extends TestCase {
     public static Collection<Object[]> parameters() {
 
         return Arrays.asList(
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.INTEGER)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.FLOAT)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.DOUBLE)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.BOOLEAN)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.STRING)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.BINARY)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.MIXED)},
-                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(ColumnType.TABLE)}
+                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.INTEGER)},
+                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.FLOAT)},
+                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.DOUBLE)},
+                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.BOOLEAN)},
+                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.STRING)},
+                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.BINARY)},
+                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.UNSUPPORTED_MIXED)},
+                new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.UNSUPPORTED_TABLE)}
         );
     }
 
@@ -86,29 +87,29 @@ public class JNITableSpecTest extends TestCase {
     }
 
     public void testShouldHandleColumnsDynamically() {
-        table.addColumn(ColumnType.INTEGER, "0");
+        table.addColumn(RealmFieldType.INTEGER, "0");
         assertEquals(1, table.getColumnCount());
         assertEquals(0, table.getColumnIndex("0"));
         assertEquals("0", table.getColumnName(0));
-        assertEquals(ColumnType.INTEGER, table.getColumnType(0));
+        assertEquals(RealmFieldType.INTEGER, table.getColumnType(0));
         table.add(23);
 
-        table.addColumn(ColumnType.FLOAT, "1");
+        table.addColumn(RealmFieldType.FLOAT, "1");
         table.add(11, 11.1f);
-        table.addColumn(ColumnType.DOUBLE, "2");
+        table.addColumn(RealmFieldType.DOUBLE, "2");
         table.add(22, 22.2f, -22.2);
-        table.addColumn(ColumnType.BOOLEAN, "3");
+        table.addColumn(RealmFieldType.BOOLEAN, "3");
         table.add(33, 33.3f, -33.3, true);
-        table.addColumn(ColumnType.STRING, "4");
+        table.addColumn(RealmFieldType.STRING, "4");
         table.add(44, 44.4f, -44.4, true, "44");
-        table.addColumn(ColumnType.DATE, "5");
+        table.addColumn(RealmFieldType.DATE, "5");
         Date date = new Date();
         table.add(55, 55.5f, -55.5, false, "55", date);
-        table.addColumn(ColumnType.BINARY, "6");
+        table.addColumn(RealmFieldType.BINARY, "6");
         table.add(66, 66.6f, -66.6, false, "66", date, new byte[]{6});
-        table.addColumn(ColumnType.MIXED, "7");
+        table.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "7");
         table.add(77, 77.7f, -77.7, true, "77", date, new byte[]{7, 7}, "mix");
-        table.addColumn(ColumnType.TABLE, "8");
+        table.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "8");
         table.add(88, 88.8f, -88.8, false, "88", date, new byte[]{8, 8, 8}, "mixed", null);
 
         table.addEmptyRows(10);
@@ -172,20 +173,20 @@ public class JNITableSpecTest extends TestCase {
         // Table definition
         Table persons = new Table();
 
-        persons.addColumn(ColumnType.STRING, "name");
-        persons.addColumn(ColumnType.STRING, "email");
-        persons.addColumn(ColumnType.TABLE, "addresses");
+        persons.addColumn(RealmFieldType.STRING, "name");
+        persons.addColumn(RealmFieldType.STRING, "email");
+        persons.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "addresses");
 
         TableSchema addresses = persons.getSubtableSchema(2);
-        addresses.addColumn(ColumnType.STRING, "street");
-        addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
+        addresses.addColumn(RealmFieldType.STRING, "street");
+        addresses.addColumn(RealmFieldType.INTEGER, "zipcode");
+        addresses.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "phone_numbers");
 
         persons.add(new Object[]{"Mr X", "xx@xxxx.com", new Object[][]{{"X Street", 1234, null}}});
 
         Table address = persons.getSubtable(2, 0);
 
-        spec.addColumn(ColumnType.INTEGER, "foo");
+        spec.addColumn(RealmFieldType.INTEGER, "foo");
 
         try {
             address.updateFromSpec(spec);

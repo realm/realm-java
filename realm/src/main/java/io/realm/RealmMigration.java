@@ -43,8 +43,8 @@ package io.realm;
  * </pre>
  *
  * During development when model classes can change frequently, it is possible to use
- * {@link RealmConfiguration.Builder#shouldDeleteRealmIfMigrationNeeded()}. This will delete the
- * database file automatically if a migration is needed.
+ * {@link io.realm.Realm#deleteRealm(RealmConfiguration)}. This will delete the database
+ * file and eliminate the need for any migrations.
  *
  * @see io.realm.RealmConfiguration.Builder#schemaVersion(int)
  * @see io.realm.RealmConfiguration.Builder#migration(RealmMigration)

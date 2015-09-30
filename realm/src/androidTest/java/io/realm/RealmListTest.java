@@ -23,7 +23,6 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
-import io.realm.entities.OwnerPrimaryKey;
 import io.realm.exceptions.RealmException;
 
 public class RealmListTest extends AndroidTestCase {
@@ -33,8 +32,9 @@ public class RealmListTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
         Owner owner = testRealm.createObject(Owner.class);
@@ -238,7 +238,7 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         assertEquals(TEST_OBJECTS, owner.getDogs().size());
-        assertEquals(oldIndex, owner.getDogs().indexOf(dog));
+        assertEquals(newIndex, owner.getDogs().indexOf(dog));
     }
 
     public void testFirstAndLast_nonManagedMode() {

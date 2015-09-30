@@ -19,9 +19,12 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import io.realm.RealmFieldType;
+
 /**
- * Row wrapper that stubs all access with IllegalStateExceptions. This can be used instead of adding null checks
- * everywhere when the underlying Row accessor in Realm Core is no longer available.
+ * Row wrapper that stubs all access with IllegalStateExceptions except for isAttached. This can be used instead of
+ * adding null checks everywhere when the underlying Row accessor in Realm's underlying storage engine is no longer
+ * available.
  */
 public enum InvalidRow implements Row {
     INSTANCE;
@@ -42,7 +45,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public ColumnType getColumnType(long columnIndex) {
+    public RealmFieldType getColumnType(long columnIndex) {
         throw getStubException();
     }
 
@@ -97,7 +100,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public ColumnType getMixedType(long columnIndex) {
+    public RealmFieldType getMixedType(long columnIndex) {
         throw getStubException();
     }
 
@@ -168,7 +171,7 @@ public enum InvalidRow implements Row {
 
     @Override
     public boolean isAttached() {
-        throw getStubException();
+        return false;
     }
 
     @Override

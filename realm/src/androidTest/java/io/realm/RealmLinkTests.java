@@ -29,8 +29,9 @@ public class RealmLinkTests extends AndroidTestCase {
     protected Realm testRealm;
 
     protected void setUp() {
-        Realm.deleteRealmFile(getContext());
-        testRealm = Realm.getInstance(getContext());
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(realmConfig);
+        testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
         testRealm.clear(Dog.class);
@@ -186,9 +187,12 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date(10000)).findAll();
-        assertEquals(1, owners7.size());
-        assertEquals(12, owners7.first().getCat().getAge());
+        try {
+            testRealm.where(Owner.class).between("cat.birthday", new Date(1), new Date(10000)).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+            // Between does not support link queries.
+        }
     }
 
     public void testQuerySingleRelationFloat() {
@@ -274,7 +278,7 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> owners5 = testRealm.where(Owner.class).contains("cat.name", "Blackie").findAll();
         assertEquals(1, owners5.size());
 
-        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", RealmQuery.CASE_INSENSITIVE).findAll();
+        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", Case.INSENSITIVE).findAll();
         assertEquals(1, owners6.size());
     }
 
@@ -342,8 +346,12 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> owners6 = testRealm.where(Owner.class).lessThanOrEqualTo("dogs.birthday", new Date(10000)).findAll();
         assertEquals(1, owners6.size());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date(3000)).findAll();
-        assertEquals(1, owners7.size());
+        try {
+            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.birthday", new Date(1000), new Date(3000)).findAll();
+            fail();
+        } catch (IllegalArgumentException ignore) {
+            // Between does not support link queries.
+        }
     }
 
     public void testQueryMultipleRelationsFloat() {

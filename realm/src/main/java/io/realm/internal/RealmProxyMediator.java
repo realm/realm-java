@@ -124,7 +124,7 @@ public abstract class RealmProxyMediator {
      *
      * @param clazz     Type of RealmObject
      * @param realm     Reference to Realm where to create the object.
-     * @param reader    Reference to the InputStream containg the JSON data.
+     * @param reader    Reference to the InputStream containing the JSON data.
      * @return The created RealmObject
      * @throws IOException if an error occurs with the inputstream.
      */

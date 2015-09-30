@@ -312,45 +312,45 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testSortByLong() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = testRealm.allObjects(AllTypes.class);
-        sortedList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DESCENDING);
+        sortedList.sort(FIELD_LONG, Sort.DESCENDING);
         assertEquals("Should have same size", resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("First excepted to be last", resultList.first().getColumnLong(), sortedList.last().getColumnLong());
 
         RealmResults<AllTypes> reverseList = sortedList;
-        reverseList.sort(FIELD_LONG, RealmResults.SORT_ORDER_ASCENDING);
+        reverseList.sort(FIELD_LONG, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("First excepted to be first", resultList.first().getColumnLong(), reverseList.first().getColumnLong());
         assertEquals("Last excepted to be last", resultList.last().getColumnLong(), reverseList.last().getColumnLong());
 
         RealmResults<AllTypes> reserveSortedList = reverseList;
-        reverseList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DESCENDING);
+        reverseList.sort(FIELD_LONG, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
 
     public void testSortByDate() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.where().findAll();
-        sortedList.sort(FIELD_DATE, RealmResults.SORT_ORDER_DESCENDING);
+        sortedList.sort(FIELD_DATE, Sort.DESCENDING);
         assertEquals(resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(resultList.first().getColumnDate(), sortedList.last().getColumnDate());
 
         RealmResults<AllTypes> reverseList = sortedList.where().findAll();
-        reverseList.sort(FIELD_DATE, RealmResults.SORT_ORDER_ASCENDING);
+        reverseList.sort(FIELD_DATE, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals(resultList.first().getColumnDate(), reverseList.first().getColumnDate());
         assertEquals(resultList.last().getColumnDate(), reverseList.last().getColumnDate());
 
         RealmResults<AllTypes> reserveSortedList = reverseList.where().findAll();
-        reserveSortedList.sort(FIELD_DATE, RealmResults.SORT_ORDER_DESCENDING);
+        reserveSortedList.sort(FIELD_DATE, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
     }
 
     public void testSortByBoolean() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.where().findAll();
-        sortedList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_DESCENDING);
+        sortedList.sort(FIELD_BOOLEAN, Sort.DESCENDING);
         assertEquals(resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(false, sortedList.last().isColumnBoolean());
@@ -359,7 +359,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(false, sortedList.get(TEST_DATA_LAST_HALF).isColumnBoolean());
 
         RealmResults<AllTypes> reverseList = sortedList.where().findAll();
-        reverseList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_ASCENDING);
+        reverseList.sort(FIELD_BOOLEAN, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals(true, reverseList.last().isColumnBoolean());
         assertEquals(false, reverseList.first().isColumnBoolean());
@@ -367,7 +367,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(true, reverseList.get(TEST_DATA_LAST_HALF).isColumnBoolean());
 
         RealmResults<AllTypes> reserveSortedList = reverseList.where().findAll();
-        reserveSortedList.sort(FIELD_BOOLEAN, RealmResults.SORT_ORDER_DESCENDING);
+        reserveSortedList.sort(FIELD_BOOLEAN, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
         assertEquals(reserveSortedList.first(), sortedList.first());
     }
@@ -375,14 +375,14 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testSortByString() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.where().findAll();
-        sortedList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        sortedList.sort(FIELD_STRING, Sort.DESCENDING);
 
         assertEquals(resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(resultList.first().getColumnString(), sortedList.last().getColumnString());
 
         RealmResults<AllTypes> reverseList = sortedList.where().findAll();
-        reverseList.sort(FIELD_STRING, RealmResults.SORT_ORDER_ASCENDING);
+        reverseList.sort(FIELD_STRING, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals(resultList.first().getColumnString(), reverseList.first().getColumnString());
 
@@ -393,45 +393,45 @@ public class RealmResultsTest extends AndroidTestCase {
         largestNumber = largestNumber - 1;
         assertEquals(resultList.get(largestNumber).getColumnString(), reverseList.last().getColumnString());
         RealmResults<AllTypes> reverseSortedList = reverseList.where().findAll();
-        reverseList.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        reverseList.sort(FIELD_STRING, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseSortedList.size());
     }
 
     public void testSortByDouble() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.where().findAll();
-        sortedList.sort(FIELD_DOUBLE, RealmResults.SORT_ORDER_DESCENDING);
+        sortedList.sort(FIELD_DOUBLE, Sort.DESCENDING);
         assertEquals(resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(resultList.first().getColumnDouble(), sortedList.last().getColumnDouble());
 
         RealmResults<AllTypes> reverseList = sortedList.where().findAll();
-        reverseList.sort(FIELD_DOUBLE, RealmResults.SORT_ORDER_ASCENDING);
+        reverseList.sort(FIELD_DOUBLE, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals(resultList.first().getColumnDouble(), reverseList.first().getColumnDouble());
         assertEquals(resultList.last().getColumnDouble(), reverseList.last().getColumnDouble());
 
         RealmResults<AllTypes> reverseSortedList = reverseList.where().findAll();
-        reverseSortedList.sort(FIELD_DOUBLE, RealmResults.SORT_ORDER_DESCENDING);
+        reverseSortedList.sort(FIELD_DOUBLE, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseSortedList.size());
     }
 
     public void testSortByFloat() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         RealmResults<AllTypes> sortedList = resultList.where().findAll();
-        sortedList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_DESCENDING);
+        sortedList.sort(FIELD_FLOAT, Sort.DESCENDING);
         assertEquals(resultList.size(), sortedList.size());
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(resultList.first().getColumnFloat(), sortedList.last().getColumnFloat());
 
         RealmResults<AllTypes> reverseList = sortedList.where().findAll();
-        reverseList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_ASCENDING);
+        reverseList.sort(FIELD_FLOAT, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals(resultList.first().getColumnFloat(), reverseList.first().getColumnFloat());
         assertEquals(resultList.last().getColumnFloat(), reverseList.last().getColumnFloat());
 
         RealmResults<AllTypes> reverseSortedList = reverseList.where().findAll();
-        reverseSortedList.sort(FIELD_FLOAT, RealmResults.SORT_ORDER_DESCENDING);
+        reverseSortedList.sort(FIELD_FLOAT, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseSortedList.size());
     }
 
@@ -466,7 +466,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals("Århus", sortedResult.get(2).getColumnString());
 
         RealmResults<AllTypes> reverseResult = result.where().findAll();
-        reverseResult.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        reverseResult.sort(FIELD_STRING, Sort.DESCENDING);
         assertEquals(3, reverseResult.size());
         assertEquals("Æble", reverseResult.last().getColumnString());
         assertEquals("Århus", reverseResult.get(0).getColumnString());
@@ -496,7 +496,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals("Санкт-Петербург", sortedResult.get(2).getColumnString());
 
         RealmResults<AllTypes> reverseResult = result.where().findAll();
-        reverseResult.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        reverseResult.sort(FIELD_STRING, Sort.DESCENDING);
         assertEquals(3, reverseResult.size());
         assertEquals("Москва", reverseResult.last().getColumnString());
         assertEquals("Санкт-Петербург", reverseResult.get(0).getColumnString());
@@ -526,7 +526,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals("ημέρες", sortedResult.get(2).getColumnString());
 
         RealmResults<AllTypes> reverseResult = result.where().findAll();
-        reverseResult.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        reverseResult.sort(FIELD_STRING, Sort.DESCENDING);
         assertEquals(3, reverseResult.size());
         assertEquals("αύριο", reverseResult.last().getColumnString());
         assertEquals("ημέρες", reverseResult.get(0).getColumnString());
@@ -563,7 +563,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(8, sortedResult.size());
 
         RealmResults<AllTypes> reverseResult = result;
-        reverseResult.sort(FIELD_STRING, RealmResults.SORT_ORDER_DESCENDING);
+        reverseResult.sort(FIELD_STRING, Sort.DESCENDING);
         assertEquals(8, reverseResult.size());
     }
 
@@ -613,7 +613,7 @@ public class RealmResultsTest extends AndroidTestCase {
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            result.sort((String[])null, (boolean[])null);
+            result.sort((String[])null, (Sort[])null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -632,7 +632,7 @@ public class RealmResultsTest extends AndroidTestCase {
 
     public void testSortSingleField() {
         RealmResults<AllTypes> sortedList = testRealm.allObjects(AllTypes.class);
-        sortedList.sort(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+        sortedList.sort(new String[]{FIELD_LONG}, new Sort[]{Sort.DESCENDING});
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());
@@ -684,21 +684,18 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testFindAllSorted() {
-        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG,
-                RealmResults.SORT_ORDER_ASCENDING);
+        RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG, Sort.ASCENDING);
         assertEquals(TEST_DATA_SIZE, allTypes.size());
         assertEquals(0, allTypes.first().getColumnLong());
         assertEquals(TEST_DATA_SIZE - 1, allTypes.last().getColumnLong());
 
-        RealmResults<AllTypes> reverseList = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG,
-                RealmResults.SORT_ORDER_DESCENDING);
+        RealmResults<AllTypes> reverseList = testRealm.where(AllTypes.class).findAllSorted(FIELD_LONG, Sort.DESCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals(0, reverseList.last().getColumnLong());
         assertEquals(TEST_DATA_SIZE - 1, reverseList.first().getColumnLong());
 
         try {
-            RealmResults<AllTypes> none = testRealm.where(AllTypes.class).findAllSorted("invalid",
-                    RealmResults.SORT_ORDER_DESCENDING);
+            RealmResults<AllTypes> none = testRealm.where(AllTypes.class).findAllSorted("invalid", Sort.DESCENDING);
             fail();
         } catch (IllegalArgumentException ignored) {}
     }

@@ -18,6 +18,7 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -26,8 +27,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+import java.util.logging.Level;
+
+import io.realm.internal.log.Logger;
+
+import static junit.framework.Assert.fail;
 
 public class TestHelper {
 
@@ -70,7 +79,7 @@ public class TestHelper {
 
     // Deletes the old database and copies a new one into its place
     public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
-        Realm.deleteRealmFile(context, newName);
+        Realm.deleteRealm(createConfiguration(context, newName));
         TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
 
@@ -88,6 +97,73 @@ public class TestHelper {
         return key;
     }
 
+    /**
+     * Returns a Logger that will fail if it is asked to log a message above a certain level.
+     *
+     * @param failureLevel {@link Log} level from which the unit test will fail.
+     * @return Logger implementation
+     */
+    public static Logger getFailureLogger(final int failureLevel) {
+        return new Logger() {
+
+            private void failIfEqualOrAbove(int logLevel, int failureLevel) {
+                if (logLevel >= failureLevel) {
+                    fail("Message logged that was above valid level: " + logLevel + " >= " + failureLevel);
+                }
+            }
+
+            @Override
+            public void v(String message) {
+                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            }
+
+            @Override
+            public void v(String message, Throwable t) {
+                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            }
+
+            @Override
+            public void d(String message) {
+                failIfEqualOrAbove(Log.DEBUG, failureLevel);
+            }
+
+            @Override
+            public void d(String message, Throwable t) {
+                failIfEqualOrAbove(Log.DEBUG, failureLevel);
+            }
+
+            @Override
+            public void i(String message) {
+                failIfEqualOrAbove(Log.INFO, failureLevel);
+            }
+
+            @Override
+            public void i(String message, Throwable t) {
+                failIfEqualOrAbove(Log.INFO, failureLevel);
+            }
+
+            @Override
+            public void w(String message) {
+                failIfEqualOrAbove(Log.WARN, failureLevel);
+            }
+
+            @Override
+            public void w(String message, Throwable t) {
+                failIfEqualOrAbove(Log.WARN, failureLevel);
+            }
+
+            @Override
+            public void e(String message) {
+                failIfEqualOrAbove(Log.ERROR, failureLevel);
+            }
+
+            @Override
+            public void e(String message, Throwable t) {
+                failIfEqualOrAbove(Log.ERROR, failureLevel);
+            }
+        };
+    }
+
     public static class StubInputStream extends InputStream {
         @Override
         public int read() throws IOException {
@@ -102,15 +178,56 @@ public class TestHelper {
             long totalMemory = Runtime.getRuntime().totalMemory();
             garbageSize = (int)(maxMemory - totalMemory)/10*9;
         }
-        byte garbage[];
+        byte garbage[] = new byte[0];
         try {
-            garbage = new byte[garbageSize];
-            garbage[0] = 1;
-            garbage[garbage.length - 1] = 1;
+            if (garbageSize > 0) {
+                garbage = new byte[garbageSize];
+                garbage[0] = 1;
+                garbage[garbage.length - 1] = 1;
+            }
         } catch (OutOfMemoryError oom) {
             return allocGarbage(garbageSize/10*9);
         }
 
         return garbage;
     }
+
+    // Creates SHA512 hash of a String. Can be used as password for encrypted Realms.
+    public static byte[] SHA512(String str) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-512");
+            md.update(str.getBytes("UTF-8"), 0, str.length());
+            return md.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static RealmConfiguration createConfiguration(Context context) {
+        return createConfiguration(context, Realm.DEFAULT_REALM_NAME);
+    }
+
+    public static RealmConfiguration createConfiguration(Context context, String name) {
+        return createConfiguration(context.getFilesDir(), name);
+    }
+
+    public static RealmConfiguration createConfiguration(File folder, String name) {
+        return createConfiguration(folder, name, null);
+    }
+
+    public static RealmConfiguration createConfiguration(Context context, String name, byte[] key) {
+        return createConfiguration(context.getFilesDir(), name, key);
+    }
+
+    public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
+        RealmConfiguration.Builder config = new RealmConfiguration.Builder(dir).name(name);
+        if (key != null) {
+            config.encryptionKey(key);
+        }
+
+        return config.build();
+    }
+
 }

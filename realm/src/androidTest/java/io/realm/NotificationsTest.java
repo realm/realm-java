@@ -18,6 +18,9 @@ package io.realm;
 import android.os.Handler;
 import android.os.Looper;
 import android.test.AndroidTestCase;
+import android.util.Log;
+
+import junit.framework.AssertionFailedError;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -35,6 +38,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.internal.log.Logger;
+import io.realm.internal.log.RealmLog;
 
 public class NotificationsTest extends AndroidTestCase {
 
@@ -42,7 +47,7 @@ public class NotificationsTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Realm.deleteRealmFile(getContext());
+        Realm.deleteRealm(TestHelper.createConfiguration(getContext()));
     }
 
     @Override
@@ -300,7 +305,7 @@ public class NotificationsTest extends AndroidTestCase {
 
                 // Find the current Handler for the thread now. All message and references will be
                 // cleared once we call close().
-                Handler threadHandler = realm.getHandler();
+                Handler threadHandler = realm.handler;
                 realm.close(); // Close native resources + associated handlers.
 
                 // Looper now reads the update message from the main thread if the Handler was not
@@ -347,18 +352,19 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testHandlerNotRemovedToSoon() {
-        Realm.deleteRealmFile(getContext(), "private-realm");
-        Realm instance1 = Realm.getInstance(getContext(), "private-realm");
-        Realm instance2 = Realm.getInstance(getContext(), "private-realm");
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "private-realm");
+        Realm.deleteRealm(realmConfig);
+        Realm instance1 = Realm.getInstance(realmConfig);
+        Realm instance2 = Realm.getInstance(realmConfig);
         assertEquals(instance1.getPath(), instance2.getPath());
-        assertNotNull(instance1.getHandler());
+        assertNotNull(instance1.handler);
 
         // If multiple instances are open on the same thread, don't remove handler on that thread
         // until last instance is closed.
         instance2.close();
-        assertNotNull(instance1.getHandler());
+        assertNotNull(instance1.handler);
         instance1.close();
-        assertNull(instance1.getHandler());
+        assertNull(instance1.handler);
     }
 
     public void testImmediateNotificationsOnSameThread() {
@@ -481,5 +487,133 @@ public class NotificationsTest extends AndroidTestCase {
 
         assertEquals(0, counter.get());
         assertEquals(0, realm.getChangeListeners().size());
+    }
+
+    // Tests that if the same configuration is used on 2 different Looper threads that each gets its own Handler. This
+    // prevents commitTransaction from accidentally posting messages to Handlers which might reference a closed Realm.
+    public void testDoNotUseClosedHandler() throws InterruptedException {
+        final RealmConfiguration realmConfiguration = TestHelper.createConfiguration(getContext());
+        final AssertionFailedError[] threadAssertionError = new AssertionFailedError[1]; // Keep track of errors in test threads.
+        Realm.deleteRealm(realmConfiguration);
+
+        final CountDownLatch handlerNotified = new CountDownLatch(1);
+        final CountDownLatch backgroundThreadClosed = new CountDownLatch(1);
+
+        // Create Handler on Thread1 by opening a Realm instance
+        new Thread("thread1") {
+
+            @Override
+            public void run() {
+                Looper.prepare();
+                final Realm realm = Realm.getInstance(realmConfiguration);
+                RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        realm.close();
+                        handlerNotified.countDown();
+                    }
+                };
+                realm.addChangeListener(listener);
+                Looper.loop();
+            }
+        }.start();
+
+        // Create Handler on Thread2 for the same Realm path and close the Realm instance again.
+        new Thread("thread2") {
+            @Override
+            public void run() {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(realmConfiguration);
+                RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        try {
+                            fail("This handler should not be notified");
+                        } catch (AssertionFailedError e) {
+                            threadAssertionError[0] = e;
+                            handlerNotified.countDown(); // Make sure that that await() doesn't fail instead.
+                        }
+                    }
+                };
+                realm.addChangeListener(listener);
+                realm.close();
+                backgroundThreadClosed.countDown();
+                Looper.loop();
+            }
+
+        }.start();
+
+        // Any REALM_CHANGED message should now only reach the open Handler on Thread1
+        backgroundThreadClosed.await();
+        Realm realm = Realm.getInstance(realmConfiguration);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        try {
+            if (!handlerNotified.await(5, TimeUnit.SECONDS)) {
+                fail("Handler didn't receive message");
+            }
+        } finally {
+            realm.close();
+        }
+
+        if (threadAssertionError[0] != null) {
+            throw threadAssertionError[0];
+        }
+    }
+
+    // Test that we handle a Looper thread quiting it's looper before it is done executing the current loop ( = Realm.close()
+    // isn't called yet).
+    public void testLooperThreadQuitsLooperEarly() throws InterruptedException {
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+
+        final CountDownLatch backgroundLooperStartedAndStopped = new CountDownLatch(1);
+        final CountDownLatch mainThreadCommitCompleted = new CountDownLatch(1);
+        final CountDownLatch backgroundThreadStopped = new CountDownLatch(1);
+
+        // Start background looper and let it hang
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare(); // Fake background thread with a looper, eg. a IntentService
+
+                Realm realm = Realm.getInstance(getContext());
+                realm.setAutoRefresh(false);
+                Looper.myLooper().quit();
+                backgroundLooperStartedAndStopped.countDown();
+                try {
+                    mainThreadCommitCompleted.await();
+                } catch (InterruptedException e) {
+                    fail("Thread interrupted"); // This will prevent backgroundThreadStopped from being called.
+                }
+                realm.close();
+                backgroundThreadStopped.countDown();
+            }
+        });
+
+        // Create a commit on another thread
+        awaitOrThrow(backgroundLooperStartedAndStopped);
+        Realm realm = Realm.getInstance(config);
+        Logger logger = TestHelper.getFailureLogger(Log.WARN);
+        RealmLog.add(logger);
+
+        realm.beginTransaction();
+        realm.commitTransaction(); // If the Handler on the background is notified it will trigger a Log warning.
+        mainThreadCommitCompleted.countDown();
+        awaitOrThrow(backgroundThreadStopped);
+
+        realm.close();
+        RealmLog.remove(logger);
+    }
+
+    private void awaitOrThrow(CountDownLatch latch) {
+        try {
+            if (!latch.await(5, TimeUnit.SECONDS)) {
+                fail("Latch timed out " + latch);
+            }
+        } catch (InterruptedException e) {
+            fail("Latch was interrupted " + e);
+        }
     }
 }
