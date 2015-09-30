@@ -190,6 +190,7 @@ abstract class BaseRealm implements Closeable {
     protected void removeHandler(Handler handler) {
         handler.removeCallbacksAndMessages(null);
         handlers.remove(handler);
+        this.handler = null;
     }
 
     private void sendNotifications() {
@@ -315,7 +316,10 @@ abstract class BaseRealm implements Closeable {
                             && !handler.hasMessages(REALM_CHANGED)       // The right message
                             && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     ) {
-                handler.sendEmptyMessage(REALM_CHANGED);
+                if (!handler.sendEmptyMessage(REALM_CHANGED)) {
+                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                            "to prevent this.");
+                }
             }
         }
     }
@@ -420,7 +424,6 @@ abstract class BaseRealm implements Closeable {
 
         if (handler != null && refCount <= 0) {
             removeHandler(handler);
-            handler = null;
         }
     }
 
