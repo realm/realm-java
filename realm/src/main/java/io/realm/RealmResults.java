@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import io.realm.android.RealmCursor;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
@@ -499,6 +500,18 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public void add(int index, E element) {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * Returns the RealmResults as a {@link RealmCursor}. All changes applied to this RealmResults afterwards will
+     * also automatically be reflected in the Cursor without having to fetch it again.
+     *
+     * @return A cursor representing the RealmResults.
+     * @see android.database.Cursor
+     */
+    public RealmCursor getCursor() {
+        return new RealmCursor(realm, table);
+    }
+
 //
 //    /**
 //     * Replaces an object at the given index with a new object.
