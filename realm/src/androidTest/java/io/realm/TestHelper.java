@@ -18,6 +18,7 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -31,6 +32,11 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+import java.util.logging.Level;
+
+import io.realm.internal.log.Logger;
+
+import static junit.framework.Assert.fail;
 
 public class TestHelper {
 
@@ -89,6 +95,73 @@ public class TestHelper {
         byte[] key = new byte[64];
         new Random(seed).nextBytes(key);
         return key;
+    }
+
+    /**
+     * Returns a Logger that will fail if it is asked to log a message above a certain level.
+     *
+     * @param failureLevel {@link Log} level from which the unit test will fail.
+     * @return Logger implementation
+     */
+    public static Logger getFailureLogger(final int failureLevel) {
+        return new Logger() {
+
+            private void failIfEqualOrAbove(int logLevel, int failureLevel) {
+                if (logLevel >= failureLevel) {
+                    fail("Message logged that was above valid level: " + logLevel + " >= " + failureLevel);
+                }
+            }
+
+            @Override
+            public void v(String message) {
+                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            }
+
+            @Override
+            public void v(String message, Throwable t) {
+                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            }
+
+            @Override
+            public void d(String message) {
+                failIfEqualOrAbove(Log.DEBUG, failureLevel);
+            }
+
+            @Override
+            public void d(String message, Throwable t) {
+                failIfEqualOrAbove(Log.DEBUG, failureLevel);
+            }
+
+            @Override
+            public void i(String message) {
+                failIfEqualOrAbove(Log.INFO, failureLevel);
+            }
+
+            @Override
+            public void i(String message, Throwable t) {
+                failIfEqualOrAbove(Log.INFO, failureLevel);
+            }
+
+            @Override
+            public void w(String message) {
+                failIfEqualOrAbove(Log.WARN, failureLevel);
+            }
+
+            @Override
+            public void w(String message, Throwable t) {
+                failIfEqualOrAbove(Log.WARN, failureLevel);
+            }
+
+            @Override
+            public void e(String message) {
+                failIfEqualOrAbove(Log.ERROR, failureLevel);
+            }
+
+            @Override
+            public void e(String message, Throwable t) {
+                failIfEqualOrAbove(Log.ERROR, failureLevel);
+            }
+        };
     }
 
     public static class StubInputStream extends InputStream {
