@@ -358,7 +358,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 try {
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
                     final Realm realm = openRealmInstance("testFindAllAsyncRetry");
-                    final Handler handler = new HandlerProxy(realm.getHandler()) {
+                    final Handler handler = new HandlerProxy(realm.handler) {
                         @Override
                         public boolean onInterceptMessage(int what) {
                             switch (what) {
@@ -458,8 +458,8 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 try {
                     final Realm realm = openRealmInstance("testFindAllAsyncBatchUpdate");
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    assertNotNull(realm.getHandler());
-                    final Handler handler = new HandlerProxy(realm.getHandler()) {
+                    assertNotNull(realm.handler);
+                    final Handler handler = new HandlerProxy(realm.handler) {
                         @Override
                         public boolean onInterceptMessage(int what) {
                             switch (what) {
@@ -633,7 +633,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
                     final Realm realm = openRealmInstance("testFindAllCallerIsAdvanced");
                     final CountDownLatch updateCallerThread = new CountDownLatch(1);
-                    final Handler handler = new HandlerProxy(realm.getHandler()) {
+                    final Handler handler = new HandlerProxy(realm.handler) {
                         @Override
                         public boolean onInterceptMessage(int what) {
                             switch (what) {
@@ -750,7 +750,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     final Realm realm = openRealmInstance("testFindAllCallerThreadBehind");
                     final AtomicInteger numberOfCompletedAsyncQuery = new AtomicInteger(0);
                     final AtomicInteger numberOfInterceptedChangeMessage = new AtomicInteger(0);
-                    final Handler handler = new HandlerProxy(realm.getHandler()) {
+                    final Handler handler = new HandlerProxy(realm.handler) {
                         @Override
                         public boolean onInterceptMessage(int what) {
                             switch (what) {
@@ -1074,7 +1074,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 try {
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
                     final Realm realm = openRealmInstance("testFindFirstAsyncRetry");
-                    final Handler handler = new HandlerProxy(realm.getHandler()) {
+                    final Handler handler = new HandlerProxy(realm.handler) {
                         @Override
                         public boolean onInterceptMessage(int what) {
                             switch (what) {
@@ -1260,7 +1260,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 try {
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
                     final Realm realm = openRealmInstance("testFindAllSortedAsyncRetry");
-                    final Handler handler = new HandlerProxy(realm.getHandler()) {
+                    final Handler handler = new HandlerProxy(realm.handler) {
                         @Override
                         public boolean onInterceptMessage(int what) {
                             switch (what) {
@@ -1351,7 +1351,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 try {
                     final Realm realm = openRealmInstance("testFindAllSortedAsyncBatchUpdate");
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    final Handler handler = new HandlerProxy(realm.getHandler()) {
+                    final Handler handler = new HandlerProxy(realm.handler) {
                         @Override
                         public boolean onInterceptMessage(int what) {
                             switch (what) {
@@ -1508,7 +1508,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 try {
                     final Realm realm = openRealmInstance("testFindAllSortedMultiAsyncBatchUpdate");
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    final Handler handler = new HandlerProxy(realm.getHandler()) {
+                    final Handler handler = new HandlerProxy(realm.handler) {
                         @Override
                         public boolean onInterceptMessage(int what) {
                             switch (what) {

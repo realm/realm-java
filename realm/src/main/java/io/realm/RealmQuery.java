@@ -1242,10 +1242,10 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmResults<E> findAllAsync() {
         // use caller Realm Looper
-        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.getHandler());
+        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.handler);
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroup.getNativePointer());
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
 
         // save query arguments (for future update)
         argumentsHolder =  new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL);
@@ -1354,10 +1354,10 @@ public class RealmQuery<E extends RealmObject> {
         argumentsHolder.columnIndex = columnIndex;
 
         // will use the Looper of the caller Realm to post the result
-        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.getHandler());
+        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.handler);
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroup.getNativePointer());
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
 
         // we need to use the same configuration to open a background SharedGroup to perform the query
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
@@ -1513,10 +1513,10 @@ public class RealmQuery<E extends RealmObject> {
         } else {
 
             // will use the Looper of the caller Realm to post the result
-            final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.getHandler());
+            final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.handler);
 
             // Handover the query (to be used by a worker thread)
-            final long handoverQueryPointer = query.handoverQuery(realm.sharedGroup.getNativePointer());
+            final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
 
             // We need to use the same configuration to open a background SharedGroup to perform the query
             final RealmConfiguration realmConfiguration = realm.getConfiguration();
@@ -1685,10 +1685,10 @@ public class RealmQuery<E extends RealmObject> {
      */
     public E findFirstAsync () {
         // use caller Realm Looper
-        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.getHandler());
+        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.handler);
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroup.getNativePointer());
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
 
         // save query arguments (for future update)
         argumentsHolder =  new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_FIRST);
@@ -1779,6 +1779,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return the exported handover pointer for this RealmQuery
      */
     long handoverQueryPointer () {
-        return query.handoverQuery(realm.sharedGroup.getNativePointer());
+        return query.handoverQuery(realm.sharedGroupManager.getNativePointer());
     }
 }
