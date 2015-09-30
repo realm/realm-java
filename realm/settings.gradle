@@ -1,0 +1,5 @@
+// Realm projects
+include 'realm-library'
+include 'realm-annotations'
+include 'realm-annotations-processor'
+include 'realm-jni'

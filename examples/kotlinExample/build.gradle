@@ -1,3 +1,14 @@
+buildscript {
+    ext.kotlin_version = '0.12.213'
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'android-command'
@@ -29,24 +40,11 @@ android {
     }
 }
 
-tasks.preBuild {
-    dependsOn ":realm:androidJar"
-}
-
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
     compile 'org.jetbrains.anko:anko:0.6.2-19s'
-    compile files("../../realm/build/libs/realm-${version}.jar")
-
-    kapt files("../../realm/build/libs/realm-${version}.jar")
-}
-
-buildscript {
-    ext.kotlin_version = '0.12.213'
-    repositories {
-        jcenter()
+    compile ("io.realm:realm-library:${version}")  {
+      exclude module: 'annotations'
     }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
+    kapt "io.realm:realm-annotations-processor:${version}"
 }

@@ -1,5 +1,7 @@
+apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
+apply plugin: 'realm'
 
 android {
     compileSdkVersion 19
@@ -21,12 +23,4 @@ android {
     command {
         events 2000
     }
-}
-
-tasks.preBuild {
-    dependsOn ":realm:androidJar"
-}
-
-dependencies {
-    compile files("../../realm/build/libs/realm-${version}.jar")
 }

@@ -1,0 +1,11 @@
+include 'adapterExample'
+include 'encryptionExample'
+include 'gridViewExample'
+include 'introExample'
+include 'jsonExample'
+include 'kotlinExample'
+include 'migrationExample'
+include 'realmModuleExample'
+include 'threadExample'
+
+rootProject.name = 'examples'

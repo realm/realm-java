@@ -1,0 +1,13 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = '1.6'
+targetCompatibility = '1.6'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file://localhost/Users/emanuelez/.android-sdk/extras/android/m2repository")
+        }
+    }
+}

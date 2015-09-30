@@ -1,6 +1,7 @@
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
+apply plugin: 'realm'
 
 android {
     compileSdkVersion 20
@@ -23,8 +24,4 @@ android {
     command {
         events 2000
     }
-}
-
-dependencies {
-    compile 'io.realm:realm-android:@version@'
 }
