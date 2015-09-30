@@ -53,7 +53,7 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         };
 
         if (listener != null && realmResults != null) {
-            realmResults.getRealm().addChangeListener(listener);
+            realmResults.realm.addChangeListener(listener);
         }
     }
 
@@ -97,10 +97,10 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         if (listener != null) {
             // Making sure that Adapter is refreshed correctly if new RealmResults come from another Realm
             if (this.realmResults != null) {
-                this.realmResults.getRealm().removeChangeListener(listener);
+                this.realmResults.realm.removeChangeListener(listener);
             }
             if (queryResults != null) {
-                queryResults.getRealm().addChangeListener(listener);
+                queryResults.realm.addChangeListener(listener);
             }
         }
 

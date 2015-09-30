@@ -156,7 +156,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         int[] wrongVersions = new int[] { 0, 1, 41 };
         for (int version : wrongVersions) {
             try {
-                Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(version).build());
+                realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(version).build());
                 fail("Version " + version + " should throw an exception");
             } catch (IllegalArgumentException expected) {
             }
@@ -171,7 +171,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         // Create new instance with a configuration containing another schema
         try {
             config = new RealmConfiguration.Builder(getContext()).schemaVersion(42).schema(AllTypesPrimaryKey.class).build();
-            Realm.getInstance(config);
+            realm = Realm.getInstance(config);
             fail("A migration should be required");
         } catch (RealmMigrationNeededException expected) {
         }
@@ -235,8 +235,8 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .schemaVersion(42)
                 .migration(new RealmMigration() {
                     @Override
-                    public long execute(Realm realm, long version) {
-                        return 0; // no-op
+                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                        // no-op
                     }
                 })
                 .deleteRealmIfMigrationNeeded()
@@ -328,7 +328,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
         Realm realm1 = Realm.getInstance(config1);
         try {
-            Realm.getInstance(config2);
+            realm = Realm.getInstance(config2);
             fail();
         } catch (IllegalArgumentException expected) {
         } finally {

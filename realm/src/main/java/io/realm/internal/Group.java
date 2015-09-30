@@ -166,6 +166,24 @@ public class Group implements Closeable {
     }
 
     /**
+     * Removes a table from the group and delete all data.
+     */
+    public void removeTable(String name) {
+        nativeRemoveTable(nativePtr, name);
+    }
+
+    native void nativeRemoveTable(long nativeGroupPtr, String tableName);
+
+    /**
+     * Renames a table
+     */
+    public void renameTable(String oldName, String newName) {
+        nativeRenameTable(nativePtr, oldName, newName);
+    }
+
+    native void nativeRenameTable(long nativeGroupPtr, String oldName, String newName);
+
+    /**
      * Returns a table with the specified name.
      *
      * @param name  The name of the table.
@@ -250,9 +268,6 @@ public class Group implements Closeable {
         return nativeToString(nativePtr);
     }
 
-    private void throwImmutable() {
-        throw new IllegalStateException("Objects cannot be changed outside a transaction; see beginTransaction() for details.");
-    }
 
     protected native long createNative();
     protected native long createNative(String filepath, int value);

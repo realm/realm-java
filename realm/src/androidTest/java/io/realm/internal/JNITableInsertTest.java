@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import io.realm.RealmFieldType;
 import io.realm.internal.test.TestHelper;
 
 
@@ -79,7 +80,7 @@ public class JNITableInsertTest extends TestCase {
 
         Table table = new Table();
         try {
-            table.addColumn(ColumnType.STRING, "THIS STRING HAS 64 CHARACTERS, "
+            table.addColumn(RealmFieldType.STRING, "THIS STRING HAS 64 CHARACTERS, "
                     + "LONGER THAN THE MAX 63 CHARACTERS");
             fail("Too long name");
         } catch (IllegalArgumentException e) {
@@ -89,7 +90,7 @@ public class JNITableInsertTest extends TestCase {
     public void testWhenColumnNameIsExactly63CharLong() {
 
         Table table = new Table();
-        table.addColumn(ColumnType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");
+        table.addColumn(RealmFieldType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");
     }
 
     public void testGenericAddOnTable() {

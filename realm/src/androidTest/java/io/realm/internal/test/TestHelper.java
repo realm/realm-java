@@ -2,9 +2,11 @@ package io.realm.internal.test;
 
 import java.util.Date;
 
+import io.realm.DynamicRealm;
+import io.realm.DynamicRealmObject;
 import io.realm.Realm;
+import io.realm.RealmFieldType;
 import io.realm.entities.AllTypes;
-import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
 
@@ -20,24 +22,24 @@ public class TestHelper {
      * @param o
      * @return
      */
-    public static ColumnType getColumnType(Object o){
+    public static RealmFieldType getColumnType(Object o){
 
         if (o instanceof Boolean)
-            return ColumnType.BOOLEAN;
+            return RealmFieldType.BOOLEAN;
         if (o instanceof String)
-            return ColumnType.STRING;
+            return RealmFieldType.STRING;
         if (o instanceof Long)
-            return ColumnType.INTEGER;
+            return RealmFieldType.INTEGER;
         if (o instanceof Float)
-            return ColumnType.FLOAT;
+            return RealmFieldType.FLOAT;
         if (o instanceof Double)
-            return ColumnType.DOUBLE;
+            return RealmFieldType.DOUBLE;
         if (o instanceof Date)
-            return ColumnType.DATE;
+            return RealmFieldType.DATE;
         if (o instanceof byte[])
-            return ColumnType.BINARY;
+            return RealmFieldType.BINARY;
 
-        return ColumnType.MIXED;
+        return RealmFieldType.UNSUPPORTED_MIXED;
     }
 
 
@@ -49,33 +51,40 @@ public class TestHelper {
 
         Table t = new Table();
 
-        t.addColumn(ColumnType.BINARY, "binary");
-        t.addColumn(ColumnType.BOOLEAN, "boolean");
-        t.addColumn(ColumnType.DATE, "date");
-        t.addColumn(ColumnType.DOUBLE, "double");
-        t.addColumn(ColumnType.FLOAT, "float");
-        t.addColumn(ColumnType.INTEGER, "long");
-        t.addColumn(ColumnType.MIXED, "mixed");
-        t.addColumn(ColumnType.STRING, "string");
-        t.addColumn(ColumnType.TABLE, "table");
+        t.addColumn(RealmFieldType.BINARY, "binary");
+        t.addColumn(RealmFieldType.BOOLEAN, "boolean");
+        t.addColumn(RealmFieldType.DATE, "date");
+        t.addColumn(RealmFieldType.DOUBLE, "double");
+        t.addColumn(RealmFieldType.FLOAT, "float");
+        t.addColumn(RealmFieldType.INTEGER, "long");
+        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
+        t.addColumn(RealmFieldType.STRING, "string");
+        t.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "table");
 
         return t;
     }
 
-    public static void populateForMultiSort(Realm testRealm) {
-        testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
-        AllTypes object1 = testRealm.createObject(AllTypes.class);
-        object1.setColumnLong(5);
-        object1.setColumnString("Adam");
+    public static void populateForMultiSort(Realm typedRealm) {
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(typedRealm.getConfiguration());
+        populateForMultiSort(dynamicRealm);
+        dynamicRealm.close();
+        typedRealm.refresh();
+    }
 
-        AllTypes object2 = testRealm.createObject(AllTypes.class);
-        object2.setColumnLong(4);
-        object2.setColumnString("Brian");
+    public static void populateForMultiSort(DynamicRealm realm) {
+        realm.beginTransaction();
+        realm.clear(AllTypes.CLASS_NAME);
+        DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
+        object1.setLong(AllTypes.FIELD_LONG, 5);
+        object1.setString(AllTypes.FIELD_STRING, "Adam");
 
-        AllTypes object3 = testRealm.createObject(AllTypes.class);
-        object3.setColumnLong(4);
-        object3.setColumnString("Adam");
-        testRealm.commitTransaction();
+        DynamicRealmObject object2 = realm.createObject(AllTypes.CLASS_NAME);
+        object2.setLong(AllTypes.FIELD_LONG, 4);
+        object2.setString(AllTypes.FIELD_STRING, "Brian");
+
+        DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
+        object3.setLong(AllTypes.FIELD_LONG, 4);
+        object3.setString(AllTypes.FIELD_STRING, "Adam");
+        realm.commitTransaction();
     }
 }

@@ -5,7 +5,9 @@ import android.test.AndroidTestCase;
 import java.io.File;
 import java.util.Date;
 
+import io.realm.RealmFieldType;
 import io.realm.internal.test.TestHelper;
+import io.realm.Sort;
 
 public class JNITableTest extends AndroidTestCase {
 
@@ -13,15 +15,15 @@ public class JNITableTest extends AndroidTestCase {
 
     Table createTestTable() {
         Table t = new Table();
-        t.addColumn(ColumnType.BINARY, "binary"); // 0
-        t.addColumn(ColumnType.BOOLEAN, "boolean");  // 1
-        t.addColumn(ColumnType.DATE, "date");     // 2
-        t.addColumn(ColumnType.DOUBLE, "double"); // 3
-        t.addColumn(ColumnType.FLOAT, "float");   // 4
-        t.addColumn(ColumnType.INTEGER, "long");      // 5
-        t.addColumn(ColumnType.MIXED, "mixed");   // 6
-        t.addColumn(ColumnType.STRING, "string"); // 7
-        t.addColumn(ColumnType.TABLE, "table");   // 8
+        t.addColumn(RealmFieldType.BINARY, "binary"); // 0
+        t.addColumn(RealmFieldType.BOOLEAN, "boolean");  // 1
+        t.addColumn(RealmFieldType.DATE, "date");     // 2
+        t.addColumn(RealmFieldType.DOUBLE, "double"); // 3
+        t.addColumn(RealmFieldType.FLOAT, "float");   // 4
+        t.addColumn(RealmFieldType.INTEGER, "long");      // 5
+        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");   // 6
+        t.addColumn(RealmFieldType.STRING, "string"); // 7
+        t.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "table");   // 8
         return t;
     }
 
@@ -33,9 +35,9 @@ public class JNITableTest extends AndroidTestCase {
     public void testTableToString() {
         Table t = new Table();
 
-        t.addColumn(ColumnType.STRING, "stringCol");
-        t.addColumn(ColumnType.INTEGER, "intCol");
-        t.addColumn(ColumnType.BOOLEAN, "boolCol");
+        t.addColumn(RealmFieldType.STRING, "stringCol");
+        t.addColumn(RealmFieldType.INTEGER, "intCol");
+        t.addColumn(RealmFieldType.BOOLEAN, "boolCol");
 
         t.add("s1", 1, true);
         t.add("s2", 2, false);
@@ -56,7 +58,7 @@ public class JNITableTest extends AndroidTestCase {
         try { t.remove(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // Column added, remove rows again
-        t.addColumn(ColumnType.STRING, "");
+        t.addColumn(RealmFieldType.STRING, "");
         try { t.remove(0);  fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
         try { t.remove(10); fail("No rows in table"); } catch (ArrayIndexOutOfBoundsException e) {}
 
@@ -165,7 +167,7 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testGetNonExistingColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.INTEGER, "int");
+        t.addColumn(RealmFieldType.INTEGER, "int");
 
         assertEquals(-1, t.getColumnIndex("non-existing column"));
         try { t.getColumnIndex(null); fail("column name null"); } catch (IllegalArgumentException e) { }
@@ -174,9 +176,9 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testGetSortedView() {
         Table t = new Table();
-        t.addColumn(ColumnType.INTEGER, "");
-        t.addColumn(ColumnType.STRING, "");
-        t.addColumn(ColumnType.DOUBLE, "");
+        t.addColumn(RealmFieldType.INTEGER, "");
+        t.addColumn(RealmFieldType.STRING, "");
+        t.addColumn(RealmFieldType.DOUBLE, "");
 
         t.add(1, "s", 1000d);
         t.add(3,"sss", 10d);
@@ -209,7 +211,7 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(10d, v.getDouble(2, 2));
 
         // Get the sorted view on first column descending
-        v = t.getSortedView(0, TableView.Order.descending);
+        v = t.getSortedView(0, Sort.DESCENDING);
 
         // Check the new order
         assertEquals(3, v.getLong(0, 0));
@@ -223,18 +225,18 @@ public class JNITableTest extends AndroidTestCase {
         assertEquals(1000d, v.getDouble(2, 2));
 
         // Some out of bounds test cases
-        try { t.getSortedView(-1, TableView.Order.descending);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSortedView(-100, TableView.Order.descending);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
-        try { t.getSortedView(100, TableView.Order.descending);   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(-1, Sort.DESCENDING);    fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(-100, Sort.DESCENDING);  fail("Column is less than 0"); } catch (ArrayIndexOutOfBoundsException e) { }
+        try { t.getSortedView(100, Sort.DESCENDING);   fail("Column does not exist"); } catch (ArrayIndexOutOfBoundsException e) { }
 
     }
 
     public void testSetNulls() {
         Table t = new Table();
-        t.addColumn(ColumnType.STRING, "");
-        t.addColumn(ColumnType.DATE, "");
-        t.addColumn(ColumnType.MIXED, "");
-        t.addColumn(ColumnType.BINARY, "");
+        t.addColumn(RealmFieldType.STRING, "");
+        t.addColumn(RealmFieldType.DATE, "");
+        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "");
+        t.addColumn(RealmFieldType.BINARY, "");
         t.add("String val", new Date(), new Mixed(""), new byte[]{1, 2, 3});
 
         try { t.setString(0, 0, null);  fail("null string not allowed"); } catch (IllegalArgumentException e) { }
@@ -243,14 +245,14 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testAddNegativeEmptyRows() {
         Table t = new Table();
-        t.addColumn(ColumnType.STRING, "colName");
+        t.addColumn(RealmFieldType.STRING, "colName");
 
         try { t.addEmptyRows(-1); fail("Argument is negative"); } catch (IllegalArgumentException e ) { }
     }
 
     public void testAddNullInMixedColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.MIXED, "mixed");
+        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
         t.add(new Mixed(true));
 
         try { t.setMixed(0, 0, null); fail("Argument is null"); } catch (IllegalArgumentException e) { }
@@ -269,7 +271,7 @@ public class JNITableTest extends AndroidTestCase {
         WriteTransaction wt = group.beginWrite();
         try {
             Table table = wt.getTable(TABLENAME);
-            table.addColumn(ColumnType.STRING, "col0");
+            table.addColumn(RealmFieldType.STRING, "col0");
             table.add("value0");
             table.add("value1");
             table.add("value2");
@@ -321,10 +323,10 @@ public class JNITableTest extends AndroidTestCase {
 
             // All types supported addSearchIndex and removeSearchIndex
             boolean exceptionExpected = (
-                            t.getColumnType(colIndex) != ColumnType.STRING &&
-                            t.getColumnType(colIndex) != ColumnType.INTEGER &&
-                            t.getColumnType(colIndex) != ColumnType.BOOLEAN &&
-                            t.getColumnType(colIndex) != ColumnType.DATE);
+                            t.getColumnType(colIndex) != RealmFieldType.STRING &&
+                            t.getColumnType(colIndex) != RealmFieldType.INTEGER &&
+                            t.getColumnType(colIndex) != RealmFieldType.BOOLEAN &&
+                            t.getColumnType(colIndex) != RealmFieldType.DATE);
 
             // Try to addSearchIndex()
             try {
@@ -353,16 +355,16 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testColumnName() {
         Table t = new Table();
-        try { t.addColumn(ColumnType.STRING, "I am 64 characters.............................................."); fail("Only 63 characters supported"); } catch (IllegalArgumentException e) { }
-        t.addColumn(ColumnType.STRING, "I am 63 characters.............................................");
+        try { t.addColumn(RealmFieldType.STRING, "I am 64 characters.............................................."); fail("Only 63 characters supported"); } catch (IllegalArgumentException e) { }
+        t.addColumn(RealmFieldType.STRING, "I am 63 characters.............................................");
     }
 
     public void testTableNumbers() {
         Table t = new Table();
-        t.addColumn(ColumnType.INTEGER, "intCol");
-        t.addColumn(ColumnType.DOUBLE, "doubleCol");
-        t.addColumn(ColumnType.FLOAT, "floatCol");
-        t.addColumn(ColumnType.STRING, "StringCol");
+        t.addColumn(RealmFieldType.INTEGER, "intCol");
+        t.addColumn(RealmFieldType.DOUBLE, "doubleCol");
+        t.addColumn(RealmFieldType.FLOAT, "floatCol");
+        t.addColumn(RealmFieldType.STRING, "StringCol");
 
         // Add 3 rows of data with same values in each column
         t.add(1, 2.0d, 3.0f, "s1");
@@ -406,7 +408,7 @@ public class JNITableTest extends AndroidTestCase {
     public void testMaximumDate() {
 
         Table table = new Table();
-        table.addColumn(ColumnType.DATE, "date");
+        table.addColumn(RealmFieldType.DATE, "date");
 
         table.add(new Date(0));
         table.add(new Date(10000));
@@ -419,7 +421,7 @@ public class JNITableTest extends AndroidTestCase {
     public void testMinimumDate() {
 
         Table table = new Table();
-        table.addColumn(ColumnType.DATE, "date");
+        table.addColumn(RealmFieldType.DATE, "date");
 
         table.add(new Date(10000));
         table.add(new Date(0));

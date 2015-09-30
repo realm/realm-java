@@ -4,12 +4,12 @@ import android.test.AndroidTestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.EnumSet;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.FieldOrder;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.FieldOrder;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
 public class RealmMigrationTests extends AndroidTestCase {
@@ -64,14 +64,11 @@ public class RealmMigrationTests extends AndroidTestCase {
         // V2 config
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table languageTable = realm.getTable(FieldOrder.class);
-                if (languageTable.getColumnCount() == 0) {
-                    languageTable.addColumn(ColumnType.INTEGER, "field2");
-                    languageTable.addColumn(ColumnType.BOOLEAN, "field1");
-                }
-
-                return version + 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.addClass("FieldOrder")
+                        .addInt("field2")
+                        .addBoolean("field1");
             }
         };
 
@@ -100,92 +97,103 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testNotSettingIndexThrows() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
+        // Create v1 of the Realm
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                // Primary key will be indexed automatically
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "indexString");
-                table.addColumn(ColumnType.STRING, "notIndexString");
-                // Forget to set @Index
-                return 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.addClass("AnnotationTypes")
+                        .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
+                        .addString("indexString") // Forget to set @Index
+                        .addString("notIndexString");
             }
         };
+
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
-
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException expected) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+                Realm.deleteRealm(realmConfig);
+            }
         }
     }
 
     public void testNotSettingPrimaryKeyThrows() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                if (table.getColumnCount() == 0) {
-                    long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
-                    table.addSearchIndex(columnIndex);
-                    // Forget to set @PrimaryKey
-                    columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                    table.addSearchIndex(columnIndex);
-                    table.addColumn(ColumnType.STRING, "notIndexString");
-                }
-                return 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.addClass("AnnotationTypes")
+                        .addLong("id") // Forget to set @PrimaryKey
+                        .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
+                        .addString("notIndexString");
             }
         };
+
+        // Create v1 of the Realm
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
-
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
             if (!e.getMessage().equals("Primary key not defined for field 'id'")) {
-                fail(e.getMessage());
+                fail(e.toString());
+            }
+        } finally {
+            if (realm != null) {
+                realm.close();
+                Realm.deleteRealm(realmConfig);
             }
         }
     }
 
     public void testSetAnnotations() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                // Primary key will be indexed automatically
-                table.addSearchIndex(columnIndex);
-                columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString");
-                return 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.addClass("AnnotationTypes")
+                        .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY, RealmModifier.INDEXED))
+                        .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
+                        .addString("notIndexString");
             }
         };
 
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
 
         realm = Realm.getInstance(realmConfig);
         Table table = realm.getTable(AnnotationTypes.class);
@@ -195,33 +203,36 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testNotSettingIndexForPrimaryKeyThrows() {
+        // Creating v0 of the the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                table.addColumn(ColumnType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                // Forget to add search index primary key
-                long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString");
-                return 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.addClass("AnnotationTypes")
+                        .addInt("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
+                        .removeIndex("id")
+                        .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
+                        .addString("notIndexString");
             }
         };
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
 
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
-        } catch (RealmMigrationNeededException expected) {
+        } catch (IllegalStateException e) {
+            if (!e.getMessage().equals("Field is not indexed: id")) {
+                fail(e.toString());
+            }
         }
-
     }
 
     public void testGetPathFromMigrationException() throws IOException {
