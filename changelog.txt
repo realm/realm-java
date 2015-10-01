@@ -1,7 +1,7 @@
 0.83
- * Support async queries & transactions.
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
+ * Added support for async queries and transactions.
  * Added support for x86_64.
  * Fixed an issue where opening the same Realm file on two Looper threads could potentially lead to an IllegalStateException being thrown.
  * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.

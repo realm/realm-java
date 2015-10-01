@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.Date;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmException;
@@ -120,9 +119,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
         if (nativePtr != 0) {
             nativeClose(nativePtr);
 
-            if (DEBUG)
+            if (DEBUG) {
                 System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
-
+            }
             nativePtr = 0;
         }
         nativePtr = newTableViewPointer;
@@ -404,7 +403,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRowByIndex(rowIndex);
+                row = getUncheckedRow(rowIndex);
                 row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
                 break;
 
@@ -419,7 +418,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(pkValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRowByIndex(rowIndex);
+                row = getUncheckedRow(rowIndex);
                 row.setLong(primaryKeyColumnIndex, pkValue);
                 break;
 
@@ -593,7 +592,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
             long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
             if (rowIndex != NO_MATCH) {
-                String pkColumnName = pkTable.getUncheckedRowByIndex(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
+                String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
             } else {
                 cachedPrimaryKeyColumnIndex = NO_PRIMARY_KEY;
@@ -829,7 +828,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param index Index of row to fetch.
      * @return Unsafe row wrapper object.
      */
-    public UncheckedRow getUncheckedRowByIndex(long index) {
+    public UncheckedRow getUncheckedRow(long index) {
         return UncheckedRow.getByRowIndex(context, this, index);
     }
 
@@ -848,7 +847,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * Returns a wrapper around Row access. All access will be error checked in JNI and will throw an
      * appropriate {@link RuntimeException} if used incorrectly.
      *
-     * If error checking is done elsewhere, consider using {@link #getUncheckedRowByIndex(long)} for better performance.
+     * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
      *
      * @param index Index of row to fetch./
      * @return Safe row wrapper object.

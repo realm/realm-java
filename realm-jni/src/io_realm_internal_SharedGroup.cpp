@@ -309,15 +309,18 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersion
         (JNIEnv *env, jobject, jlong native_ptr)
 {
     TR_ENTER()
+    SharedGroup::VersionID version_id = SG(native_ptr)->get_version_of_current_transaction();
 
-    SharedGroup::VersionID versionID = SG(native_ptr)->get_version_of_current_transaction();
+    jlong version_array [2];
+    version_array[0] = static_cast<jlong>(version_id.version);
+    version_array[1] = static_cast<jlong>(version_id.index);
 
-    jlong versionArray [2];
-    versionArray[0] = static_cast<jlong>(versionID.version);
-    versionArray[1] = static_cast<jlong>(versionID.index);
+    jlongArray version_data = env->NewLongArray(2);
+    if (version_data == NULL) {
+        ThrowException(env, OutOfMemory, "Could not allocate memory to return versionID.");
+        return NULL;
+    }
+    env->SetLongArrayRegion(version_data, 0, 2, version_array);
 
-    jlongArray versionData = env->NewLongArray(2);
-    env->SetLongArrayRegion(versionData, 0, 2, versionArray);
-
-    return versionData;
+    return version_data;
 }

@@ -124,9 +124,9 @@ public class TableView implements TableOrView, Closeable {
         if (nativePtr != 0) {
             nativeClose(nativePtr);
 
-            if (DEBUG)
+            if (DEBUG) {
                 System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
-
+            }
             nativePtr = 0;
         }
         nativePtr = newTableViewPointer;

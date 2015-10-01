@@ -219,6 +219,7 @@ abstract class BaseRealm implements Closeable {
     protected void removeHandler(Handler handler) {
         handler.removeCallbacksAndMessages(null);
         handlers.remove(handler);
+        this.handler = null;
     }
 
     private void sendNotifications() {

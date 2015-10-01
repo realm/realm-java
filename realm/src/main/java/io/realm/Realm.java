@@ -303,6 +303,8 @@ public final class Realm extends BaseRealm {
                     realm.close();
                     throw e;
                 }
+            } else {
+                loadMediatorClasses(realm);
             }
 
             return realm;
@@ -336,6 +338,13 @@ public final class Realm extends BaseRealm {
             } else {
                 realm.cancelTransaction();
             }
+        }
+    }
+
+    private static void loadMediatorClasses(Realm realm) {
+        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+        for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
+            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 
@@ -706,7 +715,7 @@ public final class Realm extends BaseRealm {
 
     <E extends RealmObject> E getByIndex(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
-        UncheckedRow row = table.getUncheckedRowByIndex(rowIndex);
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
         E result = configuration.getSchemaMediator().newInstance(clazz);
         result.row = row;
         result.realm = this;
@@ -979,9 +988,6 @@ public final class Realm extends BaseRealm {
         if (transaction == null)
             throw new IllegalArgumentException("transaction should not be null");
 
-        if (callback == null)
-            throw new IllegalArgumentException("callback should not be null");
-
         // will use the Looper of the caller thread to post the result
         final Handler handler = new Handler();
 
@@ -1231,7 +1237,7 @@ public final class Realm extends BaseRealm {
     /**
      * Represents a pending asynchronous Realm query.
      * <p/>
-     * Users are responsible of maintaining a reference to {@code Request} in order
+     * Users are responsible for maintaining a reference to {@code Request} in order
      * to call #cancel in case of a configuration change for example (to avoid memory leak, as the
      * query will post the result to the caller's thread callback)
      */
@@ -1250,6 +1256,7 @@ public final class Realm extends BaseRealm {
             pendingQuery.cancel(true);
             isCancelled = true;
 
+            // From "Java Threads": By Scott Oaks & Henry Wong
             // cancelled tasks are never executed, but may
             // accumulate in work queues, which may causes a memory leak
             // if the task hold references (to an enclosing class for example)

@@ -68,18 +68,19 @@ public class QueryUpdateTask implements Runnable {
         SharedGroup sharedGroup = null;
         try {
             sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                    true, realmConfiguration.getDurability(),
+                    SharedGroup.IMPLICIT_TRANSACTION,
+                    realmConfiguration.getDurability(),
                     realmConfiguration.getEncryptionKey());
 
             Result result;
             boolean updateSuccessful = false;
             if (isUpdatingRealmResults) {
-                result = Result.newRealmResults();
+                result = Result.newRealmResultsResponse();
                 updateSuccessful = updateRealmResultsQueries(sharedGroup, result);
                 result.versionID = sharedGroup.getVersion();
 
             } else {
-                result = Result.newRealmObject();
+                result = Result.newRealmObjectResponse();
                 updateSuccessful = updateRealmObjectQuery(sharedGroup, result);
                 result.versionID = sharedGroup.getVersion();
             }
@@ -191,20 +192,18 @@ public class QueryUpdateTask implements Runnable {
         public IdentityHashMap<WeakReference<RealmObject>, Long> updatedRow;
         public SharedGroup.VersionID versionID;
 
-        public static Result newRealmResults () {
+        public static Result newRealmResultsResponse() {
             Result result = new Result();
             result.updatedTableViews = new IdentityHashMap<WeakReference<RealmResults<?>>, Long>(1);
             return result;
         }
 
-        public static Result newRealmObject () {
+        public static Result newRealmObjectResponse() {
             Result result = new Result();
             result.updatedRow = new IdentityHashMap<WeakReference<RealmObject>, Long>(1);
             return result;
         }
     }
-
-    // builder pattern
 
     /*
       This uses the step builder pattern to guide the caller throughout the creation of the instance

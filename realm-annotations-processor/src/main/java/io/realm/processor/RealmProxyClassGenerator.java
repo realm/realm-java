@@ -142,6 +142,11 @@ public class RealmProxyClassGenerator {
     private void emitClassFields(JavaWriter writer) throws IOException {
         for (VariableElement variableElement : metadata.getFields()) {
             writer.emitField("long", staticFieldIndexVarName(variableElement), EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
+            if (typeUtils.isAssignable(variableElement.asType(), realmList)) {
+                String genericType = Utils.getGenericType(variableElement);
+
+                writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() + "RealmList", EnumSet.of(Modifier.PRIVATE));
+            }
         }
         writer.emitField("Map<String, Long>", "columnIndices", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
         writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
@@ -221,7 +226,6 @@ public class RealmProxyClassGenerator {
                  */
                 String genericType = Utils.getGenericType(field);
 
-                writer.emitField("RealmList<" + genericType + ">", fieldName + "RealmList", EnumSet.of(Modifier.PRIVATE));
                 // Getter
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
@@ -233,7 +237,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("LinkView linkView = row.getLinkList(%s)", staticFieldIndexVarName(field));
                 writer.beginControlFlow("if (linkView == null)");
                 writer.emitSingleLineComment("return empty non managed RealmList if the LinkView is null");
-                writer.emitSingleLineComment("useful for non-initialized RealmObject (async query return empty Row while the query is performing)");
+                writer.emitSingleLineComment("useful for non-initialized RealmObject (async query returns empty Row while the query is still running)");
                 writer.emitStatement("return new RealmList<" + genericType + ">()");
                 writer.nextControlFlow("else");
                 writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, realm)",
@@ -499,7 +503,7 @@ public class RealmProxyClassGenerator {
                 .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                     .emitStatement("realmObject = new %s()", Utils.getProxyClassName(className))
                     .emitStatement("realmObject.realm = realm")
-                    .emitStatement("realmObject.row = table.getUncheckedRowByIndex(rowIndex)")
+                    .emitStatement("realmObject.row = table.getUncheckedRow(rowIndex)")
                     .emitStatement("cache.put(object, (RealmObjectProxy) realmObject)")
                 .nextControlFlow("else")
                     .emitStatement("canUpdate = false")
@@ -759,7 +763,7 @@ public class RealmProxyClassGenerator {
                         .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
                             .emitStatement("obj = new %s()", Utils.getProxyClassName(className))
                             .emitStatement("obj.realm = realm")
-                            .emitStatement("obj.row = table.getUncheckedRowByIndex(rowIndex)")
+                            .emitStatement("obj.row = table.getUncheckedRow(rowIndex)")
                         .endControlFlow()
                     .endControlFlow()
                 .endControlFlow()

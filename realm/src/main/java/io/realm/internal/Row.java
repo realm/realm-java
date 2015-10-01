@@ -116,6 +116,9 @@ public interface Row {
     boolean hasColumn(String fieldName);
 
     Row EMPTY_ROW = new Row() {
+        private final static String UNLOADED_ROW_MESSAGE = "Can't modify an unloaded row, make sure the instance" +
+                " is loaded by calling RealmObject.isLoaded";
+
         @Override
         public long getColumnCount() {
             return 0;
@@ -208,62 +211,52 @@ public interface Row {
 
         @Override
         public void setLong(long columnIndex, long value) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setBoolean(long columnIndex, boolean value) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setFloat(long columnIndex, float value) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setDouble(long columnIndex, double value) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setDate(long columnIndex, Date date) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setString(long columnIndex, String value) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setBinaryByteArray(long columnIndex, byte[] data) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setMixed(long columnIndex, Mixed data) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError();
         }
 
         @Override
         public void setLink(long columnIndex, long value) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void nullifyLink(long columnIndex) {
-            throw new IllegalAccessError("Can't modify an unloaded row, make sure the instance" +
-                    " is loaded by calling RealmObject#isLoaded");
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override

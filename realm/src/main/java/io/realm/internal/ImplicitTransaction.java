@@ -25,11 +25,18 @@ public class ImplicitTransaction extends Group {
         parent = sharedGroup;
     }
 
+    /**
+     * Position the shared group to the latest version
+     */
     public void advanceRead() {
         assertNotClosed();
         parent.advanceRead();
     }
 
+    /**
+     * Position the shared group at the specified version.
+     * @param versionID version of the shared group
+     */
     public void advanceRead(SharedGroup.VersionID versionID) {
         assertNotClosed();
         parent.advanceRead(versionID);

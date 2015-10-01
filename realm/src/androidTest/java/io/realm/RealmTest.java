@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Handler;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -202,6 +204,7 @@ public class RealmTest extends AndroidTestCase {
         Realm realm = null;
         try {
             realm = Realm.getInstance(realmConfig);
+
             assertEquals(1, Realm.getHandlers().size());
             realm.close();
 
@@ -616,7 +619,9 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.executeTransaction(null);
             fail("null transaction should throw");
-        } catch (IllegalArgumentException ignore) {}
+        } catch (IllegalArgumentException ignore) {
+
+        }
         assertFalse(testRealm.hasChanged());
     }
 

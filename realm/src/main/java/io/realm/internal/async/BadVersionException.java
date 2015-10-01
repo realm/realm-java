@@ -19,10 +19,9 @@ package io.realm.internal.async;
 import io.realm.exceptions.RealmException;
 
 /**
- * Triggered when the result of a query could not be used against the current state of the Realm
- * which might be more up-to-date than the provided results or vice versa
+ * Triggered from JNI level when the result of a query (from a different thread) could not be used against
+ * the current state of the Realm which might be more up-to-date than the provided results or vice versa.
  */
-// Triggered from JNI level to indicate a failing Handover due to version mismatch
 public class BadVersionException extends RealmException {
 
     public BadVersionException(String detailMessage) {

@@ -40,9 +40,9 @@ import io.realm.examples.threads.model.Dot;
  */
 public class AsyncQueryFragment extends Fragment implements View.OnClickListener, RealmChangeListener {
     private Realm realm;
-    private DotAdapter mDotAdapter;
-    private RealmResults<Dot> mAllSortedDots;
-    private Realm.Request mAsyncTransaction;
+    private DotAdapter dotAdapter;
+    private RealmResults<Dot> allSortedDots;
+    private Realm.Request asyncTransaction;
 
 
     @Override
@@ -51,8 +51,8 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         rootView.findViewById(R.id.translate_button).setOnClickListener(this);
 
         ListView listView = (ListView) rootView.findViewById(android.R.id.list);
-        mDotAdapter = new DotAdapter(getActivity());
-        listView.setAdapter(mDotAdapter);
+        dotAdapter = new DotAdapter(getActivity());
+        listView.setAdapter(dotAdapter);
         return rootView;
     }
 
@@ -61,14 +61,15 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         super.onStart();
         // Create Realm instance for the UI thread
         realm = Realm.getDefaultInstance();
-        mAllSortedDots = realm.where(Dot.class)
+        allSortedDots = realm.where(Dot.class)
                 .between("x", 25, 75)
                 .between("y", 0, 50)
                 .findAllSortedAsync(
-                        "x", RealmResults.SORT_ORDER_ASCENDING,
-                        "y", RealmResults.SORT_ORDER_DESCENDING);
-        mDotAdapter.updateList(mAllSortedDots);
-        mAllSortedDots.addChangeListener(this);
+                         "x", RealmResults.SORT_ORDER_ASCENDING,
+                         "y", RealmResults.SORT_ORDER_DESCENDING
+                 );
+        dotAdapter.updateList(allSortedDots);
+        allSortedDots.addChangeListener(this);
     }
 
     @Override
@@ -76,8 +77,8 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         super.onStop();
         // Remember to close the Realm instance when done with it.
         cancelTransaction();
-        mAllSortedDots.removeChangeListener(this);
-        mAllSortedDots = null;
+        allSortedDots.removeChangeListener(this);
+        allSortedDots = null;
         realm.close();
     }
 
@@ -87,13 +88,12 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
             case R.id.translate_button: {
                 cancelTransaction();
                 // translate all points coordinates using an async transaction
-                mAsyncTransaction = realm.executeTransaction(new Realm.Transaction() {
+                asyncTransaction = realm.executeTransaction(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
                         // query for all points
                         RealmResults<Dot> dots = realm.where(Dot.class).findAll();
 
-                        // Iterating backwards to avoid https://github.com/realm/realm-java/issues/640
                         for (int i = dots.size() - 1; i >= 0; i--) {
                             Dot dot = dots.get(i);
                             if (dot.isValid()) {
@@ -126,18 +126,21 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
     }
 
     private void cancelTransaction() {
-        if (mAsyncTransaction != null && !mAsyncTransaction.isCancelled()) {
-            mAsyncTransaction.cancel();
-            mAsyncTransaction = null;
+        if (asyncTransaction != null && !asyncTransaction.isCancelled()) {
+            asyncTransaction.cancel();
+            asyncTransaction = null;
         }
     }
 
     @Override
     public void onChange() {
-        mDotAdapter.notifyDataSetChanged();
+        dotAdapter.notifyDataSetChanged();
     }
 
 
+    // using a generic Adapter instead of RealmBaseAdapter, because
+    // RealmBaseAdapter register a listener against all Realm changes
+    // whereas in this scenario we're only interested on the changes of our query
     private class DotAdapter extends BaseAdapter {
         private List<Dot> dots = Collections.emptyList();
         private final LayoutInflater inflater;

@@ -87,14 +87,13 @@ public abstract class RealmObject {
 
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
-    private Class<? extends RealmObject> clazz;
     private boolean isCompleted = false;
 
     /**
      * Removes the object from the Realm it is currently associated to.
      * <p/>
      * After this method is called the object will be invalid and any operation (read or write)
-     * performed on it will fail with an IllegalStateException
+     * performed on it will fail with an IllegalStateException.
      */
     public void removeFromRealm() {
         if (row == null) {
@@ -140,9 +139,9 @@ public abstract class RealmObject {
     /**
      * Set the Future instance returned by the worker thread, we need this instance
      * to force {@link #load()} an async query, we use it to determine if the current
-     * RealmResults is a sync or async one
+     * RealmResults is a sync or async one.
      *
-     * @param pendingQuery pending query
+     * @param pendingQuery pending query.
      */
     void setPendingQuery(Future<Long> pendingQuery) {
         this.pendingQuery = pendingQuery;
@@ -156,17 +155,8 @@ public abstract class RealmObject {
     }
 
     /**
-     * Set the class type of this RealmObject, we need it to figure out the {@link Table}
-     *
-     * @param clazz type/table
-     */
-    void setType(Class<? extends RealmObject> clazz) {
-        this.clazz = clazz;
-    }
-
-    /**
      * Determine if the current RealmObject is obtained synchronously or asynchronously (from
-     * a worker thread). Synchronously RealmObjects are by definition blocking hence this method
+     * a worker thread). Synchronous RealmObjects are by definition blocking hence this method
      * will always return {@code true} for them.
      *
      * @return {@code true} if the query has completed & the data is available {@code false} if the
@@ -178,13 +168,13 @@ public abstract class RealmObject {
     }
 
     /**
-     * make an asynchronous query blocking.
+     * Make an asynchronous query blocking.
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
         // doesn't guarantee to import correctly the result (because the user may have advanced)
-        // in this case the Realm#handler will be responsible of retrying
+        // in this case the Realm#handler will be responsible for retrying
         realm.checkIfValid();
         if (pendingQuery != null && !pendingQuery.isDone() && !isCompleted) {
             return onCompleted();
@@ -193,7 +183,7 @@ public abstract class RealmObject {
     }
 
     /**
-     * called to import the handover row pointer & notify listeners.
+     * Called to import the handover row pointer & notify listeners.
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
@@ -202,8 +192,9 @@ public abstract class RealmObject {
         try {
             Long handoverResult = pendingQuery.get();// make the query blocking
             // this may fail with BadVersionException if the caller and/or the worker thread
-            // are not in sync. REALM_COMPLETED_ASYNC_FIND_FIRST will be fired by the worker thread
-            // this is should handle more complex use cases like retry, ignore etc
+            // are not in sync (same shared_group version).
+            // REALM_COMPLETED_ASYNC_FIND_FIRST will be fired by the worker thread
+            // this should handle more complex use cases like retry, ignore etc
             onCompleted(handoverResult);
         } catch (Exception e) {
             RealmLog.d(e.getMessage());
@@ -217,16 +208,16 @@ public abstract class RealmObject {
         if (!isCompleted) {
             isCompleted = true;
             long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());
-            Table table = realm.getTable(clazz);
+            Table table = realm.getTable(getClass());
             this.row = table.getUncheckedRowByPointer(nativeRowPointer);
             notifyChangeListeners();
         }// else: already loaded query no need to import again the pointer
     }
 
     /**
-     * add a change listener to this RealmResults
+     * Add a change listener to this RealmObject.
      *
-     * @param listener the change listener to be notified
+     * @param listener the change listener to be notified.
      */
     public void addChangeListener(RealmChangeListener listener) {
         if (listener == null) {
@@ -240,8 +231,8 @@ public abstract class RealmObject {
     }
 
     /**
-     * remove a previously registered listener
-     * @param listener the instance to be removed
+     * Remove a previously registered listener.
+     * @param listener the instance to be removed.
      */
     public void removeChangeListener(RealmChangeListener listener) {
         if (listener == null) {
@@ -253,7 +244,7 @@ public abstract class RealmObject {
     }
 
     /**
-     * remove all registered listeners
+     * Remove all registered listeners.
      */
     public void deleteChangeListeners() {
         realm.checkIfValid();
@@ -261,7 +252,7 @@ public abstract class RealmObject {
     }
 
     /**
-     * notify all registered listeners
+     * Notify all registered listeners.
      */
     public void notifyChangeListeners() {
         realm.checkIfValid();

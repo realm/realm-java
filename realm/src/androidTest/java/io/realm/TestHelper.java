@@ -31,6 +31,10 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static junit.framework.Assert.fail;
 
 public class TestHelper {
 
@@ -155,6 +159,17 @@ public class TestHelper {
         }
 
         return config.build();
+    }
+
+    public static void awaitOrFail(CountDownLatch latch, int... numberOfSeconds) {
+        try {
+            int timeout = (numberOfSeconds.length > 0) ? numberOfSeconds[0] : 7;
+            if (!latch.await(timeout, TimeUnit.SECONDS)) {
+                fail();
+            }
+        } catch (InterruptedException e) {
+            fail();
+        }
     }
 
 }

@@ -71,8 +71,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private long currentTableViewVersion = -1;
 
     private final TableQuery query;
-    private final List<RealmChangeListener> listeners =
-            new CopyOnWriteArrayList<RealmChangeListener>();
+    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
 
@@ -91,7 +90,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         this.query = query;
     }
 
-    public RealmResults(Realm realm, TableOrView table, Class<E> classSpec) {
+    RealmResults(Realm realm, TableOrView table, Class<E> classSpec) {
         this(realm, classSpec);
         this.table = table;
     }
@@ -665,7 +664,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Swap the table_view pointer used by this RealmResults
-     * mostly called when updating the RealmResults from a worker thread
+     * mostly called when updating the RealmResults from a worker thread.
      * @param handoverTableViewPointer handover pointer to the new table_view
      */
     void swapTableViewPointer (long handoverTableViewPointer) {
@@ -676,7 +675,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Set the Future instance returned by the worker thread, we need this instance
      * to force {@link #load()} an async query, we use it to determine if the current
-     * RealmResults is a sync or async one
+     * RealmResults is a sync or async one.
      * @param pendingQuery pending query
      */
     void setPendingQuery (Future<Long> pendingQuery) {
@@ -690,11 +689,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Determine if the current RealmResults is obtained synchronously or asynchronously (from
-     * a worker thread). Synchronously RealmResults are by definition blocking hence this method
-     * will always return {@code true} for them.
+     * Returns {@code true} if the results are not yet loaded, {@code false} if they are
+     * still loading. Synchronous query methods like findAll() will always return {@code true},
+     * while asynchronous query methods like findAllAsync() will return {@code false} until
+     * the results are available.
      * @return {@code true} if the query has completed & the data is available {@code false} if the
-     *         query is in progress.
+     *         query is still running
      */
     public boolean isLoaded () {
         realm.checkIfValid();
@@ -702,7 +702,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * make an asynchronous query blocking.
+     * Make an asynchronous query blocking. This will also trigger any registered
+     * {@link RealmChangeListener} when the query completes.
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
@@ -716,8 +717,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * called to import the handover table_view pointer & notify listeners.
-     * this should be invoked once the {@link #pendingQuery} finish, unless the user force {@link #load()}
+     * Called to import the handover table_view pointer & notify listeners.
+     * this should be invoked once the {@link #pendingQuery} finish, unless the user force {@link #load()}.
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
@@ -739,7 +740,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * add a change listener to this RealmResults
+     * Add a change listener to this RealmResults.
      * @param listener the change listener to be notified
      */
     public void addChangeListener(RealmChangeListener listener) {
@@ -754,7 +755,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * remove a previously registered listener
+     * Remove a previously registered listener.
      * @param listener the instance to be removed
      */
     public void removeChangeListener(RealmChangeListener listener) {
@@ -767,7 +768,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * remove all registered listeners
+     * Remove all registered listeners.
      */
     public void removeChangeListeners() {
         realm.checkIfValid();
@@ -775,7 +776,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * notify all registered listeners
+     * Notify all registered listeners.
      */
     void notifyChangeListeners() {
         realm.checkIfValid();

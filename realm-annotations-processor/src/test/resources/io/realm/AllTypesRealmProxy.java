@@ -38,6 +38,7 @@ public class AllTypesRealmProxy extends AllTypes
     private static long INDEX_COLUMNBINARY;
     private static long INDEX_COLUMNOBJECT;
     private static long INDEX_COLUMNREALMLIST;
+    private RealmList<AllTypes> columnRealmListRealmList;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
@@ -155,7 +156,6 @@ public class AllTypesRealmProxy extends AllTypes
         row.setLink(INDEX_COLUMNOBJECT, value.row.getIndex());
     }
 
-    private RealmList<AllTypes> columnRealmListRealmList;
     @Override
     public RealmList<AllTypes> getColumnRealmList() {
         // use the cached value if available
@@ -342,7 +342,7 @@ public class AllTypesRealmProxy extends AllTypes
                 if (rowIndex != TableOrView.NO_MATCH) {
                     obj = new AllTypesRealmProxy();
                     obj.realm = realm;
-                    obj.row = table.getUncheckedRowByIndex(rowIndex);
+                    obj.row = table.getUncheckedRow(rowIndex);
                 }
             }
         }
@@ -460,7 +460,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (rowIndex != TableOrView.NO_MATCH) {
                 realmObject = new AllTypesRealmProxy();
                 realmObject.realm = realm;
-                realmObject.row = table.getUncheckedRowByIndex(rowIndex);
+                realmObject.row = table.getUncheckedRow(rowIndex);
                 cache.put(object, (RealmObjectProxy) realmObject);
             } else {
                 canUpdate = false;

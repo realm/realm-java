@@ -870,7 +870,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
             return;
         }
         if (arr_len != asc_len) {
-            ThrowException(env, IllegalArgument, "Number of column indices and sort orders do not match.");
+            ThrowException(env, IllegalArgument, "Number of fields and sort orders do not match.");
             return;
         }
 

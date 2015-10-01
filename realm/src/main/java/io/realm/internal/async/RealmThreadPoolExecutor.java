@@ -25,10 +25,13 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Custom thread pool settings, instances of this executor can be paused, and resumed.
+ * Custom thread pool settings, instances of this executor can be paused, and resumed, this will
+ * also set the appropriate number of Threads & wrap submitted tasks to set the thread priority
+ * according to to <a href="https://developer.android.com/training/multiple-threads/define-runnable.html"> Androids recommendation</a>.
  */
 public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     // reduce context switch by using a number of thread proportionate to the number of cores
+    // from AOSP https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/core/java/android/os/AsyncTask.java#182
     private static final int CORE_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2 + 1;
     private static final int QUEUE_SIZE = 100;
 

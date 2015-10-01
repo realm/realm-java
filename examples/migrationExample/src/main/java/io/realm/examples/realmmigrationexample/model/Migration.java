@@ -88,7 +88,7 @@ public class Migration implements RealmMigration {
                     long rowIndex = petTable.addEmptyRow();
                     petTable.setString(nameColumnIndex, rowIndex, "Jimbo");
                     petTable.setString(typeColumnIndex, rowIndex, "dog");
-                    personTable.getUncheckedRowByIndex(i).getLinkList(petsIndex).add(rowIndex);
+                    personTable.getUncheckedRow(i).getLinkList(petsIndex).add(rowIndex);
                 }
             }
             version++;
