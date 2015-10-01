@@ -259,11 +259,13 @@ public class RealmSchema {
     RealmObjectSchema addClass(String className);
     void removeClass(String className);
     RealmObjectSchema renameClass(String oldName, String newName);
+    Set<RealmObjectSchema> getClasses();
 }
 
 *RealmObjectSchema*
 
 public interface RealmObjectSchemaInterface {
+    String getName();
     RealmObjectSchema addStringField(String fieldName);
     RealmObjectSchema addStringField(String fieldName, Set<RealmModifier> modifiers);
     RealmObjectSchema addShortField(String fieldName);
@@ -288,12 +290,13 @@ public interface RealmObjectSchemaInterface {
     RealmObjectSchema renameField(String currentFieldName, String newFieldName);
     RealmObjectSchema addIndex(String fieldName);
     RealmObjectSchema removeIndex(String fieldName);
-    RealmObjectSchema addPrimaryKey(String fieldName);
-    RealmObjectSchema setNonNullable(String fieldName); 
-    RealmObjectSchema setNullable(String fieldName);
-    boolean hasPrimaryKey();
     boolean hasIndex(String fieldName);
+    RealmObjectSchema addPrimaryKey(String fieldName);
     RealmObjectSchema removePrimaryKey();
+    boolean hasPrimaryKey();
+    RealmObjectSchema setNullable(String fieldName, boolean nullable);
+    RealmFieldType getFieldType(String fieldName);
+    String[] getFieldNames();
     RealmObjectSchema forEach(Iterator iterator);
 }
 
