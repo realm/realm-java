@@ -165,6 +165,21 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsColumnNullable
     return table->is_nullable(column_index);
 }
 
+
+// General comments about the implementation of 
+// Java_io_realm_internal_Table_nativeConvertColumnToNullable and Java_io_realm_internal_Table_nativeConvertColumnToNotNullable
+//
+// 1. converting a (not-)nullable column is idempotent (and is implemented as a no-op)
+// 2. not all column types can be converted (cannot be (not-)nullable)
+// 3. converting to not-nullable, null values are converted to (core's) default values of the type
+// 4. as temporary column is __inserted__ just before the column to be converted
+// 4a. __TMP__number is used as name of the temporary column
+// 4b. with N columns, at most N __TMP__i (0 <= i < N) must be tried, and while (true) { .. } will always terminate
+// 4c. the temporary column will have index columnIndex (or column_index)
+// 4d. the column to be converted will index shifted one place to column_index + 1
+// 5. search indexing must be preserved
+// 6. removing the original column and renaming the temporary column will make it look like original is being modified
+
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullable
   (JNIEnv *env, jobject, jlong nativeTablePtr, jlong columnIndex)
 {
