@@ -4,6 +4,7 @@ import android.test.AndroidTestCase;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
@@ -22,10 +23,13 @@ public class RealmQueryTest extends AndroidTestCase{
     private final static String FIELD_STRING = "columnString";
     private final static String FIELD_LONG = "columnLong";
     private final static String FIELD_FLOAT = "columnFloat";
+    private final static String FIELD_DATE = "columnDate";
     private final static String FIELD_LONG_KOREAN_CHAR = "델타";
     private final static String FIELD_LONG_GREEK_CHAR = "Δέλτα";
     private final static String FIELD_FLOAT_KOREAN_CHAR = "베타";
     private final static String FIELD_FLOAT_GREEK_CHAR = "βήτα";
+
+    private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
 
     @Override
     protected void setUp() throws Exception {
@@ -48,7 +52,7 @@ public class RealmQueryTest extends AndroidTestCase{
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date());
+            allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (objects / 2))));
             allTypes.setColumnDouble(3.1415);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -84,6 +88,10 @@ public class RealmQueryTest extends AndroidTestCase{
         resultList = testRealm.where(AllTypes.class).between(FIELD_LONG, 2, 20)
                 .beginsWith(FIELD_STRING, "test data 1").findAll();
         assertEquals(10, resultList.size());
+
+        assertEquals(51, testRealm.where(AllTypes.class).between(FIELD_DATE,
+                new Date(0),
+                new Date(DECADE_MILLIS * 50)).count());
     }
 
     public void testRealmQueryGreaterThan() {
@@ -101,6 +109,23 @@ public class RealmQueryTest extends AndroidTestCase{
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.234567f);
         resultList = query.between(FIELD_LONG, 1, 20).findAll();
         assertEquals(10, resultList.size());
+    }
+
+    public void testGreaterThanDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(179, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT / 2 - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(19, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(0, resultList.size());
     }
 
 
@@ -122,6 +147,23 @@ public class RealmQueryTest extends AndroidTestCase{
 
         resultList = query.beginsWith(FIELD_STRING, "test data 15").findAll();
         assertEquals(1, resultList.size());
+    }
+
+    public void testGreaterThanOrEqualToDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(180, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT / 2, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(20, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(0, resultList.size());
     }
 
     public void testRealmQueryOr() {
@@ -190,7 +232,8 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryLessThan() {
-        populateTestRealm(200);
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).
                 lessThan(FIELD_FLOAT, 31.234567f).findAll();
@@ -200,8 +243,26 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(10, resultList.size());
     }
 
-    public void testRealmQueryLessThanOrEqual() {
-        populateTestRealm(200);
+    public void testLessThanDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(0, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(20, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT / 2, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(180, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+    }
+
+    public void testRealmQueryLessThanOrEqualTo() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .lessThanOrEqualTo(FIELD_FLOAT, 31.234567f).findAll();
@@ -209,6 +270,23 @@ public class RealmQueryTest extends AndroidTestCase{
         resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_FLOAT, 31.234567f)
                 .between(FIELD_LONG, 11, 20).findAll();
         assertEquals(10, resultList.size());
+    }
+
+    public void testLessThanOrEqualToDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(0, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(21, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT / 2 + 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(181, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
     public void testRealmQueryEqualTo() {
@@ -222,6 +300,23 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(1, resultList.size());
         resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f)
                 .equalTo(FIELD_LONG, 1).findAll();
+        assertEquals(0, resultList.size());
+    }
+
+    public void testEqualToDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(0, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
         assertEquals(0, resultList.size());
     }
 
@@ -268,6 +363,23 @@ public class RealmQueryTest extends AndroidTestCase{
         resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_FLOAT, 11.234567f)
                 .equalTo(FIELD_LONG, 1).findAll();
         assertEquals(1, resultList.size());
+    }
+
+    public void testNotEqualToDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
     public void testRealmQueryContainsAndCaseSensitive() {

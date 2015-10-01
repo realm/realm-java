@@ -199,9 +199,6 @@ public class UncheckedRow extends NativeObject implements Row {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
         long timestamp = date.getTime() / 1000;
-        if (timestamp >= Integer.MAX_VALUE || timestamp <= Integer.MIN_VALUE) {
-            throw new IllegalArgumentException("Date/timestamp is outside valid range");
-        }
         nativeSetDate(nativePointer, columnIndex, timestamp);
     }
 

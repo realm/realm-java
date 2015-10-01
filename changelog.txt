@@ -5,6 +5,7 @@
  * Fixed an issue where opening the same Realm file on two Looper threads could potentially lead to an IllegalStateException being thrown.
  * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
  * Fixed an issue preventing the call of listeners on refresh().
+ * Range restrictions of Date fields have been removed. Date fields now accepts any value. Milliseconds are still removed.
 
 0.82.2
  * Fixed a bug which might cause failure when loading the native library.
