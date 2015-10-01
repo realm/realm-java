@@ -273,8 +273,8 @@ public class RealmResultsTest extends AndroidTestCase {
 
         RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
         assertEquals(0, results.min(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(0f, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(0d, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(0f, results.min(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(0d, results.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
     public void testMaxValueIsMaxValue() {
@@ -310,8 +310,8 @@ public class RealmResultsTest extends AndroidTestCase {
 
         RealmResults<NullTypes> results = testRealm.where(NullTypes.class).findAll();
         assertEquals(1, results.max(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(2f, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(3d, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(2f, results.max(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(3d, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
     public void testSumGivesCorrectValue() {
@@ -328,8 +328,8 @@ public class RealmResultsTest extends AndroidTestCase {
 
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
         assertEquals(0, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(0f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(0d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(0f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(0d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
     // Test sum on nullable rows with partial null values
@@ -338,8 +338,8 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
         assertEquals(1, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(2f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(3d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(2f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(3d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
     public void testSumGivesCorrectValueWithNonLatinColumnNames() {
@@ -386,9 +386,9 @@ public class RealmResultsTest extends AndroidTestCase {
     public void testAvgGivesCorrectValueForEmptyColumns() {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
-        assertEquals(0d, resultList.average(NullTypes.FIELD_INTEGER_NOT_NULL));
-        assertEquals(0d, resultList.average(NullTypes.FIELD_FLOAT_NOT_NULL));
-        assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NOT_NULL));
+        assertEquals(0d, resultList.average(NullTypes.FIELD_INTEGER_NOT_NULL), 0d);
+        assertEquals(0d, resultList.average(NullTypes.FIELD_FLOAT_NOT_NULL), 0d);
+        assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NOT_NULL), 0d);
     }
 
     // Test average on nullable rows with all null values
@@ -396,9 +396,9 @@ public class RealmResultsTest extends AndroidTestCase {
         TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
-        assertEquals(0d, resultList.average(NullTypes.FIELD_INTEGER_NULL));
-        assertEquals(0d, resultList.average(NullTypes.FIELD_FLOAT_NULL));
-        assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NULL));
+        assertEquals(0d, resultList.average(NullTypes.FIELD_INTEGER_NULL), 0d);
+        assertEquals(0d, resultList.average(NullTypes.FIELD_FLOAT_NULL), 0d);
+        assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
     }
 
     // Test sum on nullable rows with partial null values
@@ -407,8 +407,8 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
         assertEquals(1, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(2f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(3d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(2f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(3d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
     public void testRemove() {
