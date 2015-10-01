@@ -28,6 +28,13 @@ using namespace std;
 using namespace realm;
 using namespace realm::util;
 
+jclass java_lang_long;
+jmethodID java_lang_long_init;
+jclass java_lang_float;
+jmethodID java_lang_float_init;
+jclass java_lang_double;
+jmethodID java_lang_double_init;
+
 void ConvertException(JNIEnv* env, const char *file, int line)
 {
     std::ostringstream ss;
@@ -398,25 +405,3 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         m_size = out_begin - m_data.get();
     }
 }
-
-jobject NewLong(JNIEnv* env, int64_t value)
-{
-    jclass cls = env->FindClass("java/lang/Long");
-    jmethodID methodID = env->GetMethodID(cls, "<init>", "(J)V");
-    return env->NewObject(cls, methodID, value);
-}
-
-jobject NewDouble(JNIEnv* env, double value)
-{
-    jclass cls = env->FindClass("java/lang/Double");
-    jmethodID methodID = env->GetMethodID(cls, "<init>", "(D)V");
-    return env->NewObject(cls, methodID, value);
-}
-
-jobject NewFloat(JNIEnv* env, float value)
-{
-    jclass cls = env->FindClass("java/lang/Float");
-    jmethodID methodID = env->GetMethodID(cls, "<init>", "(F)V");
-    return env->NewObject(cls, methodID, value);
-}
-

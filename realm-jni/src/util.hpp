@@ -559,8 +559,26 @@ private:
     jbyte* m_ptr;
 };
 
-jobject NewLong(JNIEnv* env, int64_t value);
-jobject NewDouble(JNIEnv* env, double value);
-jobject NewFloat(JNIEnv* env, float value);
+extern jclass java_lang_long;
+extern jmethodID java_lang_long_init;
+extern jclass java_lang_float;
+extern jmethodID java_lang_float_init;
+extern jclass java_lang_double;
+extern jmethodID java_lang_double_init;
+
+inline jobject NewLong(JNIEnv* env, int64_t value)
+{
+    return env->NewObject(java_lang_long, java_lang_long_init, value);
+}
+
+inline jobject NewDouble(JNIEnv* env, double value)
+{
+    return env->NewObject(java_lang_double, java_lang_double_init, value);
+}
+
+inline jobject NewFloat(JNIEnv* env, float value)
+{
+    return env->NewObject(java_lang_float, java_lang_float_init, value);
+}
 
 #endif // REALM_JAVA_UTIL_HPP
