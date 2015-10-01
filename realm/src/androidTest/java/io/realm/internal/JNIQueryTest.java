@@ -3,6 +3,7 @@ package io.realm.internal;
 import junit.framework.TestCase;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.internal.test.TestHelper;
 
@@ -741,4 +742,101 @@ public class JNIQueryTest extends TestCase {
 
     }
 
+    public void testDateQuery() throws Exception {
+
+        Table table = new Table();
+        table.addColumn(ColumnType.DATE, "date");
+
+        final Date past = new Date(TimeUnit.SECONDS.toMillis(Integer.MIN_VALUE - 100L));
+        final Date future = new Date(TimeUnit.SECONDS.toMillis(Integer.MAX_VALUE + 1L));
+        final Date distantPast = new Date(Long.MIN_VALUE);
+        final Date distantFuture = new Date(Long.MAX_VALUE);
+
+        table.add(new Date(10000));
+        table.add(new Date(0));
+        table.add(new Date(1000));
+        table.add(future);
+        table.add(distantFuture);
+        table.add(past);
+        table.add(distantPast);
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, distantPast).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, distantPast).count());
+        assertEquals(0L, table.where().lessThan(new long[]{0}, distantPast).count());
+        assertEquals(1L, table.where().lessThanOrEqual(new long[]{0}, distantPast).count());
+        assertEquals(6L, table.where().greaterThan(new long[]{0}, distantPast).count());
+        assertEquals(7L, table.where().greaterThanOrEqual(new long[]{0}, distantPast).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, past).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, past).count());
+        assertEquals(1L, table.where().lessThan(new long[]{0}, past).count());
+        assertEquals(2L, table.where().lessThanOrEqual(new long[]{0}, past).count());
+        assertEquals(5L, table.where().greaterThan(new long[]{0}, past).count());
+        assertEquals(6L, table.where().greaterThanOrEqual(new long[]{0}, past).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, new Date(0)).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, new Date(0)).count());
+        assertEquals(2L, table.where().lessThan(new long[]{0}, new Date(0)).count());
+        assertEquals(3L, table.where().lessThanOrEqual(new long[]{0}, new Date(0)).count());
+        assertEquals(4L, table.where().greaterThan(new long[]{0}, new Date(0)).count());
+        assertEquals(5L, table.where().greaterThanOrEqual(new long[]{0}, new Date(0)).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, future).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, future).count());
+        assertEquals(5L, table.where().lessThan(new long[]{0}, future).count());
+        assertEquals(6L, table.where().lessThanOrEqual(new long[]{0}, future).count());
+        assertEquals(1L, table.where().greaterThan(new long[]{0}, future).count());
+        assertEquals(2L, table.where().greaterThanOrEqual(new long[]{0}, future).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, distantFuture).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, distantFuture).count());
+        assertEquals(6L, table.where().lessThan(new long[]{0}, distantFuture).count());
+        assertEquals(7L, table.where().lessThanOrEqual(new long[]{0}, distantFuture).count());
+        assertEquals(0L, table.where().greaterThan(new long[]{0}, distantFuture).count());
+        assertEquals(1L, table.where().greaterThanOrEqual(new long[]{0}, distantFuture).count());
+
+        // between
+
+        assertEquals(1L, table.where().between(new long[]{0}, distantPast, distantPast).count());
+        assertEquals(2L, table.where().between(new long[]{0}, distantPast, past).count());
+        assertEquals(3L, table.where().between(new long[]{0}, distantPast, new Date(0)).count());
+        assertEquals(5L, table.where().between(new long[]{0}, distantPast, new Date(10000)).count());
+        assertEquals(6L, table.where().between(new long[]{0}, distantPast, future).count());
+        assertEquals(7L, table.where().between(new long[]{0}, distantPast, distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, past, distantPast).count());
+        assertEquals(1L, table.where().between(new long[]{0}, past, past).count());
+        assertEquals(2L, table.where().between(new long[]{0}, past, new Date(0)).count());
+        assertEquals(4L, table.where().between(new long[]{0}, past, new Date(10000)).count());
+        assertEquals(5L, table.where().between(new long[]{0}, past, future).count());
+        assertEquals(6L, table.where().between(new long[]{0}, past, distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(0), distantPast).count());
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(0), past).count());
+        assertEquals(1L, table.where().between(new long[]{0}, new Date(0), new Date(0)).count());
+        assertEquals(3L, table.where().between(new long[]{0}, new Date(0), new Date(10000)).count());
+        assertEquals(4L, table.where().between(new long[]{0}, new Date(0), future).count());
+        assertEquals(5L, table.where().between(new long[]{0}, new Date(0), distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(10000), distantPast).count());
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(10000), past).count());
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(10000), new Date(0)).count());
+        assertEquals(1L, table.where().between(new long[]{0}, new Date(10000), new Date(10000)).count());
+        assertEquals(2L, table.where().between(new long[]{0}, new Date(10000), future).count());
+        assertEquals(3L, table.where().between(new long[]{0}, new Date(10000), distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, future, distantPast).count());
+        assertEquals(0L, table.where().between(new long[]{0}, future, past).count());
+        assertEquals(0L, table.where().between(new long[]{0}, future, new Date(0)).count());
+        assertEquals(0L, table.where().between(new long[]{0}, future, new Date(10000)).count());
+        assertEquals(1L, table.where().between(new long[]{0}, future, future).count());
+        assertEquals(2L, table.where().between(new long[]{0}, future, distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, distantPast).count());
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, past).count());
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, new Date(0)).count());
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, new Date(10000)).count());
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, future).count());
+        assertEquals(1L, table.where().between(new long[]{0}, distantFuture, distantFuture).count());
+    }
 }

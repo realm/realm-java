@@ -512,11 +512,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeEqualDateTime(
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
                 return;
-            Q(nativeQueryPtr)->equal_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->equal_datetime(S(arr[0]), DateTime(value));
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_equal<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->and_query(numeric_link_equal<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], value));
         }
     } CATCH_STD()
     RELEASE_ARRAY()
@@ -530,11 +530,11 @@ JNIEXPORT void JNICALL JNICALL Java_io_realm_internal_TableQuery_nativeNotEqualD
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
                 return;
-            Q(nativeQueryPtr)->not_equal_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->not_equal_datetime(S(arr[0]), DateTime(value));
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_notequal<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->and_query(numeric_link_notequal<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], value));
         }
     } CATCH_STD()
     RELEASE_ARRAY()
@@ -548,11 +548,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterDateTime(
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
                 return;
-            Q(nativeQueryPtr)->greater_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->greater_datetime(S(arr[0]), DateTime(value));
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_greater<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->and_query(numeric_link_greater<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], value));
         }
     } CATCH_STD()
     RELEASE_ARRAY()
@@ -566,11 +566,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeGreaterEqualDateT
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
                 return;
-            Q(nativeQueryPtr)->greater_equal_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->greater_equal_datetime(S(arr[0]), DateTime(value));
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->and_query(numeric_link_greaterequal<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], value));
         }
     } CATCH_STD()
     RELEASE_ARRAY();
@@ -584,11 +584,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessDateTime(
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
                 return;
-            Q(nativeQueryPtr)->less_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->less_datetime(S(arr[0]), DateTime(value));
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_less<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->and_query(numeric_link_less<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], value));
         }
     } CATCH_STD()
     RELEASE_ARRAY();
@@ -602,11 +602,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeLessEqualDateTime
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
                 return;
-            Q(nativeQueryPtr)->less_equal_datetime(S(arr[0]), DateTime(static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->less_equal_datetime(S(arr[0]), DateTime(value));
         }
         else {
             Table* tbl = getTableLink(nativeQueryPtr, arr, arr_len);
-            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], static_cast<time_t>(value)));
+            Q(nativeQueryPtr)->and_query(numeric_link_lessequal<DateTime, DateTime, jlong>(tbl, arr[arr_len-1], value));
         }
     } CATCH_STD()
     RELEASE_ARRAY()
@@ -620,7 +620,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime(
         if (arr_len == 1) {
             if (!QUERY_COL_TYPE_VALID(env, nativeQueryPtr, arr[0], type_DateTime))
                 return;
-            Q(nativeQueryPtr)->between_datetime(S(arr[0]), DateTime(static_cast<time_t>(value1)), DateTime(static_cast<time_t>(value2)));
+            Q(nativeQueryPtr)->between_datetime(S(arr[0]), DateTime(value1), DateTime(value2));
         }
         else {
             ThrowException(env, IllegalArgument, "between does not support link queries.");

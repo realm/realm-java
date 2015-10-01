@@ -59,12 +59,12 @@ import io.realm.internal.log.RealmLog;
  */
 public class RealmQuery<E extends RealmObject> {
 
-    private Realm realm;
-    private Table table;
-    private LinkView view;
-    private TableQuery query;
-    private Map<String, Long> columns = new HashMap<String, Long>();
-    private Class<E> clazz;
+    private final Realm realm;
+    private final Table table;
+    private final LinkView view;
+    private final TableQuery query;
+    private final Map<String, Long> columns;
+    private final Class<E> clazz;
 
     public static final boolean CASE_SENSITIVE = true;
     public static final boolean CASE_INSENSITIVE = false;
@@ -83,6 +83,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = realm;
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
+        this.view = null;
         this.query = table.where();
         this.columns = realm.columnIndices.getClassFields(clazz);
     }
@@ -98,6 +99,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = realmList.getRealm();
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
+        this.view = null;
         this.query = realmList.getTable().where();
         this.columns = realm.columnIndices.getClassFields(clazz);
     }
