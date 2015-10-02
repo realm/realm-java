@@ -234,6 +234,7 @@ abstract class BaseRealm implements Closeable {
      * current data, and not the data as it was when the last write transaction was committed.
      * <p>
      * @param destination File to save the Realm to
+     * @param key a 64-byte encryption key
      * @throws java.io.IOException if any write operation fails
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
