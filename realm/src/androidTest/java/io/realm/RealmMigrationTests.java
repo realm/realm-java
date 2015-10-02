@@ -158,7 +158,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary key not defined for field 'id'")) {
+            if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. Add @PrimaryKey.")) {
                 fail(e.getMessage());
             }
         }
@@ -272,7 +272,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             realm.close();
             fail();
         } catch (RealmMigrationNeededException e) {
-            assertEquals("Field 'chars' is required. Add annotation @Required to field 'chars'.",
+            assertEquals("Field 'chars' is required. Either set @Required to field 'chars' or migrate using io.realm.internal.Table.convertColumnToNullable().",
                     e.getMessage());
         }
     }
@@ -383,8 +383,9 @@ public class RealmMigrationTests extends AndroidTestCase {
                 realm = Realm.getInstance(realmConfig);
                 fail("Failed on " + field);
             } catch (RealmMigrationNeededException e) {
-                assertEquals("Field '" + field + "' is not required." +
-                        " Remove annotation @Required or @PrimaryKey from field '" + field + "'.",
+                assertEquals("Field '" + field + "' does support null values in the existing Realm file." +
+                        " Remove @Required or @PrimaryKey from field '" + field + "' " +
+                        "or migrate using io.realm.internal.Table.convertColumnToNotNullable().",
                         e.getMessage());
             }
         }
@@ -446,12 +447,13 @@ public class RealmMigrationTests extends AndroidTestCase {
                 fail("Failed on " + field);
             } catch (RealmMigrationNeededException e) {
                 if (field.equals("fieldStringNull") || field.equals("fieldBytesNull") || field.equals("fieldDateNull")) {
-                    assertEquals("Field '" + field + "' is required. Add annotation @Required to field '"
-                                    +  field + "'.", e.getMessage());
+                    assertEquals("Field '" + field + "' is required. Either set @Required to field '" +
+                            field + "' " +
+                            "or migrate using io.realm.internal.Table.convertColumnToNullable().", e.getMessage());
                 } else {
-                    assertEquals("Field '" + field + "' is required."
-                                    + " Either set @Required or use the primitive type for field '"
-                                    + field + "'.",  e.getMessage());
+                    assertEquals("Field '" + field + "' does not support null values in the existing Realm file."
+                                    + " Either set @Required, use the primitive type for field '"
+                                    + field + "' or migrate using io.realm.internal.Table.convertColumnToNullable().",  e.getMessage());
                 }
             }
         }

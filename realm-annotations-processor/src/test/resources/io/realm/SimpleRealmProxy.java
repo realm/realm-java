@@ -104,22 +104,22 @@ public class SimpleRealmProxy extends Simple
             INDEX_AGE = table.getColumnIndex("age");
 
             if (!columnTypes.containsKey("name")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("name") != ColumnType.STRING) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_NAME)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'name' is required. Add annotation @Required to field 'name'.");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'name' is required. Either set @Required to field 'name' or migrate using io.realm.internal.Table.convertColumnToNullable().");
             }
             if (!columnTypes.containsKey("age")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("age") != ColumnType.INTEGER) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_AGE)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'age' is not required. Use corresponding boxed type for field 'age'.");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'age' does support null values in the existing Realm file. Use corresponding boxed type for field 'age' or migrate using io.realm.internal.Table.convertColumnToNotNullable().");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the schema for this Realm.");
