@@ -38,20 +38,23 @@ import io.realm.internal.log.RealmLog;
 public class QueryUpdateTask implements Runnable {
     // true if updating RealmResults, false if updating RealmObject, can't mix both
     // the builder pattern will prevent this.
-    private boolean isUpdatingRealmResults;
+    private final static int MODE_UPDATE_REALM_RESULTS = 0;
+    private final static int MODE_UPDATE_REALM_OBJECT = 1;
+    private final int updateMode;
+
     private RealmConfiguration realmConfiguration;
     private List<Builder.QueryEntry<RealmResults<?>>> realmResultsEntries;
     private Builder.QueryEntry<RealmObject> realmObjectEntry;
     private WeakReference<Handler> callerHandler;
     private int message;
 
-    private QueryUpdateTask (boolean isUpdatingRealmResults,
+    private QueryUpdateTask (int mode,
                              RealmConfiguration realmConfiguration,
                              List<Builder.QueryEntry<RealmResults<?>>> listOfRealmResults,
                              Builder.QueryEntry<RealmObject> realmObject,
                              WeakReference<Handler> handler,
                              int message) {
-        this.isUpdatingRealmResults = isUpdatingRealmResults;
+        this.updateMode = mode;
         this.realmConfiguration = realmConfiguration;
         this.realmResultsEntries = listOfRealmResults;
         this.realmObjectEntry = realmObject;
@@ -74,7 +77,7 @@ public class QueryUpdateTask implements Runnable {
 
             Result result;
             boolean updateSuccessful = false;
-            if (isUpdatingRealmResults) {
+            if (updateMode == MODE_UPDATE_REALM_RESULTS) {
                 result = Result.newRealmResultsResponse();
                 updateSuccessful = updateRealmResultsQueries(sharedGroup, result);
                 result.versionID = sharedGroup.getVersion();
@@ -294,7 +297,8 @@ public class QueryUpdateTask implements Runnable {
 
             @Override
             public QueryUpdateTask build() {
-                return new QueryUpdateTask(realmResultsEntries != null,
+                return new QueryUpdateTask(
+                        (realmResultsEntries != null) ? MODE_UPDATE_REALM_RESULTS:MODE_UPDATE_REALM_OBJECT,
                         realmConfiguration,
                         realmResultsEntries,
                         realmObjectEntry,
