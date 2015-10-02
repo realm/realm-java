@@ -457,14 +457,12 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals("First excepted to be last", resultList.first().getColumnLong(), sortedList.last().getColumnLong());
 
-        @SuppressWarnings("UnnecessaryLocalVariable")
         RealmResults<AllTypes> reverseList = sortedList;
         reverseList.sort(FIELD_LONG, RealmResults.SORT_ORDER_ASCENDING);
         assertEquals(TEST_DATA_SIZE, reverseList.size());
         assertEquals("First excepted to be first", resultList.first().getColumnLong(), reverseList.first().getColumnLong());
         assertEquals("Last excepted to be last", resultList.last().getColumnLong(), reverseList.last().getColumnLong());
 
-        @SuppressWarnings("UnnecessaryLocalVariable")
         RealmResults<AllTypes> reserveSortedList = reverseList;
         reverseList.sort(FIELD_LONG, RealmResults.SORT_ORDER_DESCENDING);
         assertEquals(TEST_DATA_SIZE, reserveSortedList.size());
