@@ -64,6 +64,11 @@ public class MockActivityManager {
         return references.size();
     }
 
+    // call onStop on the Activity, this help closing any open open realm
+    public void onStop() {
+        instance.onStop();
+    }
+
     private void triggerGC () {
         // From the AOSP FinalizationTest:
         // https://android.googlesource.com/platform/libcore/+/master/support/src/test/java/libcore/
@@ -91,4 +96,6 @@ public class MockActivityManager {
             references.remove(weakReference);
         }
     }
+
+
 }

@@ -32,14 +32,12 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
-import io.realm.internal.test.*;
 import io.realm.proxy.HandlerProxy;
 
 public class RealmAsyncQueryTests extends InstrumentationTestCase {
@@ -52,11 +50,14 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Realm[] realm = new Realm[1];
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 try {
                     realm[0] = openRealmInstance("testAsyncWriteTransaction");
 
@@ -112,6 +113,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
     }
 
     // ************************************
@@ -124,11 +130,14 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
         final RealmResults[] results = new RealmResults[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 // register IdleHandler to quit the Looper once all messages have proceeded
                 // Let the first queueIdle invocation pass, because it occurs before the first message is received.
                 // WARNING: when debugging the 'queueIdle' will be called more often (because of the break points)
@@ -196,6 +205,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
     }
 
     // finding elements [0-4] asynchronously then wait for the promise to be loaded
@@ -204,10 +218,12 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        final Looper[] backgroundLooper = new Looper[1];
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testFindAllAsyncWithNotification");
@@ -264,6 +280,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
     }
 
     // transforming an async query into sync by calling load to force
@@ -271,11 +292,13 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testForceLoadAsync() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testForceLoadAsync");
@@ -335,6 +358,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
     }
 
     // UC:
@@ -350,11 +378,13 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindAllAsyncRetry() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 final Realm[] realm = new Realm[1];
                 try {
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
@@ -438,6 +468,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
     }
 
     // UC:
@@ -451,6 +486,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindAllAsyncBatchUpdate() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final AtomicInteger numberOfNotificationsQuery1 = new AtomicInteger(0);
         final AtomicInteger numberOfNotificationsQuery2 = new AtomicInteger(0);
@@ -458,6 +494,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testFindAllAsyncBatchUpdate");
@@ -605,6 +642,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
     }
 
     // simulate a use case, when the caller thread advance read, while the background thread
@@ -614,12 +656,14 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final CountDownLatch callbackInvokedFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final AtomicInteger numberOfInvocation = new AtomicInteger(0);
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 final boolean[] isFirstIdle = {true};
                 Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
                     @Override
@@ -731,9 +775,15 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         // wait until the callback of our async query proceed
         TestHelper.awaitOrFail(signalCallbackFinished);
         TestHelper.awaitOrFail(callbackInvokedFinished);
+
         if (null != threadAssertionError[0]) {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
+        }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
         }
 
         assertEquals(1, numberOfInvocation.get());
@@ -752,11 +802,13 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindAllCallerThreadBehind() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testFindAllCallerThreadBehind");
@@ -874,10 +926,17 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         });
 
         TestHelper.awaitOrFail(signalCallbackFinished);
+
         if (null != threadAssertionError[0]) {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+
         executorService.shutdownNow();
     }
 
@@ -886,15 +945,18 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     // **********************************
 
     // similar UC as #testFindAllAsync using 'findFirst'
-    public void testFindFirstAsync() throws  Throwable {
+    public void testFindFirstAsync() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final RealmObject[] result = new RealmObject[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 final boolean[] isFirstIdle = {true};
                 Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
                     @Override
@@ -944,9 +1006,15 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         });
 
         // wait until the callback of our async query proceed
+        TestHelper.awaitOrFail(signalCallbackFinished);
         if (null != threadAssertionError[0]) {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
+        }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
         }
         executorService.shutdownNow();
     }
@@ -956,11 +1024,13 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindFirstAsyncWithNotification() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testFindFirstAsyncWithNotification");
@@ -992,7 +1062,8 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     try {
                         realmResults.setColumnString("should fail");
                         fail("Accessing an unloaded object should throw");
-                    } catch (IllegalAccessError ignore) {}
+                    } catch (IllegalAccessError ignore) {
+                    }
 
                     Realm.asyncQueryExecutor.resume();
 
@@ -1020,6 +1091,12 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+
         executorService.shutdownNow();
     }
 
@@ -1027,11 +1104,14 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testForceLoadFindFirstAsync() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testForceLoadFindFirstAsync");
@@ -1075,6 +1155,12 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+
         executorService.shutdownNow();
     }
 
@@ -1082,11 +1168,13 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindFirstAsyncRetry() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 final Realm[] realm = new Realm[1];
                 try {
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
@@ -1149,9 +1237,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                         }
                     });
-
                     Looper.loop();
-
                 } catch (Exception e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
@@ -1169,11 +1255,16 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
         // wait until the callback of our async query proceed
         TestHelper.awaitOrFail(signalCallbackFinished);
-
         if (null != threadAssertionError[0]) {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+
         executorService.shutdownNow();
     }
 
@@ -1186,12 +1277,15 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindAllSortedAsync() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final RealmResults[] result = new RealmResults[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 final boolean[] isFirstIdle = {true};
                 Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
                     @Override
@@ -1261,6 +1355,12 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+
         executorService.shutdownNow();
     }
 
@@ -1270,11 +1370,14 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindAllSortedAsyncRetry() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 final Realm[] realm = new Realm[1];
                 try {
                     final AtomicInteger numberOfIntercept = new AtomicInteger(1);
@@ -1356,6 +1459,12 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+
         executorService.shutdownNow();
     }
 
@@ -1363,6 +1472,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindAllSortedAsyncBatchUpdate() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final AtomicInteger numberOfNotificationsQuery1 = new AtomicInteger(0);
         final AtomicInteger numberOfNotificationsQuery2 = new AtomicInteger(0);
@@ -1370,6 +1480,8 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testFindAllSortedAsyncBatchUpdate");
@@ -1509,7 +1621,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        signalCallbackFinished.await(7, TimeUnit.SECONDS);
+        TestHelper.awaitOrFail(signalCallbackFinished);
         assertEquals(2, numberOfNotificationsQuery1.get());
         assertEquals(2, numberOfNotificationsQuery2.get());
 
@@ -1517,6 +1629,12 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+
         executorService.shutdownNow();
     }
 
@@ -1524,6 +1642,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testFindAllSortedMultiAsyncBatchUpdate() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final AtomicInteger numberOfNotificationsQuery1 = new AtomicInteger(0);
         final AtomicInteger numberOfNotificationsQuery2 = new AtomicInteger(0);
@@ -1531,6 +1650,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testFindAllSortedMultiAsyncBatchUpdate");
@@ -1752,10 +1872,15 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        signalCallbackFinished.await(7, TimeUnit.SECONDS);
+        TestHelper.awaitOrFail(signalCallbackFinished);
         if (null != threadAssertionError[0]) {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
+        }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
         }
 
         assertEquals(2, numberOfNotificationsQuery1.get());
@@ -1766,14 +1891,17 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
     // make sure the notification listener does not leak the enclosing class
     // if unregistered properly.
-    public void testListenerShouldNotLeak () throws Throwable {
+    public void testListenerShouldNotLeak() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 Realm realm = null;
                 try {
                     realm = openRealmInstance("testListenerShouldNotLeak");
@@ -1784,7 +1912,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     // change (ex: screen rotation), this change will create a new instance.
                     // we make sure that the GC enqueue the reference of the destroyed instance
                     // which indicate no memory leak
-                    MockActivityManager mockActivityManager =
+                    MockActivityManager  mockActivityManager =
                             MockActivityManager.newInstance(realm.getConfiguration());
 
                     mockActivityManager.sendConfigurationChange();
@@ -1808,10 +1936,9 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                         threadAssertionError[0] = e;
                     } finally {
                         signalCallbackFinished.countDown();
+                        mockActivityManager.onStop();
                     }
-
                     Looper.loop();
-
                 } catch (Exception e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
@@ -1828,13 +1955,19 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         });
 
         // wait until the callback of our async query proceed
-        signalCallbackFinished.await(7, TimeUnit.SECONDS);
+        TestHelper.awaitOrFail(signalCallbackFinished);
 
-        executorService.shutdownNow();
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
         if (null != threadAssertionError[0]) {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+
+        executorService.shutdownNow();
     }
 
 
@@ -1844,11 +1977,14 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         final CountDownLatch signalInsertionFinished = new CountDownLatch(1);
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
                 Realm realm = null;
                 try {
                     final int NUMBER_OF_COMMITS = 1000;
@@ -1925,12 +2061,17 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         });
 
         // wait until the callback of our async query proceed
-        signalTestFinished.await(7, TimeUnit.SECONDS);
+        TestHelper.awaitOrFail(signalTestFinished, 60);
 
         executorService.shutdownNow();
         if (null != threadAssertionError[0]) {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
+        }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
         }
     }
 

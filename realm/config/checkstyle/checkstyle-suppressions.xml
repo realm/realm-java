@@ -7,5 +7,5 @@
     <suppress checks="." files="BuildConfig.java" />
     <suppress checks="." files=".*\.properties" />
     <suppress checks="FileLengthCheck"
-        files="Realm.java"/>
+        files="Realm.java|RealmAsyncQueryTests.java"/>
 </suppressions>
