@@ -23,13 +23,13 @@ package io.realm;
  */
 public enum RealmModifier {
     /**
-     * Mark a field as index.
+     * Mark a field as indexed.
      * @see io.realm.annotations.Index
      */
     INDEXED,
 
     /**
-     * Mark a field as a primary key.
+     * Mark a field as a primary key. This also implicitly make it {@link #INDEXED}.
      * @see io.realm.annotations.PrimaryKey
      */
     PRIMARY_KEY,
@@ -37,14 +37,15 @@ public enum RealmModifier {
     /**
      * Mark a field as explicitly being able to contain {@code null} values. The default behavior for
      * allowing {@code null} depends on the type of the field.
-     * @see io.realm.NonNullable
+     * @see RealmObjectSchema
      */
     NULLABLE,
 
     /**
      * Mark a field as explicitly not allowing null values. The default behavior for allowing {@code
      * null} depends on the type of the field.
-     * @see io.realm.NonNullable
+     * @see io.realm.annotations.Required
+     * @see RealmObjectSchema
      */
     NON_NULLABLE
 }

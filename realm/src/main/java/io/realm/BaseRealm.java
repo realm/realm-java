@@ -381,10 +381,10 @@ abstract class BaseRealm implements Closeable {
      * @return The schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
-        if (!sharedGroupManager.hasTable("metadata")) {
+        if (!sharedGroupManager.hasTable(Table.METADATA_TABLE_NAME)) {
             return UNVERSIONED;
         }
-        Table metadataTable = sharedGroupManager.getTable("metadata");
+        Table metadataTable = sharedGroupManager.getTable(Table.METADATA_TABLE_NAME);
         return metadataTable.getLong(0, 0);
     }
 
@@ -498,7 +498,7 @@ abstract class BaseRealm implements Closeable {
 
     // package protected so unit tests can access it
     void setVersion(long version) {
-        Table metadataTable = sharedGroupManager.getTable("metadata");
+        Table metadataTable = sharedGroupManager.getTable(Table.METADATA_TABLE_NAME);
         if (metadataTable.getColumnCount() == 0) {
             metadataTable.addColumn(RealmFieldType.INTEGER, "version");
             metadataTable.addEmptyRow();
@@ -534,6 +534,8 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Returns the schema for this Realm.
+     *
+     * @return The {@link RealmSchema} for this Realm.
      */
     public RealmSchema getSchema() {
         return new RealmSchema(this, sharedGroupManager.getTransaction());

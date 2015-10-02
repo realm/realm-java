@@ -66,7 +66,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.addClass("FieldOrder")
+                schema.createClass("FieldOrder")
                         .addInt("field2")
                         .addBoolean("field1");
             }
@@ -108,7 +108,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.addClass("AnnotationTypes")
+                schema.createClass("AnnotationTypes")
                         .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
                         .addString("indexString") // Forget to set @Index
                         .addString("notIndexString");
@@ -143,7 +143,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.addClass("AnnotationTypes")
+                schema.createClass("AnnotationTypes")
                         .addLong("id") // Forget to set @PrimaryKey
                         .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
                         .addString("notIndexString");
@@ -182,7 +182,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.addClass("AnnotationTypes")
+                schema.createClass("AnnotationTypes")
                         .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY, RealmModifier.INDEXED))
                         .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
                         .addString("notIndexString");
@@ -212,7 +212,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.addClass("AnnotationTypes")
+                schema.createClass("AnnotationTypes")
                         .addInt("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
                         .removeIndex("id")
                         .addString("indexString", EnumSet.of(RealmModifier.INDEXED))

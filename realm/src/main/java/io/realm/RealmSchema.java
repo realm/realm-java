@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
@@ -31,7 +34,7 @@ import io.realm.internal.Table;
 public final class RealmSchema {
 
     private static final String TABLE_PREFIX = "class_"; // TODO Move to JNI Object store layer
-    public static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
+    private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
     private final ImplicitTransaction transaction;
     private final BaseRealm realm;
 
@@ -47,8 +50,8 @@ public final class RealmSchema {
      * Returns the Realm schema for a given class.
      *
      * @param className Name of the class
-     * @return Schema object for that class
-     * @throws RuntimeException if class isn't in this Realm
+     * @return Schema object for that class or {@code null} if the class doesn't exists.
+     *
      */
     public RealmObjectSchema getClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
@@ -56,8 +59,27 @@ public final class RealmSchema {
         if (transaction.hasTable(internalClassName)) {
             return new RealmObjectSchema(realm, transaction, transaction.getTable(internalClassName));
         } else {
-            throw new IllegalArgumentException("Class does not exist in this Realm: " + className);
+            return null;
         }
+    }
+
+    /**
+     * Returns the {@link RealmObjectSchema} for all model classes that can be saved in this Realm.
+     *
+     * @return The set of all classes in this Realm or no model classes can be saved in the Realm.
+     */
+    public Set<RealmObjectSchema> getAllClasses() {
+        int tables = (int) transaction.size();
+        Set<RealmObjectSchema> schemas = new HashSet<RealmObjectSchema>(tables);
+        for (int i = 0; i < tables; i++) {
+            String tableName = transaction.getTableName(i);
+            if (Table.isMetaTable(tableName)) {
+                continue;
+            }
+            Table table = transaction.getTable(tableName);
+            schemas.add(new RealmObjectSchema(realm, transaction, table));
+        }
+        return schemas;
     }
 
     /**
@@ -66,7 +88,7 @@ public final class RealmSchema {
      * @param className Name of the class.
      * @return A Realm schema object for that class.
      */
-    public RealmObjectSchema addClass(String className) {
+    public RealmObjectSchema createClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         if (transaction.hasTable(internalTableName)) {
@@ -111,6 +133,16 @@ public final class RealmSchema {
         }
         transaction.renameTable(oldInternalName, newInternalName);
         return new RealmObjectSchema(realm, transaction, transaction.getTable(newInternalName));
+    }
+
+    /**
+     * Checks if a given class already exists in the schema.
+     *
+     * @param className Class name to check.
+     * @return {@code true} if the class already exists. {@code false} otherwise.
+     */
+    public boolean containsClass(String className) {
+        return transaction.hasTable(Table.TABLE_PREFIX + className);
     }
 
     private void checkEmpty(String str, String error) {

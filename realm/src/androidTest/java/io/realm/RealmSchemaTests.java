@@ -19,6 +19,135 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import io.realm.entities.AllJavaTypes;
+import io.realm.entities.Owner;
+
 public class RealmSchemaTests extends AndroidTestCase {
+
+    public static final String CLASS_ALL_JAVA_TYPES = "AllJavaTypes";
+    private DynamicRealm realm;
+    private RealmSchema realmSchema;
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schema(AllJavaTypes.class, Owner.class)
+                .build();
+        Realm.deleteRealm(realmConfig);
+        Realm.getInstance(realmConfig).close(); // create Schema
+        this.realm = DynamicRealm.getInstance(realmConfig);
+        realmSchema = this.realm.getSchema();
+        this.realm.beginTransaction();
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        realm.cancelTransaction();
+        realm.close();
+    }
+
+    public void testGetRealmSchemas() {
+        Set<RealmObjectSchema> objectSchemas = realmSchema.getAllClasses();
+        assertEquals(5, objectSchemas.size());
+
+        List<String> expectedTables = Arrays.asList(CLASS_ALL_JAVA_TYPES, "Owner", "Cat", "Dog", "DogPrimaryKey");
+        for (RealmObjectSchema objectSchema : objectSchemas) {
+            if (!expectedTables.contains(objectSchema.getClassName())) {
+                fail(objectSchema.getClassName() + " was not found");
+            }
+        }
+    }
+
+    public void testCreateClass() {
+        realmSchema.createClass("Foo");
+        assertTrue(realmSchema.containsClass("Foo"));
+    }
+
+    public void testCreateClassInvalidNameThrows() {
+        try {
+            realmSchema.createClass(null);
+        } catch (IllegalArgumentException expected) {
+        }
+        assertFalse(realmSchema.containsClass(null));
+    }
+
+    public void testGetClass() {
+        RealmObjectSchema objectSchema = realmSchema.getClass(CLASS_ALL_JAVA_TYPES);
+        assertNotNull(objectSchema);
+        assertEquals(CLASS_ALL_JAVA_TYPES, objectSchema.getClassName());
+    }
+
+    public void testGetClassNotInSchema() {
+        assertNull(realmSchema.getClass("Foo"));
+    }
+
+    public void testRenameClass() {
+        realmSchema.renameClass("Owner", "Owner2");
+        assertFalse(realmSchema.containsClass("Owner"));
+        assertTrue(realmSchema.containsClass("Owner2"));
+    }
+
+    public void testRenameClassInvalidArgumentsThrows() {
+        try {
+            realmSchema.renameClass(null, CLASS_ALL_JAVA_TYPES);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+
+        try {
+            realmSchema.renameClass(CLASS_ALL_JAVA_TYPES, null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testRemoveClass() {
+        realmSchema.removeClass(CLASS_ALL_JAVA_TYPES);
+        assertFalse(realmSchema.containsClass(CLASS_ALL_JAVA_TYPES));
+    }
+
+    public void testRemoveClassInvalidClassNameThrows() {
+        try {
+            realmSchema.removeClass("Foo");
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+
+        try {
+            realmSchema.removeClass(null);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    // Test that it if { A -> B } you should remove B first.
+    public void testRemoveClassWithReferencesThrows() {
+        try {
+            realmSchema.removeClass("Owner");
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+    }
+
+    // Test that it if { A -> B && B -> A } it is possible to remove A
+    public void testRemoveClassesWithCyclicReferencesThrows() {
+        RealmObjectSchema classA = realmSchema.createClass("A");
+        RealmObjectSchema classB = realmSchema.createClass("B");
+        classA.addObject("link", classB);
+        classB.addObject("link", classA);
+
+        try {
+            realmSchema.removeClass("A");
+            fail();
+        } catch (IllegalStateException expected) {
+        }
+    }
+
 
 }

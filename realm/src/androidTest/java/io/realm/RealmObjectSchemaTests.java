@@ -28,20 +28,21 @@ import io.realm.exceptions.RealmException;
 public class RealmObjectSchemaTests extends AndroidTestCase {
 
     private RealmObjectSchema DOG_SCHEMA;
-    private Realm realm;
+    private DynamicRealm realm;
     private RealmObjectSchema schema;
     private RealmSchema realmSchema;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        RealmConfiguration emptyRealm = new RealmConfiguration.Builder(getContext()).build();
-        Realm.deleteRealm(emptyRealm);
-        realm = Realm.getInstance(emptyRealm);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
+        Realm.deleteRealm(realmConfig);
+        Realm.getInstance(realmConfig).close(); // Create Schema
+        realm = DynamicRealm.getInstance(realmConfig);
         realmSchema = realm.getSchema();
         DOG_SCHEMA = realmSchema.getClass("Dog");
         realm.beginTransaction();
-        schema = realmSchema.addClass("NewClass");
+        schema = realmSchema.createClass("NewClass");
     }
 
     @Override
@@ -56,11 +57,11 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     }
 
     public enum IndexFieldType {
-        STRING // TODO Enable these once added by @mc: SHORT, INT, LONG, BOOLEAN, BYTE
+        STRING, SHORT, INT, LONG, BOOLEAN, BYTE, DATE
     }
 
     public enum PrimaryKeyFieldType {
-        STRING, SHORT, INT, LONG // TODO Enable these once added by @mc: BOOLEAN, BYTE, DATE
+        STRING, SHORT, INT, LONG  // These should also be allowed? BOOLEAN, BYTE, DATE
     }
 
     public enum NullableFieldType {
@@ -157,33 +158,38 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     schema.addString(fieldName, EnumSet.of(RealmModifier.INDEXED));
                     checkAddedAndRemovable(fieldName);
                     break;
-//                case SHORT:
-//                    fieldName = AllJavaTypes.FIELD_SHORT;
-//                    schema.addShort(fieldName, EnumSet.of(RealmModifier.INDEXED));
-//                    checkAddedAndRemovable(fieldName);
-//                    break;
-//                case INT:
-//                    fieldName = AllJavaTypes.FIELD_INT;
-//                    schema.addInt(fieldName, EnumSet.of(RealmModifier.INDEXED));
-//                    checkAddedAndRemovable(fieldName);
-//                    break;
-//                case LONG:
-//                    fieldName = AllJavaTypes.FIELD_LONG;
-//                    schema.addLong(fieldName, EnumSet.of(RealmModifier.INDEXED));
-//                    checkAddedAndRemovable(fieldName);
-//                    break;
-//                case BYTE:
-//                    fieldName = AllJavaTypes.FIELD_BYTE;
-//                    schema.addByte(fieldName, EnumSet.of(RealmModifier.INDEXED));
-//                    checkAddedAndRemovable(fieldName);
-//                    break;
-//                case BOOLEAN:
-//                    fieldName = AllJavaTypes.FIELD_BOOLEAN;
-//                    schema.addBoolean(fieldName, EnumSet.of(RealmModifier.INDEXED));
-//                    checkAddedAndRemovable(fieldName);
-//                    break;
+                case SHORT:
+                    fieldName = AllJavaTypes.FIELD_SHORT;
+                    schema.addShort(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    checkAddedAndRemovable(fieldName);
+                    break;
+                case INT:
+                    fieldName = AllJavaTypes.FIELD_INT;
+                    schema.addInt(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    checkAddedAndRemovable(fieldName);
+                    break;
+                case LONG:
+                    fieldName = AllJavaTypes.FIELD_LONG;
+                    schema.addLong(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    checkAddedAndRemovable(fieldName);
+                    break;
+                case BYTE:
+                    fieldName = AllJavaTypes.FIELD_BYTE;
+                    schema.addByte(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    checkAddedAndRemovable(fieldName);
+                    break;
+                case BOOLEAN:
+                    fieldName = AllJavaTypes.FIELD_BOOLEAN;
+                    schema.addBoolean(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    checkAddedAndRemovable(fieldName);
+                    break;
+                case DATE:
+                    fieldName = AllJavaTypes.FIELD_DATE;
+                    schema.addDate(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    checkAddedAndRemovable(fieldName);
+                    break;
                 default:
-                    fail();
+                    fail(fieldType + " wasn't handled");
             }
         }
     }
@@ -391,9 +397,18 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     fieldName = AllJavaTypes.FIELD_LONG;
                     schema.addLong(fieldName);
                     break;
-//                        case BYTE: schema.addByte(fieldName); break;
-//                        case BOOLEAN: schema.addBoolean(fieldName); break;
-//                        case DATE: schema.addDate(fieldName); break;
+//                case BYTE:
+//                    fieldName = AllJavaTypes.FIELD_BYTE;
+//                    schema.addByte(fieldName);
+//                    break;
+//                case BOOLEAN:
+//                    fieldName = AllJavaTypes.FIELD_BOOLEAN;
+//                    schema.addBoolean(fieldName);
+//                    break;
+//                case DATE:
+//                    fieldName = AllJavaTypes.FIELD_DATE;
+//                    schema.addDate(fieldName);
+//                    break;
                 default:
                     fail();
             }
@@ -435,28 +450,32 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     fieldName = AllJavaTypes.FIELD_STRING;
                     schema.addString(fieldName);
                     break;
-//                case SHORT:
-//                    fieldName = AllJavaTypes.FIELD_SHORT;
-//                    schema.addShort(fieldName);
-//                    break;
-//                case INT:
-//                    fieldName = AllJavaTypes.FIELD_INT;
-//                    schema.addInt(fieldName);
-//                    break;
-//                case LONG:
-//                    fieldName = AllJavaTypes.FIELD_LONG;
-//                    schema.addLong(fieldName);
-//                    break;
-//                case BOOLEAN:
-//                    fieldName = AllJavaTypes.FIELD_BOOLEAN;
-//                    schema.addBoolean(fieldName);
-//                    break;
-//                case DATE:
-//                    fieldName = AllJavaTypes.FIELD_DATE;
-//                    schema.addDate(fieldName);
-//                    break;
+                case SHORT:
+                    fieldName = AllJavaTypes.FIELD_SHORT;
+                    schema.addShort(fieldName);
+                    break;
+                case INT:
+                    fieldName = AllJavaTypes.FIELD_INT;
+                    schema.addInt(fieldName);
+                    break;
+                case LONG:
+                    fieldName = AllJavaTypes.FIELD_LONG;
+                    schema.addLong(fieldName);
+                    break;
+                case BOOLEAN:
+                    fieldName = AllJavaTypes.FIELD_BOOLEAN;
+                    schema.addBoolean(fieldName);
+                    break;
+                case DATE:
+                    fieldName = AllJavaTypes.FIELD_DATE;
+                    schema.addDate(fieldName);
+                    break;
+                case BYTE:
+                    fieldName = AllJavaTypes.FIELD_BYTE;
+                    schema.addByte(fieldName);
+                    break;
                 default:
-                    fail();
+                    fail(fieldType + " failed");
             }
             schema.addIndex(fieldName);
             try {
@@ -500,11 +519,11 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                 switch (fieldType) {
                     case OBJECT:
                         schema.addObject(AllJavaTypes.FIELD_OBJECT, DOG_SCHEMA);
-                        schema.setNotNullable(AllJavaTypes.FIELD_OBJECT);
+                        schema.setNullable(AllJavaTypes.FIELD_OBJECT, false);
                         break;
                     case LIST:
                         schema.addList(AllJavaTypes.FIELD_LIST, DOG_SCHEMA);
-                        schema.setNotNullable(AllJavaTypes.FIELD_LIST);
+                        schema.setNullable(AllJavaTypes.FIELD_LIST, false);
                         break;
                     default:
                         fail();
@@ -604,20 +623,38 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     }
 
     public void testCreateObject() {
-        DynamicRealmObject obj = DOG_SCHEMA.createObject();
+        DynamicRealmObject obj = realm.createObject(DOG_SCHEMA.getClassName());
         assertEquals("Dog", obj.getType());
     }
 
     public void testCreateObjectWithPrimaryKey() {
         DOG_SCHEMA.addPrimaryKey("name");
-        DynamicRealmObject dog = DOG_SCHEMA.createObject("Foo");
+        DynamicRealmObject dog = realm.createObject(DOG_SCHEMA.getClassName(), "Foo");
         assertEquals("Foo", dog.getString("name"));
     }
 
+    public void testCreateObjectWithIllegalPrimaryKeyValueThrows() {
+        DOG_SCHEMA.addPrimaryKey("name");
+        try {
+            realm.createObject(DOG_SCHEMA.getClassName(), 42);
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    public void testSetGetClassName() {
+        assertEquals("Dog", DOG_SCHEMA.getClassName());
+        String newClassName = "Darby";
+        DOG_SCHEMA.setClassName(newClassName);
+        assertEquals(newClassName, DOG_SCHEMA.getClassName());
+        assertTrue(realmSchema.containsClass(newClassName));
+    }
+
     public void testForEach() {
-        DynamicRealmObject dog1 = DOG_SCHEMA.createObject();
+        String className = DOG_SCHEMA.getClassName();
+        DynamicRealmObject dog1 = realm.createObject(className);
         dog1.setInt("age", 1);
-        DynamicRealmObject dog2 = DOG_SCHEMA.createObject();
+        DynamicRealmObject dog2 = realm.createObject(className);
         dog2.setInt("age", 2);
 
         final AtomicInteger totalAge = new AtomicInteger(0);

@@ -91,6 +91,21 @@ public class DynamicRealm extends BaseRealm {
     }
 
     /**
+     * Creates an object with a given primary key. Classes without a primary key defined must use
+     * {@link #createObject(String)}} instead.
+     *
+     * @return The new object. All fields will have default values for their type, except for the
+     * primary key field which will have the provided value.
+     * @throws IllegalArgumentException if the primary key value is of the wrong type.
+     * @throws IllegalStateException if the class doesn't have a primary key defined.
+     */
+    public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
+        Table table = getTable(className);
+        long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
+        return new DynamicRealmObject(this, table.getCheckedRow(index));
+    }
+
+    /**
      * Returns a RealmQuery, which can be used to query for the provided class.
      *
      * @param className The class of the object which is to be queried for.

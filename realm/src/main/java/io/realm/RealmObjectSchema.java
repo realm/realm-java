@@ -25,10 +25,8 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 
 /**
- * Class for interacting with a schema for a given RealmClass. This makes it possible to add, delete
- * or change the fields or objects for given class.
- *
- * This is used when migrating between different versions of a Realm.
+ * Class for interacting with the schema for a given Realm model class. This makes it possible to
+ * add, delete or change the fields for given class.
  *
  * @see io.realm.RealmMigration
  */
@@ -51,9 +49,35 @@ public final class RealmObjectSchema {
     }
 
     /**
+     * Returns the name of the Realm model class being represented by this schema.
+     *
+     * When using a normal {@link Realm} this name is normally the name of the {@link RealmObject} model class.
+     * When using the {@link DynamicRealm} this is the name used in all API methods requiring a class name.
+     *
+     * @return The name of the Realm model class represented by this schema.
+     */
+    public String getClassName() {
+        return table.getName().substring(Table.TABLE_PREFIX.length());
+    }
+
+    /**
+     * Set a new name of the this class (= Renaming it).
+     * @param newClasName Set the new name for this Realm class.
+     *
+     */
+    public void setClassName(String newClasName) {
+        checkEmpty(newClasName);
+        String internalTableName = Table.TABLE_PREFIX + newClasName;
+        if (transaction.hasTable(internalTableName)) {
+            throw new IllegalArgumentException("Class already exists: " + newClasName);
+        }
+        transaction.renameTable(table.getName(), internalTableName);
+    }
+
+    /**
      * Adds a {@code String} field that is allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
+     * @param fieldName Name of field to add.
      * @return The updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
@@ -417,6 +441,18 @@ public final class RealmObjectSchema {
     }
 
     /**
+     * Checks if a given field has a {@link io.realm.annotations.Index} defined.
+     * @param fieldName Existing field name to check.
+     * @return {@code true} if field is indexed. {@false otherwise}.
+     */
+    public boolean hasIndex(String fieldName) {
+        checkLegalName(fieldName);
+        checkFieldExists(fieldName);
+        return table.hasSearchIndex(table.getColumnIndex(fieldName));
+    }
+
+
+    /**
      * Removes an index from a given field. This is the same as removing the {@code @Index} annotation on the field.
      *
      * @param fieldName Field to remove index from.
@@ -467,42 +503,25 @@ public final class RealmObjectSchema {
         return this;
     }
 
-
-    public RealmObjectSchema setNullable(String fieldName) {
-        throw new RealmException("Waiting for Null support");
-    }
-
-    public RealmObjectSchema setNotNullable(String fieldName) {
+    /**
+     * Sets a field to be nullable.
+     *
+     * @param fieldName Name of field in the schema
+     * @param nullable {@code true} if field should be nullable. {@false otherwise}.
+     * @return The updated schema.
+     * @throws IllegalArgumentException
+     */
+    public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
         throw new RealmException("Waiting for Null support");
     }
 
     /**
-     * Creates an object with default values. Classes with a primary key defined must use {@link #createObject(Object)}
-     * instead.
-     *
-     * @return The new object. All fields will have default values for their type.
-     * @throws IllegalStateException if the class have a primary key defined.
+     * Checks if a given field is allowed to contain {@code null} values.
+     * @param fieldName Field to check.
+     * @return {@code true} if it can have {@code null} values. {@code false} otherwise.
      */
-    public DynamicRealmObject createObject() {
-        if (table.hasPrimaryKey()) {
-            throw new IllegalStateException("Class requires a primary key value. Use createObject(primaryKeyValue) instead.");
-        }
-        long rowIndex = table.addEmptyRow();
-        return new DynamicRealmObject(realm, table.getCheckedRow(rowIndex));
-    }
-
-    /**
-     * Creates an object with a given primary key. Classes without a primary key defined must use {@link #createObject()}
-     * instead.
-     *
-     * @return The new object. All fields will have default values for their type, except for the primary key field which
-     * will have the provided value.
-     * @throws IllegalArgumentException if the primary key value is of the wrong type.
-     * @throws IllegalStateException if the class doesn't have a primary key defined.
-     */
-    public DynamicRealmObject createObject(Object primaryKeyValue) {
-        long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return new DynamicRealmObject(realm, table.getCheckedRow(index));
+    public boolean isNullable(String fieldName) {
+        throw new RealmException("Waiting for Null support");
     }
 
     /**
@@ -516,21 +535,24 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Checks if a given field is indexed.
+     * Return all fields in this schema.
      *
-     * @param fieldName Field name to check.
-     * @return {@code true} if field is indexed, {@code false} otherwise.
-     * @see io.realm.annotations.Index
+     * @return A list of all the fields in this schema.
      */
-    public boolean hasIndex(String fieldName) {
-        long columnIndex = getColumnIndex(fieldName);
-        return table.hasSearchIndex(columnIndex);
+    public String[] getFieldNames() {
+        int columns = (int) table.getColumnCount();
+        String[] columnNames = new String[columns];
+        for (int i = 0; i < columns; i++) {
+            columnNames[i] = table.getColumnName(i);
+        }
+        return columnNames;
     }
 
     /**
-     * Iterate each object with the current schema. Order is undefined.
+     * Iterate each object in the Realm that have the typed defined by this schema. The order is
+     * undefined.
      *
-     * @return The updated schema
+     * @return This schema.
      */
     public RealmObjectSchema forEach(Iterator iterator) {
         if (iterator != null) {
@@ -543,7 +565,6 @@ public final class RealmObjectSchema {
 
         return this;
     }
-
 
     // Invariant: Field was just added
     // TODO: Refactor to avoid 4xsearches.
@@ -595,8 +616,10 @@ public final class RealmObjectSchema {
         return columnIndex;
     }
 
-    private String getClassName() {
-        return table.getName().substring(Table.TABLE_PREFIX.length());
+    private void checkEmpty(String str) {
+        if (str == null || str.isEmpty()) {
+            throw new IllegalArgumentException("Null or empty class names are not allowed");
+        }
     }
 
     /**
