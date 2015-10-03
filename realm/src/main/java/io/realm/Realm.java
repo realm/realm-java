@@ -194,10 +194,14 @@ public final class Realm extends BaseRealm {
      * model classes or version has has changed so a migration is required.
      */
     public static Realm getDefaultInstance() {
-        if (defaultConfiguration == null) {
+        final RealmConfiguration configuration;
+        synchronized (Realm.class) {
+            configuration = defaultConfiguration;
+        }
+        if (configuration == null) {
             throw new NullPointerException("No default RealmConfiguration was found. Call setDefaultConfiguration() first");
         }
-        return create(defaultConfiguration);
+        return create(configuration);
     }
 
     /**
@@ -227,7 +231,9 @@ public final class Realm extends BaseRealm {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
-        defaultConfiguration = configuration;
+        synchronized (Realm.class) {
+            defaultConfiguration = configuration;
+        }
     }
 
     /**
@@ -235,7 +241,9 @@ public final class Realm extends BaseRealm {
      * fail until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
      */
     public static void removeDefaultConfiguration() {
-        defaultConfiguration = null;
+        synchronized (Realm.class) {
+            defaultConfiguration = null;
+        }
     }
 
     private static synchronized Realm create(RealmConfiguration configuration) {
