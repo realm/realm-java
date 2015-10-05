@@ -69,7 +69,6 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 public class RealmTest extends AndroidTestCase {
 
     protected final static int TEST_DATA_SIZE = 10;
-
     protected Realm testRealm;
 
     protected List<String> columnData = new ArrayList<String>();
@@ -94,7 +93,7 @@ public class RealmTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        testConfig = new RealmConfiguration.Builder(getContext()).build();
+        testConfig = TestHelper.createConfiguration(getContext());
         Realm.deleteRealm(testConfig);
         testRealm = Realm.getInstance(testConfig);
     }
@@ -144,7 +143,7 @@ public class RealmTest extends AndroidTestCase {
     public void testGetInstanceFolderNoWritePermissionThrows() {
         File folder = new File("/");
         try {
-            Realm realm = Realm.getInstance(new RealmConfiguration.Builder(folder).build());
+            Realm.getInstance(new RealmConfiguration.Builder(folder).build());
             fail("Pointing to a folder with no write permission should throw an IllegalArgumentException");
         } catch (IllegalArgumentException expected) {
         }
@@ -170,8 +169,8 @@ public class RealmTest extends AndroidTestCase {
 
     public void testGetInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
-        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey());
-        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey());
+        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(42));
+        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(43));
 
         Realm.deleteRealm(configA);
         Realm realm = Realm.getInstance(configA); // Create starting Realm with key1
@@ -182,7 +181,7 @@ public class RealmTest extends AndroidTestCase {
             // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
             // if initialization failed.
             assertTrue(Realm.deleteRealm(configA));
-            Realm.getInstance(configB);
+            realm = Realm.getInstance(configB);
             realm.close();
         }
     }
@@ -194,24 +193,25 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testInternalRealmChangedHandlersRemoved() {
+        testRealm.close(); // Clear handler created by testRealm in setUp()
+
         final String REALM_NAME = "test-internalhandlers";
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
         Realm.deleteRealm(realmConfig);
-        Realm.handlers.clear(); // Make sure that handlers from other unit tests doesn't interfere.
 
         // Open and close first instance of a Realm
         Realm realm = null;
         try {
             realm = Realm.getInstance(realmConfig);
-            assertEquals(1, Realm.handlers.size());
+            assertEquals(1, Realm.getHandlers().size());
             realm.close();
 
             // All Realms closed. No handlers should be alive.
-            assertEquals(0, Realm.handlers.size());
+            assertEquals(0, Realm.getHandlers().size());
 
             // Open instance the 2nd time. Old handler should now be gone
             realm = Realm.getInstance(realmConfig);
-            assertEquals(1, Realm.handlers.size());
+            assertEquals(1, Realm.getHandlers().size());
             realm.close();
 
         } finally {
@@ -736,21 +736,6 @@ public class RealmTest extends AndroidTestCase {
             fail("Expected exception");
         } catch (IllegalStateException ignored) {
         }
-    }
-
-    // int getVersion() AND void setVersion(int version)
-    public void testGetVersionAndSetVersion() throws IOException {
-        // ** Initial version must be 0
-        populateTestRealm();
-        long version = testRealm.getVersion();
-        assertEquals(0, version);
-
-        // ** Version should be updateable
-        version = 42;
-        testRealm.beginTransaction();
-        testRealm.setVersion(version);
-        testRealm.commitTransaction();
-        assertEquals(version, testRealm.getVersion());
     }
 
     public void testShouldFailOutsideTransaction() {
@@ -1714,7 +1699,6 @@ public class RealmTest extends AndroidTestCase {
         try { testRealm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
         try { testRealm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
         try { testRealm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.setVersion(42);                 fail(); } catch (IllegalStateException expected) {}
 
         try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (RealmException expected) {}
         try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (RealmException expected) {}
@@ -1734,38 +1718,47 @@ public class RealmTest extends AndroidTestCase {
     // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
 /*    // Check that FinalizerRunnable can free native resources (phantom refs)
     public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
-        Field sharedGroupReference = Realm.class.getDeclaredField("sharedGroup");
-        sharedGroupReference.setAccessible(true);
-        SharedGroup sharedGroup = (SharedGroup) sharedGroupReference.get(testRealm);
-        assertNotNull(sharedGroup);
 
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).name("myown").build();
+        Realm.deleteRealm(config);
+        testRealm = Realm.getInstance(config);
+
+        // Manipulate field accessibility to facilitate testing
+        Field realmFileReference = RealmBase.class.getDeclaredField("sharedGroupManager");
+        realmFileReference.setAccessible(true);
         Field contextField = SharedGroup.class.getDeclaredField("context");
         contextField.setAccessible(true);
-        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(sharedGroup);
-        assertNotNull(context);
-
         Field rowReferencesField = io.realm.internal.Context.class.getDeclaredField("rowReferences");
         rowReferencesField.setAccessible(true);
+
+        SharedGroupManager realmFile = (SharedGroupManager) realmFileReference.get(testRealm);
+        assertNotNull(realmFile);
+
+        io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(realmFile.getSharedGroup());
+        assertNotNull(context);
+
         List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);
         assertNotNull(rowReferences);
-
 
         // insert some rows, then give the thread some time to cleanup
         // we have 8 reference so far let's add more
         final int numberOfPopulateTest = 1000;
-        final int totalNumberOfReferences = 8 + 20 * 2 * numberOfPopulateTest;
+        final int numberOfObjects = 20;
+        final int totalNumberOfReferences = 8 + numberOfObjects * 2 * numberOfPopulateTest;
 
         long tic = System.currentTimeMillis();
         for (int i = 0; i < numberOfPopulateTest; i++) {
-            populateTestRealm(testRealm, 20);
+            populateTestRealm(testRealm, numberOfObjects);
         }
         long toc = System.currentTimeMillis();
         Log.d(RealmTest.class.getName(), "Insertion time: " + (toc - tic));
 
         final int MAX_GC_RETRIES = 5;
         int numberOfRetries = 0;
+        Log.i("GCing", "Hoping for the best");
         while (rowReferences.size() > 0 && numberOfRetries < MAX_GC_RETRIES) {
             SystemClock.sleep(TimeUnit.SECONDS.toMillis(1)); //1s
+            TestHelper.allocGarbage(0);
             numberOfRetries++;
             System.gc();
         }
@@ -1937,58 +1930,39 @@ public class RealmTest extends AndroidTestCase {
     // should be populated for the subsequent Realm sharing the same configuration
     // even if we skip initialization & validation
     public void testColumnIndicesIsPopulatedWhenSkippingInitialization() throws Throwable {
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final CountDownLatch callerThreadCompleted = new CountDownLatch(1);
-        final CountDownLatch signalBgFinished = new CountDownLatch(1);
-        final RealmConfiguration realmConfiguration = TestHelper.
-                createConfiguration(getContext(), "testColumnIndicesIsPopulatedWhenSkippingInitialization");
+        final RealmConfiguration realmConfiguration = TestHelper.createConfiguration(getContext(), "columnIndices");
         Realm.deleteRealm(realmConfiguration);
-        Realm realm = Realm.getInstance(realmConfiguration);
+        final Exception threadError[] = new Exception[1];
+        final CountDownLatch bgRealmOpened = new CountDownLatch(1);
+        final CountDownLatch mainThreadRealmDone = new CountDownLatch(1);
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
 
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnLong(42);
-        realm.commitTransaction();
-
-        RealmResults<AllTypes> all = realm.where(AllTypes.class).findAll();
-        assertNotNull(all);
-        assertEquals(1, all.size());
-        assertEquals(42, all.get(0).getColumnLong());
-
-        // open a background Realm
-        new Thread() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
+                Realm realm = Realm.getInstance(realmConfiguration); // This will populate columnIndices
                 try {
-                    callerThreadCompleted.await();
-                    Realm backgroundRealm = Realm.getInstance(realmConfiguration);
-
-                    backgroundRealm.beginTransaction();
-                    backgroundRealm.createObject(AllTypes.class).setColumnLong(7);
-                    backgroundRealm.commitTransaction();
-
-                    RealmResults<AllTypes> allBg = backgroundRealm.where(AllTypes.class).findAll();
-                    assertNotNull(allBg);
-                    assertEquals(2, allBg.size());
-                    assertEquals(42, allBg.get(0).getColumnLong());
-                    assertEquals(7, allBg.get(1).getColumnLong());
-
-                    backgroundRealm.close();
-                } catch (InterruptedException e) {
-                    threadAssertionError[0] = e;
-                } catch (AssertionFailedError e) {
-                    threadAssertionError[0] = e;
-
+                    bgRealmOpened.countDown();
+                    awaitOrFail(mainThreadRealmDone);
+                    realm.close();
+                    bgRealmClosed.countDown();
+                } catch (Exception e) {
+                    threadError[0] = e;
                 } finally {
-                    signalBgFinished.countDown();
+                    realm.close();
                 }
             }
-        }.start();
+        }).start();
 
-        callerThreadCompleted.countDown();
-        signalBgFinished.await();
+        awaitOrFail(bgRealmOpened);
+        Realm realm = Realm.getInstance(realmConfiguration);
+        realm.where(AllTypes.class).equalTo("columnString", "Foo").findAll(); // This would crash if columnIndices == null
         realm.close();
-        if (threadAssertionError[0] != null)
-            throw threadAssertionError[0];
+        mainThreadRealmDone.countDown();
+        awaitOrFail(bgRealmClosed);
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
     }
 
     public void testProcessLocalListenersAfterRefresh() {
@@ -2025,5 +1999,15 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         bgThreadLatch.countDown();
+    }
+
+    private void awaitOrFail(CountDownLatch latch) {
+        try {
+            if (!latch.await(5, TimeUnit.SECONDS)) {
+                fail();
+            }
+        } catch (InterruptedException e) {
+            fail();
+        }
     }
 }

@@ -18,6 +18,7 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -32,6 +33,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Random;
+import java.util.logging.Level;
+
+import io.realm.internal.log.Logger;
+
+import static junit.framework.Assert.fail;
 
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
@@ -113,6 +119,73 @@ public class TestHelper {
         return key;
     }
 
+    /**
+     * Returns a Logger that will fail if it is asked to log a message above a certain level.
+     *
+     * @param failureLevel {@link Log} level from which the unit test will fail.
+     * @return Logger implementation
+     */
+    public static Logger getFailureLogger(final int failureLevel) {
+        return new Logger() {
+
+            private void failIfEqualOrAbove(int logLevel, int failureLevel) {
+                if (logLevel >= failureLevel) {
+                    fail("Message logged that was above valid level: " + logLevel + " >= " + failureLevel);
+                }
+            }
+
+            @Override
+            public void v(String message) {
+                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            }
+
+            @Override
+            public void v(String message, Throwable t) {
+                failIfEqualOrAbove(Log.VERBOSE, failureLevel);
+            }
+
+            @Override
+            public void d(String message) {
+                failIfEqualOrAbove(Log.DEBUG, failureLevel);
+            }
+
+            @Override
+            public void d(String message, Throwable t) {
+                failIfEqualOrAbove(Log.DEBUG, failureLevel);
+            }
+
+            @Override
+            public void i(String message) {
+                failIfEqualOrAbove(Log.INFO, failureLevel);
+            }
+
+            @Override
+            public void i(String message, Throwable t) {
+                failIfEqualOrAbove(Log.INFO, failureLevel);
+            }
+
+            @Override
+            public void w(String message) {
+                failIfEqualOrAbove(Log.WARN, failureLevel);
+            }
+
+            @Override
+            public void w(String message, Throwable t) {
+                failIfEqualOrAbove(Log.WARN, failureLevel);
+            }
+
+            @Override
+            public void e(String message) {
+                failIfEqualOrAbove(Log.ERROR, failureLevel);
+            }
+
+            @Override
+            public void e(String message, Throwable t) {
+                failIfEqualOrAbove(Log.ERROR, failureLevel);
+            }
+        };
+    }
+
     public static class StubInputStream extends InputStream {
         @Override
         public int read() throws IOException {
@@ -127,11 +200,13 @@ public class TestHelper {
             long totalMemory = Runtime.getRuntime().totalMemory();
             garbageSize = (int)(maxMemory - totalMemory)/10*9;
         }
-        byte garbage[];
+        byte garbage[] = new byte[0];
         try {
-            garbage = new byte[garbageSize];
-            garbage[0] = 1;
-            garbage[garbage.length - 1] = 1;
+            if (garbageSize > 0) {
+                garbage = new byte[garbageSize];
+                garbage[0] = 1;
+                garbage[garbage.length - 1] = 1;
+            }
         } catch (OutOfMemoryError oom) {
             return allocGarbage(garbageSize/10*9);
         }

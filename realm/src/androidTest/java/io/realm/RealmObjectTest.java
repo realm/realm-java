@@ -340,9 +340,8 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public void testDateType() {
-        long testDatesNotValid[] = {Long.MIN_VALUE, Long.MAX_VALUE};
         long testDatesValid[] = {-1000, 0, 1000};
-        long testDatesLoosePrecision[] = {1, 1001};
+        long testDatesLoosePrecision[] = {Long.MIN_VALUE, 1, 1001, Long.MAX_VALUE};
 
         // test valid dates
         testRealm.beginTransaction();
@@ -373,18 +372,6 @@ public class RealmObjectTest extends AndroidTestCase {
             assertEquals("Item " + i, new Date(1000*(testDatesLoosePrecision[i]/1000)), allTypes.getColumnDate());
             i++;
         }
-
-        // test invalid dates
-        for (long value : testDatesNotValid) {
-            try {
-                testRealm.beginTransaction();
-                testRealm.clear(AllTypes.class);
-                AllTypes allTypes = testRealm.createObject(AllTypes.class);
-                allTypes.setColumnDate(new Date(value));
-                testRealm.commitTransaction();
-                fail();
-            } catch (IllegalArgumentException ignored) { testRealm.cancelTransaction(); }
-        }
     }
 
     private Date newDate(int year, int month, int dayOfMonth) {
@@ -411,33 +398,6 @@ public class RealmObjectTest extends AndroidTestCase {
 
         // Realm does not support millisec precision
         assertEquals(1000 * (date.getTime() / 1000), 1000 * (object.getColumnDate().getTime() / 1000));
-    }
-
-    public void testDateTypeOutOfRange() {
-        // ** Must throw if date is too old
-        for (int i = 0; i < 2; i++) {
-            try {
-                addDate(1900 + i, 1, 1);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-                testRealm.cancelTransaction();
-            }
-        }
-
-        // ** Supported dates works
-        for (int i = 2; i < 10; i++) {
-            addDate(1900 + i, 1, 1);
-        }
-
-        // ** Must throw if date is too new
-        for (int i = 0; i < 2; i++) {
-            try {
-                addDate(2038 + i, 1, 20);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-                testRealm.cancelTransaction();
-            }
-        }
     }
 
     public void testWriteMustThrowOutOfTransaction() {

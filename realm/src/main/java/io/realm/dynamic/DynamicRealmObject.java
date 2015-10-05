@@ -18,6 +18,7 @@ package io.realm.dynamic;
 import java.util.Date;
 
 import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnType;
@@ -149,7 +150,7 @@ public class DynamicRealmObject extends RealmObject {
      * @return The byte[] value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
      */
-    public byte[] getBlob (String fieldName) {
+    public byte[] getBlob(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         return row.getBinaryByteArray(columnIndex);
     }

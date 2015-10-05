@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
@@ -50,6 +51,8 @@ public class RealmResultsTest extends AndroidTestCase {
     private final static String FIELD_KOREAN_CHAR = "델타";
     private final static String FIELD_GREEK_CHAR = "Δέλτα";
 
+    private final static long YEAR_MILLIS = TimeUnit.DAYS.toMillis(365);
+
     @Override
     protected void setUp() throws InterruptedException {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
@@ -67,7 +70,7 @@ public class RealmResultsTest extends AndroidTestCase {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date((long) 1000 * i));
+            allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - objects / 2)));
             allTypes.setColumnDouble(3.1415 + i);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -887,8 +890,20 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     public void testQueryDateField() {
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(5000));
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(YEAR_MILLIS * 5));
         RealmResults<AllTypes> all = query.findAll();
+        assertEquals(1, query.count());
+        assertEquals(1, all.size());
+
+        // before 1901
+        query = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(YEAR_MILLIS * -100));
+        all = query.findAll();
+        assertEquals(1, query.count());
+        assertEquals(1, all.size());
+
+        // after 2038
+        query = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(YEAR_MILLIS * 100));
+        all = query.findAll();
         assertEquals(1, query.count());
         assertEquals(1, all.size());
     }

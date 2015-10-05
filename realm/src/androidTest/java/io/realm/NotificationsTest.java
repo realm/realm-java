@@ -18,6 +18,7 @@ package io.realm;
 import android.os.Handler;
 import android.os.Looper;
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 import junit.framework.AssertionFailedError;
 
@@ -37,6 +38,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
+import io.realm.internal.log.Logger;
+import io.realm.internal.log.RealmLog;
 
 public class NotificationsTest extends AndroidTestCase {
 
@@ -555,6 +558,62 @@ public class NotificationsTest extends AndroidTestCase {
 
         if (threadAssertionError[0] != null) {
             throw threadAssertionError[0];
+        }
+    }
+
+    // Test that we handle a Looper thread quiting it's looper before it is done executing the current loop ( = Realm.close()
+    // isn't called yet).
+    public void testLooperThreadQuitsLooperEarly() throws InterruptedException {
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+
+        final CountDownLatch backgroundLooperStartedAndStopped = new CountDownLatch(1);
+        final CountDownLatch mainThreadCommitCompleted = new CountDownLatch(1);
+        final CountDownLatch backgroundThreadStopped = new CountDownLatch(1);
+
+        // Start background looper and let it hang
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare(); // Fake background thread with a looper, eg. a IntentService
+
+                Realm realm = Realm.getInstance(getContext());
+                realm.setAutoRefresh(false);
+                Looper.myLooper().quit();
+                backgroundLooperStartedAndStopped.countDown();
+                try {
+                    mainThreadCommitCompleted.await();
+                } catch (InterruptedException e) {
+                    fail("Thread interrupted"); // This will prevent backgroundThreadStopped from being called.
+                }
+                realm.close();
+                backgroundThreadStopped.countDown();
+            }
+        });
+
+        // Create a commit on another thread
+        awaitOrThrow(backgroundLooperStartedAndStopped);
+        Realm realm = Realm.getInstance(config);
+        Logger logger = TestHelper.getFailureLogger(Log.WARN);
+        RealmLog.add(logger);
+
+        realm.beginTransaction();
+        realm.commitTransaction(); // If the Handler on the background is notified it will trigger a Log warning.
+        mainThreadCommitCompleted.countDown();
+        awaitOrThrow(backgroundThreadStopped);
+
+        realm.close();
+        RealmLog.remove(logger);
+    }
+
+    private void awaitOrThrow(CountDownLatch latch) {
+        try {
+            if (!latch.await(5, TimeUnit.SECONDS)) {
+                fail("Latch timed out " + latch);
+            }
+        } catch (InterruptedException e) {
+            fail("Latch was interrupted " + e);
         }
     }
 }

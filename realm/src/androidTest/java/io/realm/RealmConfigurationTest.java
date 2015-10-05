@@ -114,6 +114,8 @@ public class RealmConfigurationTest extends AndroidTestCase {
         Realm r1 = Realm.getInstance(configA);
         Realm r2 = Realm.getInstance(configB);
         assertNotSame(r1, r2);
+        r1.close();
+        r2.close();
     }
 
     public void testNullKeyThrows() {

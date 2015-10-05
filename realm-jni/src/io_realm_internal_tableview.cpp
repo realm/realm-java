@@ -543,7 +543,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindFirstDate(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
             return 0;
-        return to_jlong_or_not_found( TV(nativeViewPtr)->find_first_datetime( S(columnIndex), (time_t)dateTimeValue) );
+        return to_jlong_or_not_found( TV(nativeViewPtr)->find_first_datetime( S(columnIndex), DateTime(dateTimeValue)) );
     } CATCH_STD()
     return 0;
 }
@@ -625,7 +625,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindAllDate(
             !COL_INDEX_AND_TYPE_VALID(env, TV(nativeViewPtr), columnIndex, type_DateTime))
             return 0;
         TableView* pResultView = new TableView( TV(nativeViewPtr)->find_all_datetime( S(columnIndex),
-                                                static_cast<time_t>(dateTimeValue)) );
+                                                DateTime(dateTimeValue)) );
         return reinterpret_cast<jlong>(pResultView);
     } CATCH_STD()
     return 0;

@@ -1180,7 +1180,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstDate(
     if (!TBL_AND_COL_INDEX_AND_TYPE_VALID(env, TBL(nativeTablePtr), columnIndex, type_DateTime))
         return 0;
     try {
-        size_t res = TBL(nativeTablePtr)->find_first_datetime( S(columnIndex), (time_t)dateTimeValue);
+        size_t res = TBL(nativeTablePtr)->find_first_datetime( S(columnIndex), DateTime(dateTimeValue));
         return to_jlong_or_not_found( res );
     } CATCH_STD()
     return 0;
@@ -1255,7 +1255,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindAllDate(
         return 0;
     try {
         TableView* pTableView = new TableView( TBL(nativeTablePtr)->find_all_datetime( S(columnIndex),
-                                            static_cast<time_t>(dateTimeValue)) );
+                                            DateTime(dateTimeValue)) );
         return reinterpret_cast<jlong>(pTableView);
     } CATCH_STD()
     return 0;
