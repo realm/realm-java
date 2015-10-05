@@ -238,7 +238,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JJJ(
         } CATCH_STD()
     }
     else {
-        ThrowException(env, IllegalArgument, "between does not support link queries.");
+        ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
     }
     RELEASE_ARRAY();
 }
@@ -364,7 +364,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JFF(
             Q(nativeQueryPtr)->between(S(arr[0]), static_cast<float>(value1), static_cast<float>(value2));
         }
         else {
-            ThrowException(env, IllegalArgument, "between does not support link queries.");
+            ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
         }
     } CATCH_STD()
     RELEASE_ARRAY();
@@ -492,7 +492,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetween__J_3JDD(
             Q(nativeQueryPtr)->between(S(arr[0]), static_cast<double>(value1), static_cast<double>(value2));
         }
         else {
-            ThrowException(env, IllegalArgument, "between does not support link queries.");
+            ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
         }
     } CATCH_STD()
     RELEASE_ARRAY();
@@ -622,7 +622,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeBetweenDateTime(
             Q(nativeQueryPtr)->between_datetime(S(arr[0]), DateTime(value1), DateTime(value2));
         }
         else {
-            ThrowException(env, IllegalArgument, "between does not support link queries.");
+            ThrowException(env, IllegalArgument, "between() does not support queries using child object fields.");
         }
     } CATCH_STD()
     RELEASE_ARRAY()

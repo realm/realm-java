@@ -724,7 +724,7 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, (String)null).findAll().size());
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Fish").findAll().size());
         assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").findAll().size());
-        // 2 Bytes skipped
+        // 2 Bytes skipped, doesn't support equalTo query
         // 3 Boolean
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, true).findAll().size());
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean)null).findAll().size());
@@ -760,7 +760,7 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, new Date(0)).findAll().size());
         assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, (Date) null).findAll().size());
         assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, new Date(424242)).findAll().size());
-        // 11 Object skipped
+        // 11 Object skipped, doesn't support equalTo query
     }
 
     // Querying nullable field for null
@@ -797,7 +797,7 @@ public class RealmQueryTest extends AndroidTestCase{
         // 1 String
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
-        // 2 Bytes skipped
+        // 2 Bytes skipped, doesn't support notEqualTo query
         // 3 Boolean
         assertEquals(1, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).findAll().size());
@@ -822,7 +822,7 @@ public class RealmQueryTest extends AndroidTestCase{
         // 10 Date
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, new Date(0)).findAll().size());
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, (Date) null).findAll().size());
-        // 11 Object skipped
+        // 11 Object skipped, doesn't support notEqualTo query
     }
 
     // Querying nullable field for not null
@@ -1136,7 +1136,7 @@ public class RealmQueryTest extends AndroidTestCase{
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        // 11 Object skipped
+        // 11 Object skipped, doesn't support equalTo query
     }
 
     // Test isNotNull on link's nullable field.
@@ -1259,7 +1259,7 @@ public class RealmQueryTest extends AndroidTestCase{
             fail();
         } catch (IllegalArgumentException ignored) {
         }
-        // 11 Object skipped
+        // 11 Object skipped, RealmObject is always nullable.
     }
 
     // Calling isNull on fields with the RealmList type will trigger an exception
