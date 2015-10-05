@@ -37,7 +37,7 @@ public class Utils {
     }
 
     /**
-     * Returns true if the given element is the default public no arg constructor for a class.
+     * @return true if the given element is the default public no arg constructor for a class.
      */
     public static boolean isDefaultConstructor(Element constructor) {
         if (constructor.getModifiers().contains(Modifier.PUBLIC)) {
@@ -59,28 +59,30 @@ public class Utils {
     }
 
     /**
-     * Return the proxy class name for a given clazz
+     * @return the proxy class name for a given clazz
      */
     public static String getProxyClassName(String clazz) {
         return clazz + Constants.PROXY_SUFFIX;
     }
 
     /**
-     * Returns {@code true} if a field is of type "java.lang.String", {@code false} otherwise.
+     * @return {@code true} if a field is of type "java.lang.String", {@code false} otherwise.
+     * @throws IllegalArgumentException if the field is {@code null}.
      */
     public static boolean isString(VariableElement field) {
         if (field == null) {
-            return false;
+            throw new IllegalArgumentException("Argument field cannot be null.");
         }
         return getFieldTypeSimpleName(field).equals("String");
     }
 
     /**
-     * Returns {@code true} if a field is a primitive type, {@code false} otherwise.
+     * @return {@code true} if a field is a primitive type, {@code false} otherwise.
+     * @throws IllegalArgumentException if the typeString is {@code null}.
      */
     public static boolean isPrimitiveType(String typeString) {
         if (typeString == null) {
-            return false;
+            throw new IllegalArgumentException("Argument typeString cannot be null.");
         }
         return typeString.equals("byte") || typeString.equals("short") || typeString.equals("int") ||
                 typeString.equals("long") || typeString.equals("float") || typeString.equals("double") ||
@@ -88,11 +90,12 @@ public class Utils {
     }
 
     /**
-     * Returns {@code true} if a field is a boxed type, {@code false} otherwise.
+     * @return {@code true} if a field is a boxed type, {@code false} otherwise.
+     * @throws IllegalArgumentException if the typeString is {@code null}.
      */
     public static boolean isBoxedType(String typeString) {
         if (typeString == null) {
-            return false;
+            throw new IllegalArgumentException("Argument typeString cannot be null.");
         }
         return typeString.equals(Byte.class.getName()) || typeString.equals(Short.class.getName()) ||
                 typeString.equals(Integer.class.getName()) || typeString.equals(Long.class.getName()) ||
@@ -101,51 +104,54 @@ public class Utils {
     }
 
     /**
-     * Returns {@code true} if a field is a type of primitive types, {@code false} otherwise.
+     * @return {@code true} if a field is a type of primitive types, {@code false} otherwise.
+     * @throws IllegalArgumentException if the field is {@code null}.
      */
     public static boolean isPrimitiveType(VariableElement field) {
         if (field == null) {
-            return false;
+            throw new IllegalArgumentException("Argument field cannot be null.");
         }
         return field.asType().getKind().isPrimitive();
     }
 
     /**
-     * Returns {@code true} if a field is of type "byte[]", {@code false} otherwise.
+     * @return {@code true} if a field is of type "byte[]", {@code false} otherwise.
+     * @throws IllegalArgumentException if the field is {@code null}.
      */
     public static boolean isByteArray(VariableElement field) {
         if (field == null) {
-            return false;
+            throw new IllegalArgumentException("Argument field cannot be null.");
         }
         return getFieldTypeSimpleName(field).equals("byte[]");
     }
 
     /**
-     * Returns {@code true} if a given field type string is "java.lang.String", {@code false} otherwise.
+     * @return {@code true} if a given field type string is "java.lang.String", {@code false} otherwise.
+     * @throws IllegalArgumentException if the fieldType is {@code null}.
      */
     public static boolean isString(String fieldType) {
         if (fieldType == null) {
-            return false;
+            throw new IllegalArgumentException("Argument fieldType cannot be null.");
         }
         return String.class.getName().equals(fieldType);
     }
 
     /**
-     * Returns {@code true} if a given field type is "RealmList", {@code false} otherwise.
+     * @return {@code true} if a given field type is "RealmList", {@code false} otherwise.
      */
     public static boolean isRealmList(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmList);
     }
 
     /**
-     * Returns {@code true} if a given field type is "RealmObject", {@code false} otherwise.
+     * @return {@code true} if a given field type is "RealmObject", {@code false} otherwise.
      */
     public static boolean isRealmObject(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmObject);
     }
 
     /**
-     * Returns the simple type name for a field.
+     * @return the simple type name for a field.
      */
     public static String getFieldTypeSimpleName(VariableElement field) {
         String fieldTypeCanonicalName = field.asType().toString();
@@ -159,7 +165,7 @@ public class Utils {
     }
 
     /**
-     * Returns the generic type for Lists of the form {@code List<type>}
+     * @return the generic type for Lists of the form {@code List<type>}
      */
     public static String getGenericType(VariableElement field) {
         TypeMirror fieldType = field.asType();
