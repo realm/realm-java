@@ -28,6 +28,7 @@ using namespace std;
 using namespace realm;
 using namespace realm::util;
 
+// Caching classes and constructors for boxed types.
 jclass java_lang_long;
 jmethodID java_lang_long_init;
 jclass java_lang_float;
