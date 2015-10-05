@@ -88,7 +88,7 @@ public class Constants {
         CASTING_TYPES.put("java.lang.Long", "long");
         CASTING_TYPES.put("java.lang.Float", "float");
         CASTING_TYPES.put("java.lang.Double", "double");
-        CASTING_TYPES.put("java.lang.Boolean", "Boolean");
+        CASTING_TYPES.put("java.lang.Boolean", "boolean");
         CASTING_TYPES.put("java.lang.String", "String");
         CASTING_TYPES.put("java.util.Date", "Date");
         CASTING_TYPES.put("byte[]", "byte[]");

@@ -121,7 +121,7 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldBooleanNotNull to null.");
         }
-        row.setBoolean(INDEX_FIELDBOOLEANNOTNULL, (Boolean) value);
+        row.setBoolean(INDEX_FIELDBOOLEANNOTNULL, (boolean) value);
     }
 
     @Override
@@ -140,7 +140,7 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(INDEX_FIELDBOOLEANNULL);
             return;
         }
-        row.setBoolean(INDEX_FIELDBOOLEANNULL, (Boolean) value);
+        row.setBoolean(INDEX_FIELDBOOLEANNULL, (boolean) value);
     }
 
     @Override
