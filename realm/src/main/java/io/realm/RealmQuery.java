@@ -1101,10 +1101,34 @@ public class RealmQuery<E extends RealmObject> {
     // Sum
 
     /**
+     * Calculate the sum of a given field.
+     *
+     * @param fieldName   The field to sum. Only int, float, and double are supported.
+     * @return            The sum. If the given field has 0 rows or all rows with {@code null} values,
+     *                    {@code 0} will be returned. In calculations of aggregate functions, objects
+     *                    with {@code null} values will be ignored.
+     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
+     */
+    public Number sum(String fieldName) {
+        long columnIndex = columns.get(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return query.sumInt(columnIndex);
+            case FLOAT:
+                return query.sumFloat(columnIndex);
+            case DOUBLE:
+                return query.sumDouble(columnIndex);
+            default:
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        }
+    }
+
+    /**
      * Calculate the sum of a field
      * @param fieldName The field name
      * @return The sum
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
+     * @deprecated Please use {@link #sum(String)} instead.
      */
     public long sumInt(String fieldName) {
         long columnIndex = columns.get(fieldName);
@@ -1116,6 +1140,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName The field name
      * @return The sum
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
+     * @deprecated Please use {@link #sum(String)} instead.
      */
     public double sumDouble(String fieldName) {
         long columnIndex = columns.get(fieldName);
@@ -1127,6 +1152,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName The field name
      * @return The sum
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
+     * @deprecated Please use {@link #sum(String)} instead.
      */
     public double sumFloat(String fieldName) {
         long columnIndex = columns.get(fieldName);
@@ -1136,10 +1162,36 @@ public class RealmQuery<E extends RealmObject> {
     // Average
 
     /**
+     * Returns the average of a given field.
+     *
+     * @param fieldName  The field to calculate average on. Only properties of type int,
+     *                   float and double are supported.
+     * @return           The average for the given field amongst objects in an RealmList. This
+     *                   will be of type double for both float and double field. If no objects exist or
+     *                   they all have {@code null} as the value for the given field, {@code 0} will be returned.
+     *                   In calculations of aggregate functions, objects with null values will be ignored.
+     * @throws           java.lang.IllegalArgumentException if field is not int, float or double.
+     */
+    public double average(String fieldName) {
+        long columnIndex = columns.get(fieldName);
+        switch (table.getColumnType(columnIndex)) {
+            case INTEGER:
+                return query.averageInt(columnIndex);
+            case DOUBLE:
+                return query.averageDouble(columnIndex);
+            case FLOAT:
+                return query.averageFloat(columnIndex);
+            default:
+                throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
+        }
+    }
+
+    /**
      * Calculate the average of a field
      * @param fieldName The field name
      * @return The average
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
+     * @deprecated Please use {@link #average(String)} instead.
      */
     public double averageInt(String fieldName) {
         long columnIndex = columns.get(fieldName);
@@ -1151,6 +1203,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName The field name
      * @return The average
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
+     * @deprecated Please use {@link #average(String)} instead.
      */
     public double averageDouble(String fieldName) {
         long columnIndex = columns.get(fieldName);
@@ -1162,6 +1215,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName The field name
      * @return The average
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
+     * @deprecated Please use {@link #average(String)} instead.
      */
     public double averageFloat(String fieldName) {
         long columnIndex = columns.get(fieldName);
@@ -1175,8 +1229,9 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName   The field to look for a minimum on. Only integer and floating-point fields
      *                    are supported.
-     * @return            If the given field has 0 rows or all rows with {@code null} values, {@code null} will be returned.
-     *                    Otherwise return the minimum value.
+     * @return            If no objects exist or they all have {@code null} as the value for the given
+     *                    field, {@code null} will be returned. Otherwise the minimum value is returned.
+     *                    In calculations of aggregate functions, objects with {@code null} values will be ignored.
      * @throws            java.lang.IllegalArgumentException if type of the field is not integer or floating-point.
      */
     public Number min(String fieldName) {
@@ -1236,8 +1291,9 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find the minimum value of a field
      * @param fieldName  The field name
-     * @return If the given field has 0 rows or all rows with {@code null} values, {@code null} will be returned.
-     *         Otherwise return the minimum value.
+     * @return           If no objects exist or they all have {@code null} as the value for the given
+     *                   date field, {@code null} will be returned. Otherwise the minimum date is returned.
+     *                   In calculations of aggregate functions, objects with {@code null} values will be ignored.
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date minimumDate(String fieldName) {
@@ -1252,8 +1308,9 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName   The field to look for a maximum on. Only integer or floating-point fields
      *                    are supported.
-     * @return If the given field has 0 rows or all rows with {@code null} values, {@code null} will be returned.
-     *         Otherwise return the maximum value.
+     * @return            If no objects exist or they all have {@code null} as the value for the given
+     *                    field, {@code null} will be returned. Otherwise the maximum value is returned.
+     *                    In calculations of aggregate functions, objects with {@code null} values will be ignored.
      * @throws java.lang.IllegalArgumentException if the type of the field is integer or floating-point.
      */
     public Number max(String fieldName) {
@@ -1313,8 +1370,9 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find the maximum value of a field
      * @param fieldName  The field name
-     * @return If the given field has 0 rows or all rows with {@code null} values, {@code null} will be returned.
-     *         Otherwise return the maximum value.
+     * @return           If no objects exist or they all have {@code null} as the value for the given
+     *                   date field, {@code null} will be returned. Otherwise the maximum date is returned.
+     *                   In calculations of aggregate functions, objects with {@code null} values will be ignored.
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date maximumDate(String fieldName) {

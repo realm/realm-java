@@ -1016,6 +1016,42 @@ public class RealmQueryTest extends AndroidTestCase{
         assertNull(query.maximumDate(NullTypes.FIELD_DATE_NULL));
     }
 
+    // Test average on empty columns
+    public void testAverageValueForEmptyColumns() {
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertEquals(0d, query.average(NullTypes.FIELD_INTEGER_NULL), 0d);
+        assertEquals(0d, query.average(NullTypes.FIELD_FLOAT_NULL), 0d);
+        assertEquals(0d, query.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
+    }
+
+    // Test average on columns with all null rows
+    public void testAverageValueForAllNullColumns() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertEquals(0d, query.average(NullTypes.FIELD_INTEGER_NULL), 0d);
+        assertEquals(0d, query.average(NullTypes.FIELD_FLOAT_NULL), 0d);
+        assertEquals(0d, query.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
+    }
+
+    // Test sum on empty columns
+    public void testSumValueForEmptyColumns() {
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertEquals(0, query.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(0d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
+    }
+
+    // Test sum on columns with all null rows
+    public void testSumValueForAllNullColumns() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertEquals(0, query.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(0d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
+    }
+
     // Test isNull on link's nullable field.
     public void testIsNullOnLinkField() {
         TestHelper.populateTestRealmForNullTests(testRealm);
