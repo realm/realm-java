@@ -25,7 +25,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -119,6 +121,23 @@ public class RealmJsonTest extends AndroidTestCase {
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
         assertEquals(new Date(1000), obj.getColumnDate());
+    }
+
+    public void testCreateObjectFromJson_dateAsStringTimeZone() throws JSONException {
+        JSONObject json = new JSONObject();
+
+        // Oct 03 2015 14:15
+        json.put("columnDate", "/Date(1443854733376+0800)/");
+
+        testRealm.beginTransaction();
+        testRealm.createObjectFromJson(AllTypes.class, json);
+        testRealm.commitTransaction();
+
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        Calendar cal = GregorianCalendar.getInstance();
+        cal.set(2015,Calendar.OCTOBER, 03, 14, 45, 33);
+        Date convDate = obj.getColumnDate();
+        assertTrue(convDate.getTime()-cal.getTime().getTime()<1000);
     }
 
     public void testCreateObjectFromJson_childObject() throws JSONException {
