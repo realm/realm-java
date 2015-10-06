@@ -57,7 +57,8 @@ public class Util {
         Exception_FatalError(11),
         Exception_RuntimeError(12),
         Exception_RowInvalid(13),
-        Exception_EncryptionNotSupported(14);
+        Exception_EncryptionNotSupported(14),
+        Exception_CrossTableLink(15);
 
         private final int nativeTestcase;
         Testcase(int nativeValue) {

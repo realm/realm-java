@@ -127,6 +127,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, EncryptionNotSupported, "parm1", "parm2");
             break;
+        case CrossTableLink:
+            expect = "java.lang.IllegalStateException: parm1";
+            if (dotest)
+                ThrowException(env, CrossTableLink, "parm1");
+            break;
     }
     if (dotest) {
         return NULL;

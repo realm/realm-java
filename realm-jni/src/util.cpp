@@ -42,6 +42,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, OutOfMemory, ss.str());
     }
+    catch (CrossTableLinkTarget& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, CrossTableLink, ss.str());
+    }
     catch (std::exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
@@ -135,6 +139,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
         case EncryptionNotSupported:
             jExceptionClass = env->FindClass("io/realm/exceptions/RealmEncryptionNotSupportedException");
             message = classStr;
+            break;
+
+        case CrossTableLink:
+            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
+            message = "This class is referenced by other classes. Remove those fields first before removing this class.";
             break;
     }
     if (jExceptionClass != NULL) {

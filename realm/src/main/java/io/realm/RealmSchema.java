@@ -108,11 +108,7 @@ public final class RealmSchema {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
-        try {
-            transaction.removeTable(internalTableName);
-        } catch (RuntimeException e) {
-            throw new RealmException("Class is referenced by other classes. Remove those first.");
-        }
+        transaction.removeTable(internalTableName);
     }
 
     /**
