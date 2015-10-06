@@ -75,11 +75,6 @@ buildscript {
 
 apply plugin: 'de.undercouch.download'
 
-Properties localProperties = new Properties()
-localProperties.load(new FileInputStream("${projectDir}/../local.properties"))
-localProperties.entrySet().each() { entry ->
-    project.ext[entry.getKey()] = localProperties.setProperty(entry.getKey(), entry.getValue())
-}
 if (project.clang instanceof String) {
     ext.clang = Boolean.parseBoolean(project.clang)
 }
@@ -87,27 +82,12 @@ if (project.forceDownloadCore instanceof String) {
     ext.forceDownloadCore = Boolean.parseBoolean(project.forceDownloadCore)
 }
 
-task checkProperties(group: 'check', description: 'Check the user provided gradle.properties') << {
-    if (!project.ext['ndk.dir']) {
-        throw new GradleException('The ndkDir property in the gradle.properties file is not set.')
-    } else if (project.ext['ndk.dir'].endsWith('/')) {
-        throw new GradleException('The path provided in the ndkProperty in the gradle.properties ends with /')
-    } else if (!file(project.ext['ndk.dir']).directory) {
-        throw new GradleException('The path provided in the ndkDir property in the gradle.properties is not a folder.')
-    } else if (!file(new File(project.ext['ndk.dir'], 'RELEASE.TXT')).file) {
-        throw new GradleException('The path provided in the ndkDir property in the gradle.properties does not seem to be an Android NDK.')
-    }
-    if (project.ext.has('encryption') && project.ext['encryption'] == 'true') {
-        project.coreVersion += '-encryption'
-    }
-}
-
 ext.coreArchiveFile = project.file("../core-android-${project.coreVersion}.tar.gz")
 ext.coreDir = new File(buildDir, "core-${project.coreVersion}")
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of realm core', dependsOn: checkProperties) {
+task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
@@ -206,11 +186,10 @@ toolchains.each { toolchain ->
     task "generateNdkToolchain${toolchain.name.capitalize()}"(type: Exec) {
         group 'build setup'
         description "Generate the NDK standalone toolchain for the ${toolchain.name.capitalize()} platform"
-        dependsOn { checkProperties }
         outputs.dir file("${buildDir}/standalone-toolchains/${toolchain.name}")
         commandLine = [
             "bash",
-            "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
+            "${System.env.NDK_HOME}/build/tools/make-standalone-toolchain.sh",
             "--platform=android-${toolchain.platform}",
             "--install-dir=${buildDir}/standalone-toolchains/${toolchain.name}",
             "--toolchain=${toolchain.fullName}-${clang?'clang'+toolchain.version[Compiler.CLANG]:toolchain.version[Compiler.GCC]}"

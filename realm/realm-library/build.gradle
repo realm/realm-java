@@ -2,18 +2,20 @@ apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'maven-publish'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven'
 apply plugin: 'findbugs'
 apply plugin: 'checkstyle'
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion '20.0.0'
+    compileSdkVersion 23
+    buildToolsVersion '23.0.0'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 20
+        targetSdkVersion 23
         project.archivesBaseName = "realm-android"
     }
 }
@@ -26,32 +28,24 @@ dependencies {
     androidTestApt project(':realm-annotations')
 }
 
-android.libraryVariants.all { variant ->
-    def name = variant.buildType.name
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
 
-    if (name.equalsIgnoreCase("debug")) {
-        return; // Skip debug builds.
-    }
+task javadoc(type: Javadoc) {
+    source android.sourceSets.main.java.srcDirs
+    source "../realm-annotations/src/main/java"
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    options.memberLevel = JavadocMemberLevel.PUBLIC
+    exclude '**/internal/**'
+    exclude '**/BuildConfig.java'
+    exclude '**/R.java'
+}
 
-    def javadocTask = task("javadoc${variant.name.capitalize()}", type: Javadoc) {
-        description "Generates Javadoc for $variant.name."
-        group 'Docs'
-        source = variant.javaCompile.source
-        source "../realm-annotations/src/main/java"
-        ext.androidJar = files(project.android.getBootClasspath())
-        classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
-        options.memberLevel = JavadocMemberLevel.PUBLIC
-        exclude '**/internal/**'
-        exclude '**/BuildConfig.java'
-        exclude '**/R.java'
-    }
-
-    task("bundleJavadoc${variant.name.capitalize()}", type: Jar) {
-        description "Bundles Javadoc into zip for $variant.name."
-        group 'Docs'
-        classifier = "javadoc"
-        from javadocTask
-    }
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
 preBuild.dependsOn ':realm-jni:buildAndroidJni'
@@ -59,25 +53,103 @@ preBuild.dependsOn ':realm-jni:buildAndroidJni'
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://localhost/Users/emanuelez/.android-sdk/extras/android/m2repository")
+            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
         }
     }
 }
 
-task androidSourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
+def siteUrl = 'https://github.com/realm/realm-java'
+def gitUrl = 'https://github.com/realm/realm-java.git'
+
+publishing {
+    publications {
+        realmLibrary(MavenPublication) {
+            artifactId = 'realm-android'
+
+            artifact file("${project.buildDir}/outputs/aar/realm-library-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-android')
+                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+
+                def issues = root.appendNode('issueManagement')
+                issues.appendNode('system', 'github')
+                issues.appendNode('url', 'https://github.com/realm/realm-java/issues')
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'scm:https://github.com/realm/realm-java')
+                scm.appendNode('connection', 'scm:git@github.com:realm/realm-java.git')
+                scm.appendNode('developerConnection', 'scm:git@github.com:realm/realm-java.git')
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+            }
+        }
+    }
 }
 
-task androidJar(type: Jar) {
-    dependsOn assemble
-    dependsOn ':realm-annotations-processor:assemble'
-    group 'Build'
-    description 'Generates a jar file containing Realm and its annotation processor'
-    from zipTree('build/intermediates/bundles/release/classes.jar')
-    from zipTree("../realm-annotations-processor/build/libs/realm-annotations-processor-${version}.jar")
-    from zipTree("../realm-annotations/build/libs/realm-annotations-${version}.jar")
-    from(file('src/main/jniLibs')) {
-        into 'lib'
+artifactory {
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        }
+        defaults {
+            publications 'realmLibrary'
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+
+    dryRun = true
+    publish = false
+
+    publications = ['realmLibrary']
+    pkg {
+        repo = 'maven'
+        name = 'realm-android'
+        desc = 'Realm for Android'
+        websiteUrl = siteUrl
+        issueTrackerUrl = "${siteUrl}/issues"
+        vcsUrl = gitUrl
+        licenses = ['Apache-2.0']
+        labels = ['aar', 'android', 'realm']
+        publicDownloadNumbers = false
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                name 'Realm for Android'
+                url siteUrl
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+
+                }
+            }
+        }
     }
 }
 
@@ -152,6 +224,8 @@ if (version.endsWith('-SNAPSHOT')) { // Only publish if it's a snapshot version
 
 task findbugs(type: FindBugs) {
     dependsOn assemble
+    group = 'Test'
+
     ignoreFailures = false
     effort = "default"
     reportLevel = "medium"
@@ -172,6 +246,8 @@ task findbugs(type: FindBugs) {
 }
 
 task checkstyle(type: Checkstyle) {
+    group = 'Test'
+
     source 'src'
     include '**/*.java'
     exclude '**/gen/**'

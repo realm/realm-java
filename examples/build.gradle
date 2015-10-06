@@ -1,6 +1,9 @@
+project.ext.sdkVersion = 23
+project.ext.buildTools = '23.0.0'
+
 allprojects {
     def currentVersion = new File("${rootDir}/../version.txt").text.trim()
-    
+
     buildscript {
         repositories {
             mavenLocal()

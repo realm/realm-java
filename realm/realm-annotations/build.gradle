@@ -1,5 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.bintray'
 
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
@@ -7,7 +10,76 @@ targetCompatibility = '1.6'
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://localhost/Users/emanuelez/.android-sdk/extras/android/m2repository")
+            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
         }
+    }
+}
+
+def siteUrl = 'https://github.com/realm/realm-java'
+def gitUrl = 'https://github.com/realm/realm-java.git'
+
+publishing {
+    publications {
+        realmAnnotations(MavenPublication) {
+            artifactId = 'realm-annotations'
+
+            from components.java
+
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-annotations')
+                root.appendNode('description', 'Annotations for Realm: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+
+                def issues = root.appendNode('issueManagement')
+                issues.appendNode('system', 'github')
+                issues.appendNode('url', 'https://github.com/realm/realm-java/issues')
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'scm:https://github.com/realm/realm-java')
+                scm.appendNode('connection', 'scm:git@github.com:realm/realm-java.git')
+                scm.appendNode('developerConnection', 'scm:git@github.com:realm/realm-java.git')
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+            }
+        }
+    }
+}
+
+artifactory {
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        }
+        defaults {
+            publications 'realmAnnotations'
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+
+    dryRun = true
+    publish = false
+
+    publications = ['realmAnnotations']
+    pkg {
+        repo = 'maven'
+        name = 'realm-annotations'
+        desc = 'Annotations for Realm'
+        websiteUrl = siteUrl
+        issueTrackerUrl = "${siteUrl}/issues"
+        vcsUrl = gitUrl
+        licenses = ['Apache-2.0']
+        labels = ['jar', 'android', 'realm']
+        publicDownloadNumbers = false
     }
 }

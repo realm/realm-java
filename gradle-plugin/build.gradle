@@ -20,7 +20,28 @@ version = new File("${projectDir}/../version.txt").text.trim();
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://localhost/Users/emanuelez/.android-sdk/extras/android/m2repository")
+            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
         }
     }
 }
+
+//for Ant filter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task generateVersionClass(type: Copy) {
+    from 'src/main/templates/Version.java'
+    into 'build/generated-src/main/java/io/realm'
+    filter(ReplaceTokens, tokens: [version: version])
+    outputs.upToDateWhen { false }
+}
+
+// Include the generated Version file
+sourceSets {
+    main {
+        java {
+            srcDir 'build/generated-src/main/java'
+        }
+    }
+}
+
+compileJava.dependsOn generateVersionClass

@@ -5,6 +5,8 @@ include 'introExample'
 include 'jsonExample'
 include 'kotlinExample'
 include 'migrationExample'
+include 'moduleExample:app'
+include 'moduleExample:library'
 include 'realmModuleExample'
 include 'threadExample'
 

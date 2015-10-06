@@ -4,12 +4,13 @@ apply plugin: 'android-command'
 apply plugin: 'realm'
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion "20.0.0"
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
+
     defaultConfig {
         applicationId 'io.realm.examples.json'
+        targetSdkVersion rootProject.sdkVersion
         minSdkVersion 15
-        targetSdkVersion 19
         versionCode 1
         versionName "1.0"
     }
