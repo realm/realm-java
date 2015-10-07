@@ -53,6 +53,7 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
@@ -387,8 +388,65 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testQueriesFailWithNullQueryValue() throws IOException {
+        // String
         try {
-            testRealm.where(AllTypes.class).equalTo(FIELD_STRING, (String) null).findAll();
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL, (String) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Boolean
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NOT_NULL, (String) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Byte
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NOT_NULL, (Byte) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Short
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NOT_NULL, (Short) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Integer
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NOT_NULL, (Integer) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Long
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NOT_NULL, (Long) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Float
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Float) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Double
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Double) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Date
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NOT_NULL, (Date) null).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException ignored) {
         }
@@ -1223,6 +1281,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
+                obj.setColumnBoxedBoolean(true);
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
@@ -1235,6 +1294,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
+                obj2.setColumnBoxedBoolean(false);
                 realm.copyToRealmOrUpdate(obj2);
             }
         });
@@ -1253,6 +1313,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Dog3", obj.getColumnRealmObject().getName());
         assertEquals(1, obj.getColumnRealmList().size());
         assertEquals("Dog4", obj.getColumnRealmList().get(0).getName());
+        assertFalse(obj.getColumnBoxedBoolean());
     }
 
     public void testUpdateCyclicObject() {
@@ -1304,13 +1365,13 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(1, testRealm.allObjects(AllTypesPrimaryKey.class).size());
 
         AllTypesPrimaryKey obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
-        assertEquals("", obj.getColumnString());
+        assertNull(obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
         assertEquals(0.0F, obj.getColumnFloat());
         assertEquals(0.0D, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
-        assertArrayEquals(new byte[0], obj.getColumnBinary());
-        assertEquals(new Date(0), obj.getColumnDate());
+        assertNull(obj.getColumnBinary());
+        assertNull(obj.getColumnDate());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
@@ -1756,15 +1817,20 @@ public class RealmTest extends AndroidTestCase {
         testRealm.close();
         String REALM_NAME = "encrypted.realm";
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
         RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("foo"))
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         RealmConfiguration rightConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("realm"))
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         // Open Realm with wrong key
@@ -1786,10 +1852,13 @@ public class RealmTest extends AndroidTestCase {
         byte[] newPassword = TestHelper.SHA512("realm-copy");
 
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(oldPassword)
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         // 1. Write a copy of the encrypted Realm to a new file
@@ -1812,6 +1881,8 @@ public class RealmTest extends AndroidTestCase {
         RealmConfiguration newConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(newPassword)
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         testRealm = Realm.getInstance(newConfig);
