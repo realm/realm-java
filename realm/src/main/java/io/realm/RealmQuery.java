@@ -1109,8 +1109,7 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName   the field to sum. Only number fields are supported.
      * @return            the sum. If no objects exist or they all have {@code null} as the value for the given field,
-     *                    {@code 0} will be returned. In calculations of aggregate functions, objects with null values
-     *                    will be ignored.
+     *                    {@code 0} will be returned. When computing the sum, objects with {@code null} values are ignored.
      * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number sum(String fieldName) {
@@ -1169,10 +1168,10 @@ public class RealmQuery<E extends RealmObject> {
      * Returns the average of a given field.
      *
      * @param fieldName  the field to calculate average on. Only number fields are supported.
-     * @return           The average for the given field amongst objects in query result. This
+     * @return           The average for the given field amongst objects in query results. This
      *                   will be of type double for all types of number fields. If no objects exist or
      *                   they all have {@code null} as the value for the given field, {@code 0} will be returned.
-     *                   In calculations of aggregate functions, objects with {@code null} values will be ignored.
+     *                   When computing the average, objects with {@code null} values are ignored.
      * @throws           java.lang.IllegalArgumentException if the field is not a number type.
      */
     public double average(String fieldName) {
@@ -1233,7 +1232,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName   the field to look for a minimum on. Only number fields are supported.
      * @return            if no objects exist or they all have {@code null} as the value for the given
      *                    field, {@code null} will be returned. Otherwise the minimum value is returned.
-     *                    In calculations of aggregate functions, objects with {@code null} values will be ignored.
+     *                    When determining the minimum value, objects with {@code null} values are ignored.
      * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number min(String fieldName) {
@@ -1298,7 +1297,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName  The field name
      * @return           If no objects exist or they all have {@code null} as the value for the given
      *                   date field, {@code null} will be returned. Otherwise the minimum date is returned.
-     *                   In calculations of aggregate functions, objects with {@code null} values will be ignored.
+     *                   When determining the minimum date, objects with {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException The query is not valid ("syntax error")
      */
     public Date minimumDate(String fieldName) {
@@ -1314,7 +1313,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName   the field to look for a maximum on. Only number fields are supported.
      * @return            if no objects exist or they all have {@code null} as the value for the given
      *                    field, {@code null} will be returned. Otherwise the maximum value is returned.
-     *                    In calculations of aggregate functions, objects with {@code null} values will be ignored.
+     *                    When determining the maximum value, objects with {@code null} values are ignored.
      * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number max(String fieldName) {
@@ -1379,7 +1378,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName  the field name.
      * @return           if no objects exist or they all have {@code null} as the value for the given
      *                   date field, {@code null} will be returned. Otherwise the maximum date is returned.
-     *                   In calculations of aggregate functions, objects with {@code null} values will be ignored.
+     *                   When determining the maximum date, objects with {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException the query is not valid ("syntax error").
      */
     public Date maximumDate(String fieldName) {
