@@ -15,6 +15,8 @@
  */
 package io.realm;
 
+import android.util.Log;
+
 import java.util.Date;
 
 import io.realm.internal.CheckedRow;
@@ -88,10 +90,13 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code boolean} value for a given field.
+     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * this method.
      *
      * @param fieldName Name of field.
      * @return The boolean value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain booleans.
+     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public boolean getBoolean(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -100,10 +105,13 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code int} value for a given field.
+     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * this method.
      *
      * @param fieldName Name of field.
      * @return The int value. Integer values exceeding {@code Integer.MAX_VALUE} will wrap.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public int getInt(String fieldName) {
         return (int) getLong(fieldName);
@@ -111,10 +119,13 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code short} value for a given field.
+     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * this method.
      *
      * @param fieldName Name of field.
      * @return The short value. Integer values exceeding {@code Short.MAX_VALUE} will wrap.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public short getShort(String fieldName) {
         return (short) getLong(fieldName);
@@ -122,10 +133,13 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code long} value for a given field.
+     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * this method.
      *
      * @param fieldName Name of field.
      * @return The long value. Integer values exceeding {@code Long.MAX_VALUE} will wrap.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public long getLong(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -134,10 +148,13 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code byte} value for a given field.
+     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * this method.
      *
      * @param fieldName Name of field.
      * @return The byte value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
+     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public byte getByte(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -146,10 +163,13 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code float} value for a given field.
+     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * this method.
      *
      * @param fieldName Name of field.
      * @return The float value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain floats.
+     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public float getFloat(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -158,10 +178,13 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code double} value for a given field.
+     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * this method.
      *
      * @param fieldName Name of field.
      * @return The double value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain doubles.
+     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public double getDouble(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -170,10 +193,13 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code byte[]} value for a given field.
+     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
+     * this method.
      *
      * @param fieldName Name of field.
      * @return The byte[] value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
+     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public byte[] getBlob(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -201,7 +227,11 @@ public class DynamicRealmObject extends RealmObject {
      */
     public Date getDate(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
-        return row.getDate(columnIndex);
+        if (row.isNull(columnIndex)) {
+            return null;
+        } else {
+            return row.getDate(columnIndex);
+        }
     }
 
     /**
@@ -248,7 +278,6 @@ public class DynamicRealmObject extends RealmObject {
         RealmFieldType type = row.getColumnType(columnIndex);
         switch (type) {
             case OBJECT:
-            case LIST:
                 return row.isNullLink(columnIndex);
             case BOOLEAN:
             case INTEGER:
@@ -257,6 +286,9 @@ public class DynamicRealmObject extends RealmObject {
             case STRING:
             case BINARY:
             case DATE:
+                Log.e("Test", type.toString());
+                return row.isNull(columnIndex);
+            case LIST:
             case UNSUPPORTED_TABLE:
             case UNSUPPORTED_MIXED:
             default:
@@ -322,8 +354,7 @@ public class DynamicRealmObject extends RealmObject {
         }
 
         if (value == null) {
-            row.nullifyLink(row.getColumnIndex(fieldName));
-            // TODO Add support for other types when Null is merged.
+            setNull(fieldName);
         } else if (value instanceof Boolean) {
             setBoolean(fieldName, (Boolean) value);
         } else if (value instanceof Short) {
@@ -478,7 +509,11 @@ public class DynamicRealmObject extends RealmObject {
      */
     public void setDate(String fieldName, Date value) {
         long columnIndex = row.getColumnIndex(fieldName);
-        row.setDate(columnIndex, value);
+        if (value == null) {
+            row.setNull(columnIndex);
+        } else {
+            row.setDate(columnIndex, value);
+        }
     }
 
     /**
@@ -515,25 +550,34 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Field name.
      * @param list List of references.
-     * @throws IllegalArgumentException if field name doesn't exists, it doesn't contain a list of links or the type
-     * of the object represented by the DynamicRealmObject doesn't match.
      */
     public void setList(String fieldName, RealmList<DynamicRealmObject> list) {
         long columnIndex = row.getColumnIndex(fieldName);
         LinkView links = row.getLinkList(columnIndex);
-        links.clear();
-        for (DynamicRealmObject obj : list) {
-            links.add(obj.row.getIndex());
+        if (list == null) {
+            row.setNull(columnIndex);
+        } else {
+            links.clear();
+            for (int i = 0; i < list.size(); i++) {
+                links.add(list.get(i).row.getIndex());
+            }
         }
     }
 
     /**
-     * Deletes this object from the Realm. Accessing any fields after removing the object will throw an
-     * {@link IllegalStateException}.
+     * Sets the value to {@code null} for the given field.
+     *
+     * @param fieldName field name.
+     * @throws IllegalArgumentException if field name doesn't exists, or the field isn't nullable.
      */
-    public void removeFromRealm() {
-        row.getTable().moveLastOver(row.getIndex());
-        row = InvalidRow.INSTANCE;
+    public void setNull(String fieldName) {
+        long columnIndex = row.getColumnIndex(fieldName);
+        RealmFieldType type = row.getColumnType(columnIndex);
+        if (type == RealmFieldType.OBJECT) {
+            row.nullifyLink(columnIndex);
+        } else {
+            row.setNull(columnIndex);
+        }
     }
 
     /**
