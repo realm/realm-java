@@ -4,13 +4,18 @@ import android.test.AndroidTestCase;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
+import io.realm.exceptions.RealmError;
 
 public class RealmQueryTest extends AndroidTestCase{
 
@@ -21,10 +26,13 @@ public class RealmQueryTest extends AndroidTestCase{
     private final static String FIELD_STRING = "columnString";
     private final static String FIELD_LONG = "columnLong";
     private final static String FIELD_FLOAT = "columnFloat";
+    private final static String FIELD_DATE = "columnDate";
     private final static String FIELD_LONG_KOREAN_CHAR = "델타";
     private final static String FIELD_LONG_GREEK_CHAR = "Δέλτα";
     private final static String FIELD_FLOAT_KOREAN_CHAR = "베타";
     private final static String FIELD_FLOAT_GREEK_CHAR = "βήτα";
+
+    private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
 
     @Override
     protected void setUp() throws Exception {
@@ -47,7 +55,7 @@ public class RealmQueryTest extends AndroidTestCase{
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date());
+            allTypes.setColumnDate(new Date(DECADE_MILLIS * (i - (objects / 2))));
             allTypes.setColumnDouble(3.1415);
             allTypes.setColumnFloat(1.234567f + i);
             allTypes.setColumnString("test data " + i);
@@ -83,6 +91,10 @@ public class RealmQueryTest extends AndroidTestCase{
         resultList = testRealm.where(AllTypes.class).between(FIELD_LONG, 2, 20)
                 .beginsWith(FIELD_STRING, "test data 1").findAll();
         assertEquals(10, resultList.size());
+
+        assertEquals(51, testRealm.where(AllTypes.class).between(FIELD_DATE,
+                new Date(0),
+                new Date(DECADE_MILLIS * 50)).count());
     }
 
     public void testRealmQueryGreaterThan() {
@@ -100,6 +112,23 @@ public class RealmQueryTest extends AndroidTestCase{
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.234567f);
         resultList = query.between(FIELD_LONG, 1, 20).findAll();
         assertEquals(10, resultList.size());
+    }
+
+    public void testGreaterThanDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(179, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT / 2 - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(19, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(0, resultList.size());
     }
 
 
@@ -121,6 +150,23 @@ public class RealmQueryTest extends AndroidTestCase{
 
         resultList = query.beginsWith(FIELD_STRING, "test data 15").findAll();
         assertEquals(1, resultList.size());
+    }
+
+    public void testGreaterThanOrEqualToDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(180, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT / 2, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(20, resultList.size());
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(0, resultList.size());
     }
 
     public void testRealmQueryOr() {
@@ -189,7 +235,8 @@ public class RealmQueryTest extends AndroidTestCase{
     }
 
     public void testRealmQueryLessThan() {
-        populateTestRealm(200);
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).
                 lessThan(FIELD_FLOAT, 31.234567f).findAll();
@@ -199,8 +246,26 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(10, resultList.size());
     }
 
-    public void testRealmQueryLessThanOrEqual() {
-        populateTestRealm(200);
+    public void testLessThanDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(0, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(20, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT / 2, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(180, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+    }
+
+    public void testRealmQueryLessThanOrEqualTo() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
                 .lessThanOrEqualTo(FIELD_FLOAT, 31.234567f).findAll();
@@ -208,6 +273,23 @@ public class RealmQueryTest extends AndroidTestCase{
         resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_FLOAT, 31.234567f)
                 .between(FIELD_LONG, 11, 20).findAll();
         assertEquals(10, resultList.size());
+    }
+
+    public void testLessThanOrEqualToDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(0, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(21, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT / 2 + 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(181, resultList.size());
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
     public void testRealmQueryEqualTo() {
@@ -221,6 +303,23 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(1, resultList.size());
         resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f)
                 .equalTo(FIELD_LONG, 1).findAll();
+        assertEquals(0, resultList.size());
+    }
+
+    public void testEqualToDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(0, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
         assertEquals(0, resultList.size());
     }
 
@@ -267,6 +366,23 @@ public class RealmQueryTest extends AndroidTestCase{
         resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_FLOAT, 11.234567f)
                 .equalTo(FIELD_LONG, 1).findAll();
         assertEquals(1, resultList.size());
+    }
+
+    public void testNotEqualToDate() {
+        final int TEST_OBJECTS_COUNT = 200;
+        populateTestRealm(TEST_OBJECTS_COUNT);
+
+        RealmResults<AllTypes> resultList;
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(0)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
+        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
     public void testRealmQueryContainsAndCaseSensitive() {
@@ -463,6 +579,387 @@ public class RealmQueryTest extends AndroidTestCase{
         }
     }
 
+    // Querying a non-nullable field with null is an error
+    public void testQueryNullFieldNotNullableField() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 1 String
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL,
+                    (String) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 2 Bytes skipped, doesn't support equalTo query
+        // 3 Boolean
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NOT_NULL, (Boolean) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 4 Byte
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NOT_NULL, (Byte) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 5 Short
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NOT_NULL, (Short) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 6 Integer
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NOT_NULL, (Integer) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 7 Long
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NOT_NULL, (Long) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 8 Float
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Float) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 9 Double
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NOT_NULL, (Double) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 10 Date
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NOT_NULL, (Date) null).findAll();
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    // Querying a non-nullable field with null is an error
+    public void testQueryNullFieldsNotNullableFieldIsNull() {
+        // 1 String
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 2 Bytes
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BYTES_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 3 Boolean
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 4 Byte
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BYTE_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 5 Short
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_SHORT_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 6 Integer
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_INTEGER_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 7 Long
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_LONG_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 8 Float
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_FLOAT_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 9 Double
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_DOUBLE_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+        // 10 Date
+        try {
+            testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_DATE_NOT_NULL).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    // Querying nullable fields, querying with equalTo null
+    public void testQueryNullFieldsEqual() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 1 String
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, (String)null).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Fish").findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NULL, "Goat").findAll().size());
+        // 2 Bytes skipped, doesn't support equalTo query
+        // 3 Boolean
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, true).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean)null).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
+        // 4 Byte
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, 1).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (byte)1).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (Byte) null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NULL, (byte)42).findAll().size());
+        // 5 Short for other long based columns, only test null
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, 1).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (short) 1).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (Short) null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NULL, (short) 42).findAll().size());
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, 1).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, (Integer) null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NULL, 42).findAll().size());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, 1).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (long) 1).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (Long) null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NULL, (long) 42).findAll().size());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, 1F).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, (Float) null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NULL, 42F).findAll().size());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, 1D).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, (Double) null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DOUBLE_NULL, 42D).findAll().size());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, new Date(0)).findAll().size());
+        assertEquals(1, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, (Date) null).findAll().size());
+        assertEquals(0, testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NULL, new Date(424242)).findAll().size());
+        // 11 Object skipped, doesn't support equalTo query
+    }
+
+    // Querying nullable field for null
+    public void testQueryNullFieldIsNull() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 1 String
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+        // 2 Bytes
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BYTES_NULL).findAll().size());
+        // 3 Boolean
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BOOLEAN_NULL).findAll().size());
+        // 4 Byte
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_BYTE_NULL).findAll().size());
+        // 5 Short
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_SHORT_NULL).findAll().size());
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_INTEGER_NULL).findAll().size());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_LONG_NULL).findAll().size());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_FLOAT_NULL).findAll().size());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_DOUBLE_NULL).findAll().size());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_DATE_NULL).findAll().size());
+        // 11 Object
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL).findAll().size());
+    }
+
+    // Querying nullable field for not null
+    public void testQueryNullFieldsNotEqual() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+        // 1 String
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, (String) null).findAll().size());
+        // 2 Bytes skipped, doesn't support notEqualTo query
+        // 3 Boolean
+        assertEquals(1, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, false).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BOOLEAN_NULL, (Boolean) null).findAll().size());
+        // 4 Byte
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTE_NULL, (byte) 1).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_BYTE_NULL, (Byte) null).findAll().size());
+        // 5 Short
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_SHORT_NULL, (short) 1).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_SHORT_NULL, (Byte) null).findAll().size());
+        // 6 Integer
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_INTEGER_NULL, 1).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_INTEGER_NULL, (Integer) null).findAll().size());
+        // 7 Long
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_LONG_NULL, 1).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_LONG_NULL, (Integer) null).findAll().size());
+        // 8 Float
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_FLOAT_NULL, 1F).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_FLOAT_NULL, (Float) null).findAll().size());
+        // 9 Double
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DOUBLE_NULL, 1D).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DOUBLE_NULL, (Double) null).findAll().size());
+        // 10 Date
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, new Date(0)).findAll().size());
+        assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_DATE_NULL, (Date) null).findAll().size());
+        // 11 Object skipped, doesn't support notEqualTo query
+    }
+
+    // Querying nullable field for not null
+    public void testQueryNullFieldsIsNotNull() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 1 String
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_STRING_NULL).findAll().size());
+        // 2 Bytes
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BYTES_NULL).findAll().size());
+        // 3 Boolean
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BOOLEAN_NULL).findAll().size());
+        // 4 Byte
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_BYTE_NULL).findAll().size());
+        // 5 Short
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_SHORT_NULL).findAll().size());
+        // 6 Integer
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_INTEGER_NULL).findAll().size());
+        // 7 Long
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LONG_NULL).findAll().size());
+        // 8 Float
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_FLOAT_NULL).findAll().size());
+        // 9 Double
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_DOUBLE_NULL).findAll().size());
+        // 10 Date
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_DATE_NULL).findAll().size());
+        // 11 Object
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL).findAll().size());
+    }
+
+    // Querying nullable field with beginsWith - all strings begin with null
+    public void testQueryNullStringsBeginsWith() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+        assertEquals("Fish", testRealm.where(NullTypes.class).beginsWith(NullTypes.FIELD_STRING_NULL,
+                null).findFirst().getFieldStringNotNull());
+    }
+
+    // Querying nullable field with endsWith - all strings contain with null
+    public void testQueryNullStringsContains() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+        assertEquals("Fish", testRealm.where(NullTypes.class).contains(NullTypes.FIELD_STRING_NULL,
+                null).findFirst().getFieldStringNotNull());
+    }
+
+    // Querying nullable field with endsWith - all strings end with null
+    public void testQueryNullStringsEndsWith() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+        assertEquals("Fish", testRealm.where(NullTypes.class).endsWith(NullTypes.FIELD_STRING_NULL,
+                null).findFirst().getFieldStringNotNull());
+    }
+
+    // Querying with between and table has null values in row.
+    public void testRealmQueryBetweenWithNullValuesInRow() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).between(NullTypes.FIELD_INTEGER_NULL, 2, 4).count());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).between(NullTypes.FIELD_LONG_NULL, 2L, 4L).count());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).between(NullTypes.FIELD_FLOAT_NULL, 2F, 4F).count());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).between(NullTypes.FIELD_DOUBLE_NULL, 2D, 4D).count());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).between(NullTypes.FIELD_DATE_NULL, new Date(10000),
+                new Date(20000)).count());
+    }
+
+    // Querying with greaterThan and table has null values in row.
+    public void testRealmQueryGreaterThanWithNullValuesInRow() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThan(NullTypes.FIELD_INTEGER_NULL, 2).count());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThan(NullTypes.FIELD_LONG_NULL, 2L).count());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThan(NullTypes.FIELD_FLOAT_NULL, 2F).count());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThan(NullTypes.FIELD_DOUBLE_NULL, 2D).count());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThan(NullTypes.FIELD_DATE_NULL,
+                new Date(5000)).count());
+    }
+
+    // Querying with greaterThanOrEqualTo and table has null values in row.
+    public void testRealmQueryGreaterThanOrEqualToWithNullValuesInRow() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThanOrEqualTo(NullTypes.FIELD_INTEGER_NULL, 3).count());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThanOrEqualTo(NullTypes.FIELD_LONG_NULL, 3L).count ());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThanOrEqualTo(NullTypes.FIELD_FLOAT_NULL, 3F).count());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThanOrEqualTo(NullTypes.FIELD_DOUBLE_NULL, 3D).count());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).greaterThanOrEqualTo(NullTypes.FIELD_DATE_NULL,
+                new Date(10000)).count());
+    }
+
+    // Querying with lessThan and table has null values in row.
+    public void testRealmQueryLessThanWithNullValuesInRow() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).lessThan(NullTypes.FIELD_INTEGER_NULL, 2).count());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).lessThan(NullTypes.FIELD_LONG_NULL, 2L).count());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).lessThan(NullTypes.FIELD_FLOAT_NULL, 2F).count());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).lessThan(NullTypes.FIELD_DOUBLE_NULL, 2D).count());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).lessThan(NullTypes.FIELD_DATE_NULL,
+                new Date(5000)).count());
+
+    }
+
+    // Querying with lessThanOrEqualTo and table has null values in row.
+    public void testRealmQueryLessThanOrEqualWithNullValuesInRow() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).lessThanOrEqualTo(NullTypes.FIELD_INTEGER_NULL, 1).count());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).lessThanOrEqualTo(NullTypes.FIELD_LONG_NULL, 1L).count());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).lessThanOrEqualTo(NullTypes.FIELD_FLOAT_NULL, 1F).count());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).lessThanOrEqualTo(NullTypes.FIELD_DOUBLE_NULL, 1D).count());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).lessThanOrEqualTo(NullTypes.FIELD_DATE_NULL,
+                new Date(9999)).count());
+    }
+
     // If the RealmQuery is built on a TableView, it should not crash when used after GC.
     // See issue #1161 for more details.
     public void testBuildQueryFromResultsGC() {
@@ -479,7 +976,363 @@ public class RealmQueryTest extends AndroidTestCase{
         }
     }
 
-    public void testLargeRealmMultipleThreads() throws InterruptedException {
+    // Test min on empty columns
+    public void testMinValueForEmptyColumns() {
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertNull(query.min(NullTypes.FIELD_INTEGER_NOT_NULL));
+        assertNull(query.min(NullTypes.FIELD_FLOAT_NOT_NULL));
+        assertNull(query.min(NullTypes.FIELD_DOUBLE_NOT_NULL));
+        assertNull(query.minimumDate(NullTypes.FIELD_DATE_NOT_NULL));
+    }
+
+    // Test min on columns with all null rows
+    public void testMinValueForAllNullColumns() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertNull(query.min(NullTypes.FIELD_INTEGER_NULL));
+        assertNull(query.min(NullTypes.FIELD_FLOAT_NULL));
+        assertNull(query.min(NullTypes.FIELD_DOUBLE_NULL));
+        assertNull(query.minimumDate(NullTypes.FIELD_DATE_NULL));
+    }
+
+    // Test max on empty columns
+    public void testMaxValueForEmptyColumns() {
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertNull(query.max(NullTypes.FIELD_INTEGER_NOT_NULL));
+        assertNull(query.max(NullTypes.FIELD_FLOAT_NOT_NULL));
+        assertNull(query.max(NullTypes.FIELD_DOUBLE_NOT_NULL));
+        assertNull(query.maximumDate(NullTypes.FIELD_DATE_NOT_NULL));
+    }
+
+    // Test max on columns with all null rows
+    public void testMaxValueForAllNullColumns() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertNull(query.max(NullTypes.FIELD_INTEGER_NULL));
+        assertNull(query.max(NullTypes.FIELD_FLOAT_NULL));
+        assertNull(query.max(NullTypes.FIELD_DOUBLE_NULL));
+        assertNull(query.maximumDate(NullTypes.FIELD_DATE_NULL));
+    }
+
+    // Test average on empty columns
+    public void testAverageValueForEmptyColumns() {
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertEquals(0d, query.average(NullTypes.FIELD_INTEGER_NULL), 0d);
+        assertEquals(0d, query.average(NullTypes.FIELD_FLOAT_NULL), 0d);
+        assertEquals(0d, query.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
+    }
+
+    // Test average on columns with all null rows
+    public void testAverageValueForAllNullColumns() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertEquals(0d, query.average(NullTypes.FIELD_INTEGER_NULL), 0d);
+        assertEquals(0d, query.average(NullTypes.FIELD_FLOAT_NULL), 0d);
+        assertEquals(0d, query.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
+    }
+
+    // Test sum on empty columns
+    public void testSumValueForEmptyColumns() {
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertEquals(0, query.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(0d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
+    }
+
+    // Test sum on columns with all null rows
+    public void testSumValueForAllNullColumns() {
+        TestHelper.populateAllNullRowsForNumericTesting(testRealm);
+
+        RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
+        assertEquals(0, query.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
+        assertEquals(0f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(0d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
+    }
+
+    // Test isNull on link's nullable field.
+    public void testIsNullOnLinkField() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 1 String
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_STRING_NULL).count());
+        // 2 Bytes
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTES_NULL).count());
+        // 3 Boolean
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BOOLEAN_NULL).count());
+        // 4 Byte
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTE_NULL).count());
+        // 5 Short
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_SHORT_NULL).count());
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_INTEGER_NULL).count());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LONG_NULL).count());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_FLOAT_NULL).count());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DOUBLE_NULL).count());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NULL).count());
+        // 11 Object
+        // FIXME: Currently not support by Realm core
+        //assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
+        try {
+            testRealm.where(NullTypes.class).isNull(
+                    NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count();
+            fail();
+        }
+        catch (RealmError ignored) {}
+    }
+
+    // Test isNull on link's not-nullable field. should throw
+    public void testIsNullOnLinkFieldNotNullable() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 1 String
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_STRING_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 2 Bytes
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTES_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 3 Boolean
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BOOLEAN_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 4 Byte
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTE_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 5 Short
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_SHORT_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 6 Integer
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_INTEGER_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 7 Long
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LONG_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 8 Float
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_FLOAT_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 9 Double
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DOUBLE_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 10 Date
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 11 Object skipped, doesn't support equalTo query
+    }
+
+    // Test isNotNull on link's nullable field.
+    public void testIsNotNullOnLinkField() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 1 String
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_STRING_NULL).count());
+        // 2 Bytes
+        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(
+               NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTES_NULL).count());
+        // 3 Boolean
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BOOLEAN_NULL).count());
+        // 4 Byte
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTE_NULL).count());
+        // 5 Short
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_SHORT_NULL).count());
+        // 6 Integer
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_INTEGER_NULL).count());
+        // 7 Long
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LONG_NULL).count());
+        // 8 Float
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_FLOAT_NULL).count());
+        // 9 Double
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DOUBLE_NULL).count());
+        // 10 Date
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NULL).count());
+        // 11 Object
+        //assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
+        //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
+        // FIXME: Currently, link queries don't work fully on null
+        try {
+            testRealm.where(NullTypes.class).isNotNull(
+                    NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count();
+            fail();
+        }
+        catch (RealmError ignored) {}
+    }
+
+    // Test isNotNull on link's not-nullable field. should throw
+    public void testIsNotNullOnLinkFieldNotNullable() {
+        TestHelper.populateTestRealmForNullTests(testRealm);
+
+        // 1 String
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_STRING_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 2 Bytes
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTES_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 3 Boolean
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BOOLEAN_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 4 Byte
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTE_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 5 Short
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_SHORT_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 6 Integer
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_INTEGER_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 7 Long
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LONG_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 8 Float
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_FLOAT_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 9 Double
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DOUBLE_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 10 Date
+        try {
+            testRealm.where(NullTypes.class)
+                    .isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NOT_NULL);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        // 11 Object skipped, RealmObject is always nullable.
+    }
+
+    // Calling isNull on fields with the RealmList type will trigger an exception
+    public void testIsNullOnRealmListFieldThrows() {
+        try {
+            testRealm.where(Owner.class).isNull("dogs");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+        }
+
+        try {
+            testRealm.where(Cat.class).isNull("owner.dogs");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+        }
+    }
+
+    // Calling isNotNull on fields with the RealmList type will trigger an exception
+    public void testIsNotNullOnRealmListFieldThrows() {
+        try {
+            testRealm.where(Owner.class).isNotNull("dogs");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+        }
+
+        try {
+            testRealm.where(Cat.class).isNotNull("owner.dogs");
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Illegal Argument: RealmList is not nullable.", expected.getMessage());
+        }
+    }
+
+    public void NOtestLargeRealmMultipleThreads() throws InterruptedException {
         final int nObjects = 500000;
         final int nThreads = 3;
         final CountDownLatch latch = new CountDownLatch(nThreads);

@@ -94,10 +94,10 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-            table.addColumn(RealmFieldType.BOOLEAN, "done");
-            table.addColumn(RealmFieldType.BOOLEAN, "isReady");
-            table.addColumn(RealmFieldType.BOOLEAN, "mCompleted");
-            table.addColumn(RealmFieldType.BOOLEAN, "anotherBoolean");
+            table.addColumn(RealmFieldType.BOOLEAN, "done", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "isReady", Table.NOT_NULLABLE);s
+            table.addColumn(RealmFieldType.BOOLEAN, "mCompleted", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "anotherBoolean", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
             return table;
         }
@@ -128,31 +128,43 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             INDEX_DONE = table.getColumnIndex("done");
             INDEX_ISREADY = table.getColumnIndex("isReady");
             INDEX_MCOMPLETED = table.getColumnIndex("mCompleted");
-            INDEX_ANOTHERBOOLEAN = table.getColumnIndex("anotherBoolean")
+            INDEX_ANOTHERBOOLEAN = table.getColumnIndex("anotherBoolean");
 
             if (!columnTypes.containsKey("done")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("done") != RealmFieldType.BOOLEAN) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'done'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'done' in existing Realm file.");
+            }
+            if (table.isColumnNullable(INDEX_DONE)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'done' does support null values in the existing Realm file. Use corresponding boxed type for field 'done' or migrate using io.realm.internal.Table.convertColumnToNotNullable().");
             }
             if (!columnTypes.containsKey("isReady")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'isReady'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'isReady' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("isReady") != RealmFieldType.BOOLEAN) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'isReady'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'isReady' in existing Realm file.");
+            }
+            if (table.isColumnNullable(INDEX_ISREADY)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'isReady' does support null values in the existing Realm file. Use corresponding boxed type for field 'isReady' or migrate using io.realm.internal.Table.convertColumnToNotNullable().");
             }
             if (!columnTypes.containsKey("mCompleted")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'mCompleted'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'mCompleted' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("mCompleted") != RealmFieldType.BOOLEAN) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted' in existing Realm file.");
+            }
+            if (table.isColumnNullable(INDEX_MCOMPLETED)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'mCompleted' does support null values in the existing Realm file. Use corresponding boxed type for field 'mCompleted' or migrate using io.realm.internal.Table.convertColumnToNotNullable().");
             }
             if (!columnTypes.containsKey("anotherBoolean")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'anotherBoolean'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'anotherBoolean' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("anotherBoolean") != RealmFieldType.BOOLEAN) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'anotherBoolean'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'anotherBoolean' in existing Realm file.");
+            }
+            if (table.isColumnNullable(INDEX_ANOTHERBOOLEAN)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'anotherBoolean' does support null values in the existing Realm file. Use corresponding boxed type for field 'anotherBoolean' or migrate using io.realm.internal.Table.convertColumnToNotNullable().");
             }
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The Booleans class is missing from the schema for this Realm.");
@@ -174,17 +186,33 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public static Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         Booleans obj = realm.createObject(Booleans.class);
-        if (!json.isNull("done")) {
-            obj.setDone((boolean) json.getBoolean("done"));
+        if (json.has("done")) {
+            if (json.isNull("done")) {
+                throw new IllegalArgumentException("Trying to set non-nullable field done to null.");
+            } else {
+                obj.setDone((boolean) json.getBoolean("done"));
+            }
         }
-        if (!json.isNull("isReady")) {
-            obj.setReady((boolean) json.getBoolean("isReady"));
+        if (json.has("isReady")) {
+            if (json.isNull("isReady")) {
+                throw new IllegalArgumentException("Trying to set non-nullable field isReady to null.");
+            } else {
+                obj.setReady((boolean) json.getBoolean("isReady"));
+            }
         }
-        if (!json.isNull("mCompleted")) {
-            obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
+        if (json.has("mCompleted")) {
+            if (json.isNull("mCompleted")) {
+                throw new IllegalArgumentException("Trying to set non-nullable field mCompleted to null.");
+            } else {
+                obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
+            }
         }
-        if (!json.isNull("anotherBoolean")) {
-            obj.setAnotherBoolean((boolean) json.getBoolean("anotherBoolean"));
+        if (json.has("anotherBoolean")) {
+            if (json.isNull("anotherBoolean")) {
+                throw new IllegalArgumentException("Trying to set non-nullable field anotherBoolean to null.");
+            } else {
+                obj.setAnotherBoolean((boolean) json.getBoolean("anotherBoolean"));
+            }
         }
         return obj;
     }
@@ -195,14 +223,34 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
-            if (name.equals("done") && reader.peek() != JsonToken.NULL) {
-                obj.setDone((boolean) reader.nextBoolean());
-            } else if (name.equals("isReady")  && reader.peek() != JsonToken.NULL) {
-                obj.setReady((boolean) reader.nextBoolean());
-            } else if (name.equals("mCompleted")  && reader.peek() != JsonToken.NULL) {
-                obj.setmCompleted((boolean) reader.nextBoolean());
-            } else if (name.equals("anotherBoolean")  && reader.peek() != JsonToken.NULL) {
-                obj.setAnotherBoolean((boolean) reader.nextBoolean());
+            if (name.equals("done")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set non-nullable field done to null.");
+                } else {
+                    obj.setDone((boolean) reader.nextBoolean());
+                }
+            } else if (name.equals("isReady")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set non-nullable field isReady to null.");
+                } else {
+                    obj.setReady((boolean) reader.nextBoolean());
+                }
+            } else if (name.equals("mCompleted")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set non-nullable field mCompleted to null.");
+                } else {
+                    obj.setmCompleted((boolean) reader.nextBoolean());
+                }
+            } else if (name.equals("anotherBoolean")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set non-nullable field anotherBoolean to null.");
+                } else {
+                    obj.setAnotherBoolean((boolean) reader.nextBoolean());
+                }
             } else {
                 reader.skipValue();
             }

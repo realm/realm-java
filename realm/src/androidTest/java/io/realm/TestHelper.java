@@ -31,12 +31,16 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.Random;
-import java.util.logging.Level;
 
 import io.realm.internal.log.Logger;
 
 import static junit.framework.Assert.fail;
+
+import io.realm.entities.NullTypes;
+import io.realm.entities.StringOnly;
+import io.realm.internal.Table;
 
 public class TestHelper {
 
@@ -76,6 +80,22 @@ public class TestHelper {
         outputStream.close();
         is.close();
     }
+
+    // Creates a simple migration step in order to support null
+    // FIXME: generate a new encrypted.realm will null support
+    public static RealmMigration prepareMigrationToNullSupportStep() {
+        RealmMigration realmMigration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                Table stringOnly = realm.getTable(StringOnly.class);
+                stringOnly.convertColumnToNullable(stringOnly.getColumnIndex("chars"));
+
+                return 0;
+            }
+        };
+        return realmMigration;
+    }
+
 
     // Deletes the old database and copies a new one into its place
     public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
@@ -228,6 +248,166 @@ public class TestHelper {
         }
 
         return config.build();
+    }
+
+    public static void populateTestRealmForNullTests(Realm testRealm) {
+
+        // +-+--------+------+---------+--------------------+
+        // | | string | link | numeric | numeric (not null) |
+        // +-+--------+------+---------+--------------------+
+        // |0| Fish   |    0 |       1 |                  1 |
+        // |1| null   | null |    null |                  0 |
+        // |2| Horse  |    1 |       3 |                  3 |
+        // +-+--------+------+---------+--------------------+
+
+        // 1 String
+        String[] words = {"Fish", null, "Horse"};
+        // 2 Bytes
+        byte[][] binaries = {new byte[]{0}, null, new byte[]{1, 2}};
+        // 3 Boolean
+        Boolean[] booleans = {false, null, true};
+        // Numeric fields will be 1, 0/null, 3
+        // 10 Date
+        Date[] dates = {new Date(0), null, new Date(10000)};
+        NullTypes[] nullTypesArray = new NullTypes[3];
+
+        testRealm.beginTransaction();
+        for (int i = 0; i < words.length; i++) {
+            NullTypes nullTypes = new NullTypes();
+            nullTypes.setId(i + 1);
+            // 1 String
+            nullTypes.setFieldStringNull(words[i]);
+            if (words[i] != null) {
+                nullTypes.setFieldStringNotNull(words[i]);
+            }
+            // 2 Bytes
+            nullTypes.setFieldBytesNull(binaries[i]);
+            if (binaries[i] != null) {
+                nullTypes.setFieldBytesNotNull(binaries[i]);
+            }
+            // 3 Boolean
+            nullTypes.setFieldBooleanNull(booleans[i]);
+            if (booleans[i] != null) {
+                nullTypes.setFieldBooleanNotNull(booleans[i]);
+            }
+            if (i != 1) {
+                int n = i + 1;
+                // 4 Byte
+                nullTypes.setFieldByteNull((byte) n);
+                nullTypes.setFieldByteNotNull((byte) n);
+                // 5 Short
+                nullTypes.setFieldShortNull((short) n);
+                nullTypes.setFieldShortNotNull((short) n);
+                // 6 Integer
+                nullTypes.setFieldIntegerNull(n);
+                nullTypes.setFieldIntegerNotNull(n);
+                // 7 Long
+                nullTypes.setFieldLongNull((long) n);
+                nullTypes.setFieldLongNotNull((long) n);
+                // 8 Float
+                nullTypes.setFieldFloatNull((float) n);
+                nullTypes.setFieldFloatNotNull((float) n);
+                // 9 Double
+                nullTypes.setFieldDoubleNull((double) n);
+                nullTypes.setFieldDoubleNotNull((double) n);
+            }
+            // 10 Date
+            nullTypes.setFieldDateNull(dates[i]);
+            if (dates[i] != null) {
+                nullTypes.setFieldDateNotNull(dates[i]);
+            }
+
+            nullTypesArray[i] = testRealm.copyToRealm(nullTypes);
+        }
+        nullTypesArray[0].setFieldObjectNull(nullTypesArray[0]);
+        nullTypesArray[1].setFieldObjectNull(null);
+        nullTypesArray[2].setFieldObjectNull(nullTypesArray[1]);
+        testRealm.commitTransaction();
+    }
+
+    public static void populateAllNullRowsForNumericTesting(Realm realm) {
+        NullTypes nullTypes1 = new NullTypes();
+        nullTypes1.setId(1);
+        NullTypes nullTypes2 = new NullTypes();
+        nullTypes2.setId(2);
+
+        realm.beginTransaction();
+        realm.copyToRealm(nullTypes1);
+        realm.copyToRealm(nullTypes2);
+        realm.commitTransaction();
+    }
+
+    // Helper function to create all columns except the given excluding field for NullTypes.
+    public static void initNullTypesTableExcludes(Realm realm, String excludingField) {
+        Table table = realm.getTable(NullTypes.class);
+        if (!excludingField.equals("id")) {
+            table.addColumn(RealmFieldType.INTEGER, "id", Table.NOT_NULLABLE);
+            table.addSearchIndex(table.getColumnIndex("id"));
+            table.setPrimaryKey("id");
+        }
+        if (!excludingField.equals("fieldStringNotNull")) {
+            table.addColumn(RealmFieldType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldStringNull")) {
+            table.addColumn(RealmFieldType.STRING, "fieldStringNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldBytesNotNull")) {
+            table.addColumn(RealmFieldType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldBytesNull")) {
+            table.addColumn(RealmFieldType.BINARY, "fieldBytesNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldBooleanNotNull")) {
+            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldBooleanNull")) {
+            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldByteNotNull")) {
+            table.addColumn(RealmFieldType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldByteNull")) {
+            table.addColumn(RealmFieldType.INTEGER, "fieldByteNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldShortNotNull")) {
+            table.addColumn(RealmFieldType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldShortNull")) {
+            table.addColumn(RealmFieldType.INTEGER, "fieldShortNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldIntegerNotNull")) {
+            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldIntegerNull")) {
+            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldLongNotNull")) {
+            table.addColumn(RealmFieldType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldLongNull")) {
+            table.addColumn(RealmFieldType.INTEGER, "fieldLongNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldFloatNotNull")) {
+            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldFloatNull")) {
+            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldDoubleNotNull")) {
+            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldDoubleNull")) {
+            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldDateNotNull")) {
+            table.addColumn(RealmFieldType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
+        }
+        if (!excludingField.equals("fieldDateNull")) {
+            table.addColumn(RealmFieldType.DATE, "fieldDateNull", Table.NULLABLE);
+        }
+        if (!excludingField.equals("fieldObjectNull")) {
+            table.addColumnLink(RealmFieldType.OBJECT, "fieldObjectNull", table);
+        }
     }
 
 }

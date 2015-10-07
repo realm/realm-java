@@ -92,7 +92,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
     }
     case type_DateTime:
         {
-            time_t timeValue = mixed.get_datetime().get_datetime();
+            int_fast64_t timeValue = mixed.get_datetime().get_datetime();
             jclass jDateClass = env->FindClass("java/util/Date");
             if (jDateClass == NULL) {
                 ThrowException(env, ClassNotFound, "Date");

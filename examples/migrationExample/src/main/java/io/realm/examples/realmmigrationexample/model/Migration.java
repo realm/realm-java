@@ -36,13 +36,16 @@ public class Migration implements RealmMigration {
         /*
             // Version 0
             class Person
+                @Required
                 String firstName;
+                @Required
                 String lastName;
                 int    age;
 
             // Version 1
             class Person
-                String fullName;        // combine firstName and lastName into single field
+                @Required
+                String fullName;        // combine firstName and lastName into single field.
                 int age;
         */
 
@@ -65,10 +68,13 @@ public class Migration implements RealmMigration {
         /*
             // Version 2
                 class Pet                   // add a new model class
+                    @Required
                     String name;
+                    @Required
                     String type;
 
                 class Person
+                    @Required
                     String fullName;
                     int age;
                     RealmList<Pet> pets;    // add an array property
@@ -97,16 +103,22 @@ public class Migration implements RealmMigration {
         /*
             // Version 3
                 class Pet
+                    @Required
                     String name;
                     int type;               // type becomes int
 
                 class Person
-                    String fullName;
+                    String fullName;        // fullName is nullable now
                     RealmList<Pet> pets;    // age and pets re-ordered
                     int age;
         */
         // Migrate from version 2 to version 3
         if (version == 2) {
+            Table personTable = realm.getTable(Person.class);
+            long fullNameIndex = getIndexForProperty(personTable, "fullName");
+            // fullName is nullable now.
+            personTable.convertColumnToNullable(fullNameIndex);
+
             Table petTable = realm.getTable(Pet.class);
             long oldTypeIndex = getIndexForProperty(petTable, "type");
             long typeIndex = petTable.addColumn(RealmFieldType.INTEGER, "type");

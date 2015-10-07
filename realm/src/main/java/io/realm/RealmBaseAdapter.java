@@ -57,6 +57,11 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         }
     }
 
+    /**
+     * How many items are in the data set.
+     *
+     * @return Count of items.
+     */
     @Override
     public int getCount() {
         if (realmResults == null) {
@@ -65,6 +70,12 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         return realmResults.size();
     }
 
+    /**
+     * Returns the item associated with the specified position.
+     *
+     * @param i Index of item whose data we want.
+     * @return The item at the specified position.
+     */
     @Override
     public T getItem(int i) {
         if (realmResults == null) {
