@@ -18,11 +18,11 @@
 package io.realm;
 
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Owner;
@@ -67,18 +67,18 @@ public class RealmSchemaTests extends AndroidTestCase {
 
     public void testCreateClass() {
         realmSchema.createClass("Foo");
-        assertTrue(realmSchema.containsClass("Foo"));
+        assertTrue(realmSchema.hasClass("Foo"));
     }
 
     public void testCreateClassInvalidNameThrows() {
-        String[] names = { null, "", TestHelper.getRandomString(65) };
+        String[] names = { null, "", TestHelper.getRandomString(57) };
 
         for (String name : names) {
             try {
                 realmSchema.createClass(name);
             } catch (IllegalArgumentException expected) {
             }
-            assertFalse(String.format("'%s' failed", name), realmSchema.containsClass(name));
+            assertFalse(String.format("'%s' failed", name), realmSchema.hasClass(name));
         }
     }
 
@@ -94,8 +94,8 @@ public class RealmSchemaTests extends AndroidTestCase {
 
     public void testRenameClass() {
         realmSchema.renameClass("Owner", "Owner2");
-        assertFalse(realmSchema.containsClass("Owner"));
-        assertTrue(realmSchema.containsClass("Owner2"));
+        assertFalse(realmSchema.hasClass("Owner"));
+        assertTrue(realmSchema.hasClass("Owner2"));
     }
 
     public void testRenameClassInvalidArgumentsThrows() {
@@ -114,7 +114,7 @@ public class RealmSchemaTests extends AndroidTestCase {
 
     public void testRemoveClass() {
         realmSchema.removeClass(CLASS_ALL_JAVA_TYPES);
-        assertFalse(realmSchema.containsClass(CLASS_ALL_JAVA_TYPES));
+        assertFalse(realmSchema.hasClass(CLASS_ALL_JAVA_TYPES));
     }
 
     public void testRemoveClassInvalidClassNameThrows() {
@@ -131,26 +131,18 @@ public class RealmSchemaTests extends AndroidTestCase {
         }
     }
 
-    // Test that it if { A -> B } you should remove B first.
+    // Test that it if { A -> B  && B -> A } you should remove fields from B first.
     public void testRemoveClassWithReferencesThrows() {
         try {
             realmSchema.removeClass("Owner");
             fail();
         } catch (IllegalStateException expected) {
         }
-    }
 
-    // Test that it if { A -> B && B -> A } it is possible to remove A
-    public void testRemoveClassesWithCyclicReferencesThrows() {
-        RealmObjectSchema classA = realmSchema.createClass("A");
-        RealmObjectSchema classB = realmSchema.createClass("B");
-        classA.addObject("link", classB);
-        classB.addObject("link", classA);
-
-        try {
-            realmSchema.removeClass("A");
-            fail();
-        } catch (IllegalStateException expected) {
-        }
+        realmSchema.getClass("Cat").removeField("owner");
+        realmSchema.getClass("Dog").removeField("owner");
+        realmSchema.getClass("DogPrimaryKey").removeField("owner");
+        realmSchema.removeClass("Owner");
+        assertFalse(realmSchema.hasClass("Owner"));
     }
 }

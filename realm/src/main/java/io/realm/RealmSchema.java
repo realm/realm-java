@@ -139,7 +139,7 @@ public final class RealmSchema {
      * @param className Class name to check.
      * @return {@code true} if the class already exists. {@code false} otherwise.
      */
-    public boolean containsClass(String className) {
+    public boolean hasClass(String className) {
         return transaction.hasTable(Table.TABLE_PREFIX + className);
     }
 

@@ -647,7 +647,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         String newClassName = "Darby";
         DOG_SCHEMA.setClassName(newClassName);
         assertEquals(newClassName, DOG_SCHEMA.getClassName());
-        assertTrue(realmSchema.containsClass(newClassName));
+        assertTrue(realmSchema.hasClass(newClassName));
     }
 
     public void testForEach() {
