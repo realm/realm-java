@@ -3,10 +3,10 @@ package io.realm;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.RealmFieldType;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
@@ -27,7 +27,7 @@ import org.json.JSONObject;
 import some.test.NullTypes;
 
 public class NullTypesRealmProxy extends NullTypes
-    implements RealmObjectProxy {
+        implements RealmObjectProxy {
 
     private static long INDEX_FIELDSTRINGNOTNULL;
     private static long INDEX_FIELDSTRINGNULL;
@@ -432,30 +432,30 @@ public class NullTypesRealmProxy extends NullTypes
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_NullTypes")) {
             Table table = transaction.getTable("class_NullTypes");
-            table.addColumn(ColumnType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.STRING, "fieldStringNull", Table.NULLABLE);
-            table.addColumn(ColumnType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
-            table.addColumn(ColumnType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.BINARY, "fieldBytesNull", Table.NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "fieldByteNull", Table.NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "fieldShortNull", Table.NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "fieldLongNull", Table.NULLABLE);
-            table.addColumn(ColumnType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.FLOAT, "fieldFloatNull", Table.NULLABLE);
-            table.addColumn(ColumnType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
-            table.addColumn(ColumnType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.DATE, "fieldDateNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.STRING, "fieldStringNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BINARY, "fieldBytesNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldByteNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldShortNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldLongNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.DATE, "fieldDateNull", Table.NULLABLE);
             if (!transaction.hasTable("class_NullTypes")) {
                 NullTypesRealmProxy.initTable(transaction);
             }
-            table.addColumnLink(ColumnType.LINK, "fieldObjectNull", transaction.getTable("class_NullTypes"));
+            table.addColumnLink(RealmFieldType.OBJECT, "fieldObjectNull", transaction.getTable("class_NullTypes"));
             table.setPrimaryKey("");
             return table;
         }
@@ -468,7 +468,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (table.getColumnCount() != 21) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 21 but was " + table.getColumnCount());
             }
-            Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
+            Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 21; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
@@ -506,7 +506,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldStringNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldStringNotNull") != ColumnType.STRING) {
+            if (columnTypes.get("fieldStringNotNull") != RealmFieldType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDSTRINGNOTNULL)) {
@@ -515,7 +515,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldStringNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldStringNull") != ColumnType.STRING) {
+            if (columnTypes.get("fieldStringNull") != RealmFieldType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'fieldStringNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDSTRINGNULL)) {
@@ -524,7 +524,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldBooleanNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBooleanNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldBooleanNotNull") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("fieldBooleanNotNull") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Boolean' for field 'fieldBooleanNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDBOOLEANNOTNULL)) {
@@ -533,7 +533,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldBooleanNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBooleanNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldBooleanNull") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("fieldBooleanNull") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Boolean' for field 'fieldBooleanNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDBOOLEANNULL)) {
@@ -542,7 +542,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldBytesNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBytesNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldBytesNotNull") != ColumnType.BINARY) {
+            if (columnTypes.get("fieldBytesNotNull") != RealmFieldType.BINARY) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'byte[]' for field 'fieldBytesNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDBYTESNOTNULL)) {
@@ -551,7 +551,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldBytesNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldBytesNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldBytesNull") != ColumnType.BINARY) {
+            if (columnTypes.get("fieldBytesNull") != RealmFieldType.BINARY) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'byte[]' for field 'fieldBytesNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDBYTESNULL)) {
@@ -560,7 +560,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldByteNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldByteNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldByteNotNull") != ColumnType.INTEGER) {
+            if (columnTypes.get("fieldByteNotNull") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Byte' for field 'fieldByteNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDBYTENOTNULL)) {
@@ -569,7 +569,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldByteNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldByteNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldByteNull") != ColumnType.INTEGER) {
+            if (columnTypes.get("fieldByteNull") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Byte' for field 'fieldByteNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDBYTENULL)) {
@@ -578,7 +578,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldShortNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldShortNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldShortNotNull") != ColumnType.INTEGER) {
+            if (columnTypes.get("fieldShortNotNull") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Short' for field 'fieldShortNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDSHORTNOTNULL)) {
@@ -587,7 +587,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldShortNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldShortNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldShortNull") != ColumnType.INTEGER) {
+            if (columnTypes.get("fieldShortNull") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Short' for field 'fieldShortNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDSHORTNULL)) {
@@ -596,7 +596,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldIntegerNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldIntegerNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldIntegerNotNull") != ColumnType.INTEGER) {
+            if (columnTypes.get("fieldIntegerNotNull") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Integer' for field 'fieldIntegerNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDINTEGERNOTNULL)) {
@@ -605,7 +605,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldIntegerNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldIntegerNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldIntegerNull") != ColumnType.INTEGER) {
+            if (columnTypes.get("fieldIntegerNull") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Integer' for field 'fieldIntegerNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDINTEGERNULL)) {
@@ -614,7 +614,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldLongNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldLongNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldLongNotNull") != ColumnType.INTEGER) {
+            if (columnTypes.get("fieldLongNotNull") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Long' for field 'fieldLongNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDLONGNOTNULL)) {
@@ -623,7 +623,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldLongNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldLongNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldLongNull") != ColumnType.INTEGER) {
+            if (columnTypes.get("fieldLongNull") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Long' for field 'fieldLongNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDLONGNULL)) {
@@ -632,7 +632,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldFloatNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldFloatNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldFloatNotNull") != ColumnType.FLOAT) {
+            if (columnTypes.get("fieldFloatNotNull") != RealmFieldType.FLOAT) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Float' for field 'fieldFloatNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDFLOATNOTNULL)) {
@@ -641,7 +641,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldFloatNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldFloatNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldFloatNull") != ColumnType.FLOAT) {
+            if (columnTypes.get("fieldFloatNull") != RealmFieldType.FLOAT) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Float' for field 'fieldFloatNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDFLOATNULL)) {
@@ -650,7 +650,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldDoubleNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldDoubleNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldDoubleNotNull") != ColumnType.DOUBLE) {
+            if (columnTypes.get("fieldDoubleNotNull") != RealmFieldType.DOUBLE) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Double' for field 'fieldDoubleNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDDOUBLENOTNULL)) {
@@ -659,7 +659,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldDoubleNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldDoubleNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldDoubleNull") != ColumnType.DOUBLE) {
+            if (columnTypes.get("fieldDoubleNull") != RealmFieldType.DOUBLE) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Double' for field 'fieldDoubleNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDDOUBLENULL)) {
@@ -668,7 +668,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldDateNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldDateNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldDateNotNull") != ColumnType.DATE) {
+            if (columnTypes.get("fieldDateNotNull") != RealmFieldType.DATE) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Date' for field 'fieldDateNotNull' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_FIELDDATENOTNULL)) {
@@ -677,7 +677,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldDateNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldDateNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldDateNull") != ColumnType.DATE) {
+            if (columnTypes.get("fieldDateNull") != RealmFieldType.DATE) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Date' for field 'fieldDateNull' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_FIELDDATENULL)) {
@@ -686,7 +686,7 @@ public class NullTypesRealmProxy extends NullTypes
             if (!columnTypes.containsKey("fieldObjectNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldObjectNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("fieldObjectNull") != ColumnType.LINK) {
+            if (columnTypes.get("fieldObjectNull") != RealmFieldType.OBJECT) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'NullTypes' for field 'fieldObjectNull'");
             }
             if (!transaction.hasTable("class_NullTypes")) {
@@ -714,7 +714,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     public static NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-        throws JSONException {
+            throws JSONException {
         NullTypes obj = realm.createObject(NullTypes.class);
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
@@ -878,7 +878,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     public static NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
-        throws IOException {
+            throws IOException {
         NullTypes obj = realm.createObject(NullTypes.class);
         reader.beginObject();
         while (reader.hasNext()) {

@@ -26,7 +26,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.Booleans;
 
-public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
+public class BooleansRealmProxy extends Booleans
+        implements RealmObjectProxy {
 
     private static long INDEX_DONE;
     private static long INDEX_ISREADY;
@@ -95,7 +96,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
         if (!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
             table.addColumn(RealmFieldType.BOOLEAN, "done", Table.NOT_NULLABLE);
-            table.addColumn(RealmFieldType.BOOLEAN, "isReady", Table.NOT_NULLABLE);s
+            table.addColumn(RealmFieldType.BOOLEAN, "isReady", Table.NOT_NULLABLE);
             table.addColumn(RealmFieldType.BOOLEAN, "mCompleted", Table.NOT_NULLABLE);
             table.addColumn(RealmFieldType.BOOLEAN, "anotherBoolean", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
@@ -107,11 +108,9 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public static void validateTable(ImplicitTransaction transaction) {
         if (transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-
             if (table.getColumnCount() != 4) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
             }
-
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 4; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
