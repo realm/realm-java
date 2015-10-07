@@ -21,6 +21,7 @@ import java.util.Date;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.Required;
 
 public class AllTypes extends RealmObject {
 
@@ -32,7 +33,9 @@ public class AllTypes extends RealmObject {
     private float columnFloat;
     private double columnDouble;
     private boolean columnBoolean;
+    @Required
     private Date columnDate;
+    @Required
     private byte[] columnBinary;
     private AllTypes columnObject;
     private RealmList<AllTypes> columnRealmList;

@@ -6,8 +6,10 @@ import java.io.File;
 import java.io.IOException;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.FieldOrder;
 import io.realm.entities.AnnotationTypes;
+import io.realm.entities.FieldOrder;
+import io.realm.entities.NullTypes;
+import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.Table;
 
@@ -156,7 +158,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary key not defined for field 'id'")) {
+            if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. Add @PrimaryKey.")) {
                 fail(e.getMessage());
             }
         }
@@ -167,13 +169,15 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(RealmFieldType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                // Primary key will be indexed automatically
-                table.addSearchIndex(columnIndex);
-                columnIndex = table.addColumn(RealmFieldType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(RealmFieldType.STRING, "notIndexString");
+                if (table.getColumnCount() == 0) {
+                    long columnIndex = table.addColumn(RealmFieldType.INTEGER, "id");
+                    table.setPrimaryKey("id");
+                    // Primary key will be indexed automatically
+                    table.addSearchIndex(columnIndex);
+                    columnIndex = table.addColumn(RealmFieldType.STRING, "indexString", Table.NULLABLE);
+                    table.addSearchIndex(columnIndex);
+                    table.addColumn(RealmFieldType.STRING, "notIndexString", Table.NULLABLE);
+                }
                 return 1;
             }
         };
@@ -242,6 +246,216 @@ public class RealmMigrationTests extends AndroidTestCase {
             realm = Realm.getInstance(getContext());
             fail();
         } catch (RealmMigrationNeededException expected) {
+        }
+    }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. But @Required must be added, and forgetting so will give you
+    // a RealmMigrationNeeded exception.
+    public void testOpenPreNullRealmRequiredMissing() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration realmMigration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                // intentionally left empty
+                return 0;
+            }
+        };
+
+        try {
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(0)
+                    .schema(StringOnly.class)
+                    .migration(realmMigration)
+                    .build();
+            Realm realm = Realm.getInstance(realmConfig);
+            realm.close();
+            fail();
+        } catch (RealmMigrationNeededException e) {
+            assertEquals("Field 'chars' is required. Either set @Required to field 'chars' or migrate using io.realm.internal.Table.convertColumnToNullable().",
+                    e.getMessage());
+        }
+    }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. An explicit migration step to convert to nullable, and the
+    // old class (without @Required) can be used,
+    public void testMigratePreNull() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                Table table = realm.getTable(StringOnly.class);
+                table.convertColumnToNullable(table.getColumnIndex("chars"));
+                return 1;
+            }
+        };
+
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schemaVersion(1)
+                .schema(StringOnly.class)
+                .migration(migration)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        realm.beginTransaction();
+        StringOnly stringOnly = realm.createObject(StringOnly.class);
+        stringOnly.setChars(null);
+        realm.commitTransaction();
+        realm.close();
+    }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. If the user adds the @Required annotation to a field and does not
+    // change the schema version, no migration is needed. But then, null cannot be used as a value.
+    public void testOpenPreNullWithRequired() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schemaVersion(0)
+                .schema(AllTypes.class)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+
+        realm.beginTransaction();
+        try {
+            AllTypes allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnString(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        realm.cancelTransaction();
+
+        realm.close();
+    }
+
+    // If a required field was nullable before, a RealmMigrationNeededException should be thrown
+    public void testNotSettingRequiredForNotNullableThrows() {
+        String[] notNullableFields = {"fieldStringNotNull", "fieldBytesNotNull", "fieldBooleanNotNull",
+                "fieldByteNotNull", "fieldShortNotNull", "fieldIntegerNotNull", "fieldLongNotNull",
+                "fieldFloatNotNull", "fieldDoubleNotNull", "fieldDateNotNull"};
+        //String[] notNullableFields = {"fieldBooleanNotNull"};
+        for (final String field : notNullableFields) {
+            final RealmMigration migration = new RealmMigration() {
+                @Override
+                public long execute(Realm realm, long version) {
+                    if (version == -1) { // -1 == UNVERSIONED i.e., not initialized
+                        // No @Required for not nullable field
+                        TestHelper.initNullTypesTableExcludes(realm, field);
+                        Table table = realm.getTable(NullTypes.class);
+                        if (field.equals("fieldStringNotNull")) {
+                            // 1 String
+                            table.addColumn(RealmFieldType.STRING, field, Table.NULLABLE);
+                        } else if (field.equals("fieldBytesNotNull")) {
+                            // 2 Bytes
+                            table.addColumn(RealmFieldType.BINARY, field, Table.NULLABLE);
+                        } else if (field.equals("fieldBooleanNotNull")) {
+                            // 3 Boolean
+                            table.addColumn(RealmFieldType.BOOLEAN, field, Table.NULLABLE);
+                        } else if (field.equals("fieldByteNotNull") || field.equals("fieldShortNotNull") ||
+                                field.equals("fieldIntegerNotNull") || field.equals("fieldLongNotNull")) {
+                            // 4 Byte 5 Short 6 Integer 7 Long
+                            table.addColumn(RealmFieldType.INTEGER, field, Table.NULLABLE);
+                        } else if (field.equals("fieldFloatNotNull")) {
+                            // 8 Float
+                            table.addColumn(RealmFieldType.FLOAT, field, Table.NULLABLE);
+                        } else if (field.equals("fieldDoubleNotNull")) {
+                            // 9 Double
+                            table.addColumn(RealmFieldType.DOUBLE, field, Table.NULLABLE);
+                        } else if (field.equals("fieldDateNotNull")) {
+                            // 10 Date
+                            table.addColumn(RealmFieldType.DATE, field, Table.NULLABLE);
+                        }
+                        // 11 Object skipped
+                    }
+                    return 1;
+                }
+            };
+
+            @SuppressWarnings("unchecked")
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(1)
+                    .schema(NullTypes.class)
+                    .migration(migration)
+                    .build();
+            Realm.deleteRealm(realmConfig);
+            Realm.migrateRealm(realmConfig);
+
+            try {
+                realm = Realm.getInstance(realmConfig);
+                fail("Failed on " + field);
+            } catch (RealmMigrationNeededException e) {
+                assertEquals("Field '" + field + "' does support null values in the existing Realm file." +
+                        " Remove @Required or @PrimaryKey from field '" + field + "' " +
+                        "or migrate using io.realm.internal.Table.convertColumnToNotNullable().",
+                        e.getMessage());
+            }
+        }
+    }
+
+    // If a field is not required but was not nullable before, a RealmMigrationNeededException should be thrown
+    public void testSettingRequiredForNullableThrows() {
+        String[] notNullableFields = {"fieldStringNull", "fieldBytesNull", "fieldBooleanNull",
+                "fieldByteNull", "fieldShortNull", "fieldIntegerNull", "fieldLongNull",
+                "fieldFloatNull", "fieldDoubleNull", "fieldDateNull"};
+        for (final String field : notNullableFields) {
+            final RealmMigration migration = new RealmMigration() {
+                @Override
+                public long execute(Realm realm, long version) {
+                    if (version == -1) {  // -1 == UNVERSIONED i.e., not been initialized
+                        // No @Required for not nullable field
+                        TestHelper.initNullTypesTableExcludes(realm, field);
+                        Table table = realm.getTable(NullTypes.class);
+                        if (field.equals("fieldStringNull")) {
+                            // 1 String
+                            table.addColumn(RealmFieldType.STRING, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldBytesNull")) {
+                            // 2 Bytes
+                            table.addColumn(RealmFieldType.BINARY, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldBooleanNull")) {
+                            // 3 Boolean
+                            table.addColumn(RealmFieldType.BOOLEAN, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldByteNull") || field.equals("fieldShortNull") ||
+                                field.equals("fieldIntegerNull") || field.equals("fieldLongNull")) {
+                            // 4 Byte 5 Short 6 Integer 7 Long
+                            table.addColumn(RealmFieldType.INTEGER, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldFloatNull")) {
+                            // 8 Float
+                            table.addColumn(RealmFieldType.FLOAT, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldDoubleNull")) {
+                            // 9 Double
+                            table.addColumn(RealmFieldType.DOUBLE, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldDateNull")) {
+                            // 10 Date
+                            table.addColumn(RealmFieldType.DATE, field, Table.NOT_NULLABLE);
+                        }
+                        // 11 Object skipped
+                    }
+                    return 1;
+                }
+            };
+
+            @SuppressWarnings("unchecked")
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(1)
+                    .schema(NullTypes.class)
+                    .migration(migration)
+                    .build();
+            Realm.deleteRealm(realmConfig);
+            Realm.migrateRealm(realmConfig);
+
+            try {
+                realm = Realm.getInstance(realmConfig);
+                fail("Failed on " + field);
+            } catch (RealmMigrationNeededException e) {
+                if (field.equals("fieldStringNull") || field.equals("fieldBytesNull") || field.equals("fieldDateNull")) {
+                    assertEquals("Field '" + field + "' is required. Either set @Required to field '" +
+                            field + "' " +
+                            "or migrate using io.realm.internal.Table.convertColumnToNullable().", e.getMessage());
+                } else {
+                    assertEquals("Field '" + field + "' does not support null values in the existing Realm file."
+                                    + " Either set @Required, use the primitive type for field '"
+                                    + field + "' or migrate using io.realm.internal.Table.convertColumnToNullable().",  e.getMessage());
+                }
+            }
         }
     }
 }

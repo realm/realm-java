@@ -142,7 +142,7 @@ public final class Realm extends BaseRealm {
     /**
      * The constructor is private to enforce the use of the static one.
      *
-     * @param configuration Configuration used to open the Realm.
+     * @param configuration {@link RealmConfiguration} used to open the Realm.
      * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
@@ -203,6 +203,7 @@ public final class Realm extends BaseRealm {
     /**
      * Realm static constructor that returns the Realm instance defined by provided {@link io.realm.RealmConfiguration}
      *
+     * @param configuration {@link RealmConfiguration} used to open the Realm
      * @return an instance of the Realm class
      *
      * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
@@ -1044,7 +1045,7 @@ public final class Realm extends BaseRealm {
     /**
      * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the
      * latest version, nothing will happen.
-     * @param configuration
+     * @param configuration {@link RealmConfiguration}
      */
     public static void migrateRealm(RealmConfiguration configuration) {
         migrateRealm(configuration, null);

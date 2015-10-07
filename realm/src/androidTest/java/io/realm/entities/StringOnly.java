@@ -19,7 +19,6 @@ package io.realm.entities;
 import io.realm.RealmObject;
 
 public class StringOnly extends RealmObject {
-
     private String chars;
 
     public String getChars() {

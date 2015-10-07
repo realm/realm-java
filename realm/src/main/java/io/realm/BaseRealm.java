@@ -233,6 +233,7 @@ abstract class BaseRealm implements Closeable {
      * current data, and not the data as it was when the last write transaction was committed.
      * <p>
      * @param destination File to save the Realm to
+     * @param key a 64-byte encryption key
      * @throws java.io.IOException if any write operation fails
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
@@ -398,7 +399,7 @@ abstract class BaseRealm implements Closeable {
             lastLocalInstanceClosed();
             sharedGroupManager.close();
             sharedGroupManager = null;
-            releaseFileReference();
+            releaseFileReference(configuration);
         }
 
         int refCount = references - 1;
@@ -425,7 +426,7 @@ abstract class BaseRealm implements Closeable {
     /**
      * Acquire a reference to the given Realm file.
      */
-    protected synchronized void acquireFileReference(RealmConfiguration configuration) {
+    static synchronized void acquireFileReference(RealmConfiguration configuration) {
         String path = configuration.getPath();
         Integer refCount = globalRealmFileReferenceCounter.get(path);
         if (refCount == null) {
@@ -438,7 +439,7 @@ abstract class BaseRealm implements Closeable {
      * Releases a reference to the Realm file. If reference count reaches 0 any cached configurations
      * will be removed.
      */
-    protected synchronized void releaseFileReference() {
+    static synchronized void releaseFileReference(RealmConfiguration configuration) {
         String canonicalPath = configuration.getPath();
         List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
         pathConfigurationCache.remove(configuration);
@@ -469,7 +470,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @throws IllegalArgumentException If the new configuration isn't valid.
      */
-    protected static void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
+    protected static synchronized void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
 
         String realmPath = newConfiguration.getPath();
         List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
