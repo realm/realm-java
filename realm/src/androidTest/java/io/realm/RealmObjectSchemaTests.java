@@ -65,7 +65,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     }
 
     public enum NullableFieldType {
-        OBJECT, LIST
+        OBJECT, LIST // FIXME Add Nullable support
     }
 
     public enum NonNullableFieldType {
@@ -218,16 +218,6 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     schema.addLong(fieldName, EnumSet.of(RealmModifier.PRIMARY_KEY));
                     checkAddedAndRemovable(fieldName);
                     break;
-//                case BYTE:
-//                    fieldName = AllJavaTypes.FIELD_BYTE;
-//                    schema.addByte(fieldName, EnumSet.of(RealmModifier.PRIMARY_KEY));
-//                    checkAddedAndRemovable(fieldName);
-//                    break;
-//                case BOOLEAN:
-//                    fieldName = AllJavaTypes.FIELD_BOOLEAN;
-//                    schema.addBoolean(fieldName, EnumSet.of(RealmModifier.INDEXED));
-//                    checkAddedAndRemovable(fieldName);
-//                    break;
                 default:
                     fail();
             }
@@ -350,7 +340,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
 
     public void testAddField_illegalFieldNameThrows() {
-        String[] fieldNames = new String[] { null, "", "foo.bar" };
+        String[] fieldNames = new String[] { null, "", "foo.bar", TestHelper.getRandomString(65) };
         for (FieldType fieldType : FieldType.values()) {
             for (String fieldName : fieldNames) {
                 try {
@@ -397,18 +387,6 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     fieldName = AllJavaTypes.FIELD_LONG;
                     schema.addLong(fieldName);
                     break;
-//                case BYTE:
-//                    fieldName = AllJavaTypes.FIELD_BYTE;
-//                    schema.addByte(fieldName);
-//                    break;
-//                case BOOLEAN:
-//                    fieldName = AllJavaTypes.FIELD_BOOLEAN;
-//                    schema.addBoolean(fieldName);
-//                    break;
-//                case DATE:
-//                    fieldName = AllJavaTypes.FIELD_DATE;
-//                    schema.addDate(fieldName);
-//                    break;
                 default:
                     fail();
             }
