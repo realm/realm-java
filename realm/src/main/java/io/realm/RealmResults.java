@@ -317,12 +317,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Find the minimum value of a field.
      *
-     * @param fieldName   The field to look for a minimum on. Only integer and floating-point fields
-     *                    are supported.
-     * @return            If no objects exist or they all have {@code null} as the value for the given
+     * @param fieldName   the field to look for a minimum on. Only number fields are supported.
+     * @return            if no objects exist or they all have {@code null} as the value for the given
      *                    field, {@code null} will be returned. Otherwise the minimum value is returned.
      *                    In calculations of aggregate functions, objects with {@code null} values will be ignored.
-     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
@@ -363,12 +362,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Find the maximum value of a field.
      *
-     * @param fieldName   The field to look for a maximum on. Only integer or floating-point fields
-     *                    are supported.
-     * @return            If no objects exist or they all have {@code null} as the value for the given
+     * @param fieldName   the field to look for a maximum on. Only number fields are supported.
+     * @return            if no objects exist or they all have {@code null} as the value for the given
      *                    field, {@code null} will be returned. Otherwise the maximum value is returned.
      *                    In calculations of aggregate functions, objects with {@code null} values will be ignored.
-     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
@@ -388,9 +386,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Find the maximum date.
      *
-     * @param fieldName  The field to look for the maximum date. If fieldName is not of Date type,
+     * @param fieldName  the field to look for the maximum date. If fieldName is not of Date type,
      *                   an exception is thrown.
-     * @return           If no objects exist or they all have {@code null} as the value for the given
+     * @return           if no objects exist or they all have {@code null} as the value for the given
      *                   date field, {@code null} will be returned. Otherwise the maximum date is returned.
      *                   In calculations of aggregate functions, objects with {@code null} values will be ignored.
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
@@ -410,11 +408,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Calculate the sum of a given field.
      *
-     * @param fieldName   The field to sum. Only int, float, and double are supported.
-     * @return            The sum. If the given field has 0 rows or all rows with {@code null} values,
+     * @param fieldName   the field to sum. Only number fields are supported.
+     * @return            the sum. If the given field has 0 rows or all rows with {@code null} values,
      *                    {@code 0} will be returned. In calculations of aggregate functions, objects
      *                    with {@code null} values will be ignored.
-     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
+     * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
 
     public Number sum(String fieldName) {
@@ -436,13 +434,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Returns the average of a given field.
      *
-     * @param fieldName  The field to calculate average on. Only properties of type int,
-     *                   float and double are supported.
-     * @return           The average for the given field amongst objects in an {@link RealmResults}. This
+     * @param fieldName  the field to calculate average on. Only number fields are supported.
+     * @return           the average for the given field amongst objects in an {@link RealmResults}. This
      *                   will be of type double for both float and double field. If no objects exist or
      *                   they all have {@code null} as the value for the given field, {@code 0} will be returned.
      *                   In calculations of aggregate functions, objects with null values will be ignored.
-     * @throws           java.lang.IllegalArgumentException if field is not int, float or double.
+     * @throws           java.lang.IllegalArgumentException if the field is not a number type.
      */
     public double average(String fieldName) {
         realm.checkIfValid();
