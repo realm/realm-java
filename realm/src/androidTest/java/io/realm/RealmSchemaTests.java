@@ -22,6 +22,7 @@ import android.test.AndroidTestCase;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Owner;
@@ -52,7 +53,7 @@ public class RealmSchemaTests extends AndroidTestCase {
         realm.close();
     }
 
-    public void testGetRealmSchemas() {
+    public void testGetAllClasses() {
         Set<RealmObjectSchema> objectSchemas = realmSchema.getAllClasses();
         assertEquals(5, objectSchemas.size());
 
@@ -70,11 +71,15 @@ public class RealmSchemaTests extends AndroidTestCase {
     }
 
     public void testCreateClassInvalidNameThrows() {
-        try {
-            realmSchema.createClass(null);
-        } catch (IllegalArgumentException expected) {
+        String[] names = { null, "", TestHelper.getRandomString(65) };
+
+        for (String name : names) {
+            try {
+                realmSchema.createClass(name);
+            } catch (IllegalArgumentException expected) {
+            }
+            assertFalse(String.format("'%s' failed", name), realmSchema.containsClass(name));
         }
-        assertFalse(realmSchema.containsClass(null));
     }
 
     public void testGetClass() {
@@ -148,6 +153,4 @@ public class RealmSchemaTests extends AndroidTestCase {
         } catch (IllegalStateException expected) {
         }
     }
-
-
 }

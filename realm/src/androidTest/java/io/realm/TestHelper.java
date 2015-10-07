@@ -164,6 +164,15 @@ public class TestHelper {
         };
     }
 
+    public static String getRandomString(int length) {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append((char) random.nextInt(128));
+        }
+        return sb.toString();
+    }
+
     public static class StubInputStream extends InputStream {
         @Override
         public int read() throws IOException {

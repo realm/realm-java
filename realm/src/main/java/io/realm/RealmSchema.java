@@ -19,7 +19,6 @@ package io.realm;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.realm.exceptions.RealmException;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 
@@ -91,6 +90,9 @@ public final class RealmSchema {
     public RealmObjectSchema createClass(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
+        if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
+            throw new IllegalArgumentException("Class name is to long. Limit is 57 characters: " + className.length());
+        }
         if (transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
