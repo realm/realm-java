@@ -9,6 +9,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
+import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
@@ -163,6 +164,36 @@ public class RealmMigrationTests extends AndroidTestCase {
                 fail(e.getMessage());
             }
         }
+    }
+
+    // adding search index is idempotent
+    public void testAddingSearchIndexTwice() throws IOException {
+        final boolean[] didMigrate = {false};
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public long execute(Realm realm, long version) {
+                Table table = realm.getTable(PrimaryKeyAsLong.class);
+                long columnIndex = table.getColumnIndex("id");
+                table.addSearchIndex(columnIndex);
+                columnIndex = table.getColumnIndex("name");
+                table.convertColumnToNullable(columnIndex);
+                didMigrate[0] = true;
+                return 42;
+            }
+        };
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schemaVersion(42)
+                .schema(PrimaryKeyAsLong.class)
+                .migration(migration)
+                .build();
+        Realm.migrateRealm(realmConfig);
+        realm = Realm.getInstance(realmConfig);
+        assertEquals(42, realm.getVersion());
+        assertTrue(didMigrate[0]);
+        Table table = realm.getTable(PrimaryKeyAsLong.class);
+        assertEquals(true, table.hasSearchIndex(table.getColumnIndex("id")));
     }
 
     public void testSetAnnotations() {
