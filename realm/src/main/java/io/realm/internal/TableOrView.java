@@ -243,27 +243,27 @@ public interface TableOrView {
 
     long sumLong(long columnIndex);
 
-    long maximumLong(long columnIndex);
+    Long maximumLong(long columnIndex);
 
-    long minimumLong(long columnIndex);
+    Long minimumLong(long columnIndex);
 
     double averageLong(long columnIndex);
 
 
     double sumFloat(long columnIndex);
 
-    float maximumFloat(long columnIndex);
+    Float maximumFloat(long columnIndex);
 
-    float minimumFloat(long columnIndex);
+    Float minimumFloat(long columnIndex);
 
     double averageFloat(long columnIndex);
 
 
     double sumDouble(long columnIndex);
 
-    double maximumDouble(long columnIndex);
+    Double maximumDouble(long columnIndex);
 
-    double minimumDouble(long columnIndex);
+    Double minimumDouble(long columnIndex);
 
     double averageDouble(long columnIndex);
 

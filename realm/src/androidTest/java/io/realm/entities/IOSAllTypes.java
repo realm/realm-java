@@ -4,6 +4,7 @@ import java.util.Date;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Required;
 
 public class IOSAllTypes extends RealmObject {
 
@@ -13,9 +14,12 @@ public class IOSAllTypes extends RealmObject {
     private long longCol;
     private float floatCol;
     private double doubleCol;
-    private byte[] byteCol;
-    private String stringCol;
-    private Date dateCol;
+    @Required
+    private byte[] byteCol = new byte[0];
+    @Required
+    private String stringCol = "";
+    @Required
+    private Date dateCol = new Date(0);
     private IOSChild child;
     private RealmList<IOSChild> children;
 

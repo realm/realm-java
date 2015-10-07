@@ -744,11 +744,11 @@ public class TableView implements TableOrView, Closeable {
      * @return the maximum value
      */
     @Override
-    public long maximumLong(long columnIndex){
+    public Long maximumLong(long columnIndex){
         return nativeMaximumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMaximumInt(long nativeViewPtr, long columnIndex);
+    protected native Long nativeMaximumInt(long nativeViewPtr, long columnIndex);
 
     /**
      * Returns the minimum value of the cells in a column.
@@ -760,11 +760,11 @@ public class TableView implements TableOrView, Closeable {
      * @return the minimum value
      */
     @Override
-    public long minimumLong(long columnIndex){
+    public Long minimumLong(long columnIndex){
         return nativeMinimumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMinimumInt(long nativeViewPtr, long columnIndex);
+    protected native Long nativeMinimumInt(long nativeViewPtr, long columnIndex);
 
     @Override
     public double averageLong(long columnIndex) {
@@ -784,18 +784,18 @@ public class TableView implements TableOrView, Closeable {
     protected native double nativeSumFloat(long nativeViewPtr, long columnIndex);
 
     @Override
-    public float maximumFloat(long columnIndex){
+    public Float maximumFloat(long columnIndex){
         return nativeMaximumFloat(nativePtr, columnIndex);
     }
 
-    protected native float nativeMaximumFloat(long nativeViewPtr, long columnIndex);
+    protected native Float nativeMaximumFloat(long nativeViewPtr, long columnIndex);
 
     @Override
-    public float minimumFloat(long columnIndex){
+    public Float minimumFloat(long columnIndex){
         return nativeMinimumFloat(nativePtr, columnIndex);
     }
 
-    protected native float nativeMinimumFloat(long nativeViewPtr, long columnIndex);
+    protected native Float nativeMinimumFloat(long nativeViewPtr, long columnIndex);
 
     @Override
     public double averageFloat(long columnIndex) {
@@ -815,18 +815,18 @@ public class TableView implements TableOrView, Closeable {
     protected native double nativeSumDouble(long nativeViewPtr, long columnIndex);
 
     @Override
-    public double maximumDouble(long columnIndex){
+    public Double maximumDouble(long columnIndex){
         return nativeMaximumDouble(nativePtr, columnIndex);
     }
 
-    protected native double nativeMaximumDouble(long nativeViewPtr, long columnIndex);
+    protected native Double nativeMaximumDouble(long nativeViewPtr, long columnIndex);
 
     @Override
-    public double minimumDouble(long columnIndex){
+    public Double minimumDouble(long columnIndex){
         return nativeMinimumDouble(nativePtr, columnIndex);
     }
 
-    protected native double nativeMinimumDouble(long nativeViewPtr, long columnIndex);
+    protected native Double nativeMinimumDouble(long nativeViewPtr, long columnIndex);
 
     @Override
     public double averageDouble(long columnIndex) {
@@ -840,17 +840,25 @@ public class TableView implements TableOrView, Closeable {
 
     @Override
     public Date maximumDate(long columnIndex) {
-        return new Date(nativeMaximumDate(nativePtr, columnIndex) * 1000);
+        Long result = nativeMaximumDate(nativePtr, columnIndex);
+        if (result == null) {
+            return null;
+        }
+        return new Date(result * 1000);
     }
 
-    protected native long nativeMaximumDate(long nativePtr, long columnIndex);
+    protected native Long nativeMaximumDate(long nativePtr, long columnIndex);
 
     @Override
     public Date minimumDate(long columnIndex) {
-        return new Date(nativeMinimumDate(nativePtr, columnIndex) * 1000);
+        Long result = nativeMinimumDate(nativePtr, columnIndex);
+        if (result == null) {
+            return null;
+        }
+        return new Date(result * 1000);
     }
 
-    protected native long nativeMinimumDate(long nativePtr, long columnIndex);
+    protected native Long nativeMinimumDate(long nativePtr, long columnIndex);
 
 
     // Sorting

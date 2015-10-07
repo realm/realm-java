@@ -1,6 +1,8 @@
 0.83
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
+ * BREAKING CHANGE: Introduced boxed types Boolean, Byte, Short, Integer, Long, Float and Double. Added null support. Introduced annotation @Required to indicate a field is not nullable. String, Date and byte[] became nullable by default which means a RealmMigrationNeededException will be thrown if an previous version of a Realm file is opened.
+ * Deprecated methods: RealmQuery.minimum{Int,Float,Double}, RealmQuery.maxiumum{Int,Float,Double}. Use RealmQuery.min() and RealmQuery.max() instead.
  * Added support for x86_64.
  * Fixed an issue where opening the same Realm file on two Looper threads could potentially lead to an IllegalStateException being thrown.
  * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
