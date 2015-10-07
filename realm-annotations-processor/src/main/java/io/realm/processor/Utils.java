@@ -71,7 +71,7 @@ public class Utils {
      */
     public static boolean isString(VariableElement field) {
         if (field == null) {
-            throw new IllegalArgumentException("Argument field cannot be null.");
+            throw new IllegalArgumentException("Argument 'field' cannot be null.");
         }
         return getFieldTypeSimpleName(field).equals("String");
     }
@@ -82,7 +82,7 @@ public class Utils {
      */
     public static boolean isPrimitiveType(String typeString) {
         if (typeString == null) {
-            throw new IllegalArgumentException("Argument typeString cannot be null.");
+            throw new IllegalArgumentException("Argument 'typeString' cannot be null.");
         }
         return typeString.equals("byte") || typeString.equals("short") || typeString.equals("int") ||
                 typeString.equals("long") || typeString.equals("float") || typeString.equals("double") ||
@@ -95,7 +95,7 @@ public class Utils {
      */
     public static boolean isBoxedType(String typeString) {
         if (typeString == null) {
-            throw new IllegalArgumentException("Argument typeString cannot be null.");
+            throw new IllegalArgumentException("Argument 'typeString' cannot be null.");
         }
         return typeString.equals(Byte.class.getName()) || typeString.equals(Short.class.getName()) ||
                 typeString.equals(Integer.class.getName()) || typeString.equals(Long.class.getName()) ||
@@ -109,7 +109,7 @@ public class Utils {
      */
     public static boolean isPrimitiveType(VariableElement field) {
         if (field == null) {
-            throw new IllegalArgumentException("Argument field cannot be null.");
+            throw new IllegalArgumentException("Argument 'field' cannot be null.");
         }
         return field.asType().getKind().isPrimitive();
     }
@@ -120,7 +120,7 @@ public class Utils {
      */
     public static boolean isByteArray(VariableElement field) {
         if (field == null) {
-            throw new IllegalArgumentException("Argument field cannot be null.");
+            throw new IllegalArgumentException("Argument 'field' cannot be null.");
         }
         return getFieldTypeSimpleName(field).equals("byte[]");
     }
@@ -131,7 +131,7 @@ public class Utils {
      */
     public static boolean isString(String fieldType) {
         if (fieldType == null) {
-            throw new IllegalArgumentException("Argument fieldType cannot be null.");
+            throw new IllegalArgumentException("Argument 'fieldType' cannot be null.");
         }
         return String.class.getName().equals(fieldType);
     }
