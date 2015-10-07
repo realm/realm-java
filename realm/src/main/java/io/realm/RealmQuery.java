@@ -85,7 +85,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Creates a sub-query from a existing {@link RealmResults}.
+     * Creates a query from a existing {@link RealmResults}.
      *
      * @param queryResults   A existing @{link io.realm.RealmResults} to query against.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
@@ -93,7 +93,7 @@ public class RealmQuery<E extends RealmObject> {
      */
 
     @SuppressWarnings("unchecked")
-    public static <E extends RealmObject> RealmQuery<E> createSubQuery(RealmResults<E> queryResults) {
+    public static <E extends RealmObject> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
         if (queryResults.classSpec != null) {
             return new RealmQuery<E>(queryResults, queryResults.classSpec);
         } else {
@@ -102,14 +102,14 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Creates a sub-query from a existing {@link RealmList}.
+     * Creates a query from a existing {@link RealmList}.
      *
      * @param list   A existing @{link io.realm.RealmList} to query against.
      * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
      * to run it.
      */
     @SuppressWarnings("unchecked")
-    public static <E extends RealmObject> RealmQuery<E> createSubQuery(RealmList<E> list) {
+    public static <E extends RealmObject> RealmQuery<E> createQueryFromList(RealmList<E> list) {
         if (list.clazz != null) {
             return new RealmQuery(list.realm, list.view, list.clazz);
         } else {
@@ -1380,7 +1380,7 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
-    // TODO Replace with Schema when it is available
+    // FIXME Replace with Schema when it is available
     private static class DynamicColumnMap implements Map<String, Long> {
 
         private final Table table;

@@ -332,7 +332,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     public RealmQuery<E> where() {
         if (managedMode) {
-            return RealmQuery.createSubQuery(this);
+            return RealmQuery.createQueryFromList(this);
         } else {
             throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }

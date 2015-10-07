@@ -30,13 +30,13 @@ import io.realm.internal.TableView;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
- * done using Strings instead of classes.
+ * done using string based class names instead of class type references.
  *
  * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file in both dynamic and typed mode, but
  * modifying the schema while doing so is highly discouraged and will most likely crash the typed Realm.
  *
- * Dynamic Realms do not enforce schemas and schema versions and doesn't trigger migrations even if they have been
- * defined in the configuration.
+ * Dynamic Realms do not enforce schemas and schema versions and {@link RealmMigration} code is not used even if it
+ * has been defined in the {@link RealmConfiguration}.
  *
  * @see io.realm.Realm
  */
