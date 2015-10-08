@@ -335,7 +335,7 @@ abstract class BaseRealm implements Closeable {
      */
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
-        if (sharedGroupManager != null && !sharedGroupManager.isOpen()) {
+        if (sharedGroupManager == null || !sharedGroupManager.isOpen()) {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
         }
 
