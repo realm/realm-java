@@ -3,10 +3,10 @@ package io.realm;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.RealmFieldType;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
@@ -71,8 +71,8 @@ public class SimpleRealmProxy extends Simple
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            table.addColumn(ColumnType.STRING, "name", Table.NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "age", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.STRING, "name", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "age", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
             return table;
         }
@@ -87,7 +87,7 @@ public class SimpleRealmProxy extends Simple
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
             }
 
-            Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
+            Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
@@ -106,7 +106,7 @@ public class SimpleRealmProxy extends Simple
             if (!columnTypes.containsKey("name")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("name") != ColumnType.STRING) {
+            if (columnTypes.get("name") != RealmFieldType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name' in existing Realm file.");
             }
             if (!table.isColumnNullable(INDEX_NAME)) {
@@ -115,7 +115,7 @@ public class SimpleRealmProxy extends Simple
             if (!columnTypes.containsKey("age")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("age") != ColumnType.INTEGER) {
+            if (columnTypes.get("age") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_AGE)) {

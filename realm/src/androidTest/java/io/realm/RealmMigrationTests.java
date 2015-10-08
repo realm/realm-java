@@ -13,7 +13,6 @@ import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
 
 public class RealmMigrationTests extends AndroidTestCase {
@@ -71,8 +70,8 @@ public class RealmMigrationTests extends AndroidTestCase {
             public long execute(Realm realm, long version) {
                 Table languageTable = realm.getTable(FieldOrder.class);
                 if (languageTable.getColumnCount() == 0) {
-                    languageTable.addColumn(ColumnType.INTEGER, "field2");
-                    languageTable.addColumn(ColumnType.BOOLEAN, "field1");
+                    languageTable.addColumn(RealmFieldType.INTEGER, "field2");
+                    languageTable.addColumn(RealmFieldType.BOOLEAN, "field1");
                 }
 
                 return version + 1;
@@ -108,12 +107,12 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
+                long columnIndex = table.addColumn(RealmFieldType.INTEGER, "id");
                 table.setPrimaryKey("id");
                 // Primary key will be indexed automatically
                 table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "indexString");
-                table.addColumn(ColumnType.STRING, "notIndexString");
+                table.addColumn(RealmFieldType.STRING, "indexString");
+                table.addColumn(RealmFieldType.STRING, "notIndexString");
                 // Forget to set @Index
                 return 1;
             }
@@ -139,12 +138,12 @@ public class RealmMigrationTests extends AndroidTestCase {
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
                 if (table.getColumnCount() == 0) {
-                    long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
+                    long columnIndex = table.addColumn(RealmFieldType.INTEGER, "id");
                     table.addSearchIndex(columnIndex);
                     // Forget to set @PrimaryKey
-                    columnIndex = table.addColumn(ColumnType.STRING, "indexString");
+                    columnIndex = table.addColumn(RealmFieldType.STRING, "indexString");
                     table.addSearchIndex(columnIndex);
-                    table.addColumn(ColumnType.STRING, "notIndexString");
+                    table.addColumn(RealmFieldType.STRING, "notIndexString");
                 }
                 return 1;
             }
@@ -211,13 +210,13 @@ public class RealmMigrationTests extends AndroidTestCase {
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
                 if (table.getColumnCount() == 0) {
-                    long columnIndex = table.addColumn(ColumnType.INTEGER, "id");
+                    long columnIndex = table.addColumn(RealmFieldType.INTEGER, "id");
                     table.setPrimaryKey("id");
                     // Primary key will be indexed automatically
                     table.addSearchIndex(columnIndex);
-                    columnIndex = table.addColumn(ColumnType.STRING, "indexString", Table.NULLABLE);
+                    columnIndex = table.addColumn(RealmFieldType.STRING, "indexString", Table.NULLABLE);
                     table.addSearchIndex(columnIndex);
-                    table.addColumn(ColumnType.STRING, "notIndexString", Table.NULLABLE);
+                    table.addColumn(RealmFieldType.STRING, "notIndexString", Table.NULLABLE);
                 }
                 return 1;
             }
@@ -243,12 +242,12 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public long execute(Realm realm, long version) {
                 Table table = realm.getTable(AnnotationTypes.class);
-                table.addColumn(ColumnType.INTEGER, "id");
+                table.addColumn(RealmFieldType.INTEGER, "id");
                 table.setPrimaryKey("id");
                 // Forget to add search index primary key
-                long columnIndex = table.addColumn(ColumnType.STRING, "indexString");
+                long columnIndex = table.addColumn(RealmFieldType.STRING, "indexString");
                 table.addSearchIndex(columnIndex);
-                table.addColumn(ColumnType.STRING, "notIndexString");
+                table.addColumn(RealmFieldType.STRING, "notIndexString");
                 return 1;
             }
         };
@@ -384,26 +383,26 @@ public class RealmMigrationTests extends AndroidTestCase {
                         Table table = realm.getTable(NullTypes.class);
                         if (field.equals("fieldStringNotNull")) {
                             // 1 String
-                            table.addColumn(ColumnType.STRING, field, Table.NULLABLE);
+                            table.addColumn(RealmFieldType.STRING, field, Table.NULLABLE);
                         } else if (field.equals("fieldBytesNotNull")) {
                             // 2 Bytes
-                            table.addColumn(ColumnType.BINARY, field, Table.NULLABLE);
+                            table.addColumn(RealmFieldType.BINARY, field, Table.NULLABLE);
                         } else if (field.equals("fieldBooleanNotNull")) {
                             // 3 Boolean
-                            table.addColumn(ColumnType.BOOLEAN, field, Table.NULLABLE);
+                            table.addColumn(RealmFieldType.BOOLEAN, field, Table.NULLABLE);
                         } else if (field.equals("fieldByteNotNull") || field.equals("fieldShortNotNull") ||
                                 field.equals("fieldIntegerNotNull") || field.equals("fieldLongNotNull")) {
                             // 4 Byte 5 Short 6 Integer 7 Long
-                            table.addColumn(ColumnType.INTEGER, field, Table.NULLABLE);
+                            table.addColumn(RealmFieldType.INTEGER, field, Table.NULLABLE);
                         } else if (field.equals("fieldFloatNotNull")) {
                             // 8 Float
-                            table.addColumn(ColumnType.FLOAT, field, Table.NULLABLE);
+                            table.addColumn(RealmFieldType.FLOAT, field, Table.NULLABLE);
                         } else if (field.equals("fieldDoubleNotNull")) {
                             // 9 Double
-                            table.addColumn(ColumnType.DOUBLE, field, Table.NULLABLE);
+                            table.addColumn(RealmFieldType.DOUBLE, field, Table.NULLABLE);
                         } else if (field.equals("fieldDateNotNull")) {
                             // 10 Date
-                            table.addColumn(ColumnType.DATE, field, Table.NULLABLE);
+                            table.addColumn(RealmFieldType.DATE, field, Table.NULLABLE);
                         }
                         // 11 Object skipped
                     }
@@ -447,26 +446,26 @@ public class RealmMigrationTests extends AndroidTestCase {
                         Table table = realm.getTable(NullTypes.class);
                         if (field.equals("fieldStringNull")) {
                             // 1 String
-                            table.addColumn(ColumnType.STRING, field, Table.NOT_NULLABLE);
+                            table.addColumn(RealmFieldType.STRING, field, Table.NOT_NULLABLE);
                         } else if (field.equals("fieldBytesNull")) {
                             // 2 Bytes
-                            table.addColumn(ColumnType.BINARY, field, Table.NOT_NULLABLE);
+                            table.addColumn(RealmFieldType.BINARY, field, Table.NOT_NULLABLE);
                         } else if (field.equals("fieldBooleanNull")) {
                             // 3 Boolean
-                            table.addColumn(ColumnType.BOOLEAN, field, Table.NOT_NULLABLE);
+                            table.addColumn(RealmFieldType.BOOLEAN, field, Table.NOT_NULLABLE);
                         } else if (field.equals("fieldByteNull") || field.equals("fieldShortNull") ||
                                 field.equals("fieldIntegerNull") || field.equals("fieldLongNull")) {
                             // 4 Byte 5 Short 6 Integer 7 Long
-                            table.addColumn(ColumnType.INTEGER, field, Table.NOT_NULLABLE);
+                            table.addColumn(RealmFieldType.INTEGER, field, Table.NOT_NULLABLE);
                         } else if (field.equals("fieldFloatNull")) {
                             // 8 Float
-                            table.addColumn(ColumnType.FLOAT, field, Table.NOT_NULLABLE);
+                            table.addColumn(RealmFieldType.FLOAT, field, Table.NOT_NULLABLE);
                         } else if (field.equals("fieldDoubleNull")) {
                             // 9 Double
-                            table.addColumn(ColumnType.DOUBLE, field, Table.NOT_NULLABLE);
+                            table.addColumn(RealmFieldType.DOUBLE, field, Table.NOT_NULLABLE);
                         } else if (field.equals("fieldDateNull")) {
                             // 10 Date
-                            table.addColumn(ColumnType.DATE, field, Table.NOT_NULLABLE);
+                            table.addColumn(RealmFieldType.DATE, field, Table.NOT_NULLABLE);
                         }
                         // 11 Object skipped
                     }

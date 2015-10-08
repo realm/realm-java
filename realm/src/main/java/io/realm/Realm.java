@@ -52,7 +52,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 
@@ -137,7 +136,6 @@ public final class Realm extends BaseRealm {
             new HashMap<Class<? extends RealmObject>, Table>();
 
     private static RealmConfiguration defaultConfiguration;
-    protected ColumnIndices columnIndices = new ColumnIndices();
 
     /**
      * The constructor is private to enforce the use of the static one.
@@ -720,15 +718,6 @@ public final class Realm extends BaseRealm {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
-    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
-        Table table = getTable(clazz);
-        UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz);
-        result.row = row;
-        result.realm = this;
-        return result;
-    }
-
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
@@ -823,7 +812,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
         checkIfValid();
-        return new RealmQuery<E>(this, clazz);
+        return RealmQuery.createQuery(this, clazz);
     }
 
     /**
@@ -845,22 +834,21 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz the Class to get objects of.
      * @param fieldName the field name to sort by.
-     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param sortOrder how to sort the results.
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName,
-                                                                    boolean sortAscending) {
+                                                                    Sort sortOrder) {
         checkIfValid();
         Table table = getTable(clazz);
-        TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
         long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
 
-        TableView tableView = table.getSortedView(columnIndex, order);
-        return new RealmResults<E>(this, tableView, clazz);
+        TableView tableView = table.getSortedView(columnIndex, sortOrder);
+        return RealmResults.createFromQuery(this, tableView, clazz);
     }
 
 
@@ -871,17 +859,17 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
-     * @param sortAscending1 sort order for first field.
+     * @param sortOrder1 sort order for first field.
      * @param fieldName2 second field name to sort by.
-     * @param sortAscending2 sort order for second field.
+     * @param sortOrder2 sort order for second field.
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
-                                                                    boolean sortAscending1, String fieldName2,
-                                                                    boolean sortAscending2) {
-        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new boolean[]{sortAscending1,
-                sortAscending2});
+                                                                    Sort sortOrder1, String fieldName2,
+                                                                    Sort sortOrder2) {
+        return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1,
+                sortOrder2});
     }
 
     /**
@@ -891,20 +879,20 @@ public final class Realm extends BaseRealm {
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
-     * @param sortAscending1 sort order for first field.
+     * @param sortOrder1 sort order for first field.
      * @param fieldName2 second field name to sort by.
-     * @param sortAscending2 sort order for second field.
+     * @param sortOrder2 sort order for second field.
      * @param fieldName3 third field name to sort by.
-     * @param sortAscending3 sort order for third field.
+     * @param sortOrder3 sort order for third field.
      * @return A sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldName1,
-                                                                    boolean sortAscending1,
-                                                                    String fieldName2, boolean sortAscending2,
-                                                                    String fieldName3, boolean sortAscending3) {
+                                                                    Sort sortOrder1,
+                                                                    String fieldName2, Sort sortOrder2,
+                                                                    String fieldName3, Sort sortOrder3) {
         return allObjectsSorted(clazz, new String[]{fieldName1, fieldName2, fieldName3},
-                new boolean[]{sortAscending1, sortAscending2, sortAscending3});
+                new Sort[]{sortOrder1, sortOrder2, sortOrder3});
     }
 
     /**
@@ -913,7 +901,7 @@ public final class Realm extends BaseRealm {
      * objects instead.
      *
      * @param clazz the Class to get objects of.
-     * @param sortAscending sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
      * @param fieldNames an array of field names to sort objects by.
      *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
      * @return A sorted RealmResults containing the objects.
@@ -921,28 +909,12 @@ public final class Realm extends BaseRealm {
      */
     @SuppressWarnings("unchecked")
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
-                                                                    boolean sortAscending[]) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortAscending == null) {
-            throw new IllegalArgumentException("sortAscending must be provided.");
-        }
-
-        // Convert field names to column indices
+                                                                    Sort sortOrders[]) {
+        checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(clazz);
-        long columnIndices[] = new long[fieldNames.length];
-        for (int i = 0; i < fieldNames.length; i++) {
-            String fieldName = fieldNames[i];
-            long columnIndex = table.getColumnIndex(fieldName);
-            if (columnIndex == -1) {
-                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-            }
-            columnIndices[i] = columnIndex;
-        }
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        // Perform sort
-        TableView tableView = table.getSortedView(columnIndices, sortAscending);
-        return new RealmResults(this, tableView, clazz);
+        return RealmResults.createFromQuery(this, tableView, clazz);
     }
 
     /**
@@ -953,11 +925,6 @@ public final class Realm extends BaseRealm {
      */
     protected List<WeakReference<RealmChangeListener>> getChangeListeners() {
         return changeListeners;
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    boolean hasChanged() {
-        return sharedGroupManager.hasChanged();
     }
 
     /**
@@ -1029,10 +996,6 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    protected void checkIfValid() {
-        super.checkIfValid();
-    }
-
     @Override
     protected Map<RealmConfiguration, Integer> getLocalReferenceCount() {
         return referenceCount.get();
@@ -1060,7 +1023,7 @@ public final class Realm extends BaseRealm {
      * @param migration {@link RealmMigration} to run on the Realm. This will override any migration set on the
      * configuration.
      */
-    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public synchronized static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
 
             @Override

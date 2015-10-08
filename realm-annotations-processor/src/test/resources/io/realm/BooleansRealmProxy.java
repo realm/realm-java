@@ -3,10 +3,10 @@ package io.realm;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.RealmFieldType;
 import io.realm.RealmObject;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
@@ -26,7 +26,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.Booleans;
 
-public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
+public class BooleansRealmProxy extends Booleans
+        implements RealmObjectProxy {
 
     private static long INDEX_DONE;
     private static long INDEX_ISREADY;
@@ -94,10 +95,10 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-            table.addColumn(ColumnType.BOOLEAN, "done", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.BOOLEAN, "isReady", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.BOOLEAN, "mCompleted", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.BOOLEAN, "anotherBoolean", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "done", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "isReady", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "mCompleted", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "anotherBoolean", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
             return table;
         }
@@ -107,12 +108,10 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
     public static void validateTable(ImplicitTransaction transaction) {
         if (transaction.hasTable("class_Booleans")) {
             Table table = transaction.getTable("class_Booleans");
-
             if (table.getColumnCount() != 4) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 4 but was " + table.getColumnCount());
             }
-
-            Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
+            Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 4; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
@@ -133,7 +132,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             if (!columnTypes.containsKey("done")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("done") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("done") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'done' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_DONE)) {
@@ -142,7 +141,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             if (!columnTypes.containsKey("isReady")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'isReady' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("isReady") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("isReady") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'isReady' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_ISREADY)) {
@@ -151,7 +150,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             if (!columnTypes.containsKey("mCompleted")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'mCompleted' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("mCompleted") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("mCompleted") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'mCompleted' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_MCOMPLETED)) {
@@ -160,7 +159,7 @@ public class BooleansRealmProxy extends Booleans implements RealmObjectProxy {
             if (!columnTypes.containsKey("anotherBoolean")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'anotherBoolean' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("anotherBoolean") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("anotherBoolean") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'anotherBoolean' in existing Realm file.");
             }
             if (table.isColumnNullable(INDEX_ANOTHERBOOLEAN)) {

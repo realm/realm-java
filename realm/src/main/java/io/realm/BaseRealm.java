@@ -35,11 +35,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
+import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
+import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.log.RealmLog;
@@ -68,6 +71,12 @@ abstract class BaseRealm implements Closeable {
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
+    // Caches Dynamic Class objects given as Strings (both model classes and proxy classes) to Realm Tables
+    private final Map<String, Table> dynamicClassToTable = new HashMap<String, Table>();
+
+    // Caches Class objects (both model classes and proxy classes) to Realm Tables
+    private final Map<Class<? extends RealmObject>, Table> classToTable = new HashMap<Class<? extends RealmObject>, Table>();
+
     protected final List<WeakReference<RealmChangeListener>> changeListeners =
             new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
 
@@ -76,6 +85,7 @@ abstract class BaseRealm implements Closeable {
     protected SharedGroupManager sharedGroupManager;
     protected boolean autoRefresh;
     Handler handler;
+    ColumnIndices columnIndices = new ColumnIndices();
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -114,6 +124,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Retrieve the auto-refresh status of the Realm instance.
+     *
      * @return the auto-refresh status
      */
     public boolean isAutoRefresh() {
@@ -125,9 +136,9 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * The listeners will be executed:
      * <ul>
-     *     <li>Immediately if a change was committed by the local thread</li>
-     *     <li>On every loop of a Handler thread if changes were committed by another thread</li>
-     *     <li>On every call to {@link io.realm.Realm#refresh()}</li>
+     * <li>Immediately if a change was committed by the local thread</li>
+     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
+     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
      * </ul>
      *
      * @param listener the change listener
@@ -233,6 +244,7 @@ abstract class BaseRealm implements Closeable {
      * Note that if this is called from within a write transaction it writes the
      * current data, and not the data as it was when the last write transaction was committed.
      * <p>
+     *
      * @param destination File to save the Realm to
      * @param key a 64-byte encryption key
      * @throws java.io.IOException if any write operation fails
@@ -268,8 +280,8 @@ abstract class BaseRealm implements Closeable {
      * Notice: it is not possible to nest write transactions. If you start a write
      * transaction within a write transaction an exception is thrown.
      * <br>
-     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
      *
+     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
      */
     public void beginTransaction() {
         checkIfValid();
@@ -321,8 +333,8 @@ abstract class BaseRealm implements Closeable {
      * <br>
      * Calling this when not in a write transaction will throw an exception.
      *
-     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
-     *                                             not in a write transaction or incorrect thread.
+     * @throws java.lang.IllegalStateException If the write transaction is an invalid state,
+     *                                         not in a write transaction or incorrect thread.
      */
     public void cancelTransaction() {
         checkIfValid();
@@ -357,6 +369,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Returns the {@link RealmConfiguration} for this Realm.
+     *
      * @return {@link RealmConfiguration} for this Realm.
      */
     public RealmConfiguration getConfiguration() {
@@ -365,6 +378,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Returns the schema version for this Realm.
+     *
      * @return The schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
@@ -382,7 +396,7 @@ abstract class BaseRealm implements Closeable {
      * not to leak memory, file descriptors or grow the size of Realm file out of measure.
      *
      * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the
-     * one it was created on.
+     *                                         one it was created on.
      */
     @Override
     public void close() {
@@ -415,9 +429,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Returns the ThreadLocal reference counter for this Realm.
+     * Returns the ThreadLocal reference counter for this Realm type.
      */
-    protected abstract Map<RealmConfiguration,Integer> getLocalReferenceCount();
+    protected abstract Map<RealmConfiguration, Integer> getLocalReferenceCount();
 
     /**
      * Callback when the last ThreadLocal instance of this Realm type has been closed.
@@ -425,7 +439,7 @@ abstract class BaseRealm implements Closeable {
     protected abstract void lastLocalInstanceClosed();
 
     /**
-     * Acquire a reference to the given Realm file.
+     * Acquire a reference to the Realm file referenced in the given configuration.
      */
     static synchronized void acquireFileReference(RealmConfiguration configuration) {
         String path = configuration.getPath();
@@ -455,14 +469,68 @@ abstract class BaseRealm implements Closeable {
         globalRealmFileReferenceCounter.put(canonicalPath, refCount - 1);
     }
 
+    // Public because of migrations
+    @Deprecated
+    public Table getTable(String className) {
+        className = Table.TABLE_PREFIX + className;
+        Table table = dynamicClassToTable.get(className);
+        if (table == null) {
+            table = sharedGroupManager.getTable(className);
+            dynamicClassToTable.put(className, table);
+        }
+        return table;
+    }
+
+    // Public because of migrations
+    @Deprecated
+    public Table getTable(Class<? extends RealmObject> clazz) {
+        Table table = classToTable.get(clazz);
+        if (table == null) {
+            clazz = Util.getOriginalModelClass(clazz);
+            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
+            classToTable.put(clazz, table);
+        }
+        return table;
+    }
+
+    boolean hasChanged() {
+        return sharedGroupManager.hasChanged();
+    }
+
     // package protected so unit tests can access it
-    protected void setVersion(long version) {
+    void setVersion(long version) {
         Table metadataTable = sharedGroupManager.getTable("metadata");
         if (metadataTable.getColumnCount() == 0) {
-            metadataTable.addColumn(ColumnType.INTEGER, "version");
+            metadataTable.addColumn(RealmFieldType.INTEGER, "version");
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
+    }
+
+    /**
+     * Sort a table using the given field names and sorting directions. If a field name doesn not
+     * exist in the table an {@link IllegalArgumentException} will be thrown.
+     */
+    protected TableView doMultiFieldSort(String[] fieldNames, Sort sortOrders[], Table table) {
+        long columnIndices[] = new long[fieldNames.length];
+        for (int i = 0; i < fieldNames.length; i++) {
+            String fieldName = fieldNames[i];
+            long columnIndex = table.getColumnIndex(fieldName);
+            if (columnIndex == -1) {
+                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+            }
+            columnIndices[i] = columnIndex;
+        }
+
+        return table.getSortedView(columnIndices, sortOrders);
+    }
+
+    protected void checkAllObjectsSortedParameters(String[] fieldNames, Sort[] sortOrders) {
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames must be provided.");
+        } else if (sortOrders == null) {
+            throw new IllegalArgumentException("sortOrders must be provided.");
+        }
     }
 
     /**
@@ -510,6 +578,35 @@ abstract class BaseRealm implements Closeable {
             }
         }
     }
+
+    // Used by proxy classes
+    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
+        Table table = getTable(clazz);
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        E result = configuration.getSchemaMediator().newInstance(clazz);
+        result.row = row;
+        result.realm = this;
+        return result;
+    }
+
+    // Used by RealmList/RealmResults
+    // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
+    <E extends RealmObject> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
+        Table table;
+        E result;
+        if (dynamicClassName != null) {
+            table = getTable(dynamicClassName);
+            result = (E) new DynamicRealmObject();
+        } else {
+            table = getTable(clazz);
+            result = configuration.getSchemaMediator().newInstance(clazz);
+        }
+        UncheckedRow row = table.getUncheckedRow(rowIndex); // TODO Checked row for dynamic object
+        result.row = row;
+        result.realm = this;
+        return result;
+    }
+
 
     /**
      * Deletes the Realm file defined by the given configuration.
@@ -598,6 +695,7 @@ abstract class BaseRealm implements Closeable {
     // Internal delegate for migrations
     protected interface MigrationCallback {
         BaseRealm getRealm(RealmConfiguration configuration);
+
         void migrationComplete();
     }
 }

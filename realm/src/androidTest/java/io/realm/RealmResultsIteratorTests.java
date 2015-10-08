@@ -278,7 +278,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
                     backgroundRealm.close();
                     return false;
                 }
-                backgroundResult.sort("columnLong", RealmResults.SORT_ORDER_ASCENDING);
+                backgroundResult.sort("columnLong", Sort.ASCENDING);
                 backgroundResult.remove(0);
                 AllTypes o3 = backgroundRealm.createObject(AllTypes.class);
                 o3.setColumnLong(3);

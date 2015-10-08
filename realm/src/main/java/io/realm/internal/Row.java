@@ -19,6 +19,8 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import io.realm.RealmFieldType;
+
 /**
  * Interface for Row objects that act as wrappers around the Realm Core Row object.
  */
@@ -49,7 +51,7 @@ public interface Row {
      * @param columnIndex index of the column.
      * @return Type of the particular column.
      */
-    ColumnType getColumnType(long columnIndex);
+    RealmFieldType getColumnType(long columnIndex);
 
     Table getTable();
 
@@ -71,7 +73,7 @@ public interface Row {
 
     Mixed getMixed(long columnIndex);
 
-    ColumnType getMixedType(long columnIndex);
+    RealmFieldType getMixedType(long columnIndex);
 
     long getLink(long columnIndex);
 

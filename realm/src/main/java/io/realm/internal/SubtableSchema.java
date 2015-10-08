@@ -17,6 +17,8 @@
 package io.realm.internal;
 
 
+import io.realm.RealmFieldType;
+
 public class SubtableSchema implements TableSchema {
 
     private long[] path;
@@ -44,9 +46,9 @@ public class SubtableSchema implements TableSchema {
     }
 
     @Override
-    public long addColumn(ColumnType type, String name) {
+    public long addColumn(RealmFieldType type, String name) {
         verifyColumnName(name);
-        return nativeAddColumn(parentNativePtr, path, type.getValue(), name);
+        return nativeAddColumn(parentNativePtr, path, type.getNativeValue(), name);
     }
 
     protected native long nativeAddColumn(long nativeTablePtr, long[] path, int type, String name);

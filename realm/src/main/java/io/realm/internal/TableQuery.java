@@ -19,6 +19,8 @@ package io.realm.internal;
 import java.io.Closeable;
 import java.util.Date;
 
+import io.realm.Case;
+
 public class TableQuery implements Closeable {
     protected boolean DEBUG = false;
 
@@ -389,8 +391,8 @@ public class TableQuery implements Closeable {
     private final static String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
 
     // Equal
-    public TableQuery equalTo(long[] columnIndexes, String value, boolean caseSensitive) {
-        nativeEqual(nativePtr, columnIndexes, value, caseSensitive);
+    public TableQuery equalTo(long[] columnIndexes, String value, Case caseSensitive) {
+        nativeEqual(nativePtr, columnIndexes, value, caseSensitive.getValue());
         queryValidated = false;
         return this;
     }
@@ -402,8 +404,8 @@ public class TableQuery implements Closeable {
     protected native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, String value, boolean caseSensitive);
 
     // Not Equal
-    public TableQuery notEqualTo(long columnIndex[], String value, boolean caseSensitive) {
-        nativeNotEqual(nativePtr, columnIndex, value, caseSensitive);
+    public TableQuery notEqualTo(long columnIndex[], String value, Case caseSensitive) {
+        nativeNotEqual(nativePtr, columnIndex, value, caseSensitive.getValue());
         queryValidated = false;
         return this;
     }
@@ -414,8 +416,8 @@ public class TableQuery implements Closeable {
     }
     protected native void nativeNotEqual(long nativeQueryPtr, long columnIndex[], String value, boolean caseSensitive);
 
-    public TableQuery beginsWith(long columnIndices[], String value, boolean caseSensitive) {
-        nativeBeginsWith(nativePtr, columnIndices, value, caseSensitive);
+    public TableQuery beginsWith(long columnIndices[], String value, Case caseSensitive) {
+        nativeBeginsWith(nativePtr, columnIndices, value, caseSensitive.getValue());
         queryValidated = false;
         return this;
     }
@@ -426,8 +428,8 @@ public class TableQuery implements Closeable {
     }
     protected native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
 
-    public TableQuery endsWith(long columnIndices[], String value, boolean caseSensitive) {
-        nativeEndsWith(nativePtr, columnIndices, value, caseSensitive);
+    public TableQuery endsWith(long columnIndices[], String value, Case caseSensitive) {
+        nativeEndsWith(nativePtr, columnIndices, value, caseSensitive.getValue());
         queryValidated = false;
         return this;
     }
@@ -438,8 +440,8 @@ public class TableQuery implements Closeable {
     }
     protected native void nativeEndsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
 
-    public TableQuery contains(long columnIndices[], String value, boolean caseSensitive) {
-        nativeContains(nativePtr, columnIndices, value, caseSensitive);
+    public TableQuery contains(long columnIndices[], String value, Case caseSensitive) {
+        nativeContains(nativePtr, columnIndices, value, caseSensitive.getValue());
         queryValidated = false;
         return this;
     }

@@ -59,10 +59,10 @@ public class RealmProxyClassGenerator {
         ArrayList<String> imports = new ArrayList<String>();
         imports.add("android.util.JsonReader");
         imports.add("android.util.JsonToken");
+        imports.add("io.realm.RealmFieldType");
         imports.add("io.realm.RealmObject");
         imports.add("io.realm.exceptions.RealmException");
         imports.add("io.realm.exceptions.RealmMigrationNeededException");
-        imports.add("io.realm.internal.ColumnType");
         imports.add("io.realm.internal.RealmObjectProxy");
         imports.add("io.realm.internal.Table");
         imports.add("io.realm.internal.TableOrView");
@@ -298,14 +298,14 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, fieldTypeSimpleName);
                 writer.emitStatement("%s%s.initTable(transaction)", fieldTypeSimpleName, Constants.PROXY_SUFFIX);
                 writer.endControlFlow();
-                writer.emitStatement("table.addColumnLink(ColumnType.LINK, \"%s\", transaction.getTable(\"%s%s\"))",
+                writer.emitStatement("table.addColumnLink(RealmFieldType.OBJECT, \"%s\", transaction.getTable(\"%s%s\"))",
                         fieldName, Constants.TABLE_PREFIX, fieldTypeSimpleName);
             } else if (Utils.isRealmList(field)) {
                 String genericType = Utils.getGenericType(field);
                 writer.beginControlFlow("if (!transaction.hasTable(\"%s%s\"))", Constants.TABLE_PREFIX, genericType);
                 writer.emitStatement("%s%s.initTable(transaction)", genericType, Constants.PROXY_SUFFIX);
                 writer.endControlFlow();
-                writer.emitStatement("table.addColumnLink(ColumnType.LINK_LIST, \"%s\", transaction.getTable(\"%s%s\"))",
+                writer.emitStatement("table.addColumnLink(RealmFieldType.LIST, \"%s\", transaction.getTable(\"%s%s\"))",
                         fieldName, Constants.TABLE_PREFIX, genericType);
             }
         }
@@ -346,7 +346,7 @@ public class RealmProxyClassGenerator {
         writer.endControlFlow();
 
         // create type dictionary for lookup
-        writer.emitStatement("Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>()");
+        writer.emitStatement("Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>()");
         writer.beginControlFlow("for (long i = 0; i < " + metadata.getFields().size() + "; i++)");
         writer.emitStatement("columnTypes.put(table.getColumnName(i), table.getColumnType(i))");
         writer.endControlFlow();
@@ -441,7 +441,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing field '%s' in existing Realm file. " +
                         "Either remove field or migrate using io.realm.internal.Table.addColumn().\")", fieldName);
                 writer.endControlFlow();
-                writer.beginControlFlow("if (columnTypes.get(\"%s\") != ColumnType.LINK)", fieldName);
+                writer.beginControlFlow("if (columnTypes.get(\"%s\") != RealmFieldType.OBJECT)", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid type '%s' for field '%s'\")",
                         fieldTypeSimpleName, fieldName);
                 writer.endControlFlow();
@@ -461,7 +461,7 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (!columnTypes.containsKey(\"%s\"))", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Missing field '%s'\")", fieldName);
                 writer.endControlFlow();
-                writer.beginControlFlow("if (columnTypes.get(\"%s\") != ColumnType.LINK_LIST)", fieldName);
+                writer.beginControlFlow("if (columnTypes.get(\"%s\") != RealmFieldType.LIST)", fieldName);
                 writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath(), \"Invalid type '%s' for field '%s'\")",
                         genericType, fieldName);
                 writer.endControlFlow();

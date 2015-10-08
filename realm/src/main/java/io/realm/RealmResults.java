@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import io.realm.exceptions.RealmException;
-import io.realm.internal.ColumnType;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableView;
 
@@ -54,28 +53,49 @@ import io.realm.internal.TableView;
  */
 public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
-    private Class<E> classSpec;
-    private Realm realm;
+    BaseRealm realm;
+    Class<E> classSpec;   // Return type
+    String className;     // Class name for DynamicRealmObjects -> TODO This is not set properly
     private TableOrView table = null;
-
-    public static final boolean SORT_ORDER_ASCENDING = true;
-    public static final boolean SORT_ORDER_DESCENDING = false;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private long currentTableViewVersion = -1;
 
-    RealmResults(Realm realm, Class<E> classSpec) {
+
+    static <E extends RealmObject> RealmResults<E> createFromClass(BaseRealm realm, Class<E> clazz) {
+        return new RealmResults<E>(realm, clazz);
+    }
+
+    static <E extends RealmObject> RealmResults<E> createFromQuery(BaseRealm realm, TableOrView table, Class<E> clazz) {
+        return new RealmResults<E>(realm, table, clazz);
+    }
+
+    static RealmResults<DynamicRealmObject> createFromDynamicClass(BaseRealm realm, String className) {
+        return new RealmResults<DynamicRealmObject>(realm, className);
+    }
+
+    static RealmResults<DynamicRealmObject> createFromDynamicQuery(BaseRealm realm, TableOrView table, String className) {
+        return new RealmResults<DynamicRealmObject>(realm, table, className);
+    }
+
+    private RealmResults(BaseRealm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
     }
 
-    RealmResults(Realm realm, TableOrView table, Class<E> classSpec) {
+    private RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
         this(realm, classSpec);
         this.table = table;
     }
 
-    Realm getRealm() {
-        return realm;
+    private RealmResults(BaseRealm realm, String className) {
+        this.realm = realm;
+        this.className = className;
+    }
+
+    private RealmResults(BaseRealm realm, TableOrView table, String className) {
+        this(realm, className);
+        this.table = table;
     }
 
     TableOrView getTable() {
@@ -95,7 +115,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public RealmQuery<E> where() {
         realm.checkIfValid();
-        return new RealmQuery<E>(this, classSpec);
+        return RealmQuery.createQueryFromResult(this);
     }
 
     /**
@@ -111,9 +131,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = realm.get(classSpec, ((TableView)table).getSourceRowIndex(location));
+            obj = realm.get(classSpec, className, ((TableView)table).getSourceRowIndex(location));
         } else {
-            obj = realm.get(classSpec, location);
+            obj = realm.get(classSpec, className, location);
         }
 
         return obj;
@@ -207,7 +227,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public void sort(String fieldName) {
-        this.sort(fieldName, SORT_ORDER_ASCENDING);
+        this.sort(fieldName, Sort.ASCENDING);
     }
 
     /**
@@ -215,12 +235,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName      The field name to sort by. Only fields of type boolean, short, int,
      *                       long, float, double, Date, and String are supported.
-     * @param sortAscending  The direction to sort by; if true ascending, otherwise descending
+     * @param sortOrder  The direction to sort by; if true ascending, otherwise descending
      *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
      *                       for readability.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
-    public void sort(String fieldName, boolean sortAscending) {
+    public void sort(String fieldName, Sort sortOrder) {
         if (fieldName == null) {
             throw new IllegalArgumentException("fieldName must be provided");
         }
@@ -229,8 +249,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         if (table instanceof TableView) {
             long columnIndex = getColumnIndex(fieldName);
-            TableView.Order TVOrder = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
-            ((TableView) table).sort(columnIndex, TVOrder);
+            ((TableView) table).sort(columnIndex, sortOrder);
         } else {
             throw new IllegalArgumentException("Only RealmResults can be sorted - please use allObject() to create a RealmResults.");
         }
@@ -241,35 +260,29 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int,
      *                       long, float, double, Date, and String are supported.
-     * @param sortAscending The directions to sort by; if true ascending, otherwise descending
-     *                       You can use the constants SORT_ORDER_ASCENDING and SORT_ORDER_DESCENDING
-     *                       for readability.
+     * @param sortOrders The directions to sort by.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public void sort(String fieldNames[], boolean sortAscending[]) {
+    public void sort(String fieldNames[], Sort sortOrders[]) {
         if (fieldNames == null) {
             throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortAscending == null) {
-            throw new IllegalArgumentException("sortAscending must be provided.");
+        } else if (sortOrders == null) {
+            throw new IllegalArgumentException("sortOrder must be provided.");
         }
 
-        if (fieldNames.length == 1 && sortAscending.length == 1) {
-            sort(fieldNames[0], sortAscending[0]);
+        if (fieldNames.length == 1 && sortOrders.length == 1) {
+            sort(fieldNames[0], sortOrders[0]);
         } else {
             realm.checkIfValid();
             TableOrView table = getTable();
             if (table instanceof TableView) {
-                List<TableView.Order> TVOrder = new ArrayList<TableView.Order>();
                 List<Long> columnIndices = new ArrayList<Long>();
                 for (int i = 0; i < fieldNames.length; i++) {
                     String fieldName = fieldNames[i];
                     long columnIndex = getColumnIndex(fieldName);
                     columnIndices.add(columnIndex);
                 }
-                for (int i = 0; i < sortAscending.length; i++) {
-                    TVOrder.add(sortAscending[i] ? TableView.Order.ascending : TableView.Order.descending);
-                }
-                ((TableView) table).sort(columnIndices, TVOrder);
+                ((TableView) table).sort(columnIndices, sortOrders);
             }
         }
     }
@@ -278,28 +291,28 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Sort existing {@link io.realm.RealmResults} using two fields.
      *
      * @param fieldName1 first field name.
-     * @param sortAscending1 sort order for first field.
+     * @param sortOrder1 sort order for first field.
      * @param fieldName2 second field name.
-     * @param sortAscending2 sort order for second field.
+     * @param sortOrder2 sort order for second field.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public void sort(String fieldName1, boolean sortAscending1, String fieldName2, boolean sortAscending2) {
-        sort(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
+    public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
+        sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
     }
 
     /**
      * Sort existing {@link io.realm.RealmResults} using three fields.
      *
      * @param fieldName1 first field name.
-     * @param sortAscending1 sort order for first field.
+     * @param sortOrder1 sort order for first field.
      * @param fieldName2 second field name.
-     * @param sortAscending2 sort order for second field.
+     * @param sortOrder2 sort order for second field.
      * @param fieldName3 third field name.
-     * @param sortAscending3 sort order for third field.
+     * @param sortOrder3 sort order for third field.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
-    public void sort(String fieldName1, boolean sortAscending1, String fieldName2, boolean sortAscending2, String fieldName3, boolean sortAscending3) {
-        sort(new String[] {fieldName1, fieldName2, fieldName3}, new boolean[] {sortAscending1, sortAscending2, sortAscending3});
+    public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2, String fieldName3, Sort sortOrder3) {
+        sort(new String[] {fieldName1, fieldName2, fieldName3}, new Sort[] {sortOrder1, sortOrder2, sortOrder3});
     }
 
     // Aggregates
@@ -351,7 +364,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public Date minDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
-        if (table.getColumnType(columnIndex) == ColumnType.DATE) {
+        if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
             return table.minimumDate(columnIndex);
         }
         else {
@@ -396,7 +409,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
-        if (table.getColumnType(columnIndex) == ColumnType.DATE) {
+        if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
             return table.maximumDate(columnIndex);
         }
         else {

@@ -390,7 +390,7 @@ public class RealmQueryTest extends AndroidTestCase{
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .contains("columnString", "DaTa 0", RealmQuery.CASE_INSENSITIVE)
+                .contains("columnString", "DaTa 0", Case.INSENSITIVE)
                 .or().contains("columnString", "20")
                 .findAll();
         assertEquals(3, resultList.size());
@@ -399,7 +399,7 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(0, resultList.size());
 
         resultList = testRealm.where(AllTypes.class)
-                .contains("columnString", "TEST", RealmQuery.CASE_INSENSITIVE).findAll();
+                .contains("columnString", "TEST", Case.INSENSITIVE).findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
@@ -417,7 +417,7 @@ public class RealmQueryTest extends AndroidTestCase{
         testRealm.commitTransaction();
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .contains("columnString", "Α", RealmQuery.CASE_INSENSITIVE)
+                .contains("columnString", "Α", Case.INSENSITIVE)
                 .or().contains("columnString", "δ")
                 .findAll();
         // Without case sensitive there is 3, Α = α
@@ -431,7 +431,7 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(0, resultList.size());
 
         resultList = testRealm.where(AllTypes.class).contains("columnString", "Δ",
-                RealmQuery.CASE_INSENSITIVE).findAll();
+                Case.INSENSITIVE).findAll();
         // Without case sensitive there is 1, Δ = δ
         // assertEquals(1,resultList.size());
         assertEquals(0, resultList.size());
@@ -461,7 +461,7 @@ public class RealmQueryTest extends AndroidTestCase{
         // Dog.weight has index 4 which is more than the total number of columns in Owner
         // This tests exposes a subtle error where the Owner tablespec is used instead of Dog tablespec.
         RealmResults<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs().where()
-                .findAllSorted("name", RealmResults.SORT_ORDER_ASCENDING);
+                .findAllSorted("name", Sort.ASCENDING);
         Dog dog = dogs.where().equalTo("weight", 1d).findFirst();
         assertEquals(dog1, dog);
     }
@@ -471,7 +471,7 @@ public class RealmQueryTest extends AndroidTestCase{
         // zero fields specified
         try {
             RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
-                    .findAllSorted(new String[]{}, new boolean[]{});
+                    .findAllSorted(new String[]{}, new Sort[]{});
             fail();
         } catch (IllegalArgumentException ignored) {}
 
@@ -479,13 +479,13 @@ public class RealmQueryTest extends AndroidTestCase{
         try {
             RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
                     .findAllSorted(new String[]{FIELD_STRING},
-                            new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                            new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {}
 
         // null is not allowed
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted(null, null);
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted(null, (Sort[])null);
             fail();
         } catch (IllegalArgumentException ignored) {}
         try {
@@ -498,7 +498,7 @@ public class RealmQueryTest extends AndroidTestCase{
         try {
             RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
                     .findAllSorted(new String[]{FIELD_STRING, "dont-exist"},
-                            new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                            new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {}
     }
@@ -512,7 +512,7 @@ public class RealmQueryTest extends AndroidTestCase{
         testRealm.commitTransaction();
 
         RealmResults<AllTypes> sortedList = testRealm.where(AllTypes.class)
-                .findAllSorted(new String[]{FIELD_LONG}, new boolean[]{RealmResults.SORT_ORDER_DESCENDING});
+                .findAllSorted(new String[]{FIELD_LONG}, new Sort[]{Sort.DESCENDING});
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());
