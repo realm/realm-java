@@ -72,7 +72,7 @@ import io.realm.internal.log.RealmLog;
  * Realm instances cannot be used across different threads. This means that you have to open an
  * instance on each thread you want to use Realm. Realm instances are cached automatically per
  * thread using reference counting, so as long as the reference count doesn't reach zero, calling
- * {@link #getInstance(android.content.Context)} will just return the cached Realm and should be
+ * {@link #getInstance(RealmConfiguration)} will just return the cached Realm and should be
  * considered a lightweight operation.
  * <p>
  * For the UI thread this means that opening and closing Realms should occur in either
@@ -163,19 +163,20 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Realm static constructor for the default Realm "default.realm".
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
+     * Realm static constructor for the default Realm file {@value io.realm.RealmConfiguration#DEFAULT_REALM_NAME}.
      * This is equivalent to calling {@code Realm.getInstance(new RealmConfiguration(getContext()).build()) }.
+     *
+     * This constructor is only provided for convenience. It is recommended to use
+     * {@link #getInstance(RealmConfiguration)} or {@link #getDefaultInstance()}.
+     *
+     * @param context a non-null Android {@link android.content.Context}
+     * @return an instance of the Realm class.
 
-     * @param context an Android {@link android.content.Context}
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     * @throws java.lang.IllegalArgumentException if no {@link Context} is provided.
+     * @throws RealmMigrationNeededException if the model classes no longer match the underlying Realm
+     *                                       and it must be migrated.
+     * @throws RealmIOException              if an error happened when accessing the underlying Realm
+     *                                       file.
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(new RealmConfiguration.Builder(context)
@@ -187,7 +188,7 @@ public final class Realm extends BaseRealm {
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
      *
-     * @return an instance of the Realm class
+     * @return an instance of the Realm class.
      *
      * @throws java.lang.NullPointerException If no default configuration has been defined.
      * @throws RealmMigrationNeededException If no migration has been provided by the default configuration and the
