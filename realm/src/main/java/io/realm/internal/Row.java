@@ -99,6 +99,10 @@ public interface Row {
 
     void nullifyLink(long columnIndex);
 
+    boolean isNull(long columnIndex);
+
+    void setNull(long columnIndex);
+
     /**
      * Checks if the row is still valid.
      *
@@ -201,7 +205,17 @@ public interface Row {
 
         @Override
         public boolean isNullLink(long columnIndex) {
-            return true;
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public boolean isNull(long columnIndex) {
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setNull(long columnIndex) {
+            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
         }
 
         @Override

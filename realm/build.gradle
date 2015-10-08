@@ -46,8 +46,13 @@ android.libraryVariants.all { variant ->
         source "../realm-annotations/src/main/java"
         ext.androidJar = files(project.android.getBootClasspath())
         classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
-        options.memberLevel = JavadocMemberLevel.PUBLIC
-        //options.addStringOption('Xdoclint:none', '-quiet')
+        options {
+            memberLevel = JavadocMemberLevel.PUBLIC
+            docEncoding = 'UTF-8'
+            encoding = 'UTF-8'
+            charSet = 'UTF-8'
+            locale = 'en_US'
+        }
         exclude '**/internal/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
