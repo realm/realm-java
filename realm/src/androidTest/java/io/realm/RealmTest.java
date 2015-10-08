@@ -186,6 +186,18 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testCheckValid() {
+        // checkIfValid() must not throw any Exception against valid Realm instance.
+        testRealm.checkIfValid();
+
+        testRealm.close();
+        try {
+            testRealm.checkIfValid();
+            fail("closed Realm instance must throw IllegalStateException.");
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
     public void testRealmCache() {
         Realm newRealm = Realm.getInstance(getContext());
         assertEquals(testRealm, newRealm);
