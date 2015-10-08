@@ -1,5 +1,7 @@
 0.84
- * Added support for async queries and transactions.
+* Added support for async queries and transactions.
+
+0.83.1
  * Added Realm.isClosed() method.
 
 0.83
