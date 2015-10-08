@@ -16,7 +16,6 @@
 package io.realm;
 
 import android.content.Context;
-import android.os.Handler;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -33,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -272,10 +270,10 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE - 1, resultList.size());
     }
 
-    // <E extends RealmObject> E getByIndex(Class<E> clazz, long rowIndex)
+    // <E extends RealmObject> E get(Class<E> clazz, long rowIndex)
     public void testShouldGetObject() {
         populateTestRealm();
-        AllTypes allTypes = testRealm.getByIndex(AllTypes.class, 0);
+        AllTypes allTypes = testRealm.get(AllTypes.class, 0);
         assertNotNull(allTypes);
         assertEquals("test data 0", allTypes.getColumnString());
     }
@@ -471,7 +469,7 @@ public class RealmTest extends AndroidTestCase {
     public void testShouldReturnTableOrViewList() {
         populateTestRealm();
         RealmResults<AllTypes> resultList = testRealm.allObjects(AllTypes.class);
-        assertEquals("Realm.getByIndex is returning wrong result set", TEST_DATA_SIZE, resultList.size());
+        assertEquals("Realm.get is returning wrong result set", TEST_DATA_SIZE, resultList.size());
     }
 
     public void testAllObjectsSorted() {

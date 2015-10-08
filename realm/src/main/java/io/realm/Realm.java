@@ -702,7 +702,7 @@ public final class Realm extends BaseRealm {
     public <E extends RealmObject> E createObject(Class<E> clazz) {
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
-        return getByIndex(clazz, rowIndex);
+        return get(clazz, rowIndex);
     }
 
     /**
@@ -718,14 +718,14 @@ public final class Realm extends BaseRealm {
     <E extends RealmObject> E createObject(Class<E> clazz, Object primaryKeyValue) {
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return getByIndex(clazz, rowIndex);
+        return get(clazz, rowIndex);
     }
 
     void remove(Class<? extends RealmObject> clazz, long objectIndex) {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
-    <E extends RealmObject> E getByIndex(Class<E> clazz, long rowIndex) {
+    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
         E result = configuration.getSchemaMediator().newInstance(clazz);
@@ -1234,7 +1234,7 @@ public final class Realm extends BaseRealm {
         void execute(Realm realm);
 
         /**
-         * Callback invoked after a {#Transaction} call, to notify the caller thread
+         * Callback invoked to notify the caller thread.
          */
         class Callback {
             public void onSuccess() {}

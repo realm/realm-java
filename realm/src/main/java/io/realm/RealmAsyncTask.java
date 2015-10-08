@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
  * Represents a pending asynchronous Realm transaction.
  * <p>
  * Users are responsible for maintaining a reference to {@code RealmAsyncTask} in order
- * to call #cancel in case of a configuration change for example (to avoid memory leak, as the
+ * to call {@link #cancel()} in case of a configuration change for example (to avoid memory leak, as the
  * transaction will post the result to the caller's thread callback)
  */
 public class RealmAsyncTask {

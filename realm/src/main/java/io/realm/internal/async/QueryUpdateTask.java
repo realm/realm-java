@@ -25,7 +25,6 @@ import java.util.List;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
-import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
@@ -108,7 +107,7 @@ public class QueryUpdateTask implements Runnable {
         for (Builder.QueryEntry<RealmResults<?>>  queryEntry : realmResultsEntries) {
             if (!isTaskCancelled()) {
                 switch (queryEntry.queryArguments.type) {
-                    case RealmQuery.ArgumentsHolder.TYPE_FIND_ALL: {
+                    case ArgumentsHolder.TYPE_FIND_ALL: {
                         long handoverTableViewPointer = TableQuery.nativeFindAllWithHandover
                                 (sharedGroup.getNativePointer(),
                                         sharedGroup.getNativeReplicationPointer(),
@@ -119,7 +118,7 @@ public class QueryUpdateTask implements Runnable {
                         queryEntry.handoverQueryPointer = 0L;
                         break;
                     }
-                    case RealmQuery.ArgumentsHolder.TYPE_FIND_ALL_SORTED: {
+                    case ArgumentsHolder.TYPE_FIND_ALL_SORTED: {
                         long handoverTableViewPointer = TableQuery.nativeFindAllSortedWithHandover(
                                 sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(),
@@ -132,7 +131,7 @@ public class QueryUpdateTask implements Runnable {
                         queryEntry.handoverQueryPointer = 0L;
                         break;
                     }
-                    case RealmQuery.ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED:
+                    case ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED:
                         long handoverTableViewPointer = TableQuery.nativeFindAllMultiSortedWithHandover(
                                 sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(),
@@ -162,7 +161,7 @@ public class QueryUpdateTask implements Runnable {
     private boolean updateRealmObjectQuery(SharedGroup sharedGroup, Result result) {
         if (!isTaskCancelled()) {
             switch (realmObjectEntry.queryArguments.type) {
-                case RealmQuery.ArgumentsHolder.TYPE_FIND_FIRST: {
+                case ArgumentsHolder.TYPE_FIND_FIRST: {
                     long handoverRowPointer = TableQuery.
                             nativeFindWithHandover(sharedGroup.getNativePointer(),
                                     sharedGroup.getNativeReplicationPointer(),
@@ -233,16 +232,16 @@ public class QueryUpdateTask implements Runnable {
         public interface UpdateQueryStep {
             RealmResultsQueryStep add(WeakReference<RealmResults<?>> weakReference,
                                           long handoverQueryPointer,
-                                          RealmQuery.ArgumentsHolder queryArguments);
+                                          ArgumentsHolder queryArguments);
             HandlerStep addObject(WeakReference<RealmObject> weakReference,
                                   long handoverQueryPointer,
-                                  RealmQuery.ArgumentsHolder queryArguments);// can only update 1 element
+                                  ArgumentsHolder queryArguments);// can only update 1 element
         }
 
         public interface RealmResultsQueryStep {
             RealmResultsQueryStep add(WeakReference<RealmResults<?>> weakReference,
                                           long handoverQueryPointer,
-                                          RealmQuery.ArgumentsHolder queryArguments);
+                                          ArgumentsHolder queryArguments);
             BuilderStep sendToHandler(Handler handler, int message);
         }
 
@@ -270,7 +269,7 @@ public class QueryUpdateTask implements Runnable {
             @Override
             public RealmResultsQueryStep add(WeakReference<RealmResults<?>> weakReference,
                                              long handoverQueryPointer,
-                                             RealmQuery.ArgumentsHolder queryArguments) {
+                                             ArgumentsHolder queryArguments) {
                 if (this.realmResultsEntries == null) {
                     this.realmResultsEntries = new ArrayList<QueryEntry<RealmResults<?>>>(1);
                 }
@@ -282,7 +281,7 @@ public class QueryUpdateTask implements Runnable {
             @Override
             public HandlerStep addObject(WeakReference<RealmObject> weakReference,
                                          long handoverQueryPointer,
-                                         RealmQuery.ArgumentsHolder queryArguments) {
+                                         ArgumentsHolder queryArguments) {
                 realmObjectEntry =
                         new QueryEntry<RealmObject>(weakReference, handoverQueryPointer, queryArguments);
                 return this;
@@ -310,9 +309,9 @@ public class QueryUpdateTask implements Runnable {
         private static class QueryEntry<T> {
             final WeakReference<T> element;
             long handoverQueryPointer;
-            final RealmQuery.ArgumentsHolder queryArguments;
+            final ArgumentsHolder queryArguments;
 
-            private QueryEntry(WeakReference<T> element, long handoverQueryPointer, RealmQuery.ArgumentsHolder queryArguments) {
+            private QueryEntry(WeakReference<T> element, long handoverQueryPointer, ArgumentsHolder queryArguments) {
                 this.element = element;
                 this.handoverQueryPointer = handoverQueryPointer;
                 this.queryArguments = queryArguments;

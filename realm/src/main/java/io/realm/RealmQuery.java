@@ -18,6 +18,7 @@ package io.realm;
 
 
 import android.os.Handler;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
+import io.realm.annotations.Required;
 import io.realm.internal.ColumnType;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
@@ -33,9 +35,9 @@ import io.realm.internal.SharedGroup;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
+import io.realm.internal.async.ArgumentsHolder;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
-import io.realm.annotations.Required;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults}
@@ -1424,7 +1426,7 @@ public class RealmQuery<E extends RealmObject> {
      * Similar to {@link #findAll()} but runs asynchronously from a worker thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * io.realm.RealmResults#addChangeListener(RealmChangeListener) to be notified
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
      * when the query completes.
      * @throws java.lang.RuntimeException Any other error
      * @see io.realm.RealmResults
@@ -1526,7 +1528,7 @@ public class RealmQuery<E extends RealmObject> {
      * Similar to {@link #findAllSorted(String, boolean)} but runs asynchronously from a worker thread
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * io.realm.RealmResults#addChangeListener(RealmChangeListener) to be notified
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
      * when the query completes.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
@@ -1621,7 +1623,7 @@ public class RealmQuery<E extends RealmObject> {
      * Similar to {@link #findAllSorted(String)} but runs asynchronously from a worker thread
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * io.realm.RealmResults#addChangeListener(RealmChangeListener) to be notified
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
      * when the query completes.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
@@ -1672,7 +1674,7 @@ public class RealmQuery<E extends RealmObject> {
      * from a worker thread
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * io.realm.RealmResults#addChangeListener(RealmChangeListener) to be notified
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
      * when the query completes.
      * @throws java.lang.RuntimeException Any other error
      * @see io.realm.RealmResults
@@ -1784,7 +1786,7 @@ public class RealmQuery<E extends RealmObject> {
      * Similar to {@link #findAllSorted(String, boolean, String, boolean)} but runs asynchronously from a worker thread
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * io.realm.RealmResults#addChangeListener(RealmChangeListener) to be notified
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
      * when the query completes.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
@@ -1822,7 +1824,7 @@ public class RealmQuery<E extends RealmObject> {
      * runs asynchronously from a worker thread
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * io.realm.RealmResults#addChangeListener(RealmChangeListener) to be notified
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
      * when the query completes.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
@@ -1843,7 +1845,7 @@ public class RealmQuery<E extends RealmObject> {
     public E findFirst() {
         long rowIndex = this.query.find();
         if (rowIndex >= 0) {
-            return realm.getByIndex(clazz, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
+            return realm.get(clazz, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
         } else {
             return null;
         }
@@ -1853,7 +1855,7 @@ public class RealmQuery<E extends RealmObject> {
      * Similar to {@link #findFirst()} but runs asynchronously from a worker thread
      *
      * @return immediately an empty {@link RealmObject}. Users need to register a listener
-     * io.realm.RealmObject#addChangeListener to be notified when the query completes.
+     * {@link io.realm.RealmObject#addChangeListener} to be notified when the query completes.
      */
     public E findFirstAsync () {
         // use caller Realm Looper
@@ -1929,27 +1931,6 @@ public class RealmQuery<E extends RealmObject> {
             throw new IllegalArgumentException("At least one field name must be specified.");
         } else if (fieldNames.length != sortAscendings.length) {
             throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortAscendings.length));
-        }
-    }
-
-    /**
-     * Value holder class to encapsulate the arguments of this RealmQuery
-     * (in case we want to re-query)
-     */
-    public static class ArgumentsHolder {
-        public final static int TYPE_FIND_ALL = 0;
-        public final static int TYPE_FIND_ALL_SORTED = 1;
-        public final static int TYPE_FIND_ALL_MULTI_SORTED = 2;
-        public final static int TYPE_FIND_FIRST = 3;
-
-        public final int type;
-        public long columnIndex;
-        public boolean ascending;
-        public long[] columnIndices;
-        public boolean[] ascendings;
-
-        ArgumentsHolder(int type) {
-            this.type = type;
         }
     }
 

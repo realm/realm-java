@@ -223,7 +223,7 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("return null");
                 writer.endControlFlow();
                 writer.emitStatement(
-                        "return realm.getByIndex(%s.class, row.getLink(%s))",
+                        "return realm.get(%s.class, row.getLink(%s))",
                         fieldTypeCanonicalName, staticFieldIndexVarName(field));
                 writer.endMethod();
                 writer.emitEmptyLine();

@@ -160,7 +160,7 @@ public abstract class RealmObject {
      * will always return {@code true} for them.
      * Note: This will return {@code true} if called from a standalone object (created outside of Realm).
      *
-     * @return {@code true} if the query has completed & the data is available {@code false} if the
+     * @return {@code true} if the query has completed and the data is available {@code false} if the
      * query is in progress.
      */
     public boolean isLoaded() {

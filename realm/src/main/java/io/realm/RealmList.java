@@ -262,7 +262,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E get(int location) {
         if (managedMode) {
-            return realm.getByIndex(clazz, view.getTargetRowIndex(location));
+            return realm.get(clazz, view.getTargetRowIndex(location));
         } else {
             return nonManagedList.get(location);
         }

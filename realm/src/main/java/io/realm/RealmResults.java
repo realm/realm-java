@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
@@ -132,9 +131,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = realm.getByIndex(classSpec, ((TableView) table).getSourceRowIndex(location));
+            obj = realm.get(classSpec, ((TableView) table).getSourceRowIndex(location));
         } else {
-            obj = realm.getByIndex(classSpec, location);
+            obj = realm.get(classSpec, location);
         }
 
         return obj;
@@ -703,7 +702,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * the results are available.
      * Note: This will return {@code true} if called from a standalone object (created outside of Realm).
      *
-     * @return {@code true} if the query has completed & the data is available {@code false} if the
+     * @return {@code true} if the query has completed and the data is available {@code false} if the
      *         query is still running
      */
     public boolean isLoaded () {
