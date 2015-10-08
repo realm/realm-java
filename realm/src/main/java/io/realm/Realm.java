@@ -973,7 +973,7 @@ public final class Realm extends BaseRealm {
      */
     public void executeTransaction(Transaction transaction) {
         if (transaction == null)
-            throw new IllegalArgumentException("transaction should not be null");
+            throw new IllegalArgumentException("Transaction should not be null");
 
         beginTransaction();
         try {
@@ -992,11 +992,11 @@ public final class Realm extends BaseRealm {
      * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously from a worker thread
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @param callback optional, to receive the result of this query
-     * @return A {@link io.realm.Realm.Request} representing a cancellable task
+     * @return A {@link RealmAsyncTask} representing a cancellable task
      */
-    public Request executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
+    public RealmAsyncTask executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
         if (transaction == null)
-            throw new IllegalArgumentException("transaction should not be null");
+            throw new IllegalArgumentException("Transaction should not be null");
 
         // will use the Looper of the caller thread to post the result
         final Handler handler = new Handler();
@@ -1049,7 +1049,7 @@ public final class Realm extends BaseRealm {
             }
         });
 
-        return new Request(pendingQuery);
+        return new RealmAsyncTask(pendingQuery);
     }
 
     /**
@@ -1241,50 +1241,6 @@ public final class Realm extends BaseRealm {
         class Callback {
             public void onSuccess() {}
             public void onError(Exception e) {}
-        }
-    }
-
-    /**
-     * Represents a pending asynchronous Realm query.
-     * <p/>
-     * Users are responsible for maintaining a reference to {@code Request} in order
-     * to call #cancel in case of a configuration change for example (to avoid memory leak, as the
-     * query will post the result to the caller's thread callback)
-     */
-    public static class Request {
-        private final Future<?> pendingQuery;
-        private volatile boolean isCancelled = false;
-
-        public Request(Future<?> pendingQuery) {
-            this.pendingQuery = pendingQuery;
-        }
-
-        /**
-         * Attempts to cancel execution of this query (if it hasn't already completed or previously cancelled)
-         */
-        public void cancel() {
-            pendingQuery.cancel(true);
-            isCancelled = true;
-
-            // From "Java Threads": By Scott Oaks & Henry Wong
-            // cancelled tasks are never executed, but may
-            // accumulate in work queues, which may causes a memory leak
-            // if the task hold references (to an enclosing class for example)
-            // we can use purge() but one caveat applies: if a second thread attempts to add
-            // something to the pool (suing the execute() method) at the same time the
-            // first thread is attempting to purge the queue the attempt to purge
-            // the queue fails and the cancelled object remain in the queue.
-            // A better way to cancel objects with thread pools is to use the remove()
-            asyncQueryExecutor.getQueue().remove(pendingQuery);
-        }
-
-        /**
-         * Whether an attempt to cancel the query was performed
-         *
-         * @return {@code true} if {@link #cancel()} has already been called, {@code false} otherwise
-         */
-        public boolean isCancelled() {
-            return isCancelled;
         }
     }
 }

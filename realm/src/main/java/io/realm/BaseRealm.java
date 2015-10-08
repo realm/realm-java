@@ -85,13 +85,13 @@ abstract class BaseRealm implements Closeable {
     static final Set<String> validatedRealmFiles = new HashSet<String>();
 
     // keep a WeakReference list to RealmResults obtained asynchronously in order to update them
-    // RealmQuery is not WeakReference to prevent it from being GC'd. RealmQuery should be
+    // RealmQuery is not WeakReferenced to prevent it from being GC'd. RealmQuery should be
     // cleaned if RealmResults is cleaned. we need to keep RealmQuery because it contains the query
     // pointer (to handover for each update) + all the arguments necessary to rerun the query:
     // sorting orders, soring columns, type (findAll, findFirst, findAllSorted etc.)
-    final Map<WeakReference<RealmResults<?>>, RealmQuery<?>> asyncRealmResults =
-            new IdentityHashMap<WeakReference<RealmResults<?>>, RealmQuery<?>>();
-    final ReferenceQueue<RealmResults<?>> referenceQueue = new ReferenceQueue<RealmResults<?>>();
+    final Map<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<?>> asyncRealmResults =
+            new IdentityHashMap<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<?>>();
+    final ReferenceQueue<RealmResults<? extends RealmObject>> referenceQueue = new ReferenceQueue<RealmResults<? extends RealmObject>>();
     final Map<WeakReference<RealmObject>, RealmQuery<?>> asyncRealmObjects =
             new IdentityHashMap<WeakReference<RealmObject>, RealmQuery<?>>();
 
@@ -642,11 +642,11 @@ abstract class BaseRealm implements Closeable {
                         QueryUpdateTask.Builder.RealmResultsQueryStep realmResultsQueryStep = null;
 
                         // we iterate over non GC'd async RealmResults then add them to the list to be updated (in a batch)
-                        Iterator<Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>>> iterator = asyncRealmResults.entrySet().iterator();
+                        Iterator<Map.Entry<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<?>>> iterator = asyncRealmResults.entrySet().iterator();
                         while (iterator.hasNext()) {
-                            Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>> entry = iterator.next();
-                            WeakReference<RealmResults<?>> weakReference = entry.getKey();
-                            RealmResults<?> realmResults = weakReference.get();
+                            Map.Entry<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<?>> entry = iterator.next();
+                            WeakReference<RealmResults<? extends RealmObject>> weakReference = entry.getKey();
+                            RealmResults<? extends RealmObject> realmResults = weakReference.get();
                             if (realmResults == null) {
                                 // GC'd instance remove from the list
                                 iterator.remove();
@@ -681,14 +681,13 @@ abstract class BaseRealm implements Closeable {
                 }
                 case REALM_COMPLETED_ASYNC_QUERY: {
                     // one async query has completed
-                    QueryUpdateTask.Result result
-                            = (QueryUpdateTask.Result) message.obj;
+                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
 
-                    Set<WeakReference<RealmResults<?>>> updatedTableViewsKeys = result.updatedTableViews.keySet();
+                    Set<WeakReference<RealmResults<? extends RealmObject>>> updatedTableViewsKeys = result.updatedTableViews.keySet();
                     if (updatedTableViewsKeys.size() > 0) {
-                        WeakReference<RealmResults<?>> weakRealmResults = updatedTableViewsKeys.iterator().next();
+                        WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = updatedTableViewsKeys.iterator().next();
 
-                        RealmResults<?> realmResults = weakRealmResults.get();
+                        RealmResults<? extends RealmObject> realmResults = weakRealmResults.get();
                         if (realmResults == null) {
                             asyncRealmResults.remove(weakRealmResults);
                             RealmLog.d("[REALM_COMPLETED_ASYNC_QUERY "+ weakRealmResults + "] realm:"+ BaseRealm.this + " RealmResults GC'd ignore results");
@@ -779,11 +778,11 @@ abstract class BaseRealm implements Closeable {
                             sharedGroupManager.advanceRead(result.versionID);
                         }
 
-                        ArrayList<RealmResults<?>> callbacksToNotify = new ArrayList<RealmResults<?>>(result.updatedTableViews.size());
+                        ArrayList<RealmResults<? extends RealmObject>> callbacksToNotify = new ArrayList<RealmResults<? extends RealmObject>>(result.updatedTableViews.size());
                         // use updated TableViews pointers for the existing async RealmResults
-                        for (Map.Entry<WeakReference<RealmResults<?>>, Long> query : result.updatedTableViews.entrySet()) {
-                            WeakReference<RealmResults<?>> weakRealmResults = query.getKey();
-                            RealmResults<?> realmResults = weakRealmResults.get();
+                        for (Map.Entry<WeakReference<RealmResults<? extends RealmObject>>, Long> query : result.updatedTableViews.entrySet()) {
+                            WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = query.getKey();
+                            RealmResults<? extends RealmObject> realmResults = weakRealmResults.get();
                             if (realmResults == null) {
                                 // don't update GC'd instance
                                 asyncRealmResults.remove(weakRealmResults);
@@ -803,7 +802,7 @@ abstract class BaseRealm implements Closeable {
                             }
                         }
 
-                        for (RealmResults<?> query : callbacksToNotify) {
+                        for (RealmResults<? extends RealmObject> query : callbacksToNotify) {
                             query.notifyChangeListeners();
                         }
 
@@ -861,19 +860,17 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Indicates if there are currently any RealmResults being used in this thread (obtained
-     * previously asynchronously). This will prevent advanceRead accidentally the current transaction
-     * resulting in re-running the queries in this thread.
+     * This will prevent advanceReading from accidentally advancing the thread and potentially re-run the queries in this thread.
      * @return {@code true} if there is at least one (non GC'd) instance of {@link RealmResults} {@code false} otherwise
      */
     private boolean threadContainsAsyncQueries () {
         deleteWeakReferences();
         boolean isEmpty = true;
-        Iterator<Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>>> iterator = asyncRealmResults.entrySet().iterator();
+        Iterator<Map.Entry<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<?>>> iterator = asyncRealmResults.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>> next = iterator.next();
+            Map.Entry<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<?>> next = iterator.next();
             if (next.getKey().get() == null) {
-                // clean the GC'd instance
+                // clean the GC'ed instances
                 // we could've avoided this if we had a 'WeakIdentityHashmap' data structure. miss Guava :(
                 iterator.remove();
             } else {
@@ -891,7 +888,7 @@ abstract class BaseRealm implements Closeable {
         // System.gc() does not garbage collect every time. Runtime.gc() is
         // more likely to perform a gc.
         Runtime.getRuntime().gc();
-        Reference<? extends RealmResults<?>> weakReference;
+        Reference<? extends RealmResults<? extends RealmObject>> weakReference;
         while ((weakReference = referenceQueue.poll()) != null ) { // Does not wait for a reference to become available.
             RealmLog.d("deleted 1 reference: " + weakReference);
             asyncRealmResults.remove(weakReference);

@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
@@ -210,6 +211,15 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // of closing the Realm
             backgroundLooper[0].quit();
         }
+    }
+
+    public void testStandloneObjectAsyncBehaviour () {
+        Dog dog = new Dog();
+        dog.setName("Akamaru");
+        dog.setAge(10);
+
+        assertTrue(dog.isLoaded());
+        assertFalse(dog.isValid());
     }
 
     // finding elements [0-4] asynchronously then wait for the promise to be loaded

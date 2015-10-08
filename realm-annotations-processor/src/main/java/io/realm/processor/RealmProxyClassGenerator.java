@@ -144,7 +144,6 @@ public class RealmProxyClassGenerator {
             writer.emitField("long", staticFieldIndexVarName(variableElement), EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
             if (typeUtils.isAssignable(variableElement.asType(), realmList)) {
                 String genericType = Utils.getGenericType(variableElement);
-
                 writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() + "RealmList", EnumSet.of(Modifier.PRIVATE));
             }
         }

@@ -191,7 +191,7 @@ public class QueryUpdateTask implements Runnable {
 
     // result of the async query
     public static class Result {
-        public IdentityHashMap<WeakReference<RealmResults<?>>, Long> updatedTableViews;
+        public IdentityHashMap<WeakReference<RealmResults<? extends RealmObject>>, Long> updatedTableViews;
         public IdentityHashMap<WeakReference<RealmObject>, Long> updatedRow;
         public SharedGroup.VersionID versionID;
 

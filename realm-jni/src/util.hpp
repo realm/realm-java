@@ -104,6 +104,7 @@ std::string num_to_string(T pNumber)
 #define ROW(x)  reinterpret_cast<Row*>(x)
 #define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 #define CH(ptr) reinterpret_cast<ClientHistory*>(ptr)
+#define HO(T, ptr) reinterpret_cast<SharedGroup::Handover <T>* >(ptr)
 
 // Exception handling
 enum ExceptionKind {

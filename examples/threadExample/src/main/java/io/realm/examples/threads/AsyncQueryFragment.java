@@ -31,19 +31,19 @@ import java.util.Collections;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmAsyncTask;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.examples.threads.model.Dot;
 
 /**
- * This fragment demonstrates how you can perform asynchronous queries with Realm
+ * This fragment demonstrates how you can perform asynchronous queries with Realm.
  */
 public class AsyncQueryFragment extends Fragment implements View.OnClickListener, RealmChangeListener {
     private Realm realm;
     private DotAdapter dotAdapter;
     private RealmResults<Dot> allSortedDots;
-    private Realm.Request asyncTransaction;
-
+    private RealmAsyncTask asyncTransaction;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -76,7 +76,7 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
     public void onStop() {
         super.onStop();
         // Remember to close the Realm instance when done with it.
-        cancelTransaction();
+        cancelAsyncTransaction();
         allSortedDots.removeChangeListener(this);
         allSortedDots = null;
         realm.close();
@@ -86,7 +86,7 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.translate_button: {
-                cancelTransaction();
+                cancelAsyncTransaction();
                 // translate all points coordinates using an async transaction
                 asyncTransaction = realm.executeTransaction(new Realm.Transaction() {
                     @Override
@@ -125,7 +125,7 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         }
     }
 
-    private void cancelTransaction() {
+    private void cancelAsyncTransaction() {
         if (asyncTransaction != null && !asyncTransaction.isCancelled()) {
             asyncTransaction.cancel();
             asyncTransaction = null;
@@ -137,11 +137,10 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
         dotAdapter.notifyDataSetChanged();
     }
 
-
-    // using a generic Adapter instead of RealmBaseAdapter, because
-    // RealmBaseAdapter register a listener against all Realm changes
+    // Using a generic Adapter instead of RealmBaseAdapter, because
+    // RealmBaseAdapter registers a listener against all Realm changes
     // whereas in this scenario we're only interested on the changes of our query
-    private class DotAdapter extends BaseAdapter {
+    private static class DotAdapter extends BaseAdapter {
         private List<Dot> dots = Collections.emptyList();
         private final LayoutInflater inflater;
 

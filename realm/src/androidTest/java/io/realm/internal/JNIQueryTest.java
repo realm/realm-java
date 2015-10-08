@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import io.realm.internal.test.TestHelper;
+import io.realm.TestHelper;
 
 public class JNIQueryTest extends TestCase {
 

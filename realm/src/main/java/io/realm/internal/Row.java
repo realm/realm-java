@@ -116,7 +116,7 @@ public interface Row {
     boolean hasColumn(String fieldName);
 
     Row EMPTY_ROW = new Row() {
-        private final static String UNLOADED_ROW_MESSAGE = "Can't modify an unloaded row, make sure the instance" +
+        private final static String UNLOADED_ROW_MESSAGE = "Can't modify an row that hasn't been loaded, make sure the instance" +
                 " is loaded by calling RealmObject.isLoaded";
 
         @Override

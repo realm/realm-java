@@ -5,7 +5,7 @@ import android.test.AndroidTestCase;
 import java.io.File;
 import java.util.Date;
 
-import io.realm.internal.test.TestHelper;
+import io.realm.TestHelper;
 
 public class JNITableTest extends AndroidTestCase {
 

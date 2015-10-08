@@ -31,19 +31,19 @@ import io.realm.internal.log.RealmLog;
  * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
  * persisted. You then create your objects within a Realm, and use your custom subclasses instead
  * of using the RealmObject class directly.
- * <p/>
+ * <p>
  * An annotation processor will create a proxy class for your RealmObject subclass. The getters and
  * setters should not contain any custom code of logic as they are overridden as part of the annotation
  * process.
- * <p/>
+ * <p>
  * A RealmObject is currently limited to the following:
- * <p/>
+ * <p>
  * <ul>
  * <li>Private fields.</li>
  * <li>Getter and setters for these fields.</li>
  * <li>Static methods.</li>
  * </ul>
- * <p/>
+ * <p>
  * The following field data types are supported (no boxed types):
  * <ul>
  * <li>boolean</li>
@@ -58,18 +58,18 @@ import io.realm.internal.log.RealmLog;
  * <li>Any RealmObject subclass</li>
  * <li>RealmList</li>
  * </ul>
- * <p/>
+ * <p>
  * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code>
  * when storing within a Realm.
- * <p/>
+ * <p>
  * Getter and setter names must have the name {@code getXXX} or {@code setXXX} if
  * the field name is {@code XXX}. Getters for fields of type boolean can be called {@code isXXX} as
  * well. Fields with a m-prefix must have getters and setters named setmXXX and getmXXX which is
  * the default behavior when Android Studio automatically generates the getters and setters.
- * <p/>
+ * <p>
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and
  * don't require either a getter or setter.
- * <p/>
+ * <p>
  * Realm will create indexes for fields annotated with {@link io.realm.annotations.Index}. This
  * will speedup queries but will have a negative impact on inserts and updates.
  * * <p>
@@ -91,7 +91,7 @@ public abstract class RealmObject {
 
     /**
      * Removes the object from the Realm it is currently associated to.
-     * <p/>
+     * <p>
      * After this method is called the object will be invalid and any operation (read or write)
      * performed on it will fail with an IllegalStateException.
      */
@@ -158,21 +158,29 @@ public abstract class RealmObject {
      * Determine if the current RealmObject is obtained synchronously or asynchronously (from
      * a worker thread). Synchronous RealmObjects are by definition blocking hence this method
      * will always return {@code true} for them.
+     * Note: This will return {@code true} if called from a standalone object (created outside of Realm).
      *
      * @return {@code true} if the query has completed & the data is available {@code false} if the
      * query is in progress.
      */
     public boolean isLoaded() {
+        if (realm == null) {
+            return true;
+        }
         realm.checkIfValid();
         return pendingQuery == null || isCompleted;
     }
 
     /**
      * Make an asynchronous query blocking.
+     * Note: This will return {@code true} if called from a standalone object (created outside of Realm).
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
+        if (realm == null) {
+            return true;
+        }
         // doesn't guarantee to import correctly the result (because the user may have advanced)
         // in this case the Realm#handler will be responsible for retrying
         realm.checkIfValid();
@@ -223,8 +231,9 @@ public abstract class RealmObject {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
-        realm.checkIfValid();
-
+        if (realm != null) {
+            realm.checkIfValid();
+        }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
@@ -232,29 +241,33 @@ public abstract class RealmObject {
 
     /**
      * Remove a previously registered listener.
+     *
      * @param listener the instance to be removed.
      */
     public void removeChangeListener(RealmChangeListener listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
-        realm.checkIfValid();
-
+        if (realm != null) {
+            realm.checkIfValid();
+        }
         listeners.remove(listener);
     }
 
     /**
      * Remove all registered listeners.
      */
-    public void deleteChangeListeners() {
-        realm.checkIfValid();
+    public void removeChangeListeners() {
+        if (realm != null) {
+            realm.checkIfValid();
+        }
         listeners.clear();
     }
 
     /**
      * Notify all registered listeners.
      */
-    public void notifyChangeListeners() {
+    void notifyChangeListeners() {
         realm.checkIfValid();
         for (RealmChangeListener listener : listeners) {
             listener.onChange();

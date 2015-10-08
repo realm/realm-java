@@ -44,6 +44,8 @@ inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colInd
     return COL_TYPE_VALID(env, TQ(nativeQueryPtr)->get_current_table().get(), colIndex, type);
 }
 
+const char* ERR_IMPORT_CLOSED_REALM = "Can not import results from a closed Realm";
+const char* ERR_SORT_NOT_SUPPORTED = "Sort is currently only supported on integer, float, double, boolean, Date, and String fields";
 //-------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv *, jclass, jlong nativeQueryPtr) {
@@ -862,7 +864,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(
 }
 
 std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr) {
-    SharedGroup::Handover <Query> *handoverQueryPtr = reinterpret_cast<SharedGroup::Handover <Query> * > (queryPtr);
+    SharedGroup::Handover <Query> *handoverQueryPtr = HO(Query, queryPtr);
     std::unique_ptr <SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
 
     SG(bgSharedGroupPtr)->end_read();
@@ -875,7 +877,7 @@ std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong replicati
         SG(bgSharedGroupPtr)->begin_read();
     }
 
-    std::unique_ptr <Query> query = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
+    std::unique_ptr<Query> query = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
     if (isDifferentVersions) {
         LangBindHelper::advance_read(*SG(bgSharedGroupPtr), *CH(replicationPtr));
     }
@@ -888,7 +890,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
 {
     TR_ENTER()
     try {
-        std::unique_ptr <Query> query = getHandoverQuery (bgSharedGroupPtr, replicationPtr, queryPtr);
+        std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
         Table* table = query->get_table().get();
 
         if (!QUERY_VALID(env, query.get())) {
@@ -939,7 +941,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
   {
       TR_ENTER()
       try {
-          std::unique_ptr <Query> query = getHandoverQuery (bgSharedGroupPtr, replicationPtr, queryPtr);
+          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
           Table* table = query->get_table().get();
 
           if (!QUERY_VALID(env, query.get()) ||
@@ -953,9 +955,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
           // handover the result
           std::unique_ptr <SharedGroup::Handover<TableView>> handover = SG(
                   bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
-
           return reinterpret_cast<jlong>(handover.release());
-
       } CATCH_STD()
       return 0;
   }
@@ -965,39 +965,39 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
   {
       TR_ENTER()
       try {
-          std::unique_ptr <Query> query = getHandoverQuery (bgSharedGroupPtr, replicationPtr, queryPtr);
+          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
           Table* table = query->get_table().get();
 
-          if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table, start, end, limit))
+          if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table, start, end, limit)) {
               return 0;
+          }
 
-            // run the query
-            TableView* tableView = new TableView( query->find_all(S(start), S(end), S(limit)) );
+          // run the query
+          TableView* tableView = new TableView( query->find_all(S(start), S(end), S(limit)) );
 
-            // sorting the results
-            if (!COL_INDEX_VALID(env, tableView, columnIndex))
-                      return 0;
-              int colType = tableView->get_column_type( S(columnIndex) );
+          // sorting the results
+          if (!COL_INDEX_VALID(env, tableView, columnIndex)) {
+              return 0;
+          }
 
-              switch (colType) {
-                  case type_Bool:
-                  case type_Int:
-                  case type_DateTime:
-                  case type_Float:
-                  case type_Double:
-                  case type_String:
-                      tableView->sort( S(columnIndex), ascending != 0 ? true : false);
-                      break;
-                  default:
-                      ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, float, double, boolean, Date, and String columns.");
-                      return 0;
-              }
+          int colType = tableView->get_column_type( S(columnIndex) );
+          switch (colType) {
+               case type_Bool:
+               case type_Int:
+               case type_DateTime:
+               case type_Float:
+               case type_Double:
+               case type_String:
+                   tableView->sort( S(columnIndex), ascending != 0 ? true : false);
+                   break;
+               default:
+                   ThrowException(env, IllegalArgument, ERR_SORT_NOT_SUPPORTED);
+                   return 0;
+           }
 
-            // handover the result
-            std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
-
-            return reinterpret_cast<jlong>(handover.release());
-
+          // handover the result
+          std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
+          return reinterpret_cast<jlong>(handover.release());
       } CATCH_STD()
       return 0;
   }
@@ -1027,47 +1027,46 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
           }
 
           // import the handover query pointer using the background SharedGroup
-          std::unique_ptr <Query> query = getHandoverQuery (bgSharedGroupPtr, replicationPtr, queryPtr);
+          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
           Table* table = query->get_table().get();
 
           if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table, start, end, limit))
               return 0;
 
-            // run the query
-            TableView* tableView = new TableView( query->find_all(S(start), S(end), S(limit)) );
+          // run the query
+          TableView* tableView = new TableView( query->find_all(S(start), S(end), S(limit)) );
 
-            // sorting the results
-            std::vector<size_t> indices;
-            std::vector<bool> ascendings;
+          // sorting the results
+          std::vector<size_t> indices;
+          std::vector<bool> ascendings;
 
-            for (int i = 0; i < arr_len; ++i) {
-                if (!COL_INDEX_VALID(env, tableView, long_arr[i]))
-                    return -1;
-                int colType = tableView->get_column_type( S(long_arr[i]) );
-                switch (colType) {
-                    case type_Bool:
-                    case type_Int:
-                    case type_DateTime:
-                    case type_Float:
-                    case type_Double:
-                    case type_String:
-                        indices.push_back( S(long_arr[i]) );
-                        ascendings.push_back( B(bool_arr[i]) );
-                        break;
-                    default:
-                        ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, float, double, boolean, Date, and String columns.");
-                        return 0;
-                }
-            }
+          for (int i = 0; i < arr_len; ++i) {
+              if (!COL_INDEX_VALID(env, tableView, long_arr[i]))
+                  return -1;
+              int colType = tableView->get_column_type( S(long_arr[i]) );
+              switch (colType) {
+                  case type_Bool:
+                  case type_Int:
+                  case type_DateTime:
+                  case type_Float:
+                  case type_Double:
+                  case type_String:
+                      indices.push_back( S(long_arr[i]) );
+                      ascendings.push_back( B(bool_arr[i]) );
+                      break;
+                  default:
+                      ThrowException(env, IllegalArgument, ERR_SORT_NOT_SUPPORTED);
+                      return 0;
+              }
+          }
 
-            tableView->sort(indices, ascendings);
-            env->ReleaseLongArrayElements(columnIndices, long_arr, 0);
-            env->ReleaseBooleanArrayElements(ascending, bool_arr, 0);
+          tableView->sort(indices, ascendings);
+          env->ReleaseLongArrayElements(columnIndices, long_arr, 0);
+          env->ReleaseBooleanArrayElements(ascending, bool_arr, 0);
 
-            // handover the result
-            std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
-
-            return reinterpret_cast<jlong>(handover.release());
+          // handover the result
+          std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
+          return reinterpret_cast<jlong>(handover.release());
 
       } CATCH_STD()
       return 0;
@@ -1369,7 +1368,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTa
   (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
     TR_ENTER_PTR(handoverPtr)
-    SharedGroup::Handover<TableView> *handoverTableViewPtr = reinterpret_cast<SharedGroup::Handover<TableView>*>(handoverPtr);
+    SharedGroup::Handover<TableView> *handoverTableViewPtr = HO(TableView, handoverPtr);
     std::unique_ptr<SharedGroup::Handover<TableView> > handoverTableView(handoverTableViewPtr);
 
     try {
@@ -1378,11 +1377,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTa
             std::unique_ptr<TableView> tableView = SG(callerSharedGrpPtr)->import_from_handover(
                     std::move(handoverTableView));
             return reinterpret_cast<jlong>(tableView.release());
-
         } else {
-            ThrowException(env, RuntimeError, "Can not import results from a closed Realm");
+            ThrowException(env, RuntimeError, ERR_IMPORT_CLOSED_REALM);
         }
-
     } CATCH_STD()
     return 0;
   }
@@ -1391,7 +1388,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRo
   (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
       TR_ENTER_PTR(handoverPtr)
-      SharedGroup::Handover <Row> *handoverRowPtr = reinterpret_cast<SharedGroup::Handover <Row> *>(handoverPtr);
+      SharedGroup::Handover <Row> *handoverRowPtr = HO(Row, handoverPtr);
       std::unique_ptr <SharedGroup::Handover<Row>> handoverRow(handoverRowPtr);
 
       try {
@@ -1402,7 +1399,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRo
               return reinterpret_cast<jlong>(row.release());
 
           } else {
-              ThrowException(env, RuntimeError, "Can not import results from a closed Realm");
+              ThrowException(env, RuntimeError, ERR_IMPORT_CLOSED_REALM);
           }
 
       } CATCH_STD()
@@ -1428,5 +1425,5 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandove
   (JNIEnv *env, jobject, jlong nativeHandoverQuery)
   {
     TR_ENTER_PTR(nativeHandoverQuery)
-    delete reinterpret_cast<SharedGroup::Handover<Query>*>(nativeHandoverQuery);
+    delete HO(Query, nativeHandoverQuery);
   }

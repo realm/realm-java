@@ -693,20 +693,30 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * still loading. Synchronous query methods like findAll() will always return {@code true},
      * while asynchronous query methods like findAllAsync() will return {@code false} until
      * the results are available.
+     * Note: This will return {@code true} if called from a standalone object (created outside of Realm).
+     *
      * @return {@code true} if the query has completed & the data is available {@code false} if the
      *         query is still running
      */
     public boolean isLoaded () {
+        if (realm == null) {
+            return true;
+        }
         realm.checkIfValid();
         return pendingQuery == null || isCompleted;
     }
 
     /**
      * Make an asynchronous query blocking. This will also trigger any registered
+     * This will return {@code true} from standalone object (created outside of Realm).
+     *
      * {@link RealmChangeListener} when the query completes.
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
+        if (realm == null) {
+            return true;
+        }
         // doesn't guarantee to import correctly the result (because the user may have advanced)
         // in this case the Realm#handler will be responsible of retrying
         realm.checkIfValid();
@@ -744,11 +754,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param listener the change listener to be notified
      */
     public void addChangeListener(RealmChangeListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
-
-        realm.checkIfValid();
-
+        }
+        if (realm != null) {
+            realm.checkIfValid();
+        }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
@@ -762,7 +773,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         if (listener == null)
             throw new IllegalArgumentException("Listener should not be null");
 
-        realm.checkIfValid();
+        if (realm != null) {
+            realm.checkIfValid();
+        }
 
         listeners.remove(listener);
     }
@@ -771,7 +784,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Remove all registered listeners.
      */
     public void removeChangeListeners() {
-        realm.checkIfValid();
+        if (realm != null) {
+            realm.checkIfValid();
+        }
         listeners.clear();
     }
 

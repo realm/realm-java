@@ -6,6 +6,5 @@
     <suppress checks="[a-zA-Z0-9]*" files="R\.java" />
     <suppress checks="." files="BuildConfig.java" />
     <suppress checks="." files=".*\.properties" />
-    <suppress checks="FileLengthCheck"
-        files="Realm.java|RealmAsyncQueryTests.java"/>
+    <suppress checks="FileLengthCheck" files="Realm.java|RealmAsyncQueryTests.java"/>
 </suppressions>
