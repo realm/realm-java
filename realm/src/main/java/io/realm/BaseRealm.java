@@ -415,6 +415,19 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Check if the {@link io.realm.Realm} instance has already been closed.
+     *
+     * @return {@code true} if closed, {@code false} otherwise.
+     */
+    public boolean isClosed() {
+        if (this.threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
+        }
+
+        return sharedGroupManager == null || !sharedGroupManager.isOpen();
+    }
+
+    /**
      * Returns the ThreadLocal reference counter for this Realm.
      */
     protected abstract Map<RealmConfiguration,Integer> getLocalReferenceCount();

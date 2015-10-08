@@ -1812,6 +1812,42 @@ public class RealmTest extends AndroidTestCase {
         testRealm.close();
     }
 
+    public void testRealmIsClosed() {
+        assertFalse(testRealm.isClosed());
+        testRealm.close();
+        assertTrue(testRealm.isClosed());
+    }
+
+    // Test Realm#isClosed() in another thread different from where it is created.
+    public void testRealmIsClosedInDifferentThread() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AssertionFailedError threadAssertionError[] = new AssertionFailedError[1];
+
+        final Thread thatThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testRealm.isClosed();
+                    threadAssertionError[0] = new AssertionFailedError(
+                            "Call isClosed() of Realm instance in a different thread should throw IllegalStateException.");
+                } catch (IllegalStateException ignored) {
+                }
+                latch.countDown();
+            }
+        });
+        thatThread.start();
+
+        // Timeout should never happen
+        latch.await();
+        if (threadAssertionError[0] != null) {
+            throw threadAssertionError[0];
+        }
+        // After exception thrown in another thread, nothing should be changed to the realm in this thread.
+        testRealm.checkIfValid();
+        assertFalse(testRealm.isClosed());
+        testRealm.close();
+    }
+
     // We should not cache wrong configurations
     public void testDontCacheWrongConfigurations() throws IOException {
         testRealm.close();

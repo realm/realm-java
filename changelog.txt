@@ -1,3 +1,6 @@
+0.84
+ * Added Realm.isClosed() method.
+
 0.83
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
