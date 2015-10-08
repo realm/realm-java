@@ -26,8 +26,7 @@ import java.util.regex.Pattern;
 
 public class JsonUtils {
 
-    //private static Pattern jsonDate = Pattern.compile("/Date\\((\\d*)\\)/");
-    private static Pattern jsonDate=Pattern.compile("Date\\((\\d*)([+-]\\d*)?\\)");
+    private static Pattern jsonDate = Pattern.compile("Date\\((\\d*)([+-]\\d*)?\\)");
 
     /**
      * Converts a Json string to a Java Date object. Currently supports 2 types:
@@ -44,12 +43,12 @@ public class JsonUtils {
         Matcher matcher = jsonDate.matcher(date);
         if (matcher.find()) {
             String dateMatch = matcher.group(1);
-            Date d = new Date(Long.parseLong(dateMatch));
-            return d;
+            return new Date(Long.parseLong(dateMatch));
         } else {
             return new Date(Long.parseLong(date));
         }
     }
+
     /**
      * Converts a Json string to byte[]. String must be Base64 encoded.
      *

@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -135,9 +136,12 @@ public class RealmJsonTest extends AndroidTestCase {
 
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
         Calendar cal = GregorianCalendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("Australia/West"));
         cal.set(2015,Calendar.OCTOBER, 03, 14, 45, 33);
+        cal.set(Calendar.MILLISECOND, 0);
         Date convDate = obj.getColumnDate();
-        assertTrue(convDate.getTime()-cal.getTime().getTime()<1000);
+
+        assertEquals(convDate.getTime(), cal.getTime().getTime());
     }
 
     public void testCreateObjectFromJson_childObject() throws JSONException {
