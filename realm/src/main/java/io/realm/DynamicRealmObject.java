@@ -323,41 +323,49 @@ public class DynamicRealmObject extends RealmObject {
 
         if (value == null) {
             row.nullifyLink(row.getColumnIndex(fieldName));
-            // TODO Add support for other types when Null is merged.
-        } else if (value instanceof Boolean) {
+            // FIXME Add support for other types when Null is merged.
+        } else {
+            setValue(fieldName, value);
+        }
+    }
+
+    // Automatically finds the appropriate setter based on the objects type
+    private void setValue(String fieldName, Object value) {
+        Class<? extends Object> valueClass = value.getClass();
+        if (valueClass ==  Boolean.class) {
             setBoolean(fieldName, (Boolean) value);
-        } else if (value instanceof Short) {
+        } else if (valueClass == Short.class) {
             setShort(fieldName, (Short) value);
-        } else if (value instanceof Integer) {
+        } else if (valueClass == Integer.class) {
             setInt(fieldName, (Integer) value);
-        } else if (value instanceof Long) {
+        } else if (valueClass == Long.class) {
             setLong(fieldName, (Long) value);
-        } else if (value instanceof Byte) {
+        } else if (valueClass == Byte.class) {
             setByte(fieldName, (Byte) value);
-        } else if (value instanceof Float) {
+        } else if (valueClass == Float.class) {
             setFloat(fieldName, (Float) value);
-        } else if (value instanceof Double) {
+        } else if (valueClass == Double.class) {
             setDouble(fieldName, (Double) value);
-        } else if (value instanceof String) {
+        } else if (valueClass == String.class) {
             setString(fieldName, (String) value);
         } else if (value instanceof Date) {
             setDate(fieldName, (Date) value);
         } else if (value instanceof byte[]) {
             setBlob(fieldName, (byte[]) value);
-        } else if (value instanceof DynamicRealmObject) {
+        } else if (valueClass == DynamicRealmObject.class) {
             setObject(fieldName, (DynamicRealmObject) value);
-        } else if (value instanceof RealmList) {
+        } else if (valueClass == RealmList.class) {
             // We need to verify that the list only contain DynamicRealmObjects.
             // No real way of verifying the generic type, so just catch the exception if it happens
             // and convert it to something nicer.
             try {
                 setList(fieldName, (RealmList<DynamicRealmObject>) value);
             } catch (ClassCastException e) {
-                throw new IllegalArgumentException("Only RealmList containg DynamicRealmObjects " +
+                throw new IllegalArgumentException("Only RealmLists containing DynamicRealmObjects " +
                         "can be added.");
             }
         } else {
-            throw new IllegalArgumentException("Value is of an type not supported by Realm: " + value);
+            throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }
     }
 
