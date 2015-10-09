@@ -18,6 +18,8 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.Collections;
+
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
@@ -53,6 +55,16 @@ public class RealmListTest extends AndroidTestCase {
             list.add(new Dog("Dog " + i));
         }
         return list;
+    }
+
+    private RealmList<Dog> createDeletedRealmList() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
+        testRealm.beginTransaction();
+        owner.removeFromRealm();
+        testRealm.commitTransaction();
+        return dogs;
     }
 
     // Check that all methods work correctly on a empty RealmList
@@ -459,6 +471,186 @@ public class RealmListTest extends AndroidTestCase {
 
         assertTrue(result);
         assertEquals(TEST_OBJECTS - 1, dogs.size());
+    }
+
+    public void testAddAtAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        testRealm.beginTransaction();
+        try {
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setName("Dog");
+            try {
+                dogs.add(0, dog);
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testAddAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        testRealm.beginTransaction();
+        try {
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setName("Dog");
+            try {
+                dogs.add(dog);
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testSetAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        testRealm.beginTransaction();
+        try {
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setName("Dog");
+            try {
+                dogs.set(0, dog);
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testMoveAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        testRealm.beginTransaction();
+        try {
+            dogs.move(0, 1);
+            fail();
+        } catch (IllegalStateException ignore) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testClearAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        testRealm.beginTransaction();
+        try {
+            dogs.clear();
+            fail();
+        } catch (IllegalStateException ignore) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testRemoveAtAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        testRealm.beginTransaction();
+        try {
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setName("Dog");
+            try {
+                dogs.remove(0);
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testRemoveObjectAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        testRealm.beginTransaction();
+        try {
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setName("Dog");
+            try {
+                dogs.remove(dog);
+                fail();
+            } catch (IllegalStateException ignore) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testRemoveAllAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        testRealm.beginTransaction();
+        try {
+            dogs.removeAll(Collections.<Dog>emptyList());
+            fail();
+        } catch (IllegalStateException ignore) {
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testGetAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        try {
+            dogs.get(0);
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    public void testFirstAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        try {
+            dogs.first();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    public void testLastAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        try {
+            dogs.last();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    public void testSizeAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        try {
+            dogs.size();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    public void testWhereAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        try {
+            dogs.where();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
+
+    public void testToStringAfterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+
+        assertEquals("Dog@[invalid]", dogs.toString());
     }
 
     public void testQuery() {
