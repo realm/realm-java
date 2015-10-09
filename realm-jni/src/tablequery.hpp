@@ -28,7 +28,7 @@ class TableQuery : public realm::Query {
     std::vector<size_t> subtables;  // holds subtable column indices
 
 public:
-    TableQuery(const Query& copy) : realm::Query(copy, realm::Query::TCopyExpressionTag{}) {};
+    TableQuery(const Query& copy) : realm::Query(copy) {};
  
     void push_subtable(size_t index) {
         subtables.push_back(index);

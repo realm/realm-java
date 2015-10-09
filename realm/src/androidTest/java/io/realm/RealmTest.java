@@ -1009,11 +1009,11 @@ public class RealmTest extends AndroidTestCase {
         Realm realm = Realm.getInstance(realmConfig);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
-        try {
+        //try {
             assertTrue(Realm.compactRealm(realmConfig));
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        //    fail();
+        //} catch (IllegalArgumentException expected) {
+        //}
     }
 
     public void testCompactEncryptedPopulatedRealmFile() {
@@ -1026,12 +1026,13 @@ public class RealmTest extends AndroidTestCase {
 
         populateTestRealm(realm, 100);
         realm.close();
-        // TODO: remove try/catch block when compacting encrypted Realms is supported
-        try {
-            assertTrue(Realm.compactRealm(realmConfig));
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        assertTrue(realm.isClosed());
+
+        assertTrue(Realm.compactRealm(realmConfig));
+
+        realm = Realm.getInstance(realmConfig);
+        assertEquals(100, realm.allObjects(AllTypes.class).size());
+        realm.close();
     }
 
     public void testCompactEmptyRealmFile() throws IOException {
