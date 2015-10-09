@@ -37,14 +37,14 @@ import io.realm.internal.InvalidRow;
  *   <li>Static methods.</li>
  * </ul>
  * <p>
- * The following field data types are supported (no boxed types):
+ * The following field data types are supported:
  * <ul>
- *   <li>boolean</li>
- *   <li>short</li>
- *   <li>int</li>
- *   <li>long</li>
- *   <li>float</li>
- *   <li>double</li>
+ *   <li>boolean/Boolean</li>
+ *   <li>short/Short</li>
+ *   <li>int/Integer</li>
+ *   <li>long/Long</li>
+ *   <li>float/Float</li>
+ *   <li>double/Double</li>
  *   <li>byte[]</li>
  *   <li>String</li>
  *   <li>Date</li>
