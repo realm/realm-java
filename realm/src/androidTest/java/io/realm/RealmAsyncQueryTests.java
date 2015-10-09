@@ -268,6 +268,70 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         }
     }
 
+    public void testResusingQuery() throws Throwable {
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                Realm realm = null;
+                try {
+                    realm = openRealmInstance("testResusingQuery");
+                    populateTestRealm(realm, 10);
+
+                    RealmQuery<AllTypes> query = realm.where(AllTypes.class)
+                            .between("columnLong", 0, 4);
+                    RealmResults<AllTypes> queryAllSync = query.findAll();
+                    RealmResults<AllTypes> allAsync = query.findAllAsync();
+
+                    assertTrue(allAsync.load());
+                    assertEquals(allAsync, queryAllSync);
+
+                    // the RealmQuery already has an argumentHolder, can't reuse it
+                    try {
+                        RealmResults<AllTypes> allAsyncSorted = query.findAllSorted("columnLong");
+                        fail("Should throw an exception, can not reuse RealmQuery");
+                    } catch (IllegalStateException ignored) {
+                        signalCallbackFinished.countDown();
+                    }
+
+                    Looper.loop();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm != null) {
+                        realm.close();
+                    }
+                }
+            }
+        });
+
+        // wait until the callback of our async query proceed
+        TestHelper.awaitOrFail(signalCallbackFinished);
+
+        executorService.shutdownNow();
+        if (null != threadAssertionError[0]) {
+            // throw any assertion errors happened in the background thread
+            throw threadAssertionError[0];
+        }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+    }
+
     // finding elements [0-4] asynchronously then wait for the promise to be loaded
     // using a callback to be notified when the data is loaded
     public void testFindAllAsyncWithNotification() throws Throwable {
@@ -1182,10 +1246,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     assertEquals("", realmResults.getColumnString());
 
                     Realm.asyncQueryExecutor.resume();
-                    realmResults.load();
 
+                    assertTrue(realmResults.load());
                     assertTrue(realmResults.isLoaded());
                     assertEquals("test data 4", realmResults.getColumnString());
+
                     signalCallbackFinished.countDown();
                     Looper.loop();
 

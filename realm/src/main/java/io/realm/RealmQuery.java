@@ -1432,6 +1432,7 @@ public class RealmQuery<E extends RealmObject> {
      * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllAsync() {
+        checkQueryIsNotReused();
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
@@ -1465,7 +1466,7 @@ public class RealmQuery<E extends RealmObject> {
                         // Run the query & handover the table view for the caller thread
                         // Note: the handoverQueryPointer contains the versionID needed by the SG in order
                         // to import it.
-                        long handoverTableViewPointer = query.findAllWithHandover(sharedGroup.getNativePointer(), sharedGroup.getNativeReplicationPointer() ,handoverQueryPointer);
+                        long handoverTableViewPointer = query.findAllWithHandover(sharedGroup.getNativePointer(), sharedGroup.getNativeReplicationPointer(), handoverQueryPointer);
 
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
@@ -1532,6 +1533,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName, boolean sortAscending) {
+        checkQueryIsNotReused();
         final TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
         final Long columnIndex = columns.get(fieldName);
         if (columnIndex == null || columnIndex < 0) {
@@ -1678,6 +1680,7 @@ public class RealmQuery<E extends RealmObject> {
      * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final boolean [] sortAscending) {
+        checkQueryIsNotReused();
         checkSortParameters (fieldNames, sortAscending);
 
         if (fieldNames.length == 1 && sortAscending.length == 1) {
@@ -1776,7 +1779,7 @@ public class RealmQuery<E extends RealmObject> {
      */
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
                                    String fieldName2, boolean sortAscending2) {
-        return findAllSorted(new String[] {fieldName1, fieldName2}, new boolean[] {sortAscending1, sortAscending2});
+        return findAllSorted(new String[]{fieldName1, fieldName2}, new boolean[]{sortAscending1, sortAscending2});
     }
 
     /**
@@ -1855,6 +1858,7 @@ public class RealmQuery<E extends RealmObject> {
      * {@link io.realm.RealmObject#addChangeListener} to be notified when the query completes.
      */
     public E findFirstAsync () {
+        checkQueryIsNotReused();
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
@@ -1936,6 +1940,16 @@ public class RealmQuery<E extends RealmObject> {
                     " Async queries need a Handler to send results of your query");
         }
         return new WeakReference<Handler>(realm.handler); // use caller Realm's Looper
+    }
+
+    // We need to prevent the user from using the query again (mostly for async)
+    // Ex: if the first query fail with findFirstAsync, if the user reuse the same RealmQuery
+    //     with findAllSorted, argumentsHolder of the first query will be overridden,
+    //     which cause any retry to use the findAllSorted argumentsHolder.
+    private void checkQueryIsNotReused () {
+        if (argumentsHolder != null) {
+            throw new IllegalStateException("This RealmQuery is already used by a find* query, please create a new query");
+        }
     }
 
     public ArgumentsHolder getArgument () {

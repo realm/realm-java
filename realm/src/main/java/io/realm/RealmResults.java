@@ -721,16 +721,13 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
-        if (realm == null) {
+        if (isLoaded()) {
             return true;
-        }
+        } else {
         // doesn't guarantee to import correctly the result (because the user may have advanced)
         // in this case the Realm#handler will be responsible of retrying
-        realm.checkIfValid();
-        if (pendingQuery != null && !pendingQuery.isDone()) {
             return onCompleted();
         }
-        return false;
     }
 
     /**

@@ -178,16 +178,13 @@ public abstract class RealmObject {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
-        if (realm == null) {
+        if (isLoaded()) {
             return true;
-        }
-        // doesn't guarantee to import correctly the result (because the user may have advanced)
-        // in this case the Realm#handler will be responsible for retrying
-        realm.checkIfValid();
-        if (pendingQuery != null && !pendingQuery.isDone() && !isCompleted) {
+        } else {
+            // doesn't guarantee to import correctly the result (because the user may have advanced)
+            // in this case the Realm#handler will be responsible of retrying
             return onCompleted();
         }
-        return false;
     }
 
     /**
