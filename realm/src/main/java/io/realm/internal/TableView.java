@@ -120,19 +120,6 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
-    public void swapPointer(long newTableViewPointer) {
-        if (nativePtr != 0) {
-            nativeClose(nativePtr);
-
-            if (DEBUG) {
-                System.err.println("==== TableView CLOSE, ptr= " + nativePtr);
-            }
-            nativePtr = 0;
-        }
-        nativePtr = newTableViewPointer;
-    }
-
-    @Override
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
