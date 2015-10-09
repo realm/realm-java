@@ -1100,4 +1100,16 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     // TODO: More extended tests of querying all types must be done.
+
+    public void testIsValid() {
+        final RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAll();
+
+        assertTrue(results.isValid());
+        populateTestRealm(1);
+        // still valid if result changed
+        assertTrue(results.isValid());
+
+        testRealm.close();
+        assertFalse(results.isValid());
+    }
 }
