@@ -4,6 +4,7 @@
  * IllegalStateException is now thrown instead of native crash if following methods in RealmList are called after closing the Realm or removing parent object: add(int,RealmObject), add(RealmObject),
  * IllegalStateException is now thrown instead of ArrayIndexOutOfBoundsException if following methods in RealmList are called after closing the Realm or removing parent object: set(int,RealmObject), move(int,int), remove(int), get(int)
  * IllegalStateException is now thrown instead of returning 0/null if following methods in RealmList are called after closing the Realm or removing parent object: clear(), removeAll(Collection), remove(RealmObject), first(), last(), size(), where()
+ * RealmPrimaryKeyConstraintException is now thrown instead of RealmException if two objects with same primary key are inserted.
 
 0.83
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
