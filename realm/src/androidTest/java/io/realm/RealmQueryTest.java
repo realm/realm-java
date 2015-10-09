@@ -1369,4 +1369,65 @@ public class RealmQueryTest extends AndroidTestCase{
 
         latch.await();
     }
+
+    public void testIsValidOfTableQuery() {
+        final RealmQuery<AllTypes> query = testRealm.where(AllTypes.class);
+
+        assertTrue(query.isValid());
+        populateTestRealm(1);
+        // still valid if result changed
+        assertTrue(query.isValid());
+
+        testRealm.close();
+        assertFalse(query.isValid());
+    }
+
+    public void testIsValidOfTableViewQuery() {
+        populateTestRealm();
+        final RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 5f)
+                .findAll().where();
+        assertTrue(query.isValid());
+
+        populateTestRealm(1);
+        // still valid if table view changed
+        assertTrue(query.isValid());
+
+        testRealm.close();
+        assertFalse(query.isValid());
+    }
+
+    public void testIsValidOfLinkViewQuery() {
+        populateTestRealm(1);
+        final RealmList<Dog> list = testRealm.where(AllTypes.class).findFirst().getColumnRealmList();
+        final RealmQuery<Dog> query = list.where();
+        final long listLength = query.count();
+        assertTrue(query.isValid());
+
+        testRealm.beginTransaction();
+        final Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Dog");
+        list.add(dog);
+        testRealm.commitTransaction();
+
+        // still valid if base view changed
+        assertEquals(listLength + 1, query.count());
+        assertTrue(query.isValid());
+
+        testRealm.close();
+        assertFalse(query.isValid());
+    }
+
+    public void testIsValidOfRemovedParent() {
+        populateTestRealm(1);
+        final AllTypes obj = testRealm.where(AllTypes.class).findFirst();
+        final RealmQuery<Dog> query = obj.getColumnRealmList().where();
+        assertTrue(query.isValid());
+
+        testRealm.beginTransaction();
+        obj.removeFromRealm();
+        testRealm.commitTransaction();
+
+        // invalid if parent has been removed
+        assertFalse(query.isValid());
+    }
 }

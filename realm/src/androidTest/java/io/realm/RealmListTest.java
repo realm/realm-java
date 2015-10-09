@@ -99,9 +99,10 @@ public class RealmListTest extends AndroidTestCase {
      * Non-Managed mode tests                                *
      *********************************************************/
 
-    public void testPublicNoArgConstructor() {
+    public void testIsValid_nonManagedMode() {
+        //noinspection MismatchedQueryAndUpdateOfCollection
         RealmList<AllTypes> list = new RealmList<AllTypes>();
-        assertNotNull(list);
+        assertFalse(list.isValid());
     }
 
     public void testUnavailableMethods_nonManagedMode() {
@@ -269,10 +270,6 @@ public class RealmListTest extends AndroidTestCase {
         checkMethodsOnEmptyList(testRealm, list);
     }
 
-    /*********************************************************
-     * Managed mode tests                                    *
-     *********************************************************/
-
     // Test move where oldPosition > newPosition
     public void testMoveDown_nonManagedMode() {
         RealmList<Dog> dogs = createNonManagedDogList();
@@ -292,6 +289,32 @@ public class RealmListTest extends AndroidTestCase {
 
         assertEquals(TEST_OBJECTS, dogs.size());
         assertEquals(oldIndex, dogs.indexOf(dog));
+    }
+
+    /*********************************************************
+     * Managed mode tests                                    *
+     *********************************************************/
+
+    public void testIsValid() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
+        assertTrue(dogs.isValid());
+
+        testRealm.close();
+        assertFalse(dogs.isValid());
+    }
+
+    public void testIsValidWhenParentRemoved() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
+        testRealm.beginTransaction();
+        owner.removeFromRealm();
+        testRealm.commitTransaction();
+
+        // RealmList contained in removed object is invalid.
+        assertFalse(dogs.isValid());
     }
 
     public void testMoveOutOfBoundsLowerThrows() {
