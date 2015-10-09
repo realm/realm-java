@@ -222,6 +222,52 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         assertFalse(dog.isValid());
     }
 
+    public void testAsyncQueryOnNonLooperThreadShouldThrow () throws Exception {
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final Exception[] threadAssertionError = new Exception[1];
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = null;
+                try {
+                    realm = openRealmInstance("testAsyncQueryOnNonLooperThreadShouldThrow");
+                    populateTestRealm(realm, 10);
+
+                    try {
+                        final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
+                                .between("columnLong", 0, 4)
+                                .findAllAsync();
+                    } catch (IllegalStateException ignore) {
+                        signalCallbackFinished.countDown();
+                    }
+
+                    fail("Should not be able to use async query without a Looper thread");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm != null) {
+                        realm.close();
+                    }
+                }
+            }
+        });
+
+        // wait until the callback of our async query proceed
+        TestHelper.awaitOrFail(signalCallbackFinished);
+
+        executorService.shutdownNow();
+        if (null != threadAssertionError[0]) {
+            // throw any assertion errors happened in the background thread
+            throw threadAssertionError[0];
+        }
+    }
+
     // finding elements [0-4] asynchronously then wait for the promise to be loaded
     // using a callback to be notified when the data is loaded
     public void testFindAllAsyncWithNotification() throws Throwable {

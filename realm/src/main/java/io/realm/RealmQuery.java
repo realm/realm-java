@@ -1432,8 +1432,7 @@ public class RealmQuery<E extends RealmObject> {
      * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllAsync() {
-        // use caller Realm Looper
-        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.handler);
+        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
         final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
@@ -1544,8 +1543,7 @@ public class RealmQuery<E extends RealmObject> {
         argumentsHolder.ascending = sortAscending;
         argumentsHolder.columnIndex = columnIndex;
 
-        // will use the Looper of the caller Realm to post the result
-        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.handler);
+        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
         final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
@@ -1686,8 +1684,7 @@ public class RealmQuery<E extends RealmObject> {
             return findAllSortedAsync(fieldNames[0], sortAscending[0]);
 
         } else {
-            // will use the Looper of the caller Realm to post the result
-            final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.handler);
+            final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
             // Handover the query (to be used by a worker thread)
             final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
@@ -1815,8 +1812,8 @@ public class RealmQuery<E extends RealmObject> {
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
                                    String fieldName2, boolean sortAscending2,
                                    String fieldName3, boolean sortAscending3) {
-        return findAllSorted(new String[] {fieldName1, fieldName2, fieldName3},
-                new boolean[] {sortAscending1, sortAscending2, sortAscending3});
+        return findAllSorted(new String[]{fieldName1, fieldName2, fieldName3},
+                new boolean[]{sortAscending1, sortAscending2, sortAscending3});
     }
 
     /**
@@ -1858,8 +1855,7 @@ public class RealmQuery<E extends RealmObject> {
      * {@link io.realm.RealmObject#addChangeListener} to be notified when the query completes.
      */
     public E findFirstAsync () {
-        // use caller Realm Looper
-        final WeakReference<Handler> weakHandler = new WeakReference<Handler>(realm.handler);
+        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
         final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
@@ -1932,6 +1928,14 @@ public class RealmQuery<E extends RealmObject> {
         } else if (fieldNames.length != sortAscendings.length) {
             throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortAscendings.length));
         }
+    }
+
+    private WeakReference<Handler> getWeakReferenceHandler() {
+        if (realm.handler == null) {
+            throw new IllegalStateException("Your Realm is opened from a thread without a Looper." +
+                    " Async queries need a Handler to send results of your query");
+        }
+        return new WeakReference<Handler>(realm.handler); // use caller Realm's Looper
     }
 
     public ArgumentsHolder getArgument () {
