@@ -27,7 +27,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -47,6 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
@@ -2056,6 +2056,49 @@ public class RealmTest extends AndroidTestCase {
             }
         } catch (InterruptedException e) {
             fail();
+        }
+    }
+
+    // Realm.distinct(): requires indexing, and type = boolean, integer, date, string
+    public void testDistinct() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        testRealm.beginTransaction();
+        for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
+            for (int j = 0; j < numberOfBlocks; j++) {
+                AnnotationIndexTypes obj = testRealm.createObject(AnnotationIndexTypes.class);
+                obj.setIndexBoolean(j % 2 == 0);
+                obj.setIndexLong(j);
+                obj.setIndexDate(new Date(1000 * j));
+                obj.setIndexString("Test " + j);
+                obj.setNotIndexBoolean(j % 2 == 0);
+                obj.setNotIndexLong(j);
+                obj.setNotIndexDate(new Date(1000 * j));
+                obj.setNotIndexString("Test " + j);
+            }
+        }
+        testRealm.commitTransaction();
+
+        RealmResults<AnnotationIndexTypes> distinctBool = testRealm.distinct(AnnotationIndexTypes.class, "indexBoolean");
+        assertEquals(2, distinctBool.size());
+
+        for (String fieldName : new String[]{"Long", "Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.distinct(AnnotationIndexTypes.class, "index" + fieldName);
+            assertEquals("index" + fieldName, numberOfBlocks, distinct.size());
+        }
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.distinct(AnnotationIndexTypes.class, "notIndex" + fieldName);
+                fail("notIndex" + fieldName);
+            } catch (UnsupportedOperationException ignore) {
+            }
+        }
+
+        try {
+            testRealm.distinct(AnnotationIndexTypes.class, "doesNotExist");
+            fail();
+        } catch (IllegalArgumentException ignore) {
         }
     }
 }

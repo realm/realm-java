@@ -1315,17 +1315,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
         return 0;
     if (!pTable->has_search_index(S(columnIndex))) {
-        ThrowException(env, UnsupportedOperation, "The column must be indexed before distinct() can be used.");
+        ThrowException(env, UnsupportedOperation, "The field must be indexed before distinct() can be used.");
         return 0;
     }
-    if (pTable->get_column_type(S(columnIndex)) != type_String) {
-        ThrowException(env, IllegalArgument, "Invalid columntype - only string columns are supported.");
-        return 0;
+    switch (pTable->get_column_type(S(columnIndex))) {
+        case type_Bool:
+        case type_Int:
+        case type_DateTime:
+        case type_String:
+            try {
+                TableView* pTableView = new TableView( pTable->get_distinct_view(S(columnIndex)) );
+                return reinterpret_cast<jlong>(pTableView);
+            } CATCH_STD()
+            break;
+        default:
+            ThrowException(env, IllegalArgument, "Invalid type - only bool, integer, datatime, string are supported.");
+            return 0;
+        break;
     }
-    try {
-        TableView* pTableView = new TableView( pTable->get_distinct_view(S(columnIndex)) );
-        return reinterpret_cast<jlong>(pTableView);
-    } CATCH_STD()
     return 0;
 }
 

@@ -1,5 +1,6 @@
 0.83.1
  * Added Realm.isClosed() method.
+ * Added Realm.distinct() method.
 
 0.83
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
