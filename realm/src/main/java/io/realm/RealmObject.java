@@ -96,7 +96,7 @@ public abstract class RealmObject {
     }
 
     /**
-     * Check if the RealmObject is still valid to use ie. the RealmObject hasn't been deleted nor
+     * Check if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor
      * has the {@link io.realm.Realm} been closed. It will always return false for stand alone
      * objects.
      *
