@@ -166,3 +166,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
     } CATCH_STD()
     return 0;
 }
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsAttached
+  (JNIEnv *env, jobject, jlong nativeLinkViewPtr)
+{
+    TR_ENTER_PTR(nativeLinkViewPtr)
+    try {
+        return LV(nativeLinkViewPtr)->is_attached();
+    } CATCH_STD()
+    return 0;
+}
