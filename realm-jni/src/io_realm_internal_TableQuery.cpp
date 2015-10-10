@@ -889,11 +889,13 @@ std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong replicati
     return query;
 }
 
+// queryPtr would be owned and released by this function
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover(
     JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong fromTableRow)
 {
     TR_ENTER()
     try {
+
         std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
         Table* table = query->get_table().get();
 
@@ -940,6 +942,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
     return -1;
 }
 
+// queryPtr would be owned and released by this function
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
   (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong start, jlong end, jlong limit)
   {
@@ -957,8 +960,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
           TableView* tableView = new TableView(query->find_all(S(start), S(end), S(limit)));
 
           // handover the result
-          std::unique_ptr <SharedGroup::Handover<TableView>> handover = SG(
+          std::unique_ptr<SharedGroup::Handover<TableView>> handover = SG(
                   bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
+          delete tableView;
           return reinterpret_cast<jlong>(handover.release());
       } CATCH_STD()
       return 0;
@@ -1001,6 +1005,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
 
           // handover the result
           std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
+          delete tableView;
           return reinterpret_cast<jlong>(handover.release());
       } CATCH_STD()
       return 0;
@@ -1070,6 +1075,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
 
           // handover the result
           std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
+          delete tableView;
           return reinterpret_cast<jlong>(handover.release());
 
       } CATCH_STD()
@@ -1466,6 +1472,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
     RELEASE_ARRAY()
 }
 
+// handoverPtr will be released in this function
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTableViewIntoSharedGroup
   (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
