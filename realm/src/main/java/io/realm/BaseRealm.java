@@ -89,11 +89,11 @@ abstract class BaseRealm implements Closeable {
     // cleaned if RealmResults is cleaned. we need to keep RealmQuery because it contains the query
     // pointer (to handover for each update) + all the arguments necessary to rerun the query:
     // sorting orders, soring columns, type (findAll, findFirst, findAllSorted etc.)
-    final Map<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<?>> asyncRealmResults =
-            new IdentityHashMap<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<?>>();
+    final Map<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<? extends RealmObject>> asyncRealmResults =
+            new IdentityHashMap<WeakReference<RealmResults<? extends RealmObject>>, RealmQuery<? extends RealmObject>>();
     final ReferenceQueue<RealmResults<? extends RealmObject>> referenceQueue = new ReferenceQueue<RealmResults<? extends RealmObject>>();
-    final Map<WeakReference<RealmObject>, RealmQuery<?>> asyncRealmObjects =
-            new IdentityHashMap<WeakReference<RealmObject>, RealmQuery<?>>();
+    final Map<WeakReference<RealmObject>, RealmQuery<? extends RealmObject>> asyncRealmObjects =
+            new IdentityHashMap<WeakReference<RealmObject>, RealmQuery<? extends RealmObject>>();
 
     // thread pool for all async operations (Query & Write transaction)
     static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
@@ -904,7 +904,6 @@ abstract class BaseRealm implements Closeable {
         Runtime.getRuntime().gc();
         Reference<? extends RealmResults<? extends RealmObject>> weakReference;
         while ((weakReference = referenceQueue.poll()) != null ) { // Does not wait for a reference to become available.
-            RealmLog.d("deleted 1 reference: " + weakReference);
             asyncRealmResults.remove(weakReference);
         }
     }

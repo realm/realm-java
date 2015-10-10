@@ -77,7 +77,7 @@ public class SharedGroupManager implements Closeable {
     }
 
     /**
-     * Advance the Realm file the given version.
+     * Advance the Realm file to the given version.
      */
     public void advanceRead(SharedGroup.VersionID version) {
         transaction.advanceRead(version);
@@ -98,7 +98,7 @@ public class SharedGroupManager implements Closeable {
     }
 
     /**
-     * Returns the version for the SharedGroup
+     * Returns the version for the SharedGroup.
      */
     public SharedGroup.VersionID getVersion() {
         return sharedGroup.getVersion();

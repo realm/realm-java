@@ -17,7 +17,7 @@
 
 package io.realm.internal.async;
 /**
- * Value holder class to encapsulate the arguments of this RealmQuery
+ * Value holder class to encapsulate the arguments of a RealmQuery
  * (in case we want to re-query)
  */
 public class ArgumentsHolder {

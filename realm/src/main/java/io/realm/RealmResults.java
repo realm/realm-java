@@ -700,7 +700,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * still loading. Synchronous query methods like findAll() will always return {@code true},
      * while asynchronous query methods like findAllAsync() will return {@code false} until
      * the results are available.
-     * Note: This will return {@code true} if called from a standalone object (created outside of Realm).
+     * This will return {@code true} if called for a standalone object (created outside of Realm).
      *
      * @return {@code true} if the query has completed and the data is available {@code false} if the
      *         query is still running
@@ -714,8 +714,8 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Make an asynchronous query blocking. This will also trigger any registered
-     * This will return {@code true} from standalone object (created outside of Realm).
+     * Make an asynchronous query blocking. This will also trigger any registered listeners.
+     * This will return {@code true} for standalone object (created outside of Realm).
      *
      * {@link RealmChangeListener} when the query completes.
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
@@ -732,7 +732,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Called to import the handover table_view pointer & notify listeners.
-     * this should be invoked once the {@link #pendingQuery} finish, unless the user force {@link #load()}.
+     * This should be invoked once the {@link #pendingQuery} finish, unless the user force {@link #load()}.
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
@@ -741,7 +741,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
             long tvHandover = pendingQuery.get();// make the query blocking
             // this may fail with BadVersionException if the caller and/or the worker thread
             // are not in sync. REALM_COMPLETED_ASYNC_QUERY will be fired by the worker thread
-            // this is should handle more complex use cases like retry, ignore etc
+            // this should handle more complex use cases like retry, ignore etc
             table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
             isCompleted = true;
             notifyChangeListeners();
@@ -770,7 +770,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Remove a previously registered listener.
-     * @param listener the instance to be removed
+     * @param listener the instance to be removed.
      */
     public void removeChangeListener(RealmChangeListener listener) {
         if (listener == null)

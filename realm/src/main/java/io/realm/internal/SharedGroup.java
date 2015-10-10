@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.io.IOError;
-import java.io.Serializable;
 
 import io.realm.exceptions.RealmIOException;
 
@@ -251,7 +250,7 @@ public class SharedGroup implements Closeable {
 
     }
     
-    public static class VersionID implements Comparable<VersionID>, Serializable {
+    public static class VersionID implements Comparable<VersionID> {
         final long version;
         final long index;
 

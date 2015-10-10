@@ -60,7 +60,7 @@ public class MockActivityManager {
         triggerGC();
         // WeakReferences are enqueued as soon as the object to which they point to becomes
         // weakly reachable.
-        deleteWeaklyeferences();
+        deleteWeaklyReachableReferences();
         return references.size();
     }
 
@@ -90,7 +90,7 @@ public class MockActivityManager {
         }
     }
 
-    private void deleteWeaklyeferences () {
+    private void deleteWeaklyReachableReferences() {
         Reference<? extends Lifecycle> weakReference;
         while ((weakReference = queue.poll()) != null ) { // Does not wait for a reference to become available.
             references.remove(weakReference);

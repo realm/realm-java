@@ -158,7 +158,7 @@ public abstract class RealmObject {
      * Determine if the current RealmObject is obtained synchronously or asynchronously (from
      * a worker thread). Synchronous RealmObjects are by definition blocking hence this method
      * will always return {@code true} for them.
-     * Note: This will return {@code true} if called from a standalone object (created outside of Realm).
+     * This will return {@code true} if called for a standalone object (created outside of Realm).
      *
      * @return {@code true} if the query has completed and the data is available {@code false} if the
      * query is in progress.
@@ -172,8 +172,8 @@ public abstract class RealmObject {
     }
 
     /**
-     * Make an asynchronous query blocking.
-     * Note: This will return {@code true} if called from a standalone object (created outside of Realm).
+     * Make an asynchronous query blocking. This will also trigger any registered listeners.
+     * Note: This will return {@code true} if called for a standalone object (created outside of Realm).
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
