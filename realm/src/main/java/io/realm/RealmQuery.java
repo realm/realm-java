@@ -43,14 +43,14 @@ import io.realm.internal.log.RealmLog;
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults}
  * using the Builder pattern. The query is executed using either {@link #findAll()} or
  * {@link #findFirst()}
- * <p/>
+ * <p>
  * The input to many of the query functions take a field name as String. Note that this is not
  * type safe. If a model class is refactored care has to be taken to not break any queries.
- * <p/>
+ * <p>
  * A {@link io.realm.Realm} is unordered, which means that there is no guarantee that querying a
  * Realm will return the objects in the order they where inserted. Use
  * {@link #findAllSorted(String)} and similar methods if a specific order is required.
- * <p/>
+ * <p>
  * A RealmQuery cannot be passed between different threads.
  *
  * @param <E> The class of the objects to be queried.
@@ -1563,7 +1563,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field name.
-     * <p/>
+     * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
@@ -1667,7 +1667,7 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field name in
      * ascending order.
-     * <p/>
+     * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
@@ -1694,7 +1694,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names.
-     * <p/>
+     * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
@@ -1827,7 +1827,7 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names in
      * ascending order.
-     * <p/>
+     * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
@@ -1860,7 +1860,7 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field names in
      * ascending order.
-     * <p/>
+     * <p>
      * Sorting is currently limited to character sets in 'Latin Basic', 'Latin Supplement', 'Latin Extended A',
      * 'Latin Extended B' (UTF-8 range 0-591). For other character sets, sorting will have no effect.
      *
