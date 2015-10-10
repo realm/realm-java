@@ -87,16 +87,39 @@ if (project.forceDownloadCore instanceof String) {
     ext.forceDownloadCore = Boolean.parseBoolean(project.forceDownloadCore)
 }
 
-task checkProperties(group: 'check', description: 'Check the user provided gradle.properties') << {
-    if (!project.ext['ndk.dir']) {
-        throw new GradleException('The ndkDir property in the gradle.properties file is not set.')
-    } else if (project.ext['ndk.dir'].endsWith('/')) {
-        throw new GradleException('The path provided in the ndkProperty in the gradle.properties ends with /')
-    } else if (!file(project.ext['ndk.dir']).directory) {
-        throw new GradleException('The path provided in the ndkDir property in the gradle.properties is not a folder.')
-    } else if (!file(new File(project.ext['ndk.dir'], 'RELEASE.TXT')).file) {
-        throw new GradleException('The path provided in the ndkDir property in the gradle.properties does not seem to be an Android NDK.')
+def getNdkDir() {
+    def ndkDir = null
+    if (project.hasProperty('ndk.dir')) {
+        ndkDir = project.ext['ndk.dir']
+    } else if (System.getenv('NDK_HOME')) {
+        ndkDir = System.getenv('NDK_HOME')
     }
+    if (ndkDir) {
+        if (ndkDir[-1] == "/") {
+            ndkDir = ndkDir[0..-2]
+        }
+    } else {
+        throw new GradleException('The ndk.dir property in the local.properties file or NDK_HOME is not set. One of them should be set.')
+    }
+    if (!file(ndkDir).directory) {
+        throw new GradleException('The path provided in the ndk.dir property in the local.properties or NDK_HOME is not a folder.')
+    }
+   return ndkDir
+}
+
+def verifyNdk(ndkDir) {
+    def releaseFile = file("${ndkDir}/RELEASE.TXT")
+    if (!releaseFile.file) {
+        throw new GradleException('The path provided in the ndk.dir property in the local.properties or NDK_HOME does not seem to be an Android NDK.')
+    }
+    def ndkVersion = releaseFile.getText('UTF-8').split()[0]
+    if (ndkVersion != properNdkVersion) {
+        throw new GradleException("Your NDK version: ${ndkVersion}. Realm JNI should be compiled with the version ${properNdkVersion} of NDK.")
+    }
+}
+
+task checkProperties(group: 'check', description: 'Check the user provided gradle.properties') << {
+    verifyNdk(getNdkDir())
     if (project.ext.has('encryption') && project.ext['encryption'] == 'true') {
         project.coreVersion += '-encryption'
     }
@@ -203,6 +226,7 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
 }
 
 toolchains.each { toolchain ->
+    def ndkDir = getNdkDir()
     task "generateNdkToolchain${toolchain.name.capitalize()}"(type: Exec) {
         group 'build setup'
         description "Generate the NDK standalone toolchain for the ${toolchain.name.capitalize()} platform"
@@ -210,7 +234,7 @@ toolchains.each { toolchain ->
         outputs.dir new File("${buildDir}/standalone-toolchains/${toolchain.name}")
         commandLine = [
             "bash",
-            "${project.ext['ndk.dir']}/build/tools/make-standalone-toolchain.sh",
+            "${ndkDir}/build/tools/make-standalone-toolchain.sh",
             "--platform=android-${toolchain.platform}",
             "--install-dir=${buildDir}/standalone-toolchains/${toolchain.name}",
             "--toolchain=${toolchain.fullName}-${clang?'clang'+toolchain.version[Compiler.CLANG]:toolchain.version[Compiler.GCC]}"

@@ -1065,17 +1065,6 @@ public final class Realm extends BaseRealm {
     }
 
     @SuppressWarnings("unchecked")
-    private <E extends RealmObject> Class<? extends RealmObject> getRealmClassFromObject(E object) {
-        if (object.realm != null) {
-            // This is already a proxy object, get superclass instead
-            // INVARIANT: We don't support subclasses yet so super class is always correct type
-            return (Class<? extends RealmObject>) object.getClass().getSuperclass();
-        } else {
-            return object.getClass();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
     private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
         return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
     }
@@ -1083,13 +1072,6 @@ public final class Realm extends BaseRealm {
     private <E extends RealmObject> void checkNotNullObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
-        }
-    }
-
-    private <E extends RealmObject> void checkHasPrimaryKey(E object) {
-        Class<? extends RealmObject> objectClass = object.getClass();
-        if (!getTable(objectClass).hasPrimaryKey()) {
-            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + objectClass.getSimpleName());
         }
     }
 

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm;
 
 import android.test.AndroidTestCase;
@@ -1367,5 +1383,66 @@ public class RealmQueryTest extends AndroidTestCase{
         }
 
         latch.await();
+    }
+
+    public void testIsValidOfTableQuery() {
+        final RealmQuery<AllTypes> query = testRealm.where(AllTypes.class);
+
+        assertTrue(query.isValid());
+        populateTestRealm(1);
+        // still valid if result changed
+        assertTrue(query.isValid());
+
+        testRealm.close();
+        assertFalse(query.isValid());
+    }
+
+    public void testIsValidOfTableViewQuery() {
+        populateTestRealm();
+        final RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 5f)
+                .findAll().where();
+        assertTrue(query.isValid());
+
+        populateTestRealm(1);
+        // still valid if table view changed
+        assertTrue(query.isValid());
+
+        testRealm.close();
+        assertFalse(query.isValid());
+    }
+
+    public void testIsValidOfLinkViewQuery() {
+        populateTestRealm(1);
+        final RealmList<Dog> list = testRealm.where(AllTypes.class).findFirst().getColumnRealmList();
+        final RealmQuery<Dog> query = list.where();
+        final long listLength = query.count();
+        assertTrue(query.isValid());
+
+        testRealm.beginTransaction();
+        final Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Dog");
+        list.add(dog);
+        testRealm.commitTransaction();
+
+        // still valid if base view changed
+        assertEquals(listLength + 1, query.count());
+        assertTrue(query.isValid());
+
+        testRealm.close();
+        assertFalse(query.isValid());
+    }
+
+    public void testIsValidOfRemovedParent() {
+        populateTestRealm(1);
+        final AllTypes obj = testRealm.where(AllTypes.class).findFirst();
+        final RealmQuery<Dog> query = obj.getColumnRealmList().where();
+        assertTrue(query.isValid());
+
+        testRealm.beginTransaction();
+        obj.removeFromRealm();
+        testRealm.commitTransaction();
+
+        // invalid if parent has been removed
+        assertFalse(query.isValid());
     }
 }

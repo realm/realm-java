@@ -37,26 +37,26 @@ import io.realm.internal.log.RealmLog;
  * process.
  * <p>
  * A RealmObject is currently limited to the following:
- * <p>
+ *
  * <ul>
- * <li>Private fields.</li>
- * <li>Getter and setters for these fields.</li>
- * <li>Static methods.</li>
+ *   <li>Private fields.</li>
+ *   <li>Getter and setters for these fields.</li>
+ *   <li>Static methods.</li>
  * </ul>
  * <p>
- * The following field data types are supported (no boxed types):
+ * The following field data types are supported:
  * <ul>
- * <li>boolean</li>
- * <li>short</li>
- * <li>int</li>
- * <li>long</li>
- * <li>float</li>
- * <li>double</li>
- * <li>byte[]</li>
- * <li>String</li>
- * <li>Date</li>
- * <li>Any RealmObject subclass</li>
- * <li>RealmList</li>
+ *   <li>boolean/Boolean</li>
+ *   <li>short/Short</li>
+ *   <li>int/Integer</li>
+ *   <li>long/Long</li>
+ *   <li>float/Float</li>
+ *   <li>double/Double</li>
+ *   <li>byte[]</li>
+ *   <li>String</li>
+ *   <li>Date</li>
+ *   <li>Any RealmObject subclass</li>
+ *   <li>RealmList</li>
  * </ul>
  * <p>
  * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code>
@@ -93,7 +93,7 @@ public abstract class RealmObject {
      * Removes the object from the Realm it is currently associated to.
      * <p>
      * After this method is called the object will be invalid and any operation (read or write)
-     * performed on it will fail with an IllegalStateException.
+     * performed on it will fail with an IllegalStateException
      */
     public void removeFromRealm() {
         if (row == null) {
@@ -107,7 +107,7 @@ public abstract class RealmObject {
     }
 
     /**
-     * Check if the RealmObject is still valid to use ie. the RealmObject hasn't been deleted nor
+     * Check if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor
      * has the {@link io.realm.Realm} been closed. It will always return false for stand alone
      * objects.
      *
