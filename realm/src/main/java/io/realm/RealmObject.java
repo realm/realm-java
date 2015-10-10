@@ -209,7 +209,6 @@ public abstract class RealmObject {
     }
 
     void onCompleted(Long handoverRowPointer) {
-        realm.checkIfValid();
         if (!isCompleted) {
             isCompleted = true;
             long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());

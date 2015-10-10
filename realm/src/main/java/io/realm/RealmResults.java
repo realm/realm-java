@@ -737,7 +737,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     private boolean onCompleted() {
-        realm.checkIfValid();
         try {
             long tvHandover = pendingQuery.get();// make the query blocking
             // this may fail with BadVersionException if the caller and/or the worker thread
