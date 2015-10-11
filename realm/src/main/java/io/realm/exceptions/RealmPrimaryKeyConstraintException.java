@@ -17,7 +17,7 @@
 package io.realm.exceptions;
 
 /**
- * Class for reporting problems with the primary key constraint being broken.
+ * Class for reporting problems when the primary key constraint is being broken.
  *
  * @see io.realm.annotations.PrimaryKey
  */
