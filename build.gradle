@@ -3,14 +3,16 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath 'ch.netzwerg:gradle-release-plugin:1.1.0'
     }
 }
 
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
+apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = new File("${projectDir}/version.txt").text.trim();
 
@@ -40,17 +42,20 @@ task checkEnvironment(group: 'check', description: 'Check the user provided grad
 
 task assembleGradlePlugin(type:GradleBuild) {
     group = 'Build'
+    description = 'Assemble the Realm Gradle plugin'
     buildFile = file('gradle-plugin/build.gradle')
     tasks = ['assemble']
 }
 
 task assembleRealm(type:GradleBuild) {
     group = 'Build'
+    description = 'Assemble the Realm project'
     buildFile = file('realm/build.gradle')
     tasks = ['assemble']
 }
 
 task installGradlePlugin(type:GradleBuild) {
+    description = 'Install the Realm Gradle plugin to the Maven Repo in ANDROID_HOME'
     group = 'Install'
     buildFile = file('gradle-plugin/build.gradle')
     tasks = ['uploadArchives']
@@ -58,6 +63,7 @@ task installGradlePlugin(type:GradleBuild) {
 
 task installRealm(type:GradleBuild) {
     group = 'Install'
+    description = 'Install the artifacts of Realm project to the Maven Repo in ANDROID_HOME'
     buildFile = file('realm/build.gradle')
     tasks = ['uploadArchives']
 }
@@ -66,23 +72,36 @@ task assembleExamples(type:GradleBuild) {
     dependsOn installGradlePlugin
     dependsOn installRealm
     group = 'Build'
+    description = 'Assemble the Realm examples'
     buildFile = file('examples/build.gradle')
     tasks = ['assemble']
 }
 
+task monkeyExamples(type:GradleBuild) {
+    dependsOn installGradlePlugin
+    dependsOn installRealm
+    group = 'Build'
+    description = 'Run the monkey tests on the Realm examples'
+    buildFile = file('examples/build.gradle')
+    tasks = ['monkeyRelease']
+}
+
 task javadoc(type:GradleBuild) {
+    description = 'Generate the Javadoc Jar for the Realm project'
     group = 'Docs'
     buildFile = file('realm/build.gradle')
     tasks = ['javadocJar']
 }
 
 task eclipseJar(type:GradleBuild) {
+    description = 'Generate the Jar file to be used with Eclipse'
     group = 'Artifact'
     buildFile = file('realm/build.gradle')
     tasks = ['shadowJar']
 }
 
 task distributionPackage(type:Zip) {
+    description = 'Generate the distribution package'
     dependsOn eclipseJar
     dependsOn assembleRealm
     dependsOn javadoc
@@ -116,6 +135,44 @@ task distributionPackage(type:Zip) {
         exclude '**/build'
         into 'examples'
     }
+}
+
+task cleanRealm(type:GradleBuild) {
+    description = 'Clean the Realm project'
+    group = 'Clean'
+    buildFile = file('realm/build.gradle')
+    tasks = ['clean']
+}
+
+task cleanGradlePlugin(type:GradleBuild) {
+    description = 'Clean the Realm Gradle plugin project'
+    group = 'Clean'
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['clean']
+}
+
+task cleanExamples(type:GradleBuild) {
+    description = 'Clean the Realm examples'
+    group = 'Clean'
+    buildFile = file('examples/build.gradle')
+    tasks = ['clean']
+}
+
+task cleanLocalMavenRepos(type:Delete) {
+    description = 'Remove any Realm artifacts from the local Maven repositories'
+    group = 'Clean'
+    dependsOn checkEnvironment
+    delete "${System.env.ANDROID_HOME}/extras/android/m2repository/io/realm"
+    delete "${System.env.HOME}/.m2/repository/io/realm"
+}
+
+task clean {
+    description = 'Perform all the other clean tasks'
+    group = 'Clean'
+    dependsOn cleanRealm
+    dependsOn cleanGradlePlugin
+    dependsOn cleanExamples
+    dependsOn cleanLocalMavenRepos
 }
 
 def commonPom = {
@@ -225,4 +282,11 @@ bintray {
         labels = ['aar', 'android', 'realm']
         publicDownloadNumbers = false
     }
+}
+
+release {
+  dependsOn distributionPackage
+  push = false
+  versionSuffix = '-SNAPSHOT'
+  tagPrefix = 'v'
 }

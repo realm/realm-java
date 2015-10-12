@@ -6,7 +6,10 @@ allprojects {
 
     buildscript {
         repositories {
-            mavenLocal()
+            //mavenLocal()
+            maven {
+                url "${System.env.ANDROID_HOME}/extras/android/m2repository"
+            }
             jcenter()
         }
         dependencies {
@@ -22,6 +25,9 @@ allprojects {
     version = currentVersion
 
     repositories {
+        maven {
+            url "${System.env.ANDROID_HOME}/extras/android/m2repository"
+        }
         jcenter()
     }
 }
