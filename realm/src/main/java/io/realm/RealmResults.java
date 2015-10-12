@@ -87,6 +87,16 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
+     * Check if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm}
+     * instance hasn't been closed.
+     *
+     * @return {@code true} if still valid to use, {@code false} otherwise.
+     */
+    public boolean isValid() {
+        return realm != null && !realm.isClosed();
+    }
+
+    /**
      * Returns a typed {@link io.realm.RealmQuery}, which can be used to query for specific
      * objects of this type.
      *

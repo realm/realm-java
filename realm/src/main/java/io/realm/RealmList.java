@@ -98,6 +98,22 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         this.realm = realm;
     }
 
+    /**
+     * Check if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm}
+     * instance hasn't been closed.
+     *
+     * @return {@code true} if still valid to use, {@code false} otherwise or if it is a
+     * standalone object.
+     */
+    public boolean isValid() {
+        //noinspection SimplifiableIfStatement
+        if (!managedMode) {
+            return false;
+        }
+
+        return isAttached();
+    }
+
     private boolean isAttached() {
         return view != null && view.isAttached();
     }
