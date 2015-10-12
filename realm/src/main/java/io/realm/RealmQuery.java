@@ -1652,7 +1652,6 @@ public class RealmQuery<E extends RealmObject> {
 
     // FIXME Replace with Schema when it is available
     private static class DynamicColumnMap implements Map<String, Long> {
-
         private final Table table;
 
         public DynamicColumnMap(Table table) {

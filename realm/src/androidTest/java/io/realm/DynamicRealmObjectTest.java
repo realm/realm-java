@@ -105,7 +105,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
-    // Test that all getters fail if given a invalid field name
+    // Test that all getters fail if given an invalid field name
     public void testSetXXXIllegalFieldNameThrows() {
 
         // Set arguments
@@ -390,7 +390,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         assertEquals(1.234d, dObj.getDouble(AllJavaTypes.FIELD_DOUBLE));
                         break;
 
-                    // These types doesn't have a string representation that should be parsed.
+                    // These types don't have a string representation that should be parsed.
                     case OBJECT:
                     case LIST:
                     case STRING:

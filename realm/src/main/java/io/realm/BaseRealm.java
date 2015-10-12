@@ -609,7 +609,7 @@ abstract class BaseRealm implements Closeable {
         E result;
         if (dynamicClassName != null) {
             table = getTable(dynamicClassName);
-            result = (E) new DynamicRealmObject();
+            result = clazz.cast(new DynamicRealmObject());
         } else {
             table = getTable(clazz);
             result = configuration.getSchemaMediator().newInstance(clazz);

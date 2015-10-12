@@ -113,10 +113,11 @@ public class DynamicRealmTest extends AndroidTestCase {
 
     // Test that the closed Realm isn't kept in the Realm instance cache
     public void testRealmCacheIsCleared() {
+        realm.close(); // Close DynamicRealm created in setup to prevent it interfering with caches here.
         Realm typedRealm = Realm.getInstance(defaultConfig);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
 
-        typedRealm.close(); // Still a instance open, but typed Realm cache must still be cleared.
+        typedRealm.close(); // Still a dynamic instance open, but the typed Realm cache must still be cleared.
         dynamicRealm.close();
 
         try {
@@ -133,7 +134,7 @@ public class DynamicRealmTest extends AndroidTestCase {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
         Realm typedRealm = Realm.getInstance(defaultConfig);
 
-        dynamicRealm.close(); // Still a instance open, but DynamicRealm cache must still be cleared.
+        dynamicRealm.close(); // Still an instance open, but DynamicRealm cache must still be cleared.
         typedRealm.close();
 
         try {
@@ -201,7 +202,10 @@ public class DynamicRealmTest extends AndroidTestCase {
                 owner.setString("name", "Owner");
             }
         });
-        assertEquals(1, realm.allObjects(CLASS_OWNER).size());
+
+        RealmResults<DynamicRealmObject> allObjects = realm.allObjects(CLASS_OWNER);
+        assertEquals(1, allObjects.size());
+        assertEquals("Owner", allObjects.get(0).getString("name"));
     }
 
     public void testExecuteTransactionCancel() {
@@ -240,7 +244,7 @@ public class DynamicRealmTest extends AndroidTestCase {
     }
 
     public void testSortTwoFields() {
-        io.realm.internal.test.TestHelper.populateForMultiSort(realm);
+        TestHelper.populateForMultiSort(realm);
 
         RealmResults<DynamicRealmObject> results1 = realm.allObjectsSorted(CLASS_ALL_TYPES,
                 new String[]{AllTypes.FIELD_STRING, AllTypes.FIELD_LONG},
@@ -274,7 +278,6 @@ public class DynamicRealmTest extends AndroidTestCase {
     }
 
     public void testSortMultiFailures() {
-
         // zero fields specified
         try {
             realm.allObjectsSorted(CLASS_ALL_TYPES, new String[]{}, new Sort[]{});

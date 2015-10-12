@@ -33,7 +33,8 @@ import io.realm.internal.TableView;
  * done using string based class names instead of class type references.
  *
  * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file in both dynamic and typed mode, but
- * modifying the schema while doing so is highly discouraged and will most likely crash the typed Realm.
+ * modifying the schema while having both a typed and dynamic version open is highly discouraged and will most likely
+ * crash the typed Realm. During migrations only a DynamicRealm will be open.
  *
  * Dynamic Realms do not enforce schemas and schema versions and {@link RealmMigration} code is not used even if it
  * has been defined in the {@link RealmConfiguration}.
@@ -85,6 +86,7 @@ public class DynamicRealm extends BaseRealm {
      * @throws RealmException if the object could not be created.
      */
     public DynamicRealmObject createObject(String className) {
+        checkIfValid();
         Table table = getTable(className);
         long rowIndex = table.addEmptyRow();
         return get(DynamicRealmObject.class, className, rowIndex);
@@ -112,6 +114,7 @@ public class DynamicRealm extends BaseRealm {
      * @param className The class for which all objects should be removed.
      */
     public void clear(String className) {
+        checkIfValid();
         getTable(className).clear();
     }
 
@@ -153,7 +156,7 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Get all objects of a specific class name sorted by a field.  If no objects exist, the returned
-     * RealmResults will not be null. The RealmResults.size() to check the number of objects instead.
+     * RealmResults will not be null. Use {@link RealmResults#size()} to check the number of objects instead.
      *
      * @param className The class to get all objects from.
      * @param fieldName the field name to sort by.
@@ -176,8 +179,11 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Get all objects of a specific class name sorted by two specific field names.  If no objects exist,
-     * the returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * the returned RealmResults will not be null. Use {@link RealmResults#size()} to check the number of
      * objects instead.
+
+     you mean: call RealmResults.size() to check the number of objects instead.
+     if fixed replaceAll The RealmResults.size()
 
      * @param className The class to get all objects from.
      * @param fieldName1 The first field name to sort by.
@@ -197,7 +203,7 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Get all objects of a specific class name sorted by multiple fields.  If no objects exist, the
-     * returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * returned RealmResults will not be null. Use {@link RealmResults#size()} to check the number of
      * objects instead.
      *
      * @param className The class to get all objects from.
@@ -233,8 +239,8 @@ public class DynamicRealm extends BaseRealm {
             return realm;
         }
 
-        // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
-        // faulty cache data.
+        // Create new DynamicRealm and cache it. All exception code paths must close the DynamicRealm otherwise we risk
+        // serving faulty cache data.
         validateAgainstExistingConfigurations(configuration);
         boolean autoRefresh = Looper.myLooper() != null;
         realm = new DynamicRealm(configuration, autoRefresh);

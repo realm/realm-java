@@ -55,12 +55,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     BaseRealm realm;
     Class<E> classSpec;   // Return type
-    String className;     // Class name for DynamicRealmObjects -> TODO This is not set properly
+    String className;     // Class name used by DynamicRealmObjects
     private TableOrView table = null;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private long currentTableViewVersion = -1;
-
 
     static <E extends RealmObject> RealmResults<E> createFromClass(BaseRealm realm, Class<E> clazz) {
         return new RealmResults<E>(realm, clazz);
