@@ -107,7 +107,8 @@ task distributionPackage(type:Zip) {
     dependsOn javadoc
 
     group = 'Artifact'
-    archiveName = 'realm-android.zip'
+    archiveName = "realm-java-${currentVersion}.zip"
+    destinationDir = file("${buildDir}/outputs/distribution")
 
     from('changelog.txt')
     from('LICENSE')
@@ -173,6 +174,44 @@ task clean {
     dependsOn cleanGradlePlugin
     dependsOn cleanExamples
     dependsOn cleanLocalMavenRepos
+}
+
+task uploadDistributionPackage(type: Exec) {
+    group = 'Release'
+    description = 'Upload the distribution package to S3'
+    dependsOn distributionPackage
+    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+}
+
+task createEmptyFile(type: Exec) {
+    group = 'Release'
+    description = 'Create an empty file that will serve as a link on S3'
+    dependsOn uploadDistributionPackage
+    commandLine 'touch', 'latest'
+}
+
+['java', 'android'].each() { link ->
+    task "upload${link.capitalize()}LatestLink"(type: Exec) {
+        group = 'Release'
+        description = "Update the link to the latest version for ${link.capitalize()}"
+        dependsOn createEmptyFile
+        commandLine 's3cmd', 'put', 'latest', "--add-header=x-amz-website-redirect-location:/downloads/java/realm-java-${currentVersion}.zip", "s3://static.realm.io/downloads/${link}/latest"
+    }
+}
+
+task uploadUpdateVersion(type: Exec) {
+    group = 'Release'
+    description = 'Update the file on S3 containing the latest version'
+    ['java', 'android'].each() { link ->
+        dependsOn "upload${link.capitalize()}LatestLink"
+    }
+    commandLine 's3cmd', 'put', "${rootDir}/version.txt", 's3://static.realm.io/update/java'
+}
+
+task distribute {
+    group = 'Release'
+    description = 'Distribute release artifacts to Bintray and S3'
+    dependsOn uploadUpdateVersion
 }
 
 def commonPom = {
@@ -286,7 +325,7 @@ bintray {
 
 release {
   dependsOn distributionPackage
-  push = false
+  push = true
   versionSuffix = '-SNAPSHOT'
   tagPrefix = 'v'
 }
