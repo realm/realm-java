@@ -24,6 +24,7 @@ import io.realm.entities.AnnotationTypes;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.Table;
 
 public class RealmAnnotationTest extends AndroidTestCase {
@@ -153,7 +154,7 @@ public class RealmAnnotationTest extends AndroidTestCase {
         try {
             testRealm.createObject(AnnotationTypes.class);
             fail("Two empty objects cannot be created on the same table if a primary key is defined");
-        } catch (RealmException expected) {
+        } catch (RealmPrimaryKeyConstraintException expected) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -183,7 +184,7 @@ public class RealmAnnotationTest extends AndroidTestCase {
             AnnotationTypes obj2 = testRealm.createObject(AnnotationTypes.class);
             obj2.setId(1);
             fail("Inserting two objects with same primary key should fail");
-        } catch (RealmException expected) {
+        } catch (RealmPrimaryKeyConstraintException expected) {
         } finally {
             testRealm.cancelTransaction();
         }

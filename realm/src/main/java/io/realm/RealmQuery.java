@@ -239,6 +239,23 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
+     * Check if {@link io.realm.RealmQuery} is still valid to use i.e. the {@link io.realm.Realm}
+     * instance hasn't been closed and any parent {@link io.realm.RealmResults} is still valid.
+     *
+     * @return {@code true} if still valid to use, {@code false} otherwise.
+     */
+    public boolean isValid() {
+        if (realm == null || realm.isClosed()) {
+            return false;
+        }
+
+        if (view != null) {
+            return view.isAttached();
+        }
+        return table != null && table.isValid();
+    }
+
+    /**
      * Test if a field is {@code null}. Only works for nullable fields.
      *
      * @param fieldName the field name.

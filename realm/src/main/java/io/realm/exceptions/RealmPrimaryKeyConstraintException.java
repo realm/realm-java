@@ -17,23 +17,12 @@
 package io.realm.exceptions;
 
 /**
- * Class for reporting problems with Realm files.
+ * Class for reporting problems when the primary key constraint is being broken.
+ *
+ * @see io.realm.annotations.PrimaryKey
  */
-public class RealmIOException extends RuntimeException {
-
-    public RealmIOException(Throwable cause) {
-        super(cause);
-    }
-
-    public RealmIOException() {
-    }
-
-    public RealmIOException(String message) {
+public class RealmPrimaryKeyConstraintException extends RuntimeException {
+    public RealmPrimaryKeyConstraintException(String message) {
         super(message);
     }
-
-    public RealmIOException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

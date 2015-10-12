@@ -114,6 +114,10 @@ public class LinkView {
         }
     }
 
+    public boolean isAttached() {
+        return nativeIsAttached(nativeLinkViewPtr);
+    }
+
     /**
      * Returns the Table which all links point to.
      */
@@ -139,4 +143,5 @@ public class LinkView {
     private native long nativeSize(long nativeLinkViewPtr);
     private native boolean nativeIsEmpty(long nativeLinkViewPtr);
     protected native long nativeWhere(long nativeLinkViewPtr);
+    private native boolean nativeIsAttached(long nativeLinkViewPtr);
 }

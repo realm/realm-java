@@ -107,6 +107,26 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
+     * Check if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm}
+     * instance hasn't been closed.
+     *
+     * @return {@code true} if still valid to use, {@code false} otherwise or if it is a
+     * standalone object.
+     */
+    public boolean isValid() {
+        //noinspection SimplifiableIfStatement
+        if (!managedMode) {
+            return false;
+        }
+
+        return isAttached();
+    }
+
+    private boolean isAttached() {
+        return view != null && view.isAttached();
+    }
+
+    /**
      * Inserts the specified object into this List at the specified location. The object is inserted before any previous
      * element at the specified location. If the location is equal to the size of this List, the object is added at the
      * end.
@@ -121,12 +141,14 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * </ol>
      * @param location the index at which to insert.
      * @param object the object to add.
+     * @throws IllegalStateException if Realm instance has been closed or container object has been removed.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}
      */
     @Override
     public void add(int location, E object) {
         checkValidObject(object);
         if (managedMode) {
+            checkIfViewAttached();
             object = copyToRealmIfNeeded(object);
             view.insert(location, object.row.getIndex());
         } else {
@@ -147,11 +169,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * </ol>
      * @param object the object to add.
      * @return true
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     @Override
     public boolean add(E object) {
         checkValidObject(object);
         if (managedMode) {
+            checkIfViewAttached();
             object = copyToRealmIfNeeded(object);
             view.add(object.row.getIndex());
         } else {
@@ -175,12 +199,14 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @param location the index at which to put the specified object.
      * @param object the object to add.
      * @return the previous element at the index.
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
     public E set(int location, E object) {
         checkValidObject(object);
         if (managedMode) {
+            checkIfViewAttached();
             object = copyToRealmIfNeeded(object);
             view.set(location, object.row.getIndex());
         } else {
@@ -214,10 +240,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      *               to the right. If oldPos &lt; newPos, indexes &gt; oldPos will be shifted once to the
      *               left.
      *
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()[.
      */
     public void move(int oldPos, int newPos) {
         if (managedMode) {
+            checkIfViewAttached();
             view.move(oldPos, newPos);
         } else {
             checkIndex(oldPos);
@@ -234,12 +262,14 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     /**
      * Removes all elements from this list, leaving it empty.
      *
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see List#isEmpty
      * @see List#size
      */
     @Override
     public void clear() {
         if (managedMode) {
+            checkIfViewAttached();
             view.clear();
         } else {
             nonManagedList.clear();
@@ -251,11 +281,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      *
      * @param location the index of the object to remove.
      * @return the removed object.
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
     public E remove(int location) {
         if (managedMode) {
+            checkIfViewAttached();
             E removedItem = get(location);
             view.remove(location);
             return removedItem;
@@ -269,11 +301,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      *
      * @param location the index of the element to return.
      * @return the element at the specified index.
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
      */
     @Override
     public E get(int location) {
         if (managedMode) {
+            checkIfViewAttached();
             long rowIndex = view.getTargetRowIndex(location);
             return realm.get(clazz, className, rowIndex);
         } else {
@@ -285,10 +319,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * Find the first object.
      *
      * @return The first object or {@code null} if the list is empty.
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     public E first() {
-        if (managedMode && !view.isEmpty()) {
-            return get(0);
+        if (managedMode) {
+            checkIfViewAttached();
+            return view.isEmpty() ? null : get(0);
         } else if (nonManagedList != null && nonManagedList.size() > 0) {
             return nonManagedList.get(0);
         }
@@ -299,10 +335,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * Find the last object.
      *
      * @return The last object or {@code null} if the list is empty.
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     public E last() {
-        if (managedMode && !view.isEmpty()) {
-            return get((int) view.size() - 1);
+        if (managedMode) {
+            checkIfViewAttached();
+            return view.isEmpty() ? null : get((int) view.size() - 1);
         } else if (nonManagedList != null && nonManagedList.size() > 0) {
             return nonManagedList.get(nonManagedList.size() - 1);
         }
@@ -313,10 +351,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * Returns the number of elements in this {@code List}.
      *
      * @return the number of elements in this {@code List}.
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     @Override
     public int size() {
         if (managedMode) {
+            checkIfViewAttached();
             long size = view.size();
             return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
         } else {
@@ -328,10 +368,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * Returns a RealmQuery, which can be used to query for specific objects of this class
      *
      * @return A RealmQuery object
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see io.realm.RealmQuery
      */
     public RealmQuery<E> where() {
         if (managedMode) {
+            checkIfViewAttached();
             return RealmQuery.createQueryFromList(this);
         } else {
             throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
@@ -351,19 +393,29 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    private void checkIfViewAttached() {
+        if (view == null || !view.isAttached()) {
+            throw new IllegalStateException("Realm instance has been closed or parent object has been removed.");
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(managedMode ? clazz.getSimpleName() : getClass().getSimpleName());
         sb.append("@[");
-        for (int i = 0; i < size(); i++) {
-            if (managedMode) {
-                sb.append(get(i).row.getIndex());
-            } else {
-                sb.append(System.identityHashCode(get(i)));
-            }
-            if (i < size() - 1) {
-                sb.append(',');
+        if (managedMode && !isAttached()) {
+            sb.append("invalid");
+        } else {
+            for (int i = 0; i < size(); i++) {
+                if (managedMode) {
+                    sb.append(get(i).row.getIndex());
+                } else {
+                    sb.append(System.identityHashCode(get(i)));
+                }
+                if (i < size() - 1) {
+                    sb.append(',');
+                }
             }
         }
         sb.append("]");
