@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.RealmFieldType;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.exceptions.RealmException;
 import io.realm.Sort;
 
@@ -678,7 +679,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private void throwDuplicatePrimaryKeyException(Object value) {
-        throw new RealmException("Primary key constraint broken. Value already exists: " + value);
+        throw new RealmPrimaryKeyConstraintException("Value already exists: " + value);
     }
 
     //
@@ -1034,7 +1035,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *                      will remove any previous set magic key.
      *
      * @throws              {@link io.realm.exceptions.RealmException} if it is not possible to set
-     *                      the primary key due to the column not having distinct values (ie.
+     *                      the primary key due to the column not having distinct values (i.e.
      *                      violating the primary key constraint).
      */
     public void setPrimaryKey(String columnName) {

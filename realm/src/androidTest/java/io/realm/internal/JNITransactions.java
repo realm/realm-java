@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal;
 
 
@@ -12,6 +28,7 @@ import io.realm.Realm;
 import io.realm.TestHelper;
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 public class JNITransactions extends AndroidTestCase {
     
@@ -293,7 +310,7 @@ public class JNITransactions extends AndroidTestCase {
         tbl.add("Foo", 42);
         try {
             tbl.add("Foo", 41);
-        } catch (RealmException e1) {
+        } catch (RealmPrimaryKeyConstraintException e1) {
             // Primary key check worked, now remove it and try again.
             tbl.setPrimaryKey("");
             try {
@@ -322,7 +339,7 @@ public class JNITransactions extends AndroidTestCase {
         long rowIndex = tbl.addEmptyRow();
         try {
             tbl.setString(0, rowIndex, "Foo"); // Try to create 2nd entry with name Foo
-        } catch (RealmException e1) {
+        } catch (RealmPrimaryKeyConstraintException e1) {
             tbl.setPrimaryKey(""); // Primary key check worked, now remove it and try again.
             try {
                 tbl.setString(0, rowIndex, "Foo");

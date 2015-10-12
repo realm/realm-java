@@ -334,7 +334,7 @@ abstract class BaseRealm implements Closeable {
      */
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
-        if (sharedGroupManager != null && !sharedGroupManager.isOpen()) {
+        if (sharedGroupManager == null || !sharedGroupManager.isOpen()) {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
         }
 
@@ -411,6 +411,19 @@ abstract class BaseRealm implements Closeable {
         if (handler != null && refCount <= 0) {
             removeHandler(handler);
         }
+    }
+
+    /**
+     * Check if the {@link io.realm.Realm} instance has already been closed.
+     *
+     * @return {@code true} if closed, {@code false} otherwise.
+     */
+    public boolean isClosed() {
+        if (this.threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
+        }
+
+        return sharedGroupManager == null || !sharedGroupManager.isOpen();
     }
 
     /**
