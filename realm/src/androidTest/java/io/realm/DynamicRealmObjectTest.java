@@ -389,13 +389,15 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         dObj.set(AllJavaTypes.FIELD_DOUBLE, "1.234");
                         assertEquals(1.234d, dObj.getDouble(AllJavaTypes.FIELD_DOUBLE));
                         break;
+                    case DATE:
+                        dObj.set(AllJavaTypes.FIELD_DATE, "1000");
+                        assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE));
 
                     // These types don't have a string representation that should be parsed.
                     case OBJECT:
                     case LIST:
                     case STRING:
                     case BINARY:
-                    case DATE:
                     default:
                         continue;
                 }
@@ -428,6 +430,9 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         case DOUBLE:
                             dObj.set(AllJavaTypes.FIELD_DOUBLE, "foo");
                             break;
+                        case DATE:
+                            dObj.set(AllJavaTypes.FIELD_DATE, "foo");
+                            break;
 
                         // These types doesn't have a string representation that should be parsed.
                         case BOOLEAN: // Boolean is special as it returns false for all strings != "true"
@@ -435,7 +440,6 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         case LIST:
                         case STRING:
                         case BINARY:
-                        case DATE:
                         default:
                             continue;
                     }

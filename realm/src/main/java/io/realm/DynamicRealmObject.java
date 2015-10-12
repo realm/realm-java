@@ -23,6 +23,7 @@ import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.android.JsonUtils;
 
 /**
  * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
@@ -318,6 +319,7 @@ public class DynamicRealmObject extends RealmObject {
                 case INTEGER: value = Long.parseLong(strValue); break;
                 case FLOAT: value = Float.parseFloat(strValue); break;
                 case DOUBLE: value = Double.parseDouble(strValue); break;
+                case DATE: value = JsonUtils.stringToDate(strValue); break;
                 default:
                     throw new IllegalArgumentException(String.format("Field %s is not a String field, " +
                             "and the provide value could not be automatically converted: %s. Use a typed" +
