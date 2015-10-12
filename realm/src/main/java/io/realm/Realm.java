@@ -947,7 +947,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Return a distinct set of objects of a specific class. If no objects exist, the
-     * returned {@link RealmResulsts} will not be @{code null}. The RealmResults.size() to check the
+     * returned {@link RealmResults} will not be @{code null}. The RealmResults.size() to check the
      * number of objects instead.
      * @param clazz the Class to get objects of.
      * @param fieldName the field name.
