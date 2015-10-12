@@ -27,6 +27,7 @@ import java.util.Date;
 import io.realm.Realm;
 import io.realm.TestHelper;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 public class JNITransactions extends AndroidTestCase {
     
@@ -308,7 +309,7 @@ public class JNITransactions extends AndroidTestCase {
         tbl.add("Foo", 42);
         try {
             tbl.add("Foo", 41);
-        } catch (RealmException e1) {
+        } catch (RealmPrimaryKeyConstraintException e1) {
             // Primary key check worked, now remove it and try again.
             tbl.setPrimaryKey("");
             try {
@@ -337,7 +338,7 @@ public class JNITransactions extends AndroidTestCase {
         long rowIndex = tbl.addEmptyRow();
         try {
             tbl.setString(0, rowIndex, "Foo"); // Try to create 2nd entry with name Foo
-        } catch (RealmException e1) {
+        } catch (RealmPrimaryKeyConstraintException e1) {
             tbl.setPrimaryKey(""); // Primary key check worked, now remove it and try again.
             try {
                 tbl.setString(0, rowIndex, "Foo");
