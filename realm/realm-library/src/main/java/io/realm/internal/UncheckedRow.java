@@ -199,9 +199,6 @@ public class UncheckedRow extends NativeObject implements Row {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
         long timestamp = date.getTime() / 1000;
-        if (timestamp >= Integer.MAX_VALUE || timestamp <= Integer.MIN_VALUE) {
-            throw new IllegalArgumentException("Date/timestamp is outside valid range");
-        }
         nativeSetDate(nativePointer, columnIndex, timestamp);
     }
 
@@ -215,9 +212,6 @@ public class UncheckedRow extends NativeObject implements Row {
     @Override
     public void setBinaryByteArray(long columnIndex, byte[] data) {
         parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null array is not allowed");
-        }
         nativeSetByteArray(nativePointer, columnIndex, data);
     }
 
@@ -240,6 +234,16 @@ public class UncheckedRow extends NativeObject implements Row {
     public void nullifyLink(long columnIndex) {
         parent.checkImmutable();
         nativeNullifyLink(nativePointer, columnIndex);
+    }
+
+    @Override
+    public boolean isNull(long columnIndex) {
+        return nativeIsNull(nativePointer, columnIndex);
+    }
+
+    @Override
+    public void setNull(long columnIndex) {
+        nativeSetNull(nativePointer, columnIndex);
     }
 
     /**
@@ -291,4 +295,6 @@ public class UncheckedRow extends NativeObject implements Row {
     protected static native void nativeClose(long nativeRowPtr);
     protected native boolean nativeIsAttached(long nativeRowPtr);
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
+    protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
+    protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
 }

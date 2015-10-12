@@ -33,9 +33,11 @@ import java.util.concurrent.TimeUnit;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Thread;
 import io.realm.internal.Row;
 
+import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
 public class RealmObjectTest extends AndroidTestCase {
 
@@ -283,8 +285,8 @@ public class RealmObjectTest extends AndroidTestCase {
         ct1.setName("Baz");
         testRealm.commitTransaction();
 
-        assertTrue(ct1.equals(ct1));
-        assertTrue(ct2.equals(ct2));
+        assertTrue(ct1.equals(ct2));
+        assertTrue(ct2.equals(ct1));
     }
 
     public void testEqualsStandAlone() {
@@ -338,9 +340,8 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public void testDateType() {
-        long testDatesNotValid[] = {Long.MIN_VALUE, Long.MAX_VALUE};
         long testDatesValid[] = {-1000, 0, 1000};
-        long testDatesLoosePrecision[] = {1, 1001};
+        long testDatesLoosePrecision[] = {Long.MIN_VALUE, 1, 1001, Long.MAX_VALUE};
 
         // test valid dates
         testRealm.beginTransaction();
@@ -371,18 +372,6 @@ public class RealmObjectTest extends AndroidTestCase {
             assertEquals("Item " + i, new Date(1000*(testDatesLoosePrecision[i]/1000)), allTypes.getColumnDate());
             i++;
         }
-
-        // test invalid dates
-        for (long value : testDatesNotValid) {
-            try {
-                testRealm.beginTransaction();
-                testRealm.clear(AllTypes.class);
-                AllTypes allTypes = testRealm.createObject(AllTypes.class);
-                allTypes.setColumnDate(new Date(value));
-                testRealm.commitTransaction();
-                fail();
-            } catch (IllegalArgumentException ignored) { testRealm.cancelTransaction(); }
-        }
     }
 
     private Date newDate(int year, int month, int dayOfMonth) {
@@ -409,33 +398,6 @@ public class RealmObjectTest extends AndroidTestCase {
 
         // Realm does not support millisec precision
         assertEquals(1000 * (date.getTime() / 1000), 1000 * (object.getColumnDate().getTime() / 1000));
-    }
-
-    public void testDateTypeOutOfRange() {
-        // ** Must throw if date is too old
-        for (int i = 0; i < 2; i++) {
-            try {
-                addDate(1900 + i, 1, 1);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-                testRealm.cancelTransaction();
-            }
-        }
-
-        // ** Supported dates works
-        for (int i = 2; i < 10; i++) {
-            addDate(1900 + i, 1, 1);
-        }
-
-        // ** Must throw if date is too new
-        for (int i = 0; i < 2; i++) {
-            try {
-                addDate(2038 + i, 1, 20);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-                testRealm.cancelTransaction();
-            }
-        }
     }
 
     public void testWriteMustThrowOutOfTransaction() {
@@ -478,6 +440,7 @@ public class RealmObjectTest extends AndroidTestCase {
         // The model class' name (Thread) clashed with a common Java class.
         // The annotation process must be able to handle that.
         testRealm.beginTransaction();
+        @SuppressWarnings("unused")
         Thread thread = testRealm.createObject(Thread.class);
         testRealm.commitTransaction();
     }
@@ -514,6 +477,219 @@ public class RealmObjectTest extends AndroidTestCase {
         assertTrue(allTypes.isValid());
         testRealm.commitTransaction();
         assertTrue(allTypes.isValid());
+    }
+
+    // store and retrieve null values for nullable fields
+    public void testStoreRetrieveNullOnNullableFields() {
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        // 1 String
+        nullTypes.setFieldStringNull(null);
+        // 2 Bytes
+        nullTypes.setFieldBytesNull(null);
+        // 3 Boolean
+        nullTypes.setFieldBooleanNull(null);
+        // 4 Byte
+        nullTypes.setFieldByteNull(null);
+        // 5 Short
+        nullTypes.setFieldShortNull(null);
+        // 6 Integer
+        nullTypes.setFieldIntegerNull(null);
+        // 7 Long
+        nullTypes.setFieldLongNull(null);
+        // 8 Float
+        nullTypes.setFieldFloatNull(null);
+        // 9 Double
+        nullTypes.setFieldDoubleNull(null);
+        // 10 Date
+        nullTypes.setFieldDateNull(null);
+        testRealm.commitTransaction();
+
+        nullTypes = testRealm.where(NullTypes.class).findFirst();
+        // 1 String
+        assertNull(nullTypes.getFieldStringNull());
+        // 2 Bytes
+        assertNull(nullTypes.getFieldBytesNull());
+        // 3 Boolean
+        assertNull(nullTypes.getFieldBooleanNull());
+        // 4 Byte
+        assertNull(nullTypes.getFieldByteNull());
+        // 5 Short
+        assertNull(nullTypes.getFieldShortNull());
+        // 6 Integer
+        assertNull(nullTypes.getFieldIntegerNull());
+        // 7 Long
+        assertNull(nullTypes.getFieldLongNull());
+        // 8 Float
+        assertNull(nullTypes.getFieldFloatNull());
+        // 9 Double
+        assertNull(nullTypes.getFieldDoubleNull());
+        // 10 Date
+        assertNull(nullTypes.getFieldDateNull());
+    }
+
+    // store and retrieve non-null values when field can contain null strings
+    public void testStoreRetrieveNonNullValueOnNullableFields() {
+        final String testString = "FooBar";
+        final byte[] testBytes = new byte[] {42};
+        final Date testDate = newDate(2000, 1, 1);
+        testRealm.beginTransaction();
+        NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+        // 1 String
+        nullTypes.setFieldStringNull(testString);
+        // 2 Bytes
+        nullTypes.setFieldBytesNull(testBytes);
+        // 3 Boolean
+        nullTypes.setFieldBooleanNull(true);
+        // 4 Byte
+        nullTypes.setFieldByteNull((byte)42);
+        // 5 Short
+        nullTypes.setFieldShortNull((short)42);
+        // 6 Integer
+        nullTypes.setFieldIntegerNull(42);
+        // 7 Long
+        nullTypes.setFieldLongNull(42L);
+        // 8 Float
+        nullTypes.setFieldFloatNull(42.42F);
+        // 9 Double
+        nullTypes.setFieldDoubleNull(42.42D);
+        // 10 Date
+        nullTypes.setFieldDateNull(testDate);
+        testRealm.commitTransaction();
+
+        nullTypes = testRealm.where(NullTypes.class).findFirst();
+        // 1 String
+        assertEquals(testString, nullTypes.getFieldStringNull());
+        // 2 Bytes
+        assertArrayEquals(testBytes, nullTypes.getFieldBytesNull());
+        // 3 Boolean
+        assertTrue(nullTypes.getFieldBooleanNull());
+        // 4 Byte
+        assertEquals((byte)42, (byte)nullTypes.getFieldByteNull().intValue());
+        // 5 Short
+        assertEquals((short)42, (short)nullTypes.getFieldShortNull().intValue());
+        // 6 Integer
+        assertEquals(42, nullTypes.getFieldIntegerNull().intValue());
+        // 7 Long
+        assertEquals(42L, nullTypes.getFieldLongNull().longValue());
+        // 8 Float
+        assertEquals(42.42F, nullTypes.getFieldFloatNull());
+        // 9 Double
+        assertEquals(42.42D, nullTypes.getFieldDoubleNull());
+        // 10 Date
+        assertEquals(testDate.getTime(), nullTypes.getFieldDateNull().getTime());
+    }
+
+    // try to store null values in non-nullable fields
+    public void testStoreNullValuesToNonNullableFields() {
+        try {
+            testRealm.beginTransaction();
+            NullTypes nullTypes = testRealm.createObject(NullTypes.class);
+            // 1 String
+            try {
+                nullTypes.setFieldStringNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 2 Bytes
+            try {
+                nullTypes.setFieldBytesNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 3 Boolean
+            try {
+                nullTypes.setFieldBooleanNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 4 Byte
+            try {
+                nullTypes.setFieldByteNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 5 Short
+            try {
+                nullTypes.setFieldShortNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 6 Integer
+            try {
+                nullTypes.setFieldIntegerNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 7 Long
+            try {
+                nullTypes.setFieldLongNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 8 Float
+            try {
+                nullTypes.setFieldFloatNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 9 Double
+            try {
+                nullTypes.setFieldDoubleNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+            // 10 Date
+            try {
+                nullTypes.setFieldDateNotNull(null);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testDefaultValuesForNewlyCreatedObject() {
+        testRealm.beginTransaction();
+        testRealm.createObject(NullTypes.class);
+        testRealm.commitTransaction();
+
+        NullTypes nullTypes = testRealm.where(NullTypes.class).findFirst();
+        assertNotNull(nullTypes);
+
+        assertEquals(0, nullTypes.getId());
+        // 1 String
+        assertEquals("", nullTypes.getFieldStringNotNull());
+        assertNull(nullTypes.getFieldStringNull());
+        // 2 Bytes
+        assertArrayEquals(new byte[0], nullTypes.getFieldBytesNotNull());
+        assertNull(nullTypes.getFieldByteNull());
+        // 3 Boolean
+        assertFalse(nullTypes.getFieldBooleanNotNull());
+        assertNull(nullTypes.getFieldBooleanNull());
+        // 4 Byte
+        assertEquals(0, nullTypes.getFieldByteNotNull().byteValue());
+        assertNull(nullTypes.getFieldByteNull());
+        // 5 Short
+        assertEquals(0, nullTypes.getFieldShortNotNull().shortValue());
+        assertNull(nullTypes.getFieldShortNull());
+        // 6 Integer
+        assertEquals(0, nullTypes.getFieldIntegerNotNull().intValue());
+        assertNull(nullTypes.getFieldIntegerNull());
+        // 7 Long
+        assertEquals(0, nullTypes.getFieldLongNotNull().longValue());
+        assertNull(nullTypes.getFieldLongNull());
+        // 8 Float
+        assertEquals(0F, nullTypes.getFieldFloatNotNull());
+        assertNull(nullTypes.getFieldFloatNull());
+        // 9 Double
+        assertEquals(0D, nullTypes.getFieldDoubleNotNull());
+        assertNull(nullTypes.getFieldDoubleNull());
+        // 10 Date
+        assertEquals(new Date(0), nullTypes.getFieldDateNotNull());
+        assertNull(nullTypes.getFieldDateNull());
     }
 
     public void testAccessObjectRemovalThrows() throws InterruptedException {

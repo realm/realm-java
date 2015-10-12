@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "fieldStringNotNull": null
+  },
+  {
+    "id": 2,
+    "fieldBytesNotNull": null
+  },
+  {
+    "id": 3,
+    "fieldBooleanNotNull": null
+  },
+  {
+    "id": 4,
+    "fieldByteNotNull": null
+  },
+  {
+    "id": 5,
+    "fieldShortNotNull": null
+  },
+  {
+    "id": 6,
+    "fieldIntegerNotNull": null
+  },
+  {
+    "id": 7,
+    "fieldLongNotNull": null
+  },
+  {
+    "id": 8,
+    "fieldFloatNotNull": null
+  },
+  {
+    "id": 9,
+    "fieldDoubleNotNull": null
+  },
+  {
+    "id": 10,
+    "fieldDateNotNull": null
+  }
+]

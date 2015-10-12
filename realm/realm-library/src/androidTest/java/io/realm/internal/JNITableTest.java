@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal;
 
 import android.test.AndroidTestCase;
@@ -80,7 +96,7 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testFindFirstNonExisting() {
         Table t = TestHelper.getTableWithAllColumnTypes();
-        t.add(new byte[]{1,2,3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
+        t.add(new byte[]{1, 2, 3}, true, new Date(1384423149761l), 4.5d, 5.7f, 100, new Mixed("mixed"), "string", null);
 
         assertEquals(-1, t.findFirstBoolean(1, false));
         assertEquals(-1, t.findFirstDate(2, new Date(138442314986l)));
@@ -96,7 +112,7 @@ public class JNITableTest extends AndroidTestCase {
         for (int i = 0; i < TEST_SIZE; i++) {
             t.add(new byte[]{1,2,3}, true, new Date(1000*i), (double)i, (float)i, i, new Mixed("mixed " + i), "string " + i, null);
         }
-        t.add(new byte[]{1,2,3}, true, new Date(1000*TEST_SIZE), (double)TEST_SIZE, (float)TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
+        t.add(new byte[]{1, 2, 3}, true, new Date(1000 * TEST_SIZE), (double) TEST_SIZE, (float) TEST_SIZE, TEST_SIZE, new Mixed("mixed " + TEST_SIZE), "", null);
 
         assertEquals(0, t.findFirstBoolean(1, true));
         for (int i = 0; i < TEST_SIZE; i++) {
@@ -429,4 +445,183 @@ public class JNITableTest extends AndroidTestCase {
 
     }
 
+    // testing the migration of a string column to be nullable.
+    public void testConvertToNullable() {
+        ColumnType[] columnTypes = {ColumnType.BOOLEAN, ColumnType.DATE, ColumnType.DOUBLE,
+                ColumnType.FLOAT, ColumnType.INTEGER, ColumnType.BINARY, ColumnType.STRING};
+        for (ColumnType columnType : columnTypes) {
+            // testing various combinations of column names and nullability
+            String[] columnNames = {"foobar", "__TMP__0"};
+            for (boolean nullable : new boolean[]{Table.NOT_NULLABLE, Table.NULLABLE}) {
+                for (String columnName : columnNames) {
+                    Table table = new Table();
+                    long colIndex = table.addColumn(columnType, columnName, nullable);
+                    table.addColumn(ColumnType.BOOLEAN, "bool");
+                    table.addEmptyRow();
+                    if (columnType == ColumnType.BOOLEAN)
+                        table.setBoolean(colIndex, 0, true);
+                    else if (columnType == ColumnType.DATE)
+                        table.setDate(colIndex, 0, new Date(0));
+                    else if (columnType == ColumnType.DOUBLE)
+                        table.setDouble(colIndex, 0, 1.0);
+                    else if (columnType == ColumnType.FLOAT)
+                        table.setFloat(colIndex, 0, 1.0f);
+                    else if (columnType == ColumnType.INTEGER)
+                        table.setLong(colIndex, 0, 1);
+                    else if (columnType == ColumnType.BINARY)
+                        table.setBinaryByteArray(colIndex, 0, new byte[]{0});
+                    else if (columnType == ColumnType.STRING)
+                        table.setString(colIndex, 0, "Foo");
+                    try {
+                        table.addEmptyRow();
+                        if (columnType == ColumnType.BINARY)
+                            table.setBinaryByteArray(colIndex, 1, null);
+                        else if (columnType == ColumnType.STRING)
+                            table.setString(colIndex, 1, null);
+                        else
+                            table.getCheckedRow(1).setNull(colIndex);
+
+                        if (!nullable) {
+                            fail();
+                        }
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                    table.removeLast();
+                    assertEquals(1, table.size());
+
+                    table.convertColumnToNullable(colIndex);
+                    assertEquals(1, table.size());
+                    assertEquals(2, table.getColumnCount());
+                    assertTrue(table.getColumnIndex(columnName) >= 0);
+                    assertEquals(colIndex, table.getColumnIndex(columnName));
+
+                    table.addEmptyRow();
+                    if (columnType == ColumnType.BINARY)
+                        table.setBinaryByteArray(colIndex, 0, null);
+                    else if (columnType == ColumnType.STRING)
+                        table.setString(colIndex, 0, null);
+                    else
+                        table.getCheckedRow(0).setNull(colIndex);
+
+                    assertEquals(2, table.size());
+
+                    if (columnType == ColumnType.BINARY)
+                        assertNull(table.getBinaryByteArray(colIndex, 1));
+                    else if (columnType == ColumnType.STRING)
+                        assertNull(table.getString(colIndex, 1));
+                    else
+                        assertTrue(table.getUncheckedRow(1).isNull(colIndex));
+                }
+            }
+        }
+    }
+
+    public void testConvertToNotNullable() {
+        ColumnType[] columnTypes = {ColumnType.BOOLEAN, ColumnType.DATE, ColumnType.DOUBLE,
+                ColumnType.FLOAT, ColumnType.INTEGER, ColumnType.BINARY, ColumnType.STRING};
+        for (ColumnType columnType : columnTypes) {
+            // testing various combinations of column names and nullability
+            String[] columnNames = {"foobar", "__TMP__0"};
+            for (boolean nullable : new boolean[]{Table.NOT_NULLABLE, Table.NULLABLE}) {
+                for (String columnName : columnNames) {
+                    Table table = new Table();
+                    long colIndex = table.addColumn(columnType, columnName, nullable);
+                    table.addColumn(ColumnType.BOOLEAN, "bool");
+                    table.addEmptyRow();
+                    if (columnType == ColumnType.BOOLEAN)
+                        table.setBoolean(colIndex, 0, true);
+                    else if (columnType == ColumnType.DATE)
+                        table.setDate(colIndex, 0, new Date(1));
+                    else if (columnType == ColumnType.DOUBLE)
+                        table.setDouble(colIndex, 0, 1.0);
+                    else if (columnType == ColumnType.FLOAT)
+                        table.setFloat(colIndex, 0, 1.0f);
+                    else if (columnType == ColumnType.INTEGER)
+                        table.setLong(colIndex, 0, 1);
+                    else if (columnType == ColumnType.BINARY)
+                        table.setBinaryByteArray(colIndex, 0, new byte[]{0});
+                    else if (columnType == ColumnType.STRING)
+                        table.setString(colIndex, 0, "Foo");
+                    try {
+                        table.addEmptyRow();
+                        if (columnType == ColumnType.BINARY)
+                            table.setBinaryByteArray(colIndex, 1, null);
+                        else if (columnType == ColumnType.STRING)
+                            table.setString(colIndex, 1, null);
+                        else
+                            table.getCheckedRow(1).setNull(colIndex);
+
+                        if (!nullable) {
+                            fail();
+                        }
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                    assertEquals(2, table.size());
+
+                    table.convertColumnToNotNullable(colIndex);
+                    assertEquals(2, table.size());
+                    assertEquals(2, table.getColumnCount());
+                    assertTrue(table.getColumnIndex(columnName) >= 0);
+                    assertEquals(colIndex, table.getColumnIndex(columnName));
+
+                    table.addEmptyRow();
+                    try {
+                        if (columnType == ColumnType.BINARY)
+                            table.setBinaryByteArray(colIndex, 0, null);
+                        else if (columnType == ColumnType.STRING)
+                            table.setString(colIndex, 0, null);
+                        else
+                            table.getCheckedRow(0).setNull(colIndex);
+                        if (!nullable) {
+                            fail();
+                        }
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                    table.removeLast();
+                    assertEquals(2, table.size());
+
+                    if (columnType == ColumnType.BINARY)
+                        assertNotNull(table.getBinaryByteArray(colIndex, 1));
+                    else if (columnType == ColumnType.STRING) {
+                        assertNotNull(table.getString(colIndex, 1));
+                        assertEquals("", table.getString(colIndex, 1));
+                    }
+                    else {
+                        assertFalse(table.getUncheckedRow(1).isNull(colIndex));
+                        if (columnType == ColumnType.BOOLEAN)
+                            assertEquals(false, table.getBoolean(colIndex, 1));
+                        else if (columnType == ColumnType.DATE)
+                            assertEquals(0, table.getDate(colIndex, 1).getTime());
+                        else if (columnType == ColumnType.DOUBLE)
+                            assertEquals(0.0, table.getDouble(colIndex, 1));
+                        else if (columnType == ColumnType.FLOAT)
+                            assertEquals(0.0f, table.getFloat(colIndex, 1));
+                        else if (columnType == ColumnType.INTEGER)
+                            assertEquals(0, table.getLong(colIndex, 1));
+                    }
+                }
+            }
+        }
+    }
+
+    // migrating an mixed column to be nullable is not supported
+    public void testConvertMixedToNullable() {
+        Table table = new Table();
+        table.addColumn(ColumnType.MIXED, "mixed", Table.NOT_NULLABLE);
+        try {
+            table.convertColumnToNullable(0);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    // add column and read back if it is nullable or not
+    public void testIsNullable() {
+        Table table = new Table();
+        table.addColumn(ColumnType.STRING, "string1", Table.NOT_NULLABLE);
+        table.addColumn(ColumnType.STRING, "string2", Table.NULLABLE);
+
+        assertFalse(table.isColumnNullable(0));
+        assertTrue(table.isColumnNullable(1));
+    }
 }
