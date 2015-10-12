@@ -262,7 +262,7 @@ task createEclipseJar(type: Zip) {
     dependsOn 'copyLibrariesToEclipseFolder'
     from 'build/intermediates/eclipse'
     exclude 'lib'
-    destinationDir = new File("${rootDir}/distribution/eclipse")
+    destinationDir = file("${rootDir}/distribution/eclipse")
     archiveName = "realm-${version}.jar"
 }
 
@@ -278,7 +278,7 @@ task createDistributionPackage(type: Zip) {
     dependsOn 'createDistributionFolder'
     from "${rootDir}/distribution"
     into "realm-java-${version}"
-    destinationDir = new File("${rootDir}")
+    destinationDir = file("${rootDir}")
     archiveName = "realm-java-${version}.zip"
 }
 
@@ -351,7 +351,7 @@ task findbugs(type: FindBugs) {
     ignoreFailures = false
     effort = "default"
     reportLevel = "medium"
-    excludeFilter = new File("${projectDir}/findbugs-filter.xml")
+    excludeFilter = file("${projectDir}/findbugs-filter.xml")
     classes = files("${projectDir}/build/intermediates/classes")
     source = fileTree('src/main/java/')
     classpath = files()

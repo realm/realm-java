@@ -18,9 +18,9 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.util.Date;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.exceptions.RealmException;
 
 
@@ -672,7 +672,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private void throwDuplicatePrimaryKeyException(Object value) {
-        throw new RealmException("Primary key constraint broken. Value already exists: " + value);
+        throw new RealmPrimaryKeyConstraintException("Value already exists: " + value);
     }
 
     //

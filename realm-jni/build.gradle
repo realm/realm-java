@@ -126,7 +126,7 @@ task checkProperties(group: 'check', description: 'Check the user provided gradl
 }
 
 ext.coreArchiveFile = project.file("../core-android-${project.coreVersion}.tar.gz")
-ext.coreDir = new File(buildDir, "core-${project.coreVersion}")
+ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false
 
@@ -231,7 +231,7 @@ toolchains.each { toolchain ->
         group 'build setup'
         description "Generate the NDK standalone toolchain for the ${toolchain.name.capitalize()} platform"
         dependsOn { checkProperties }
-        outputs.dir new File("${buildDir}/standalone-toolchains/${toolchain.name}")
+        outputs.dir file("${buildDir}/standalone-toolchains/${toolchain.name}")
         commandLine = [
             "bash",
             "${ndkDir}/build/tools/make-standalone-toolchain.sh",
