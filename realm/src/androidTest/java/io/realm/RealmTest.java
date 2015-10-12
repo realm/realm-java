@@ -2059,14 +2059,11 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    // Realm.distinct(): requires indexing, and type = boolean, integer, date, string
-    public void testDistinct() {
-        final long numberOfBlocks = 25;
-        final long numberOfObjects = 10; // must be greater than 1
-        testRealm.beginTransaction();
+    private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects) {
+        realm.beginTransaction();
         for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
             for (int j = 0; j < numberOfBlocks; j++) {
-                AnnotationIndexTypes obj = testRealm.createObject(AnnotationIndexTypes.class);
+                AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
                 obj.setIndexBoolean(j % 2 == 0);
                 obj.setIndexLong(j);
                 obj.setIndexDate(new Date(1000 * j));
@@ -2077,7 +2074,15 @@ public class RealmTest extends AndroidTestCase {
                 obj.setNotIndexString("Test " + j);
             }
         }
-        testRealm.commitTransaction();
+        realm.commitTransaction();
+    }
+
+    // Realm.distinct(): requires indexing, and type = boolean, integer, date, string
+    public void testDistinct() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects);
 
         RealmResults<AnnotationIndexTypes> distinctBool = testRealm.distinct(AnnotationIndexTypes.class, "indexBoolean");
         assertEquals(2, distinctBool.size());
@@ -2086,6 +2091,13 @@ public class RealmTest extends AndroidTestCase {
             RealmResults<AnnotationIndexTypes> distinct = testRealm.distinct(AnnotationIndexTypes.class, "index" + fieldName);
             assertEquals("index" + fieldName, numberOfBlocks, distinct.size());
         }
+    }
+
+    public void testDistinctNotIndexedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects);
 
         for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
             try {
@@ -2094,11 +2106,30 @@ public class RealmTest extends AndroidTestCase {
             } catch (UnsupportedOperationException ignore) {
             }
         }
+    }
+
+    public void testDistinctDoesNotExist() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects);
 
         try {
             testRealm.distinct(AnnotationIndexTypes.class, "doesNotExist");
             fail();
         } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    public void testDistinctInvalidTypes() {
+        populateTestRealm();
+
+        for (String field : new String[]{"columnRealmObject", "columnRealmList", "columnDouble", "columnFloat"}) {
+            try {
+                testRealm.distinct(AllTypes.class, field);
+                fail(field);
+            } catch (UnsupportedOperationException ignore) {
+            }
         }
     }
 }
