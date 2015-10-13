@@ -13,18 +13,18 @@ include ':introExample',
         ':realmModuleLibraryExample',
         ':kotlinExample'
 
-project(':introExample').projectDir = new File('examples/introExample')
-project(':gridViewExample').projectDir = new File('examples/gridViewExample')
-project(':encryptionExample').projectDir = new File('examples/encryptionExample')
-project(':migrationExample').projectDir = new File('examples/migrationExample')
-project(':adapterExample').projectDir = new File('examples/adapterExample')
-project(':threadExample').projectDir = new File('examples/threadExample')
-project(':jsonExample').projectDir = new File('examples/jsonExample')
-project(':realmModuleAppExample').projectDir = new File('examples/realmModuleExample/app')
-project(':realmModuleLibraryExample').projectDir = new File('examples/realmModuleExample/library')
-project(':kotlinExample').projectDir = new File('examples/kotlinExample')
+project(':introExample').projectDir = file('examples/introExample')
+project(':gridViewExample').projectDir = file('examples/gridViewExample')
+project(':encryptionExample').projectDir = file('examples/encryptionExample')
+project(':migrationExample').projectDir = file('examples/migrationExample')
+project(':adapterExample').projectDir = file('examples/adapterExample')
+project(':threadExample').projectDir = file('examples/threadExample')
+project(':jsonExample').projectDir = file('examples/jsonExample')
+project(':realmModuleAppExample').projectDir = file('examples/realmModuleExample/app')
+project(':realmModuleLibraryExample').projectDir = file('examples/realmModuleExample/library')
+project(':kotlinExample').projectDir = file('examples/kotlinExample')
 
 // Experimental projects
 include ':pathExperiment'
 
-project(':pathExperiment').projectDir = new File('experimental/pathExperiment')
+project(':pathExperiment').projectDir = file('experimental/pathExperiment')

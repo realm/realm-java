@@ -212,7 +212,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
     }
 
     public void testSetModules() {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).setModules(Realm.getDefaultModule(), null).build();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).setModules(Realm.getDefaultModule(), (Object) null).build();
         realm = Realm.getInstance(realmConfig);
         assertNotNull(realm.getTable(AllTypes.class));
     }
