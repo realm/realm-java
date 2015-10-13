@@ -50,7 +50,6 @@ import io.realm.internal.Table;
 public class TestHelper {
 
     public static ColumnType getColumnType(Object o){
-
         if (o instanceof Boolean)
             return ColumnType.BOOLEAN;
         if (o instanceof String)
@@ -65,7 +64,6 @@ public class TestHelper {
             return ColumnType.DATE;
         if (o instanceof byte[])
             return ColumnType.BINARY;
-
         return ColumnType.MIXED;
     }
 
@@ -74,7 +72,6 @@ public class TestHelper {
      * @return
      */
     public static Table getTableWithAllColumnTypes(){
-
         Table t = new Table();
 
         t.addColumn(ColumnType.BINARY, "binary");

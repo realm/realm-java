@@ -193,7 +193,6 @@ public abstract class RealmObject {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     boolean onCompleted() {
-        realm.checkIfValid();
         try {
             Long handoverResult = pendingQuery.get();// make the query blocking
             // this may fail with BadVersionException if the caller and/or the worker thread

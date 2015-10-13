@@ -220,10 +220,9 @@ public class RealmProxyClassGenerator {
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.beginControlFlow("if (row.isNullLink(%s))", staticFieldIndexVarName(field));
-                writer.emitStatement("return null");
-                writer.endControlFlow();
-                writer.emitStatement(
-                        "return realm.get(%s.class, row.getLink(%s))",
+                        writer.emitStatement("return null");
+                        writer.endControlFlow();
+                writer.emitStatement("return realm.get(%s.class, row.getLink(%s))",
                         fieldTypeCanonicalName, staticFieldIndexVarName(field));
                 writer.endMethod();
                 writer.emitEmptyLine();
@@ -249,17 +248,17 @@ public class RealmProxyClassGenerator {
 
                 writer.emitSingleLineComment("use the cached value if available");
                 writer.beginControlFlow("if (" + fieldName + "RealmList != null)");
-                writer.emitStatement("return " + fieldName + "RealmList");
+                        writer.emitStatement("return " + fieldName + "RealmList");
                 writer.nextControlFlow("else");
-                writer.emitStatement("LinkView linkView = row.getLinkList(%s)", staticFieldIndexVarName(field));
+                    writer.emitStatement("LinkView linkView = row.getLinkList(%s)", staticFieldIndexVarName(field));
                 writer.beginControlFlow("if (linkView == null)");
                 writer.emitSingleLineComment("return empty non managed RealmList if the LinkView is null");
                 writer.emitSingleLineComment("useful for non-initialized RealmObject (async query returns empty Row while the query is still running)");
-                writer.emitStatement("return new RealmList<" + genericType + ">()");
+                    writer.emitStatement("return new RealmList<" + genericType + ">()");
                 writer.nextControlFlow("else");
-                writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, realm)",
+                    writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, realm)",
                         genericType, genericType);
-                writer.emitStatement("return " + fieldName + "RealmList");
+                    writer.emitStatement("return " + fieldName + "RealmList");
                 writer.endControlFlow();
                 writer.endControlFlow();
 
@@ -272,10 +271,10 @@ public class RealmProxyClassGenerator {
                 writer.emitStatement("LinkView links = row.getLinkList(%s)", staticFieldIndexVarName(field));
                 writer.emitStatement("links.clear()");
                 writer.beginControlFlow("if (value == null)");
-                writer.emitStatement("return");
+                    writer.emitStatement("return");
                 writer.endControlFlow();
                 writer.beginControlFlow("for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value)");
-                writer.emitStatement("links.add(linkedObject.row.getIndex())");
+                        writer.emitStatement("links.add(linkedObject.row.getIndex())");
                 writer.endControlFlow();
                 writer.endMethod();
             } else {
