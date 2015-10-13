@@ -1329,7 +1329,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetDistinctView(
             } CATCH_STD()
             break;
         default:
-            ThrowException(env, IllegalArgument, "Invalid type - only bool, integer, datatime, string are supported.");
+            ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
             return 0;
         break;
     }

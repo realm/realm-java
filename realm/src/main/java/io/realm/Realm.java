@@ -946,14 +946,12 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Return a distinct set of objects of a specific class. If no objects exist, the
-     * returned {@link RealmResults} will not be @{code null}. The RealmResults.size() to check the
-     * number of objects instead. As a Realm is unordered, it is undefined which objects are
-     * returned if cases of multiple occurrencies.
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in cases of multiple occurrences.
      *
      * @param clazz the Class to get objects of.
      * @param fieldName the field name.
-     * @return A RealmResults containing objects.
+     * @return A non-null {@link RealmResults} containing the distinct objects.
      * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
      */
     public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
