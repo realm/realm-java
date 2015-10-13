@@ -238,8 +238,8 @@ publishing {
         library(MavenPublication) {
             artifactId = 'realm-android'
             artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-library-release.aar")
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-sources.aar")
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-javadoc.aar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-sources.jar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-javadoc.jar")
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-android')
