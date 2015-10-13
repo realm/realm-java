@@ -16,6 +16,12 @@ buildscript {
 }
 
 allprojects {
+    def props = new Properties()
+    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.each { key, val ->
+        project.set(key, val)
+    }
+
     group = 'io.realm'
     version = new File("${rootDir}/../version.txt").text.trim();
     repositories {

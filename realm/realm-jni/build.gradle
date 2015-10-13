@@ -93,9 +93,9 @@ def getNdk() {
     if (!file("${ndkDir}/RELEASE.TXT").file) {
         throw new GradleException('The path provided in the NDK_HOME environment variable does not seem to be an Android NDK.')
     }
-    def ndkVersion = file("${ndkDir}/RELEASE.TXT").text.trim().split()[0]
-    if (ndkVersion != properNdkVersion) {
-        throw new GradleException("Your NDK version: ${ndkVersion}. Realm JNI should be compiled with the version ${properNdkVersion} of NDK.")
+    def detectedNdkVersion = file("${ndkDir}/RELEASE.TXT").text.trim().split()[0]
+    if (detectedNdkVersion != ndkVersion) {
+        throw new GradleException("Your NDK version: ${detectedNdkVersion}. Realm JNI should be compiled with the version ${ndkVersion} of NDK.")
     }
     return ndkDir
 }
