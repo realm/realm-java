@@ -28,16 +28,23 @@ The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/ja
 
 ## Using Snapshots
 
-If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [OJO](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
+
+    buildscript {
+        repositories {
+            maven {
+                url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+            }
+        }
+        dependencies {
+            classpath "io.realm:gradle-plugin:<version>-SNAPSHOT"
+        }       
+    }
 
     repositories {
         maven {
             url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
         }
-    }
-
-    dependencies {
-      compile 'io.realm:realm-android:0.83.1-SNAPSHOT'
     }
 
 ## Building Realm
@@ -46,17 +53,11 @@ In case you don't want to use the precompiled version, you can build Realm yours
 
 Prerequisites:
 
-* Make sure `make` is available in your `$PATH`
-* Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
-* Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
-* Download the **Android NDK (= r10d)** for [Mac](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
-* Add a `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
-
-    ```
-    sdk.dir=/<your home directory>/Library/Android/sdk
-    ndk.dir=/usr/local/Cellar/android-ndk/r10d
-    ```
-* Or, if you would like to add environment variables to your profile:
+ * Make sure `make` is available in your `$PATH`
+ * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
+ * Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
+ * Download the **Android NDK (= r10d)** for [Mac](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
+ * Add two environment variables to your profile:
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
@@ -65,17 +66,21 @@ Prerequisites:
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
-    ./gradlew androidJar
+    ./gradlew assembleExamples
 
-That command will generate the .jar file containing the Realm runtime and the annotation processor. You will find it in realm/build/libs.
+That command will generate:
+
+ * a jar file for the Realm the gradle plugin
+ * an aar file for the Realm library
+ * a jar file for the annotations
+ * a jar file for the annotations processor
 
 ### Other Commands
+ * `./gradlew tasks` will show all the available tasks
+ * `./gradlew javadoc` will generate the Javadocs
+ * `./gradlew monkeyExamples` will run the monkey tests on all the examples
 
- * `./gradlew realm:javadocRelease` will generate the Javadocs
- * `./gradlew realm:connectedCheck` will run the tests on a connected Android device
-
-Generating the Javadoc using the command above will report a failure (1 error, 30+ warnings). The Javadoc is generated, and we will fix 
-`realm/build.gradle` in the near future.
+Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
 
 ## Contributing
 
