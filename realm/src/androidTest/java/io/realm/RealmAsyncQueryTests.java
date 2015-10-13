@@ -1182,7 +1182,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     try {
                         realmResults.setColumnString("should fail");
                         fail("Accessing an unloaded object should throw");
-                    } catch (IllegalAccessError ignore) {
+                    } catch (IllegalStateException ignore) {
                     }
 
                     Realm.asyncQueryExecutor.resume();

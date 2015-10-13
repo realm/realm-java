@@ -205,17 +205,17 @@ public interface Row {
 
         @Override
         public boolean isNullLink(long columnIndex) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public boolean isNull(long columnIndex) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setNull(long columnIndex) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
@@ -225,52 +225,52 @@ public interface Row {
 
         @Override
         public void setLong(long columnIndex, long value) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setBoolean(long columnIndex, boolean value) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setFloat(long columnIndex, float value) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setDouble(long columnIndex, double value) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setDate(long columnIndex, Date date) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setString(long columnIndex, String value) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setBinaryByteArray(long columnIndex, byte[] data) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void setMixed(long columnIndex, Mixed data) {
-            throw new IllegalAccessError();
+            throw new IllegalStateException();
         }
 
         @Override
         public void setLink(long columnIndex, long value) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public void nullifyLink(long columnIndex) {
-            throw new IllegalAccessError(UNLOADED_ROW_MESSAGE);
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
