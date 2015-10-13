@@ -14,30 +14,30 @@ apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'ch.netzwerg.release'
 
-def currentVersion = new File("${projectDir}/version.txt").text.trim();
+def currentVersion = file("${projectDir}/version.txt").text.trim();
 
-task checkEnvironment(group: 'check', description: 'Check the user provided gradle.properties') << {
-    def ndkDir = System.env.NDK_HOME
-    if (!ndkDir) {
+def getSdk() {
+    if (!System.env.ANDROID_HOME) {
+        throw new GradleException('The ANDROID_HOME environment variable is not set.')
+    }
+    def sdkDir = file(System.env.ANDROID_HOME)
+    if (!sdkDir.directory) {
+        throw new GradleException('The path provided in the ANDROID_HOME environment variable is not a folder.')
+    }
+    return sdkDir
+}
+
+def getNdk() {
+    if (!System.env.NDK_HOME) {
         throw new GradleException('The NDK_HOME environment variable is not set.')
-    } else if (ndkDir.endsWith('/')) {
-        throw new GradleException('The NDK_HOME environment variable ends with /')
-    } else if (!file(ndkDir).directory) {
+    }
+    def ndkDir = file(System.env.NDK_HOME)
+    if (!ndkDir.directory) {
         throw new GradleException('The path provided in the NDK_HOME environment variable is not a folder.')
-    } else if (!file(new File(ndkDir, 'RELEASE.TXT')).file) {
+    } else if (!file("${sdndkDirkDir}/RELEASE.TXT").file) {
         throw new GradleException('The path provided in the NDK_HOME environment variable does not seem to be an Android NDK.')
     }
-
-    def sdkDir = System.env.ANDROID_HOME
-    if (!sdkDir) {
-        throw new GradleException('The ANDROID_HOME environment variable is not set.')
-    } else if (sdkDir.endsWith('/')) {
-        throw new GradleException('The ANDROID_HOME environment variable ends with /')
-    } else if (!file(sdkDir).directory) {
-        throw new GradleException('The path provided in the ANDROID_HOME environment variable is not a folder.')
-    } else if (!file(new File(sdkDir, 'RELEASE.TXT')).file) {
-        throw new GradleException('The path provided in the ANDROID_HOME environment variable does not seem to be an Android NDK.')
-    }
+    return ndkDir
 }
 
 task assembleGradlePlugin(type:GradleBuild) {
@@ -162,8 +162,7 @@ task cleanExamples(type:GradleBuild) {
 task cleanLocalMavenRepos(type:Delete) {
     description = 'Remove any Realm artifacts from the local Maven repositories'
     group = 'Clean'
-    dependsOn checkEnvironment
-    delete "${System.env.ANDROID_HOME}/extras/android/m2repository/io/realm"
+    delete "${getSdk()}/extras/android/m2repository/io/realm"
     delete "${System.env.HOME}/.m2/repository/io/realm"
 }
 
