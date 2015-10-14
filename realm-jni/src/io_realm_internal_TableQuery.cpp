@@ -43,7 +43,7 @@ inline bool query_col_type_valid(JNIEnv* env, jlong nativeQueryPtr, jlong colInd
 
 
 const char* ERR_IMPORT_CLOSED_REALM = "Can not import results from a closed Realm";
-const char* ERR_SORT_NOT_SUPPORTED = "Sort is currently only supported on integer, float, double, boolean, Date, and String fields";
+const char* ERR_SORT_NOT_SUPPORTED = "Sort is not supported on binary data, object references and RealmList";
 //-------------------------------------------------------
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeClose(JNIEnv *, jclass, jlong nativeQueryPtr) {
@@ -957,12 +957,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
           }
 
           // run the query
-          TableView* tableView = new TableView(query->find_all(S(start), S(end), S(limit)));
+          TableView tableView = TableView(query->find_all(S(start), S(end), S(limit)));
 
           // handover the result
           std::unique_ptr<SharedGroup::Handover<TableView>> handover = SG(
-                  bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
-          delete tableView;
+                  bgSharedGroupPtr)->export_for_handover(tableView, MutableSourcePayload::Move);
           return reinterpret_cast<jlong>(handover.release());
       } CATCH_STD()
       return 0;
@@ -981,14 +980,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
           }
 
           // run the query
-          TableView* tableView = new TableView( query->find_all(S(start), S(end), S(limit)) );
+          TableView tableView = TableView( query->find_all(S(start), S(end), S(limit)) );
 
           // sorting the results
-          if (!COL_INDEX_VALID(env, tableView, columnIndex)) {
+          if (!COL_INDEX_VALID(env, &tableView, columnIndex)) {
               return 0;
           }
 
-          int colType = tableView->get_column_type( S(columnIndex) );
+          int colType = tableView.get_column_type( S(columnIndex) );
           switch (colType) {
                case type_Bool:
                case type_Int:
@@ -996,7 +995,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
                case type_Float:
                case type_Double:
                case type_String:
-                   tableView->sort( S(columnIndex), ascending != 0 ? true : false);
+                   tableView.sort( S(columnIndex), ascending != 0 ? true : false);
                    break;
                default:
                    ThrowException(env, IllegalArgument, ERR_SORT_NOT_SUPPORTED);
@@ -1004,8 +1003,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
            }
 
           // handover the result
-          std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
-          delete tableView;
+          std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(tableView, MutableSourcePayload::Move);
           return reinterpret_cast<jlong>(handover.release());
       } CATCH_STD()
       return 0;
@@ -1043,16 +1041,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
               return 0;
 
           // run the query
-          TableView* tableView = new TableView( query->find_all(S(start), S(end), S(limit)) );
+          TableView tableView = TableView( query->find_all(S(start), S(end), S(limit)) );
 
           // sorting the results
           std::vector<size_t> indices;
           std::vector<bool> ascendings;
 
           for (int i = 0; i < arr_len; ++i) {
-              if (!COL_INDEX_VALID(env, tableView, long_arr[i]))
+              if (!COL_INDEX_VALID(env, &tableView, long_arr[i]))
                   return -1;
-              int colType = tableView->get_column_type( S(long_arr[i]) );
+              int colType = tableView.get_column_type( S(long_arr[i]) );
               switch (colType) {
                   case type_Bool:
                   case type_Int:
@@ -1069,13 +1067,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
               }
           }
 
-          tableView->sort(indices, ascendings);
+          tableView.sort(indices, ascendings);
           env->ReleaseLongArrayElements(columnIndices, long_arr, 0);
           env->ReleaseBooleanArrayElements(ascending, bool_arr, 0);
 
           // handover the result
-          std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(*tableView, MutableSourcePayload::Move);
-          delete tableView;
+          std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(tableView, MutableSourcePayload::Move);
           return reinterpret_cast<jlong>(handover.release());
 
       } CATCH_STD()
