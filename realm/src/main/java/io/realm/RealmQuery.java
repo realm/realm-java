@@ -82,16 +82,16 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
      *
-     * @param realmList   The @{link io.realm.RealmResults} to query
-     * @param clazz       The class to query
+     * @param realmResults  The @{link io.realm.RealmResults} to query
+     * @param clazz         The class to query
      * @throws java.lang.RuntimeException Any other error
      */
-    public RealmQuery(RealmResults realmList, Class<E> clazz) {
-        this.realm = realmList.getRealm();
+    public RealmQuery(RealmResults realmResults, Class<E> clazz) {
+        this.realm = realmResults.getRealm();
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
         this.view = null;
-        this.query = realmList.getTable().where();
+        this.query = realmResults.getTable().where();
         this.columns = realm.columnIndices.getClassFields(clazz);
     }
 
