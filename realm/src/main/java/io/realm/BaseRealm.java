@@ -640,6 +640,7 @@ abstract class BaseRealm implements Closeable {
     private class RealmCallback implements Handler.Callback {
         @Override
         public boolean handleMessage(Message message) {
+
             switch (message.what) {
                 case REALM_CHANGED: {
                     if (threadContainsAsyncQueries()) {

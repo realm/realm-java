@@ -50,7 +50,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testAsyncWriteTransaction() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Realm[] realm = new Realm[1];
-        final Throwable[] threadAssertionError = new Throwable[1];
+        final Throwable[] threadAssertionError = new Throwable[1];// to catch both Exception & AssertionError
         final Looper[] backgroundLooper = new Looper[1];
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
@@ -92,7 +92,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -183,7 +183,77 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm != null) {
+                        realm.close();
+                    }
+                }
+            }
+        });
+
+        // wait until the callback of our async query proceed
+        TestHelper.awaitOrFail(signalCallbackFinished);
+
+        executorService.shutdownNow();
+        if (null != threadAssertionError[0]) {
+            // throw any assertion errors happened in the background thread
+            throw threadAssertionError[0];
+        }
+        if (backgroundLooper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            backgroundLooper[0].quit();
+        }
+    }
+
+    public void testUnloadedRealmListsShouldBeTheSameInstance () throws Throwable {
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                Realm realm = null;
+                try {
+                    realm = openRealmInstance("testUnloadedRealmListsShouldBeTheSameInstance");
+                    Realm.asyncQueryExecutor.pause();
+
+                    populateTestRealm(realm, 10);
+                    final AllTypes alltypes1 = realm.where(AllTypes.class)
+                            .equalTo("columnLong", 0)
+                            .findFirstAsync();
+
+                    final AllTypes alltypes2 = realm.where(AllTypes.class)
+                            .equalTo("columnLong", 4)
+                            .findFirstAsync();
+
+                    assertFalse(alltypes1.isLoaded());
+                    assertNotNull(alltypes1.getColumnRealmList());
+                    assertEquals(0, alltypes1.getColumnRealmList().size());
+
+                    assertFalse(alltypes2.isLoaded());
+                    assertNotNull(alltypes2.getColumnRealmList());
+                    assertEquals(0, alltypes2.getColumnRealmList().size());
+
+                    assertEquals(alltypes1.getColumnRealmList(), alltypes2.getColumnRealmList());
+                    assertTrue(alltypes1.getColumnRealmList() == alltypes2.getColumnRealmList());
+
+                    Realm.asyncQueryExecutor.resume();
+                    signalCallbackFinished.countDown();
+                    Looper.loop();
+
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -222,9 +292,9 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         assertFalse(dog.isValid());
     }
 
-    public void testAsyncQueryOnNonLooperThreadShouldThrow () throws Exception {
+    public void testAsyncQueryOnNonLooperThreadShouldThrow () throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final Exception[] threadAssertionError = new Exception[1];
+        final Throwable[] threadAssertionError = new Throwable[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(new Runnable() {
             @Override
@@ -238,12 +308,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                         final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
                                 .between("columnLong", 0, 4)
                                 .findAllAsync();
+                        fail("Should not be able to use async query without a Looper thread");
                     } catch (IllegalStateException ignore) {
                         signalCallbackFinished.countDown();
                     }
-
-                    fail("Should not be able to use async query without a Looper thread");
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -268,7 +337,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         }
     }
 
-    public void testResusingQuery() throws Throwable {
+    public void testReusingQuery() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
         final Looper[] backgroundLooper = new Looper[1];
@@ -302,7 +371,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -377,7 +446,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -455,7 +524,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -565,7 +634,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -738,7 +807,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -880,7 +949,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -1030,7 +1099,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -1189,7 +1258,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -1254,7 +1323,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     signalCallbackFinished.countDown();
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -1359,7 +1428,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                         }
                     });
                     Looper.loop();
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -1454,7 +1523,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -1558,7 +1627,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -1727,7 +1796,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -1978,7 +2047,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -2033,7 +2102,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     // change (ex: screen rotation), this change will create a new instance.
                     // we make sure that the GC enqueue the reference of the destroyed instance
                     // which indicate no memory leak
-                    MockActivityManager  mockActivityManager =
+                    MockActivityManager mockActivityManager =
                             MockActivityManager.newInstance(realm.getConfiguration());
 
                     mockActivityManager.sendConfigurationChange();
@@ -2060,7 +2129,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                         mockActivityManager.onStop();
                     }
                     Looper.loop();
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -2091,11 +2160,10 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         executorService.shutdownNow();
     }
 
-
     // keep advancing the Realm by sending 1 commit for each frame (16ms)
     // the async queries should keep up with the modification
     public void testStressTestBackgroundCommits() throws Throwable {
-        final CountDownLatch signalInsertionFinished = new CountDownLatch(1);
+        final int NUMBER_OF_COMMITS = 1000;
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
         final Looper[] backgroundLooper = new Looper[1];
@@ -2106,24 +2174,20 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 Looper.prepare();
                 backgroundLooper[0] = Looper.myLooper();
 
-                Realm realm = null;
+                final Realm[] realm = new Realm[1];
                 try {
-                    final int NUMBER_OF_COMMITS = 1000;
-                    realm = openRealmInstance("testStressTest");
-                    final RealmConfiguration configuration = realm.getConfiguration();
-                    final AtomicInteger numberOfBackgroundCommit = new AtomicInteger(0);
+                    realm[0] = openRealmInstance("testStressTestBackgroundCommits");
+                    final RealmConfiguration configuration = realm[0].getConfiguration();
                     final long[] latestLongValue = new long[1];
                     final float[] latestFloatValue = new float[1];
-
                     // start a background thread that pushes a commit every 500ms
-                    Thread backgroundThread = new Thread() {
+                    final Thread backgroundThread = new Thread() {
                         @Override
                         public void run() {
                             Random random = new Random(System.currentTimeMillis());
                             Realm backgroundThreadRealm = Realm.getInstance(configuration);
-                            while (numberOfBackgroundCommit.getAndIncrement() < NUMBER_OF_COMMITS) {
+                            for (int i = 0; i < NUMBER_OF_COMMITS; i++) {
                                 backgroundThreadRealm.beginTransaction();
-                                // Add red dot from the background thread
                                 AllTypes object = backgroundThreadRealm.createObject(AllTypes.class);
                                 latestLongValue[0] = random.nextInt(100);
                                 latestFloatValue[0] = random.nextFloat();
@@ -2131,42 +2195,41 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                 object.setColumnLong(latestLongValue[0]);
                                 backgroundThreadRealm.commitTransaction();
 
-                                numberOfBackgroundCommit.incrementAndGet();
-
-                                // Wait 16ms. before adding the next dot.
+                                // Wait 16ms. before adding the next commit.
                                 SystemClock.sleep(16);
                             }
-                            signalInsertionFinished.countDown();
+                            backgroundThreadRealm.close();
                         }
                     };
 
-
-                    final AtomicInteger numberOfNotificationReceived = new AtomicInteger(0);
-                    RealmResults<AllTypes> allAsync = realm.where(AllTypes.class).findAllAsync();
+                    final RealmResults<AllTypes> allAsync = realm[0].where(AllTypes.class).findAllAsync();
                     allAsync.addChangeListener(new RealmChangeListener() {
                         @Override
                         public void onChange() {
-                            numberOfNotificationReceived.incrementAndGet();
+                            assertTrue(allAsync.isLoaded());
+                            if (allAsync.size() == NUMBER_OF_COMMITS) {
+
+                                AllTypes lastInserted = realm[0].where(AllTypes.class)
+                                        .equalTo("columnLong", latestLongValue[0])
+                                        .equalTo("columnFloat", latestFloatValue[0])
+                                        .findFirst();
+
+                                assertNotNull(lastInserted);
+                                signalTestFinished.countDown();
+                            }
                         }
                     });
 
-                    backgroundThread.start();
-
-                    signalInsertionFinished.await();
-
-                    assertTrue(allAsync.isLoaded());
-                    assertEquals(NUMBER_OF_COMMITS, allAsync.size());
-                    assertEquals(NUMBER_OF_COMMITS, numberOfNotificationReceived.get());
-                    AllTypes lastInserted = realm.where(AllTypes.class)
-                            .equalTo("columnLong", latestLongValue[0])
-                            .equalTo("columnFloat", latestFloatValue[0])
-                            .findFirst();
-                    assertNotNull(lastInserted);
-                    signalTestFinished.countDown();
+                    realm[0].handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            backgroundThread.start();
+                        }
+                    }, 16);
 
                     Looper.loop();
 
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
 
@@ -2174,25 +2237,23 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     if (signalTestFinished.getCount() > 0) {
                         signalTestFinished.countDown();
                     }
-                    if (realm != null) {
-                        realm.close();
+                    if (realm[0] != null) {
+                        realm[0].close();
                     }
                 }
             }
         });
 
-        // wait until the callback of our async query proceed
         TestHelper.awaitOrFail(signalTestFinished, 60);
-
         executorService.shutdownNow();
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
         if (backgroundLooper[0] != null) {
             // failing to quit the looper will not execute the finally block responsible
             // of closing the Realm
             backgroundLooper[0].quit();
+        }
+        if (null != threadAssertionError[0]) {
+            // throw any assertion errors happened in the background thread
+            throw threadAssertionError[0];
         }
     }
 

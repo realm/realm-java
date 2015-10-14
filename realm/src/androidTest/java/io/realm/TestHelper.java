@@ -44,8 +44,6 @@ import static junit.framework.Assert.fail;
 
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
-import io.realm.internal.ColumnType;
-import io.realm.internal.Table;
 
 public class TestHelper {
 

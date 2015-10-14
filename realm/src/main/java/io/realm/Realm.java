@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
@@ -134,7 +135,6 @@ public final class Realm extends BaseRealm {
 
     private static RealmConfiguration defaultConfiguration;
     protected ColumnIndices columnIndices = new ColumnIndices();
-
     /**
      * The constructor is private to enforce the use of the static one.
      *

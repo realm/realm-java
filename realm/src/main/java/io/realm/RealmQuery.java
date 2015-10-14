@@ -1497,6 +1497,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.RuntimeException Any other error
      */
     public RealmResults<E> findAll() {
+        checkQueryIsNotReused();
         return new RealmResults<E>(realm, query.findAll(), clazz);
     }
 
@@ -1592,6 +1593,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName, boolean sortAscending) {
+        checkQueryIsNotReused();
         TableView tableView = query.findAll();
         TableView.Order order = sortAscending ? TableView.Order.ascending : TableView.Order.descending;
         Long columnIndex = columns.get(fieldName);
@@ -1922,6 +1924,7 @@ public class RealmQuery<E extends RealmObject> {
      * @see io.realm.RealmObject
      */
     public E findFirst() {
+        checkQueryIsNotReused();
         long rowIndex = this.query.find();
         if (rowIndex >= 0) {
             return realm.get(clazz, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);

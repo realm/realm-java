@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -33,6 +34,8 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
+import java.util.Set;
+import java.util.HashSet;
 
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -128,16 +131,26 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitClassFields(JavaWriter writer) throws IOException {
+        Set<String> emptyRealmLists = new HashSet<String>();
         for (VariableElement variableElement : metadata.getFields()) {
             writer.emitField("long", staticFieldIndexVarName(variableElement), EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
             if (Utils.isRealmList(variableElement)) {
                 String genericType = Utils.getGenericType(variableElement);
                 writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() + "RealmList", EnumSet.of(Modifier.PRIVATE));
+
+                String emptyRealmListName = "EMPTY_REALM_LIST_" + variableElement.getSimpleName().toString().toUpperCase();
+                writer.emitField("RealmList<" + genericType + ">", emptyRealmListName,
+                        EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
+                emptyRealmLists.add(emptyRealmListName);
             }
         }
+
         writer.emitField("Map<String, Long>", "columnIndices", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
         writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
+        for (String emptyRealmListName : emptyRealmLists) {
+            writer.emitStatement(emptyRealmListName + " = new RealmList()");
+        }
         writer.emitStatement("List<String> fieldNames = new ArrayList<String>()");
         for (VariableElement field : metadata.getFields()) {
             writer.emitStatement("fieldNames.add(\"%s\")", field.getSimpleName().toString());
@@ -254,7 +267,7 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (linkView == null)");
                 writer.emitSingleLineComment("return empty non managed RealmList if the LinkView is null");
                 writer.emitSingleLineComment("useful for non-initialized RealmObject (async query returns empty Row while the query is still running)");
-                    writer.emitStatement("return new RealmList<" + genericType + ">()");
+                    writer.emitStatement("return EMPTY_REALM_LIST_" + fieldName.toUpperCase());
                 writer.nextControlFlow("else");
                     writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, realm)",
                         genericType, genericType);

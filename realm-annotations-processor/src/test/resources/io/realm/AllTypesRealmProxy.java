@@ -39,9 +39,11 @@ public class AllTypesRealmProxy extends AllTypes
     private static long INDEX_COLUMNOBJECT;
     private static long INDEX_COLUMNREALMLIST;
     private RealmList<AllTypes> columnRealmListRealmList;
+    private static RealmList<AllTypes> EMPTY_REALM_LIST_COLUMNREALMLIST;
     private static Map<String, Long> columnIndices;
     private static final List<String> FIELD_NAMES;
     static {
+        EMPTY_REALM_LIST_COLUMNREALMLIST = new RealmList();
         List<String> fieldNames = new ArrayList<String>();
         fieldNames.add("columnString");
         fieldNames.add("columnLong");
@@ -175,7 +177,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (linkView == null) {
                 // return empty non managed RealmList if the LinkView is null
                 // useful for non-initialized RealmObject (async query return empty Row while the query is performing)
-                return new RealmList<AllTypes>();
+                return EMPTY_REALM_LIST_COLUMNREALMLIST;
             } else {
                 columnRealmListRealmList = new RealmList<AllTypes>(AllTypes.class, linkView, realm);
                 return columnRealmListRealmList;
