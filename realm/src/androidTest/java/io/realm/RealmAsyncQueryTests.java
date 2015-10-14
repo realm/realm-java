@@ -2111,7 +2111,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                         assertEquals(1, mockActivityManager.numberOfInstances());
                         // remove GC'd reference & assert that one instance should remain
                         Iterator<Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>>> iterator =
-                                realm.asyncRealmResults.entrySet().iterator();
+                                realm.handlerController.asyncRealmResults.entrySet().iterator();
                         while (iterator.hasNext()) {
                             Map.Entry<WeakReference<RealmResults<?>>, RealmQuery<?>> entry = iterator.next();
                             RealmResults<?> weakReference = entry.getKey().get();
@@ -2120,7 +2120,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                             }
                         }
 
-                        assertEquals(1, realm.asyncRealmResults.size());
+                        assertEquals(1, realm.handlerController.asyncRealmResults.size());
 
                     } catch (AssertionFailedError e) {
                         threadAssertionError[0] = e;
