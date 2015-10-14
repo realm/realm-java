@@ -228,6 +228,8 @@ public abstract class RealmObject {
         }
         if (realm != null) {
             realm.checkIfValid();
+        } else {
+            throw new IllegalArgumentException("Can not add listener from this unmanaged RealmObject (created outside of Realm)");
         }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
@@ -245,6 +247,8 @@ public abstract class RealmObject {
         }
         if (realm != null) {
             realm.checkIfValid();
+        } else {
+            throw new IllegalArgumentException("Can not remove listener from this unmanaged RealmObject (created outside of Realm)");
         }
         listeners.remove(listener);
     }
@@ -255,6 +259,8 @@ public abstract class RealmObject {
     public void removeChangeListeners() {
         if (realm != null) {
             realm.checkIfValid();
+        } else {
+            throw new IllegalArgumentException("Can not remove listeners from this unmanaged RealmObject (created outside of Realm)");
         }
         listeners.clear();
     }

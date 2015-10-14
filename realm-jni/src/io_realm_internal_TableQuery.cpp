@@ -1531,7 +1531,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
 
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandover
-  (JNIEnv *env, jobject, jlong nativeHandoverQuery)
+  (JNIEnv *, jobject, jlong nativeHandoverQuery)
   {
     TR_ENTER_PTR(nativeHandoverQuery)
     delete HO(Query, nativeHandoverQuery);
