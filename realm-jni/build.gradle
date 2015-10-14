@@ -254,6 +254,7 @@ targets.each { target ->
         environment REALM_ANDROID: '1'
         commandLine = [
             'make',
+            '-j',
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
             "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
