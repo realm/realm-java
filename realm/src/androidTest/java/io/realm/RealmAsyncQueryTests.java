@@ -2244,7 +2244,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        TestHelper.awaitOrFail(signalTestFinished, 60);
+        TestHelper.awaitOrFail(signalTestFinished, 120);
         executorService.shutdownNow();
         if (backgroundLooper[0] != null) {
             // failing to quit the looper will not execute the finally block responsible
