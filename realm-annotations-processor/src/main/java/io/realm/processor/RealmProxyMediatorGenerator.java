@@ -67,11 +67,11 @@ public class RealmProxyMediatorGenerator {
         writer.emitImports(
                 "android.util.JsonReader",
                 "java.io.IOException",
-                "java.util.ArrayList",
                 "java.util.Collections",
+                "java.util.HashSet",
                 "java.util.List",
                 "java.util.Map",
-                "io.realm.exceptions.RealmException",
+                "java.util.Set",
                 "io.realm.internal.ImplicitTransaction",
                 "io.realm.internal.RealmObjectProxy",
                 "io.realm.internal.RealmProxyMediator",
@@ -108,13 +108,13 @@ public class RealmProxyMediatorGenerator {
     }
 
     private void emitFields(JavaWriter writer) throws IOException {
-        writer.emitField("List<Class<? extends RealmObject>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
+        writer.emitField("Set<Class<? extends RealmObject>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
-        writer.emitStatement("List<Class<? extends RealmObject>> modelClasses = new ArrayList<Class<? extends RealmObject>>()");
+        writer.emitStatement("Set<Class<? extends RealmObject>> modelClasses = new HashSet<Class<? extends RealmObject>>()");
         for (String clazz : simpleModelClasses) {
             writer.emitStatement("modelClasses.add(%s.class)", clazz);
         }
-        writer.emitStatement("MODEL_CLASSES = Collections.unmodifiableList(modelClasses)");
+        writer.emitStatement("MODEL_CLASSES = Collections.unmodifiableSet(modelClasses)");
         writer.endInitializer();
         writer.emitEmptyLine();
     }
@@ -211,7 +211,7 @@ public class RealmProxyMediatorGenerator {
 
     private void emitGetClassModelList(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
-        writer.beginMethod("List<Class<? extends RealmObject>>", "getModelClasses", EnumSet.of(Modifier.PUBLIC));
+        writer.beginMethod("Set<Class<? extends RealmObject>>", "getModelClasses", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("return MODEL_CLASSES");
         writer.endMethod();
         writer.emitEmptyLine();

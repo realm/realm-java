@@ -2,16 +2,16 @@ package io.realm;
 
 
 import android.util.JsonReader;
-import io.realm.exceptions.RealmException;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 import some.test.AllTypes;
@@ -19,11 +19,11 @@ import some.test.AllTypes;
 @io.realm.annotations.RealmModule
 class DefaultRealmModuleMediator extends RealmProxyMediator {
 
-    private static final List<Class<? extends RealmObject>> MODEL_CLASSES;
+    private static final Set<Class<? extends RealmObject>> MODEL_CLASSES;
     static {
-        List<Class<? extends RealmObject>> modelClasses = new ArrayList<Class<? extends RealmObject>>();
+        Set<Class<? extends RealmObject>> modelClasses = new HashSet<Class<? extends RealmObject>>();
         modelClasses.add(AllTypes.class);
-        MODEL_CLASSES = Collections.unmodifiableList(modelClasses);
+        MODEL_CLASSES = Collections.unmodifiableSet(modelClasses);
     }
 
     @Override
@@ -82,7 +82,7 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public List<Class<? extends RealmObject>> getModelClasses() {
+    public Set<Class<? extends RealmObject>> getModelClasses() {
         return MODEL_CLASSES;
     }
 

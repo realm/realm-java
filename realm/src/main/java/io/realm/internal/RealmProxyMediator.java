@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
@@ -87,7 +88,7 @@ public abstract class RealmProxyMediator {
      *
      * @return List of class references to model classes. Empty list if no models are supported.
      */
-    public abstract List<Class<? extends RealmObject>> getModelClasses();
+    public abstract Set<Class<? extends RealmObject>> getModelClasses();
 
     /**
      * Returns a map of the column indices for all Realm fields in the model class.

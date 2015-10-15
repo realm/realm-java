@@ -49,7 +49,7 @@ Prerequisites:
 * Make sure `make` is available in your `$PATH`
 * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
 * Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
-* Download the **Android NDK (= r10d)**. For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
+* Download the **Android NDK (= r10d)** for [Mac](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
 * Add a `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
 
     ```
