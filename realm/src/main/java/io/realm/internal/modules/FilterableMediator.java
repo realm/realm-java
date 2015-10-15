@@ -22,7 +22,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -54,7 +53,7 @@ public class FilterableMediator extends RealmProxyMediator {
     public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>> allowedClasses) {
         this.originalMediator = originalMediator;
         if (originalMediator != null) {
-            List<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
+            Set<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
             for (Class<? extends RealmObject> clazz : allowedClasses) {
                 if (originalClasses.contains(clazz)) {
                     this.allowedClasses.add(clazz);
@@ -98,8 +97,8 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public List<Class<? extends RealmObject>> getModelClasses() {
-        return new ArrayList<Class<? extends RealmObject>>(allowedClasses);
+    public Set<Class<? extends RealmObject>> getModelClasses() {
+        return new HashSet<Class<? extends RealmObject>>(allowedClasses);
     }
 
     @Override
