@@ -229,7 +229,6 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or
      * field type.
      * @throws java.lang.RuntimeException if any other error happens.
-
      */
     public RealmQuery<E> equalTo(String fieldName, String value, boolean caseSensitive) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING);

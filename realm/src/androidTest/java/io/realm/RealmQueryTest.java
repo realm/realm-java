@@ -1056,35 +1056,36 @@ public class RealmQueryTest extends AndroidTestCase{
     public void testIsNullOnLinkField() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
+        // For the link with null value, query isNull on its fields should return true.
         // 1 String
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_STRING_NULL).count());
         // 2 Bytes
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTES_NULL).count());
         // 3 Boolean
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BOOLEAN_NULL).count());
         // 4 Byte
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTE_NULL).count());
         // 5 Short
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_SHORT_NULL).count());
         // 6 Integer
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_INTEGER_NULL).count());
         // 7 Long
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LONG_NULL).count());
         // 8 Float
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_FLOAT_NULL).count());
         // 9 Double
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DOUBLE_NULL).count());
         // 10 Date
-        assertEquals(1, testRealm.where(NullTypes.class).isNull(
+        assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NULL).count());
         // 11 Object
         // FIXME: Currently not support by Realm core
