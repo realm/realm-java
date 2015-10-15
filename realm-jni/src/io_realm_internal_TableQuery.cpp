@@ -897,7 +897,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
     try {
 
         std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
-        Table* table = query->get_table().get();
+        TableRef table =  query->get_table();
 
         if (!QUERY_VALID(env, query.get())) {
             return 0;
@@ -906,7 +906,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
         // It's valid to go 1 past the end index
         if ((fromTableRow < 0) || (S(fromTableRow) > table->size())) {
             // below check will fail with appropriate exception
-            (void) ROW_INDEX_VALID(env, table, fromTableRow);
+            (void) ROW_INDEX_VALID(env, table.get(), fromTableRow);
             return 0;
         }
 
@@ -931,9 +931,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
 {
     TR_ENTER()
     Query* query = Q(nativeQueryPtr);
-    Table* table = query->get_table().get();
+    TableRef table =  query->get_table();
     if (!QUERY_VALID(env, query) ||
-        !ROW_INDEXES_VALID(env, table, start, end, limit))
+        !ROW_INDEXES_VALID(env, table.get(), start, end, limit))
         return -1;
     try {
         TableView* tableView = new TableView( query->find_all(S(start), S(end), S(limit)) );
@@ -949,10 +949,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
       TR_ENTER()
       try {
           std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
-          Table* table = query->get_table().get();
-
+          TableRef table =  query->get_table();
           if (!QUERY_VALID(env, query.get()) ||
-              !ROW_INDEXES_VALID(env, table, start, end, limit)) {
+              !ROW_INDEXES_VALID(env, table.get(), start, end, limit)) {
               return 0;
           }
 
@@ -973,9 +972,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
       TR_ENTER()
       try {
           std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
-          Table* table = query->get_table().get();
+          TableRef table =  query->get_table();
 
-          if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table, start, end, limit)) {
+          if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table.get(), start, end, limit)) {
               return 0;
           }
 
@@ -1035,9 +1034,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
 
           // import the handover query pointer using the background SharedGroup
           std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
-          Table* table = query->get_table().get();
+          TableRef table = query->get_table();
 
-          if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table, start, end, limit))
+          if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table.get(), start, end, limit))
               return 0;
 
           // run the query
