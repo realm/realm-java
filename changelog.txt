@@ -1,4 +1,7 @@
-0.83.1
+0.84.0
+ * Updated Realm core to version 0.94.1.
+   - Fixed a bug when using Realm.compactRealm().
+   - Fixed a bug, so link queries now always return true if any part is null.
  * Added Realm.isClosed() method.
  * Added RealmQuery.isValid(), RealmResults.isValid() and RealmList.isValid(). Each method checks whether the instance is still valid to use or not(for example, the Realm has been closed or any parent object has been removed).
  * Following methods in managed RealmList now throw IllegalStateException instead of native crash when RealmList.isValid() returns false: add(int,RealmObject), add(RealmObject)

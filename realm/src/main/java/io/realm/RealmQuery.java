@@ -190,7 +190,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Test if a field is {@code null}. Only works for nullable fields.
+     * Tests if a field is {@code null}. Only works for nullable fields.
+     *
+     * For link queries, if any part of the link path is {@code null} the whole path is considered
+     * to be {@code null} e.g. {@code isNull("linkField.stringField")} will be considered to be
+     * {@code null} if either {@code linkField} or {@code linkField.stringField} is {@code null}.
      *
      * @param fieldName the field name.
      * @return the query object.
