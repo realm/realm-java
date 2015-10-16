@@ -15,7 +15,7 @@ dependencies {
     testCompile files(file("${System.env.ANDROID_HOME}/platforms/android-21/android.jar"))
 }
 
-//for Ant filter
+// for Ant filter
 import org.apache.tools.ant.filters.ReplaceTokens
 
 task generateVersionClass(type: Copy) {
