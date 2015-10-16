@@ -80,24 +80,34 @@ public class JNIQueryTest extends TestCase {
         init();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
-        try { table.where().equalTo(new long[]{0}, 1).or().findAll();       fail("missing a second filter"); }      catch (UnsupportedOperationException e) { }
-        try { table.where().or().findAll();                                 fail("just an or()"); }                 catch (UnsupportedOperationException e) { }
-        try { table.where().group().equalTo(new long[]{0}, 1).findAll();    fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { }
-        try { table.where().endGroup().equalTo(new long[]{0}, 1).findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(new long[]{0}, 1).or().findAll();       fail("missing a second filter"); }      catch (UnsupportedOperationException ignore) {}
+        try { table.where().or().findAll();                                 fail("just an or()"); }                 catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().equalTo(new long[]{0}, 1).findAll();    fail("missing a closing group"); }      catch (UnsupportedOperationException ignore) {}
 
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().find();    fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(0);   fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(1);   fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().group().count();                                fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().findAll();                              fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().find();                                 fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().minimumInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().maximumInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().sumInt(0);                              fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().averageInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
 
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(0, -1, -1); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().endGroup().equalTo(new long[]{0}, 1).findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find();    fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(0);   fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(1);   fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(0, -1, -1); fail("ends group, no start"); } catch (UnsupportedOperationException ignore) {}
+
 
 
         // step by step buildup
         TableQuery q = table.where().equalTo(new long[]{0}, 1); // valid
         q.findAll();
         q.or();                                                 // not valid
-        try { q.findAll();     fail("no start group"); }         catch (UnsupportedOperationException e) { }
+        try { q.findAll();     fail("no start group"); }         catch (UnsupportedOperationException ignore) { }
         q.equalTo(new long[]{0}, 100);                          // valid again
         q.findAll();
         q.equalTo(new long[]{0}, 200);                          // still valid
@@ -351,7 +361,7 @@ public class JNIQueryTest extends TestCase {
         Table t = new Table();
         t.addColumn(ColumnType.DATE, "dateCol");
         t.addColumn(ColumnType.STRING, "stringCol");
-        
+
         Date nullDate = null;
         try { t.where().equalTo(new long[]{0}, nullDate);               fail("Date is null"); } catch (IllegalArgumentException e) { }
         try { t.where().notEqualTo(new long[]{0}, nullDate);            fail("Date is null"); } catch (IllegalArgumentException e) { }
@@ -362,7 +372,7 @@ public class JNIQueryTest extends TestCase {
         try { t.where().between(new long[]{0}, nullDate, new Date());   fail("Date is null"); } catch (IllegalArgumentException e) { }
         try { t.where().between(new long[]{0}, new Date(), nullDate);   fail("Date is null"); } catch (IllegalArgumentException e) { }
         try { t.where().between(new long[]{0}, nullDate, nullDate);     fail("Dates are null"); } catch (IllegalArgumentException e) { }
-        
+
         String nullString = null;
         try { t.where().equalTo(new long[]{1}, nullString);             fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().equalTo(new long[]{1}, nullString, false);      fail("String is null"); } catch (IllegalArgumentException e) { }
@@ -377,7 +387,7 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    
+
     public void testShouldFind() {
         // Create a table
         Table table = new Table();
@@ -421,7 +431,7 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    
+
     public void testQueryTestForNoMatches() {
         Table t = new Table();
         t = TestHelper.getTableWithAllColumnTypes();
@@ -435,7 +445,7 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    
+
     public void testQueryWithWrongDataType() {
 
         Table table = TestHelper.getTableWithAllColumnTypes();
@@ -515,7 +525,7 @@ public class JNIQueryTest extends TestCase {
         */
     }
 
-    
+
     public void testColumnIndexOutOfBounds() {
         Table table = TestHelper.getTableWithAllColumnTypes();
 
@@ -639,7 +649,7 @@ public class JNIQueryTest extends TestCase {
         try { query.equalTo(new long[]{9}, true);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
     }
 
-    
+
     public void testQueryOnView() {
         Table table = new Table();
 
@@ -666,7 +676,7 @@ public class JNIQueryTest extends TestCase {
         assertEquals(1, view3.size());
     }
 
-    
+
     public void testQueryOnViewWithAlreadyQueriedTable() {
         Table table = new Table();
 
@@ -690,7 +700,7 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    
+
     public void testQueryWithSubtable() {
         Table table = new Table();
         table.addColumn(ColumnType.STRING, "username");
@@ -716,21 +726,21 @@ public class JNIQueryTest extends TestCase {
         assertEquals(2, view.size());
     }
 
-    
+
     public void testQueryWithUnbalancedSubtable() {
         Table table = new Table();
         table.addColumn(ColumnType.TABLE, "sub");
-        
+
         TableSchema tasks = table.getSubtableSchema(0);
         tasks.addColumn(ColumnType.STRING, "name");
-        
+
         try { table.where().subtable(0).count();               assert(false); } catch (UnsupportedOperationException e) {}
         try { table.where().endSubtable().count();             assert(false); } catch (UnsupportedOperationException e) {}
         try { table.where().endSubtable().subtable(0).count(); assert(false); } catch (UnsupportedOperationException e) {}
-        try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {} 
+        try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {}
     }
 
-    
+
     public void testMaximumDate() {
 
         Table table = new Table();
@@ -744,7 +754,7 @@ public class JNIQueryTest extends TestCase {
 
     }
 
-    
+
     public void testMinimumDate() {
 
         Table table = new Table();

@@ -30,6 +30,9 @@ public class TableQuery implements Closeable {
     private final TableOrView origin; // Table or TableView which created this TableQuery
     private final Context context;
 
+    // All actions (find(), findAll(), sum(), etc.) must call validateQuery() before performing
+    // the actual action. The other methods must set queryValidated to false in order to enforce
+    // the first action to validate the syntax of the query.
     private boolean queryValidated = true;
 
     // TODO: Can we protect this?
@@ -57,7 +60,7 @@ public class TableQuery implements Closeable {
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
-                nativeClose(nativePtr);  
+                nativeClose(nativePtr);
 
                 if (DEBUG)
                     System.err.println("++++ Query CLOSE, ptr= " + nativePtr);
@@ -99,6 +102,7 @@ public class TableQuery implements Closeable {
 
     public TableQuery group() {
         nativeGroup(nativePtr);
+        queryValidated = false;
         return this;
     }
 
@@ -268,7 +272,6 @@ public class TableQuery implements Closeable {
 
     public TableQuery equalTo(long columnIndex[], boolean value) {
         nativeEqual(nativePtr, columnIndex, value);
-
         queryValidated = false;
         return this;
     }
@@ -336,7 +339,7 @@ public class TableQuery implements Closeable {
     }
 
     // Query for String values.
-    
+
     private final static String STRING_NULL_ERROR_MESSAGE = "String value in query criteria must not be null.";
 
     // Equal
@@ -544,7 +547,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeMinimumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    
+
     public double averageDouble(long columnIndex, long start, long end, long limit) {
         validateQuery();
         return nativeAverageDouble(nativePtr, columnIndex, start, end, limit);
@@ -553,7 +556,7 @@ public class TableQuery implements Closeable {
         validateQuery();
         return nativeAverageDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
     }
-    
+
     // date aggregation
 
     public Date maximumDate(long columnIndex, long start, long end, long limit) {
@@ -589,17 +592,17 @@ public class TableQuery implements Closeable {
         }
         return null;
     }
-    
+
     // isNull and isNotNull
     public TableQuery isNull(long columnIndices[]) {
-        validateQuery();
         nativeIsNull(nativePtr, columnIndices);
+        queryValidated = false;
         return this;
     }
 
     public TableQuery isNotNull(long columnIndices[]) {
-        validateQuery();
         nativeIsNotNull(nativePtr, columnIndices);
+        queryValidated = false;
         return this;
     }
 

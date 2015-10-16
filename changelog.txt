@@ -9,6 +9,7 @@
  * Fixed a bug affecting RealmConfiguration.equals().
  * Add support for parsing JSON Dates with timezone information.
  * Fixed a bug in RealmQuery.isNotNull() which produced wrong results for binary data.
+ * Fixed a bug in RealmQuery.isNull() and RealmQuery.isNotNull() which validated the query prematurely.
 
 0.83.1 (15 Oct 2015)
  * Updated Realm core to version 0.94.1.
