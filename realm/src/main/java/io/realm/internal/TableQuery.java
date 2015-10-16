@@ -595,14 +595,14 @@ public class TableQuery implements Closeable {
 
     // isNull and isNotNull
     public TableQuery isNull(long columnIndices[]) {
-        queryValidated = false;
         nativeIsNull(nativePtr, columnIndices);
+        queryValidated = false;
         return this;
     }
 
     public TableQuery isNotNull(long columnIndices[]) {
-        queryValidated = false;
         nativeIsNotNull(nativePtr, columnIndices);
+        queryValidated = false;
         return this;
     }
 
