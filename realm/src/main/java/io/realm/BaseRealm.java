@@ -553,7 +553,7 @@ abstract class BaseRealm implements Closeable {
     protected static synchronized boolean deleteRealm(RealmConfiguration configuration) {
         if (isFileOpen(configuration)) {
             throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
-                    "Remember to close() all the instances of the Realm before deleting its file.");
+                    "Remember to close() all the instances of the Realm before deleting its file. " + configuration.getPath());
         }
 
         boolean realmDeleted = true;

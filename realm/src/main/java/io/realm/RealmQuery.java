@@ -1443,6 +1443,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field name.
+     * (Need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
@@ -1546,6 +1547,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Similar to {@link #findAllSorted(String, boolean)} but runs asynchronously on a worker thread
+     * (Need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
@@ -1641,6 +1643,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Similar to {@link #findAllSorted(String)} but runs asynchronously on a worker thread
+     * (Need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
@@ -1692,6 +1695,7 @@ public class RealmQuery<E extends RealmObject> {
     /**
      * Similar to {@link #findAllSorted(String[], boolean[])} but runs asynchronously
      * from a worker thread.
+     * (Need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
@@ -1805,6 +1809,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Similar to {@link #findAllSorted(String, boolean, String, boolean)} but runs asynchronously on a worker thread
+     * (Need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
@@ -1842,7 +1847,8 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Similar to {@link #findAllSorted(String, boolean, String, boolean, String, boolean)} but
-     * runs asynchronously on a worker thread
+     * runs asynchronously on a worker thread.
+     * (Need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
@@ -1875,6 +1881,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Similar to {@link #findFirst()} but runs asynchronously on a worker thread
+     * (Need a Realm opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmObject}. Users need to register a listener
      * {@link io.realm.RealmObject#addChangeListener} to be notified when the query completes.

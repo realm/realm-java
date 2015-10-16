@@ -96,6 +96,4 @@ public class MockActivityManager {
             references.remove(weakReference);
         }
     }
-
-
 }

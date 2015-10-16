@@ -233,9 +233,9 @@ public class HandlerController implements Handler.Callback {
     }
 
     private void completedAsyncFindFirst(QueryUpdateTask.Result result) {
-        Set<WeakReference<RealmObject>> updatedRowKey = result.updatedRow.keySet();
+        Set<WeakReference<? extends RealmObject>> updatedRowKey = result.updatedRow.keySet();
         if (updatedRowKey.size() > 0) {
-            WeakReference<RealmObject> realmObjectWeakReference = updatedRowKey.iterator().next();
+            WeakReference<? extends RealmObject> realmObjectWeakReference = updatedRowKey.iterator().next();
             RealmObject realmObject = realmObjectWeakReference.get();
 
             if (realmObject != null) {

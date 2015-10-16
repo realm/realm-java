@@ -42,15 +42,15 @@ public class QueryUpdateTask implements Runnable {
     private final int updateMode;
 
     private RealmConfiguration realmConfiguration;
-    private List<Builder.QueryEntry<RealmResults<?>>> realmResultsEntries;
-    private Builder.QueryEntry<RealmObject> realmObjectEntry;
+    private List<Builder.QueryEntry> realmResultsEntries;
+    private Builder.QueryEntry realmObjectEntry;
     private WeakReference<Handler> callerHandler;
     private int message;
 
     private QueryUpdateTask (int mode,
                              RealmConfiguration realmConfiguration,
-                             List<Builder.QueryEntry<RealmResults<?>>> listOfRealmResults,
-                             Builder.QueryEntry<RealmObject> realmObject,
+                             List<Builder.QueryEntry> listOfRealmResults,
+                             Builder.QueryEntry realmObject,
                              WeakReference<Handler> handler,
                              int message) {
         this.updateMode = mode;
@@ -104,7 +104,7 @@ public class QueryUpdateTask implements Runnable {
     }
 
     private boolean updateRealmResultsQueries(SharedGroup sharedGroup, Result result) {
-        for (Builder.QueryEntry<RealmResults<?>>  queryEntry : realmResultsEntries) {
+        for (Builder.QueryEntry  queryEntry : realmResultsEntries) {
             if (!isTaskCancelled()) {
                 switch (queryEntry.queryArguments.type) {
                     case ArgumentsHolder.TYPE_FIND_ALL: {
@@ -191,7 +191,7 @@ public class QueryUpdateTask implements Runnable {
     // result of the async query
     public static class Result {
         public IdentityHashMap<WeakReference<RealmResults<? extends RealmObject>>, Long> updatedTableViews;
-        public IdentityHashMap<WeakReference<RealmObject>, Long> updatedRow;
+        public IdentityHashMap<WeakReference<? extends RealmObject>, Long> updatedRow;
         public SharedGroup.VersionID versionID;
 
         public static Result newRealmResultsResponse() {
@@ -202,7 +202,7 @@ public class QueryUpdateTask implements Runnable {
 
         public static Result newRealmObjectResponse() {
             Result result = new Result();
-            result.updatedRow = new IdentityHashMap<WeakReference<RealmObject>, Long>(1);
+            result.updatedRow = new IdentityHashMap<WeakReference<? extends RealmObject>, Long>(1);
             return result;
         }
     }
@@ -230,16 +230,16 @@ public class QueryUpdateTask implements Runnable {
         }
 
         public interface UpdateQueryStep {
-            RealmResultsQueryStep add(WeakReference<RealmResults<?>> weakReference,
+            RealmResultsQueryStep add(WeakReference<RealmResults<? extends RealmObject>> weakReference,
                                           long handoverQueryPointer,
                                           ArgumentsHolder queryArguments);
-            HandlerStep addObject(WeakReference<RealmObject> weakReference,
+            HandlerStep addObject(WeakReference<? extends RealmObject> weakReference,
                                   long handoverQueryPointer,
                                   ArgumentsHolder queryArguments);// can only update 1 element
         }
 
         public interface RealmResultsQueryStep {
-            RealmResultsQueryStep add(WeakReference<RealmResults<?>> weakReference,
+            RealmResultsQueryStep add(WeakReference<RealmResults<? extends RealmObject>> weakReference,
                                           long handoverQueryPointer,
                                           ArgumentsHolder queryArguments);
             BuilderStep sendToHandler(Handler handler, int message);
@@ -255,8 +255,8 @@ public class QueryUpdateTask implements Runnable {
 
         private static class Steps implements RealmConfigurationStep, UpdateQueryStep, RealmResultsQueryStep, HandlerStep, BuilderStep {
             private RealmConfiguration realmConfiguration;
-            private List<QueryEntry<RealmResults<?>>> realmResultsEntries;
-            private QueryEntry<RealmObject> realmObjectEntry;
+            private List<QueryEntry> realmResultsEntries;
+            private QueryEntry realmObjectEntry;
             private WeakReference<Handler> callerHandler;
             private int message;
 
@@ -271,19 +271,18 @@ public class QueryUpdateTask implements Runnable {
                                              long handoverQueryPointer,
                                              ArgumentsHolder queryArguments) {
                 if (this.realmResultsEntries == null) {
-                    this.realmResultsEntries = new ArrayList<QueryEntry<RealmResults<?>>>(1);
+                    this.realmResultsEntries = new ArrayList<QueryEntry>(1);
                 }
-                this.realmResultsEntries.add(
-                        new QueryEntry<RealmResults<?>>(weakReference, handoverQueryPointer, queryArguments));
+                this.realmResultsEntries.add(new QueryEntry(weakReference, handoverQueryPointer, queryArguments));
                 return this;
             }
 
             @Override
-            public HandlerStep addObject(WeakReference<RealmObject> weakReference,
+            public HandlerStep addObject(WeakReference<? extends RealmObject> weakReference,
                                          long handoverQueryPointer,
                                          ArgumentsHolder queryArguments) {
                 realmObjectEntry =
-                        new QueryEntry<RealmObject>(weakReference, handoverQueryPointer, queryArguments);
+                        new QueryEntry(weakReference, handoverQueryPointer, queryArguments);
                 return this;
             }
 
@@ -297,7 +296,7 @@ public class QueryUpdateTask implements Runnable {
             @Override
             public QueryUpdateTask build() {
                 return new QueryUpdateTask(
-                        (realmResultsEntries != null) ? MODE_UPDATE_REALM_RESULTS:MODE_UPDATE_REALM_OBJECT,
+                        (realmResultsEntries != null) ? MODE_UPDATE_REALM_RESULTS : MODE_UPDATE_REALM_OBJECT,
                         realmConfiguration,
                         realmResultsEntries,
                         realmObjectEntry,
@@ -306,12 +305,12 @@ public class QueryUpdateTask implements Runnable {
             }
         }
 
-        private static class QueryEntry<T> {
-            final WeakReference<T> element;
+        private static class QueryEntry {
+            final WeakReference element;
             long handoverQueryPointer;
             final ArgumentsHolder queryArguments;
 
-            private QueryEntry(WeakReference<T> element, long handoverQueryPointer, ArgumentsHolder queryArguments) {
+            private QueryEntry(WeakReference element, long handoverQueryPointer, ArgumentsHolder queryArguments) {
                 this.element = element;
                 this.handoverQueryPointer = handoverQueryPointer;
                 this.queryArguments = queryArguments;
