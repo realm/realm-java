@@ -260,7 +260,7 @@ publishing {
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-annotations')
-                root.appendNode('description', 'Annotations for Realm: a replacement for SQLite & ORMs.')
+                root.appendNode('description', 'Annotations for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
                 root.appendNode('packaging', 'jar')
                 root.children().last() + commonPom
@@ -272,7 +272,7 @@ publishing {
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-annotations-processor')
-                root.appendNode('description', 'Annotations processor for Realm: a replacement for SQLite & ORMs.')
+                root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
                 root.appendNode('packaging', 'jar')
                 root.children().last() + commonPom
@@ -284,7 +284,7 @@ publishing {
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'gradle-realm-plugin')
-                root.appendNode('description', 'Gradle plugin for Realm: a replacement for SQLite & ORMs.')
+                root.appendNode('description', 'Gradle plugin for Realm. Realm is a mobile database: a replacement for SQLite & ORMs.')
                 root.appendNode('url', 'http://realm.io')
                 root.appendNode('packaging', 'jar')
                 root.children().last() + commonPom
