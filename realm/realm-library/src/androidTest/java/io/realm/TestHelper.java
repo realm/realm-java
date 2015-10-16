@@ -33,16 +33,14 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Random;
-import java.util.logging.Level;
-
-import io.realm.internal.log.Logger;
-
-import static junit.framework.Assert.fail;
 
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.ColumnType;
 import io.realm.internal.Table;
+import io.realm.internal.log.Logger;
+
+import static junit.framework.Assert.fail;
 
 public class TestHelper {
 
@@ -257,13 +255,13 @@ public class TestHelper {
         // Create 3 NullTypes objects. The objects are self-referenced (link) in
         // order to test link queries.
         //
-        // +-+--------+------+---------+--------------------+
-        // | | string | link | numeric | numeric (not null) |
-        // +-+--------+------+---------+--------------------+
-        // |0| Fish   |    0 |       1 |                  1 |
-        // |1| null   | null |    null |                  0 |
-        // |2| Horse  |    1 |       3 |                  3 |
-        // +-+--------+------+---------+--------------------+
+        // +-+--------+------+---------+--------+--------------------+
+        // | | string | link | numeric | binary | numeric (not null) |
+        // +-+--------+------+---------+--------+--------------------+
+        // |0| Fish   |    0 |       1 |    {0} |                  1 |
+        // |1| null   | null |    null |   null |                  0 |
+        // |2| Horse  |    1 |       3 |  {1,2} |                  3 |
+        // +-+--------+------+---------+--------+--------------------+
 
         // 1 String
         String[] words = {"Fish", null, "Horse"};

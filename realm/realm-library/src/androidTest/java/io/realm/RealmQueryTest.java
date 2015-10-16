@@ -21,7 +21,6 @@ import android.test.AndroidTestCase;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
@@ -1200,7 +1199,7 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_STRING_NULL).count());
         // 2 Bytes
-        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTES_NULL).count());
         // 3 Boolean
         assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
