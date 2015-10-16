@@ -106,9 +106,23 @@ task eclipseJar(type:GradleBuild) {
     tasks = ['shadowJar']
 }
 
+task gradleJar(type:Zip) {
+    description = 'Generate the jar file to be used with Gradle'
+    group = 'Artifact'
+    dependsOn eclipseJar
+    archiveName = "realm-android-${currentVersion}.jar"
+    destinationDir = file("${buildDir}/outputs/gradle")
+
+    from(zipTree("realm/realm-annotations-processor/build/libs/realm-android-${currentVersion}.jar"))
+    from('realm/realm-library/src/main/jniLibs/') {
+        include '**/*'
+        into 'lib'
+    }
+}
+
 task distributionPackage(type:Zip) {
     description = 'Generate the distribution package'
-    dependsOn eclipseJar
+    dependsOn gradleJar
     dependsOn assembleRealm
     dependsOn javadoc
 
@@ -126,6 +140,10 @@ task distributionPackage(type:Zip) {
     from('realm/realm-library/src/main/jniLibs/') {
         include '**/*'
         into 'eclipse'
+    }
+    from("${buildDir}/outputs/gradle") {
+        include "realm-android-${currentVersion}.jar"
+        into 'gradle'
     }
     from('realm/realm-library/build/libs') {
         include 'realm-android-*-javadoc.jar'
