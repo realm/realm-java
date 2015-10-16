@@ -28,3 +28,7 @@ allprojects {
         jcenter()
     }
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
+}

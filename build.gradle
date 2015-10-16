@@ -16,6 +16,12 @@ apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim();
 
+def props = new Properties()
+props.load(new FileInputStream("${rootDir}/realm.properties"))
+props.each { key, val ->
+    project.set(key, val)
+}
+
 def getSdk() {
     if (!System.env.ANDROID_HOME) {
         throw new GradleException('The ANDROID_HOME environment variable is not set.')
@@ -327,4 +333,8 @@ release {
   push = true
   versionSuffix = '-SNAPSHOT'
   tagPrefix = 'v'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
 }

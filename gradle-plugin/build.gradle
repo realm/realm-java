@@ -1,6 +1,12 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
 
+def props = new Properties()
+props.load(new FileInputStream("${rootDir}/../realm.properties"))
+props.each { key, val ->
+    project.set(key, val)
+}
+
 repositories {
     jcenter()
 }
@@ -45,3 +51,7 @@ sourceSets {
 }
 
 compileJava.dependsOn generateVersionClass
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
+}
