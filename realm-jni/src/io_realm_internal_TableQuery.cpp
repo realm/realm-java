@@ -949,7 +949,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
       TR_ENTER()
       try {
           std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
-          TableRef table =  query->get_table();
+          TableRef table = query->get_table();
           if (!QUERY_VALID(env, query.get()) ||
               !ROW_INDEXES_VALID(env, table.get(), start, end, limit)) {
               return 0;
@@ -974,7 +974,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
           std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
           TableRef table =  query->get_table();
 
-          if (!QUERY_VALID(env, query.get()) || !ROW_INDEXES_VALID(env, table.get(), start, end, limit)) {
+          if (!(QUERY_VALID(env, query.get()) && ROW_INDEXES_VALID(env, table.get(), start, end, limit))) {
               return 0;
           }
 
@@ -1073,12 +1073,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
           // handover the result
           std::unique_ptr<SharedGroup::Handover<TableView> > handover = SG(bgSharedGroupPtr)->export_for_handover(tableView, MutableSourcePayload::Move);
           return reinterpret_cast<jlong>(handover.release());
-
       } CATCH_STD()
       return 0;
   }
-
-
 
 // Integer Aggregates
 
