@@ -42,7 +42,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
@@ -1023,8 +1022,12 @@ public final class Realm extends BaseRealm {
         if (transaction == null)
             throw new IllegalArgumentException("Transaction should not be null");
 
-        // will use the Looper of the caller thread to post the result
-        final Handler handler = new Handler();
+        // If the user provided a Callback then we make sure, the current Realm has a Handler
+        // we can use to deliver the result
+        if (callback != null && handler == null) {
+            throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
+                    " and you provided a callback, we need a Handler to invoke your callback");
+        }
 
         // We need to use the same configuration to open a background SharedGroup (i.e Realm)
         // to perform the transaction
@@ -1042,6 +1045,7 @@ public final class Realm extends BaseRealm {
                         if (!Thread.currentThread().isInterrupted()) {
                             bgRealm.commitTransaction();
                             if (callback != null
+                                    && handler != null
                                     && !Thread.currentThread().isInterrupted()
                                     && handler.getLooper().getThread().isAlive()) {
                                 handler.post(new Runnable() {
@@ -1058,6 +1062,7 @@ public final class Realm extends BaseRealm {
                     } catch (final Exception e) {
                         bgRealm.cancelTransaction();
                         if (callback != null
+                                && handler != null
                                 && !Thread.currentThread().isInterrupted()
                                 && handler.getLooper().getThread().isAlive()) {
                             handler.post(new Runnable() {
