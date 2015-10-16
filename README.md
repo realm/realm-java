@@ -38,7 +38,7 @@ If you want to test recent bugfixes or features that have not been packaged in a
         }
         dependencies {
             classpath "io.realm:gradle-plugin:<version>-SNAPSHOT"
-        }       
+        }
     }
 
     repositories {
@@ -88,7 +88,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
 
 ## License
 
-Realm Java is published under the Apache 2.0 license.  
+Realm Java is published under the Apache 2.0 license.
 The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](http://realm.io/docs/java/#faq).
 
 **This product is not being made available to any person located in Cuba, Iran,
