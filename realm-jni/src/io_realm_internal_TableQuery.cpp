@@ -1585,7 +1585,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
                     pQuery->and_query(src_table_ref->column<String>(S(column_idx)) != realm::null());
                     break;
                 case type_Binary:
-                    pQuery->Not().and_query(src_table_ref->column<Binary>(S(column_idx)) != realm::BinaryData());
+                    pQuery->and_query(src_table_ref->column<Binary>(S(column_idx)) != realm::BinaryData());
                     break;
                 case type_Bool:
                     pQuery->and_query(src_table_ref->column<Bool>(S(column_idx)) != realm::null());

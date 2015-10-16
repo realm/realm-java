@@ -1199,7 +1199,7 @@ public class RealmQueryTest extends AndroidTestCase{
         assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_STRING_NULL).count());
         // 2 Bytes
-        assertEquals(2, testRealm.where(NullTypes.class).isNotNull(
+        assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
                NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_BYTES_NULL).count());
         // 3 Boolean
         assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
