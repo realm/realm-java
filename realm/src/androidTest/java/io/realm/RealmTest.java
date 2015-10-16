@@ -133,7 +133,6 @@ public class RealmTest extends AndroidTestCase {
         populateTestRealm(testRealm, TEST_DATA_SIZE);
     }
 
-
     public void testGetInstanceNullFolderThrows() {
         try {
             Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
