@@ -950,6 +950,30 @@ public final class Realm extends BaseRealm {
     }
 
     /**
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in cases of multiple occurrences.
+     *
+     * @param clazz the Class to get objects of.
+     * @param fieldName the field name.
+     * @return A non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     */
+    public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+
+        Table table = this.getTable(clazz);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        TableView tableView = table.getDistinctView(columnIndex);
+        return new RealmResults(this, tableView, clazz);
+    }
+
+    /**
      * Return change listeners
      * For internal testing purpose only
      *
