@@ -1,14 +1,19 @@
-0.84
-* Added support for async queries and transactions.
-
-0.83.1
+0.84.0
+ * Added support for async queries and transactions.
  * Added Realm.isClosed() method.
  * Added RealmQuery.isValid(), RealmResults.isValid() and RealmList.isValid(). Each method checks whether the instance is still valid to use or not(for example, the Realm has been closed or any parent object has been removed).
  * Following methods in managed RealmList now throw IllegalStateException instead of native crash when RealmList.isValid() returns false: add(int,RealmObject), add(RealmObject)
  * Following methods in managed RealmList now throw IllegalStateException instead of ArrayIndexOutOfBoundsException when RealmList.isValid() returns false: set(int,RealmObject), move(int,int), remove(int), get(int)
  * Following methods in managed RealmList now throw IllegalStateException instead of returning 0/null when RealmList.isValid() returns false: clear(), removeAll(Collection), remove(RealmObject), first(), last(), size(), where()
  * RealmPrimaryKeyConstraintException is now thrown instead of RealmException if two objects with same primary key are inserted.
+ * Add support for parsing JSON Dates with timezone information.
  * Fixed a bug affecting RealmConfiguration.equals().
+ * Add support for parsing JSON Dates with timezone information.
+
+0.83.1 (15 Oct 2015)
+ * Updated Realm core to version 0.94.1.
+   - Fixed a bug when using Realm.compactRealm().
+   - Fixed a bug, so link queries now always return true if any part is null.s
 
 0.83
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.

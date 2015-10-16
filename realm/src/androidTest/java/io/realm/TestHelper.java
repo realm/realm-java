@@ -310,6 +310,9 @@ public class TestHelper {
 
     public static void populateTestRealmForNullTests(Realm testRealm) {
 
+        // Create 3 NullTypes objects. The objects are self-referenced (link) in
+        // order to test link queries.
+        //
         // +-+--------+------+---------+--------------------+
         // | | string | link | numeric | numeric (not null) |
         // +-+--------+------+---------+--------------------+

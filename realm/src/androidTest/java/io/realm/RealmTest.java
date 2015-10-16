@@ -2019,12 +2019,13 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testProcessLocalListenersAfterRefresh() {
+    public void testProcessLocalListenersAfterRefresh() throws InterruptedException {
         // Used to validate the result
         final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
 
         // Used by the background thread to wait for the main thread to do the write operation
         final CountDownLatch bgThreadLatch = new CountDownLatch(1);
+        final CountDownLatch bgClosedLatch = new CountDownLatch(1);
 
         Thread backgroundThread = new Thread() {
             @Override
@@ -2044,6 +2045,7 @@ public class RealmTest extends AndroidTestCase {
                     fail();
                 } finally {
                     bgRealm.close();
+                    bgClosedLatch.countDown();
                 }
             }
         };
@@ -2053,6 +2055,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         bgThreadLatch.countDown();
+        awaitOrFail(bgClosedLatch);
     }
 
     private void awaitOrFail(CountDownLatch latch) {
