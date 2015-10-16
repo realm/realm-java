@@ -548,7 +548,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Deletes the Realm file defined by the given configuration.
+     * Deletes the Realm file defined by tTahe given configuration.
      */
     protected static synchronized boolean deleteRealm(RealmConfiguration configuration) {
         if (isFileOpen(configuration)) {
