@@ -254,7 +254,8 @@ targets.each { target ->
         environment REALM_ANDROID: '1'
         commandLine = [
             'make',
-            '-j', "${Runtime.getRuntime().availableProcessors()}", // logical cores (i.e. includes hyper-threading)
+            "-j${Runtime.getRuntime().availableProcessors() * 2}",
+            "-l${Runtime.getRuntime().availableProcessors()}",
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
             "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
