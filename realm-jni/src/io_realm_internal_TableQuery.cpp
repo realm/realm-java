@@ -956,7 +956,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
           }
 
           // run the query
-          TableView tableView = TableView(query->find_all(S(start), S(end), S(limit)));
+          TableView tableView(query->find_all(S(start), S(end), S(limit)));
 
           // handover the result
           std::unique_ptr<SharedGroup::Handover<TableView>> handover = SG(
@@ -979,7 +979,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
           }
 
           // run the query
-          TableView tableView = TableView( query->find_all(S(start), S(end), S(limit)) );
+          TableView tableView( query->find_all(S(start), S(end), S(limit)) );
 
           // sorting the results
           if (!COL_INDEX_VALID(env, &tableView, columnIndex)) {
@@ -1040,7 +1040,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
               return 0;
 
           // run the query
-          TableView tableView = TableView( query->find_all(S(start), S(end), S(limit)) );
+          TableView tableView( query->find_all(S(start), S(end), S(limit)) );
 
           // sorting the results
           std::vector<size_t> indices;
