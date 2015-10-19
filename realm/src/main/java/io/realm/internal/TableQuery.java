@@ -348,6 +348,7 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
+
     public TableQuery equalTo(long[] columnIndexes, String value) {
         nativeEqual(nativePtr, columnIndexes, value, true);
         queryValidated = false;
@@ -371,6 +372,7 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
+
     public TableQuery beginsWith(long columnIndices[], String value) {
         nativeBeginsWith(nativePtr, columnIndices, value, true);
         queryValidated = false;
@@ -382,6 +384,7 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
+
     public TableQuery endsWith(long columnIndices[], String value) {
         nativeEndsWith(nativePtr, columnIndices, value, true);
         queryValidated = false;
@@ -393,8 +396,15 @@ public class TableQuery implements Closeable {
         queryValidated = false;
         return this;
     }
+
     public TableQuery contains(long columnIndices[], String value) {
         nativeContains(nativePtr, columnIndices, value, true);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery isEmpty(long[] columnIndices) {
+        nativeIsEmpty(nativePtr, columnIndices);
         queryValidated = false;
         return this;
     }
@@ -741,6 +751,7 @@ public class TableQuery implements Closeable {
     private native void nativeBeginsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
     private native void nativeEndsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
     private native void nativeContains(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
+    private native void nativeIsEmpty(long nativePtr, long[] columnIndices);
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
     private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
     private native long nativeSumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
