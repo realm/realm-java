@@ -489,6 +489,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeIsEmpty
+ * Signature: (J[J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
+  (JNIEnv *, jobject, jlong, jlongArray);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeIsNotNull
  * Signature: (J[J)V
  */
