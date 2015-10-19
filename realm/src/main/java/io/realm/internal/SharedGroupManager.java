@@ -41,7 +41,7 @@ public class SharedGroupManager implements Closeable {
     /**
      * Creates a new instance of the FileWrapper for the given configuration on this thread.
      */
-    public  SharedGroupManager(RealmConfiguration configuration) {
+    public SharedGroupManager(RealmConfiguration configuration) {
         this.sharedGroup = new SharedGroup(
                 configuration.getPath(),
                 SharedGroup.IMPLICIT_TRANSACTION,

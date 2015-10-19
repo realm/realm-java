@@ -310,7 +310,8 @@ abstract class BaseRealm implements Closeable {
      * objects and {@link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
      *
-     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
+     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state
+     *                                          or incorrect thread.
      */
     public void commitTransaction() {
         checkIfValid();
