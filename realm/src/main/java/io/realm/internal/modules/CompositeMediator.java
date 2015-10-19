@@ -22,10 +22,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
@@ -79,12 +80,8 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public List<Class<? extends RealmObject>> getModelClasses() {
-        List<Class<? extends RealmObject>> list = new ArrayList<Class<? extends RealmObject>>();
-        for (RealmProxyMediator mediator : mediators.values()) {
-            list.addAll(mediator.getModelClasses());
-        }
-        return list;
+    public Set<Class<? extends RealmObject>> getModelClasses() {
+        return new HashSet<Class<? extends RealmObject>>(mediators.keySet());
     }
 
     @Override

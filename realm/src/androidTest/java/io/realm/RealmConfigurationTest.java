@@ -22,8 +22,10 @@ import java.io.File;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.AnimalModule;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmMigrationNeededException;
 
@@ -294,6 +296,29 @@ public class RealmConfigurationTest extends AndroidTestCase {
     public void testHashCode() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(getContext()).build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(getContext()).build();
+        assertEquals(config1.hashCode(), config2.hashCode());
+    }
+
+    public void testEqualsWithCustomModules() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext())
+                .setModules(new HumanModule(), new AnimalModule())
+                .build();
+
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext())
+                .setModules(new AnimalModule(), new HumanModule())
+                .build();
+
+        assertTrue(config1.equals(config2));
+    }
+
+    public void testHashCodeWithCustomModules() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(getContext())
+                .setModules(new HumanModule(), new AnimalModule())
+                .build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(getContext())
+                .setModules(new AnimalModule(), new HumanModule())
+                .build();
+
         assertEquals(config1.hashCode(), config2.hashCode());
     }
 
