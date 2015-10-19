@@ -54,8 +54,12 @@ public class ImplicitTransaction extends Group {
 
     public void commitAndContinueAsRead() {
         assertNotClosed();
-        parent.commitAndContinueAsRead();
-        immutable = true;
+        if (!immutable) {
+            parent.commitAndContinueAsRead();
+            immutable = true;
+        } else {
+            throw new IllegalStateException("Cannot commit a non-write transaction.");
+        }
     }
 
     public void endRead() {

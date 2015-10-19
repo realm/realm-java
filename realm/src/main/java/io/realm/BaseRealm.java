@@ -137,6 +137,17 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Indicates if the Realm is currently in a write transaction.
+     * @return the write transaction status.
+     * @throws java.lang.IllegalStateException if the Realm is not opened or in a different thread
+     *                                      than the one it was created on.
+     */
+    public boolean isInWriteTransaction() {
+        checkIfValid();
+        return !sharedGroupManager.isImmutable();
+    }
+
+    /**
      * Add a change listener to the Realm.
      * <p>
      * The listeners will be executed:
@@ -310,7 +321,7 @@ abstract class BaseRealm implements Closeable {
      * objects and {@link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
      *
-     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state
+     * @throws java.lang.IllegalStateException if the write transaction is in an invalid state
      *                                          or incorrect thread.
      */
     public void commitTransaction() {

@@ -666,6 +666,15 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE + 1, resultList.size());
     }
 
+    public void testCommitTransactionAfterCancelTransaction () {
+        testRealm.beginTransaction();
+        testRealm.cancelTransaction();
+        try {
+            testRealm.commitTransaction();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
 
     public void testCancelTransaction() {
         populateTestRealm();
@@ -2160,5 +2169,17 @@ public class RealmTest extends AndroidTestCase {
             } catch (UnsupportedOperationException ignore) {
             }
         }
+    }
+
+    public void testIsInWriteTransaction() {
+        assertFalse(testRealm.isInWriteTransaction());
+        testRealm.beginTransaction();
+        assertTrue(testRealm.isInWriteTransaction());
+        testRealm.commitTransaction();
+        assertFalse(testRealm.isInWriteTransaction());
+        testRealm.beginTransaction();
+        assertTrue(testRealm.isInWriteTransaction());
+        testRealm.cancelTransaction();
+        assertFalse(testRealm.isInWriteTransaction());
     }
 }

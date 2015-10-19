@@ -155,6 +155,13 @@ public class SharedGroupManager implements Closeable {
     }
 
     /**
+     * Returns if the Realm is currently not in a write transaction.
+     */
+    public boolean isImmutable() {
+        return transaction.immutable;
+    }
+
+    /**
      * Compacts a Realm file. It cannot be open when calling this method.
      */
     public static boolean compact(RealmConfiguration configuration) {
