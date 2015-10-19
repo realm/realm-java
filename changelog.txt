@@ -1,5 +1,6 @@
 0.84.0
  * Added support for async queries and transactions.
+ * Fixed a bug where closed Realms were trying to refresh themselves resulting in a NullPointerException.
  * Added Realm.isClosed() method.
  * Added Realm.distinct() method.
  * Added RealmQuery.isValid(), RealmResults.isValid() and RealmList.isValid(). Each method checks whether the instance is still valid to use or not(for example, the Realm has been closed or any parent object has been removed).

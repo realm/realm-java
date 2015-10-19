@@ -998,6 +998,14 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
+    public void testGetRealmAfterCompactRealm() {
+        final RealmConfiguration configuration = testRealm.getConfiguration();
+        testRealm.close();
+        testRealm = null;
+        Realm.compactRealm(configuration);
+        testRealm = Realm.getInstance(configuration);
+    }
+
     public void testCompactRealmFileThrowsIfOpen() throws IOException {
         try {
             Realm.compactRealm(TestHelper.createConfiguration(getContext()));

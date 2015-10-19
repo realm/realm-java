@@ -272,34 +272,41 @@ public class HandlerController implements Handler.Callback {
 
     @Override
     public boolean handleMessage(Message message) {
-        switch (message.what) {
-            case Realm.REALM_CHANGED: {
-                if (threadContainsAsyncQueries()) {
-                    updateAsyncQueries();
+        // Due to how a ConcurrentHashMap iterator is created we cannot be sure that other threads are
+        // aware when this threads handler is removed before they send messages to it. We don't wish to synchronize
+        // access to the handlers as they are the prime mean of notifying about updates. Instead we make sure
+        // that if a message does slip though (however unlikely), it will not try to update a SharedGroup that no
+        // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
+        if (realm.sharedGroupManager != null) {
+            switch (message.what) {
+                case Realm.REALM_CHANGED: {
+                    if (threadContainsAsyncQueries()) {
+                        updateAsyncQueries();
 
-                } else {
-                    RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " no async queries, advance_read");
-                    realm.sharedGroupManager.advanceRead();
-                    realm.sendNotifications();
+                    } else {
+                        RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " no async queries, advance_read");
+                        realm.sharedGroupManager.advanceRead();
+                        realm.sendNotifications();
+                    }
+                    break;
                 }
-                break;
-            }
-            case Realm.REALM_COMPLETED_ASYNC_QUERY: {
-                // one async query has completed
-                QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
-                completedAsyncQueryUpdate(result);
-                break;
-            }
-            case Realm.REALM_UPDATE_ASYNC_QUERIES: {
-                // this is called once the background thread completed the update of the async queries
-                QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
-                completedAsyncQueriesUpdate(result);
-                break;
-            }
-            case Realm.REALM_COMPLETED_ASYNC_FIND_FIRST: {
-                QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
-                completedAsyncFindFirst(result);
-                break;
+                case Realm.REALM_COMPLETED_ASYNC_QUERY: {
+                    // one async query has completed
+                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+                    completedAsyncQueryUpdate(result);
+                    break;
+                }
+                case Realm.REALM_UPDATE_ASYNC_QUERIES: {
+                    // this is called once the background thread completed the update of the async queries
+                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+                    completedAsyncQueriesUpdate(result);
+                    break;
+                }
+                case Realm.REALM_COMPLETED_ASYNC_FIND_FIRST: {
+                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+                    completedAsyncFindFirst(result);
+                    break;
+                }
             }
         }
         return true;
