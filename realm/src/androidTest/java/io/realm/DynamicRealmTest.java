@@ -162,10 +162,14 @@ public class DynamicRealmTest extends AndroidTestCase {
         assertEquals(1, results.size());
     }
 
-    public void testClearInvalidName() {
+    public void testClearInvalidNameThrows() {
         realm.beginTransaction();
-        realm.clear("I don't exist");
-        realm.commitTransaction();
+        try {
+            realm.clear("I don't exist");
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
     }
 
     public void testClearOutsideTransactionThrows() {

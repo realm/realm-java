@@ -29,6 +29,7 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 public class DynamicRealmObjectTest extends AndroidTestCase {
 
     private Realm realm;
+    private AllJavaTypes typedObj;
     private DynamicRealmObject dObj;
 
     @Override
@@ -37,20 +38,20 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         Realm.deleteRealm(realmConfig);
         realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
-        obj.setFieldString("str");
-        obj.setFieldShort((short) 1);
-        obj.setFieldInt(1);
-        obj.setFieldLong(1);
-        obj.setFieldByte((byte) 4);
-        obj.setFieldFloat(1.23f);
-        obj.setFieldDouble(1.234d);
-        obj.setFieldBinary(new byte[]{1, 2, 3});
-        obj.setFieldBoolean(true);
-        obj.setFieldDate(new Date(1000));
-        obj.setFieldObject(obj);
-        obj.getFieldList().add(obj);
-        dObj = new DynamicRealmObject(obj);
+        typedObj = realm.createObject(AllJavaTypes.class);
+        typedObj.setFieldString("str");
+        typedObj.setFieldShort((short) 1);
+        typedObj.setFieldInt(1);
+        typedObj.setFieldLong(1);
+        typedObj.setFieldByte((byte) 4);
+        typedObj.setFieldFloat(1.23f);
+        typedObj.setFieldDouble(1.234d);
+        typedObj.setFieldBinary(new byte[]{1, 2, 3});
+        typedObj.setFieldBoolean(true);
+        typedObj.setFieldDate(new Date(1000));
+        typedObj.setFieldObject(typedObj);
+        typedObj.getFieldList().add(typedObj);
+        dObj = new DynamicRealmObject(typedObj);
         realm.commitTransaction();
     }
 
@@ -62,6 +63,26 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     public enum SupportedType {
         BOOLEAN, SHORT, INT, LONG, BYTE, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, LIST;
+    }
+
+    public void testIllegalInputObjectThrows() {
+        try {
+            new DynamicRealmObject(null);
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            new DynamicRealmObject(dObj);
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        realm.beginTransaction();
+        typedObj.removeFromRealm();
+        realm.commitTransaction();
+        try {
+            new DynamicRealmObject(typedObj);
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     // Test that all getters fail if given invalid field name
@@ -232,7 +253,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     case BINARY:
                     case DATE:
                     default:
-                        continue; // Ignore other types for now until null support is merged.
+                        // Ignore other types for now until null support is merged.
                 }
             }
         } finally {
@@ -350,7 +371,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     case BINARY:
                     case DATE:
                     default:
-                        continue; // Ignore other types for now until Null support is merged.
+                        // Ignore other types for now until Null support is merged.
                 }
             }
         } finally {
@@ -399,7 +420,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     case STRING:
                     case BINARY:
                     default:
-                        continue;
+                        // Ignore
                 }
             }
         } finally {
@@ -497,6 +518,10 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertEquals(RealmFieldType.FLOAT, dObj.getFieldType(AllJavaTypes.FIELD_FLOAT));
         assertEquals(RealmFieldType.OBJECT, dObj.getFieldType(AllJavaTypes.FIELD_OBJECT));
         assertEquals(RealmFieldType.LIST, dObj.getFieldType(AllJavaTypes.FIELD_LIST));
+        assertEquals(RealmFieldType.INTEGER, dObj.getFieldType(AllJavaTypes.FIELD_BYTE));
+        assertEquals(RealmFieldType.INTEGER, dObj.getFieldType(AllJavaTypes.FIELD_SHORT));
+        assertEquals(RealmFieldType.INTEGER, dObj.getFieldType(AllJavaTypes.FIELD_INT));
+        assertEquals(RealmFieldType.INTEGER, dObj.getFieldType(AllJavaTypes.FIELD_LONG));
     }
 
     public void testEquals() {
@@ -509,6 +534,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     public void testStandardAndDynamicObjectsNotEqual() {
         AllJavaTypes standardObj = realm.where(AllJavaTypes.class).findFirst();
+        //noinspection EqualsBetweenInconvertibleTypes
         assertFalse(dObj.equals(standardObj));
     }
 

@@ -47,7 +47,6 @@ import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnIndices;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
@@ -936,7 +935,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        return new RealmResults(this, tableView, clazz);
+        return RealmResults.createFromQuery(this, tableView, clazz);
     }
 
     /**
@@ -1027,7 +1026,7 @@ public final class Realm extends BaseRealm {
      * @param migration {@link RealmMigration} to run on the Realm. This will override any migration set on the
      * configuration.
      */
-    public synchronized static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
 
             @Override

@@ -146,7 +146,7 @@ public class DynamicRealm extends BaseRealm {
      * Get all objects of a specific class name.
      *
      * @param className the Class to get objects of
-     * @return a RealmResult list containing the objects. If no results where found, an empty list
+     * @return a {@link RealmResults} list containing the objects. If no results where found, an empty list
      * will be returned.
      * @see io.realm.RealmResults
      */
@@ -156,12 +156,12 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Get all objects of a specific class name sorted by a field.  If no objects exist, the returned
-     * RealmResults will not be null. Use {@link RealmResults#size()} to check the number of objects instead.
+     * {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of objects instead.
      *
      * @param className the class to get all objects from.
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
-     * @return a sorted RealmResults containing the objects.
+     * @return a sorted {@link RealmResults} containing the objects.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName, Sort sortOrder) {
@@ -179,18 +179,15 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Get all objects of a specific class name sorted by two specific field names.  If no objects exist,
-     * the returned RealmResults will not be null. Use {@link RealmResults#size()} to check the number of
+     * the returned {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of
      * objects instead.
-
-     you mean: call RealmResults.size() to check the number of objects instead.
-     if fixed replaceAll The RealmResults.size()
-
+     *
      * @param className the class to get all objects from.
      * @param fieldName1 the first field name to sort by.
      * @param sortOrder1 how to sort the first field.
      * @param fieldName2 the second field name to sort by.
      * @param sortOrder2 how to sort the second field.
-     * @return a sorted RealmResults containing the objects. If no results where found an empty list
+     * @return a sorted {@link RealmResults} containing the objects. If no results where found an empty list
      * is returned.
      * @throws java.lang.IllegalArgumentException if a field name used for sorting does not exist.
      */
@@ -203,14 +200,14 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Get all objects of a specific class name sorted by multiple fields.  If no objects exist, the
-     * returned RealmResults will not be null. Use {@link RealmResults#size()} to check the number of
+     * returned {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of
      * objects instead.
      *
      * @param className the class to get all objects from.
      * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
      * @param fieldNames an array of field names to sort objects by.
      *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
-     * @return A sorted RealmResults containing the objects.
+     * @return A sorted {@link RealmResults} containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     @SuppressWarnings("unchecked")
@@ -223,40 +220,42 @@ public class DynamicRealm extends BaseRealm {
         return RealmResults.createFromDynamicQuery(this, tableView, className);
     }
 
-    private static synchronized DynamicRealm create(RealmConfiguration configuration) {
+    private static DynamicRealm create(RealmConfiguration configuration) {
+        synchronized (BaseRealm.class) {
 
-        // Check if a cached instance already exists for this thread
-        String canonicalPath = configuration.getPath();
-        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
-        }
-        Map<RealmConfiguration, DynamicRealm> realms = realmsCache.get();
-        DynamicRealm realm = realms.get(configuration);
-        if (realm != null) {
+            // Check if a cached instance already exists for this thread
+            String canonicalPath = configuration.getPath();
+            Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
+            Integer references = localRefCount.get(configuration);
+            if (references == null) {
+                references = 0;
+            }
+            Map<RealmConfiguration, DynamicRealm> realms = realmsCache.get();
+            DynamicRealm realm = realms.get(configuration);
+            if (realm != null) {
+                localRefCount.put(configuration, references + 1);
+                return realm;
+            }
+
+            // Create new DynamicRealm and cache it. All exception code paths must close the DynamicRealm otherwise we risk
+            // serving faulty cache data.
+            validateAgainstExistingConfigurations(configuration);
+            boolean autoRefresh = Looper.myLooper() != null;
+            realm = new DynamicRealm(configuration, autoRefresh);
+            List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+            if (pathConfigurationCache == null) {
+                pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+                globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+            }
+            pathConfigurationCache.add(configuration);
+            realms.put(configuration, realm);
             localRefCount.put(configuration, references + 1);
+
+            // Increment global reference counter
+            realm.acquireFileReference(configuration);
+
             return realm;
         }
-
-        // Create new DynamicRealm and cache it. All exception code paths must close the DynamicRealm otherwise we risk
-        // serving faulty cache data.
-        validateAgainstExistingConfigurations(configuration);
-        boolean autoRefresh = Looper.myLooper() != null;
-        realm = new DynamicRealm(configuration, autoRefresh);
-        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-        if (pathConfigurationCache == null) {
-            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
-        }
-        pathConfigurationCache.add(configuration);
-        realms.put(configuration, realm);
-        localRefCount.put(configuration, references + 1);
-
-        // Increment global reference counter
-        realm.acquireFileReference(configuration);
-
-        return realm;
     }
 
     @Override
