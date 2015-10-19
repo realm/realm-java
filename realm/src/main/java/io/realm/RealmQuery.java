@@ -179,16 +179,16 @@ public class RealmQuery<E extends RealmObject> {
             if (columns.get(fieldDescription) == null) {
                 throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldDescription));
             }
-            ColumnType tableColumnType = table.getColumnType(columns.get(fieldDescription));
+            RealmFieldType tableColumnType = table.getColumnType(columns.get(fieldDescription));
             if (checkColumnType && !isValidType(tableColumnType, validColumnTypes)) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch. Was %s, expected %s.",
                         fieldDescription, tableColumnType, Arrays.toString(validColumnTypes)));
             }
-            return new long[] {columns.gets(fieldDescription)};
+            return new long[] {columns.get(fieldDescription)};
         }
     }
 
-    private boolean isValidType(ColumnType columnType, ColumnType[] validColumnTypes) {
+    private boolean isValidType(RealmFieldType columnType, RealmFieldType[] validColumnTypes) {
         for (int i = 0; i < validColumnTypes.length; i++) {
             if (validColumnTypes[i] == columnType) {
                 return true;
@@ -1150,7 +1150,7 @@ public class RealmQuery<E extends RealmObject> {
      *                                            String or byte array.
      */
     public RealmQuery<E> isEmpty(String fieldName) {
-        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING, ColumnType.BINARY, ColumnType.LINK_LIST);
+        long columnIndices[] = getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST);
         this.query.isEmpty(columnIndices);
         return this;
     }
