@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.realm.internal.test.TestHelper;
+import io.realm.TestHelper;
 
 // Tables get detached
 

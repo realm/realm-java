@@ -76,6 +76,14 @@ public class SharedGroupManager implements Closeable {
         transaction.advanceRead();
     }
 
+    /**
+     * Advance the Realm file to the given version.
+     */
+    public void advanceRead(SharedGroup.VersionID version) {
+        transaction.advanceRead(version);
+    }
+
+
     // Public because of migrations. Gets the full table name. Prefix will not be added.
     // TODO Remove when new Migration API is introduced.
     public Table getTable(String tableName) {
@@ -87,6 +95,13 @@ public class SharedGroupManager implements Closeable {
      */
     public boolean hasChanged() {
         return sharedGroup.hasChanged();
+    }
+
+    /**
+     * Returns the version for the SharedGroup.
+     */
+    public SharedGroup.VersionID getVersion() {
+        return sharedGroup.getVersion();
     }
 
     /**
@@ -158,5 +173,9 @@ public class SharedGroupManager implements Closeable {
             }
         }
         return result;
+    }
+
+    public long getNativePointer() {
+        return sharedGroup.getNativePointer();
     }
 }

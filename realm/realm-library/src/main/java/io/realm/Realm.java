@@ -36,12 +36,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
@@ -129,16 +129,12 @@ public final class Realm extends BaseRealm {
                 }
             };
 
-    // List of Realm files that has already been validated
-    private static final Set<String> validatedRealmFiles = new HashSet<String>();
-
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable =
             new HashMap<Class<? extends RealmObject>, Table>();
 
     private static RealmConfiguration defaultConfiguration;
     protected ColumnIndices columnIndices = new ColumnIndices();
-
     /**
      * The constructor is private to enforce the use of the static one.
      *
@@ -309,6 +305,8 @@ public final class Realm extends BaseRealm {
                     realm.close();
                     throw e;
                 }
+            } else {
+                loadMediatorClasses(realm);
             }
             setupColumnIndices(realm);
 
@@ -350,6 +348,13 @@ public final class Realm extends BaseRealm {
             } else {
                 realm.cancelTransaction();
             }
+        }
+    }
+
+    private static void loadMediatorClasses(Realm realm) {
+        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
+        for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
+            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 
@@ -992,7 +997,8 @@ public final class Realm extends BaseRealm {
      */
     public void executeTransaction(Transaction transaction) {
         if (transaction == null)
-            return;
+            throw new IllegalArgumentException("Transaction should not be null");
+
         beginTransaction();
         try {
             transaction.execute(this);
@@ -1004,6 +1010,76 @@ public final class Realm extends BaseRealm {
             cancelTransaction();
             throw e;
         }
+    }
+
+    /**
+     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously from a worker thread
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param callback optional, to receive the result of this query
+     * @return A {@link RealmAsyncTask} representing a cancellable task
+     */
+    public RealmAsyncTask executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
+        if (transaction == null)
+            throw new IllegalArgumentException("Transaction should not be null");
+
+        // If the user provided a Callback then we make sure, the current Realm has a Handler
+        // we can use to deliver the result
+        if (callback != null && handler == null) {
+            throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
+                    " and you provided a callback, we need a Handler to invoke your callback");
+        }
+
+        // We need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // to perform the transaction
+        final RealmConfiguration realmConfiguration = getConfiguration();
+
+        final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (!Thread.currentThread().isInterrupted()) {
+                    Realm bgRealm = Realm.getInstance(realmConfiguration);
+                    bgRealm.beginTransaction();
+                    try {
+                        transaction.execute(bgRealm);
+
+                        if (!Thread.currentThread().isInterrupted()) {
+                            bgRealm.commitTransaction();
+                            if (callback != null
+                                    && handler != null
+                                    && !Thread.currentThread().isInterrupted()
+                                    && handler.getLooper().getThread().isAlive()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callback.onSuccess();
+                                    }
+                                });
+                            }
+                        } else {
+                            bgRealm.cancelTransaction();
+                        }
+
+                    } catch (final Exception e) {
+                        bgRealm.cancelTransaction();
+                        if (callback != null
+                                && handler != null
+                                && !Thread.currentThread().isInterrupted()
+                                && handler.getLooper().getThread().isAlive()) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onError(e);
+                                }
+                            });
+                        }
+                    } finally {
+                        bgRealm.close();
+                    }
+                }
+            }
+        });
+
+        return new RealmAsyncTask(pendingQuery);
     }
 
     /**
@@ -1166,6 +1242,13 @@ public final class Realm extends BaseRealm {
      */
     public interface Transaction {
         void execute(Realm realm);
-    }
 
+        /**
+         * Callback invoked to notify the caller thread.
+         */
+        class Callback {
+            public void onSuccess() {}
+            public void onError(Exception e) {}
+        }
+    }
 }

@@ -118,7 +118,8 @@ public class TableView implements TableOrView, Closeable {
             } 
         }
     }
-    
+
+    @Override
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
