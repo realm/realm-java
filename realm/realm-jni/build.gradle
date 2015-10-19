@@ -100,7 +100,7 @@ def getNdk() {
     return ndkDir
 }
 
-ext.coreArchiveFile = project.file("../core-android-${project.coreVersion}.tar.gz")
+ext.coreArchiveFile = rootProject.file("../core-android-${project.coreVersion}.tar.gz")
 ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false
