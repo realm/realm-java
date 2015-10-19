@@ -70,7 +70,7 @@ Once you have completed all the pre-requisites building Realm is done with a sim
 
 That command will generate:
 
- * a jar file for the Realm the gradle plugin
+ * a jar file for the Realm Gradle plugin
  * an aar file for the Realm library
  * a jar file for the annotations
  * a jar file for the annotations processor
