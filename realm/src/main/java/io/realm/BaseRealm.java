@@ -109,6 +109,7 @@ abstract class BaseRealm implements Closeable {
      * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
      */
     public void setAutoRefresh(boolean autoRefresh) {
+        checkIfValid();
         if (autoRefresh && Looper.myLooper() == null) {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }
@@ -117,7 +118,7 @@ abstract class BaseRealm implements Closeable {
             handler = new Handler(new RealmCallback());
             handlers.put(handler, configuration.getPath());
         } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
-            removeHandler(handler);
+            removeHandler();
         }
         this.autoRefresh = autoRefresh;
     }
@@ -187,9 +188,13 @@ abstract class BaseRealm implements Closeable {
         changeListeners.clear();
     }
 
-    protected void removeHandler(Handler handler) {
-        handler.removeCallbacksAndMessages(null);
+    /**
+     * Remove and stop the current thread handler as gracefully as possible.
+     */
+    protected void removeHandler() {
         handlers.remove(handler);
+        // Warning: This only clears the Looper queue. Handler.Callback is not removed.
+        handler.removeCallbacksAndMessages(null);
         this.handler = null;
     }
 
@@ -312,8 +317,11 @@ abstract class BaseRealm implements Closeable {
             }
 
             // For all other threads, use the Handler
+            // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
+            // as the target thread consumes messages at the same time. In this case it is not a problem as worst
+            // case we end up with two REALM_CHANGED messages in the queue.
             if (
-                    realmPath.equals(configuration.getPath())    // It's the right realm
+                    realmPath.equals(configuration.getPath())            // It's the right realm
                             && !handler.hasMessages(REALM_CHANGED)       // The right message
                             && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     ) {
@@ -424,7 +432,7 @@ abstract class BaseRealm implements Closeable {
         localRefCount.put(configuration, Math.max(0, refCount));
 
         if (handler != null && refCount <= 0) {
-            removeHandler(handler);
+            removeHandler();
         }
     }
 
@@ -700,7 +708,12 @@ abstract class BaseRealm implements Closeable {
     private class RealmCallback implements Handler.Callback {
         @Override
         public boolean handleMessage(Message message) {
-            if (message.what == REALM_CHANGED) {
+            // Due to how a ConcurrentHashMap iterator is created we cannot be sure that other threads are
+            // aware when this threads handler is removed before they send messages to it. We don't wish to synchronize
+            // access to the handlers as they are the prime mean of notifying about updates. Instead we make sure
+            // that if a message does slip though (however unlikely), it will not try to update a SharedGroup that no
+            // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
+            if (message.what == REALM_CHANGED && sharedGroupManager != null) {
                 sharedGroupManager.advanceRead();
                 sendNotifications();
             }

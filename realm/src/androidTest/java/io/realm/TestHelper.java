@@ -35,13 +35,12 @@ import java.util.Date;
 import java.util.Random;
 
 import io.realm.entities.AllTypes;
-import io.realm.internal.log.Logger;
-
-import static junit.framework.Assert.fail;
-
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
+import io.realm.internal.log.Logger;
+
+import static junit.framework.Assert.fail;
 
 public class TestHelper {
 
@@ -253,13 +252,16 @@ public class TestHelper {
 
     public static void populateTestRealmForNullTests(Realm testRealm) {
 
-        // +-+--------+------+---------+--------------------+
-        // | | string | link | numeric | numeric (not null) |
-        // +-+--------+------+---------+--------------------+
-        // |0| Fish   |    0 |       1 |                  1 |
-        // |1| null   | null |    null |                  0 |
-        // |2| Horse  |    1 |       3 |                  3 |
-        // +-+--------+------+---------+--------------------+
+        // Create 3 NullTypes objects. The objects are self-referenced (link) in
+        // order to test link queries.
+        //
+        // +-+--------+------+---------+--------+--------------------+
+        // | | string | link | numeric | binary | numeric (not null) |
+        // +-+--------+------+---------+--------+--------------------+
+        // |0| Fish   |    0 |       1 |    {0} |                  1 |
+        // |1| null   | null |    null |   null |                  0 |
+        // |2| Horse  |    1 |       3 |  {1,2} |                  3 |
+        // +-+--------+------+---------+--------+--------------------+
 
         // 1 String
         String[] words = {"Fish", null, "Horse"};

@@ -19,6 +19,7 @@ package io.realm;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -199,13 +200,27 @@ public class RealmQuery<E extends RealmObject> {
         return arr;
     }
 
+    /**
+     * Returns the column indices for the given field name. If a linked field is defined, the column index for
+     * each
+     *
+     * @param fieldDescription fieldName or link path to a field name.
+     * @param validColumnTypes Legal field type for the last field a
+     * @return
+     */
     // TODO: consider another caching strategy so linked classes are included in the cache.
-    private long[] getColumnIndices(String fieldName, RealmFieldType fieldType) {
+    private long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
+        if (fieldDescription == null || fieldDescription.equals("")) {
+            throw new IllegalArgumentException("Non-empty fieldname must be provided");
+        }
         Table table = this.table;
-        if (containsDot(fieldName)) {
-            String[] names = splitString(fieldName); //fieldName.split("\\.");
+        boolean checkColumnType = validColumnTypes != null && validColumnTypes.length > 0;
+        if (containsDot(fieldDescription)) {
+
+            // Resolve field description down to last field name
+            String[] names = splitString(fieldDescription); //fieldName.split("\\.");
             long[] columnIndices = new long[names.length];
-            for (int i = 0; i < names.length-1; i++) {
+            for (int i = 0; i < names.length - 1; i++) {
                 long index = table.getColumnIndex(names[i]);
                 if (index < 0) {
                     throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
@@ -218,24 +233,38 @@ public class RealmQuery<E extends RealmObject> {
                     throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
                 }
             }
-            columnIndices[names.length - 1] = table.getColumnIndex(names[names.length - 1]);
-            if (fieldType != null && fieldType != table.getColumnType(columnIndices[names.length - 1])) {
+
+            // Check if last field name is a valid field
+            String columnName = names[names.length - 1];
+            long columnIndex = table.getColumnIndex(columnName);
+            columnIndices[names.length - 1] = columnIndex;
+            if (columnIndex < 0) {
+                throw new IllegalArgumentException(columnName + " is not a field name in class " + table.getName());
+            }
+            if (checkColumnType && !isValidType(table.getColumnType(columnIndex), validColumnTypes)) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", names[names.length - 1]));
             }
             return columnIndices;
         } else {
-            if (columns.get(fieldName) == null) {
-                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldName));
+            if (columns.get(fieldDescription) == null) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldDescription));
             }
-
-            RealmFieldType tableColumnType = table.getColumnType(columns.get(fieldName));
-            if (fieldType != null && fieldType != tableColumnType) {
+            ColumnType tableColumnType = table.getColumnType(columns.get(fieldDescription));
+            if (checkColumnType && !isValidType(tableColumnType, validColumnTypes)) {
                 throw new IllegalArgumentException(String.format("Field '%s': type mismatch. Was %s, expected %s.",
-                        fieldName, fieldType, tableColumnType
-                ));
+                        fieldDescription, tableColumnType, Arrays.toString(validColumnTypes)));
             }
-            return new long[] {columns.get(fieldName)};
+            return new long[] {columns.gets(fieldDescription)};
         }
+    }
+
+    private boolean isValidType(ColumnType columnType, ColumnType[] validColumnTypes) {
+        for (int i = 0; i < validColumnTypes.length; i++) {
+            if (validColumnTypes[i] == columnType) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -256,7 +285,11 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Test if a field is {@code null}. Only works for nullable fields.
+     * Tests if a field is {@code null}. Only works for nullable fields.
+     *
+     * For link queries, if any part of the link path is {@code null} the whole path is considered
+     * to be {@code null} e.g. {@code isNull("linkField.stringField")} will be considered to be
+     * {@code null} if either {@code linkField} or {@code linkField.stringField} is {@code null}.
      *
      * @param fieldName the field name.
      * @return the query object.
@@ -264,7 +297,7 @@ public class RealmQuery<E extends RealmObject> {
      * @see Required for further infomation.
      */
     public RealmQuery<E> isNull(String fieldName) {
-        long columnIndices[] = getColumnIndices(fieldName, null);
+        long columnIndices[] = getColumnIndices(fieldName);
 
         // checking that fieldName has the correct type is done in C++
         this.query.isNull(columnIndices);
@@ -280,7 +313,7 @@ public class RealmQuery<E extends RealmObject> {
      * @see Required for further infomation.
      */
     public RealmQuery<E> isNotNull(String fieldName) {
-        long columnIndices[] = getColumnIndices(fieldName, null);
+        long columnIndices[] = getColumnIndices(fieldName);
 
         // checking that fieldName has the correct type is done in C++
         this.query.isNotNull(columnIndices);
@@ -1178,6 +1211,20 @@ public class RealmQuery<E extends RealmObject> {
         return this;
     }
 
+    /**
+     * Condition that find values that are considered "empty", i.e. an empty list, the 0-length string or byte array.
+     *
+     * @param fieldName The field to compare
+     * @return The query object
+     * @throws java.lang.IllegalArgumentException If the field name isn't valid or its type isn't either a RealmList,
+     *                                            String or byte array.
+     */
+    public RealmQuery<E> isEmpty(String fieldName) {
+        long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING, ColumnType.BINARY, ColumnType.LINK_LIST);
+        this.query.isEmpty(columnIndices);
+        return this;
+    }
+
     // Aggregates
 
     // Sum
@@ -1473,8 +1520,6 @@ public class RealmQuery<E extends RealmObject> {
     public long count() {
         return this.query.count();
     }
-
-    // Execute
 
     /**
      * Find all objects that fulfill the query conditions.
