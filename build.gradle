@@ -120,6 +120,13 @@ task gradleJar(type:Zip) {
     }
 }
 
+task assemble {
+    group 'Build'
+    description = 'Build Realm, the Gradle plugin and the examples'
+    dependsOn assembleExamples
+    dependsOn gradleJar
+}
+
 task distributionPackage(type:Zip) {
     description = 'Generate the distribution package'
     dependsOn gradleJar

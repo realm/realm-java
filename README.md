@@ -66,7 +66,7 @@ Prerequisites:
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
-    ./gradlew assembleExamples
+    ./gradlew assemble
 
 That command will generate:
 
