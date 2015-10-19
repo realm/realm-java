@@ -27,7 +27,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -47,6 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.dynamic.DynamicRealmObject;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
@@ -994,6 +994,14 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+
+    public void testGetRealmAfterCompactRealm() {
+        final RealmConfiguration configuration = testRealm.getConfiguration();
+        testRealm.close();
+        testRealm = null;
+        Realm.compactRealm(configuration);
+        testRealm = Realm.getInstance(configuration);
+    }
 
     public void testCompactRealmFileThrowsIfOpen() throws IOException {
         try {
@@ -2062,6 +2070,92 @@ public class RealmTest extends AndroidTestCase {
             }
         } catch (InterruptedException e) {
             fail();
+        }
+    }
+
+    private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
+            for (int j = 0; j < numberOfBlocks; j++) {
+                AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
+                obj.setIndexBoolean(j % 2 == 0);
+                obj.setIndexLong(j);
+                obj.setIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setIndexString(withNull ? null :  "Test " + j);
+                obj.setNotIndexBoolean(j % 2 == 0);
+                obj.setNotIndexLong(j);
+                obj.setNotIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setNotIndexString(withNull ? null : "Test " + j);
+            }
+        }
+        realm.commitTransaction();
+    }
+
+    // Realm.distinct(): requires indexing, and type = boolean, integer, date, string
+    public void testDistinct() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        RealmResults<AnnotationIndexTypes> distinctBool = testRealm.distinct(AnnotationIndexTypes.class, "indexBoolean");
+        assertEquals(2, distinctBool.size());
+
+        for (String fieldName : new String[]{"Long", "Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.distinct(AnnotationIndexTypes.class, "index" + fieldName);
+            assertEquals("index" + fieldName, numberOfBlocks, distinct.size());
+        }
+    }
+
+    public void testDistinctWithNull() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, true);
+
+        for (String fieldName : new String[]{"Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.distinct(AnnotationIndexTypes.class, "index" + fieldName);
+            assertEquals("index" + fieldName, 1, distinct.size());
+        }
+    }
+
+    public void testDistinctNotIndexedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.distinct(AnnotationIndexTypes.class, "notIndex" + fieldName);
+                fail("notIndex" + fieldName);
+            } catch (UnsupportedOperationException ignore) {
+            }
+        }
+    }
+
+    public void testDistinctDoesNotExist() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            testRealm.distinct(AnnotationIndexTypes.class, "doesNotExist");
+            fail();
+        } catch (IllegalArgumentException ignore) {
+        }
+    }
+
+    public void testDistinctInvalidTypes() {
+        populateTestRealm();
+
+        for (String field : new String[]{"columnRealmObject", "columnRealmList", "columnDouble", "columnFloat"}) {
+            try {
+                testRealm.distinct(AllTypes.class, field);
+                fail(field);
+            } catch (UnsupportedOperationException ignore) {
+            }
         }
     }
 }
