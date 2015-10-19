@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Handler;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -130,7 +132,6 @@ public class RealmTest extends AndroidTestCase {
     private void populateTestRealm() {
         populateTestRealm(testRealm, TEST_DATA_SIZE);
     }
-
 
     public void testGetInstanceNullFolderThrows() {
         try {
@@ -489,7 +490,7 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testSortTwoFields() {
-        io.realm.internal.test.TestHelper.populateForMultiSort(testRealm);
+        TestHelper.populateForMultiSort(testRealm);
 
         RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
                 new String[]{FIELD_STRING, FIELD_LONG},
@@ -683,7 +684,12 @@ public class RealmTest extends AndroidTestCase {
 
 
     public void testExecuteTransactionNull() {
-        testRealm.executeTransaction(null); // Nothing happens
+        try {
+            testRealm.executeTransaction(null);
+            fail("null transaction should throw");
+        } catch (IllegalArgumentException ignore) {
+
+        }
         assertFalse(testRealm.hasChanged());
     }
 

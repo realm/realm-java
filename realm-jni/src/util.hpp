@@ -48,6 +48,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved);
 }
 #endif
 
+using namespace realm;
+
 // Use this macro when logging a pointer using '%p'
 #define VOID_PTR(ptr) reinterpret_cast<void*>(ptr)
 
@@ -94,13 +96,15 @@ std::string num_to_string(T pNumber)
 #define S(x)    static_cast<size_t>(x)
 #define B(x)    static_cast<bool>(x)
 #define S64(x)  static_cast<int64_t>(x)
-#define TBL(x)  reinterpret_cast<realm::Table*>(x)
-#define TV(x)   reinterpret_cast<realm::TableView*>(x)
-#define LV(x)   reinterpret_cast<realm::LinkView*>(x)
-#define Q(x)    reinterpret_cast<realm::Query*>(x)
-#define G(x)    reinterpret_cast<realm::Group*>(x)
-#define ROW(x)  reinterpret_cast<realm::Row*>(x)
+#define TBL(x)  reinterpret_cast<Table*>(x)
+#define TV(x)   reinterpret_cast<TableView*>(x)
+#define LV(x)   reinterpret_cast<LinkView*>(x)
+#define Q(x)    reinterpret_cast<Query*>(x)
+#define G(x)    reinterpret_cast<Group*>(x)
+#define ROW(x)  reinterpret_cast<Row*>(x)
+#define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
 #define CH(ptr) reinterpret_cast<ClientHistory*>(ptr)
+#define HO(T, ptr) reinterpret_cast<SharedGroup::Handover <T>* >(ptr)
 
 // Exception handling
 enum ExceptionKind {
@@ -119,7 +123,8 @@ enum ExceptionKind {
     FatalError = 11,
     RuntimeError = 12,
     RowInvalid = 13,
-    EncryptionNotSupported = 14
+    EncryptionNotSupported = 14,
+    BadVersion = 15
 // NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 
@@ -219,7 +224,7 @@ extern const char *log_tag;
 
 
 inline jlong to_jlong_or_not_found(size_t res) {
-    return (res == realm::not_found) ? jlong(-1) : jlong(res);
+    return (res == not_found) ? jlong(-1) : jlong(res);
 }
 
 template <class T>
@@ -228,7 +233,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     bool valid = (objPtr != NULL);
     if (valid) {
         // Check if Table is valid
-        if (std::is_same<realm::Table, T>::value) {
+        if (std::is_same<Table, T>::value) {
             valid = TBL(objPtr)->is_attached();
         }
         // TODO: Add check for TableView
@@ -241,7 +246,7 @@ inline bool TableIsValid(JNIEnv* env, T* objPtr)
     return valid;
 }
 
-inline bool RowIsValid(JNIEnv* env, realm::Row* rowPtr)
+inline bool RowIsValid(JNIEnv* env, Row* rowPtr)
 {
     bool valid = (rowPtr != NULL && rowPtr->is_attached());
     if (!valid) {
@@ -263,13 +268,13 @@ bool RowIndexesValid(JNIEnv* env, T* pTable, jlong startIndex, jlong endIndex, j
         ThrowException(env, IndexOutOfBounds, "startIndex < 0.");
         return false;
     }
-    if (realm::util::int_greater_than(startIndex, maxIndex)) {
+    if (util::int_greater_than(startIndex, maxIndex)) {
         TR_ERR("startIndex %" PRId64 " > %" PRId64 " - invalid!", S64(startIndex), S64(maxIndex))
         ThrowException(env, IndexOutOfBounds, "startIndex > available rows.");
         return false;
     }
 
-    if (realm::util::int_greater_than(endIndex, maxIndex)) {
+    if (util::int_greater_than(endIndex, maxIndex)) {
         TR_ERR("endIndex %" PRId64 " > %" PRId64 " - invalid!", S64(endIndex), S64(maxIndex))
         ThrowException(env, IndexOutOfBounds, "endIndex > available rows.");
         return false;
@@ -299,7 +304,7 @@ inline bool RowIndexValid(JNIEnv* env, T* pTable, jlong rowIndex, bool offset=fa
     size_t size = pTable->size();
     if (size > 0 && offset)
         size -= 1;
-    bool rowErr = realm::util::int_greater_than_or_equal(rowIndex, size);
+    bool rowErr = util::int_greater_than_or_equal(rowIndex, size);
     if (rowErr) {
         TR_ERR("rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(size))
         ThrowException(env, IndexOutOfBounds,
@@ -326,7 +331,7 @@ inline bool ColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
         ThrowException(env, IndexOutOfBounds, "columnIndex is less than 0.");
         return false;
     }
-    bool colErr = realm::util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
+    bool colErr = util::int_greater_than_or_equal(columnIndex, pTable->get_column_count());
     if (colErr) {
         TR_ERR("columnIndex %" PRId64 " > %" PRId64 " - invalid!", S64(columnIndex), S64(pTable->get_column_count()))
         ThrowException(env, IndexOutOfBounds, "columnIndex > available columns.");
@@ -344,7 +349,7 @@ inline bool TblColIndexValid(JNIEnv* env, T* pTable, jlong columnIndex)
     return ColIndexValid(env, pTable, columnIndex);
 }
 
-inline bool RowColIndexValid(JNIEnv* env, realm::Row* pRow, jlong columnIndex)
+inline bool RowColIndexValid(JNIEnv* env, Row* pRow, jlong columnIndex)
 {
     return RowIsValid(env, pRow) && ColIndexValid(env, pRow->get_table(), columnIndex);
 }
@@ -368,7 +373,7 @@ inline bool TblIndexInsertValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong
 {
     if (!TblColIndexValid(env, pTable, columnIndex))
         return false;
-    bool rowErr = realm::util::int_greater_than(rowIndex, pTable->size()+1);
+    bool rowErr = util::int_greater_than(rowIndex, pTable->size()+1);
     if (rowErr) {
         TR_ERR("rowIndex %" PRId64 " > %" PRId64 " - invalid!", S64(rowIndex), S64(pTable->size()))
         ThrowException(env, IndexOutOfBounds,
@@ -384,7 +389,7 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnIndex, jlong rowIndex,
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
     if (allowMixed) {
-        if (colType == realm::type_Mixed) {
+        if (colType == type_Mixed) {
             size_t row = static_cast<size_t>(rowIndex);
             colType = pTable->get_mixed_type(col, row);
         }
@@ -402,11 +407,11 @@ inline bool TypeIsLinkLike(JNIEnv* env, T* pTable, jlong columnIndex)
 {
     size_t col = static_cast<size_t>(columnIndex);
     int colType = pTable->get_column_type(col);
-    if (colType == realm::type_Link || colType == realm::type_LinkList) {
+    if (colType == type_Link || colType == type_LinkList) {
         return true;
     }
 
-    TR_ERR("Expected columnType %d or %d, but got %d", realm::type_Link, realm::type_LinkList, colType)
+    TR_ERR("Expected columnType %d or %d, but got %d", type_Link, type_LinkList, colType)
     ThrowException(env, IllegalArgument, "ColumnType invalid: expected type_Link or type_LinkList");
     return false;
 }
@@ -484,12 +489,12 @@ inline bool TblIndexAndTypeInsertValid(JNIEnv* env, T* pTable, jlong columnIndex
         && TypeValid(env, pTable, columnIndex, rowIndex, expectColType, false);
 }
 
-bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, realm::BinaryData& data);
+bool GetBinaryData(JNIEnv* env, jobject jByteBuffer, BinaryData& data);
 
 
 // Utility function for appending StringData, which is returned
 // by a lot of core functions, and might potentially be NULL.
-std::string concat_stringdata(const char *message, realm::StringData data);
+std::string concat_stringdata(const char *message, StringData data);
 
 // Note: JNI offers methods to convert between modified UTF-8 and
 // UTF-16. Unfortunately these methods are not appropriate in this
@@ -502,7 +507,7 @@ std::string concat_stringdata(const char *message, realm::StringData data);
 //
 // See also http://en.wikipedia.org/wiki/UTF-8#Modified_UTF-8
 
-jstring to_jstring(JNIEnv*, realm::StringData);
+jstring to_jstring(JNIEnv*, StringData);
 
 class JStringAccessor {
 public:
@@ -514,7 +519,7 @@ public:
             return realm::StringData(NULL);
         }
         else {
-            return realm::StringData(m_data.get(), m_size);
+            return StringData(m_data.get(), m_size);
         }
     }
 

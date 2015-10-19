@@ -28,8 +28,6 @@
 using namespace std;
 using namespace realm;
 
-#define SG(ptr) reinterpret_cast<SharedGroup*>(ptr)
-
 inline static bool jint_to_durability_level(JNIEnv* env, jint durability, SharedGroup::DurabilityLevel &level) {
     if (durability == 0)
         level = SharedGroup::durability_Full;
@@ -105,9 +103,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_SharedGroup_createNativeWithImpli
     try {
         KeyBuffer key(env, keyArray);
 #ifdef REALM_ENABLE_ENCRYPTION
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), level, key.data());
+        SharedGroup* db = new SharedGroup(*CH(native_replication_ptr), level, key.data());
 #else
-        SharedGroup* db = new SharedGroup(*reinterpret_cast<realm::Replication*>(native_replication_ptr), level);
+        SharedGroup* db = new SharedGroup(*CH(native_replication_ptr), level);
 #endif
         return reinterpret_cast<jlong>(db);
     }
@@ -159,6 +157,17 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceReadToVersion
+(JNIEnv *env, jobject, jlong native_ptr, jlong native_replication_ptr, jlong version, jlong index)
+{
+    TR_ENTER_PTR(native_ptr)
+    try {
+        SharedGroup::VersionID versionId(version, index);
+        LangBindHelper::advance_read( *SG(native_ptr), *CH(native_replication_ptr), versionId);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativePromoteToWrite
   (JNIEnv *env, jobject, jlong native_ptr, jlong native_replication_ptr)
 {
@@ -183,7 +192,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
   (JNIEnv *, jobject, jlong native_replication_ptr)
 {
     TR_ENTER_PTR(native_replication_ptr)
-    delete reinterpret_cast<Replication*>(native_replication_ptr);
+    delete CH(native_replication_ptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose(
@@ -294,4 +303,24 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeCompact(
     CATCH_FILE()
     CATCH_STD()
     return false;
+}
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
+        (JNIEnv *env, jobject, jlong native_ptr)
+{
+    TR_ENTER()
+    SharedGroup::VersionID version_id = SG(native_ptr)->get_version_of_current_transaction();
+
+    jlong version_array [2];
+    version_array[0] = static_cast<jlong>(version_id.version);
+    version_array[1] = static_cast<jlong>(version_id.index);
+
+    jlongArray version_data = env->NewLongArray(2);
+    if (version_data == NULL) {
+        ThrowException(env, OutOfMemory, "Could not allocate memory to return versionID.");
+        return NULL;
+    }
+    env->SetLongArrayRegion(version_data, 0, 2, version_array);
+
+    return version_data;
 }

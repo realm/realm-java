@@ -22,7 +22,7 @@ import junit.framework.TestCase;
 
 import java.util.Date;
 
-import io.realm.internal.test.TestHelper;
+import io.realm.TestHelper;
 
 @SuppressWarnings("deprecation")
 public class JNIViewTest extends TestCase {
