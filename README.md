@@ -47,6 +47,8 @@ If you want to test recent bugfixes or features that have not been packaged in a
         }
     }
 
+See [version.txt](version.txt) for the latest version number.
+
 ## Building Realm
 
 In case you don't want to use the precompiled version, you can build Realm yourself from source.
