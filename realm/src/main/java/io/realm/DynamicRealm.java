@@ -68,7 +68,7 @@ public class DynamicRealm extends BaseRealm {
      * {@link io.realm.RealmConfiguration}. Dynamic Realms do not care about schemaVersion and schemas, so opening a
      * DynamicRealm will never trigger a migration
      *
-     * @return The DynamicRealm defined by the configuration.
+     * @return the DynamicRealm defined by the configuration.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
@@ -81,8 +81,8 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Instantiates and adds a new object to the Realm.
      *
-     * @param className The class of the object to create.
-     * @return The new object.
+     * @param className the class name of the object to create.
+     * @return the new object.
      * @throws RealmException if the object could not be created.
      */
     public DynamicRealmObject createObject(String className) {
@@ -96,7 +96,7 @@ public class DynamicRealm extends BaseRealm {
      * Returns a RealmQuery, which can be used to query for the provided class.
      *
      * @param className The class of the object which is to be queried for.
-     * @return A RealmQuery, which can be used to query for specific objects of provided type.
+     * @return a RealmQuery, which can be used to query for specific objects of provided type.
      * @see io.realm.RealmQuery
      * @throws IllegalArgumentException if the class doesn't exist.
      */
@@ -111,7 +111,7 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Removes all objects of the specified class.
      *
-     * @param className The class for which all objects should be removed.
+     * @param className the class for which all objects should be removed.
      */
     public void clear(String className) {
         checkIfValid();
@@ -146,7 +146,7 @@ public class DynamicRealm extends BaseRealm {
      * Get all objects of a specific class name.
      *
      * @param className the Class to get objects of
-     * @return A RealmResult list containing the objects. If no results where found, an empty list
+     * @return a RealmResult list containing the objects. If no results where found, an empty list
      * will be returned.
      * @see io.realm.RealmResults
      */
@@ -158,10 +158,10 @@ public class DynamicRealm extends BaseRealm {
      * Get all objects of a specific class name sorted by a field.  If no objects exist, the returned
      * RealmResults will not be null. Use {@link RealmResults#size()} to check the number of objects instead.
      *
-     * @param className The class to get all objects from.
+     * @param className the class to get all objects from.
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
-     * @return A sorted RealmResults containing the objects.
+     * @return a sorted RealmResults containing the objects.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName, Sort sortOrder) {
@@ -185,12 +185,12 @@ public class DynamicRealm extends BaseRealm {
      you mean: call RealmResults.size() to check the number of objects instead.
      if fixed replaceAll The RealmResults.size()
 
-     * @param className The class to get all objects from.
-     * @param fieldName1 The first field name to sort by.
-     * @param sortOrder1 How to sort the first field.
-     * @param fieldName2 The second field name to sort by.
-     * @param sortOrder2 How to sort the second field.
-     * @return A sorted RealmResults containing the objects. If no results where found an empty list
+     * @param className the class to get all objects from.
+     * @param fieldName1 the first field name to sort by.
+     * @param sortOrder1 how to sort the first field.
+     * @param fieldName2 the second field name to sort by.
+     * @param sortOrder2 how to sort the second field.
+     * @return a sorted RealmResults containing the objects. If no results where found an empty list
      * is returned.
      * @throws java.lang.IllegalArgumentException if a field name used for sorting does not exist.
      */
@@ -206,7 +206,7 @@ public class DynamicRealm extends BaseRealm {
      * returned RealmResults will not be null. Use {@link RealmResults#size()} to check the number of
      * objects instead.
      *
-     * @param className The class to get all objects from.
+     * @param className the class to get all objects from.
      * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
      * @param fieldNames an array of field names to sort objects by.
      *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
