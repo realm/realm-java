@@ -1456,6 +1456,7 @@ public class RealmQueryTest extends AndroidTestCase {
         list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
+        list.remove(RealmFieldType.BACKLINK);
         NOT_SUPPORTED_IS_EMPTY_TYPES = list;
     }
 
