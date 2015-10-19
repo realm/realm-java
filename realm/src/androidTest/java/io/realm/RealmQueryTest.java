@@ -506,7 +506,7 @@ public class RealmQueryTest extends AndroidTestCase {
 
         // null is not allowed
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted(null, (Sort[])null);
+            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted((String[]) null, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }

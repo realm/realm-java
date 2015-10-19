@@ -23,8 +23,8 @@ import junit.framework.TestCase;
 import java.util.Date;
 
 import io.realm.RealmFieldType;
-import io.realm.internal.test.TestHelper;
 import io.realm.Sort;
+import io.realm.TestHelper;
 
 @SuppressWarnings("deprecation")
 public class JNIViewTest extends TestCase {

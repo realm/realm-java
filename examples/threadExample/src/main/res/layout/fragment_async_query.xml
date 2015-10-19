@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -11,26 +11,17 @@
                 tools:context=".MainActivity$PlaceholderFragment">
 
     <Button
-        android:id="@+id/start_button"
+        android:id="@+id/translate_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:text="Start"/>
+        android:text="@string/translate"/>
 
-    <LinearLayout
-        android:id="@+id/logs"
+    <ListView
+        android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/start_button"
-        android:layout_marginTop="16dp"
-        android:orientation="vertical">
-    </LinearLayout>
+        android:layout_marginTop="16dp">
+    </ListView>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"/>
 
-</RelativeLayout>
+</LinearLayout>
