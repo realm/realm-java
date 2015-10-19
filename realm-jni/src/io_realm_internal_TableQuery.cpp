@@ -70,7 +70,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableQuery_nativeValidateQuery
 // Return TableRef used for build link queries
 TableRef getTableForLinkQuery(jlong nativeQueryPtr, jlong *arr, jsize arr_len) {
     TableRef table_ref = Q(nativeQueryPtr)->get_table();
-    for (int i=0; i<arr_len-1; i++) {
+    for (int i = 0; i < arr_len - 1; i++) {
         table_ref->link(size_t(arr[i]));
     }
     return table_ref;
@@ -79,7 +79,7 @@ TableRef getTableForLinkQuery(jlong nativeQueryPtr, jlong *arr, jsize arr_len) {
 // Return TableRef point to original table or the link table
 TableRef getTableByArray(jlong nativeQueryPtr, jlong *arr, jsize arr_len) {
     TableRef table_ref = Q(nativeQueryPtr)->get_table();
-    for (int i=0; i<arr_len-1; i++) {
+    for (int i = 0; i < arr_len - 1; i++) {
         table_ref = table_ref->get_link_target(size_t(arr[i]));
     }
     return table_ref;
@@ -1346,4 +1346,66 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
     } CATCH_STD()
     RELEASE_ARRAY()
 }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
+    (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes) {
+
+    GET_ARRAY()
+    Query* pQuery = Q(nativeQueryPtr);
+    try {
+        TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, arr, arr_len);
+        jlong column_idx = arr[arr_len - 1];
+        TableRef table_ref = getTableByArray(nativeQueryPtr, arr, arr_len);
+
+        int col_type = table_ref->get_column_type(S(column_idx));
+        if (arr_len == 1) {
+            // Field queries
+            switch (col_type) {
+                case type_Binary:
+                    pQuery->equal(S(column_idx), BinaryData("", 0));
+                    break;
+                case type_LinkList:
+                    pQuery->and_query(table_ref->column<LinkList>(S(column_idx)).count() == 0);
+                    break;
+                case type_String:
+                    pQuery->equal(S(column_idx), "");
+                    break;
+                case type_Link:
+                case type_Bool:
+                case type_Int:
+                case type_Float:
+                case type_Double:
+                case type_DateTime:
+                default:
+                    ThrowException(env, IllegalArgument, "isEmpty() only works on String, byte[] and RealmList.");
+            }
+        }
+        else {
+            // Linked queries
+            switch (col_type) {
+                case type_Binary:
+                    pQuery->and_query(src_table_ref->column<Binary>(S(column_idx)) == BinaryData("", 0));
+                    break;
+                case type_LinkList:
+                    pQuery->and_query(src_table_ref->column<LinkList>(S(column_idx)).count() == 0);
+                    break;
+                case type_String:
+                    pQuery->and_query(src_table_ref->column<String>(S(column_idx)) == "");
+                    break;
+                case type_Link:
+                case type_Bool:
+                case type_Int:
+                case type_Float:
+                case type_Double:
+                case type_DateTime:
+                default:
+                    ThrowException(env, IllegalArgument, "isEmpty() only works on String, byte[] and RealmList across links.");
+            }
+        }
+    } CATCH_STD()
+    RELEASE_ARRAY()
+}
+
+
+
 
