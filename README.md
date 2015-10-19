@@ -76,11 +76,23 @@ That command will generate:
  * a jar file for the annotations processor
 
 ### Other Commands
+
  * `./gradlew tasks` will show all the available tasks
  * `./gradlew javadoc` will generate the Javadocs
  * `./gradlew monkeyExamples` will run the monkey tests on all the examples
 
 Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
+
+### Gotchas
+
+The repository is organized in four Gradle projects:
+
+ * `realm`: it contains the actual library (including the JNI layer), the annotations and the annotations processor.
+ * `gradle-plugin`: it contains the Gradle plugin.
+ * `examples`: it contains the example projects. This project directly depends on `gradle-plugin` which adds a dependency to the artifacts produced by `realm`.
+ * The root folder is another Gradle project and all it does is orchestrating the other jobs
+
+This means that `./gradlew clean` and `./gradlew cleanExamples` will fail if `assembleExamples` has not been executed first.
 
 ## Contributing
 
