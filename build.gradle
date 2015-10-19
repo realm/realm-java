@@ -265,8 +265,22 @@ def commonPom = {
 
 publishing {
     publications {
-        library(MavenPublication) {
-            artifactId = 'realm-android'
+        jarLibrary(MavenPublication) {
+            artifactId = 'realm-android-library'
+            artifact file("${buildDir}/outputs/gradle/realm-android-${currentVersion}.jar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-sources.jar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-javadoc.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-android')
+                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+                root.appendNode('packaging', 'jar')
+                root.children().last() + commonPom
+            }
+        }
+        aarLibrary(MavenPublication) {
+            artifactId = 'realm-android-library'
             artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-library-release.aar")
             artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-sources.jar")
             artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-javadoc.jar")
@@ -327,7 +341,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-            publications ('library', 'annotations', 'annotationsProcessor', 'gradlePlugin')
+            publications ('jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin')
         }
     }
 }
@@ -339,7 +353,7 @@ bintray {
     dryRun = true
     publish = false
 
-    publications = ['library', 'annotations', 'annotationsProcessor', 'gradlePlugin']
+    publications = ['jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin']
     pkg {
         repo = 'maven'
         name = 'realm-android'
@@ -348,7 +362,7 @@ bintray {
         issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
         vcsUrl = 'https://github.com/realm/realm-java.git'
         licenses = ['Apache-2.0']
-        labels = ['aar', 'android', 'realm']
+        labels = ['android', 'realm']
         publicDownloadNumbers = false
     }
 }
