@@ -1,7 +1,7 @@
 0.84.0
  * Fixed a bug that made it possible to migrate open Realms, which could cause undefined behavior when querying, reading or writing data.
  * Added support for async queries and transactions.
- * Added support for parsing JSON Dates with timezone information.
+ * Added support for parsing JSON Dates with timezone information. (Thank you @LateralKevin!)
  * Added RealmQuery.isEmpty().
  * Fixed a bug where closed Realms were trying to refresh themselves resulting in a NullPointerException.
  * Added Realm.isClosed() method.
