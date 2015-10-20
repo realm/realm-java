@@ -30,22 +30,24 @@ The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/ja
 
 If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [OJO](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
 
-    buildscript {
-        repositories {
-            maven {
-                url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
-            }
-        }
-        dependencies {
-            classpath "io.realm:gradle-plugin:<version>-SNAPSHOT"
-        }
-    }
-
+```gradle
+buildscript {
     repositories {
         maven {
             url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
         }
     }
+    dependencies {
+        classpath "io.realm:gradle-plugin:<version>-SNAPSHOT"
+    }
+}
+
+repositories {
+    maven {
+        url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+    }
+}
+```
 
 See [version.txt](version.txt) for the latest version number.
 
@@ -61,14 +63,16 @@ Prerequisites:
  * Download the **Android NDK (= r10d)** for [Mac](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
  * Add two environment variables to your profile:
 
-    ```
-    export ANDROID_HOME=~/Library/Android/sdk
-    export NDK_HOME=/usr/local/Cellar/android-ndk/r10d
-    ```
+```
+export ANDROID_HOME=~/Library/Android/sdk
+export NDK_HOME=/usr/local/Cellar/android-ndk/r10d
+```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
-    ./gradlew assemble
+```
+./gradlew assemble
+```
 
 That command will generate:
 
