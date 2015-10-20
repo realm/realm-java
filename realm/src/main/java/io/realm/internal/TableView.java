@@ -121,7 +121,8 @@ public class TableView implements TableOrView, Closeable {
             } 
         }
     }
-    
+
+    @Override
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
@@ -879,13 +880,10 @@ public class TableView implements TableOrView, Closeable {
 
     public void sort(List<Long> columnIndices, Sort[] sortOrders) {
         long indices[] = new long[columnIndices.size()];
-        boolean nativeSortOrder[] = new boolean[sortOrders.length];
         for (int i = 0; i < columnIndices.size(); i++) {
             indices[i] = columnIndices.get(i);
         }
-        for (int i = 0; i < sortOrders.length; i++) {
-            nativeSortOrder[i] = sortOrders[i].getValue();
-        }
+        boolean nativeSortOrder[] = TableQuery.getNativeSortOrderValues(sortOrders);
         nativeSortMulti(nativePtr, indices, nativeSortOrder);
     }
 

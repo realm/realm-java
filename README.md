@@ -37,7 +37,7 @@ If you want to test recent bugfixes or features that have not been packaged in a
     }
 
     dependencies {
-      compile 'io.realm:realm-android:0.83.0-SNAPSHOT'
+      compile 'io.realm:realm-android:0.84.0-SNAPSHOT'
     }
 
 ## Building Realm
@@ -48,14 +48,25 @@ Prerequisites:
 
 * Make sure `make` is available in your `$PATH`
 * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
-* Download & install the Android SDK, **Android 4.4W (API 20)** (for example through Android Studio’s **Android SDK Manager**)
-* _Also_ download & install the Android SDK, **Android 4.4.2 (API 19)** (for example through Android Studio’s **Android SDK Manager**)
-* Download the **Android NDK (= r10d)**. For example, on Mac OS you can do this with [Homebrew](http://brew.sh) with `brew install android-ndk`.
+* Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
+* Download the **Android NDK (= r10d)** for [Mac](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
+* Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
+
+    ```
+    brew tap homebrew/versions
+    brew install android-ndk-r10d
+    ```
 * Add a `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
 
     ```
-    sdk.dir=/Applications/Android Studio.app/sdk
+    sdk.dir=/<your home directory>/Library/Android/sdk
     ndk.dir=/usr/local/Cellar/android-ndk/r10d
+    ```
+* Or, if you would like to add environment variables to your profile:
+
+    ```
+    export ANDROID_HOME=~/Library/Android/sdk
+    export NDK_HOME=/usr/local/Cellar/android-ndk/r10d
     ```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command

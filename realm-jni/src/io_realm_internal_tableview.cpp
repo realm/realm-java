@@ -879,7 +879,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSort(
                 TV(nativeViewPtr)->sort( S(columnIndex), ascending != 0 ? true : false);
                 break;
             default:
-                ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, float, double, boolean, Date, and String columns.");
+                ThrowException(env, IllegalArgument, "Sort is not supported on binary data, object references and RealmList.");
                 return;
         }
     } CATCH_STD()
@@ -907,7 +907,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
             return;
         }
         if (arr_len != asc_len) {
-            ThrowException(env, IllegalArgument, "Number of column indices and sort orders do not match.");
+            ThrowException(env, IllegalArgument, "Number of fields and sort orders do not match.");
             return;
         }
 
@@ -929,7 +929,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
                     ascendings.push_back( B(bool_arr[i]) );
                     break;
                 default:
-                    ThrowException(env, IllegalArgument, "Sort is currently only supported on integer, float, double, boolean, Date, and String columns.");
+                    ThrowException(env, IllegalArgument, "Sort is not supported on binary data, object references and RealmList.");
                     return;
             }
         }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm;
 
 import android.test.AndroidTestCase;
@@ -9,6 +25,8 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
 import io.realm.entities.NullTypes;
+import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.Table;
@@ -161,6 +179,44 @@ public class RealmMigrationTests extends AndroidTestCase {
             if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. Add @PrimaryKey.")) {
                 fail(e.getMessage());
             }
+        }
+    }
+
+    // adding search index is idempotent
+    public void testAddingSearchIndexTwice() throws IOException {
+        Class[] classes = {PrimaryKeyAsLong.class, PrimaryKeyAsString.class};
+
+        for (final Class clazz : classes){
+            final boolean[] didMigrate = {false};
+
+            RealmMigration migration = new RealmMigration() {
+                @Override
+                public long execute(Realm realm, long version) {
+                    Table table = realm.getTable(clazz);
+                    long columnIndex = table.getColumnIndex("id");
+                    table.addSearchIndex(columnIndex);
+                    if (clazz == PrimaryKeyAsLong.class) {
+                        columnIndex = table.getColumnIndex("name");
+                        table.convertColumnToNullable(columnIndex);
+                    }
+                    didMigrate[0] = true;
+                    return 42;
+                }
+            };
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(42)
+                    .schema(clazz)
+                    .migration(migration)
+                    .build();
+            Realm.deleteRealm(realmConfig);
+            TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+            Realm.migrateRealm(realmConfig);
+            realm = Realm.getInstance(realmConfig);
+            assertEquals(42, realm.getVersion());
+            assertTrue(didMigrate[0]);
+            Table table = realm.getTable(clazz);
+            assertEquals(true, table.hasSearchIndex(table.getColumnIndex("id")));
+            realm.close();
         }
     }
 
@@ -341,6 +397,8 @@ public class RealmMigrationTests extends AndroidTestCase {
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
                         Table table = realm.getTable(NullTypes.class);
+                        table.addColumn(RealmFieldType.INTEGER, "id");
+                        table.setPrimaryKey("id");
                         if (field.equals("fieldStringNotNull")) {
                             // 1 String
                             table.addColumn(RealmFieldType.STRING, field, Table.NULLABLE);
@@ -404,6 +462,8 @@ public class RealmMigrationTests extends AndroidTestCase {
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
                         Table table = realm.getTable(NullTypes.class);
+                        table.addColumn(RealmFieldType.INTEGER, "id");
+                        table.setPrimaryKey("id");
                         if (field.equals("fieldStringNull")) {
                             // 1 String
                             table.addColumn(RealmFieldType.STRING, field, Table.NOT_NULLABLE);

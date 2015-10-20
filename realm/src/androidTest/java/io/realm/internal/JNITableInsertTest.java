@@ -27,7 +27,7 @@ import java.util.Date;
 import java.util.List;
 
 import io.realm.RealmFieldType;
-import io.realm.internal.test.TestHelper;
+import io.realm.TestHelper;
 
 
 public class JNITableInsertTest extends TestCase {

@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.RealmFieldType;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.exceptions.RealmException;
 import io.realm.Sort;
 
@@ -678,7 +679,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private void throwDuplicatePrimaryKeyException(Object value) {
-        throw new RealmException("Primary key constraint broken. Value already exists: " + value);
+        throw new RealmPrimaryKeyConstraintException("Value already exists: " + value);
     }
 
     //
@@ -866,7 +867,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return Unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long index) {
-        return UncheckedRow.get(context, this, index);
+        return UncheckedRow.getByRowIndex(context, this, index);
+    }
+
+    /**
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
+     * If error checking is required, use {@link #getCheckedRow(long)} instead.
+     *
+     * @param nativeRowPointer Pointer to the row to fetch.
+     * @return Unsafe row wrapper object.
+     */
+    public UncheckedRow getUncheckedRowByPointer(long nativeRowPointer) {
+        return UncheckedRow.getByRowPointer(context, this, nativeRowPointer);
     }
 
     /**
@@ -1034,7 +1046,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *                      will remove any previous set magic key.
      *
      * @throws              {@link io.realm.exceptions.RealmException} if it is not possible to set
-     *                      the primary key due to the column not having distinct values (ie.
+     *                      the primary key due to the column not having distinct values (i.e.
      *                      violating the primary key constraint).
      */
     public void setPrimaryKey(String columnName) {

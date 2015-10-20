@@ -1,2 +1,2 @@
 include ':plugin'
-project(':plugin').projectDir = new File('../plugin')
+project(':plugin').projectDir = file('../plugin')

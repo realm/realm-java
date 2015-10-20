@@ -19,17 +19,19 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 
 import java.io.Closeable;
 import java.io.File;
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -45,6 +47,7 @@ import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -54,7 +57,11 @@ import io.realm.internal.log.RealmLog;
  */
 abstract class BaseRealm implements Closeable {
 
-    private static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
+    static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
+    static final int REALM_UPDATE_ASYNC_QUERIES = 24157817;
+    static final int REALM_COMPLETED_ASYNC_QUERY = 39088169;
+    static final int REALM_COMPLETED_ASYNC_FIND_FIRST = 63245986;
+
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -77,6 +84,12 @@ abstract class BaseRealm implements Closeable {
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable = new HashMap<Class<? extends RealmObject>, Table>();
 
+    // List of Realm files that has already been validated
+    static final Set<String> validatedRealmFiles = new HashSet<String>();
+
+    // thread pool for all async operations (Query & Write transaction)
+    static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
+
     protected final List<WeakReference<RealmChangeListener>> changeListeners =
             new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
 
@@ -86,6 +99,7 @@ abstract class BaseRealm implements Closeable {
     protected boolean autoRefresh;
     Handler handler;
     ColumnIndices columnIndices = new ColumnIndices();
+    HandlerController handlerController;
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -109,15 +123,17 @@ abstract class BaseRealm implements Closeable {
      * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
      */
     public void setAutoRefresh(boolean autoRefresh) {
+        checkIfValid();
         if (autoRefresh && Looper.myLooper() == null) {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }
 
         if (autoRefresh && !this.autoRefresh) { // Switch it on
-            handler = new Handler(new RealmCallback());
+            handlerController = new HandlerController(this);
+            handler = new Handler(handlerController);
             handlers.put(handler, configuration.getPath());
         } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
-            removeHandler(handler);
+            removeHandler();
         }
         this.autoRefresh = autoRefresh;
     }
@@ -177,6 +193,13 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    void setHandler (Handler handler) {
+        // remove the old one
+        handlers.remove(this.handler);
+        handlers.put(handler, configuration.getPath());
+        this.handler = handler;
+    }
+
     /**
      * Remove all user-defined change listeners
      *
@@ -187,13 +210,17 @@ abstract class BaseRealm implements Closeable {
         changeListeners.clear();
     }
 
-    protected void removeHandler(Handler handler) {
-        handler.removeCallbacksAndMessages(null);
+    /**
+     * Remove and stop the current thread handler as gracefully as possible.
+     */
+    protected void removeHandler() {
         handlers.remove(handler);
+        // Warning: This only clears the Looper queue. Handler.Callback is not removed.
+        handler.removeCallbacksAndMessages(null);
         this.handler = null;
     }
 
-    private void sendNotifications() {
+    protected void sendNotifications() {
         Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
         List<WeakReference<RealmChangeListener>> toRemoveList = null;
         while (iterator.hasNext()) {
@@ -312,8 +339,11 @@ abstract class BaseRealm implements Closeable {
             }
 
             // For all other threads, use the Handler
+            // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
+            // as the target thread consumes messages at the same time. In this case it is not a problem as worst
+            // case we end up with two REALM_CHANGED messages in the queue.
             if (
-                    realmPath.equals(configuration.getPath())    // It's the right realm
+                    realmPath.equals(configuration.getPath())            // It's the right realm
                             && !handler.hasMessages(REALM_CHANGED)       // The right message
                             && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     ) {
@@ -347,7 +377,7 @@ abstract class BaseRealm implements Closeable {
      */
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
-        if (sharedGroupManager != null && !sharedGroupManager.isOpen()) {
+        if (sharedGroupManager == null || !sharedGroupManager.isOpen()) {
             throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
         }
 
@@ -424,12 +454,25 @@ abstract class BaseRealm implements Closeable {
         localRefCount.put(configuration, Math.max(0, refCount));
 
         if (handler != null && refCount <= 0) {
-            removeHandler(handler);
+            removeHandler();
         }
     }
 
     /**
-     * Returns the ThreadLocal reference counter for this Realm type.
+     * Check if the {@link io.realm.Realm} instance has already been closed.
+     *
+     * @return {@code true} if closed, {@code false} otherwise.
+     */
+    public boolean isClosed() {
+        if (this.threadId != Thread.currentThread().getId()) {
+            throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
+        }
+
+        return sharedGroupManager == null || !sharedGroupManager.isOpen();
+    }
+
+    /**
+     * Returns the ThreadLocal reference counter for this Realm.
      */
     protected abstract Map<RealmConfiguration, Integer> getLocalReferenceCount();
 
@@ -475,6 +518,9 @@ abstract class BaseRealm implements Closeable {
         className = Table.TABLE_PREFIX + className;
         Table table = dynamicClassToTable.get(className);
         if (table == null) {
+            if (!sharedGroupManager.hasTable(className)) {
+                throw new IllegalArgumentException("The type " + className + " doesn't exist in this Realm.");
+            }
             table = sharedGroupManager.getTable(className);
             dynamicClassToTable.put(className, table);
         }
@@ -591,12 +637,15 @@ abstract class BaseRealm implements Closeable {
 
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
+
     <E extends RealmObject> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         Table table;
         E result;
         if (dynamicClassName != null) {
             table = getTable(dynamicClassName);
-            result = (E) new DynamicRealmObject();
+            @SuppressWarnings("unchecked")
+            E dynamicObj = (E) new DynamicRealmObject();
+            result = dynamicObj;
         } else {
             table = getTable(clazz);
             result = configuration.getSchemaMediator().newInstance(clazz);
@@ -680,16 +729,18 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    // Internal Handler callback for Realm messages
-    private class RealmCallback implements Handler.Callback {
-        @Override
-        public boolean handleMessage(Message message) {
-            if (message.what == REALM_CHANGED) {
-                sharedGroupManager.advanceRead();
-                sendNotifications();
-            }
-            return true;
-        }
+    protected void addAsyncRealmResults (WeakReference<RealmResults<? extends RealmObject>> weakRealmResults,
+                                         RealmQuery<? extends RealmObject> realmQuery) {
+        handlerController.asyncRealmResults.put(weakRealmResults, realmQuery);
+    }
+
+    protected void addAsyncRealmObject (WeakReference<RealmObject> realmObjectWeakReference,
+                                         RealmQuery<? extends RealmObject> realmQuery) {
+        handlerController.asyncRealmObjects.put(realmObjectWeakReference, realmQuery);
+    }
+
+    protected ReferenceQueue<RealmResults<? extends RealmObject>> getReferenceQueue () {
+        return handlerController.referenceQueue;
     }
 
     // Internal delegate for migrations

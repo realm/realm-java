@@ -42,7 +42,7 @@ import java.util.Set;
 // it will be useless, as a single developer building their app on Windows ten
 // times would report 10 times more than a single developer that only builds
 // once from Mac OS X, making the data all but useless. No one likes sharing
-// data unless it’s necessary, we get it, and we’ve debated adding this for a
+// data unless it's necessary, we get it, and we've debated adding this for a
 // long long time. Since Realm is a free product without an email signup, we
 // feel this is a necessary step so we can collect relevant data to build a
 // better product for you.
