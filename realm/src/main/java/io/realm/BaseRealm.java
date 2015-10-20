@@ -607,6 +607,9 @@ abstract class BaseRealm implements Closeable {
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
         }
+        if (isFileOpen(configuration)) {
+            throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
+        }
 
         RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
         BaseRealm realm = null;
