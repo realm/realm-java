@@ -1157,8 +1157,6 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration A {@link RealmConfiguration}
      * @return false if a file could not be deleted. The failing file will be logged.
-     *
-     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
         return BaseRealm.deleteRealm(configuration);
@@ -1175,8 +1173,6 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return true if successful, false if any file operation failed
-     *
-     * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
         return BaseRealm.compactRealm(configuration);

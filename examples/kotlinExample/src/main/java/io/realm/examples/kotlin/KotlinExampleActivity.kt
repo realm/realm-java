@@ -93,14 +93,14 @@ public class KotlinExampleActivity : Activity() {
         person.name = "Young Person"
         person.age = 14
 
-        // When the write transaction is committed, all changes a synced to disk.
+        // When the transaction is committed, all changes a synced to disk.
         realm.commitTransaction()
 
         // Find the first person (no query conditions) and read a field
         person = realm.where(javaClass<Person>()).findFirst()
         showStatus(person.name + ": " + person.age)
 
-        // Update person in a write transaction
+        // Update person in a transaction
         realm.beginTransaction()
         person.name = "Senior Person"
         person.age = 99
@@ -140,7 +140,7 @@ public class KotlinExampleActivity : Activity() {
         // Those can not be transferred across threads.
         val realm = Realm.getInstance(this)
 
-        // Add ten persons in one write transaction
+        // Add ten persons in one transaction
         realm.beginTransaction()
         val fido = realm.createObject(javaClass<Dog>())
         fido.name = "fido"

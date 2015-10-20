@@ -78,7 +78,7 @@ abstract class BaseRealm implements Closeable {
     // List of Realm files that has already been validated
     static final Set<String> validatedRealmFiles = new HashSet<String>();
 
-    // thread pool for all async operations (Query & Write transaction)
+    // thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
 
     protected final List<WeakReference<RealmChangeListener>> changeListeners =
@@ -110,7 +110,6 @@ abstract class BaseRealm implements Closeable {
      * This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled thread.
      *
      * @param autoRefresh true will turn auto-refresh on, false will turn it off.
-     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
@@ -137,12 +136,10 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Indicates if the Realm is currently in a write transaction.
-     * @return the write transaction status.
-     * @throws java.lang.IllegalStateException if the Realm is not opened or in a different thread
-     *                                      than the one it was created on.
+     * Checks if the Realm is currently in a transaction.
+     * @return {@code true} if inside a transaction, {@code false} otherwise.
      */
-    public boolean isInWriteTransaction() {
+    public boolean isInTransaction() {
         checkIfValid();
         return !sharedGroupManager.isImmutable();
     }
@@ -253,8 +250,8 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * The destination file cannot already exist.
      * <p>
-     * Note that if this is called from within a write transaction it writes the
-     * current data, and not the data as it was when the last write transaction was committed.
+     * Note that if this is called from within a transaction it writes the
+     * current data, and not the data as it was when the last transaction was committed.
      *
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
@@ -268,8 +265,8 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * The destination file cannot already exist.
      * <p>
-     * Note that if this is called from within a write transaction it writes the
-     * current data, and not the data as it was when the last write transaction was committed.
+     * Note that if this is called from within a transaction it writes the current data, and not the
+     * data as it was when the last transaction was committed.
      * <p>
      * @param destination File to save the Realm to
      * @param key a 64-byte encryption key
@@ -296,18 +293,15 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
-     * or aborted by {@link io.realm.Realm#cancelTransaction()}. Write transactions are used to
-     * atomically create, update and delete objects within a realm.
+     * Starts a transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or
+     * aborted by {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically
+     * create, update and delete objects within a realm.
      * <br>
-     * Before beginning the write transaction, {@link io.realm.Realm#beginTransaction()} updates the
-     * realm in the case of pending updates from other threads.
+     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the realm
+     * in the case of pending updates from other threads.
      * <br>
-     * Notice: it is not possible to nest write transactions. If you start a write
-     * transaction within a write transaction an exception is thrown.
-     * <br>
-     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
-     *
+     * Notice: it is not possible to nest transactions. If you start a transaction within a
+     * transaction an exception is thrown.
      */
     public void beginTransaction() {
         checkIfValid();
@@ -320,9 +314,6 @@ abstract class BaseRealm implements Closeable {
      * that a change has occurred. When the event is received, the other Realms will get their
      * objects and {@link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
-     *
-     * @throws java.lang.IllegalStateException if the write transaction is in an invalid state
-     *                                          or incorrect thread.
      */
     public void commitTransaction() {
         checkIfValid();
@@ -361,10 +352,7 @@ abstract class BaseRealm implements Closeable {
      * <br>
      * The Realm reverts back to read-only.
      * <br>
-     * Calling this when not in a write transaction will throw an exception.
-     *
-     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
-     *                                             not in a write transaction or incorrect thread.
+     * Calling this when not in a transaction will throw an exception.
      */
     public void cancelTransaction() {
         checkIfValid();
@@ -422,9 +410,6 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * It's important to always remember to close Realm instances when you're done with it in order
      * not to leak memory, file descriptors or grow the size of Realm file out of measure.
-     *
-     * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the
-     * one it was created on.
      */
     @Override
     public void close() {

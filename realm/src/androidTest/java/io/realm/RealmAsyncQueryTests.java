@@ -42,12 +42,12 @@ import io.realm.instrumentation.MockActivityManager;
 import io.realm.proxy.HandlerProxy;
 
 public class RealmAsyncQueryTests extends InstrumentationTestCase {
-    // **********************************
-    // ****  Async write transaction  ***
-    // **********************************
+    // ****************************
+    // ****  Async transaction  ***
+    // ****************************
 
-    // start asynchronously a write transaction to insert one element
-    public void testAsyncWriteTransaction() throws Throwable {
+    // start asynchronously a transaction to insert one element
+    public void testAsyncTransaction() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Realm[] realm = new Realm[1];
         final Throwable[] threadAssertionError = new Throwable[1];// to catch both Exception & AssertionError
@@ -60,7 +60,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 backgroundLooper[0] = Looper.myLooper();
 
                 try {
-                    realm[0] = openRealmInstance("testAsyncWriteTransaction");
+                    realm[0] = openRealmInstance("testAsyncTransaction");
 
                     assertEquals(0, realm[0].allObjects(Owner.class).size());
 

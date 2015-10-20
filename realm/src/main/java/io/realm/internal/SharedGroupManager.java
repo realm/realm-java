@@ -155,7 +155,7 @@ public class SharedGroupManager implements Closeable {
     }
 
     /**
-     * Returns if the Realm is currently not in a write transaction.
+     * Returns if the Realm is currently not in a transaction.
      */
     public boolean isImmutable() {
         return transaction.immutable;

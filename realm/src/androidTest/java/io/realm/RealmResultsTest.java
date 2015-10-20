@@ -1078,8 +1078,8 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
 
-    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
-    public void testMutableMethodsOutsideWriteTransactions() {
+    // Test that all methods that require a transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideTransactions() {
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
         try {
