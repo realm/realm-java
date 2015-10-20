@@ -867,7 +867,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return Unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long index) {
-        return UncheckedRow.get(context, this, index);
+        return UncheckedRow.getByRowIndex(context, this, index);
+    }
+
+    /**
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
+     * If error checking is required, use {@link #getCheckedRow(long)} instead.
+     *
+     * @param nativeRowPointer Pointer to the row to fetch.
+     * @return Unsafe row wrapper object.
+     */
+    public UncheckedRow getUncheckedRowByPointer(long nativeRowPointer) {
+        return UncheckedRow.getByRowPointer(context, this, nativeRowPointer);
     }
 
     /**

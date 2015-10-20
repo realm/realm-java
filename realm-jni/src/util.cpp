@@ -144,6 +144,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             jExceptionClass = env->FindClass("io/realm/exceptions/RealmEncryptionNotSupportedException");
             message = classStr;
             break;
+
+        case BadVersion:
+            jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
+            message = classStr;
+            break;
     }
     if (jExceptionClass != NULL) {
         env->ThrowNew(jExceptionClass, message.c_str());

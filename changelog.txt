@@ -1,4 +1,5 @@
 0.84.0
+ * Added support for async queries and transactions.
  * Added RealmQuery.isEmpty().
  * Fixed a bug where closed Realms were trying to refresh themselves resulting in a NullPointerException.
  * Added Realm.isClosed() method.

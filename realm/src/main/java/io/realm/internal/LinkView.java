@@ -44,7 +44,7 @@ public class LinkView {
      * @return Unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long index) {
-        return UncheckedRow.get(context, this, index);
+        return UncheckedRow.getByRowIndex(context, this, index);
     }
 
     /**

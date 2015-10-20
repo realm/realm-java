@@ -33,6 +33,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceRead
 
 /*
  * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeAdvanceReadToVersion
+ * Signature: (JJJJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeAdvanceReadToVersion
+(JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+
+/*
+ * Class:     io_realm_internal_SharedGroup
  * Method:    nativePromoteToWrite
  * Signature: (JJ)V
  */
@@ -158,6 +167,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeClose
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    nativeGetVersionID
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
+        (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

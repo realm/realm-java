@@ -22,8 +22,8 @@ import java.io.File;
 import java.util.Date;
 
 import io.realm.RealmFieldType;
-import io.realm.internal.test.TestHelper;
 import io.realm.Sort;
+import io.realm.TestHelper;
 
 public class JNITableTest extends AndroidTestCase {
 
