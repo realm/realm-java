@@ -54,7 +54,7 @@ public class ImplicitTransaction extends Group {
     public void commitAndContinueAsRead() {
         assertNotClosed();
         if (immutable) {
-            throw new IllegalStateException("Cannot commit a non transaction.");
+            throw new IllegalStateException("Not inside a transaction.");
         }
         parent.commitAndContinueAsRead();
         immutable = true;
@@ -68,7 +68,7 @@ public class ImplicitTransaction extends Group {
     public void rollbackAndContinueAsRead() {
         assertNotClosed();
         if (immutable) {
-            throw new IllegalStateException("Cannot cancel a non transaction.");
+            throw new IllegalStateException("Not inside a transaction.");
         }
         parent.rollbackAndContinueAsRead();
         immutable = true;
