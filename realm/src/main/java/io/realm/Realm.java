@@ -305,8 +305,6 @@ public final class Realm extends BaseRealm {
                     realm.close();
                     throw e;
                 }
-            } else {
-                loadMediatorClasses(realm);
             }
             setupColumnIndices(realm);
 
@@ -348,13 +346,6 @@ public final class Realm extends BaseRealm {
             } else {
                 realm.cancelTransaction();
             }
-        }
-    }
-
-    private static void loadMediatorClasses(Realm realm) {
-        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-        for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
-            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 
