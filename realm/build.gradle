@@ -23,7 +23,7 @@ allprojects {
     }
 
     group = 'io.realm'
-    version = new File("${rootDir}/../version.txt").text.trim();
+    version = file("${rootDir}/../version.txt").text.trim();
     repositories {
         jcenter()
     }

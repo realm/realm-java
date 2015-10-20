@@ -8,7 +8,7 @@ props.each { key, val ->
 }
 
 allprojects {
-    def currentVersion = new File("${rootDir}/../version.txt").text.trim()
+    def currentVersion = file("${rootDir}/../version.txt").text.trim()
 
     buildscript {
         repositories {

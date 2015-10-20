@@ -63,7 +63,7 @@ task findbugs(type: FindBugs) {
     ignoreFailures = false
     effort = "default"
     reportLevel = "medium"
-    excludeFilter = new File("${projectDir}/findbugs-filter.xml")
+    excludeFilter = file("${projectDir}/findbugs-filter.xml")
     classes = files("${projectDir}/build/intermediates/classes")
     source = fileTree('src/main/java/')
     classpath = files()
