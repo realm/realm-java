@@ -1,9 +1,7 @@
 0.84.0
- * Fixed a bug that made it possible to migrate open Realms, which could cause undefined behavior when querying, reading or writing data.
  * Added support for async queries and transactions.
  * Added support for parsing JSON Dates with timezone information.
  * Added RealmQuery.isEmpty().
- * Fixed a bug where closed Realms were trying to refresh themselves resulting in a NullPointerException.
  * Added Realm.isClosed() method.
  * Added Realm.distinct() method.
  * Added RealmQuery.isValid(), RealmResults.isValid() and RealmList.isValid(). Each method checks whether the instance is still valid to use or not(for example, the Realm has been closed or any parent object has been removed).
@@ -15,6 +13,8 @@
  * Fixed a bug affecting RealmConfiguration.equals().
  * Fixed a bug in RealmQuery.isNotNull() which produced wrong results for binary data.
  * Fixed a bug in RealmQuery.isNull() and RealmQuery.isNotNull() which validated the query prematurely.
+ * Fixed a bug where closed Realms were trying to refresh themselves resulting in a NullPointerException.
+ * Fixed a bug that made it possible to migrate open Realms, which could cause undefined behavior when querying, reading or writing data.
 
 0.83.1 (15 Oct 2015)
  * Updated Realm core to version 0.94.1.
