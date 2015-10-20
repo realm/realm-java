@@ -1,18 +1,18 @@
 0.84.0
  * Fixed a bug that made it possible to migrate open Realms, which could cause undefined behavior when querying, reading or writing data.
  * Added support for async queries and transactions.
+ * Added support for parsing JSON Dates with timezone information.
  * Added RealmQuery.isEmpty().
  * Fixed a bug where closed Realms were trying to refresh themselves resulting in a NullPointerException.
  * Added Realm.isClosed() method.
  * Added Realm.distinct() method.
  * Added RealmQuery.isValid(), RealmResults.isValid() and RealmList.isValid(). Each method checks whether the instance is still valid to use or not(for example, the Realm has been closed or any parent object has been removed).
+ * Added Realm.isInTransaction() method.
  * Following methods in managed RealmList now throw IllegalStateException instead of native crash when RealmList.isValid() returns false: add(int,RealmObject), add(RealmObject)
  * Following methods in managed RealmList now throw IllegalStateException instead of ArrayIndexOutOfBoundsException when RealmList.isValid() returns false: set(int,RealmObject), move(int,int), remove(int), get(int)
  * Following methods in managed RealmList now throw IllegalStateException instead of returning 0/null when RealmList.isValid() returns false: clear(), removeAll(Collection), remove(RealmObject), first(), last(), size(), where()
  * RealmPrimaryKeyConstraintException is now thrown instead of RealmException if two objects with same primary key are inserted.
- * Add support for parsing JSON Dates with timezone information.
  * Fixed a bug affecting RealmConfiguration.equals().
- * Add support for parsing JSON Dates with timezone information.
  * Fixed a bug in RealmQuery.isNotNull() which produced wrong results for binary data.
  * Fixed a bug in RealmQuery.isNull() and RealmQuery.isNotNull() which validated the query prematurely.
 
@@ -28,7 +28,7 @@
  * Deprecated methods: RealmQuery.minimum{Int,Float,Double}, RealmQuery.maximum{Int,Float,Double}. Use RealmQuery.min() and RealmQuery.max() instead.
  * Added support for x86_64.
  * Fixed an issue where opening the same Realm file on two Looper threads could potentially lead to an IllegalStateException being thrown.
- * Opening a Realm file from one thread will no longer be blocked by a write transaction from another thread.
+ * Opening a Realm file from one thread will no longer be blocked by a transaction from another thread.
  * Fixed an issue preventing the call of listeners on refresh().
  * Range restrictions of Date fields have been removed. Date fields now accepts any value. Milliseconds are still removed.
 
@@ -230,7 +230,7 @@
   * Better support for Java 7 and 8 in the annotations processor
   * Better support for the Eclipse annotations processor
   * Added Eclipse support to the distribution folder
-  * Added Realm.cancelTransaction() to cancel/abort/rollback a write transaction
+  * Added Realm.cancelTransaction() to cancel/abort/rollback a transaction
   * Faster implementation of RealmQuery.findFirst()
   * Upgraded core to 0.85.1 (deep copying of strings in queries; preparation for link queries)
   * Added support for link queries in the form realm.where(Owner.class).equalTo("cat.age", 12).findAll()
@@ -239,7 +239,7 @@
   * Simplified the release artifact to a single Jar file
   * Added support for Eclipse
   * Added support for deploying to Maven
-  * Throw exception if nested write transactions are used (it's not allowed)
+  * Throw exception if nested transactions are used (it's not allowed)
   * Javadoc updated
   * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
   * New annotation @Index to add search index to a field (currently only supporting String fields)

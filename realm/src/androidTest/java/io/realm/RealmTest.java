@@ -16,7 +16,6 @@
 package io.realm;
 
 import android.content.Context;
-import android.os.Handler;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -666,6 +664,15 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE + 1, resultList.size());
     }
 
+    public void testCommitTransactionAfterCancelTransaction () {
+        testRealm.beginTransaction();
+        testRealm.cancelTransaction();
+        try {
+            testRealm.commitTransaction();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
 
     public void testCancelTransaction() {
         populateTestRealm();
@@ -760,12 +767,12 @@ public class RealmTest extends AndroidTestCase {
         // These calls should fail outside a Transaction:
         try {
             testRealm.createObject(AllTypes.class);
-            fail("Realm.createObject should fail outside write transaction");
+            fail("Realm.createObject should fail outside transaction");
         } catch (IllegalStateException ignored) {
         }
         try {
             testRealm.remove(AllTypes.class, 0);
-            fail("Realm.remove should fail outside write transaction");
+            fail("Realm.remove should fail outside transaction");
         } catch (IllegalStateException ignored) {
         }
     }
@@ -1699,8 +1706,8 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(tmpFile.createNewFile());
     }
 
-    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
-    public void testMutableMethodsOutsideWriteTransactions() throws JSONException, IOException {
+    // Test that all methods that require a transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideTransactions() throws JSONException, IOException {
 
         // Prepare standalone object data
         AllTypesPrimaryKey t = new AllTypesPrimaryKey();
@@ -1717,7 +1724,7 @@ public class RealmTest extends AndroidTestCase {
         InputStream jsonArrStream = TestHelper.stringToStream(jsonArrStr);
         InputStream jsonArrStream2 = TestHelper.stringToStream(jsonArrStr);
 
-        // Test all methods that should require a write transaction
+        // Test all methods that should require a transaction
         try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
         try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
         try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
@@ -2160,5 +2167,17 @@ public class RealmTest extends AndroidTestCase {
             } catch (UnsupportedOperationException ignore) {
             }
         }
+    }
+
+    public void testIsInTransaction() {
+        assertFalse(testRealm.isInTransaction());
+        testRealm.beginTransaction();
+        assertTrue(testRealm.isInTransaction());
+        testRealm.commitTransaction();
+        assertFalse(testRealm.isInTransaction());
+        testRealm.beginTransaction();
+        assertTrue(testRealm.isInTransaction());
+        testRealm.cancelTransaction();
+        assertFalse(testRealm.isInTransaction());
     }
 }

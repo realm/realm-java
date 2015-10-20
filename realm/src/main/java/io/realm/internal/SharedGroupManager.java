@@ -41,7 +41,7 @@ public class SharedGroupManager implements Closeable {
     /**
      * Creates a new instance of the FileWrapper for the given configuration on this thread.
      */
-    public  SharedGroupManager(RealmConfiguration configuration) {
+    public SharedGroupManager(RealmConfiguration configuration) {
         this.sharedGroup = new SharedGroup(
                 configuration.getPath(),
                 SharedGroup.IMPLICIT_TRANSACTION,
@@ -152,6 +152,13 @@ public class SharedGroupManager implements Closeable {
      */
     public ImplicitTransaction getTransaction() {
         return transaction;
+    }
+
+    /**
+     * Returns if the Realm is currently not in a transaction.
+     */
+    public boolean isImmutable() {
+        return transaction.immutable;
     }
 
     /**

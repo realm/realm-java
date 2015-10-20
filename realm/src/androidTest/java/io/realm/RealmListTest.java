@@ -711,8 +711,8 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
-    public void testMutableMethodsOutsideWriteTransactions() {
+    // Test that all methods that require a transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideTransactions() {
         testRealm.beginTransaction();
         RealmList<Dog> list = testRealm.createObject(AllTypes.class).getColumnRealmList();
         Dog dog = testRealm.createObject(Dog.class);

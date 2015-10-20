@@ -42,12 +42,12 @@ import io.realm.instrumentation.MockActivityManager;
 import io.realm.proxy.HandlerProxy;
 
 public class RealmAsyncQueryTests extends InstrumentationTestCase {
-    // **********************************
-    // ****  Async write transaction  ***
-    // **********************************
+    // ****************************
+    // ****  Async transaction  ***
+    // ****************************
 
-    // start asynchronously a write transaction to insert one element
-    public void testAsyncWriteTransaction() throws Throwable {
+    // start asynchronously a transaction to insert one element
+    public void testAsyncTransaction() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final Realm[] realm = new Realm[1];
         final Throwable[] threadAssertionError = new Throwable[1];// to catch both Exception & AssertionError
@@ -60,7 +60,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                 backgroundLooper[0] = Looper.myLooper();
 
                 try {
-                    realm[0] = openRealmInstance("testAsyncWriteTransaction");
+                    realm[0] = openRealmInstance("testAsyncTransaction");
 
                     assertEquals(0, realm[0].allObjects(Owner.class).size());
 
@@ -1897,7 +1897,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     };
                     realm.setHandler(handler);
                     Realm.asyncQueryExecutor.pause();
-
                     realm.beginTransaction();
                     for (int i = 0; i < 5; ) {
                         AllTypes allTypes = realm.createObject(AllTypes.class);
@@ -1909,7 +1908,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                         allTypes.setColumnString("data " + (++i % 3));
                     }
                     realm.commitTransaction();
-
                     final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
                             .findAllSortedAsync(new String[]{"columnString", "columnLong"},
                                     new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_DESCENDING});
@@ -1956,7 +1954,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                         assertEquals(2, realmResults1.get(8).getColumnLong());
                                         assertEquals("data 2", realmResults1.get(9).getColumnString());
                                         assertEquals(1, realmResults1.get(9).getColumnLong());
-
                                         break;
                                     }
                                     case 2: { // second callback
