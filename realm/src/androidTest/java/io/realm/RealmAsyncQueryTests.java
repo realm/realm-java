@@ -1897,7 +1897,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     };
                     realm.setHandler(handler);
                     Realm.asyncQueryExecutor.pause();
-
                     realm.beginTransaction();
                     for (int i = 0; i < 5; ) {
                         AllTypes allTypes = realm.createObject(AllTypes.class);
@@ -1909,7 +1908,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                         allTypes.setColumnString("data " + (++i % 3));
                     }
                     realm.commitTransaction();
-
                     final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
                             .findAllSortedAsync(new String[]{"columnString", "columnLong"},
                                     new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_DESCENDING});
@@ -1956,7 +1954,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                                         assertEquals(2, realmResults1.get(8).getColumnLong());
                                         assertEquals("data 2", realmResults1.get(9).getColumnString());
                                         assertEquals(1, realmResults1.get(9).getColumnLong());
-
                                         break;
                                     }
                                     case 2: { // second callback
