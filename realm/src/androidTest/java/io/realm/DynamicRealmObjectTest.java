@@ -22,6 +22,8 @@ import java.util.Date;
 import java.util.List;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 
@@ -371,7 +373,41 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     }
 
     public void testSetListWrongTypeThrows() {
-        fail();
+        realm.beginTransaction();
+        AllTypes wrongObj = realm.createObject(AllTypes.class);
+        DynamicRealmObject wrongDynamicObject = new DynamicRealmObject(wrongObj);
+        RealmList<DynamicRealmObject> wrongDynamicList = wrongDynamicObject.getList(AllTypes.FIELD_REALMLIST);
+        try {
+            dObj.setList(AllJavaTypes.FIELD_LIST, wrongDynamicList);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testGenericSetListWrongTypeThrows() {
+        realm.beginTransaction();
+        AllTypes wrongObj = realm.createObject(AllTypes.class);
+        try {
+            dObj.set(AllJavaTypes.FIELD_LIST, wrongObj.getColumnRealmList());
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testGenericSetListMixedTypesThrows() {
+        realm.beginTransaction();
+        AllJavaTypes obj1 = realm.createObject(AllJavaTypes.class);
+        obj1.setFieldLong(2);
+        CyclicType obj2 = realm.createObject(CyclicType.class);
+
+        RealmList<DynamicRealmObject> list = new RealmList<DynamicRealmObject>();
+        list.add(new DynamicRealmObject(obj1));
+        list.add(new DynamicRealmObject(obj2));
+        try {
+            dObj.set(AllJavaTypes.FIELD_LIST, list);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     // List is not a simple getter, test separately.

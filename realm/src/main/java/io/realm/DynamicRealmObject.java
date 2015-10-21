@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Date;
 
 import io.realm.internal.CheckedRow;
-import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -396,17 +395,9 @@ public class DynamicRealmObject extends RealmObject {
         } else if (valueClass == DynamicRealmObject.class) {
             setObject(fieldName, (DynamicRealmObject) value);
         } else if (valueClass == RealmList.class) {
-            // We need to verify that the list only contain DynamicRealmObjects.
-            // No real way of verifying the generic type, so just catch the exception if it happens
-            // and convert it to something nicer.
-            try {
-                @SuppressWarnings("unchecked")
-                RealmList<DynamicRealmObject> list = (RealmList<DynamicRealmObject>) value;
-                setList(fieldName, list);
-            } catch (ClassCastException e) {
-                throw new IllegalArgumentException("Only RealmLists containing DynamicRealmObjects " +
-                        "can be added.");
-            }
+            @SuppressWarnings("unchecked")
+            RealmList<RealmObject> list = (RealmList<RealmObject>) value;
+            setList(fieldName, list);
         } else {
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }
@@ -570,19 +561,42 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName field name.
      * @param list list of references.
-     * @throws IllegalArgumentException if field name doesn't exists, it doesn't contain a list of links or the type
+     * @throws IllegalArgumentException if field name doesn't exists, it is not a list field or the type
      * of the object represented by the DynamicRealmObject doesn't match.
      */
-    public void setList(String fieldName, RealmList<DynamicRealmObject> list) {
+    public void setList(String fieldName, RealmList<RealmObject> list) {
+        if (list == null) {
+            throw new IllegalArgumentException("Null values not allowed for lists");
+        }
+
+        String tableType = row.getTable().getName();
+        boolean typeValidated;
+        if (list.className == null && list.clazz == null) {
+            // Standalone lists doesn't know anything about the types they contain. They might even hold objects of
+            // multiple types :(, so we have to check each item in the list.
+            typeValidated = false;
+        } else {
+            String listType = list.className != null ? list.className : realm.getTable(list.clazz).getName();
+            if (!tableType.equals(listType)) {
+                throw new IllegalArgumentException(String.format("The elements in the list is not the proper type. " +
+                        "Was %s expected %s.", listType, tableType));
+            }
+            typeValidated = true;
+        }
+
         long columnIndex = row.getColumnIndex(fieldName);
         LinkView links = row.getLinkList(columnIndex);
-        if (list == null) {
-            row.setNull(columnIndex);
-        } else {
-            links.clear();
-            for (int i = 0; i < list.size(); i++) {
-                links.add(list.get(i).row.getIndex());
+        links.clear();
+        for (int i = 0; i < list.size(); i++) {
+            RealmObject obj = list.get(i);
+            if (!typeValidated) {
+                String elementType = obj.row.getTable().getName();
+                if (!tableType.equals(elementType)) {
+                    throw new IllegalArgumentException(String.format("Element at index %s is not the proper type. " +
+                            "Was %s expected %s.", i, elementType, tableType));
+                }
             }
+            links.add(obj.row.getIndex());
         }
     }
 

@@ -461,6 +461,9 @@ public class TestHelper {
         if (!excludingField.equals("fieldObjectNull")) {
             table.addColumnLink(RealmFieldType.OBJECT, "fieldObjectNull", table);
         }
+
+        table.addColumnLink(RealmFieldType.LIST, "fieldListNull", table);
+
     }
 
     public static void populateForMultiSort(Realm typedRealm) {

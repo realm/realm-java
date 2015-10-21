@@ -397,8 +397,6 @@ public class RealmMigrationTests extends AndroidTestCase {
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
                         Table table = realm.getTable(NullTypes.class);
-                        table.addColumn(RealmFieldType.INTEGER, "id");
-                        table.setPrimaryKey("id");
                         if (field.equals("fieldStringNotNull")) {
                             // 1 String
                             table.addColumn(RealmFieldType.STRING, field, Table.NULLABLE);
@@ -462,8 +460,6 @@ public class RealmMigrationTests extends AndroidTestCase {
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
                         Table table = realm.getTable(NullTypes.class);
-                        table.addColumn(RealmFieldType.INTEGER, "id");
-                        table.setPrimaryKey("id");
                         if (field.equals("fieldStringNull")) {
                             // 1 String
                             table.addColumn(RealmFieldType.STRING, field, Table.NOT_NULLABLE);
