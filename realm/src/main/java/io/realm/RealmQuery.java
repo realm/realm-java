@@ -89,7 +89,7 @@ public class RealmQuery<E extends RealmObject> {
         this.table = realm.getTable(clazz);
         this.view = null;
         this.query = table.where();
-        this.columns = realm.columnIndices.getClassFields(clazz);
+        this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
     }
 
     /**
@@ -105,7 +105,7 @@ public class RealmQuery<E extends RealmObject> {
         this.table = realm.getTable(clazz);
         this.view = null;
         this.query = realmResults.getTable().where();
-        this.columns = realm.columnIndices.getClassFields(clazz);
+        this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
     }
 
     RealmQuery(Realm realm, LinkView view, Class<E> clazz) {
@@ -114,7 +114,7 @@ public class RealmQuery<E extends RealmObject> {
         this.query = view.where();
         this.view = view;
         this.table = realm.getTable(clazz);
-        this.columns = realm.columnIndices.getClassFields(clazz);
+        this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
     }
 
     private boolean containsDot(String s) {
@@ -1998,7 +1998,7 @@ public class RealmQuery<E extends RealmObject> {
 
         // prepare an empty reference of the RealmObject, so we can return it immediately (promise)
         // then update it once the query complete in the background.
-        final E result = realm.getConfiguration().getSchemaMediator().newInstance(clazz);
+        final E result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.getColumnInfo(clazz));
         final WeakReference<RealmObject> realmObjectWeakReference = new WeakReference<RealmObject>(result);
         realm.addAsyncRealmObject(realmObjectWeakReference, this);
         result.realm = realm;

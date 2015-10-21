@@ -30,6 +30,7 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -56,9 +57,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
+    public ColumnInfo validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
         RealmProxyMediator mediator = getMediator(clazz);
-        mediator.validateTable(clazz, transaction);
+        return mediator.validateTable(clazz, transaction);
     }
 
     @Override
@@ -74,20 +75,14 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmObject> E newInstance(Class<E> clazz) {
+    public <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.newInstance(clazz);
+        return mediator.newInstance(clazz, columnInfo);
     }
 
     @Override
     public Set<Class<? extends RealmObject>> getModelClasses() {
         return new HashSet<Class<? extends RealmObject>>(mediators.keySet());
-    }
-
-    @Override
-    public Map<String, Long> getColumnIndices(Class<? extends RealmObject> clazz) {
-        RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.getColumnIndices(clazz);
     }
 
     @Override
