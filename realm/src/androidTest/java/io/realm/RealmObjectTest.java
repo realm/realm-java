@@ -214,7 +214,14 @@ public class RealmObjectTest extends AndroidTestCase {
         removeOneByOne(REMOVE_LAST);
     }
 
-    public boolean methodWrongThread(final boolean callGetter) throws ExecutionException, InterruptedException {
+    private enum Method {
+        METHOD_GETTER,
+        METHOD_SETTER,
+        METHOD_REMOVE_FROM_REALM
+    }
+
+    public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
+
         testRealm = Realm.getInstance(getContext());
         testRealm.beginTransaction();
         testRealm.createObject(AllTypes.class);
@@ -225,10 +232,16 @@ public class RealmObjectTest extends AndroidTestCase {
             @Override
             public Boolean call() throws Exception {
                 try {
-                    if (callGetter) {
-                        allTypes.getColumnFloat();
-                    } else {
-                        allTypes.setColumnFloat(1.0f);
+                    switch (method) {
+                        case METHOD_GETTER:
+                            allTypes.getColumnFloat();
+                           break;
+                        case METHOD_SETTER:
+                            allTypes.setColumnFloat(1.0f);
+                            break;
+                        case METHOD_REMOVE_FROM_REALM:
+                            allTypes.removeFromRealm();
+                            break;
                     }
                     return false;
                 } catch (IllegalStateException ignored) {
@@ -242,9 +255,10 @@ public class RealmObjectTest extends AndroidTestCase {
         return result;
     }
 
-    public void testGetSetWrongThread() throws ExecutionException, InterruptedException {
-        assertTrue(methodWrongThread(true));
-        assertTrue(methodWrongThread(false));
+    public void testMethodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
+        for (Method method : Method.values()) {
+            assertTrue(methodWrongThread(method));
+        }
     }
 
     public void testEqualsSameRealmObject() {
@@ -383,21 +397,6 @@ public class RealmObjectTest extends AndroidTestCase {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.MILLISECOND, 0);
         return cal.getTime();
-    }
-
-    private void addDate(int year, int month, int dayOfMonth) {
-        Date date = newDate(year, month, dayOfMonth);
-
-        testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
-        AllTypes allTypes = testRealm.createObject(AllTypes.class);
-        allTypes.setColumnDate(date);
-        testRealm.commitTransaction();
-
-        AllTypes object = testRealm.allObjects(AllTypes.class).first();
-
-        // Realm does not support millisec precision
-        assertEquals(1000 * (date.getTime() / 1000), 1000 * (object.getColumnDate().getTime() / 1000));
     }
 
     public void testWriteMustThrowOutOfTransaction() {

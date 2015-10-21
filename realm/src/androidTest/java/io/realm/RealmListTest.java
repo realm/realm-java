@@ -19,8 +19,14 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Collections;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
@@ -79,8 +85,8 @@ public class RealmListTest extends AndroidTestCase {
                     case 3: list.move(0,0); break;
                 }
                 fail();
-            } catch (IndexOutOfBoundsException expected) {
-            } catch (RealmException expected) {
+            } catch (IndexOutOfBoundsException ignored) {
+            } catch (RealmException ignored) {
             }
         }
         realm.cancelTransaction();
@@ -719,12 +725,76 @@ public class RealmListTest extends AndroidTestCase {
         list.add(dog);
         testRealm.commitTransaction();
 
-        try { list.add(dog);    fail(); } catch (IllegalStateException expected) {}
-        try { list.add(0, dog); fail(); } catch (IllegalStateException expected) {}
-        try { list.clear();     fail(); } catch (IllegalStateException expected) {}
-        try { list.move(0, 1);  fail(); } catch (IllegalStateException expected) {}
-        try { list.remove(0);   fail(); } catch (IllegalStateException expected) {}
-        try { list.set(0, dog); fail(); } catch (IllegalStateException expected) {}
+        try { list.add(dog);    fail(); } catch (IllegalStateException ignored) {}
+        try { list.add(0, dog); fail(); } catch (IllegalStateException ignored) {}
+        try { list.clear();     fail(); } catch (IllegalStateException ignored) {}
+        try { list.move(0, 1);  fail(); } catch (IllegalStateException ignored) {}
+        try { list.remove(0);   fail(); } catch (IllegalStateException ignored) {}
+        try { list.set(0, dog); fail(); } catch (IllegalStateException ignored) {}
+    }
+
+    private enum Method {
+        METHOD_ADD,
+        METHOD_ADD_AT,
+        METHOD_CLEAR,
+        METHOD_MOVE,
+        METHOD_REMOVE,
+        METHOD_SET
+    }
+
+    // Calling methods from the wrong thread should fail
+    private boolean methodWrongThread(final Method method) throws InterruptedException, ExecutionException {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        testRealm.clear(Dog.class);
+        final RealmList<Dog> list = testRealm.createObject(AllTypes.class).getColumnRealmList();
+        Dog dog = testRealm.createObject(Dog.class);
+        list.add(dog);
+        testRealm.commitTransaction();
+
+        testRealm.beginTransaction(); // Make sure that a valid transaction has begun on the correct thread
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                try {
+                    switch (method) {
+                        case METHOD_ADD:
+                            list.add(new Dog());
+                            break;
+                        case METHOD_ADD_AT:
+                            list.add(1, new Dog());
+                            break;
+                        case METHOD_CLEAR:
+                            list.clear();
+                            break;
+                        case METHOD_MOVE:
+                            list.add(new Dog());
+                            list.move(0,1);
+                            break;
+                        case METHOD_REMOVE:
+                            list.remove(0);
+                            break;
+                        case METHOD_SET:
+                            list.set(0, new Dog());
+                            break;
+                    }
+                    return false;
+                } catch (IllegalStateException ignored) {
+                    return true;
+                }
+            }
+        });
+
+        boolean result = future.get();
+        testRealm.cancelTransaction();
+        return result;
+    }
+
+    public void testMethodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
+        for (Method method : Method.values()) {
+            assertTrue(method.toString(), methodWrongThread(method));
+        }
     }
 
     public void testSettingListClearsOldItems() {

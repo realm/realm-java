@@ -10,6 +10,7 @@
  * Following methods in managed RealmList now throw IllegalStateException instead of ArrayIndexOutOfBoundsException when RealmList.isValid() returns false: set(int,RealmObject), move(int,int), remove(int), get(int)
  * Following methods in managed RealmList now throw IllegalStateException instead of returning 0/null when RealmList.isValid() returns false: clear(), removeAll(Collection), remove(RealmObject), first(), last(), size(), where()
  * RealmPrimaryKeyConstraintException is now thrown instead of RealmException if two objects with same primary key are inserted.
+ * IllegalStateException is now thrown when calling Realm's clear(), RealmResults's remove(), removeLast(), clear() or RealmObject's removeFromRealm() from an incorrect thread.
  * Fixed a bug affecting RealmConfiguration.equals().
  * Fixed a bug in RealmQuery.isNotNull() which produced wrong results for binary data.
  * Fixed a bug in RealmQuery.isNull() and RealmQuery.isNotNull() which validated the query prematurely.
