@@ -414,6 +414,7 @@ public class NullTypesRealmProxy extends NullTypes
 
     @Override
     public NullTypes getFieldObjectNull() {
+        realm.checkIfValid();
         if (row.isNullLink(INDEX_FIELDOBJECTNULL)) {
             return null;
         }
@@ -422,6 +423,7 @@ public class NullTypesRealmProxy extends NullTypes
 
     @Override
     public void setFieldObjectNull(NullTypes value) {
+        realm.checkIfValid();
         if (value == null) {
             row.nullifyLink(INDEX_FIELDOBJECTNULL);
             return;

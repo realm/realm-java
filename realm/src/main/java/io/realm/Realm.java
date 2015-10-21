@@ -305,8 +305,6 @@ public final class Realm extends BaseRealm {
                     realm.close();
                     throw e;
                 }
-            } else {
-                loadMediatorClasses(realm);
             }
             setupColumnIndices(realm);
 
@@ -348,13 +346,6 @@ public final class Realm extends BaseRealm {
             } else {
                 realm.cancelTransaction();
             }
-        }
-    }
-
-    private static void loadMediatorClasses(Realm realm) {
-        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-        for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
-            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 
@@ -698,6 +689,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmException An object could not be created
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
+        checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
@@ -960,7 +952,7 @@ public final class Realm extends BaseRealm {
         if (fieldName == null) {
             throw new IllegalArgumentException("fieldName must be provided.");
         }
-
+        checkIfValid();
         Table table = this.getTable(clazz);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
@@ -1085,14 +1077,17 @@ public final class Realm extends BaseRealm {
      * Remove all objects of the specified class.
      *
      * @param clazz The class which objects should be removed
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @throws java.lang.RuntimeException Any other error
      */
     public void clear(Class<? extends RealmObject> clazz) {
+        checkIfValid();
         getTable(clazz).clear();
     }
 
     @SuppressWarnings("unchecked")
     private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
+        checkIfValid();
         return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
     }
 
@@ -1156,8 +1151,6 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration A {@link RealmConfiguration}
      * @return false if a file could not be deleted. The failing file will be logged.
-     *
-     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
         return BaseRealm.deleteRealm(configuration);
@@ -1174,8 +1167,6 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return true if successful, false if any file operation failed
-     *
-     * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
         return BaseRealm.compactRealm(configuration);

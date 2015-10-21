@@ -152,6 +152,7 @@ public class AllTypesRealmProxy extends AllTypes
 
     @Override
     public AllTypes getColumnObject() {
+        realm.checkIfValid();
         if (row.isNullLink(INDEX_COLUMNOBJECT)) {
             return null;
         }
@@ -160,6 +161,7 @@ public class AllTypesRealmProxy extends AllTypes
 
     @Override
     public void setColumnObject(AllTypes value) {
+        realm.checkIfValid();
         if (value == null) {
             row.nullifyLink(INDEX_COLUMNOBJECT);
             return;
@@ -169,6 +171,7 @@ public class AllTypesRealmProxy extends AllTypes
 
     @Override
     public RealmList<AllTypes> getColumnRealmList() {
+        realm.checkIfValid();
         // use the cached value if available
         if (columnRealmListRealmList != null) {
             return columnRealmListRealmList;
@@ -176,7 +179,7 @@ public class AllTypesRealmProxy extends AllTypes
             LinkView linkView = row.getLinkList(INDEX_COLUMNREALMLIST);
             if (linkView == null) {
                 // return empty non managed RealmList if the LinkView is null
-                // useful for non-initialized RealmObject (async query return empty Row while the query is performing)
+                // useful for non-initialized RealmObject (async query returns empty Row while the query is still running)
                 return EMPTY_REALM_LIST_COLUMNREALMLIST;
             } else {
                 columnRealmListRealmList = new RealmList<AllTypes>(AllTypes.class, linkView, realm);
@@ -187,6 +190,7 @@ public class AllTypesRealmProxy extends AllTypes
 
     @Override
     public void setColumnRealmList(RealmList<AllTypes> value) {
+        realm.checkIfValid();
         LinkView links = row.getLinkList(INDEX_COLUMNREALMLIST);
         links.clear();
         if (value == null) {

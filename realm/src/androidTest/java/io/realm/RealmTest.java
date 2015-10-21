@@ -16,7 +16,6 @@
 package io.realm;
 
 import android.content.Context;
-import android.os.Handler;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
@@ -46,6 +44,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.dynamic.DynamicRealmObject;
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
@@ -604,18 +603,26 @@ public class RealmTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    private enum TransactionMethod {
+    private enum Method {
         METHOD_BEGIN,
         METHOD_COMMIT,
-        METHOD_CANCEL
+        METHOD_CANCEL,
+        METHOD_CLEAR,
+        METHOD_DISTINCT,
+        METHOD_CREATE_OBJECT,
+        METHOD_COPY_TO_REALM,
+        METHOD_COPY_TO_REALM_OR_UPDATE,
+        METHOD_CREATE_ALL_FROM_JSON,
+        METHOD_CREATE_OR_UPDATE_ALL_FROM_JSON,
+        METHOD_CREATE_FROM_JSON,
+        METHOD_CREATE_OR_UPDATE_FROM_JSON
     }
 
-    // Starting a transaction on the wrong thread will fail
-    private boolean transactionMethodWrongThread(final TransactionMethod method) throws InterruptedException,
-            ExecutionException {
-        if (method != TransactionMethod.METHOD_BEGIN) {
+    // Calling methods on a wrong thread will fail.
+    private boolean methodWrongThread(final Method method) throws InterruptedException, ExecutionException {
+        if (method != Method.METHOD_BEGIN) {
             testRealm.beginTransaction();
-            testRealm.createObject(Dog.class); // FIXME: Empty transactions cannot be cancelled
+            testRealm.createObject(Dog.class);
         }
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -632,24 +639,54 @@ public class RealmTest extends AndroidTestCase {
                         case METHOD_CANCEL:
                             testRealm.cancelTransaction();
                             break;
+                        case METHOD_CLEAR:
+                            testRealm.clear(AllTypes.class);
+                            break;
+                        case METHOD_DISTINCT:
+                            testRealm.distinct(AllTypesPrimaryKey.class, "columnLong");
+                            break;
+                        case METHOD_CREATE_OBJECT:
+                            testRealm.createObject(AllTypes.class);
+                            break;
+                        case METHOD_COPY_TO_REALM:
+                            testRealm.copyToRealm(new AllTypes());
+                            break;
+                        case METHOD_COPY_TO_REALM_OR_UPDATE:
+                            testRealm.copyToRealm(new AllTypesPrimaryKey());
+                            break;
+                        case METHOD_CREATE_ALL_FROM_JSON:
+                            testRealm.createAllFromJson(AllTypes.class, "[{}]");
+                            break;
+                        case METHOD_CREATE_OR_UPDATE_ALL_FROM_JSON:
+                            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, "[{\"columnLong\":1}]");
+                            break;
+                        case METHOD_CREATE_FROM_JSON:
+                            testRealm.createObjectFromJson(AllTypes.class, "{}");
+                            break;
+                        case METHOD_CREATE_OR_UPDATE_FROM_JSON:
+                            testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{\"columnLong\":1}");
+                            break;
                     }
                     return false;
                 } catch (IllegalStateException ignored) {
                     return true;
+                } catch (RealmException jsonFailure) {
+                    // TODO: Eew. Reconsider how our JSON methods reports failure. See https://github.com/realm/realm-java/issues/1594
+                    return (jsonFailure.getMessage().equals("Could not map Json"));
                 }
             }
         });
 
         boolean result = future.get();
-        if (result && method != TransactionMethod.METHOD_BEGIN) {
+        if (method != Method.METHOD_BEGIN) {
             testRealm.cancelTransaction();
         }
         return result;
     }
 
-    public void testTransactionWrongThread() throws ExecutionException, InterruptedException {
-        for (TransactionMethod method : TransactionMethod.values()) {
-            assertTrue(method.toString(), transactionMethodWrongThread(method));
+    public void testMethodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
+        for (Method method : Method.values()) {
+            assertTrue(method.toString(), methodWrongThread(method));
         }
     }
 
@@ -666,6 +703,15 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE + 1, resultList.size());
     }
 
+    public void testCommitTransactionAfterCancelTransaction () {
+        testRealm.beginTransaction();
+        testRealm.cancelTransaction();
+        try {
+            testRealm.commitTransaction();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+    }
 
     public void testCancelTransaction() {
         populateTestRealm();
@@ -760,12 +806,12 @@ public class RealmTest extends AndroidTestCase {
         // These calls should fail outside a Transaction:
         try {
             testRealm.createObject(AllTypes.class);
-            fail("Realm.createObject should fail outside write transaction");
+            fail("Realm.createObject should fail outside transaction");
         } catch (IllegalStateException ignored) {
         }
         try {
             testRealm.remove(AllTypes.class, 0);
-            fail("Realm.remove should fail outside write transaction");
+            fail("Realm.remove should fail outside transaction");
         } catch (IllegalStateException ignored) {
         }
     }
@@ -1699,8 +1745,8 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(tmpFile.createNewFile());
     }
 
-    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
-    public void testMutableMethodsOutsideWriteTransactions() throws JSONException, IOException {
+    // Test that all methods that require a transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideTransactions() throws JSONException, IOException {
 
         // Prepare standalone object data
         AllTypesPrimaryKey t = new AllTypesPrimaryKey();
@@ -1717,7 +1763,7 @@ public class RealmTest extends AndroidTestCase {
         InputStream jsonArrStream = TestHelper.stringToStream(jsonArrStr);
         InputStream jsonArrStream2 = TestHelper.stringToStream(jsonArrStr);
 
-        // Test all methods that should require a write transaction
+        // Test all methods that should require a transaction
         try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
         try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
         try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
@@ -2160,5 +2206,17 @@ public class RealmTest extends AndroidTestCase {
             } catch (UnsupportedOperationException ignore) {
             }
         }
+    }
+
+    public void testIsInTransaction() {
+        assertFalse(testRealm.isInTransaction());
+        testRealm.beginTransaction();
+        assertTrue(testRealm.isInTransaction());
+        testRealm.commitTransaction();
+        assertFalse(testRealm.isInTransaction());
+        testRealm.beginTransaction();
+        assertTrue(testRealm.isInTransaction());
+        testRealm.cancelTransaction();
+        assertFalse(testRealm.isInTransaction());
     }
 }

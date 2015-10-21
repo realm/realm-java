@@ -67,7 +67,6 @@ public class RealmQuery<E extends RealmObject> {
     private final Map<String, Long> columns;
     private final Class<E> clazz;
 
-    private static final String LINK_NOT_SUPPORTED_METHOD = "'%s' is not supported for link queries";
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
 
     private final static Long INVALID_NATIVE_POINTER = 0L;
