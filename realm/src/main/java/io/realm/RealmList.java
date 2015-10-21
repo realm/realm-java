@@ -148,7 +148,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public void add(int location, E object) {
         checkValidObject(object);
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             object = copyToRealmIfNeeded(object);
             view.insert(location, object.row.getIndex());
         } else {
@@ -175,7 +175,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public boolean add(E object) {
         checkValidObject(object);
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             object = copyToRealmIfNeeded(object);
             view.add(object.row.getIndex());
         } else {
@@ -206,7 +206,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public E set(int location, E object) {
         checkValidObject(object);
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             object = copyToRealmIfNeeded(object);
             view.set(location, object.row.getIndex());
         } else {
@@ -245,7 +245,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     public void move(int oldPos, int newPos) {
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             view.move(oldPos, newPos);
         } else {
             checkIndex(oldPos);
@@ -269,7 +269,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public void clear() {
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             view.clear();
         } else {
             nonManagedList.clear();
@@ -287,7 +287,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E remove(int location) {
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             E removedItem = get(location);
             view.remove(location);
             return removedItem;
@@ -307,7 +307,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public E get(int location) {
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             long rowIndex = view.getTargetRowIndex(location);
             return realm.get(clazz, className, rowIndex);
         } else {
@@ -323,7 +323,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     public E first() {
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             return view.isEmpty() ? null : get(0);
         } else if (nonManagedList != null && nonManagedList.size() > 0) {
             return nonManagedList.get(0);
@@ -339,7 +339,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     public E last() {
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             return view.isEmpty() ? null : get((int) view.size() - 1);
         } else if (nonManagedList != null && nonManagedList.size() > 0) {
             return nonManagedList.get(nonManagedList.size() - 1);
@@ -356,7 +356,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     @Override
     public int size() {
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             long size = view.size();
             return size < Integer.MAX_VALUE ? (int) size : Integer.MAX_VALUE;
         } else {
@@ -373,7 +373,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      */
     public RealmQuery<E> where() {
         if (managedMode) {
-            checkIfViewAttached();
+            checkValidView();
             return RealmQuery.createQueryFromList(this);
         } else {
             throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
@@ -393,7 +393,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
-    private void checkIfViewAttached() {
+    private void checkValidView() {
+        realm.checkIfValid();
         if (view == null || !view.isAttached()) {
             throw new IllegalStateException("Realm instance has been closed or parent object has been removed.");
         }

@@ -867,9 +867,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(
     return -1;
 }
 
-std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr) {
-    SharedGroup::Handover <Query> *handoverQueryPtr = HO(Query, queryPtr);
-    std::unique_ptr <SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
+std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr)
+{
+    SharedGroup::Handover<Query> *handoverQueryPtr = HO(Query, queryPtr);
+    std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
 
     SG(bgSharedGroupPtr)->end_read();
 
@@ -895,9 +896,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
 {
     TR_ENTER()
     try {
-
         std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
-        TableRef table =  query->get_table();
+        TableRef table = query->get_table();
 
         if (!QUERY_VALID(env, query.get())) {
             return 0;
@@ -916,7 +916,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
         } else {
             // handover the result
             Row row = (*table)[r];
-            std::unique_ptr <SharedGroup::Handover<Row>> handover = SG(
+            std::unique_ptr<SharedGroup::Handover<Row>> handover = SG(
                     bgSharedGroupPtr)->export_for_handover(row);
             return reinterpret_cast<jlong>(handover.release());
         }
@@ -1490,20 +1490,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRo
   (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
       TR_ENTER_PTR(handoverPtr)
-      SharedGroup::Handover <Row> *handoverRowPtr = HO(Row, handoverPtr);
-      std::unique_ptr <SharedGroup::Handover<Row>> handoverRow(handoverRowPtr);
+      SharedGroup::Handover<Row> *handoverRowPtr = HO(Row, handoverPtr);
+      std::unique_ptr<SharedGroup::Handover<Row>> handoverRow(handoverRowPtr);
 
       try {
           // import_from_handover will free (delete) the handover
           if (SG(callerSharedGrpPtr)->is_attached()) {
-              std::unique_ptr <Row> row = SG(callerSharedGrpPtr)->import_from_handover(
+              std::unique_ptr<Row> row = SG(callerSharedGrpPtr)->import_from_handover(
                       std::move(handoverRow));
               return reinterpret_cast<jlong>(row.release());
-
           } else {
               ThrowException(env, RuntimeError, ERR_IMPORT_CLOSED_REALM);
           }
-
       } CATCH_STD()
       return 0;
   }

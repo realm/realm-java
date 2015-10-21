@@ -138,11 +138,15 @@ public class RealmResultsTest extends AndroidTestCase {
         METHOD_SUM,
         METHOD_AVG,
         METHOD_SORT,
-        METHOD_WHERE
+        METHOD_WHERE,
+        METHOD_REMOVE,
+        METHOD_REMOVE_LAST,
+        METHOD_CLEAR
     }
 
     public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
         final RealmResults<AllTypes> allTypeses = testRealm.where(AllTypes.class).findAll();
+        testRealm.beginTransaction();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
@@ -166,6 +170,16 @@ public class RealmResultsTest extends AndroidTestCase {
                             break;
                         case METHOD_WHERE:
                             allTypeses.where();
+                            break;
+                        case METHOD_REMOVE:
+                            allTypeses.remove(0);
+                            break;
+                        case METHOD_REMOVE_LAST:
+                            allTypeses.removeLast();
+                            break;
+                        case METHOD_CLEAR:
+                            allTypeses.clear();
+                            break;
                     }
                     return false;
                 } catch (IllegalStateException ignored) {
@@ -173,7 +187,9 @@ public class RealmResultsTest extends AndroidTestCase {
                 }
             }
         });
-        return future.get();
+        Boolean result = future.get();
+        testRealm.cancelTransaction();
+        return result;
     }
 
     // test io.realm.ResultList Api
@@ -1076,8 +1092,8 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
 
-    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
-    public void testMutableMethodsOutsideWriteTransactions() {
+    // Test that all methods that require a transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideTransactions() {
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).findAll();
 
         try {

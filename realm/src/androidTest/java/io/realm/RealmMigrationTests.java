@@ -514,4 +514,23 @@ public class RealmMigrationTests extends AndroidTestCase {
             }
         }
     }
+
+    public void testRealmOpenBeforeMigrationThrows() {
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+        realm = Realm.getInstance(config);
+
+        try {
+            // Trigger manual migration. This can potentially change the schema, so should only be allowed when
+            // no-one else is working on the Realm.
+            Realm.migrateRealm(config, new RealmMigration() {
+                @Override
+                public long execute(Realm realm, long version) {
+                    return 0;
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
 }
