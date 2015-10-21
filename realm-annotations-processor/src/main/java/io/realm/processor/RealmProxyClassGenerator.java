@@ -232,6 +232,9 @@ public class RealmProxyClassGenerator {
                 // Getter
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
+                writer.emitStatement(
+                        "realm.checkIfValid()"
+                );
                 writer.beginControlFlow("if (row.isNullLink(%s))", staticFieldIndexVarName(field));
                         writer.emitStatement("return null");
                         writer.endControlFlow();
@@ -243,6 +246,9 @@ public class RealmProxyClassGenerator {
                 // Setter
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                writer.emitStatement(
+                        "realm.checkIfValid()"
+                );
                 writer.beginControlFlow("if (value == null)");
                     writer.emitStatement("row.nullifyLink(%s)", staticFieldIndexVarName(field));
                     writer.emitStatement("return");
@@ -258,7 +264,7 @@ public class RealmProxyClassGenerator {
                 // Getter
                 writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
-
+                writer.emitStatement("realm.checkIfValid()");
                 writer.emitSingleLineComment("use the cached value if available");
                 writer.beginControlFlow("if (" + fieldName + "RealmList != null)");
                         writer.emitStatement("return " + fieldName + "RealmList");
@@ -281,6 +287,9 @@ public class RealmProxyClassGenerator {
                 // Setter
                 writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
+                writer.emitStatement(
+                        "realm.checkIfValid()"
+                );
                 writer.emitStatement("LinkView links = row.getLinkList(%s)", staticFieldIndexVarName(field));
                 writer.emitStatement("links.clear()");
                 writer.beginControlFlow("if (value == null)");

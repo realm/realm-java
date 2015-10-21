@@ -94,6 +94,8 @@ public abstract class RealmObject {
      * <p>
      * After this method is called the object will be invalid and any operation (read or write)
      * performed on it will fail with an IllegalStateException
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     public void removeFromRealm() {
         if (row == null) {
@@ -102,6 +104,8 @@ public abstract class RealmObject {
         if (realm == null) {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
+        realm.checkIfValid();
+
         row.getTable().moveLastOver(row.getIndex());
         row = InvalidRow.INSTANCE;
     }

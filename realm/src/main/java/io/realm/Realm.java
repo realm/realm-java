@@ -689,6 +689,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmException An object could not be created
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
+        checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
@@ -952,7 +953,7 @@ public final class Realm extends BaseRealm {
         if (fieldName == null) {
             throw new IllegalArgumentException("fieldName must be provided.");
         }
-
+        checkIfValid();
         Table table = this.getTable(clazz);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
@@ -1108,14 +1109,17 @@ public final class Realm extends BaseRealm {
      * Remove all objects of the specified class.
      *
      * @param clazz The class which objects should be removed
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @throws java.lang.RuntimeException Any other error
      */
     public void clear(Class<? extends RealmObject> clazz) {
+        checkIfValid();
         getTable(clazz).clear();
     }
 
     @SuppressWarnings("unchecked")
     private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
+        checkIfValid();
         return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
     }
 
