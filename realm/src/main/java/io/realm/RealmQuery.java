@@ -1473,6 +1473,72 @@ public class RealmQuery<E extends RealmObject> {
         return this.query.count();
     }
 
+    RealmResults<E> distinctAsync(final long columnIndex) {
+        checkQueryIsNotReused();
+        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
+
+        // handover the query (to be used by a worker thread)
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+
+        // save query arguments (for future update)
+        argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_DISTINCT);
+        argumentsHolder.columnIndex = columnIndex;
+
+        // we need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // to perform the query
+        final RealmConfiguration realmConfiguration = realm.getConfiguration();
+
+        // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
+        // then update it once the query completes in the background.
+        RealmResults<E> realmResults = new RealmResults<E>(realm, query, clazz);
+        final WeakReference<RealmResults<?>> weakRealmResults = new WeakReference<RealmResults<?>>(realmResults, realm.getReferenceQueue());
+        realm.addAsyncRealmResults(weakRealmResults, this);
+
+        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                if (!Thread.currentThread().isInterrupted()) {
+                    SharedGroup sharedGroup = null;
+
+                    try {
+                        sharedGroup = new SharedGroup(realmConfiguration.getPath(),
+                                SharedGroup.IMPLICIT_TRANSACTION,
+                                realmConfiguration.getDurability(),
+                                realmConfiguration.getEncryptionKey());
+
+                        long handoverTableViewPointer = query.
+                                findDistinctWithHandover(sharedGroup.getNativePointer(),
+                                        sharedGroup.getNativeReplicationPointer(),
+                                        handoverQueryPointer,
+                                        columnIndex);
+
+                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
+                        result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
+                        result.versionID = sharedGroup.getVersion();
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_QUERY, result);
+
+                        return handoverTableViewPointer;
+                    } catch (Exception e) {
+                        RealmLog.e(e.getMessage());
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+
+                    } finally {
+                        if (null != sharedGroup) {
+                            sharedGroup.close();
+                        }
+                    }
+                } else {
+                    TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
+                }
+
+                return INVALID_NATIVE_POINTER;
+            }
+        });
+
+        realmResults.setPendingQuery(pendingQuery);
+        return realmResults;
+    }
+
     /**
      * Find all objects that fulfill the query conditions.
      *
@@ -1488,7 +1554,7 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Find all objects that fulfill the query conditions and sorted by specific field name.
-     * This method is only available from a Looper thread
+     * This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
@@ -1536,17 +1602,13 @@ public class RealmQuery<E extends RealmObject> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
-
-                        // notify the caller thread
-                        Handler handler = weakHandler.get();
-                        if (handler != null && handler.getLooper().getThread().isAlive()) {
-                            handler.obtainMessage(Realm.REALM_COMPLETED_ASYNC_QUERY, result).sendToTarget();
-                        }
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_QUERY, result);
 
                         return handoverTableViewPointer;
 
                     } catch (Exception e) {
                         RealmLog.e(e.getMessage());
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (null != sharedGroup) {
@@ -1642,16 +1704,12 @@ public class RealmQuery<E extends RealmObject> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
-
-                        Handler handler = weakHandler.get();
-                        if (handler != null && handler.getLooper().getThread().isAlive()) {
-                            handler.obtainMessage(Realm.REALM_COMPLETED_ASYNC_QUERY, result).sendToTarget();
-                        }
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_QUERY, result);
 
                         return handoverTableViewPointer;
-
                     } catch (Exception e) {
                         RealmLog.e(e.getMessage());
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (sharedGroup != null) {
@@ -1803,16 +1861,12 @@ public class RealmQuery<E extends RealmObject> {
                             QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                             result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                             result.versionID = sharedGroup.getVersion();
-
-                            Handler handler = weakHandler.get();
-                            if (handler != null && handler.getLooper().getThread().isAlive()) {
-                                handler.obtainMessage(Realm.REALM_COMPLETED_ASYNC_QUERY, result).sendToTarget();
-                            }
+                            sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_QUERY, result);
 
                             return handoverTableViewPointer;
-
                         } catch (Exception e) {
                             RealmLog.e(e.getMessage());
+                            sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                         } finally {
                             if (sharedGroup != null) {
@@ -1886,8 +1940,8 @@ public class RealmQuery<E extends RealmObject> {
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
                                    String fieldName2, boolean sortAscending2,
                                    String fieldName3, boolean sortAscending3) {
-        return findAllSorted(new String[] {fieldName1, fieldName2, fieldName3},
-                new boolean[] {sortAscending1, sortAscending2, sortAscending3});
+        return findAllSorted(new String[]{fieldName1, fieldName2, fieldName3},
+                new boolean[]{sortAscending1, sortAscending2, sortAscending3});
     }
 
     /**
@@ -1969,15 +2023,14 @@ public class RealmQuery<E extends RealmObject> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmObjectResponse();
                         result.updatedRow.put(realmObjectWeakReference, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_FIND_FIRST, result);
 
-                        Handler handler = weakHandler.get();
-                        if (handler != null && handler.getLooper().getThread().isAlive()) {
-                            handler.obtainMessage(Realm.REALM_COMPLETED_ASYNC_FIND_FIRST, result).sendToTarget();
-                        }
                         return handoverTableViewPointer;
 
                     } catch (Exception e) {
                         RealmLog.e(e.getMessage());
+                        // handler can't throw a checked exception need to wrap it into unchecked Exception
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_FIND_FIRST, new Error(e));
 
                     } finally {
                         if (null != sharedGroup) {
@@ -2014,6 +2067,13 @@ public class RealmQuery<E extends RealmObject> {
                     " Async queries need a Handler to send results of your query");
         }
         return new WeakReference<Handler>(realm.handler); // use caller Realm's Looper
+    }
+
+    private void sendMessageToHandler(WeakReference<Handler> weakHandler, int what, Object obj) {
+        Handler handler = weakHandler.get();
+        if (handler != null && handler.getLooper().getThread().isAlive()) {
+            handler.obtainMessage(what, obj).sendToTarget();
+        }
     }
 
     // We need to prevent the user from using the query again (mostly for async)
