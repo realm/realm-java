@@ -3,12 +3,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'android-command'
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion "20.0.0"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.0"
     defaultConfig {
         applicationId 'io.realm.examples.kotlin'
         minSdkVersion 15
-        targetSdkVersion 19
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
@@ -35,14 +35,14 @@ tasks.preBuild {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'org.jetbrains.anko:anko:0.6.2-19s'
+    compile 'org.jetbrains.anko:anko:0.6.3-15'
     compile files("../../realm/build/libs/realm-${version}.jar")
 
     kapt files("../../realm/build/libs/realm-${version}.jar")
 }
 
 buildscript {
-    ext.kotlin_version = '0.12.213'
+    ext.kotlin_version = '0.12.1230'
     repositories {
         jcenter()
     }
