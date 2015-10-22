@@ -34,18 +34,18 @@ public class BooleansRealmProxy extends Booleans
         public final long mCompletedIndex;
         public final long anotherBooleanIndex;
 
-        BooleansColumnInfo(Table table, String path) {
+        BooleansColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(4);
-            this.doneIndex = getValidColumnIndex(table, "done", path, "Booleans");
+            this.doneIndex = getValidColumnIndex(path, table, "Booleans", "done");
             indicesMap.put("done", this.doneIndex);
 
-            this.isReadyIndex = getValidColumnIndex(table, "isReady", path, "Booleans");
+            this.isReadyIndex = getValidColumnIndex(path, table, "Booleans", "isReady");
             indicesMap.put("isReady", this.isReadyIndex);
 
-            this.mCompletedIndex = getValidColumnIndex(table, "mCompleted", path, "Booleans");
+            this.mCompletedIndex = getValidColumnIndex(path, table, "Booleans", "mCompleted");
             indicesMap.put("mCompleted", this.mCompletedIndex);
 
-            this.anotherBooleanIndex = getValidColumnIndex(table, "anotherBoolean", path, "Booleans");
+            this.anotherBooleanIndex = getValidColumnIndex(path, table, "Booleans", "anotherBoolean");
             indicesMap.put("anotherBoolean", this.anotherBooleanIndex);
 
             setIndicesMap(indicesMap);
@@ -139,7 +139,7 @@ public class BooleansRealmProxy extends Booleans
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
-            final BooleansColumnInfo columnInfo = new BooleansColumnInfo(table, transaction.getPath());
+            final BooleansColumnInfo columnInfo = new BooleansColumnInfo(transaction.getPath(), table);
 
             if (!columnTypes.containsKey("done")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'done' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
