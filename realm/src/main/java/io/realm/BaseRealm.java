@@ -53,12 +53,6 @@ import io.realm.internal.log.RealmLog;
  * @see io.realm.Realm
  */
 abstract class BaseRealm implements Closeable {
-
-    static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
-    static final int REALM_UPDATE_ASYNC_QUERIES = 24157817;
-    static final int REALM_COMPLETED_ASYNC_QUERY = 39088169;
-    static final int REALM_COMPLETED_ASYNC_FIND_FIRST = 63245986;
-
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -335,10 +329,10 @@ abstract class BaseRealm implements Closeable {
             // case we end up with two REALM_CHANGED messages in the queue.
             if (
                     realmPath.equals(configuration.getPath())            // It's the right realm
-                            && !handler.hasMessages(REALM_CHANGED)       // The right message
+                            && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
                             && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     ) {
-                if (!handler.sendEmptyMessage(REALM_CHANGED)) {
+                if (!handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
                     RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
                             "to prevent this.");
                 }

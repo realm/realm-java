@@ -103,6 +103,7 @@ public class QueryUpdateTask implements Runnable {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private boolean updateRealmResultsQueries(SharedGroup sharedGroup, Result result) {
         for (Builder.QueryEntry  queryEntry : realmResultsEntries) {
             if (!isTaskCancelled()) {
@@ -112,6 +113,18 @@ public class QueryUpdateTask implements Runnable {
                                 (sharedGroup.getNativePointer(),
                                         sharedGroup.getNativeReplicationPointer(),
                                         queryEntry.handoverQueryPointer, 0, Table.INFINITE, Table.INFINITE);
+                        result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
+                        // invalidate the handover query pointer, in case this task is cancelled
+                        // we will not try to close/delete a consumed pointer
+                        queryEntry.handoverQueryPointer = 0L;
+                        break;
+                    }
+                    case ArgumentsHolder.TYPE_DISTINCT: {
+                        long handoverTableViewPointer = TableQuery.nativeGetDistinctViewWithHandover
+                                (sharedGroup.getNativePointer(),
+                                        sharedGroup.getNativeReplicationPointer(),
+                                        queryEntry.handoverQueryPointer,
+                                        queryEntry.queryArguments.columnIndex);
                         result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
                         // invalidate the handover query pointer, in case this task is cancelled
                         // we will not try to close/delete a consumed pointer
