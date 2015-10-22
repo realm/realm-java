@@ -18,6 +18,7 @@
  * Fixed a bug in RealmQuery.isNull() and RealmQuery.isNotNull() which validated the query prematurely.
  * Fixed a bug where closed Realms were trying to refresh themselves resulting in a NullPointerException.
  * Fixed a bug that made it possible to migrate open Realms, which could cause undefined behavior when querying, reading or writing data.
+ * Fixed a bug causing column indices to be wrong for some edge cases. See #1611 for details.
 
 0.83.1
  * Updated Realm Core to version 0.94.1.

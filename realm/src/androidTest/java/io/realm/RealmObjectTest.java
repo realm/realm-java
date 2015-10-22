@@ -34,8 +34,11 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
+import io.realm.entities.StringAndInt;
 import io.realm.entities.Thread;
+import io.realm.internal.ColumnType;
 import io.realm.internal.Row;
+import io.realm.internal.Table;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -811,5 +814,71 @@ public class RealmObjectTest extends AndroidTestCase {
         assertEquals(Double.POSITIVE_INFINITY, testRealm.where(AllTypes.class).findFirst().getColumnDouble());
         assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnFloat", Float.POSITIVE_INFINITY).count());
         assertEquals(1, testRealm.where(AllTypes.class).equalTo("columnDouble", Double.POSITIVE_INFINITY).count());
+    }
+
+    private RealmConfiguration prepareColumnSwappedRealm() {
+        final RealmConfiguration columnSwappedRealmConfigForV0 = new RealmConfiguration.Builder(getContext())
+                .name("columnSwapped.realm")
+                .migration(new RealmMigration() {
+                    @Override
+                    public long execute(Realm realm, long version) {
+                        final Table table = realm.getTable(StringAndInt.class);
+                        final long strIndex = table.getColumnIndex("str");
+                        final long numberIndex = table.getColumnIndex("number");
+
+                        while (0 < table.getColumnCount()) {
+                            table.removeColumn(0);
+                        }
+
+                        final long newStrIndex;
+                        // swap column indices
+                        if (strIndex < numberIndex) {
+                            table.addColumn(ColumnType.INTEGER, "number");
+                            newStrIndex = table.addColumn(ColumnType.STRING, "str");
+                        } else {
+                            newStrIndex = table.addColumn(ColumnType.STRING, "str");
+                            table.addColumn(ColumnType.INTEGER, "number");
+                        }
+                        table.convertColumnToNullable(newStrIndex);
+
+                        return 1L;
+                    }
+                })
+                .build();
+        final RealmConfiguration columnSwappedRealmConfigForV1 = new RealmConfiguration.Builder(getContext())
+                .name("columnSwapped.realm")
+                .migration(new RealmMigration() {
+                    @Override
+                    public long execute(Realm realm, long version) {
+                        return 1L;
+                    }
+                })
+                .schemaVersion(1L)
+                .build();
+
+        Realm.deleteRealm(columnSwappedRealmConfigForV0);
+        Realm.getInstance(columnSwappedRealmConfigForV0).close();
+        Realm.migrateRealm(columnSwappedRealmConfigForV0);
+        return columnSwappedRealmConfigForV1;
+    }
+
+    public void testRealmProxyColumnIndex() {
+        final RealmConfiguration configForSwapped = prepareColumnSwappedRealm();
+
+        // open swapped Realm in order to load column index
+        Realm.getInstance(configForSwapped).close();
+
+        testRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                final StringAndInt obj = testRealm.createObject(StringAndInt.class);
+                /*
+                 * If https://github.com/realm/realm-java/issues/1611 issue exists,
+                 * setter/getter of RealmObjectProxy uses last loaded column index for every Realm.
+                 */
+                obj.setStr("foo");
+                obj.getStr();
+            }
+        });
     }
 }

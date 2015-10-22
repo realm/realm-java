@@ -21,6 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.RealmClass;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
