@@ -2206,7 +2206,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         });
 
         // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished, 6000);
+        TestHelper.awaitOrFail(signalCallbackFinished);
         executorService.shutdownNow();
         if (null != threadAssertionError[0]) {
             // throw any assertion errors happened in the background thread
@@ -2497,7 +2497,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     realm = openRealmInstance("testAsyncDistinctFieldDoesNotExist");
                     final long numberOfBlocks = 25;
                     final long numberOfObjects = 10; // must be greater than 1
-
                     populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
                     try {

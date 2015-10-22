@@ -942,7 +942,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
-     * returned in cases of multiple occurrences.
+     * returned in case of multiple occurrences.
      *
      * @param clazz the Class to get objects of.
      * @param fieldName the field name.
@@ -966,7 +966,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
-     * returned in cases of multiple occurrences.
+     * returned in case of multiple occurrences.
      * This method is only available from a Looper thread.
      *
      * @param clazz the Class to get objects of.
