@@ -39,33 +39,33 @@ public class AllTypesRealmProxy extends AllTypes
         public final long columnObjectIndex;
         public final long columnRealmListIndex;
 
-        AllTypesColumnInfo(Table table, String path) {
+        AllTypesColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(9);
-            this.columnStringIndex = getValidColumnIndex(table, "columnString", path, "AllTypes");
+            this.columnStringIndex = getValidColumnIndex(path, table, "AllTypes", "columnString");
             indicesMap.put("columnString", this.columnStringIndex);
 
-            this.columnLongIndex = getValidColumnIndex(table, "columnLong", path, "AllTypes");
+            this.columnLongIndex = getValidColumnIndex(path, table, "AllTypes", "columnLong");
             indicesMap.put("columnLong", this.columnLongIndex);
 
-            this.columnFloatIndex = getValidColumnIndex(table, "columnFloat", path, "AllTypes");
+            this.columnFloatIndex = getValidColumnIndex(path, table, "AllTypes", "columnFloat");
             indicesMap.put("columnFloat", this.columnFloatIndex);
 
-            this.columnDoubleIndex = getValidColumnIndex(table, "columnDouble", path, "AllTypes");
+            this.columnDoubleIndex = getValidColumnIndex(path, table, "AllTypes", "columnDouble");
             indicesMap.put("columnDouble", this.columnDoubleIndex);
 
-            this.columnBooleanIndex = getValidColumnIndex(table, "columnBoolean", path, "AllTypes");
+            this.columnBooleanIndex = getValidColumnIndex(path, table, "AllTypes", "columnBoolean");
             indicesMap.put("columnBoolean", this.columnBooleanIndex);
 
-            this.columnDateIndex = getValidColumnIndex(table, "columnDate", path, "AllTypes");
+            this.columnDateIndex = getValidColumnIndex(path, table, "AllTypes", "columnDate");
             indicesMap.put("columnDate", this.columnDateIndex);
 
-            this.columnBinaryIndex = getValidColumnIndex(table, "columnBinary", path, "AllTypes");
+            this.columnBinaryIndex = getValidColumnIndex(path, table, "AllTypes", "columnBinary");
             indicesMap.put("columnBinary", this.columnBinaryIndex);
 
-            this.columnObjectIndex = getValidColumnIndex(table, "columnObject", path, "AllTypes");
+            this.columnObjectIndex = getValidColumnIndex(path, table, "AllTypes", "columnObject");
             indicesMap.put("columnObject", this.columnObjectIndex);
 
-            this.columnRealmListIndex = getValidColumnIndex(table, "columnRealmList", path, "AllTypes");
+            this.columnRealmListIndex = getValidColumnIndex(path, table, "AllTypes", "columnRealmList");
             indicesMap.put("columnRealmList", this.columnRealmListIndex);
 
             setIndicesMap(indicesMap);
@@ -76,7 +76,6 @@ public class AllTypesRealmProxy extends AllTypes
     private RealmList<AllTypes> columnRealmListRealmList;
     private static RealmList<AllTypes> EMPTY_REALM_LIST_COLUMNREALMLIST;
     private static final List<String> FIELD_NAMES;
-
     static {
         EMPTY_REALM_LIST_COLUMNREALMLIST = new RealmList();
         List<String> fieldNames = new ArrayList<String>();
@@ -276,7 +275,7 @@ public class AllTypesRealmProxy extends AllTypes
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
-            final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(table, transaction.getPath());
+            final AllTypesColumnInfo columnInfo = new AllTypesColumnInfo(transaction.getPath(), table);
 
             if (!columnTypes.containsKey("columnString")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnString' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");

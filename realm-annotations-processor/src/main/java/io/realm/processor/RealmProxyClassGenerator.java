@@ -145,15 +145,15 @@ public class RealmProxyClassGenerator {
 
         // constructor
         writer.beginConstructor(EnumSet.noneOf(Modifier.class),
-                "Table", "table",
-                "String", "path");
+                "String", "path",
+                "Table", "table");
         writer.emitStatement("final Map<String, Long> indicesMap = new HashMap<String, Long>(%s)",
                 metadata.getFields().size());
         for (VariableElement variableElement : metadata.getFields()) {
             final String columnName = variableElement.getSimpleName().toString();
             final String columnIndexVarName = columnIndexVarName(variableElement);
-            writer.emitStatement("this.%s = getValidColumnIndex(table, \"%s\", path, \"%s\")",
-                    columnIndexVarName, columnName, className);
+            writer.emitStatement("this.%s = getValidColumnIndex(path, table, \"%s\", \"%s\")",
+                    columnIndexVarName, className, columnName);
             writer.emitStatement("indicesMap.put(\"%s\", this.%s)", columnName, columnIndexVarName);
             writer.emitEmptyLine();
         }
@@ -423,7 +423,7 @@ public class RealmProxyClassGenerator {
         writer.emitEmptyLine();
 
         // create an instance of ColumnInfo
-        writer.emitStatement("final %1$s columnInfo = new %1$s(table, transaction.getPath())", columnInfoClassName());
+        writer.emitStatement("final %1$s columnInfo = new %1$s(transaction.getPath(), table)", columnInfoClassName());
         writer.emitEmptyLine();
 
         // For each field verify there is a corresponding

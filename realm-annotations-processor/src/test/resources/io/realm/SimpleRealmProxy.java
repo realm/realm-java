@@ -32,12 +32,12 @@ public class SimpleRealmProxy extends Simple
         public final long nameIndex;
         public final long ageIndex;
 
-        SimpleColumnInfo(Table table, String path) {
+        SimpleColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(2);
-            this.nameIndex = getValidColumnIndex(table, "name", path, "Simple");
+            this.nameIndex = getValidColumnIndex(path, table, "Simple", "name");
             indicesMap.put("name", this.nameIndex);
 
-            this.ageIndex = getValidColumnIndex(table, "age", path, "Simple");
+            this.ageIndex = getValidColumnIndex(path, table, "Simple", "age");
             indicesMap.put("age", this.ageIndex);
 
             setIndicesMap(indicesMap);
@@ -107,7 +107,7 @@ public class SimpleRealmProxy extends Simple
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
-            final SimpleColumnInfo columnInfo = new SimpleColumnInfo(table, transaction.getPath());
+            final SimpleColumnInfo columnInfo = new SimpleColumnInfo(transaction.getPath(), table);
 
             if (!columnTypes.containsKey("name")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");

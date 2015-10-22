@@ -51,69 +51,69 @@ public class NullTypesRealmProxy extends NullTypes
         public final long fieldDateNullIndex;
         public final long fieldObjectNullIndex;
 
-        NullTypesColumnInfo(Table table, String path) {
+        NullTypesColumnInfo(String path, Table table) {
             final Map<String, Long> indicesMap = new HashMap<String, Long>(21);
-            this.fieldStringNotNullIndex = getValidColumnIndex(table, "fieldStringNotNull", path, "NullTypes");
+            this.fieldStringNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldStringNotNull");
             indicesMap.put("fieldStringNotNull", this.fieldStringNotNullIndex);
 
-            this.fieldStringNullIndex = getValidColumnIndex(table, "fieldStringNull", path, "NullTypes");
+            this.fieldStringNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldStringNull");
             indicesMap.put("fieldStringNull", this.fieldStringNullIndex);
 
-            this.fieldBooleanNotNullIndex = getValidColumnIndex(table, "fieldBooleanNotNull", path, "NullTypes");
+            this.fieldBooleanNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBooleanNotNull");
             indicesMap.put("fieldBooleanNotNull", this.fieldBooleanNotNullIndex);
 
-            this.fieldBooleanNullIndex = getValidColumnIndex(table, "fieldBooleanNull", path, "NullTypes");
+            this.fieldBooleanNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBooleanNull");
             indicesMap.put("fieldBooleanNull", this.fieldBooleanNullIndex);
 
-            this.fieldBytesNotNullIndex = getValidColumnIndex(table, "fieldBytesNotNull", path, "NullTypes");
+            this.fieldBytesNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBytesNotNull");
             indicesMap.put("fieldBytesNotNull", this.fieldBytesNotNullIndex);
 
-            this.fieldBytesNullIndex = getValidColumnIndex(table, "fieldBytesNull", path, "NullTypes");
+            this.fieldBytesNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldBytesNull");
             indicesMap.put("fieldBytesNull", this.fieldBytesNullIndex);
 
-            this.fieldByteNotNullIndex = getValidColumnIndex(table, "fieldByteNotNull", path, "NullTypes");
+            this.fieldByteNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldByteNotNull");
             indicesMap.put("fieldByteNotNull", this.fieldByteNotNullIndex);
 
-            this.fieldByteNullIndex = getValidColumnIndex(table, "fieldByteNull", path, "NullTypes");
+            this.fieldByteNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldByteNull");
             indicesMap.put("fieldByteNull", this.fieldByteNullIndex);
 
-            this.fieldShortNotNullIndex = getValidColumnIndex(table, "fieldShortNotNull", path, "NullTypes");
+            this.fieldShortNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldShortNotNull");
             indicesMap.put("fieldShortNotNull", this.fieldShortNotNullIndex);
 
-            this.fieldShortNullIndex = getValidColumnIndex(table, "fieldShortNull", path, "NullTypes");
+            this.fieldShortNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldShortNull");
             indicesMap.put("fieldShortNull", this.fieldShortNullIndex);
 
-            this.fieldIntegerNotNullIndex = getValidColumnIndex(table, "fieldIntegerNotNull", path, "NullTypes");
+            this.fieldIntegerNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldIntegerNotNull");
             indicesMap.put("fieldIntegerNotNull", this.fieldIntegerNotNullIndex);
 
-            this.fieldIntegerNullIndex = getValidColumnIndex(table, "fieldIntegerNull", path, "NullTypes");
+            this.fieldIntegerNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldIntegerNull");
             indicesMap.put("fieldIntegerNull", this.fieldIntegerNullIndex);
 
-            this.fieldLongNotNullIndex = getValidColumnIndex(table, "fieldLongNotNull", path, "NullTypes");
+            this.fieldLongNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldLongNotNull");
             indicesMap.put("fieldLongNotNull", this.fieldLongNotNullIndex);
 
-            this.fieldLongNullIndex = getValidColumnIndex(table, "fieldLongNull", path, "NullTypes");
+            this.fieldLongNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldLongNull");
             indicesMap.put("fieldLongNull", this.fieldLongNullIndex);
 
-            this.fieldFloatNotNullIndex = getValidColumnIndex(table, "fieldFloatNotNull", path, "NullTypes");
+            this.fieldFloatNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldFloatNotNull");
             indicesMap.put("fieldFloatNotNull", this.fieldFloatNotNullIndex);
 
-            this.fieldFloatNullIndex = getValidColumnIndex(table, "fieldFloatNull", path, "NullTypes");
+            this.fieldFloatNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldFloatNull");
             indicesMap.put("fieldFloatNull", this.fieldFloatNullIndex);
 
-            this.fieldDoubleNotNullIndex = getValidColumnIndex(table, "fieldDoubleNotNull", path, "NullTypes");
+            this.fieldDoubleNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDoubleNotNull");
             indicesMap.put("fieldDoubleNotNull", this.fieldDoubleNotNullIndex);
 
-            this.fieldDoubleNullIndex = getValidColumnIndex(table, "fieldDoubleNull", path, "NullTypes");
+            this.fieldDoubleNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDoubleNull");
             indicesMap.put("fieldDoubleNull", this.fieldDoubleNullIndex);
 
-            this.fieldDateNotNullIndex = getValidColumnIndex(table, "fieldDateNotNull", path, "NullTypes");
+            this.fieldDateNotNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDateNotNull");
             indicesMap.put("fieldDateNotNull", this.fieldDateNotNullIndex);
 
-            this.fieldDateNullIndex = getValidColumnIndex(table, "fieldDateNull", path, "NullTypes");
+            this.fieldDateNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldDateNull");
             indicesMap.put("fieldDateNull", this.fieldDateNullIndex);
 
-            this.fieldObjectNullIndex = getValidColumnIndex(table, "fieldObjectNull", path, "NullTypes");
+            this.fieldObjectNullIndex = getValidColumnIndex(path, table, "NullTypes", "fieldObjectNull");
             indicesMap.put("fieldObjectNull", this.fieldObjectNullIndex);
 
             setIndicesMap(indicesMap);
@@ -549,7 +549,7 @@ public class NullTypesRealmProxy extends NullTypes
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
-            final NullTypesColumnInfo columnInfo = new NullTypesColumnInfo(table, transaction.getPath());
+            final NullTypesColumnInfo columnInfo = new NullTypesColumnInfo(transaction.getPath(), table);
 
             if (!columnTypes.containsKey("fieldStringNotNull")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'fieldStringNotNull' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");

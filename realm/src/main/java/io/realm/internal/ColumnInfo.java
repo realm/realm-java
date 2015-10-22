@@ -24,8 +24,8 @@ import io.realm.exceptions.RealmMigrationNeededException;
 public class ColumnInfo {
     private Map<String, Long> indicesMap;
 
-    protected final long getValidColumnIndex(Table table, String columnName,
-                                             String realmPath, String className) {
+    protected final long getValidColumnIndex(String realmPath, Table table,
+                                             String className, String columnName) {
         final long columnIndex = table.getColumnIndex(columnName);
         if (columnIndex == -1) {
             throw new RealmMigrationNeededException(realmPath,
