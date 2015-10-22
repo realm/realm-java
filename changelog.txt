@@ -25,7 +25,7 @@
    - Fixed a bug when using Realm.compactRealm() which could make it impossible to open the Realm file again.
    - Fixed a bug, so isNull link queries now always return true if any part is null.
 
-0.83
+0.83 (8 Oct 2015)
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
  * BREAKING CHANGE: Introduced boxed types Boolean, Byte, Short, Integer, Long, Float and Double. Added null support. Introduced annotation @Required to indicate a field is not nullable. String, Date and byte[] became nullable by default which means a RealmMigrationNeededException will be thrown if an previous version of a Realm file is opened.
@@ -36,7 +36,7 @@
  * Fixed an issue preventing the call of listeners on refresh().
  * Range restrictions of Date fields have been removed. Date fields now accepts any value. Milliseconds are still removed.
 
-0.82.2
+0.82.2 (4 Sep 2015)
  * Fixed a bug which might cause failure when loading the native library.
  * Fixed a bug which might trigger a timeout in Context.finalize().
  * Fixed a bug which might cause RealmObject.isValid() to throw an exception if the object is deleted.
@@ -45,12 +45,12 @@
    - Embedded crypto functions into Realm dynamic lib to avoid random issues on some devices.
    - Throw RealmEncryptionNotSupportedException if the device doesn't support Realm encryption. At least one device type (HTC One X) contains system bugs that prevents Realm's encryption from functioning properly. This is now detected, and an exception is thrown when trying to open/create an encrypted Realm file. It's up to the application to catch this and decide if it's OK to proceed without encryption instead.
 
-0.82.1
+0.82.1 (6 Aug 2015)
  * Fixed a bug where using the wrong encryption key first caused the right key to be seen as invalid.
  * Fixed a bug where String fields were ignored when updating objects from JSON with null values.
  * Fixed a bug when calling System.exit(0), the process might hang.
 
-0.82
+0.82 (28 Jul 2015)
  * BREAKING CHANGE: Fields with annotation @PrimaryKey are indexed automatically now. Older schemas require a migration.
  * RealmConfiguration.setModules() now accept ignore null values which Realm.getDefaultModule() might return.
  * Trying to access a deleted Realm object throw throws a proper IllegalStateException.
@@ -61,10 +61,10 @@
  * Fixed a bug where RealmQuery objects are prematurely garbage collected.
  * Removed RealmQuery.between() for link queries.
 
-0.81.1
+0.81.1 (22 Jun 2015)
  * Fixed memory leak causing Realm to never release Realm objects.
 
-0.81
+0.81 (19 Jun 2015)
  * Introduced RealmModules for working with custom schemas in libraries and apps.
  * Introduced Realm.getDefaultInstance(), Realm.setDefaultInstance(RealmConfiguration) and Realm.getInstance(RealmConfiguration).
  * Deprecated most constructors. They have been been replaced by Realm.getInstance(RealmConfiguration) and Realm.getDefaultInstance().
@@ -79,7 +79,7 @@
  * Cleaned up examples (remove old test project).
  * Added checking for missing generic type in RealmList fields in annotation processor.
 
-0.80.3
+0.80.3 (22 May 2015)
  * Calling Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
  * Fixed a bug making it impossible to open Realms created by Realm-Cocoa if a model had a primary key defined.
  * Trying to using Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
@@ -92,14 +92,14 @@
  * Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (thanks @beeender)
  * Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now. (thanks @beeender)
 
-0.80.2
+0.80.2 (4 Maj 2015)
  * Trying to use Realm.copyToRealmOrUpdate() with an object with a null primary key now throws a proper exception.
  * RealmMigrationNeedException can now return the path to the Realm that needs to be migrated.
  * Fixed bug where creating a Realm instance with a hashcode collision no longer returned the wrong Realm instance.
  * Updated Realm Core to version 0.89.2
    - fixed bug causing a crash when opening an encrypted Realm file on ARM64 devices.
 
-0.80.1
+0.80.1 (16 Apr 2015)
  * Realm.createOrUpdateWithJson() no longer resets fields to their default value if they are not found in the JSON input.
  * Realm.compactRealmFile() now uses Realm Core's compact() method which is more failure resilient.
  * Realm.copyToRealm() now correctly handles referenced child objects that are already in the Realm.
@@ -118,7 +118,7 @@
  * Added RealmQuery.isNull() and RealmQuery.isNotNull() for querying relationships.
  * Fixed a potential NPE in the RealmList constructor.
 
-0.80
+0.80 (11 Mar 2015)
 * Queries on relationships can be case sensitive.
 * Fixed bug when importing JSONObjects containing NULL values.
 * Fixed crash when trying to remove last element of a RealmList.
@@ -128,11 +128,11 @@
 * Added support for static fields in RealmObjects.
 * Realm.writeEncryptedCopyTo() has been reenabled.
 
-0.79.1
+0.79.1 (20 Feb 2015)
  * copyToRealm() no longer crashes on cyclic data structures.
  * Fixed potential crash when using copyToRealmOrUpdate with an object graph containing a mix of elements with and without primary keys.
 
-0.79
+0.79 (16 Feb 2016)
  * Added support for ARM64.
  * Added RealmQuery.not() to negate a query condition.
  * Made the native libraries much smaller. Arm went from 1.8MB to 800KB.
@@ -147,7 +147,7 @@
  * Removed methods deprecated in 0.76. Now Realm.allObjectsSorted() and RealmQuery.findAllSorted() need to be used instead.
  * Reimplemented Realm.allObjectSorted() for better performance.
 
-0.78
+0.78 (22 Jan 2015)
  * Added proper support for encryption. Encryption support is now included by default. Keys are now 64 bytes long.
  * Added support to write an encrypted copy of a Realm.
  * Realm no longer incorrectly warns that an instance has been closed too many times.
@@ -155,7 +155,7 @@
  * Fixed bug causing Realms to be cached during a RealmMigration resulting in invalid realms being returned from Realm.getInstance().
  * Updated core to 0.88.
 
-0.77
+0.77 (16 Jan 2015)
  * Added Realm.allObjectsSorted() and RealmQuery.findAllSorted() and extending RealmResults.sort() for multi-field sorting.
  * RealmResults.sort() now has better error reporting.
  * Added more logging capabilities at the JNI level.
@@ -174,7 +174,7 @@
  * RealmList.remove() now properly returns the removed object.
  * Calling realm.close() no longer prevent updates to other open realm instances on the same thread.
 
-0.76.0
+0.76.0 (19 Dec 2014)
  * RealmObjects can now be imported using JSON.
  * Gradle wrapper updated to support Android Studio 1.0.
  * Bug fixed in RealmObject.equals() so it now correctly compares two objects from the same Realm.
@@ -186,7 +186,7 @@
  * Close the Realm instance after migrations.
  * Added a check to deny the writing of objects outside of a transaction.
 
-0.75.1 (03 December 2014)
+0.75.1 (03 Dec 2014)
   * Changing sort to be an in-place method.
   * Renaming SORT_ORDER_DECENDING to SORT_ORDER_DESCENDING.
   * Adding sorting functionality to allObjects() and findAll().
