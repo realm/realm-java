@@ -38,6 +38,11 @@ import io.realm.internal.log.RealmLog;
  * Centralise all Handler callbacks, including updating async queries and refreshing the Realm.
  */
 public class HandlerController implements Handler.Callback {
+    static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
+    static final int REALM_UPDATE_ASYNC_QUERIES = 24157817;
+    static final int REALM_COMPLETED_ASYNC_QUERY = 39088169;
+    static final int REALM_COMPLETED_ASYNC_FIND_FIRST = 63245986;
+    static final int REALM_ASYNC_BACKGROUND_EXCEPTION = 102334155;
     final BaseRealm realm;
     // pending update of async queries
     private Future updateAsyncQueriesTask;
@@ -97,7 +102,7 @@ public class HandlerController implements Handler.Callback {
         }
         if (realmResultsQueryStep != null) {
             QueryUpdateTask queryUpdateTask = realmResultsQueryStep
-                    .sendToHandler(realm.handler, Realm.REALM_UPDATE_ASYNC_QUERIES)
+                    .sendToHandler(realm.handler, REALM_UPDATE_ASYNC_QUERIES)
                     .build();
             updateAsyncQueriesTask = Realm.asyncQueryExecutor.submit(queryUpdateTask);
         }
@@ -149,7 +154,7 @@ public class HandlerController implements Handler.Callback {
                                 .add(weakRealmResults,
                                         query.handoverQueryPointer(),
                                         query.getArgument())
-                                .sendToHandler(realm.handler, Realm.REALM_COMPLETED_ASYNC_QUERY)
+                                .sendToHandler(realm.handler, REALM_COMPLETED_ASYNC_QUERY)
                                 .build();
 
                         Realm.asyncQueryExecutor.submit(queryUpdateTask);
@@ -177,7 +182,7 @@ public class HandlerController implements Handler.Callback {
             RealmLog.d("REALM_UPDATE_ASYNC_QUERIES realm:" + HandlerController.this + " caller is more advanced, rerun updates");
             // The caller is more advance than the updated queries ==>
             // need to refresh them again (if there is still queries)
-            realm.handler.sendEmptyMessage(Realm.REALM_CHANGED);
+            realm.handler.sendEmptyMessage(REALM_CHANGED);
 
         } else {
             // We're behind or on the same version as the worker thread
@@ -257,7 +262,7 @@ public class HandlerController implements Handler.Callback {
                             .addObject(realmObjectWeakReference,
                                     realmQuery.handoverQueryPointer(),
                                     realmQuery.getArgument())
-                            .sendToHandler(realm.handler, Realm.REALM_COMPLETED_ASYNC_FIND_FIRST)
+                            .sendToHandler(realm.handler, REALM_COMPLETED_ASYNC_FIND_FIRST)
                             .build();
 
                     Realm.asyncQueryExecutor.submit(queryUpdateTask);
@@ -279,7 +284,7 @@ public class HandlerController implements Handler.Callback {
         // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
         if (realm.sharedGroupManager != null) {
             switch (message.what) {
-                case Realm.REALM_CHANGED: {
+                case REALM_CHANGED: {
                     if (threadContainsAsyncQueries()) {
                         updateAsyncQueries();
 
@@ -290,22 +295,26 @@ public class HandlerController implements Handler.Callback {
                     }
                     break;
                 }
-                case Realm.REALM_COMPLETED_ASYNC_QUERY: {
+                case REALM_COMPLETED_ASYNC_QUERY: {
                     // one async query has completed
                     QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncQueryUpdate(result);
                     break;
                 }
-                case Realm.REALM_UPDATE_ASYNC_QUERIES: {
+                case REALM_UPDATE_ASYNC_QUERIES: {
                     // this is called once the background thread completed the update of the async queries
                     QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncQueriesUpdate(result);
                     break;
                 }
-                case Realm.REALM_COMPLETED_ASYNC_FIND_FIRST: {
+                case REALM_COMPLETED_ASYNC_FIND_FIRST: {
                     QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncFindFirst(result);
                     break;
+                }
+                case REALM_ASYNC_BACKGROUND_EXCEPTION: {
+                    // Don't fail silently in the background in case of Core exception
+                    throw (Error) message.obj;
                 }
             }
         }

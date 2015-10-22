@@ -2,6 +2,7 @@ package io.realm;
 
 
 import android.util.JsonReader;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -38,11 +39,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
+    public ColumnInfo validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
         checkClass(clazz);
 
         if (clazz.equals(AllTypes.class)) {
-            AllTypesRealmProxy.validateTable(transaction);
+            return AllTypesRealmProxy.validateTable(transaction);
         } else {
             throw getMissingProxyClassException(clazz);
         }
@@ -71,11 +72,11 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmObject> E newInstance(Class<E> clazz) {
+    public <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
         checkClass(clazz);
 
         if (clazz.equals(AllTypes.class)) {
-            return clazz.cast(new AllTypesRealmProxy());
+            return clazz.cast(new AllTypesRealmProxy(columnInfo));
         } else {
             throw getMissingProxyClassException(clazz);
         }
@@ -84,17 +85,6 @@ class DefaultRealmModuleMediator extends RealmProxyMediator {
     @Override
     public Set<Class<? extends RealmObject>> getModelClasses() {
         return MODEL_CLASSES;
-    }
-
-    @Override
-    public Map<String, Long> getColumnIndices(Class<? extends RealmObject> clazz) {
-        checkClass(clazz);
-
-        if (clazz.equals(AllTypes.class)) {
-            return AllTypesRealmProxy.getColumnIndices();
-        } else {
-            throw getMissingProxyClassException(clazz);
-        }
     }
 
     @Override
