@@ -243,8 +243,7 @@ public final class Realm extends BaseRealm {
     private static synchronized Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
-            boolean validateSchema = !validatedRealmFiles.containsKey(configuration.getPath());
-            return createAndValidate(configuration, validateSchema, autoRefresh);
+            return createAndValidate(configuration, null, autoRefresh);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -257,8 +256,12 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    private static Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+    private static Realm createAndValidate(RealmConfiguration configuration, Boolean validateSchema, boolean autoRefresh) {
         synchronized (BaseRealm.class) {
+            if (validateSchema == null) {
+                validateSchema = !validatedRealmFiles.containsKey(configuration.getPath());
+            }
+
             // Check if a cached instance already exists for this thread
             String canonicalPath = configuration.getPath();
             Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
@@ -1148,7 +1151,10 @@ public final class Realm extends BaseRealm {
 
     @Override
     protected void lastLocalInstanceClosed() {
-        validatedRealmFiles.remove(configuration.getPath());
+        // validatedRealmFiles must not modified while other thread is executing createAndValidate()
+        synchronized (BaseRealm.class) {
+            validatedRealmFiles.remove(configuration.getPath());
+        }
         realmsCache.get().remove(configuration);
     }
 
