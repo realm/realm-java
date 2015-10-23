@@ -236,7 +236,7 @@ public class RealmTest extends AndroidTestCase {
             realm = Realm.getInstance((Context) null); // throws when c.getDirectory() is called;
             // has nothing to do with Realm
             fail("Should throw an exception");
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -701,7 +701,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.commitTransaction();
             fail();
-        } catch (IllegalStateException ignore) {
+        } catch (IllegalStateException ignored) {
         }
     }
 
@@ -725,7 +725,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.executeTransaction(null);
             fail("null transaction should throw");
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
 
         }
         assertFalse(testRealm.hasChanged());
@@ -754,7 +754,7 @@ public class RealmTest extends AndroidTestCase {
                     throw new RuntimeException("Boom");
                 }
             });
-        } catch (RealmException ignore) {
+        } catch (RealmException ignored) {
         }
         assertEquals(0, testRealm.allObjects(Owner.class).size());
     }
@@ -1116,7 +1116,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealm((AllTypes) null);
             fail("Copying null objects into Realm should not be allowed");
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -2170,7 +2170,7 @@ public class RealmTest extends AndroidTestCase {
             try {
                 testRealm.distinct(AnnotationIndexTypes.class, "notIndex" + fieldName);
                 fail("notIndex" + fieldName);
-            } catch (UnsupportedOperationException ignore) {
+            } catch (UnsupportedOperationException ignored) {
             }
         }
     }
@@ -2184,7 +2184,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.distinct(AnnotationIndexTypes.class, "doesNotExist");
             fail();
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -2195,7 +2195,7 @@ public class RealmTest extends AndroidTestCase {
             try {
                 testRealm.distinct(AllTypes.class, field);
                 fail(field);
-            } catch (UnsupportedOperationException ignore) {
+            } catch (UnsupportedOperationException ignored) {
             }
         }
     }

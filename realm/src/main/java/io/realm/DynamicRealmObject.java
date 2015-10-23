@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import io.realm.internal.CheckedRow;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
@@ -30,7 +31,7 @@ import io.realm.internal.android.JsonUtils;
  * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
  * Using a DynamicRealmObject is slower than using the regular model class.
  */
-public class DynamicRealmObject extends RealmObject {
+public final class DynamicRealmObject extends RealmObject {
 
     /**
      * Creates a dynamic Realm object based on a existing object.

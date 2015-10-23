@@ -41,7 +41,7 @@ import io.realm.internal.TableView;
  *
  * @see io.realm.Realm
  */
-public class DynamicRealm extends BaseRealm {
+public final class DynamicRealm extends BaseRealm {
 
     private static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, DynamicRealm>>() {

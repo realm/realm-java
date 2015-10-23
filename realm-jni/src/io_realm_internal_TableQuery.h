@@ -385,6 +385,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeGetDistinctViewWithHandover
+ * Signature: (JJJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewWithHandover
+        (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeFindAllSortedWithHandover
  * Signature: (JJJJJJJZ)J
  */

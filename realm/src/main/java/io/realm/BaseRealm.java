@@ -27,17 +27,16 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
@@ -56,12 +55,6 @@ import io.realm.internal.log.RealmLog;
  * @see io.realm.Realm
  */
 abstract class BaseRealm implements Closeable {
-
-    static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
-    static final int REALM_UPDATE_ASYNC_QUERIES = 24157817;
-    static final int REALM_COMPLETED_ASYNC_QUERY = 39088169;
-    static final int REALM_COMPLETED_ASYNC_FIND_FIRST = 63245986;
-
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -84,9 +77,6 @@ abstract class BaseRealm implements Closeable {
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable = new HashMap<Class<? extends RealmObject>, Table>();
 
-    // List of Realm files that has already been validated
-    static final Set<String> validatedRealmFiles = new HashSet<String>();
-
     // thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
 
@@ -98,7 +88,7 @@ abstract class BaseRealm implements Closeable {
     protected SharedGroupManager sharedGroupManager;
     protected boolean autoRefresh;
     Handler handler;
-    ColumnIndices columnIndices = new ColumnIndices();
+    ColumnIndices columnIndices;
     HandlerController handlerController;
 
     static {
@@ -347,10 +337,10 @@ abstract class BaseRealm implements Closeable {
             // case we end up with two REALM_CHANGED messages in the queue.
             if (
                     realmPath.equals(configuration.getPath())            // It's the right realm
-                            && !handler.hasMessages(REALM_CHANGED)       // The right message
+                            && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
                             && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     ) {
-                if (!handler.sendEmptyMessage(REALM_CHANGED)) {
+                if (!handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
                     RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
                             "to prevent this.");
                 }
@@ -622,19 +612,26 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    // Used by proxy classes
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz);
+        E result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
         result.row = row;
         result.realm = this;
         return result;
     }
 
+    ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
+        final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
+        if (columnInfo == null) {
+            throw new IllegalStateException("No validated schema information found for " + configuration.getSchemaMediator().getTableName(clazz));
+        }
+        return columnInfo;
+    }
+
+
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
-
     <E extends RealmObject> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         Table table;
         E result;
@@ -645,14 +642,13 @@ abstract class BaseRealm implements Closeable {
             result = dynamicObj;
         } else {
             table = getTable(clazz);
-            result = configuration.getSchemaMediator().newInstance(clazz);
+            result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
         }
         UncheckedRow row = table.getUncheckedRow(rowIndex); // TODO Checked row for dynamic object
         result.row = row;
         result.realm = this;
         return result;
     }
-
 
     /**
      * Deletes the Realm file defined by the given configuration.

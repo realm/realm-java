@@ -37,7 +37,7 @@ If you want to test recent bugfixes or features that have not been packaged in a
     }
 
     dependencies {
-      compile 'io.realm:realm-android:0.84.0-SNAPSHOT'
+      compile 'io.realm:realm-android:0.84.1-SNAPSHOT'
     }
 
 ## Building Realm

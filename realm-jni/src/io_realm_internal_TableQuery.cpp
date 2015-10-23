@@ -966,6 +966,40 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
       return 0;
   }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewWithHandover
+        (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong columnIndex)
+{
+    TR_ENTER()
+    try {
+        std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
+        TableRef table = query->get_table();
+        if (!QUERY_VALID(env, query.get()) ||
+            !TBL_AND_COL_INDEX_VALID(env, table.get(), columnIndex)) {
+            return 0;
+        }
+        switch (table->get_column_type(S(columnIndex))) {
+            case type_Bool:
+            case type_Int:
+            case type_DateTime:
+            case type_String:
+                try {
+                    TableView tableView(table->get_distinct_view(S(columnIndex)) );
+
+                    // handover the result
+                    std::unique_ptr<SharedGroup::Handover<TableView>> handover = SG(
+                            bgSharedGroupPtr)->export_for_handover(tableView, MutableSourcePayload::Move);
+                    return reinterpret_cast<jlong>(handover.release());
+                } CATCH_STD()
+                break;
+            default:
+                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, short, int, long and their boxed variants are supported.");
+                return 0;
+                break;
+        }
+    } CATCH_STD()
+    return 0;
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
   (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
   {

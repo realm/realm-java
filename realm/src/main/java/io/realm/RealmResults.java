@@ -56,7 +56,7 @@ import io.realm.internal.log.RealmLog;
  * @see Realm#allObjects(Class)
  * @see io.realm.Realm#beginTransaction()
  */
-public class RealmResults<E extends RealmObject> extends AbstractList<E> {
+public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     BaseRealm realm;
     Class<E> classSpec;   // Return type
@@ -90,8 +90,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private RealmResults(BaseRealm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
-
-        //TODO need to guard all calls involving table since it's null until async query returns
         pendingQuery = null;
         query = null;
     }
