@@ -2224,6 +2224,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
     public void testStressTestBackgroundCommits() throws Throwable {
         final int NUMBER_OF_COMMITS = 1000;
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
         final Looper[] backgroundLooper = new Looper[1];
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -2287,7 +2288,6 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     }, 16);
 
                     Looper.loop();
-
                 } catch (Throwable e) {
                     e.printStackTrace();
                     threadAssertionError[0] = e;
@@ -2299,6 +2299,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     if (realm[0] != null) {
                         realm[0].close();
                     }
+                    signalClosedRealm.countDown();
                 }
             }
         });
@@ -2314,6 +2315,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             // throw any assertion errors happened in the background thread
             throw threadAssertionError[0];
         }
+        TestHelper.awaitOrFail(signalClosedRealm);
     }
 
     public void testAsyncDistinct() throws Throwable {
