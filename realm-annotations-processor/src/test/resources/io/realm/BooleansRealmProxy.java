@@ -68,6 +68,7 @@ public class BooleansRealmProxy extends Booleans
     }
 
     @Override
+    @SuppressWarnings("cast")
     public boolean isDone() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.doneIndex);
@@ -76,10 +77,11 @@ public class BooleansRealmProxy extends Booleans
     @Override
     public void setDone(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnInfo.doneIndex, (boolean) value);
+        row.setBoolean(columnInfo.doneIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public boolean isReady() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.isReadyIndex);
@@ -88,10 +90,11 @@ public class BooleansRealmProxy extends Booleans
     @Override
     public void setReady(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnInfo.isReadyIndex, (boolean) value);
+        row.setBoolean(columnInfo.isReadyIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public boolean ismCompleted() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.mCompletedIndex);
@@ -100,10 +103,11 @@ public class BooleansRealmProxy extends Booleans
     @Override
     public void setmCompleted(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnInfo.mCompletedIndex, (boolean) value);
+        row.setBoolean(columnInfo.mCompletedIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public boolean getAnotherBoolean() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.anotherBooleanIndex);
@@ -112,7 +116,7 @@ public class BooleansRealmProxy extends Booleans
     @Override
     public void setAnotherBoolean(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnInfo.anotherBooleanIndex, (boolean) value);
+        row.setBoolean(columnInfo.anotherBooleanIndex, value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -191,6 +195,7 @@ public class BooleansRealmProxy extends Booleans
         return FIELD_NAMES;
     }
 
+    @SuppressWarnings("cast")
     public static Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         Booleans obj = realm.createObject(Booleans.class);
@@ -225,6 +230,7 @@ public class BooleansRealmProxy extends Booleans
         return obj;
     }
 
+    @SuppressWarnings("cast")
     public static Booleans createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         Booleans obj = realm.createObject(Booleans.class);

@@ -71,26 +71,4 @@ public class Constants {
         JAVA_TO_COLUMN_TYPES.put("java.util.Date", "ColumnType.DATE");
         JAVA_TO_COLUMN_TYPES.put("byte[]", "ColumnType.BINARY");
     }
-
-    static final Map<String, String> CASTING_TYPES;
-    static {
-        CASTING_TYPES = new HashMap<String, String>();
-        CASTING_TYPES.put("byte", "long");
-        CASTING_TYPES.put("short", "long");
-        CASTING_TYPES.put("int", "long");
-        CASTING_TYPES.put("long", "long");
-        CASTING_TYPES.put("float", "float");
-        CASTING_TYPES.put("double", "double");
-        CASTING_TYPES.put("boolean", "boolean");
-        CASTING_TYPES.put("java.lang.Byte", "long");
-        CASTING_TYPES.put("java.lang.Short", "long");
-        CASTING_TYPES.put("java.lang.Integer", "long");
-        CASTING_TYPES.put("java.lang.Long", "long");
-        CASTING_TYPES.put("java.lang.Float", "float");
-        CASTING_TYPES.put("java.lang.Double", "double");
-        CASTING_TYPES.put("java.lang.Boolean", "boolean");
-        CASTING_TYPES.put("java.lang.String", "String");
-        CASTING_TYPES.put("java.util.Date", "Date");
-        CASTING_TYPES.put("byte[]", "byte[]");
-    }
 }

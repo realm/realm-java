@@ -77,7 +77,7 @@ public class AllTypesRealmProxy extends AllTypes
     private static RealmList<AllTypes> EMPTY_REALM_LIST_COLUMNREALMLIST;
     private static final List<String> FIELD_NAMES;
     static {
-        EMPTY_REALM_LIST_COLUMNREALMLIST = new RealmList();
+        EMPTY_REALM_LIST_COLUMNREALMLIST = new RealmList<AllTypes>();
         List<String> fieldNames = new ArrayList<String>();
         fieldNames.add("columnString");
         fieldNames.add("columnLong");
@@ -96,6 +96,7 @@ public class AllTypesRealmProxy extends AllTypes
     }
 
     @Override
+    @SuppressWarnings("cast")
     public String getColumnString() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.columnStringIndex);
@@ -107,10 +108,11 @@ public class AllTypesRealmProxy extends AllTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field columnString to null.");
         }
-        row.setString(columnInfo.columnStringIndex, (String) value);
+        row.setString(columnInfo.columnStringIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public long getColumnLong() {
         realm.checkIfValid();
         return (long) row.getLong(columnInfo.columnLongIndex);
@@ -119,10 +121,11 @@ public class AllTypesRealmProxy extends AllTypes
     @Override
     public void setColumnLong(long value) {
         realm.checkIfValid();
-        row.setLong(columnInfo.columnLongIndex, (long) value);
+        row.setLong(columnInfo.columnLongIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public float getColumnFloat() {
         realm.checkIfValid();
         return (float) row.getFloat(columnInfo.columnFloatIndex);
@@ -131,10 +134,11 @@ public class AllTypesRealmProxy extends AllTypes
     @Override
     public void setColumnFloat(float value) {
         realm.checkIfValid();
-        row.setFloat(columnInfo.columnFloatIndex, (float) value);
+        row.setFloat(columnInfo.columnFloatIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public double getColumnDouble() {
         realm.checkIfValid();
         return (double) row.getDouble(columnInfo.columnDoubleIndex);
@@ -143,10 +147,11 @@ public class AllTypesRealmProxy extends AllTypes
     @Override
     public void setColumnDouble(double value) {
         realm.checkIfValid();
-        row.setDouble(columnInfo.columnDoubleIndex, (double) value);
+        row.setDouble(columnInfo.columnDoubleIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public boolean isColumnBoolean() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.columnBooleanIndex);
@@ -155,10 +160,11 @@ public class AllTypesRealmProxy extends AllTypes
     @Override
     public void setColumnBoolean(boolean value) {
         realm.checkIfValid();
-        row.setBoolean(columnInfo.columnBooleanIndex, (boolean) value);
+        row.setBoolean(columnInfo.columnBooleanIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Date getColumnDate() {
         realm.checkIfValid();
         return (java.util.Date) row.getDate(columnInfo.columnDateIndex);
@@ -170,10 +176,11 @@ public class AllTypesRealmProxy extends AllTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field columnDate to null.");
         }
-        row.setDate(columnInfo.columnDateIndex, (Date) value);
+        row.setDate(columnInfo.columnDateIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public byte[] getColumnBinary() {
         realm.checkIfValid();
         return (byte[]) row.getBinaryByteArray(columnInfo.columnBinaryIndex);
@@ -185,7 +192,7 @@ public class AllTypesRealmProxy extends AllTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field columnBinary to null.");
         }
-        row.setBinaryByteArray(columnInfo.columnBinaryIndex, (byte[]) value);
+        row.setBinaryByteArray(columnInfo.columnBinaryIndex, value);
     }
 
     @Override
@@ -386,6 +393,7 @@ public class AllTypesRealmProxy extends AllTypes
         return FIELD_NAMES;
     }
 
+    @SuppressWarnings("cast")
     public static AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         AllTypes obj = null;
@@ -481,6 +489,7 @@ public class AllTypesRealmProxy extends AllTypes
         return obj;
     }
 
+    @SuppressWarnings("cast")
     public static AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         AllTypes obj = realm.createObject(AllTypes.class);
