@@ -94,8 +94,8 @@ public class DynamicRealmTest extends AndroidTestCase {
         }
     }
 
-    // Test that Realms can only be deleted after all Typed and Dynamic instances are closed.
-    public void testDeleteAfterAllIsClosed() {
+    // Test that Realms can only be deleted after all Typed and Dynamic instances are closed
+    public void testDeleteThrowsIfDynamicRealmIsOpen() {
         realm.close(); // Close Realm opened in setUp();
         Realm typedRealm = Realm.getInstance(defaultConfig);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
@@ -108,6 +108,23 @@ public class DynamicRealmTest extends AndroidTestCase {
         }
 
         dynamicRealm.close();
+        assertTrue(Realm.deleteRealm(defaultConfig));
+    }
+
+    // Test that Realms can only be deleted after all Typed and Dynamic instances are closed.
+    public void testDeleteThrowsIfTypedRealmIsOpen() {
+        realm.close(); // Close Realm opened in setUp();
+        Realm typedRealm = Realm.getInstance(defaultConfig);
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
+
+        dynamicRealm.close();
+        try {
+            Realm.deleteRealm(defaultConfig);
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        typedRealm.close();
         assertTrue(Realm.deleteRealm(defaultConfig));
     }
 
@@ -241,7 +258,7 @@ public class DynamicRealmTest extends AndroidTestCase {
 
     public void testAllObjectsSortedWrongFieldNameThrows() {
         try {
-            RealmResults<DynamicRealmObject> none = realm.allObjectsSorted(CLASS_ALL_TYPES, "invalid", Sort.ASCENDING);
+            realm.allObjectsSorted(CLASS_ALL_TYPES, "invalid", Sort.ASCENDING);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
