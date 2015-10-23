@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -43,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
@@ -2210,5 +2210,52 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(testRealm.isInTransaction());
         testRealm.cancelTransaction();
         assertFalse(testRealm.isInTransaction());
+    }
+
+    // test for https://github.com/realm/realm-java/issues/1646
+    public void testClosingRealmWhileOtherThreadIsOpeningRealm() throws Exception {
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch endLatch = new CountDownLatch(1);
+
+        final List<Exception> exception = new ArrayList<Exception>();
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    startLatch.await();
+                } catch (InterruptedException e) {
+                    exception.add(e);
+                    return;
+                }
+
+                final Realm realm = Realm.getInstance(testConfig);
+                try {
+                    realm.where(AllTypes.class).equalTo("columnLong", 0L).findFirst();
+                } catch (Exception e) {
+                    exception.add(e);
+                } finally {
+                    endLatch.countDown();
+                    realm.close();
+                }
+            }
+        }.start();
+
+        // prevent for another thread to enter Realm.createAndValidate().
+        synchronized (BaseRealm.class) {
+            startLatch.countDown();
+
+            // wait for another thread's entering Realm.createAndValidate().
+            SystemClock.sleep(100L);
+
+            testRealm.close();
+            testRealm = null;
+        }
+
+        endLatch.await();
+
+        if (!exception.isEmpty()) {
+            throw exception.get(0);
+        }
     }
 }
