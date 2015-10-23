@@ -1612,9 +1612,9 @@ public class RealmQuery<E extends RealmObject> {
     public RealmResults<E> findAll() {
         checkQueryIsNotReused();
         if (isDynamicQuery()) {
-            return (RealmResults<E>) RealmResults.createFromDynamicQuery(realm, query.findAll(), className);
+            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
         } else {
-            return RealmResults.createFromQuery(realm, query.findAll(), clazz);
+            return RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
         }
     }
 
@@ -1716,9 +1716,9 @@ public class RealmQuery<E extends RealmObject> {
         tableView.sort(columnIndex, sortOrder);
 
         if (isDynamicQuery()) {
-            return (RealmResults<E>) RealmResults.createFromDynamicQuery(realm, tableView, className);
+            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
-            return RealmResults.createFromQuery(realm, tableView, clazz);
+            return RealmResults.createFromTableOrView(realm, tableView, clazz);
         }
     }
 
@@ -1859,9 +1859,9 @@ public class RealmQuery<E extends RealmObject> {
             tableView.sort(columnIndices, sortOrders);
 
             if (isDynamicQuery()) {
-                return (RealmResults<E>) RealmResults.createFromDynamicQuery(realm, tableView, className);
+                return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
             } else {
-                return RealmResults.createFromQuery(realm, tableView, clazz);
+                return RealmResults.createFromTableOrView(realm, tableView, clazz);
             }
         }
     }

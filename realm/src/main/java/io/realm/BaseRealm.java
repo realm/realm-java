@@ -541,7 +541,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Sort a table using the given field names and sorting directions. If a field name doesn not
+     * Sort a table using the given field names and sorting directions. If a field name does not
      * exist in the table an {@link IllegalArgumentException} will be thrown.
      */
     protected TableView doMultiFieldSort(String[] fieldNames, Sort sortOrders[], Table table) {

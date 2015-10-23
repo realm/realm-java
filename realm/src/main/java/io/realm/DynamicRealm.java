@@ -173,7 +173,7 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromDynamicQuery(this, tableView, className);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
 
@@ -217,7 +217,7 @@ public final class DynamicRealm extends BaseRealm {
         Table table = this.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromDynamicQuery(this, tableView, className);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
     private static DynamicRealm create(RealmConfiguration configuration) {
