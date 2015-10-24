@@ -15,6 +15,10 @@
  */
 
 package io.realm.annotations;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * This annotation will mark the field as not nullable. When the field is {@link Required},
@@ -25,6 +29,8 @@ package io.realm.annotations;
  * Fields with primitive types and the {@link io.realm.RealmList} type are required implicitly.
  * Fields with {@link io.realm.RealmObject} type are always nullable.
  */
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.FIELD)
 public @interface Required {
 
 }
