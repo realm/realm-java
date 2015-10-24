@@ -689,6 +689,9 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitUpdateMethod(JavaWriter writer) throws IOException {
+        if (!metadata.hasPrimaryKey()) {
+            return;
+        }
 
         writer.beginMethod(
                 className, // Return type
