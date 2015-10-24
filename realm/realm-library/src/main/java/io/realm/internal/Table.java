@@ -1444,7 +1444,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     @Override
-    public Table pivot(long stringCol, long intCol, PivotType pivotType){
+    public Table pivot(long stringCol, long intCol, PivotType pivotType) {
         if (! this.getColumnType(stringCol).equals(ColumnType.STRING ))
             throw new UnsupportedOperationException("Group by column must be of type String");
         if (! this.getColumnType(intCol).equals(ColumnType.INTEGER ))

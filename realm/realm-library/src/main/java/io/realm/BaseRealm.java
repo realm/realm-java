@@ -27,11 +27,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -53,12 +51,6 @@ import io.realm.internal.log.RealmLog;
  * @see io.realm.Realm
  */
 abstract class BaseRealm implements Closeable {
-
-    static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
-    static final int REALM_UPDATE_ASYNC_QUERIES = 24157817;
-    static final int REALM_COMPLETED_ASYNC_QUERY = 39088169;
-    static final int REALM_COMPLETED_ASYNC_FIND_FIRST = 63245986;
-
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -75,10 +67,7 @@ abstract class BaseRealm implements Closeable {
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
-    // List of Realm files that has already been validated
-    static final Set<String> validatedRealmFiles = new HashSet<String>();
-
-    // thread pool for all async operations (Query & Write transaction)
+    // thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
 
     protected final List<WeakReference<RealmChangeListener>> changeListeners =
@@ -110,7 +99,6 @@ abstract class BaseRealm implements Closeable {
      * This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled thread.
      *
      * @param autoRefresh true will turn auto-refresh on, false will turn it off.
-     * @throws java.lang.IllegalStateException if trying to enable auto-refresh in a thread without Looper.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
@@ -134,6 +122,15 @@ abstract class BaseRealm implements Closeable {
      */
     public boolean isAutoRefresh() {
         return autoRefresh;
+    }
+
+    /**
+     * Checks if the Realm is currently in a transaction.
+     * @return {@code true} if inside a transaction, {@code false} otherwise.
+     */
+    public boolean isInTransaction() {
+        checkIfValid();
+        return !sharedGroupManager.isImmutable();
     }
 
     /**
@@ -242,8 +239,8 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * The destination file cannot already exist.
      * <p>
-     * Note that if this is called from within a write transaction it writes the
-     * current data, and not the data as it was when the last write transaction was committed.
+     * Note that if this is called from within a transaction it writes the
+     * current data, and not the data as it was when the last transaction was committed.
      *
      * @param destination File to save the Realm to
      * @throws java.io.IOException if any write operation fails
@@ -257,8 +254,8 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * The destination file cannot already exist.
      * <p>
-     * Note that if this is called from within a write transaction it writes the
-     * current data, and not the data as it was when the last write transaction was committed.
+     * Note that if this is called from within a transaction it writes the current data, and not the
+     * data as it was when the last transaction was committed.
      * <p>
      * @param destination File to save the Realm to
      * @param key a 64-byte encryption key
@@ -285,18 +282,15 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Starts a write transaction, this must be closed with {@link io.realm.Realm#commitTransaction()}
-     * or aborted by {@link io.realm.Realm#cancelTransaction()}. Write transactions are used to
-     * atomically create, update and delete objects within a realm.
+     * Starts a transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or
+     * aborted by {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically
+     * create, update and delete objects within a realm.
      * <br>
-     * Before beginning the write transaction, {@link io.realm.Realm#beginTransaction()} updates the
-     * realm in the case of pending updates from other threads.
+     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the realm
+     * in the case of pending updates from other threads.
      * <br>
-     * Notice: it is not possible to nest write transactions. If you start a write
-     * transaction within a write transaction an exception is thrown.
-     * <br>
-     * @throws java.lang.IllegalStateException If already in a write transaction or incorrect thread.
-     *
+     * Notice: it is not possible to nest transactions. If you start a transaction within a
+     * transaction an exception is thrown.
      */
     public void beginTransaction() {
         checkIfValid();
@@ -309,8 +303,6 @@ abstract class BaseRealm implements Closeable {
      * that a change has occurred. When the event is received, the other Realms will get their
      * objects and {@link io.realm.RealmResults} updated to reflect
      * the changes from this commit.
-     *
-     * @throws java.lang.IllegalStateException If the write transaction is in an invalid state or incorrect thread.
      */
     public void commitTransaction() {
         checkIfValid();
@@ -332,10 +324,10 @@ abstract class BaseRealm implements Closeable {
             // case we end up with two REALM_CHANGED messages in the queue.
             if (
                     realmPath.equals(configuration.getPath())            // It's the right realm
-                            && !handler.hasMessages(REALM_CHANGED)       // The right message
+                            && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
                             && handler.getLooper().getThread().isAlive() // The receiving thread is alive
                     ) {
-                if (!handler.sendEmptyMessage(REALM_CHANGED)) {
+                if (!handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
                     RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
                             "to prevent this.");
                 }
@@ -349,10 +341,7 @@ abstract class BaseRealm implements Closeable {
      * <br>
      * The Realm reverts back to read-only.
      * <br>
-     * Calling this when not in a write transaction will throw an exception.
-     *
-     * @throws java.lang.IllegalStateException    If the write transaction is an invalid state,
-     *                                             not in a write transaction or incorrect thread.
+     * Calling this when not in a transaction will throw an exception.
      */
     public void cancelTransaction() {
         checkIfValid();
@@ -410,9 +399,6 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * It's important to always remember to close Realm instances when you're done with it in order
      * not to leak memory, file descriptors or grow the size of Realm file out of measure.
-     *
-     * @throws java.lang.IllegalStateException if trying to close Realm on a different thread than the
-     * one it was created on.
      */
     @Override
     public void close() {
@@ -609,6 +595,9 @@ abstract class BaseRealm implements Closeable {
         }
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
+        }
+        if (isFileOpen(configuration)) {
+            throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
         }
 
         RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;

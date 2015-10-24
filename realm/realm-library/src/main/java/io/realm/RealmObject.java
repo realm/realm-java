@@ -21,6 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.RealmClass;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -94,6 +95,8 @@ public abstract class RealmObject {
      * <p>
      * After this method is called the object will be invalid and any operation (read or write)
      * performed on it will fail with an IllegalStateException
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     public void removeFromRealm() {
         if (row == null) {
@@ -102,6 +105,8 @@ public abstract class RealmObject {
         if (realm == null) {
             throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }
+        realm.checkIfValid();
+
         row.getTable().moveLastOver(row.getIndex());
         row = InvalidRow.INSTANCE;
     }
@@ -114,7 +119,7 @@ public abstract class RealmObject {
      * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a
      * standalone object.
      */
-    public boolean isValid() {
+    public final boolean isValid() {
         return row != null && row.isAttached();
     }
 
@@ -163,7 +168,7 @@ public abstract class RealmObject {
      * @return {@code true} if the query has completed and the data is available {@code false} if the
      * query is in progress.
      */
-    public boolean isLoaded() {
+    public final boolean isLoaded() {
         if (realm == null) {
             return true;
         }
@@ -177,7 +182,7 @@ public abstract class RealmObject {
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
-    public boolean load() {
+    public final boolean load() {
         if (isLoaded()) {
             return true;
         } else {
@@ -222,7 +227,7 @@ public abstract class RealmObject {
      *
      * @param listener the change listener to be notified.
      */
-    public void addChangeListener(RealmChangeListener listener) {
+    public final void addChangeListener(RealmChangeListener listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -241,7 +246,7 @@ public abstract class RealmObject {
      *
      * @param listener the instance to be removed.
      */
-    public void removeChangeListener(RealmChangeListener listener) {
+    public final void removeChangeListener(RealmChangeListener listener) {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
@@ -256,7 +261,7 @@ public abstract class RealmObject {
     /**
      * Remove all registered listeners.
      */
-    public void removeChangeListeners() {
+    public final void removeChangeListeners() {
         if (realm != null) {
             realm.checkIfValid();
         } else {

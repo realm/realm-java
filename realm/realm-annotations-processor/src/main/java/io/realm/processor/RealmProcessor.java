@@ -148,7 +148,7 @@ public class RealmProcessor extends AbstractProcessor {
             } catch (UnsupportedOperationException e) {
                 Utils.error(e.getMessage(), classElement);
             }
-	    }
+        }
 
         String environmentVariable = System.getenv("REALM_DISABLE_ANALYTICS");
         if (environmentVariable == null || !environmentVariable.equals("true")) {

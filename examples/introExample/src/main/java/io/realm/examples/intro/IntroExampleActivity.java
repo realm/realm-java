@@ -96,14 +96,14 @@ public class IntroExampleActivity extends Activity {
         person.setName("Young Person");
         person.setAge(14);
 
-        // When the write transaction is committed, all changes a synced to disk.
+        // When the transaction is committed, all changes a synced to disk.
         realm.commitTransaction();
 
         // Find the first person (no query conditions) and read a field
         person = realm.where(Person.class).findFirst();
         showStatus(person.getName() + ":" + person.getAge());
 
-        // Update person in a write transaction
+        // Update person in a transaction
         realm.beginTransaction();
         person.setName("Senior Person");
         person.setAge(99);
@@ -141,7 +141,7 @@ public class IntroExampleActivity extends Activity {
         // Those can not be transferred across threads.
         Realm realm = Realm.getInstance(this);
 
-        // Add ten persons in one write transaction
+        // Add ten persons in one transaction
         realm.beginTransaction();
         Dog fido = realm.createObject(Dog.class);
         fido.setName("fido");

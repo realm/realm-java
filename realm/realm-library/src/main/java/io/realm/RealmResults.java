@@ -57,7 +57,7 @@ import io.realm.internal.log.RealmLog;
  * @see Realm#allObjects(Class)
  * @see io.realm.Realm#beginTransaction()
  */
-public class RealmResults<E extends RealmObject> extends AbstractList<E> {
+public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     private Class<E> classSpec;
     private Realm realm;
@@ -77,8 +77,6 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     RealmResults(Realm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
-
-        //TODO need to guard all calls involving table since it's null until async query returns
         pendingQuery = null;
         query = null;
     }
@@ -511,9 +509,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param index      The array index identifying the object to be removed.
      * @return           Always return {@code null}.
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     @Override
     public E remove(int index) {
+        realm.checkIfValid();
         TableOrView table = getTable();
         table.remove(index);
         return null; // Returning the object doesn't make sense, since it could no longer access any data.
@@ -525,8 +525,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * Using this method while iterating the list can result in a undefined behavior. Use
      * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     public void removeLast() {
+        realm.checkIfValid();
         TableOrView table = getTable();
         table.removeLast();
     }
@@ -534,8 +537,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Removes all objects from the list. This also deletes the objects from the
      * underlying Realm.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     public void clear() {
+        realm.checkIfValid();
         TableOrView table = getTable();
         table.clear();
     }
