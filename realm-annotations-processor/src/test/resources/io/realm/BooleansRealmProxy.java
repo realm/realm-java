@@ -290,14 +290,6 @@ public class BooleansRealmProxy extends Booleans
         return realmObject;
     }
 
-    static Booleans update(Realm realm, Booleans realmObject, Booleans newObject, Map<RealmObject, RealmObjectProxy> cache) {
-        realmObject.setDone(newObject.isDone());
-        realmObject.setReady(newObject.isReady());
-        realmObject.setmCompleted(newObject.ismCompleted());
-        realmObject.setAnotherBoolean(newObject.getAnotherBoolean());
-        return realmObject;
-    }
-
     @Override
     public String toString() {
         if (!isValid()) {

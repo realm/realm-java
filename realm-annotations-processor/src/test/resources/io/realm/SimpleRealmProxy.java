@@ -208,12 +208,6 @@ public class SimpleRealmProxy extends Simple
         return realmObject;
     }
 
-    static Simple update(Realm realm, Simple realmObject, Simple newObject, Map<RealmObject, RealmObjectProxy> cache) {
-        realmObject.setName(newObject.getName());
-        realmObject.setAge(newObject.getAge());
-        return realmObject;
-    }
-
     @Override
     public String toString() {
         if (!isValid()) {

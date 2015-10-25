@@ -1161,41 +1161,6 @@ public class NullTypesRealmProxy extends NullTypes
         return realmObject;
     }
 
-    static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObjectProxy> cache) {
-        realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull());
-        realmObject.setFieldStringNull(newObject.getFieldStringNull());
-        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull());
-        realmObject.setFieldBooleanNull(newObject.getFieldBooleanNull());
-        realmObject.setFieldBytesNotNull(newObject.getFieldBytesNotNull());
-        realmObject.setFieldBytesNull(newObject.getFieldBytesNull());
-        realmObject.setFieldByteNotNull(newObject.getFieldByteNotNull());
-        realmObject.setFieldByteNull(newObject.getFieldByteNull());
-        realmObject.setFieldShortNotNull(newObject.getFieldShortNotNull());
-        realmObject.setFieldShortNull(newObject.getFieldShortNull());
-        realmObject.setFieldIntegerNotNull(newObject.getFieldIntegerNotNull());
-        realmObject.setFieldIntegerNull(newObject.getFieldIntegerNull());
-        realmObject.setFieldLongNotNull(newObject.getFieldLongNotNull());
-        realmObject.setFieldLongNull(newObject.getFieldLongNull());
-        realmObject.setFieldFloatNotNull(newObject.getFieldFloatNotNull());
-        realmObject.setFieldFloatNull(newObject.getFieldFloatNull());
-        realmObject.setFieldDoubleNotNull(newObject.getFieldDoubleNotNull());
-        realmObject.setFieldDoubleNull(newObject.getFieldDoubleNull());
-        realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull());
-        realmObject.setFieldDateNull(newObject.getFieldDateNull());
-        NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
-        if (fieldObjectNullObj != null) {
-            NullTypes cachefieldObjectNull = (NullTypes) cache.get(fieldObjectNullObj);
-            if (cachefieldObjectNull != null) {
-                realmObject.setFieldObjectNull(cachefieldObjectNull);
-            } else {
-                realmObject.setFieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, true, cache));
-            }
-        } else {
-            realmObject.setFieldObjectNull(null);
-        }
-        return realmObject;
-    }
-
     @Override
     public String toString() {
         if (!isValid()) {
