@@ -60,6 +60,20 @@ task assembleRealm(type:GradleBuild) {
     tasks = ['assemble']
 }
 
+task check(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the JVM tests and checks Realm project'
+    buildFile = file('realm/build.gradle')
+    tasks = ['check']
+}
+
+task connectedCheck(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the Android unit tests of the Realm project'
+    buildFile = file('realm/build.gradle')
+    tasks = ['connectedCheck']
+}
+
 task installGradlePlugin(type:GradleBuild) {
     description = 'Install the Realm Gradle plugin to the Maven Repo in ANDROID_HOME'
     group = 'Install'
