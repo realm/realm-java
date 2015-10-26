@@ -110,21 +110,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // ************************************
@@ -206,22 +192,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     public void testUnloadedRealmListsShouldBeTheSameInstance() throws Throwable {
@@ -281,21 +252,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     public void testStandloneObjectAsyncBehaviour() {
@@ -403,22 +360,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // finding elements [0-4] asynchronously then wait for the promise to be loaded
@@ -483,21 +425,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // transforming an async query into sync by calling load to force
@@ -565,23 +493,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // UC:
@@ -681,22 +593,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // UC:
@@ -859,24 +756,10 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        TestHelper.awaitOrFail(signalCallbackFinished);
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+
         assertEquals(2, numberOfNotificationsQuery1.get());
         assertEquals(2, numberOfNotificationsQuery2.get());
-
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
     }
 
     // simulate a use case, when the caller thread advance read, while the background thread
@@ -1163,22 +1046,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-
-        executorService.shutdownNow();
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // **********************************
@@ -1248,22 +1116,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-        executorService.shutdownNow();
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // finding elements [0-4] asynchronously then wait for the promise to be loaded
@@ -1333,23 +1186,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-
-        executorService.shutdownNow();
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // similar UC as #testForceLoadAsync using 'findFirst'
@@ -1403,23 +1240,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-
-        executorService.shutdownNow();
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // similar UC as #testFindAllAsyncRetry using 'findFirst'
@@ -1513,25 +1334,8 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-
-        executorService.shutdownNow();
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
-
 
     // **************************************
     // *** 'findAllSorted' async queries  ***
@@ -1614,23 +1418,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-
-        executorService.shutdownNow();
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
 
@@ -1723,23 +1511,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-
-        executorService.shutdownNow();
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // similar UC as #testFindAllAsyncBatchUpdate using 'findAllSorted'
@@ -1897,22 +1669,9 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        TestHelper.awaitOrFail(signalCallbackFinished);
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
         assertEquals(2, numberOfNotificationsQuery1.get());
         assertEquals(2, numberOfNotificationsQuery2.get());
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-        executorService.shutdownNow();
     }
 
     // similar UC as #testFindAllAsyncBatchUpdate using 'findAllSortedMulti'
@@ -2148,25 +1907,9 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
         assertEquals(2, numberOfNotificationsQuery1.get());
         assertEquals(2, numberOfNotificationsQuery2.get());
-
-        executorService.shutdownNow();
     }
 
     // make sure the notification listener does not leak the enclosing class
@@ -2236,22 +1979,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-        executorService.shutdownNow();
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     public void testCombiningAsyncAndSync() throws Throwable {
@@ -2303,22 +2031,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // keep advancing the Realm by sending 1 commit for each frame (16ms)
@@ -2406,20 +2119,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        TestHelper.awaitOrFail(signalTestFinished, 120);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
+        exitOrThrow(executorService, signalTestFinished, signalClosedRealm, backgroundLooper, threadAssertionError, 120);
     }
 
     public void testAsyncDistinct() throws Throwable {
@@ -2515,22 +2215,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     public void testAsyncDistinctNotIndexedFields() throws Throwable {
@@ -2579,22 +2264,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     public void testAsyncDistinctFieldDoesNotExist() throws Throwable {
@@ -2640,22 +2310,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         });
 
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        executorService.shutdownNow();
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // *** Helper methods ***
@@ -2710,6 +2365,35 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
             }
         }
         realm.commitTransaction();
+    }
+
+    // clean resource, shutdown the executor service & throw any background exception
+    private void exitOrThrow(final ExecutorService executorService,
+                                 final CountDownLatch signalTestFinished,
+                                 final CountDownLatch signalFinallyRun,
+                                 final Looper[] looper,
+                                 final Throwable[] throwable,
+                                 int... timeout) throws Throwable {
+
+        // wait for the signal indicating the test's use case is done
+        TestHelper.awaitOrFail(signalTestFinished, (timeout.length == 1) ? timeout[0] : 7);
+
+        // close the executor
+        executorService.shutdownNow();
+
+        if (looper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            looper[0].quit();
+        }
+
+        // wait for the finally block to execute & close the Realm
+        TestHelper.awaitOrFail(signalFinallyRun, (timeout.length == 1) ? timeout[0] : 7);
+
+        if (throwable[0] != null) {
+            // throw any assertion errors happened in the background thread
+            throw throwable[0];
+        }
     }
 
 }
