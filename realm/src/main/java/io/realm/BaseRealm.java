@@ -36,6 +36,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
@@ -70,7 +71,7 @@ abstract class BaseRealm implements Closeable {
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
-s    // Caches Dynamic Class objects given as Strings (both model classes and proxy classes) to Realm Tables
+    // Caches Dynamic Class objects given as Strings (both model classes and proxy classes) to Realm Tables
     private final Map<String, Table> dynamicClassToTable = new HashMap<String, Table>();
 
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
@@ -87,7 +88,7 @@ s    // Caches Dynamic Class objects given as Strings (both model classes and pr
     protected SharedGroupManager sharedGroupManager;
     protected boolean autoRefresh;
     Handler handler;
-    ColumnIndices columnIndices = new ColumnIndices();
+    ColumnIndices columnIndices;
     HandlerController handlerController;
 
     static {
@@ -615,15 +616,22 @@ s    // Caches Dynamic Class objects given as Strings (both model classes and pr
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz);
+        E result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
         result.row = row;
         result.realm = this;
         return result;
     }
 
+    ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
+        final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
+        if (columnInfo == null) {
+            throw new IllegalStateException("No validated schema information found for " + configuration.getSchemaMediator().getTableName(clazz));
+        }
+        return columnInfo;
+    }
+
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
-
     <E extends RealmObject> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         Table table;
         E result;
@@ -634,9 +642,9 @@ s    // Caches Dynamic Class objects given as Strings (both model classes and pr
             result = dynamicObj;
         } else {
             table = getTable(clazz);
-            result = configuration.getSchemaMediator().newInstance(clazz);
+            result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
         }
-        UncheckedRow row = table.getUncheckedRow(rowIndex); // TODO Checked row for dynamic object
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
         result.row = row;
         result.realm = this;
         return result;

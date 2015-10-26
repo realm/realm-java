@@ -47,11 +47,13 @@ import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 
@@ -715,23 +717,6 @@ public final class Realm extends BaseRealm {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
-    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
-        Table table = getTable(clazz);
-        UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
-        result.row = row;
-        result.realm = this;
-        return result;
-    }
-
-    ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
-        final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
-        if (columnInfo == null) {
-            throw new IllegalStateException("No validated schema information found for " + configuration.getSchemaMediator().getTableName(clazz));
-        }
-        return columnInfo;
-    }
-
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
@@ -953,7 +938,7 @@ public final class Realm extends BaseRealm {
 
         TableView tableView = table.getDistinctView(columnIndex);
         return RealmResults.createFromQuery(this, tableView, clazz);
-s    }
+    }
 
     /**
      * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are

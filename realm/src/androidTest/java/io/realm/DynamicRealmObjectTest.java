@@ -227,7 +227,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         assertEquals(dObj, dObj.getObject(AllJavaTypes.FIELD_OBJECT));
                         break;
                     case LIST:
-                    /* ignore, see testGetList/testSetList */
+                        // ignore, see testGetList/testSetList
                         break;
                     default:
                         fail();
@@ -261,7 +261,8 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     case LIST:
                         try {
                             dObj.setNull(NullTypes.FIELD_LIST_NULL);
-                        } catch (IllegalArgumentException expected) {
+                            fail();
+                        } catch (IllegalArgumentException ignored) {
                         }
                         break;
                     case BOOLEAN:
@@ -329,7 +330,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         try {
                             dObj.setList(NullTypes.FIELD_LIST_NULL, null);
                             fail();
-                        } catch (IllegalArgumentException expected) {
+                        } catch (IllegalArgumentException ignored) {
                         }
                         break;
                     case DATE:
@@ -351,7 +352,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     case FLOAT:
                     case DOUBLE:
                     default:
-                        continue; // The typed setters for these cannot accept null as input.
+                        // The typed setters for these cannot accept null as input.
                 }
             }
         } finally {

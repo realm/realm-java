@@ -21,8 +21,6 @@ import java.util.Arrays;
 import java.util.Date;
 
 import io.realm.internal.CheckedRow;
-simport io.realm.internal.ColumnInfo;
-import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -69,11 +67,11 @@ public class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Returns the value for the given field. To avoid casting the value use one of the typed
-     * getters instead.
+     * Returns the value for the given field.
      *
      * @param fieldName name of the field.
-     * @return the field value. Private types will be converted to their boxed variants.
+     * @return the field value.
+     * @throws ClassCastException if the field doesn't contain a field of the defined return type.
      */
     @SuppressWarnings("unchecked")
     public <E> E get(String fieldName) {
@@ -294,7 +292,6 @@ public class DynamicRealmObject extends RealmObject {
             case STRING:
             case BINARY:
             case DATE:
-                Log.e("Test", type.toString());
                 return row.isNull(columnIndex);
             case LIST:
             case UNSUPPORTED_TABLE:
@@ -566,7 +563,7 @@ public class DynamicRealmObject extends RealmObject {
      * @throws IllegalArgumentException if field name doesn't exists, it is not a list field or the type
      * of the object represented by the DynamicRealmObject doesn't match.
      */
-    public void setList(String fieldName, RealmList<RealmObject> list) {
+    public void setList(String fieldName, RealmList<? extends RealmObject> list) {
         if (list == null) {
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
