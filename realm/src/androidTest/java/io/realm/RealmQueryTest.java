@@ -235,7 +235,7 @@ public class RealmQueryTest extends AndroidTestCase {
     public void testRealmQueryNotFailure() {
         // a not() alone must fail
         try {
-            RealmResults<AllTypes> list = testRealm.where(AllTypes.class).not().findAll();
+            testRealm.where(AllTypes.class).not().findAll();
             fail();
         } catch (RuntimeException ignored) {
         }
@@ -506,22 +506,20 @@ public class RealmQueryTest extends AndroidTestCase {
 
         // null is not allowed
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted((String[]) null, null);
+            testRealm.where(AllTypes.class).findAllSorted((String[]) null, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class).findAllSorted(new String[]{FIELD_STRING},
-                    null);
+            testRealm.where(AllTypes.class).findAllSorted(new String[]{FIELD_STRING}, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // non-existing field name
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
-                    .findAllSorted(new String[]{FIELD_STRING, "dont-exist"},
-                            new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
+            testRealm.where(AllTypes.class)
+                    .findAllSorted(new String[]{FIELD_STRING, "dont-exist"}, new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -1458,7 +1456,6 @@ public class RealmQueryTest extends AndroidTestCase {
         list.removeAll(SUPPORTED_IS_EMPTY_TYPES);
         list.remove(RealmFieldType.UNSUPPORTED_MIXED);
         list.remove(RealmFieldType.UNSUPPORTED_TABLE);
-        list.remove(RealmFieldType.BACKLINK);
         NOT_SUPPORTED_IS_EMPTY_TYPES = list;
     }
 

@@ -84,7 +84,7 @@ import io.realm.internal.log.RealmLog;
 public abstract class RealmObject {
 
     protected Row row;
-    protected Realm realm;
+    protected BaseRealm realm;
 
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
@@ -121,24 +121,6 @@ public abstract class RealmObject {
      */
     public final boolean isValid() {
         return row != null && row.isAttached();
-    }
-
-    /**
-     * Returns the Realm instance this object belongs to. Internal use only.
-     *
-     * @return The Realm this object belongs to or {@code null} if it is a standalone object.
-     */
-    protected static Realm getRealm(RealmObject obj) {
-        return obj.realm;
-    }
-
-    /**
-     * Returns the {@link Row} representing this object. Internal use only.
-     *
-     * @return The {@link Row} this object belongs to or {@code null} if it is a standalone object.
-     */
-    protected static Row getRow(RealmObject obj) {
-        return obj.row;
     }
 
     /**

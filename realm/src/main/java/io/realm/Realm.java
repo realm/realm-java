@@ -53,7 +53,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 
@@ -138,7 +137,7 @@ public final class Realm extends BaseRealm {
             new HashMap<Class<? extends RealmObject>, Table>();
 
     private static RealmConfiguration defaultConfiguration;
-    protected ColumnIndices columnIndices;
+
     /**
      * The constructor is private to enforce the use of the static one.
      *
@@ -717,23 +716,6 @@ public final class Realm extends BaseRealm {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
-    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
-        Table table = getTable(clazz);
-        UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
-        result.row = row;
-        result.realm = this;
-        return result;
-    }
-
-    ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
-        final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
-        if (columnInfo == null) {
-            throw new IllegalStateException("No validated schema information found for " + configuration.getSchemaMediator().getTableName(clazz));
-        }
-        return columnInfo;
-    }
-
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
@@ -828,7 +810,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> RealmQuery<E> where(Class<E> clazz) {
         checkIfValid();
-        return new RealmQuery<E>(this, clazz);
+        return RealmQuery.createQuery(this, clazz);
     }
 
     /**
@@ -864,7 +846,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return new RealmResults<E>(this, tableView, clazz);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
 
@@ -926,27 +908,11 @@ public final class Realm extends BaseRealm {
     @SuppressWarnings("unchecked")
     public <E extends RealmObject> RealmResults<E> allObjectsSorted(Class<E> clazz, String fieldNames[],
                                                                     Sort sortOrders[]) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortOrders == null) {
-            throw new IllegalArgumentException("sortOrders must be provided.");
-        }
-
-        // Convert field names to column indices
+        checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(clazz);
-        long columnIndices[] = new long[fieldNames.length];
-        for (int i = 0; i < fieldNames.length; i++) {
-            String fieldName = fieldNames[i];
-            long columnIndex = table.getColumnIndex(fieldName);
-            if (columnIndex == -1) {
-                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-            }
-            columnIndices[i] = columnIndex;
-        }
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        // Perform sort
-        TableView tableView = table.getSortedView(columnIndices, sortOrders);
-        return new RealmResults(this, tableView, clazz);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**
@@ -970,7 +936,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        return new RealmResults<E>(this, tableView, clazz);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**
@@ -1012,11 +978,6 @@ public final class Realm extends BaseRealm {
      */
     protected List<WeakReference<RealmChangeListener>> getChangeListeners() {
         return changeListeners;
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    boolean hasChanged() {
-        return sharedGroupManager.hasChanged();
     }
 
     /**

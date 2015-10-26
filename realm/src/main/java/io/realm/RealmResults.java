@@ -58,8 +58,9 @@ import io.realm.internal.log.RealmLog;
  */
 public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
-    private Class<E> classSpec;
-    private Realm realm;
+    BaseRealm realm;
+    Class<E> classSpec;   // Return type
+    String className;     // Class name used by DynamicRealmObjects
     private TableOrView table = null;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
@@ -70,26 +71,52 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
 
-    RealmResults(Realm realm, Class<E> classSpec) {
+    static <E extends RealmObject> RealmResults<E> createFromClass(BaseRealm realm, Class<E> clazz) {
+        return new RealmResults<E>(realm, clazz);
+    }
+
+    static <E extends RealmObject> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
+        return new RealmResults<E>(realm, table, clazz);
+    }
+
+    static RealmResults<DynamicRealmObject> createFromDynamicClass(BaseRealm realm, String className) {
+        return new RealmResults<DynamicRealmObject>(realm, className);
+    }
+
+    static RealmResults<DynamicRealmObject> createFromDynamicTableOrView(BaseRealm realm, TableOrView table, String className) {
+        return new RealmResults<DynamicRealmObject>(realm, table, className);
+    }
+
+    private RealmResults(BaseRealm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
         pendingQuery = null;
         query = null;
     }
 
-    RealmResults(Realm realm, TableQuery query, Class<E> clazz) {
+    RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
         this.realm = realm;
         this.classSpec = clazz;
         this.query = query;
     }
 
-    RealmResults(Realm realm, TableOrView table, Class<E> classSpec) {
+    RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
         this(realm, classSpec);
         this.table = table;
     }
 
-    Realm getRealm() {
-        return realm;
+    private RealmResults(BaseRealm realm, String className) {
+        this.realm = realm;
+        this.className = className;
+
+        //TODO need to guard all calls involving table since it's null until async query returns
+        pendingQuery = null;
+        query = null;
+    }
+
+    private RealmResults(BaseRealm realm, TableOrView table, String className) {
+        this(realm, className);
+        this.table = table;
     }
 
     TableOrView getTable() {
@@ -119,7 +146,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public RealmQuery<E> where() {
         realm.checkIfValid();
-        return new RealmQuery<E>(this, classSpec);
+        return RealmQuery.createQueryFromResult(this);
     }
 
     /**
@@ -135,9 +162,9 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = realm.get(classSpec, ((TableView) table).getSourceRowIndex(location));
+            obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
         } else {
-            obj = realm.get(classSpec, location);
+            obj = realm.get(classSpec, className, location);
         }
 
         return obj;

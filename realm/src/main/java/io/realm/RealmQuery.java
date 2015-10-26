@@ -21,10 +21,13 @@ import android.os.Handler;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -60,26 +63,76 @@ import io.realm.internal.log.RealmLog;
  */
 public class RealmQuery<E extends RealmObject> {
 
-    private final Realm realm;
-    private final Table table;
-    private final LinkView view;
-    private final TableQuery query;
-    private final Map<String, Long> columns;
-    private final Class<E> clazz;
-
+    private BaseRealm realm;
+    private Class<E> clazz;
+    private String className;
+    private Map<String, Long> columns;
+    private Table table;
+    private LinkView view;
+    private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
 
     private final static Long INVALID_NATIVE_POINTER = 0L;
     private ArgumentsHolder argumentsHolder;
 
     /**
-     * Creating a RealmQuery instance.
+     * Creates a query for objects of a given class from a {@link Realm}.
      *
      * @param realm  The realm to query within.
      * @param clazz  The class to query.
-     * @throws java.lang.RuntimeException Any other error.
+     * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
+     * to run it.
      */
-    public RealmQuery(Realm realm, Class<E> clazz) {
+    public static <E extends RealmObject> RealmQuery<E> createQuery(Realm realm, Class<E> clazz) {
+        return new RealmQuery<E>(realm, clazz);
+    }
+
+    /**
+     * Creates a query for dynamic objects of a given type from a {@link DynamicRealm}.
+     *
+     * @param realm  The realm to query within.
+     * @param className  The type to query.
+     * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
+     * to run it.
+     */
+    public static <E extends RealmObject> RealmQuery<E> createDynamicQuery(DynamicRealm realm, String className) {
+        return new RealmQuery<E>(realm, className);
+    }
+
+    /**
+     * Creates a query from a existing {@link RealmResults}.
+     *
+     * @param queryResults   A existing @{link io.realm.RealmResults} to query against.
+     * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
+     * to run it.
+     */
+
+    @SuppressWarnings("unchecked")
+    public static <E extends RealmObject> RealmQuery<E> createQueryFromResult(RealmResults<E> queryResults) {
+        if (queryResults.classSpec != null) {
+            return new RealmQuery<E>(queryResults, queryResults.classSpec);
+        } else {
+            return new RealmQuery(queryResults, queryResults.className);
+        }
+    }
+
+    /**
+     * Creates a query from a existing {@link RealmList}.
+     *
+     * @param list   A existing @{link io.realm.RealmList} to query against.
+     * @return {@link RealmQuery} object. After building the query call one of the {@code find*} methods
+     * to run it.
+     */
+    @SuppressWarnings("unchecked")
+    public static <E extends RealmObject> RealmQuery<E> createQueryFromList(RealmList<E> list) {
+        if (list.clazz != null) {
+            return new RealmQuery(list.realm, list.view, list.clazz);
+        } else {
+            return new RealmQuery(list.realm, list.view, list.className);
+        }
+    }
+
+    private RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
@@ -88,29 +141,47 @@ public class RealmQuery<E extends RealmObject> {
         this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
     }
 
-    /**
-     * Create a RealmQuery instance from a @{link io.realm.RealmResults}.
-     *
-     * @param realmResults  The @{link io.realm.RealmResults} to query
-     * @param clazz         The class to query
-     * @throws java.lang.RuntimeException Any other error
-     */
-    public RealmQuery(RealmResults realmResults, Class<E> clazz) {
-        this.realm = realmResults.getRealm();
+    private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
+        this.realm = queryResults.realm;
         this.clazz = clazz;
         this.table = realm.getTable(clazz);
         this.view = null;
-        this.query = realmResults.getTable().where();
+        this.query = queryResults.getTable().where();
         this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
     }
 
-    RealmQuery(Realm realm, LinkView view, Class<E> clazz) {
+    private RealmQuery(BaseRealm realm, LinkView view, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
         this.query = view.where();
         this.view = view;
         this.table = realm.getTable(clazz);
         this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
+    }
+
+    private RealmQuery(BaseRealm realm, String className) {
+        this.realm = realm;
+        this.className = className;
+        this.table = realm.getTable(className);
+        this.query = table.where();
+        this.columns = new DynamicColumnMap(table);
+    }
+
+    private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
+        this.realm = queryResults.realm;
+        this.className = className;
+        this.table = realm.getTable(className);
+        this.query = queryResults.getTable().where();
+        this.columns = new DynamicColumnMap(table);
+    }
+
+    private RealmQuery(BaseRealm realm, LinkView view, String className) {
+        this.realm = realm;
+        this.className = className;
+        this.query = view.where();
+        this.view = view;
+        this.table = realm.getTable(className);
+        this.columns = new DynamicColumnMap(table);
     }
 
     private boolean containsDot(String s) {
@@ -1537,9 +1608,14 @@ public class RealmQuery<E extends RealmObject> {
      * @see io.realm.RealmResults
      * @throws java.lang.RuntimeException Any other error
      */
+    @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         checkQueryIsNotReused();
-        return new RealmResults<E>(realm, query.findAll(), clazz);
+        if (isDynamicQuery()) {
+            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
+        } else {
+            return RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
+        }
     }
 
     /**
@@ -1629,6 +1705,7 @@ public class RealmQuery<E extends RealmObject> {
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
+    @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         checkQueryIsNotReused();
         TableView tableView = query.findAll();
@@ -1637,7 +1714,12 @@ public class RealmQuery<E extends RealmObject> {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
         tableView.sort(columnIndex, sortOrder);
-        return new RealmResults<E>(realm, tableView, clazz);
+
+        if (isDynamicQuery()) {
+            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            return RealmResults.createFromTableOrView(realm, tableView, clazz);
+        }
     }
 
     /**
@@ -1757,6 +1839,7 @@ public class RealmQuery<E extends RealmObject> {
      * a list with zero objects is returned.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
+    @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
         checkSortParameters(fieldNames, sortOrders);
 
@@ -1774,8 +1857,17 @@ public class RealmQuery<E extends RealmObject> {
                 columnIndices.add(columnIndex);
             }
             tableView.sort(columnIndices, sortOrders);
-            return new RealmResults<E>(realm, tableView, clazz);
+
+            if (isDynamicQuery()) {
+                return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+            } else {
+                return RealmResults.createFromTableOrView(realm, tableView, clazz);
+            }
         }
+    }
+
+    private boolean isDynamicQuery() {
+        return className != null;
     }
 
     /**
@@ -1914,7 +2006,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortOrder1 sort order for first field
      * @param fieldName2 second field name
      * @param sortOrder2 sort order for second field
-     * @param fieldName3 third field name
+     * @param fieldName3 third field names
      * @param sortOrder3 sort order for third field
      * @return A {@link io.realm.RealmResults} containing objects. If no objects match the condition,
      * a list with zero objects is returned.
@@ -1955,9 +2047,78 @@ public class RealmQuery<E extends RealmObject> {
         checkQueryIsNotReused();
         long rowIndex = this.query.find();
         if (rowIndex >= 0) {
-            return realm.get(clazz, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
+            return realm.get(clazz, className, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
         } else {
             return null;
+        }
+    }
+
+    // FIXME Replace with Schema when it is available
+    private static class DynamicColumnMap implements Map<String, Long> {
+        private final Table table;
+
+        public DynamicColumnMap(Table table) {
+            this.table = table;
+        }
+
+        @Override
+        public Long get(Object key) {
+            return table.getColumnIndex((String) key);
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean containsValue(Object value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Set<Entry<String, Long>> entrySet() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Set<String> keySet() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Long put(String key, Long value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void putAll(Map<? extends String, ? extends Long> map) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Long remove(Object key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int size() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Collection<Long> values() {
+            throw new UnsupportedOperationException();
         }
     }
 
