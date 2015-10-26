@@ -99,7 +99,7 @@ public class RealmConfiguration {
     }
 
     public byte[] getEncryptionKey() {
-        return key;
+        return key == null ? null : Arrays.copyOf(key, key.length);
     }
 
     public long getSchemaVersion() {
@@ -296,7 +296,7 @@ public class RealmConfiguration {
                 throw new IllegalArgumentException(String.format("The provided key must be %s bytes. Yours was: %s",
                         KEY_LENGTH, key.length));
             }
-            this.key = key;
+            this.key = Arrays.copyOf(key, key.length);
             return this;
         }
 
