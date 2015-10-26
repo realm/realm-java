@@ -847,7 +847,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromQuery(this, tableView, clazz);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
 
@@ -913,7 +913,7 @@ public final class Realm extends BaseRealm {
         Table table = this.getTable(clazz);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromQuery(this, tableView, clazz);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**
@@ -937,7 +937,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        return RealmResults.createFromQuery(this, tableView, clazz);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**

@@ -506,7 +506,7 @@ abstract class BaseRealm implements Closeable {
         Table table = dynamicClassToTable.get(className);
         if (table == null) {
             if (!sharedGroupManager.hasTable(className)) {
-                throw new IllegalArgumentException("The type " + className + " doesn't exist in this Realm.");
+                throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
             table = sharedGroupManager.getTable(className);
             dynamicClassToTable.put(className, table);
@@ -541,7 +541,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Sort a table using the given field names and sorting directions. If a field name doesn not
+     * Sort a table using the given field names and sorting directions. If a field name does not
      * exist in the table an {@link IllegalArgumentException} will be thrown.
      */
     protected TableView doMultiFieldSort(String[] fieldNames, Sort sortOrders[], Table table) {
@@ -612,7 +612,6 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    // Used by proxy classes
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
@@ -629,6 +628,7 @@ abstract class BaseRealm implements Closeable {
         }
         return columnInfo;
     }
+
 
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
@@ -649,7 +649,6 @@ abstract class BaseRealm implements Closeable {
         result.realm = this;
         return result;
     }
-
 
     /**
      * Deletes the Realm file defined by the given configuration.

@@ -41,7 +41,7 @@ import io.realm.internal.TableView;
  *
  * @see io.realm.Realm
  */
-public class DynamicRealm extends BaseRealm {
+public final class DynamicRealm extends BaseRealm {
 
     private static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, DynamicRealm>>() {
@@ -173,7 +173,7 @@ public class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromDynamicQuery(this, tableView, className);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
 
@@ -217,7 +217,7 @@ public class DynamicRealm extends BaseRealm {
         Table table = this.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromDynamicQuery(this, tableView, className);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
     private static DynamicRealm create(RealmConfiguration configuration) {
@@ -256,6 +256,61 @@ public class DynamicRealm extends BaseRealm {
 
             return realm;
         }
+    }
+
+    /**
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in case of multiple occurrences.
+     *
+     * @param className the Class to get objects of.
+     * @param fieldName the field name.
+     * @return A non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     */
+    public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+        checkIfValid();
+        Table table = this.getTable(className);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        TableView tableView = table.getDistinctView(columnIndex);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
+    }
+
+    /**
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in case of multiple occurrences.
+     * This method is only available from a Looper thread.
+     *
+     * @param className the Class to get objects of.
+     * @param fieldName the field name.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
+     * when the query completes.
+     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     */
+    public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+
+        Table table = this.getTable(className);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        // check if the field is indexed
+        if (!table.hasSearchIndex(columnIndex)) {
+            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
+        }
+
+        return where(className).distinctAsync(columnIndex);
     }
 
     @Override

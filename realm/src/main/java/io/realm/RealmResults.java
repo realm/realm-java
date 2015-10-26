@@ -75,7 +75,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return new RealmResults<E>(realm, clazz);
     }
 
-    static <E extends RealmObject> RealmResults<E> createFromQuery(BaseRealm realm, TableOrView table, Class<E> clazz) {
+    static <E extends RealmObject> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
         return new RealmResults<E>(realm, table, clazz);
     }
 
@@ -83,7 +83,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return new RealmResults<DynamicRealmObject>(realm, className);
     }
 
-    static RealmResults<DynamicRealmObject> createFromDynamicQuery(BaseRealm realm, TableOrView table, String className) {
+    static RealmResults<DynamicRealmObject> createFromDynamicTableOrView(BaseRealm realm, TableOrView table, String className) {
         return new RealmResults<DynamicRealmObject>(realm, table, className);
     }
 
