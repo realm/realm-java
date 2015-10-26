@@ -1,3 +1,7 @@
+0.84.1
+ * Fixed a bug where simultaneous opening and closing a Realm on different threads might result in a NullPointerException (#1646).
+ * Suppressed warnings reported by `lint -Xlint:all` (#1644).
+
 0.84.0
  * Added support for async queries and transactions.
  * Added support for parsing JSON Dates with timezone information. (Thank you @LateralKevin!)
