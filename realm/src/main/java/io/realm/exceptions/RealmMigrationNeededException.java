@@ -17,6 +17,9 @@ package io.realm.exceptions;
 
 import java.io.File;
 
+import io.realm.internal.Keep;
+
+@Keep
 public class RealmMigrationNeededException extends RuntimeException {
 
     private final String canonicalRealmPath;
