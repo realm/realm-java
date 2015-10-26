@@ -713,6 +713,16 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testDoubleCommitThrows() {
+        testRealm.beginTransaction();
+        testRealm.commitTransaction();
+        try {
+            testRealm.commitTransaction();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
     public void testCancelTransaction() {
         populateTestRealm();
 
