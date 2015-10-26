@@ -506,7 +506,7 @@ abstract class BaseRealm implements Closeable {
         Table table = dynamicClassToTable.get(className);
         if (table == null) {
             if (!sharedGroupManager.hasTable(className)) {
-                throw new IllegalArgumentException("The type " + className + " doesn't exist in this Realm.");
+                throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
             table = sharedGroupManager.getTable(className);
             dynamicClassToTable.put(className, table);

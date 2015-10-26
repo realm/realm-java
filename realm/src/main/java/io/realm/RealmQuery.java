@@ -66,7 +66,7 @@ public class RealmQuery<E extends RealmObject> {
     private BaseRealm realm;
     private Class<E> clazz;
     private String className;
-    private Map<String, Long> columns = new HashMap<String, Long>();
+    private Map<String, Long> columns;
     private Table table;
     private LinkView view;
     private TableQuery query;

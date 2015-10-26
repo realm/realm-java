@@ -34,7 +34,7 @@ import io.realm.internal.android.JsonUtils;
 public final class DynamicRealmObject extends RealmObject {
 
     /**
-     * Creates a dynamic Realm object based on a existing object.
+     * Creates a dynamic Realm object based on an existing object.
      *
      * @param obj Realm object to convert to a dynamic object. Only objects managed by {@link Realm} can be used.
      * @throws IllegalArgumentException if object isn't managed by Realm or is a {@link DynamicRealmObject} already.
@@ -67,8 +67,7 @@ public final class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Returns the value for the given field. To avoid casting the value use one of the typed
-     * getters instead.
+     * Returns the value for the given field.
      *
      * @param fieldName name of the field.
      * @return the field value. Private types will be converted to their boxed variants.
