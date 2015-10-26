@@ -19,6 +19,7 @@ package io.realm;
 import java.util.Collections;
 import java.util.Set;
 
+import io.realm.annotations.Required;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
@@ -38,9 +39,10 @@ public final class RealmObjectSchema {
 
     /**
      * Creates a schema object for a given Realm class.
+     *
      * @param realm Realm holding the objects.
-     * @param transaction Transaction object for the current Realm.
-     * @param table Table representation of the Realm class
+     * @param transaction transaction object for the current Realm.
+     * @param table table representation of the Realm class
      */
     RealmObjectSchema(BaseRealm realm, ImplicitTransaction transaction, Table table) {
         this.realm = realm;
@@ -51,25 +53,26 @@ public final class RealmObjectSchema {
     /**
      * Returns the name of the Realm model class being represented by this schema.
      *
-     * When using a normal {@link Realm} this name is normally the name of the {@link RealmObject} model class.
-     * When using the {@link DynamicRealm} this is the name used in all API methods requiring a class name.
+     * When using a normal {@link Realm} this name is the same as the {@link RealmObject} model class.
+     * When using a {@link DynamicRealm} this is the name used in all API methods requiring a class name.
      *
-     * @return The name of the Realm model class represented by this schema.
+     * @return the name of the Realm model class represented by this schema.
      */
     public String getClassName() {
         return table.getName().substring(Table.TABLE_PREFIX.length());
     }
 
     /**
-     * Set a new name of the this class (= Renaming it).
-     * @param newClasName Set the new name for this Realm class.
+     * Set a new name of the this class. This is equivalent to renaming it.
      *
+     * @param newClassName the new name for this class.
+     * @see RealmSchema#renameClass(String, String)
      */
-    public void setClassName(String newClasName) {
-        checkEmpty(newClasName);
-        String internalTableName = Table.TABLE_PREFIX + newClasName;
+    public void setClassName(String newClassName) {
+        checkEmpty(newClassName);
+        String internalTableName = Table.TABLE_PREFIX + newClassName;
         if (transaction.hasTable(internalTableName)) {
-            throw new IllegalArgumentException("Class already exists: " + newClasName);
+            throw new IllegalArgumentException("Class already exists: " + newClassName);
         }
         transaction.renameTable(table.getName(), internalTableName);
     }
@@ -77,26 +80,27 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code String} field that is allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add.
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addString(String fieldName) {
-        return addString(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addStringField(String fieldName) {
+        return addStringField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code String} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @param modifiers set of modifiers for this field. The field is nullable by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addString(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addStringField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.STRING, fieldName);
+        boolean nullable = !modifiers.contains(RealmModifier.REQUIRED);
+        long columnIndex = table.addColumn(RealmFieldType.STRING, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -104,26 +108,27 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code short} field that is not allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addShort(String fieldName) {
-        return addShort(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addShortField(String fieldName) {
+        return addShortField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code short} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @param modifiers set of modifiers for this field. The field is {@link Required} by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addShort(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addShortField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName);
+        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
+        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -131,26 +136,27 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code int} field that is not allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addInt(String fieldName) {
-        return addInt(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addIntField(String fieldName) {
+        return addIntField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code int} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @param modifiers set of modifiers for this field. The field is {@link Required} by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addInt(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addIntField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName);
+        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
+        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -158,26 +164,27 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code long} field that is not allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addLong(String fieldName) {
-        return addLong(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addLongField(String fieldName) {
+        return addLongField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code long} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add
+     * @param modifiers set of modifiers for this field. The field is {@link Required} by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addLong(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addLongField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName);
+        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
+        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -185,26 +192,27 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code byte} field that is not allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addByte(String fieldName) {
-        return addByte(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addByteField(String fieldName) {
+        return addByteField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code byte} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add
+     * @param modifiers set of modifiers for this field. The field is {@link Required} by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addByte(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addByteField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName);
+        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
+        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -213,26 +221,27 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code boolean} field that is not allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addBoolean(String fieldName) {
-        return addBoolean(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addBooleanField(String fieldName) {
+        return addBooleanField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code boolean} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add
+     * @param modifiers set of modifiers for this field. The field is {@link Required} by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addBoolean(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addBooleanField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.BOOLEAN, fieldName);
+        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
+        long columnIndex = table.addColumn(RealmFieldType.BOOLEAN, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -240,26 +249,27 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code byte[]} field that is not allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addBlob(String fieldName) {
-        return addBlob(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addBlobField(String fieldName) {
+        return addBlobField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code byte[]} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @param modifiers set of modifiers for this field. The field is nullable by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addBlob(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addBlobField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.BINARY, fieldName);
+        boolean nullable = !modifiers.contains(RealmModifier.REQUIRED);
+        long columnIndex = table.addColumn(RealmFieldType.BINARY, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -267,27 +277,28 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code float} field that is not allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addFloat(String fieldName) {
-        return addFloat(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addFloatField(String fieldName) {
+        return addFloatField(fieldName, Collections.EMPTY_SET);
     }
 
 
     /**
      * Adds a {@code float} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @param modifiers set of modifiers for this field. The field is {@link Required} by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addFloat(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addFloatField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.FLOAT, fieldName);
+        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
+        long columnIndex = table.addColumn(RealmFieldType.FLOAT, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -295,53 +306,55 @@ public final class RealmObjectSchema {
     /**
      * Adds a {@code double} field that is not allowed to contain {@code null} values.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addDouble(String fieldName) {
-        return addDouble(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addDoubleField(String fieldName) {
+        return addDoubleField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code double} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @param modifiers set of modifiers for this field. The field is {@link Required} by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addDouble(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addDoubleField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.DOUBLE, fieldName);
+        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
+        long columnIndex = table.addColumn(RealmFieldType.DOUBLE, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
 
     /**
-     * Adds a {@code Date} field that is not allowed to contain {@code null} values.
+     * Adds a {@code Date} field that is nullable by default.
      *
-     * @param fieldName Name of field to add
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addDate(String fieldName) {
-        return addDate(fieldName, Collections.EMPTY_SET);
+    public RealmObjectSchema addDateField(String fieldName) {
+        return addDateField(fieldName, Collections.EMPTY_SET);
     }
 
     /**
      * Adds a {@code Date} field.
      *
-     * @param fieldName Name of field to add
-     * @param modifiers Set of modifiers for this field.
-     * @return The updated schema.
+     * @param fieldName name of field to add.
+     * @param modifiers set of modifiers for this field. The field is nullable by default.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addDate(String fieldName, Set<RealmModifier> modifiers) {
+    public RealmObjectSchema addDateField(String fieldName, Set<RealmModifier> modifiers) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        long columnIndex = table.addColumn(RealmFieldType.DATE, fieldName);
+        boolean nullable = !modifiers.contains(RealmModifier.REQUIRED);
+        long columnIndex = table.addColumn(RealmFieldType.DATE, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
     }
@@ -349,12 +362,12 @@ public final class RealmObjectSchema {
     /**
      * Adds a field that links to another Realm object.
      *
-     * @param fieldName Name of field to add.
+     * @param fieldName name of field to add.
      * @param objectSchema {@link RealmObjectSchema} for the object to link to.
-     * @return The updated schema.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addObject(String fieldName, RealmObjectSchema objectSchema) {
+    public RealmObjectSchema addObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(RealmFieldType.OBJECT, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
@@ -364,12 +377,12 @@ public final class RealmObjectSchema {
     /**
      * Adds a field that links to a {@link io.realm.RealmList} of other Realm objects.
      *
-     * @param fieldName Name of field to add
+     * @param fieldName name of field to add.
      * @param objectSchema {@link RealmObjectSchema} for the object to link to.
-     * @return The updated schema.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addList(String fieldName, RealmObjectSchema objectSchema) {
+    public RealmObjectSchema addListField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
         table.addColumnLink(RealmFieldType.LIST, fieldName, transaction.getTable(Table.TABLE_PREFIX + objectSchema.getClassName()));
@@ -379,8 +392,8 @@ public final class RealmObjectSchema {
     /**
      * Removes a field from the class.
      *
-     * @param fieldName Field name to remove
-     * @return The updated schema
+     * @param fieldName field name to remove.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists.
      */
     public RealmObjectSchema removeField(String fieldName) {
@@ -396,9 +409,9 @@ public final class RealmObjectSchema {
     /**
      * Renames a field from one name to another.
      *
-     * @param currentFieldName Field name to rename.
-     * @param newFieldName The new field name.
-     * @return The updated schema.
+     * @param currentFieldName field name to rename.
+     * @param newFieldName the new field name.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists or if the new field name already
      * exists.
      */
@@ -414,7 +427,8 @@ public final class RealmObjectSchema {
 
     /**
      * Tests if the schema has field defined with the given name.
-     * @param fieldName Field name to test.
+     *
+     * @param fieldName field name to test.
      * @return {@code true} if the field exists, {@code false} otherwise.
      */
     public boolean hasField(String fieldName) {
@@ -424,8 +438,8 @@ public final class RealmObjectSchema {
     /**
      * Adds a index to a given field. This is the same as adding the {@code @Index} annotation on the field.
      *
-     * @param fieldName Field to add name to rename.
-     * @return The updated schema.
+     * @param fieldName field to add name to rename.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be indexed or it already has a
      * index defined.
      */
@@ -442,7 +456,8 @@ public final class RealmObjectSchema {
 
     /**
      * Checks if a given field has a {@link io.realm.annotations.Index} defined.
-     * @param fieldName Existing field name to check.
+     *
+     * @param fieldName existing field name to check.
      * @return {@code true} if field is indexed. {@false otherwise}.
      */
     public boolean hasIndex(String fieldName) {
@@ -455,8 +470,8 @@ public final class RealmObjectSchema {
     /**
      * Removes an index from a given field. This is the same as removing the {@code @Index} annotation on the field.
      *
-     * @param fieldName Field to remove index from.
-     * @return The updated schema.
+     * @param fieldName field to remove index from.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists or the field doesn't have an index.
      */
     public RealmObjectSchema removeIndex(String fieldName) {
@@ -473,8 +488,8 @@ public final class RealmObjectSchema {
     /**
      * Adds a primary key to a given field. This is the same as adding the {@code @PrimaryKey} annotation on the field.
      *
-     * @param fieldName Field to add name to rename.
-     * @return The updated schema.
+     * @param fieldName field to add name to rename.
+     * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be a primary key or it already
      * has a primary key defined.
      */
@@ -492,7 +507,7 @@ public final class RealmObjectSchema {
      * Removes the primary key from this class. This is the same as removing the {@code @PrimaryKey} annotation from the
      * class.
      *
-     * @return The updated schema.
+     * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
      */
     public RealmObjectSchema removePrimaryKey() {
@@ -506,10 +521,10 @@ public final class RealmObjectSchema {
     /**
      * Sets a field to be nullable.
      *
-     * @param fieldName Name of field in the schema
+     * @param fieldName name of field in the schema.
      * @param nullable {@code true} if field should be nullable. {@false otherwise}.
-     * @return The updated schema.
-     * @throws IllegalArgumentException
+     * @return the updated schema.
+     * @throws IllegalArgumentException if field name doesn't exists or the field already has the given nullable flag.
      */
     public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
         throw new RealmException("Waiting for Null support");
@@ -517,8 +532,10 @@ public final class RealmObjectSchema {
 
     /**
      * Checks if a given field is allowed to contain {@code null} values.
-     * @param fieldName Field to check.
+     *
+     * @param fieldName field to check.
      * @return {@code true} if it can have {@code null} values. {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exists.
      */
     public boolean isNullable(String fieldName) {
         throw new RealmException("Waiting for Null support");
@@ -549,7 +566,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Iterate each object in the Realm that have the typed defined by this schema. The order is
+     * Iterate each object in the Realm that have the type defined by this schema. The order is
      * undefined.
      *
      * @return This schema.
@@ -558,7 +575,6 @@ public final class RealmObjectSchema {
         if (iterator != null) {
             long size = table.size();
             for (long i = 0; i < size; i++) {
-                // TODO Consider reusing the object. Benchmark difference
                 iterator.next(new DynamicRealmObject(realm, table.getCheckedRow(i)));
             }
         }
@@ -576,10 +592,7 @@ public final class RealmObjectSchema {
 
             if (modifiers.contains(RealmModifier.PRIMARY_KEY)) {
                 table.setPrimaryKey(columnIndex);
-            }
-
-            if (modifiers.contains(RealmModifier.NON_NULLABLE) || modifiers.contains(RealmModifier.NULLABLE)) {
-                throw new RealmException("Null not support yet, so neither is changing state");
+                table.addSearchIndex(columnIndex);
             }
         }
     }
@@ -621,6 +634,14 @@ public final class RealmObjectSchema {
             throw new IllegalArgumentException("Null or empty class names are not allowed");
         }
     }
+
+    private void checkLegalModifiers(long columnIndex, Set<RealmModifier> modifiers) {
+        if (modifiers.contains(RealmModifier.REQUIRED) && modifiers.contains(RealmModifier.NULLABLE)) {
+            throw new RealmException(table.getColumnName(columnIndex) + " cannot be both @Required and nullable at " +
+                    "the same time.");
+        }
+    }
+
 
     /**
      * Iterator interface for traversing all objects with the current schema.

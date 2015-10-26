@@ -22,7 +22,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +30,7 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -54,7 +54,7 @@ public class FilterableMediator extends RealmProxyMediator {
     public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>> allowedClasses) {
         this.originalMediator = originalMediator;
         if (originalMediator != null) {
-            List<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
+            Set<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
             for (Class<? extends RealmObject> clazz : allowedClasses) {
                 if (originalClasses.contains(clazz)) {
                     this.allowedClasses.add(clazz);
@@ -74,9 +74,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
+    public ColumnInfo validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
         checkSchemaHasClass(clazz);
-        originalMediator.validateTable(clazz, transaction);
+        return originalMediator.validateTable(clazz, transaction);
     }
 
     @Override
@@ -92,20 +92,14 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmObject> E newInstance(Class<E> clazz) {
+    public <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
         checkSchemaHasClass(clazz);
-        return originalMediator.newInstance(clazz);
+        return originalMediator.newInstance(clazz, columnInfo);
     }
 
     @Override
-    public List<Class<? extends RealmObject>> getModelClasses() {
-        return new ArrayList<Class<? extends RealmObject>>(allowedClasses);
-    }
-
-    @Override
-    public Map<String, Long> getColumnIndices(Class<? extends RealmObject> clazz) {
-        checkSchemaHasClass(clazz);
-        return originalMediator.getColumnIndices(clazz);
+    public Set<Class<? extends RealmObject>> getModelClasses() {
+        return new HashSet<Class<? extends RealmObject>>(allowedClasses);
     }
 
     @Override

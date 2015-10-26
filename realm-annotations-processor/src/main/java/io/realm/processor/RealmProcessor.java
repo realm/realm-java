@@ -16,7 +16,11 @@
 
 package io.realm.processor;
 
-import io.realm.annotations.RealmClass;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -25,11 +29,8 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+
+import io.realm.annotations.RealmClass;
 
 /**
  * The RealmProcessor is responsible for creating the plumbing that connects the RealmObjects to a Realm. The process
@@ -95,7 +96,8 @@ import java.util.TreeSet;
         "io.realm.annotations.Ignore",
         "io.realm.annotations.Index",
         "io.realm.annotations.PrimaryKey",
-        "io.realm.annotations.RealmModule"
+        "io.realm.annotations.RealmModule",
+        "io.realm.annotations.Required"
 })
 public class RealmProcessor extends AbstractProcessor {
 
@@ -146,7 +148,7 @@ public class RealmProcessor extends AbstractProcessor {
             } catch (UnsupportedOperationException e) {
                 Utils.error(e.getMessage(), classElement);
             }
-	    }
+        }
 
         String environmentVariable = System.getenv("REALM_DISABLE_ANALYTICS");
         if (environmentVariable == null || !environmentVariable.equals("true")) {

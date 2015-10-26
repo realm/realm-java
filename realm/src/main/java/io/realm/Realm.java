@@ -36,17 +36,19 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnIndices;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
@@ -70,7 +72,7 @@ import io.realm.internal.log.RealmLog;
  * Realm instances cannot be used across different threads. This means that you have to open an
  * instance on each thread you want to use Realm. Realm instances are cached automatically per
  * thread using reference counting, so as long as the reference count doesn't reach zero, calling
- * {@link #getInstance(android.content.Context)} will just return the cached Realm and should be
+ * {@link #getInstance(RealmConfiguration)} will just return the cached Realm and should be
  * considered a lightweight operation.
  * <p>
  * For the UI thread this means that opening and closing Realms should occur in either
@@ -127,8 +129,8 @@ public final class Realm extends BaseRealm {
                 }
             };
 
-    // List of Realm files that has already been validated
-    private static final Set<String> validatedRealmFiles = new HashSet<String>();
+    // Map between Realm file that has already been validated and Model class's column information
+    static final Map<String, ColumnIndices> validatedRealmFiles = new HashMap<String, ColumnIndices>();
 
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable =
@@ -139,7 +141,7 @@ public final class Realm extends BaseRealm {
     /**
      * The constructor is private to enforce the use of the static one.
      *
-     * @param configuration Configuration used to open the Realm.
+     * @param configuration {@link RealmConfiguration} used to open the Realm.
      * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
@@ -160,19 +162,20 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Realm static constructor for the default Realm "default.realm".
-     * {@link #close()} must be called when you are done using the Realm instance.
-     * <p>
-     * It sets auto-refresh on if the current thread has a Looper, off otherwise.
-     *
+     * Realm static constructor for the default Realm file {@value io.realm.RealmConfiguration#DEFAULT_REALM_NAME}.
      * This is equivalent to calling {@code Realm.getInstance(new RealmConfiguration(getContext()).build()) }.
+     *
+     * This constructor is only provided for convenience. It is recommended to use
+     * {@link #getInstance(RealmConfiguration)} or {@link #getDefaultInstance()}.
+     *
+     * @param context a non-null Android {@link android.content.Context}
+     * @return an instance of the Realm class.
 
-     * @param context an Android {@link android.content.Context}
-     * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException The model classes have been changed and the Realm
-     *                                       must be migrated
-     * @throws RealmIOException              Error when accessing underlying file
-     * @throws RealmException                Other errors
+     * @throws java.lang.IllegalArgumentException if no {@link Context} is provided.
+     * @throws RealmMigrationNeededException if the model classes no longer match the underlying Realm
+     *                                       and it must be migrated.
+     * @throws RealmIOException              if an error happened when accessing the underlying Realm
+     *                                       file.
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(new RealmConfiguration.Builder(context)
@@ -184,7 +187,7 @@ public final class Realm extends BaseRealm {
      * Realm static constructor that returns the Realm instance defined by the {@link io.realm.RealmConfiguration} set
      * by {@link #setDefaultConfiguration(RealmConfiguration)}
      *
-     * @return an instance of the Realm class
+     * @return an instance of the Realm class.
      *
      * @throws java.lang.NullPointerException If no default configuration has been defined.
      * @throws RealmMigrationNeededException If no migration has been provided by the default configuration and the
@@ -200,6 +203,7 @@ public final class Realm extends BaseRealm {
     /**
      * Realm static constructor that returns the Realm instance defined by provided {@link io.realm.RealmConfiguration}
      *
+     * @param configuration {@link RealmConfiguration} used to open the Realm
      * @return an instance of the Realm class
      *
      * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
@@ -238,8 +242,7 @@ public final class Realm extends BaseRealm {
     private static synchronized Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
-            boolean validateSchema = !validatedRealmFiles.contains(configuration.getPath());
-            return createAndValidate(configuration, validateSchema, autoRefresh);
+            return createAndValidate(configuration, null, autoRefresh);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -252,8 +255,12 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    private static Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+    private static Realm createAndValidate(RealmConfiguration configuration, Boolean validateSchema, boolean autoRefresh) {
         synchronized (BaseRealm.class) {
+            if (validateSchema == null) {
+                validateSchema = !validatedRealmFiles.containsKey(configuration.getPath());
+            }
+
             // Check if a cached instance already exists for this thread
             String canonicalPath = configuration.getPath();
             Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
@@ -282,7 +289,7 @@ public final class Realm extends BaseRealm {
             localRefCount.put(configuration, references + 1);
 
             // Increment global reference counter
-            realm.acquireFileReference(configuration);
+            acquireFileReference(configuration);
 
             // Check versions of Realm
             long currentVersion = realm.getVersion();
@@ -305,19 +312,9 @@ public final class Realm extends BaseRealm {
                     throw e;
                 }
             }
-            setupColumnIndices(realm);
+            realm.columnIndices = validatedRealmFiles.get(configuration.getPath());
 
             return realm;
-        }
-    }
-
-    private static void setupColumnIndices(Realm realm) {
-        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-        List<Class<? extends RealmObject>> modelClasses = mediator.getModelClasses();
-        int size = modelClasses.size();
-        for (int i = 0; i < size; i++) {
-            Class<? extends RealmObject> modelClass = modelClasses.get(i);
-            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 
@@ -333,14 +330,17 @@ public final class Realm extends BaseRealm {
             }
 
             RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-            for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
+            final Set<Class<? extends RealmObject>> modelClasses = mediator.getModelClasses();
+            final Map<Class<? extends RealmObject>, ColumnInfo> columnInfoMap;
+            columnInfoMap = new HashMap<Class<? extends RealmObject>, ColumnInfo>(modelClasses.size());
+            for (Class<? extends RealmObject> modelClass : modelClasses) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
                     mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
                 }
-                mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction());
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
             }
-            validatedRealmFiles.add(realm.getPath());
+            validatedRealmFiles.put(realm.getPath(), new ColumnIndices(columnInfoMap));
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction();
@@ -690,6 +690,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmException An object could not be created
      */
     public <E extends RealmObject> E createObject(Class<E> clazz) {
+        checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
         return get(clazz, rowIndex);
@@ -845,7 +846,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromQuery(this, tableView, clazz);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
 
@@ -911,7 +912,62 @@ public final class Realm extends BaseRealm {
         Table table = this.getTable(clazz);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromQuery(this, tableView, clazz);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
+    }
+
+    /**
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in case of multiple occurrences.
+     *
+     * @param clazz the Class to get objects of.
+     * @param fieldName the field name.
+     * @return A non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     */
+    public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+        checkIfValid();
+        Table table = this.getTable(clazz);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        TableView tableView = table.getDistinctView(columnIndex);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
+    }
+
+    /**
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in case of multiple occurrences.
+     * This method is only available from a Looper thread.
+     *
+     * @param clazz the Class to get objects of.
+     * @param fieldName the field name.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
+     * when the query completes.
+     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     */
+    public <E extends RealmObject> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+
+        Table table = this.getTable(clazz);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        // check if the field is indexed
+        if (!table.hasSearchIndex(columnIndex)) {
+            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
+        }
+
+        return where(clazz).distinctAsync(columnIndex);
     }
 
     /**
@@ -934,7 +990,8 @@ public final class Realm extends BaseRealm {
      */
     public void executeTransaction(Transaction transaction) {
         if (transaction == null)
-            return;
+            throw new IllegalArgumentException("Transaction should not be null");
+
         beginTransaction();
         try {
             transaction.execute(this);
@@ -949,41 +1006,96 @@ public final class Realm extends BaseRealm {
     }
 
     /**
+     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously from a worker thread
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param callback optional, to receive the result of this query
+     * @return A {@link RealmAsyncTask} representing a cancellable task
+     */
+    public RealmAsyncTask executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
+        if (transaction == null)
+            throw new IllegalArgumentException("Transaction should not be null");
+
+        // If the user provided a Callback then we make sure, the current Realm has a Handler
+        // we can use to deliver the result
+        if (callback != null && handler == null) {
+            throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
+                    " and you provided a callback, we need a Handler to invoke your callback");
+        }
+
+        // We need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // to perform the transaction
+        final RealmConfiguration realmConfiguration = getConfiguration();
+
+        final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (!Thread.currentThread().isInterrupted()) {
+                    Realm bgRealm = Realm.getInstance(realmConfiguration);
+                    bgRealm.beginTransaction();
+                    try {
+                        transaction.execute(bgRealm);
+
+                        if (!Thread.currentThread().isInterrupted()) {
+                            bgRealm.commitTransaction();
+                            if (callback != null
+                                    && handler != null
+                                    && !Thread.currentThread().isInterrupted()
+                                    && handler.getLooper().getThread().isAlive()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callback.onSuccess();
+                                    }
+                                });
+                            }
+                        } else {
+                            bgRealm.cancelTransaction();
+                        }
+
+                    } catch (final Exception e) {
+                        bgRealm.cancelTransaction();
+                        if (callback != null
+                                && handler != null
+                                && !Thread.currentThread().isInterrupted()
+                                && handler.getLooper().getThread().isAlive()) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onError(e);
+                                }
+                            });
+                        }
+                    } finally {
+                        bgRealm.close();
+                    }
+                }
+            }
+        });
+
+        return new RealmAsyncTask(pendingQuery);
+    }
+
+    /**
      * Remove all objects of the specified class.
      *
      * @param clazz The class which objects should be removed
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      * @throws java.lang.RuntimeException Any other error
      */
     public void clear(Class<? extends RealmObject> clazz) {
+        checkIfValid();
         getTable(clazz).clear();
     }
 
     @SuppressWarnings("unchecked")
-    private <E extends RealmObject> Class<? extends RealmObject> getRealmClassFromObject(E object) {
-        if (object.realm != null) {
-            // This is already a proxy object, get superclass instead
-            // INVARIANT: We don't support subclasses yet so super class is always correct type
-            return (Class<? extends RealmObject>) object.getClass().getSuperclass();
-        } else {
-            return object.getClass();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
     private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {
+        checkIfValid();
         return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
     }
 
     private <E extends RealmObject> void checkNotNullObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
-        }
-    }
-
-    private <E extends RealmObject> void checkHasPrimaryKey(E object) {
-        Class<? extends RealmObject> objectClass = object.getClass();
-        if (!getTable(objectClass).hasPrimaryKey()) {
-            throw new IllegalArgumentException("RealmObject has no @PrimaryKey defined: " + objectClass.getSimpleName());
         }
     }
 
@@ -1000,14 +1112,17 @@ public final class Realm extends BaseRealm {
 
     @Override
     protected void lastLocalInstanceClosed() {
-        validatedRealmFiles.remove(configuration.getPath());
+        // validatedRealmFiles must not modified while other thread is executing createAndValidate()
+        synchronized (BaseRealm.class) {
+            validatedRealmFiles.remove(configuration.getPath());
+        }
         realmsCache.get().remove(configuration);
     }
 
     /**
      * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the
      * latest version, nothing will happen.
-     * @param configuration
+     * @param configuration {@link RealmConfiguration}
      */
     public static void migrateRealm(RealmConfiguration configuration) {
         migrateRealm(configuration, null);
@@ -1020,7 +1135,7 @@ public final class Realm extends BaseRealm {
      * @param migration {@link RealmMigration} to run on the Realm. This will override any migration set on the
      * configuration.
      */
-    public synchronized static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
             @Override
             public void migrationComplete() {
@@ -1035,8 +1150,6 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration A {@link RealmConfiguration}
      * @return false if a file could not be deleted. The failing file will be logged.
-     *
-     * @throws java.lang.IllegalStateException if trying to delete a Realm that is already open.
      */
     public static boolean deleteRealm(RealmConfiguration configuration) {
         return BaseRealm.deleteRealm(configuration);
@@ -1053,8 +1166,6 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return true if successful, false if any file operation failed
-     *
-     * @throws java.lang.IllegalStateException if trying to compact a Realm that is already open.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
         return BaseRealm.compactRealm(configuration);
@@ -1120,6 +1231,13 @@ public final class Realm extends BaseRealm {
      */
     public interface Transaction {
         void execute(Realm realm);
-    }
 
+        /**
+         * Callback invoked to notify the caller thread.
+         */
+        class Callback {
+            public void onSuccess() {}
+            public void onError(Exception e) {}
+        }
+    }
 }

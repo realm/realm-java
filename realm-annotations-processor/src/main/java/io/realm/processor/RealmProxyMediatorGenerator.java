@@ -67,11 +67,12 @@ public class RealmProxyMediatorGenerator {
         writer.emitImports(
                 "android.util.JsonReader",
                 "java.io.IOException",
-                "java.util.ArrayList",
                 "java.util.Collections",
+                "java.util.HashSet",
                 "java.util.List",
                 "java.util.Map",
-                "io.realm.exceptions.RealmException",
+                "java.util.Set",
+                "io.realm.internal.ColumnInfo",
                 "io.realm.internal.ImplicitTransaction",
                 "io.realm.internal.RealmObjectProxy",
                 "io.realm.internal.RealmProxyMediator",
@@ -88,7 +89,7 @@ public class RealmProxyMediatorGenerator {
                 qualifiedGeneratedClassName,        // full qualified name of the item to generate
                 "class",                            // the type of the item
                 Collections.<Modifier>emptySet(),   // modifiers to apply
-                "RealmProxyMediator");               // class to extend
+                "RealmProxyMediator");              // class to extend
         writer.emitEmptyLine();
 
         emitFields(writer);
@@ -98,7 +99,6 @@ public class RealmProxyMediatorGenerator {
         emitGetTableNameMethod(writer);
         emitNewInstanceMethod(writer);
         emitGetClassModelList(writer);
-        emitGetColumnIndices(writer);
         emitCopyToRealmMethod(writer);
         emitCreteOrUpdateUsingJsonObject(writer);
         emitCreateUsingJsonStream(writer);
@@ -108,13 +108,13 @@ public class RealmProxyMediatorGenerator {
     }
 
     private void emitFields(JavaWriter writer) throws IOException {
-        writer.emitField("List<Class<? extends RealmObject>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
+        writer.emitField("Set<Class<? extends RealmObject>>", "MODEL_CLASSES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
-        writer.emitStatement("List<Class<? extends RealmObject>> modelClasses = new ArrayList<Class<? extends RealmObject>>()");
+        writer.emitStatement("Set<Class<? extends RealmObject>> modelClasses = new HashSet<Class<? extends RealmObject>>()");
         for (String clazz : simpleModelClasses) {
             writer.emitStatement("modelClasses.add(%s.class)", clazz);
         }
-        writer.emitStatement("MODEL_CLASSES = Collections.unmodifiableList(modelClasses)");
+        writer.emitStatement("MODEL_CLASSES = Collections.unmodifiableSet(modelClasses)");
         writer.endInitializer();
         writer.emitEmptyLine();
     }
@@ -140,7 +140,7 @@ public class RealmProxyMediatorGenerator {
     private void emitValidateTableMethod(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
         writer.beginMethod(
-                "void",
+                "ColumnInfo",
                 "validateTable",
                 EnumSet.of(Modifier.PUBLIC),
                 "Class<? extends RealmObject>", "clazz", "ImplicitTransaction", "transaction"
@@ -148,7 +148,7 @@ public class RealmProxyMediatorGenerator {
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("%s.validateTable(transaction)", proxyClasses.get(i));
+                writer.emitStatement("return %s.validateTable(transaction)", proxyClasses.get(i));
             }
         }, writer);
         writer.endMethod();
@@ -197,12 +197,12 @@ public class RealmProxyMediatorGenerator {
                 "<E extends RealmObject> E",
                 "newInstance",
                 EnumSet.of(Modifier.PUBLIC),
-                "Class<E>", "clazz"
+                "Class<E>", "clazz", "ColumnInfo", "columnInfo"
         );
         emitMediatorSwitch(new ProxySwitchStatement() {
             @Override
             public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return clazz.cast(new %s())", proxyClasses.get(i));
+                writer.emitStatement("return clazz.cast(new %s(columnInfo))", proxyClasses.get(i));
             }
         }, writer);
         writer.endMethod();
@@ -211,26 +211,8 @@ public class RealmProxyMediatorGenerator {
 
     private void emitGetClassModelList(JavaWriter writer) throws IOException {
         writer.emitAnnotation("Override");
-        writer.beginMethod("List<Class<? extends RealmObject>>", "getModelClasses", EnumSet.of(Modifier.PUBLIC));
+        writer.beginMethod("Set<Class<? extends RealmObject>>", "getModelClasses", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("return MODEL_CLASSES");
-        writer.endMethod();
-        writer.emitEmptyLine();
-    }
-
-    private void emitGetColumnIndices(JavaWriter writer) throws IOException {
-        writer.emitAnnotation("Override");
-        writer.beginMethod(
-                "Map<String, Long>",
-                "getColumnIndices",
-                EnumSet.of(Modifier.PUBLIC),
-                "Class<? extends RealmObject>", "clazz"
-        );
-        emitMediatorSwitch(new ProxySwitchStatement() {
-            @Override
-            public void emitStatement(int i, JavaWriter writer) throws IOException {
-                writer.emitStatement("return %s.getColumnIndices()", proxyClasses.get(i));
-            }
-        }, writer, true);
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -243,7 +225,7 @@ public class RealmProxyMediatorGenerator {
                 EnumSet.of(Modifier.PUBLIC),
                 "Realm", "realm", "E", "obj", "boolean", "update", "Map<RealmObject, RealmObjectProxy>",  "cache"
         );
-        writer.emitSingleLineComment("This cast is correct because obj is either ");
+        writer.emitSingleLineComment("This cast is correct because obj is either");
         writer.emitSingleLineComment("generated by RealmProxy or the original type extending directly from RealmObject");
         writer.emitStatement("@SuppressWarnings(\"unchecked\") Class<E> clazz = (Class<E>) ((obj instanceof RealmObjectProxy) ? obj.getClass().getSuperclass() : obj.getClass())");
         writer.emitEmptyLine();

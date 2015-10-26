@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <jni.h>
+
 #include "util.hpp"
 #include "mem_usage.hpp"
 #include "io_realm_internal_Util.h"
@@ -29,9 +31,36 @@ using std::string;
 int trace_level = 0;
 const char *log_tag = "REALM";
 
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM*, void*)
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
 {
+    JNIEnv* env;
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+    else {
+        // Loading classes and constructors for later use - used by box typed fields and a few methods' return value
+        java_lang_long        = GetClass(env, "java/lang/Long");
+        java_lang_long_init   = env->GetMethodID(java_lang_long, "<init>", "(J)V");
+        java_lang_float       = GetClass(env, "java/lang/Float");
+        java_lang_float_init  = env->GetMethodID(java_lang_float, "<init>", "(F)V");
+        java_lang_double      = GetClass(env, "java/lang/Double");
+        java_lang_double_init = env->GetMethodID(java_lang_double, "<init>", "(D)V");
+    }
+
     return JNI_VERSION_1_6;
+}
+
+JNIEXPORT void JNI_OnUnload(JavaVM* vm, void*)
+{
+    JNIEnv* env;
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return;
+    }
+    else {
+        env->DeleteGlobalRef(java_lang_long);
+        env->DeleteGlobalRef(java_lang_float);
+        env->DeleteGlobalRef(java_lang_double);
+    }
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Util_nativeSetDebugLevel(JNIEnv*, jclass, jint level)
@@ -132,6 +161,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, CrossTableLink, "parm1");
             break;
+        case BadVersion:
+            expect = "io.realm.internal.async.BadVersionException: parm1";
+            if (dotest)
+                ThrowException(env, BadVersion, "parm1", "parm2");
+            break;
+
     }
     if (dotest) {
         return NULL;

@@ -18,7 +18,6 @@ package io.realm.internal;
 
 import java.io.Closeable;
 import java.io.IOError;
-import java.lang.*;
 
 import io.realm.exceptions.RealmIOException;
 
@@ -65,7 +64,8 @@ public class SharedGroup implements Closeable {
     public SharedGroup(String canonicalPath, boolean enableImplicitTransactions, Durability durability, byte[] key) {
         if (enableImplicitTransactions) {
             nativeReplicationPtr = nativeCreateReplication(canonicalPath, key);
-            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr, durability.value, key);
+            nativePtr = createNativeWithImplicitTransactions(nativeReplicationPtr,
+                    durability.value, key);
             implicitTransactionsEnabled = true;
         } else {
             nativePtr = nativeCreate(canonicalPath, Durability.FULL.value, CREATE_FILE_YES, DISABLE_REPLICATION, key);
@@ -84,6 +84,11 @@ public class SharedGroup implements Closeable {
 
     void advanceRead() {
         nativeAdvanceRead(nativePtr, nativeReplicationPtr);
+    }
+
+    void advanceRead(VersionID versionID) {
+        nativeAdvanceReadToVersion(nativePtr, nativeReplicationPtr, versionID.version,
+                versionID.index);
     }
 
     void promoteToWrite() {
@@ -146,7 +151,8 @@ public class SharedGroup implements Closeable {
 
     void endRead() {
         if (isClosed())
-            throw new IllegalStateException("Can't endRead() on closed group. ReadTransaction is invalid.");
+            throw new IllegalStateException("Can't endRead() on closed group. " +
+                    "ReadTransaction is invalid.");
         nativeEndRead(nativePtr);
         activeTransaction = false;
     }
@@ -230,14 +236,56 @@ public class SharedGroup implements Closeable {
         }
     }
 
-    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr, int durability, byte[] key);
+    public long getNativePointer () {
+        return nativePtr;
+    }
+
+    public long getNativeReplicationPointer () {
+        return nativeReplicationPtr;
+    }
+
+    public VersionID getVersion () {
+        long[] versionId = nativeGetVersionID (nativePtr);
+        return new VersionID (versionId[0], versionId[1]);
+
+    }
+    
+    public static class VersionID implements Comparable<VersionID> {
+        final long version;
+        final long index;
+
+        VersionID(long version, long index) {
+            this.version = version;
+            this.index = index;
+        }
+
+        @Override
+        public int compareTo(VersionID another) {
+            if (version > another.version) {
+                return 1;
+            } else if (version < another.version) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "VersionID{" +
+                    "version=" + version +
+                    ", index=" + index +
+                    '}';
+        }
+    }
+
+    private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
+                                                             int durability, byte[] key);
     private native long nativeCreateReplication(String databaseFile, byte[] key);
-    private native void nativeAdvanceRead(long nativePtr, long native_replication_ptr);
-    private native void nativePromoteToWrite(long nativePtr, long native_replication_ptr);
     private native void nativeCommitAndContinueAsRead(long nativePtr);
-    private native void nativeRollbackAndContinueAsRead(long nativePtr, long native_replication_ptr);
     private native long nativeBeginImplicit(long nativePtr);
     private native String nativeGetDefaultReplicationDatabaseFileName();
+
     private native void nativeReserve(long nativePtr, long bytes);
     private native boolean nativeHasChanged(long nativePtr);
     private native long nativeBeginRead(long nativePtr);
@@ -253,4 +301,10 @@ public class SharedGroup implements Closeable {
     private native boolean nativeCompact(long nativePtr);
     protected static native void nativeClose(long nativePtr);
     private native void nativeCloseReplication(long nativeReplicationPtr);
+    private native void nativeRollbackAndContinueAsRead(long nativePtr, long nativeReplicationPtr);
+    private native long[] nativeGetVersionID (long nativePtr);
+    private native void nativeAdvanceRead(long nativePtr, long nativeReplicationPtr);
+    private native void nativeAdvanceReadToVersion(long nativePtr, long nativeReplicationPtr,
+                                                   long version, long index);
+    private native void nativePromoteToWrite(long nativePtr, long nativeReplicationPtr);
 }

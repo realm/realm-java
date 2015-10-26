@@ -25,23 +25,37 @@ public class ImplicitTransaction extends Group {
         parent = sharedGroup;
     }
 
+    /**
+     * Position the shared group to the latest version
+     */
     public void advanceRead() {
         assertNotClosed();
         parent.advanceRead();
     }
 
+    /**
+     * Position the shared group at the specified version.
+     * @param versionID version of the shared group
+     */
+    public void advanceRead(SharedGroup.VersionID versionID) {
+        assertNotClosed();
+        parent.advanceRead(versionID);
+    }
+
     public void promoteToWrite() {
         assertNotClosed();
-        if (immutable) {
-            immutable = false;
-            parent.promoteToWrite();
-        } else {
+        if (!immutable) {
             throw new IllegalStateException("Nested transactions are not allowed. Use commitTransaction() after each beginTransaction().");
         }
+        immutable = false;
+        parent.promoteToWrite();
     }
 
     public void commitAndContinueAsRead() {
         assertNotClosed();
+        if (immutable) {
+            throw new IllegalStateException("Not inside a transaction.");
+        }
         parent.commitAndContinueAsRead();
         immutable = true;
     }
@@ -53,12 +67,11 @@ public class ImplicitTransaction extends Group {
 
     public void rollbackAndContinueAsRead() {
         assertNotClosed();
-        if (!immutable) {
-            parent.rollbackAndContinueAsRead();
-            immutable = true;
-        } else {
-            throw new IllegalStateException("Cannot cancel a non-write transaction.");
+        if (immutable) {
+            throw new IllegalStateException("Not inside a transaction.");
         }
+        parent.rollbackAndContinueAsRead();
+        immutable = true;
     }
 
     private void assertNotClosed() {

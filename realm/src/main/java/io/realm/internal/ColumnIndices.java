@@ -16,9 +16,7 @@
 
 package io.realm.internal;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import io.realm.RealmObject;
 
@@ -27,30 +25,26 @@ import io.realm.RealmObject;
  */
 public class ColumnIndices {
 
-    private Map<Class<? extends RealmObject>, Map<String, Long>> classes =
-            new HashMap<Class<? extends RealmObject>, Map<String, Long>>();
+    private final Map<Class<? extends RealmObject>, ColumnInfo> classes;
 
-    /**
-     * Add column indices from a given model class
-     */
-    public void addClass(Class<? extends RealmObject> clazz, Map<String, Long> indices) {
-        classes.put(clazz, indices);
+    public ColumnIndices(Map<Class<? extends RealmObject>, ColumnInfo> classes) {
+        this.classes = classes;
     }
 
     /**
-     * Return mappings for the given class or null if no mapping exists.
+     * Returns {@link ColumnInfo} for the given class or {@code null} if no mapping exists.
      */
-    public Map<String, Long> getClassFields(Class<? extends RealmObject> clazz) {
+    public ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
         return classes.get(clazz);
     }
 
     /**
-     * Returns the column index for a given field on a clazz or -1 if no such field exists.
+     * Returns the column index for a given field on a clazz or {@code -1} if no such field exists.
      */
     public long getColumnIndex(Class<? extends RealmObject> clazz, String fieldName) {
-        Map<String, Long> mapping = classes.get(clazz);
-        if (mapping != null) {
-            Long index = mapping.get(fieldName);
+        final ColumnInfo columnInfo = classes.get(clazz);
+        if (columnInfo != null) {
+            Long index = columnInfo.getIndicesMap().get(fieldName);
             return (index != null) ? index : -1;
         } else {
             return -1;

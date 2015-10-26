@@ -20,6 +20,7 @@ import android.test.AndroidTestCase;
 
 import java.util.Date;
 
+import io.realm.entities.AllTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
@@ -220,9 +221,11 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.height", 0.2f, 2.2f).findAll();
-        assertEquals(1, owners7.size());
-        assertEquals(12, owners7.first().getCat().getAge());
+        try {
+            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.height", 0.2f, 2.2f).findAll();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testQuerySingleRelationDouble() {
@@ -250,9 +253,12 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.weight", 0.2, 2.2).findAll();
-        assertEquals(1, owners7.size());
-        assertEquals(12, owners7.first().getCat().getAge());
+        try {
+            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("cat.weight", 0.2, 2.2).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
     }
 
 
@@ -318,7 +324,8 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.age", 9, 11).findAll();
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testQueryMultipleRelationsDate() {
@@ -379,9 +386,12 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.height", 0.2f, 2.2f).findAll();
-        assertEquals(1, owners7.size());
-        assertEquals(12, owners7.first().getCat().getAge());
+        try {
+            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.height", 0.2f, 2.2f).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
     }
 
     public void testQueryMultipleRelationsDouble() {
@@ -409,9 +419,12 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners6.size());
         assertEquals(12, owners6.first().getCat().getAge());
 
-        RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.weight", 0.2, 12.2).findAll();
-        assertEquals(1, owners7.size());
-        assertEquals(12, owners7.first().getCat().getAge());
+        try {
+            RealmResults<Owner> owners7 = testRealm.where(Owner.class).between("dogs.weight", 0.2, 12.2).findAll();
+            fail();
+        }
+        catch (IllegalArgumentException ignored) {
+        }
     }
 
 
@@ -488,18 +501,6 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners2.size());
     }
 
-    public void testLinkListIsNull() {
-        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNull("dogs").findAll();
-        assertEquals(0, owners1.size());
-
-        testRealm.beginTransaction();
-        testRealm.clear(Dog.class);
-        testRealm.commitTransaction();
-
-        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("dogs").findAll();
-        assertEquals(1, owners2.size());
-    }
-
     public void testLinkIsNotNull() {
         RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotNull("cat").findAll();
         assertEquals(1, owners1.size());
@@ -512,24 +513,12 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, owners2.size());
     }
 
-    public void testLinkListIsNotNull() {
-        RealmResults<Owner> owners1 = testRealm.where(Owner.class).isNotNull("dogs").findAll();
-        assertEquals(1, owners1.size());
-
-        testRealm.beginTransaction();
-        testRealm.clear(Dog.class);
-        testRealm.commitTransaction();
-
-        RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("dogs").findAll();
-        assertEquals(0, owners2.size());
-    }
-
     public void testIsNullWrongType() {
         try {
-            // Owner.name is a String
-            RealmResults<Owner> owners = testRealm.where(Owner.class).isNull("name").findAll();
+            // AllTypes.columnFloat is not nullable
+            testRealm.where(AllTypes.class).isNull("columnFloat").findAll();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 }

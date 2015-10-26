@@ -41,7 +41,7 @@ public class SharedGroupManager implements Closeable {
     /**
      * Creates a new instance of the FileWrapper for the given configuration on this thread.
      */
-    public  SharedGroupManager(RealmConfiguration configuration) {
+    public SharedGroupManager(RealmConfiguration configuration) {
         this.sharedGroup = new SharedGroup(
                 configuration.getPath(),
                 SharedGroup.IMPLICIT_TRANSACTION,
@@ -76,6 +76,14 @@ public class SharedGroupManager implements Closeable {
         transaction.advanceRead();
     }
 
+    /**
+     * Advance the Realm file to the given version.
+     */
+    public void advanceRead(SharedGroup.VersionID version) {
+        transaction.advanceRead(version);
+    }
+
+
     // Public because of migrations. Gets the full table name. Prefix will not be added.
     // TODO Remove when new Migration API is introduced.
     public Table getTable(String tableName) {
@@ -87,6 +95,13 @@ public class SharedGroupManager implements Closeable {
      */
     public boolean hasChanged() {
         return sharedGroup.hasChanged();
+    }
+
+    /**
+     * Returns the version for the SharedGroup.
+     */
+    public SharedGroup.VersionID getVersion() {
+        return sharedGroup.getVersion();
     }
 
     /**
@@ -140,6 +155,13 @@ public class SharedGroupManager implements Closeable {
     }
 
     /**
+     * Returns if the Realm is currently not in a transaction.
+     */
+    public boolean isImmutable() {
+        return transaction.immutable;
+    }
+
+    /**
      * Compacts a Realm file. It cannot be open when calling this method.
      */
     public static boolean compact(RealmConfiguration configuration) {
@@ -158,5 +180,9 @@ public class SharedGroupManager implements Closeable {
             }
         }
         return result;
+    }
+
+    public long getNativePointer() {
+        return sharedGroup.getNativePointer();
     }
 }

@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -27,7 +28,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -46,12 +46,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
@@ -122,7 +124,6 @@ public class RealmTest extends AndroidTestCase {
         populateTestRealm(testRealm, TEST_DATA_SIZE);
     }
 
-
     public void testGetInstanceNullFolderThrows() {
         try {
             Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
@@ -177,6 +178,18 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testCheckValid() {
+        // checkIfValid() must not throw any Exception against valid Realm instance.
+        testRealm.checkIfValid();
+
+        testRealm.close();
+        try {
+            testRealm.checkIfValid();
+            fail("closed Realm instance must throw IllegalStateException.");
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
     public void testRealmCache() {
         Realm newRealm = Realm.getInstance(getContext());
         assertEquals(testRealm, newRealm);
@@ -223,7 +236,7 @@ public class RealmTest extends AndroidTestCase {
             realm = Realm.getInstance((Context) null); // throws when c.getDirectory() is called;
             // has nothing to do with Realm
             fail("Should throw an exception");
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -379,8 +392,65 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testQueriesFailWithNullQueryValue() throws IOException {
+        // String
         try {
-            testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_STRING, (String) null).findAll();
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_STRING_NOT_NULL, (String) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Boolean
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BOOLEAN_NOT_NULL, (String) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Byte
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_BYTE_NOT_NULL, (Byte) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Short
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_SHORT_NOT_NULL, (Short) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Integer
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_INTEGER_NOT_NULL, (Integer) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Long
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_LONG_NOT_NULL, (Long) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Float
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Float) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Double
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_FLOAT_NOT_NULL, (Double) null).findAll();
+            fail("Realm.where should fail with illegal argument");
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Date
+        try {
+            testRealm.where(NullTypes.class).equalTo(NullTypes.FIELD_DATE_NOT_NULL, (Date) null).findAll();
             fail("Realm.where should fail with illegal argument");
         } catch (IllegalArgumentException ignored) {
         }
@@ -411,7 +481,7 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testSortTwoFields() {
-        io.realm.internal.test.TestHelper.populateForMultiSort(testRealm);
+        TestHelper.populateForMultiSort(testRealm);
 
         RealmResults<AllTypes> results1 = testRealm.allObjectsSorted(AllTypes.class,
                 new String[]{AllTypes.FIELD_STRING, AllTypes.FIELD_LONG},
@@ -525,18 +595,26 @@ public class RealmTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    private enum TransactionMethod {
+    private enum Method {
         METHOD_BEGIN,
         METHOD_COMMIT,
-        METHOD_CANCEL
+        METHOD_CANCEL,
+        METHOD_CLEAR,
+        METHOD_DISTINCT,
+        METHOD_CREATE_OBJECT,
+        METHOD_COPY_TO_REALM,
+        METHOD_COPY_TO_REALM_OR_UPDATE,
+        METHOD_CREATE_ALL_FROM_JSON,
+        METHOD_CREATE_OR_UPDATE_ALL_FROM_JSON,
+        METHOD_CREATE_FROM_JSON,
+        METHOD_CREATE_OR_UPDATE_FROM_JSON
     }
 
-    // Starting a transaction on the wrong thread will fail
-    private boolean transactionMethodWrongThread(final TransactionMethod method) throws InterruptedException,
-            ExecutionException {
-        if (method != TransactionMethod.METHOD_BEGIN) {
+    // Calling methods on a wrong thread will fail.
+    private boolean methodWrongThread(final Method method) throws InterruptedException, ExecutionException {
+        if (method != Method.METHOD_BEGIN) {
             testRealm.beginTransaction();
-            testRealm.createObject(Dog.class); // FIXME: Empty transactions cannot be cancelled
+            testRealm.createObject(Dog.class);
         }
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
@@ -553,24 +631,54 @@ public class RealmTest extends AndroidTestCase {
                         case METHOD_CANCEL:
                             testRealm.cancelTransaction();
                             break;
+                        case METHOD_CLEAR:
+                            testRealm.clear(AllTypes.class);
+                            break;
+                        case METHOD_DISTINCT:
+                            testRealm.distinct(AllTypesPrimaryKey.class, "columnLong");
+                            break;
+                        case METHOD_CREATE_OBJECT:
+                            testRealm.createObject(AllTypes.class);
+                            break;
+                        case METHOD_COPY_TO_REALM:
+                            testRealm.copyToRealm(new AllTypes());
+                            break;
+                        case METHOD_COPY_TO_REALM_OR_UPDATE:
+                            testRealm.copyToRealm(new AllTypesPrimaryKey());
+                            break;
+                        case METHOD_CREATE_ALL_FROM_JSON:
+                            testRealm.createAllFromJson(AllTypes.class, "[{}]");
+                            break;
+                        case METHOD_CREATE_OR_UPDATE_ALL_FROM_JSON:
+                            testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, "[{\"columnLong\":1}]");
+                            break;
+                        case METHOD_CREATE_FROM_JSON:
+                            testRealm.createObjectFromJson(AllTypes.class, "{}");
+                            break;
+                        case METHOD_CREATE_OR_UPDATE_FROM_JSON:
+                            testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{\"columnLong\":1}");
+                            break;
                     }
                     return false;
                 } catch (IllegalStateException ignored) {
                     return true;
+                } catch (RealmException jsonFailure) {
+                    // TODO: Eew. Reconsider how our JSON methods reports failure. See https://github.com/realm/realm-java/issues/1594
+                    return (jsonFailure.getMessage().equals("Could not map Json"));
                 }
             }
         });
 
         boolean result = future.get();
-        if (result && method != TransactionMethod.METHOD_BEGIN) {
+        if (method != Method.METHOD_BEGIN) {
             testRealm.cancelTransaction();
         }
         return result;
     }
 
-    public void testTransactionWrongThread() throws ExecutionException, InterruptedException {
-        for (TransactionMethod method : TransactionMethod.values()) {
-            assertTrue(method.toString(), transactionMethodWrongThread(method));
+    public void testMethodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
+        for (Method method : Method.values()) {
+            assertTrue(method.toString(), methodWrongThread(method));
         }
     }
 
@@ -587,6 +695,25 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(TEST_DATA_SIZE + 1, resultList.size());
     }
 
+    public void testCommitTransactionAfterCancelTransaction () {
+        testRealm.beginTransaction();
+        testRealm.cancelTransaction();
+        try {
+            testRealm.commitTransaction();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    public void testDoubleCommitThrows() {
+        testRealm.beginTransaction();
+        testRealm.commitTransaction();
+        try {
+            testRealm.commitTransaction();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
 
     public void testCancelTransaction() {
         populateTestRealm();
@@ -605,7 +732,12 @@ public class RealmTest extends AndroidTestCase {
 
 
     public void testExecuteTransactionNull() {
-        testRealm.executeTransaction(null); // Nothing happens
+        try {
+            testRealm.executeTransaction(null);
+            fail("null transaction should throw");
+        } catch (IllegalArgumentException ignored) {
+
+        }
         assertFalse(testRealm.hasChanged());
     }
 
@@ -632,7 +764,7 @@ public class RealmTest extends AndroidTestCase {
                     throw new RuntimeException("Boom");
                 }
             });
-        } catch (RealmException ignore) {
+        } catch (RealmException ignored) {
         }
         assertEquals(0, testRealm.allObjects(Owner.class).size());
     }
@@ -676,12 +808,12 @@ public class RealmTest extends AndroidTestCase {
         // These calls should fail outside a Transaction:
         try {
             testRealm.createObject(AllTypes.class);
-            fail("Realm.createObject should fail outside write transaction");
+            fail("Realm.createObject should fail outside transaction");
         } catch (IllegalStateException ignored) {
         }
         try {
             testRealm.remove(AllTypes.class, 0);
-            fail("Realm.remove should fail outside write transaction");
+            fail("Realm.remove should fail outside transaction");
         } catch (IllegalStateException ignored) {
         }
     }
@@ -914,6 +1046,14 @@ public class RealmTest extends AndroidTestCase {
     }
 
 
+    public void testGetRealmAfterCompactRealm() {
+        final RealmConfiguration configuration = testRealm.getConfiguration();
+        testRealm.close();
+        testRealm = null;
+        Realm.compactRealm(configuration);
+        testRealm = Realm.getInstance(configuration);
+    }
+
     public void testCompactRealmFileThrowsIfOpen() throws IOException {
         try {
             Realm.compactRealm(TestHelper.createConfiguration(getContext()));
@@ -986,7 +1126,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealm((AllTypes) null);
             fail("Copying null objects into Realm should not be allowed");
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -1215,6 +1355,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
+                obj.setColumnBoxedBoolean(true);
                 realm.copyToRealm(obj);
 
                 AllTypesPrimaryKey obj2 = new AllTypesPrimaryKey();
@@ -1227,6 +1368,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
+                obj2.setColumnBoxedBoolean(false);
                 realm.copyToRealmOrUpdate(obj2);
             }
         });
@@ -1245,6 +1387,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Dog3", obj.getColumnRealmObject().getName());
         assertEquals(1, obj.getColumnRealmList().size());
         assertEquals("Dog4", obj.getColumnRealmList().get(0).getName());
+        assertFalse(obj.getColumnBoxedBoolean());
     }
 
     public void testUpdateCyclicObject() {
@@ -1296,13 +1439,13 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(1, testRealm.allObjects(AllTypesPrimaryKey.class).size());
 
         AllTypesPrimaryKey obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
-        assertEquals("", obj.getColumnString());
+        assertNull(obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
         assertEquals(0.0F, obj.getColumnFloat());
         assertEquals(0.0D, obj.getColumnDouble());
         assertEquals(false, obj.isColumnBoolean());
-        assertArrayEquals(new byte[0], obj.getColumnBinary());
-        assertEquals(new Date(0), obj.getColumnDate());
+        assertNull(obj.getColumnBinary());
+        assertNull(obj.getColumnDate());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
     }
@@ -1604,8 +1747,8 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(tmpFile.createNewFile());
     }
 
-    // Test that all methods that require a write transaction (ie. any function that mutates Realm data)
-    public void testMutableMethodsOutsideWriteTransactions() throws JSONException, IOException {
+    // Test that all methods that require a transaction (ie. any function that mutates Realm data)
+    public void testMutableMethodsOutsideTransactions() throws JSONException, IOException {
 
         // Prepare standalone object data
         AllTypesPrimaryKey t = new AllTypesPrimaryKey();
@@ -1622,7 +1765,7 @@ public class RealmTest extends AndroidTestCase {
         InputStream jsonArrStream = TestHelper.stringToStream(jsonArrStr);
         InputStream jsonArrStream2 = TestHelper.stringToStream(jsonArrStr);
 
-        // Test all methods that should require a write transaction
+        // Test all methods that should require a transaction
         try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
         try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
         try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
@@ -1743,20 +1886,61 @@ public class RealmTest extends AndroidTestCase {
         testRealm.close();
     }
 
+    public void testRealmIsClosed() {
+        assertFalse(testRealm.isClosed());
+        testRealm.close();
+        assertTrue(testRealm.isClosed());
+    }
+
+    // Test Realm#isClosed() in another thread different from where it is created.
+    public void testRealmIsClosedInDifferentThread() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final AssertionFailedError threadAssertionError[] = new AssertionFailedError[1];
+
+        final Thread thatThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testRealm.isClosed();
+                    threadAssertionError[0] = new AssertionFailedError(
+                            "Call isClosed() of Realm instance in a different thread should throw IllegalStateException.");
+                } catch (IllegalStateException ignored) {
+                }
+                latch.countDown();
+            }
+        });
+        thatThread.start();
+
+        // Timeout should never happen
+        latch.await();
+        if (threadAssertionError[0] != null) {
+            throw threadAssertionError[0];
+        }
+        // After exception thrown in another thread, nothing should be changed to the realm in this thread.
+        testRealm.checkIfValid();
+        assertFalse(testRealm.isClosed());
+        testRealm.close();
+    }
+
     // We should not cache wrong configurations
     public void testDontCacheWrongConfigurations() throws IOException {
         testRealm.close();
         String REALM_NAME = "encrypted.realm";
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
         RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("foo"))
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         RealmConfiguration rightConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("realm"))
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         // Open Realm with wrong key
@@ -1778,10 +1962,13 @@ public class RealmTest extends AndroidTestCase {
         byte[] newPassword = TestHelper.SHA512("realm-copy");
 
         TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
         RealmConfiguration config = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(oldPassword)
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         // 1. Write a copy of the encrypted Realm to a new file
@@ -1804,6 +1991,8 @@ public class RealmTest extends AndroidTestCase {
         RealmConfiguration newConfig = new RealmConfiguration.Builder(getContext())
                 .name(REALM_NAME)
                 .encryptionKey(newPassword)
+                .migration(realmMigration)
+                .schema(StringOnly.class)
                 .build();
 
         testRealm = Realm.getInstance(newConfig);
@@ -1886,12 +2075,13 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testProcessLocalListenersAfterRefresh() {
+    public void testProcessLocalListenersAfterRefresh() throws InterruptedException {
         // Used to validate the result
         final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
 
         // Used by the background thread to wait for the main thread to do the write operation
         final CountDownLatch bgThreadLatch = new CountDownLatch(1);
+        final CountDownLatch bgClosedLatch = new CountDownLatch(1);
 
         Thread backgroundThread = new Thread() {
             @Override
@@ -1911,6 +2101,7 @@ public class RealmTest extends AndroidTestCase {
                     fail();
                 } finally {
                     bgRealm.close();
+                    bgClosedLatch.countDown();
                 }
             }
         };
@@ -1920,6 +2111,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         bgThreadLatch.countDown();
+        awaitOrFail(bgClosedLatch);
     }
 
     private void awaitOrFail(CountDownLatch latch) {
@@ -1929,6 +2121,151 @@ public class RealmTest extends AndroidTestCase {
             }
         } catch (InterruptedException e) {
             fail();
+        }
+    }
+
+    private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
+            for (int j = 0; j < numberOfBlocks; j++) {
+                AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
+                obj.setIndexBoolean(j % 2 == 0);
+                obj.setIndexLong(j);
+                obj.setIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setIndexString(withNull ? null :  "Test " + j);
+                obj.setNotIndexBoolean(j % 2 == 0);
+                obj.setNotIndexLong(j);
+                obj.setNotIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setNotIndexString(withNull ? null : "Test " + j);
+            }
+        }
+        realm.commitTransaction();
+    }
+
+    // Realm.distinct(): requires indexing, and type = boolean, integer, date, string
+    public void testDistinct() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        RealmResults<AnnotationIndexTypes> distinctBool = testRealm.distinct(AnnotationIndexTypes.class, "indexBoolean");
+        assertEquals(2, distinctBool.size());
+
+        for (String fieldName : new String[]{"Long", "Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.distinct(AnnotationIndexTypes.class, "index" + fieldName);
+            assertEquals("index" + fieldName, numberOfBlocks, distinct.size());
+        }
+    }
+
+    public void testDistinctWithNull() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, true);
+
+        for (String fieldName : new String[]{"Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.distinct(AnnotationIndexTypes.class, "index" + fieldName);
+            assertEquals("index" + fieldName, 1, distinct.size());
+        }
+    }
+
+    public void testDistinctNotIndexedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.distinct(AnnotationIndexTypes.class, "notIndex" + fieldName);
+                fail("notIndex" + fieldName);
+            } catch (UnsupportedOperationException ignored) {
+            }
+        }
+    }
+
+    public void testDistinctDoesNotExist() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            testRealm.distinct(AnnotationIndexTypes.class, "doesNotExist");
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testDistinctInvalidTypes() {
+        populateTestRealm();
+
+        for (String field : new String[]{"columnRealmObject", "columnRealmList", "columnDouble", "columnFloat"}) {
+            try {
+                testRealm.distinct(AllTypes.class, field);
+                fail(field);
+            } catch (UnsupportedOperationException ignored) {
+            }
+        }
+    }
+
+    public void testIsInTransaction() {
+        assertFalse(testRealm.isInTransaction());
+        testRealm.beginTransaction();
+        assertTrue(testRealm.isInTransaction());
+        testRealm.commitTransaction();
+        assertFalse(testRealm.isInTransaction());
+        testRealm.beginTransaction();
+        assertTrue(testRealm.isInTransaction());
+        testRealm.cancelTransaction();
+        assertFalse(testRealm.isInTransaction());
+    }
+
+    // test for https://github.com/realm/realm-java/issues/1646
+    public void testClosingRealmWhileOtherThreadIsOpeningRealm() throws Exception {
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch endLatch = new CountDownLatch(1);
+
+        final List<Exception> exception = new ArrayList<Exception>();
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    startLatch.await();
+                } catch (InterruptedException e) {
+                    exception.add(e);
+                    return;
+                }
+
+                final Realm realm = Realm.getInstance(testConfig);
+                try {
+                    realm.where(AllTypes.class).equalTo("columnLong", 0L).findFirst();
+                } catch (Exception e) {
+                    exception.add(e);
+                } finally {
+                    endLatch.countDown();
+                    realm.close();
+                }
+            }
+        }.start();
+
+        // prevent for another thread to enter Realm.createAndValidate().
+        synchronized (BaseRealm.class) {
+            startLatch.countDown();
+
+            // wait for another thread's entering Realm.createAndValidate().
+            SystemClock.sleep(100L);
+
+            testRealm.close();
+            testRealm = null;
+        }
+
+        endLatch.await();
+
+        if (!exception.isEmpty()) {
+            throw exception.get(0);
         }
     }
 }

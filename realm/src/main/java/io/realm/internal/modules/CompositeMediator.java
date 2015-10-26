@@ -22,13 +22,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
@@ -55,9 +57,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
+    public ColumnInfo validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction) {
         RealmProxyMediator mediator = getMediator(clazz);
-        mediator.validateTable(clazz, transaction);
+        return mediator.validateTable(clazz, transaction);
     }
 
     @Override
@@ -73,24 +75,14 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmObject> E newInstance(Class<E> clazz) {
+    public <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo) {
         RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.newInstance(clazz);
+        return mediator.newInstance(clazz, columnInfo);
     }
 
     @Override
-    public List<Class<? extends RealmObject>> getModelClasses() {
-        List<Class<? extends RealmObject>> list = new ArrayList<Class<? extends RealmObject>>();
-        for (RealmProxyMediator mediator : mediators.values()) {
-            list.addAll(mediator.getModelClasses());
-        }
-        return list;
-    }
-
-    @Override
-    public Map<String, Long> getColumnIndices(Class<? extends RealmObject> clazz) {
-        RealmProxyMediator mediator = getMediator(clazz);
-        return mediator.getColumnIndices(clazz);
+    public Set<Class<? extends RealmObject>> getModelClasses() {
+        return new HashSet<Class<? extends RealmObject>>(mediators.keySet());
     }
 
     @Override

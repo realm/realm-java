@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.RealmFieldType;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.exceptions.RealmException;
 import io.realm.Sort;
 
@@ -38,6 +39,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public static final String STRING_DEFAULT_VALUE = "";
     public static final long INTEGER_DEFAULT_VALUE = 0;
     public static final String METADATA_TABLE_NAME = "metadata";
+    public static final boolean NULLABLE = true;
+    public static final boolean NOT_NULLABLE = false;
 
     private static final String PRIMARY_KEY_TABLE_NAME = "pk";
     private static final String PRIMARY_KEY_CLASS_COLUMN_NAME = "pk_table";
@@ -48,7 +51,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     protected long nativePtr;
-    
+
     protected final Object parent;
     private final Context context;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
@@ -85,7 +88,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native long createNative();
-    
+
     Table(Context context, Object parent, long nativePointer) {
         this.context = context;
         this.parent  = parent;
@@ -113,14 +116,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     tableCount.decrementAndGet();
                     System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + tableCount.get());
                 }
-                
+
                 nativePtr = 0;
-            }   
+            }
         }
     }
 
     protected static native void nativeClose(long nativeTablePtr);
-    
+
     @Override
     protected void finalize() {
         synchronized (context) {
@@ -131,8 +134,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
             }
         }
 
-        if (DEBUG) 
+        if (DEBUG) {
             System.err.println("==== FINALIZE " + tableNo + "...");
+        }
     }
 
     /*
@@ -169,15 +173,27 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     /**
      * Add a column to the table dynamically.
+     *
+     * @param type The column type.
+     * @param name The field/column name
+     * @param isNullable true if column can contain null values, false otherwise
+     * @return
+     */
+    public long addColumn(RealmFieldType type, String name, boolean isNullable) {
+        verifyColumnName(name);
+        return nativeAddColumn(nativePtr, type.getNativeValue(), name, isNullable);
+    }
+
+    /**
+     * Add a non-nullable column to the table dynamically.
      * @return Index of the new column.
      */
     @Override
-    public long addColumn (RealmFieldType type, String name) {
-        verifyColumnName(name);
-        return nativeAddColumn(nativePtr, type.getNativeValue(), name);
+    public long addColumn(RealmFieldType type, String name) {
+        return addColumn(type, name, false);
     }
 
-    protected native long nativeAddColumn(long nativeTablePtr, int type, String name);
+    protected native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
 
     /**
      * Add a link column to the table dynamically.
@@ -211,6 +227,37 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native void nativeRenameColumn(long nativeTablePtr, long columnIndex, String name);
 
+    /**
+     * Is a column nullable?
+     *
+     * @param columnIndex
+     * @return true if column is nullable, false otherwise.
+     */
+    public boolean isColumnNullable(long columnIndex) {
+        return nativeIsColumnNullable(nativePtr, columnIndex);
+    }
+
+    protected native boolean nativeIsColumnNullable(long nativePtr, long columnIndex);
+
+    /**
+     * Convert a column to be nullable.
+     * @param columnIndex
+     */
+    public void convertColumnToNullable(long columnIndex) {
+        nativeConvertColumnToNullable(nativePtr, columnIndex);
+    }
+
+    protected native void nativeConvertColumnToNullable(long nativeTablePtr, long columnIndex);
+
+    /**
+     * Convert a column to be not nullable. null values will be converted to default values.
+     * @param columnIndex
+     */
+    public void convertColumnToNotNullable(long columnIndex) {
+        nativeConvertColumnToNotNullable(nativePtr, columnIndex);
+    }
+
+    protected native void nativeConvertColumnToNotNullable(long nativePtr, long columnIndex);
 
     /**
      * Updates a table specification from a Table specification structure.
@@ -304,7 +351,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
         return nativeGetColumnIndex(nativePtr, columnName);
     }
-    
+
     protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
 
 
@@ -379,7 +426,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public long addEmptyRowWithPrimaryKey(Object primaryKeyValue) {
         checkImmutable();
         checkHasPrimaryKey();
-        
+
         long primaryKeyColumnIndex = getPrimaryKey();
         RealmFieldType type = getColumnType(primaryKeyColumnIndex);
         long rowIndex;
@@ -617,9 +664,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     void checkStringValueIsLegal(long columnIndex, long rowToUpdate, String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("Null String is not allowed.");
-        }
         if (isPrimaryKey(columnIndex)) {
             long rowIndex = findFirstString(columnIndex, value);
             if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
@@ -638,7 +682,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private void throwDuplicatePrimaryKeyException(Object value) {
-        throw new RealmException("Primary key constraint broken. Value already exists: " + value);
+        throw new RealmPrimaryKeyConstraintException("Value already exists: " + value);
     }
 
     //
@@ -826,7 +870,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @return Unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long index) {
-        return UncheckedRow.get(context, this, index);
+        return UncheckedRow.getByRowIndex(context, this, index);
+    }
+
+    /**
+     * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
+     * If error checking is required, use {@link #getCheckedRow(long)} instead.
+     *
+     * @param nativeRowPointer Pointer to the row to fetch.
+     * @return Unsafe row wrapper object.
+     */
+    public UncheckedRow getUncheckedRowByPointer(long nativeRowPointer) {
+        return UncheckedRow.getByRowPointer(context, this, nativeRowPointer);
     }
 
     /**
@@ -931,8 +986,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     @Override
     public void setBinaryByteArray(long columnIndex, long rowIndex, byte[] data) {
         checkImmutable();
-        if (data == null)
-            throw new IllegalArgumentException("Null Array");
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
     }
 
@@ -996,7 +1049,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *                      will remove any previous set magic key.
      *
      * @throws              {@link io.realm.exceptions.RealmException} if it is not possible to set
-     *                      the primary key due to the column not having distinct values (ie.
+     *                      the primary key due to the column not having distinct values (i.e.
      *                      violating the primary key constraint).
      */
     public void setPrimaryKey(String columnName) {
@@ -1107,14 +1160,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeSumInt(long nativePtr, long columnIndex);
 
     @Override
-    public long maximumLong(long columnIndex) {
+    public Long maximumLong(long columnIndex) {
         return nativeMaximumInt(nativePtr, columnIndex);
     }
 
     protected native long nativeMaximumInt(long nativePtr, long columnIndex);
 
     @Override
-    public long minimumLong(long columnIndex) {
+    public Long minimumLong(long columnIndex) {
         return nativeMinimumInt(nativePtr, columnIndex);
     }
 
@@ -1136,14 +1189,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native double nativeSumFloat(long nativePtr, long columnIndex);
 
     @Override
-    public float maximumFloat(long columnIndex) {
+    public Float maximumFloat(long columnIndex) {
         return nativeMaximumFloat(nativePtr, columnIndex);
     }
 
     protected native float nativeMaximumFloat(long nativePtr, long columnIndex);
 
     @Override
-    public float minimumFloat(long columnIndex) {
+    public Float minimumFloat(long columnIndex) {
         return nativeMinimumFloat(nativePtr, columnIndex);
     }
 
@@ -1165,14 +1218,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native double nativeSumDouble(long nativePtr, long columnIndex);
 
     @Override
-    public double maximumDouble(long columnIndex) {
+    public Double maximumDouble(long columnIndex) {
         return nativeMaximumDouble(nativePtr, columnIndex);
     }
 
     protected native double nativeMaximumDouble(long nativePtr, long columnIndex);
 
     @Override
-    public double minimumDouble(long columnIndex) {
+    public Double minimumDouble(long columnIndex) {
         return nativeMinimumDouble(nativePtr, columnIndex);
     }
 
@@ -1402,10 +1455,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
     protected native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
-    
-    
+
+
     @Override
-    public Table pivot(long stringCol, long intCol, PivotType pivotType){
+    public Table pivot(long stringCol, long intCol, PivotType pivotType) {
         if (! this.getColumnType(stringCol).equals(RealmFieldType.STRING ))
             throw new UnsupportedOperationException("Group by column must be of type String");
         if (! this.getColumnType(intCol).equals(RealmFieldType.INTEGER ))

@@ -30,17 +30,18 @@ import io.realm.internal.TableView;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
- * done using Strings instead of classes.
+ * done using string based class names instead of class type references.
  *
  * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file in both dynamic and typed mode, but
- * modifying the schema while doing so is highly discouraged and will most likely crash the typed Realm.
+ * modifying the schema while having both a typed and dynamic version open is highly discouraged and will most likely
+ * crash the typed Realm. During migrations only a DynamicRealm will be open.
  *
- * Dynamic Realms do not enforce schemas and schema versions and doesn't trigger migrations even if they have been
- * defined in the configuration.
+ * Dynamic Realms do not enforce schemas and schema versions and {@link RealmMigration} code is not used even if it
+ * has been defined in the {@link RealmConfiguration}.
  *
  * @see io.realm.Realm
  */
-public class DynamicRealm extends BaseRealm {
+public final class DynamicRealm extends BaseRealm {
 
     private static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
             new ThreadLocal<Map<RealmConfiguration, DynamicRealm>>() {
@@ -67,7 +68,7 @@ public class DynamicRealm extends BaseRealm {
      * {@link io.realm.RealmConfiguration}. Dynamic Realms do not care about schemaVersion and schemas, so opening a
      * DynamicRealm will never trigger a migration
      *
-     * @return The DynamicRealm defined by the configuration.
+     * @return the DynamicRealm defined by the configuration.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static DynamicRealm getInstance(RealmConfiguration configuration) {
@@ -80,11 +81,12 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Instantiates and adds a new object to the Realm.
      *
-     * @param className The class of the object to create.
-     * @return The new object.
+     * @param className the class name of the object to create.
+     * @return the new object.
      * @throws RealmException if the object could not be created.
      */
     public DynamicRealmObject createObject(String className) {
+        checkIfValid();
         Table table = getTable(className);
         long rowIndex = table.addEmptyRow();
         return get(DynamicRealmObject.class, className, rowIndex);
@@ -109,7 +111,7 @@ public class DynamicRealm extends BaseRealm {
      * Returns a RealmQuery, which can be used to query for the provided class.
      *
      * @param className The class of the object which is to be queried for.
-     * @return A RealmQuery, which can be used to query for specific objects of provided type.
+     * @return a RealmQuery, which can be used to query for specific objects of provided type.
      * @see io.realm.RealmQuery
      * @throws IllegalArgumentException if the class doesn't exist.
      */
@@ -124,9 +126,10 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Removes all objects of the specified class.
      *
-     * @param className The class for which all objects should be removed.
+     * @param className the class for which all objects should be removed.
      */
     public void clear(String className) {
+        checkIfValid();
         getTable(className).clear();
     }
 
@@ -158,7 +161,7 @@ public class DynamicRealm extends BaseRealm {
      * Get all objects of a specific class name.
      *
      * @param className the Class to get objects of
-     * @return A RealmResult list containing the objects. If no results where found, an empty list
+     * @return a {@link RealmResults} list containing the objects. If no results where found, an empty list
      * will be returned.
      * @see io.realm.RealmResults
      */
@@ -168,12 +171,12 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Get all objects of a specific class name sorted by a field.  If no objects exist, the returned
-     * RealmResults will not be null. The RealmResults.size() to check the number of objects instead.
+     * {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of objects instead.
      *
-     * @param className The class to get all objects from.
+     * @param className the class to get all objects from.
      * @param fieldName the field name to sort by.
      * @param sortOrder how to sort the results.
-     * @return A sorted RealmResults containing the objects.
+     * @return a sorted {@link RealmResults} containing the objects.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName, Sort sortOrder) {
@@ -185,21 +188,21 @@ public class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromDynamicQuery(this, tableView, className);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
 
     /**
      * Get all objects of a specific class name sorted by two specific field names.  If no objects exist,
-     * the returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * the returned {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of
      * objects instead.
-
-     * @param className The class to get all objects from.
-     * @param fieldName1 The first field name to sort by.
-     * @param sortOrder1 How to sort the first field.
-     * @param fieldName2 The second field name to sort by.
-     * @param sortOrder2 How to sort the second field.
-     * @return A sorted RealmResults containing the objects. If no results where found an empty list
+     *
+     * @param className the class to get all objects from.
+     * @param fieldName1 the first field name to sort by.
+     * @param sortOrder1 how to sort the first field.
+     * @param fieldName2 the second field name to sort by.
+     * @param sortOrder2 how to sort the second field.
+     * @return a sorted {@link RealmResults} containing the objects. If no results where found an empty list
      * is returned.
      * @throws java.lang.IllegalArgumentException if a field name used for sorting does not exist.
      */
@@ -212,14 +215,14 @@ public class DynamicRealm extends BaseRealm {
 
     /**
      * Get all objects of a specific class name sorted by multiple fields.  If no objects exist, the
-     * returned RealmResults will not be null. The RealmResults.size() to check the number of
+     * returned {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of
      * objects instead.
      *
-     * @param className The class to get all objects from.
+     * @param className the class to get all objects from.
      * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
      * @param fieldNames an array of field names to sort objects by.
      *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
-     * @return A sorted RealmResults containing the objects.
+     * @return A sorted {@link RealmResults} containing the objects.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     @SuppressWarnings("unchecked")
@@ -229,43 +232,100 @@ public class DynamicRealm extends BaseRealm {
         Table table = this.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromDynamicQuery(this, tableView, className);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
-    private static synchronized DynamicRealm create(RealmConfiguration configuration) {
+    private static DynamicRealm create(RealmConfiguration configuration) {
+        synchronized (BaseRealm.class) {
 
-        // Check if a cached instance already exists for this thread
-        String canonicalPath = configuration.getPath();
-        Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
-        }
-        Map<RealmConfiguration, DynamicRealm> realms = realmsCache.get();
-        DynamicRealm realm = realms.get(configuration);
-        if (realm != null) {
+            // Check if a cached instance already exists for this thread
+            String canonicalPath = configuration.getPath();
+            Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
+            Integer references = localRefCount.get(configuration);
+            if (references == null) {
+                references = 0;
+            }
+            Map<RealmConfiguration, DynamicRealm> realms = realmsCache.get();
+            DynamicRealm realm = realms.get(configuration);
+            if (realm != null) {
+                localRefCount.put(configuration, references + 1);
+                return realm;
+            }
+
+            // Create new DynamicRealm and cache it. All exception code paths must close the DynamicRealm otherwise we risk
+            // serving faulty cache data.
+            validateAgainstExistingConfigurations(configuration);
+            boolean autoRefresh = Looper.myLooper() != null;
+            realm = new DynamicRealm(configuration, autoRefresh);
+            List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
+            if (pathConfigurationCache == null) {
+                pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
+                globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+            }
+            pathConfigurationCache.add(configuration);
+            realms.put(configuration, realm);
             localRefCount.put(configuration, references + 1);
+
+            // Increment global reference counter
+            realm.acquireFileReference(configuration);
+
             return realm;
         }
+    }
 
-        // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
-        // faulty cache data.
-        validateAgainstExistingConfigurations(configuration);
-        boolean autoRefresh = Looper.myLooper() != null;
-        realm = new DynamicRealm(configuration, autoRefresh);
-        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-        if (pathConfigurationCache == null) {
-            pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-            globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
+    /**
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in case of multiple occurrences.
+     *
+     * @param className the Class to get objects of.
+     * @param fieldName the field name.
+     * @return A non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     */
+    public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
         }
-        pathConfigurationCache.add(configuration);
-        realms.put(configuration, realm);
-        localRefCount.put(configuration, references + 1);
+        checkIfValid();
+        Table table = this.getTable(className);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
 
-        // Increment global reference counter
-        realm.acquireFileReference(configuration);
+        TableView tableView = table.getDistinctView(columnIndex);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
+    }
 
-        return realm;
+    /**
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in case of multiple occurrences.
+     * This method is only available from a Looper thread.
+     *
+     * @param className the Class to get objects of.
+     * @param fieldName the field name.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
+     * when the query completes.
+     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     */
+    public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+
+        Table table = this.getTable(className);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        // check if the field is indexed
+        if (!table.hasSearchIndex(columnIndex)) {
+            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
+        }
+
+        return where(className).distinctAsync(columnIndex);
     }
 
     @Override

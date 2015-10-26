@@ -64,27 +64,4 @@ public class TestHelper {
         return t;
     }
 
-    public static void populateForMultiSort(Realm typedRealm) {
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(typedRealm.getConfiguration());
-        populateForMultiSort(dynamicRealm);
-        dynamicRealm.close();
-        typedRealm.refresh();
-    }
-
-    public static void populateForMultiSort(DynamicRealm realm) {
-        realm.beginTransaction();
-        realm.clear(AllTypes.CLASS_NAME);
-        DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
-        object1.setLong(AllTypes.FIELD_LONG, 5);
-        object1.setString(AllTypes.FIELD_STRING, "Adam");
-
-        DynamicRealmObject object2 = realm.createObject(AllTypes.CLASS_NAME);
-        object2.setLong(AllTypes.FIELD_LONG, 4);
-        object2.setString(AllTypes.FIELD_STRING, "Brian");
-
-        DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
-        object3.setLong(AllTypes.FIELD_LONG, 4);
-        object3.setString(AllTypes.FIELD_STRING, "Adam");
-        realm.commitTransaction();
-    }
 }

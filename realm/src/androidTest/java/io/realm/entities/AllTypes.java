@@ -20,6 +20,7 @@ import java.util.Date;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Required;
 
 public class AllTypes extends RealmObject {
 
@@ -34,13 +35,16 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLIST = "columnRealmList";
 
-    private String columnString;
+    @Required
+    private String columnString = "";
     private long columnLong;
     private float columnFloat;
     private double columnDouble;
     private boolean columnBoolean;
-    private Date columnDate;
-    private byte[] columnBinary;
+    @Required
+    private Date columnDate = new Date(0);
+    @Required
+    private byte[] columnBinary = new byte[0];
     private Dog columnRealmObject;
     private RealmList<Dog> columnRealmList;
 

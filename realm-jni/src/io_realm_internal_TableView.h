@@ -257,14 +257,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeNullifyLink
 
 /*
  * Class:     io_realm_internal_TableView
- * Method:    nativeAddInt
- * Signature: (JJJ)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeAddInt
-  (JNIEnv *, jobject, jlong, jlong, jlong);
-
-/*
- * Class:     io_realm_internal_TableView
  * Method:    nativeClear
  * Signature: (J)V
  */
@@ -386,17 +378,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSumInt
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeMaximumInt
- * Signature: (JJ)J
+ * Signature: (JJ)Ljava/lang/Long;
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeMaximumInt
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeMinimumInt
- * Signature: (JJ)J
+ * Signature: (JJ)Ljava/lang/Long;
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeMinimumInt
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumInt
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -418,17 +410,17 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeSumFloat
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeMaximumFloat
- * Signature: (JJ)F
+ * Signature: (JJ)Ljava/lang/Float;
  */
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_TableView_nativeMaximumFloat
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumFloat
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeMinimumFloat
- * Signature: (JJ)F
+ * Signature: (JJ)Ljava/lang/Float;
  */
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_TableView_nativeMinimumFloat
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumFloat
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -450,17 +442,17 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeSumDouble
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeMaximumDouble
- * Signature: (JJ)D
+ * Signature: (JJ)Ljava/lang/Double;
  */
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeMaximumDouble
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumDouble
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeMinimumDouble
- * Signature: (JJ)D
+ * Signature: (JJ)Ljava/lang/Double;
  */
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeMinimumDouble
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDouble
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
@@ -474,17 +466,17 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableView_nativeAverageDouble
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeMaximumDate
- * Signature: (JJ)J
+ * Signature: (JJ)Ljava/lang/Long;
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeMaximumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMaximumDate
   (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableView
  * Method:    nativeMinimumDate
- * Signature: (JJ)J
+ * Signature: (JJ)Ljava/lang/Long;
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeMinimumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableView_nativeMinimumDate
   (JNIEnv *, jobject, jlong, jlong);
 
 /*

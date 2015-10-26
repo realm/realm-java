@@ -101,8 +101,13 @@ public interface Row {
 
     void nullifyLink(long columnIndex);
 
+    boolean isNull(long columnIndex);
+
+    void setNull(long columnIndex);
+
     /**
      * Checks if the row is still valid.
+     *
      * @return Returns true {@code true} if the row is still valid and attached to the underlying
      * data. {@code false} otherwise.
      */
@@ -110,8 +115,174 @@ public interface Row {
 
     /**
      * Returns {@code true} if the field name exists.
+     *
      * @param fieldName Field name to check.
      * @return {@code true} if field name exists, {@code false} otherwise.
      */
     boolean hasColumn(String fieldName);
+
+    Row EMPTY_ROW = new Row() {
+        private final static String UNLOADED_ROW_MESSAGE = "Can't modify an row that hasn't been loaded, make sure the instance" +
+                " is loaded by calling RealmObject.isLoaded";
+
+        @Override
+        public long getColumnCount() {
+            return 0;
+        }
+
+        @Override
+        public String getColumnName(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public long getColumnIndex(String columnName) {
+            return 0;
+        }
+
+        @Override
+        public RealmFieldType getColumnType(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public Table getTable() {
+            return null;
+        }
+
+        @Override
+        public long getIndex() {
+            return 0;
+        }
+
+        @Override
+        public long getLong(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public boolean getBoolean(long columnIndex) {
+            return false;
+        }
+
+        @Override
+        public float getFloat(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public double getDouble(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public Date getDate(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public String getString(long columnIndex) {
+            return "";
+        }
+
+        @Override
+        public byte[] getBinaryByteArray(long columnIndex) {
+            return new byte[0];
+        }
+
+        @Override
+        public Mixed getMixed(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public RealmFieldType getMixedType(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public long getLink(long columnIndex) {
+            return 0;
+        }
+
+        @Override
+        public boolean isNullLink(long columnIndex) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public boolean isNull(long columnIndex) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setNull(long columnIndex) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public LinkView getLinkList(long columnIndex) {
+            return null;
+        }
+
+        @Override
+        public void setLong(long columnIndex, long value) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setBoolean(long columnIndex, boolean value) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setFloat(long columnIndex, float value) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setDouble(long columnIndex, double value) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setDate(long columnIndex, Date date) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setString(long columnIndex, String value) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setBinaryByteArray(long columnIndex, byte[] data) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void setMixed(long columnIndex, Mixed data) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public void setLink(long columnIndex, long value) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public void nullifyLink(long columnIndex) {
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
+        }
+
+        @Override
+        public boolean isAttached() {
+            return false;
+        }
+
+        @Override
+        public boolean hasColumn(String fieldName) {
+            return false;
+        }
+    };
 }

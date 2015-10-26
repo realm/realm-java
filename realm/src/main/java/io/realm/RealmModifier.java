@@ -47,5 +47,5 @@ public enum RealmModifier {
      * @see io.realm.annotations.Required
      * @see RealmObjectSchema
      */
-    NON_NULLABLE
+    REQUIRED
 }

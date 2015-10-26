@@ -1,13 +1,30 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal;
 
 import junit.framework.TestCase;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
-import io.realm.RealmFieldType;
-import io.realm.internal.test.TestHelper;
 import io.realm.Case;
+import io.realm.RealmFieldType;
 import io.realm.Sort;
+import io.realm.TestHelper;
 
 public class JNIQueryTest extends TestCase {
 
@@ -66,24 +83,34 @@ public class JNIQueryTest extends TestCase {
         init();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
-        try { table.where().equalTo(new long[]{0}, 1).or().findAll();       fail("missing a second filter"); }      catch (UnsupportedOperationException e) { }
-        try { table.where().or().findAll();                                 fail("just an or()"); }                 catch (UnsupportedOperationException e) { }
-        try { table.where().group().equalTo(new long[]{0}, 1).findAll();    fail("messing a clsong group"); }       catch (UnsupportedOperationException e) { }
-        try { table.where().endGroup().equalTo(new long[]{0}, 1).findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().equalTo(new long[]{0}, 1).or().findAll();       fail("missing a second filter"); }      catch (UnsupportedOperationException ignore) {}
+        try { table.where().or().findAll();                                 fail("just an or()"); }                 catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().equalTo(new long[]{0}, 1).findAll();    fail("missing a closing group"); }      catch (UnsupportedOperationException ignore) {}
 
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().find();    fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(0);   fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(1);   fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().group().count();                                fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().findAll();                              fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().find();                                 fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().minimumInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().maximumInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().sumInt(0);                              fail(); }                               catch (UnsupportedOperationException ignore) {}
+        try { table.where().group().averageInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
 
-        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(0, -1, -1); fail("ends group, no start"); }         catch (UnsupportedOperationException e) { }
+        try { table.where().endGroup().equalTo(new long[]{0}, 1).findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(); fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find();    fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(0);   fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().find(1);   fail("ends group, no start"); }         catch (UnsupportedOperationException ignore) {}
+
+        try { table.where().equalTo(new long[]{0}, 1).endGroup().findAll(0, -1, -1); fail("ends group, no start"); } catch (UnsupportedOperationException ignore) {}
+
 
 
         // step by step buildup
         TableQuery q = table.where().equalTo(new long[]{0}, 1); // valid
         q.findAll();
         q.or();                                                 // not valid
-        try { q.findAll();     fail("no start group"); }         catch (UnsupportedOperationException e) { }
+        try { q.findAll();     fail("no start group"); }         catch (UnsupportedOperationException ignore) { }
         q.equalTo(new long[]{0}, 100);                          // valid again
         q.findAll();
         q.equalTo(new long[]{0}, 200);                          // still valid
@@ -337,7 +364,7 @@ public class JNIQueryTest extends TestCase {
         Table t = new Table();
         t.addColumn(RealmFieldType.DATE, "dateCol");
         t.addColumn(RealmFieldType.STRING, "stringCol");
-        
+
         Date nullDate = null;
         try { t.where().equalTo(new long[]{0}, nullDate);               fail("Date is null"); } catch (IllegalArgumentException e) { }
         try { t.where().notEqualTo(new long[]{0}, nullDate);            fail("Date is null"); } catch (IllegalArgumentException e) { }
@@ -348,7 +375,7 @@ public class JNIQueryTest extends TestCase {
         try { t.where().between(new long[]{0}, nullDate, new Date());   fail("Date is null"); } catch (IllegalArgumentException e) { }
         try { t.where().between(new long[]{0}, new Date(), nullDate);   fail("Date is null"); } catch (IllegalArgumentException e) { }
         try { t.where().between(new long[]{0}, nullDate, nullDate);     fail("Dates are null"); } catch (IllegalArgumentException e) { }
-        
+
         String nullString = null;
         try { t.where().equalTo(new long[]{1}, nullString);                         fail("String is null"); } catch (IllegalArgumentException e) { }
         try { t.where().equalTo(new long[]{1}, nullString, Case.INSENSITIVE);       fail("String is null"); } catch (IllegalArgumentException e) { }
@@ -363,7 +390,7 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    
+
     public void testShouldFind() {
         // Create a table
         Table table = new Table();
@@ -407,7 +434,7 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    
+
     public void testQueryTestForNoMatches() {
         Table t = new Table();
         t = TestHelper.getTableWithAllColumnTypes();
@@ -421,7 +448,7 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    
+
     public void testQueryWithWrongDataType() {
 
         Table table = TestHelper.getTableWithAllColumnTypes();
@@ -501,7 +528,7 @@ public class JNIQueryTest extends TestCase {
         */
     }
 
-    
+
     public void testColumnIndexOutOfBounds() {
         Table table = TestHelper.getTableWithAllColumnTypes();
 
@@ -625,7 +652,7 @@ public class JNIQueryTest extends TestCase {
         try { query.equalTo(new long[]{9}, true);                     assert(false); } catch(ArrayIndexOutOfBoundsException e) {}
     }
 
-    
+
     public void testQueryOnView() {
         Table table = new Table();
 
@@ -652,7 +679,7 @@ public class JNIQueryTest extends TestCase {
         assertEquals(1, view3.size());
     }
 
-    
+
     public void testQueryOnViewWithAlreadyQueriedTable() {
         Table table = new Table();
 
@@ -676,7 +703,7 @@ public class JNIQueryTest extends TestCase {
     }
 
 
-    
+
     public void testQueryWithSubtable() {
         Table table = new Table();
         table.addColumn(RealmFieldType.STRING, "username");
@@ -702,21 +729,21 @@ public class JNIQueryTest extends TestCase {
         assertEquals(2, view.size());
     }
 
-    
+
     public void testQueryWithUnbalancedSubtable() {
         Table table = new Table();
         table.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "sub");
-        
+
         TableSchema tasks = table.getSubtableSchema(0);
         tasks.addColumn(RealmFieldType.STRING, "name");
-        
+
         try { table.where().subtable(0).count();               assert(false); } catch (UnsupportedOperationException e) {}
         try { table.where().endSubtable().count();             assert(false); } catch (UnsupportedOperationException e) {}
         try { table.where().endSubtable().subtable(0).count(); assert(false); } catch (UnsupportedOperationException e) {}
-        try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {} 
+        try { table.where().subtable(0).endSubtable().count(); assert(false); } catch (UnsupportedOperationException e) {}
     }
 
-    
+
     public void testMaximumDate() {
 
         Table table = new Table();
@@ -729,7 +756,7 @@ public class JNIQueryTest extends TestCase {
         assertEquals(new Date(10000), table.where().maximumDate(0));
     }
 
-    
+
     public void testMinimumDate() {
 
         Table table = new Table();
@@ -742,4 +769,101 @@ public class JNIQueryTest extends TestCase {
         assertEquals(new Date(0), table.where().minimumDate(0));
     }
 
+    public void testDateQuery() throws Exception {
+
+        Table table = new Table();
+        table.addColumn(RealmFieldType.DATE, "date");
+
+        final Date past = new Date(TimeUnit.SECONDS.toMillis(Integer.MIN_VALUE - 100L));
+        final Date future = new Date(TimeUnit.SECONDS.toMillis(Integer.MAX_VALUE + 1L));
+        final Date distantPast = new Date(Long.MIN_VALUE);
+        final Date distantFuture = new Date(Long.MAX_VALUE);
+
+        table.add(new Date(10000));
+        table.add(new Date(0));
+        table.add(new Date(1000));
+        table.add(future);
+        table.add(distantFuture);
+        table.add(past);
+        table.add(distantPast);
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, distantPast).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, distantPast).count());
+        assertEquals(0L, table.where().lessThan(new long[]{0}, distantPast).count());
+        assertEquals(1L, table.where().lessThanOrEqual(new long[]{0}, distantPast).count());
+        assertEquals(6L, table.where().greaterThan(new long[]{0}, distantPast).count());
+        assertEquals(7L, table.where().greaterThanOrEqual(new long[]{0}, distantPast).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, past).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, past).count());
+        assertEquals(1L, table.where().lessThan(new long[]{0}, past).count());
+        assertEquals(2L, table.where().lessThanOrEqual(new long[]{0}, past).count());
+        assertEquals(5L, table.where().greaterThan(new long[]{0}, past).count());
+        assertEquals(6L, table.where().greaterThanOrEqual(new long[]{0}, past).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, new Date(0)).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, new Date(0)).count());
+        assertEquals(2L, table.where().lessThan(new long[]{0}, new Date(0)).count());
+        assertEquals(3L, table.where().lessThanOrEqual(new long[]{0}, new Date(0)).count());
+        assertEquals(4L, table.where().greaterThan(new long[]{0}, new Date(0)).count());
+        assertEquals(5L, table.where().greaterThanOrEqual(new long[]{0}, new Date(0)).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, future).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, future).count());
+        assertEquals(5L, table.where().lessThan(new long[]{0}, future).count());
+        assertEquals(6L, table.where().lessThanOrEqual(new long[]{0}, future).count());
+        assertEquals(1L, table.where().greaterThan(new long[]{0}, future).count());
+        assertEquals(2L, table.where().greaterThanOrEqual(new long[]{0}, future).count());
+
+        assertEquals(1L, table.where().equalTo(new long[]{0}, distantFuture).count());
+        assertEquals(6L, table.where().notEqualTo(new long[]{0}, distantFuture).count());
+        assertEquals(6L, table.where().lessThan(new long[]{0}, distantFuture).count());
+        assertEquals(7L, table.where().lessThanOrEqual(new long[]{0}, distantFuture).count());
+        assertEquals(0L, table.where().greaterThan(new long[]{0}, distantFuture).count());
+        assertEquals(1L, table.where().greaterThanOrEqual(new long[]{0}, distantFuture).count());
+
+        // between
+
+        assertEquals(1L, table.where().between(new long[]{0}, distantPast, distantPast).count());
+        assertEquals(2L, table.where().between(new long[]{0}, distantPast, past).count());
+        assertEquals(3L, table.where().between(new long[]{0}, distantPast, new Date(0)).count());
+        assertEquals(5L, table.where().between(new long[]{0}, distantPast, new Date(10000)).count());
+        assertEquals(6L, table.where().between(new long[]{0}, distantPast, future).count());
+        assertEquals(7L, table.where().between(new long[]{0}, distantPast, distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, past, distantPast).count());
+        assertEquals(1L, table.where().between(new long[]{0}, past, past).count());
+        assertEquals(2L, table.where().between(new long[]{0}, past, new Date(0)).count());
+        assertEquals(4L, table.where().between(new long[]{0}, past, new Date(10000)).count());
+        assertEquals(5L, table.where().between(new long[]{0}, past, future).count());
+        assertEquals(6L, table.where().between(new long[]{0}, past, distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(0), distantPast).count());
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(0), past).count());
+        assertEquals(1L, table.where().between(new long[]{0}, new Date(0), new Date(0)).count());
+        assertEquals(3L, table.where().between(new long[]{0}, new Date(0), new Date(10000)).count());
+        assertEquals(4L, table.where().between(new long[]{0}, new Date(0), future).count());
+        assertEquals(5L, table.where().between(new long[]{0}, new Date(0), distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(10000), distantPast).count());
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(10000), past).count());
+        assertEquals(0L, table.where().between(new long[]{0}, new Date(10000), new Date(0)).count());
+        assertEquals(1L, table.where().between(new long[]{0}, new Date(10000), new Date(10000)).count());
+        assertEquals(2L, table.where().between(new long[]{0}, new Date(10000), future).count());
+        assertEquals(3L, table.where().between(new long[]{0}, new Date(10000), distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, future, distantPast).count());
+        assertEquals(0L, table.where().between(new long[]{0}, future, past).count());
+        assertEquals(0L, table.where().between(new long[]{0}, future, new Date(0)).count());
+        assertEquals(0L, table.where().between(new long[]{0}, future, new Date(10000)).count());
+        assertEquals(1L, table.where().between(new long[]{0}, future, future).count());
+        assertEquals(2L, table.where().between(new long[]{0}, future, distantFuture).count());
+
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, distantPast).count());
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, past).count());
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, new Date(0)).count());
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, new Date(10000)).count());
+        assertEquals(0L, table.where().between(new long[]{0}, distantFuture, future).count());
+        assertEquals(1L, table.where().between(new long[]{0}, distantFuture, distantFuture).count());
+    }
 }

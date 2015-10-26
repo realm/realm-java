@@ -49,10 +49,23 @@ public class UncheckedRow extends NativeObject implements Row {
      * @param index the index of the row
      * @return an instance of Row for the table and index specified
      */
-    public static UncheckedRow get(Context context, Table table, long index) {
+    public static UncheckedRow getByRowIndex(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
         UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
-        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), context.ROW_REFERENCES_VALUE);
+        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), Context.ROW_REFERENCES_VALUE);
+        return row;
+    }
+
+    /**
+     * Get the row object from a row pointer
+     * @param context the Realm context
+     * @param table the Table that holds the row
+     * @param nativeRowPointer pointer of a row
+     * @return an instance of Row for the table and row specified
+     */
+    public static UncheckedRow getByRowPointer(Context context, Table table, long nativeRowPointer) {
+        UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
+        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), Context.ROW_REFERENCES_VALUE);
         return row;
     }
 
@@ -63,7 +76,7 @@ public class UncheckedRow extends NativeObject implements Row {
      * @param index the index of the row
      * @return an instance of Row for the LinkView and index specified
      */
-    public static UncheckedRow get(Context context, LinkView linkView, long index) {
+    public static UncheckedRow getByRowIndex(Context context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.nativeLinkViewPtr, index);
         UncheckedRow row = new UncheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent), nativeRowPointer);
         context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), context.ROW_REFERENCES_VALUE);
@@ -201,9 +214,6 @@ public class UncheckedRow extends NativeObject implements Row {
             throw new IllegalArgumentException("Null Date is not allowed.");
         }
         long timestamp = date.getTime() / 1000;
-        if (timestamp >= Integer.MAX_VALUE || timestamp <= Integer.MIN_VALUE) {
-            throw new IllegalArgumentException("Date/timestamp is outside valid range");
-        }
         nativeSetDate(nativePointer, columnIndex, timestamp);
     }
 
@@ -217,9 +227,6 @@ public class UncheckedRow extends NativeObject implements Row {
     @Override
     public void setBinaryByteArray(long columnIndex, byte[] data) {
         parent.checkImmutable();
-        if (data == null) {
-            throw new IllegalArgumentException("Null array is not allowed");
-        }
         nativeSetByteArray(nativePointer, columnIndex, data);
     }
 
@@ -242,6 +249,16 @@ public class UncheckedRow extends NativeObject implements Row {
     public void nullifyLink(long columnIndex) {
         parent.checkImmutable();
         nativeNullifyLink(nativePointer, columnIndex);
+    }
+
+    @Override
+    public boolean isNull(long columnIndex) {
+        return nativeIsNull(nativePointer, columnIndex);
+    }
+
+    @Override
+    public void setNull(long columnIndex) {
+        nativeSetNull(nativePointer, columnIndex);
     }
 
     /**
@@ -293,4 +310,6 @@ public class UncheckedRow extends NativeObject implements Row {
     protected static native void nativeClose(long nativeRowPtr);
     protected native boolean nativeIsAttached(long nativeRowPtr);
     protected native boolean nativeHasColumn(long nativeRowPtr, String columnName);
+    protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
+    protected native void nativeSetNull(long nativeRowPtr, long columnIndex);
 }

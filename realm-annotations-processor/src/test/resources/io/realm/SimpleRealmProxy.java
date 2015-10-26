@@ -4,9 +4,8 @@ package io.realm;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
-import io.realm.RealmObject;
-import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
@@ -15,7 +14,6 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,9 +27,24 @@ import some.test.Simple;
 public class SimpleRealmProxy extends Simple
         implements RealmObjectProxy {
 
-    private static long INDEX_NAME;
-    private static long INDEX_AGE;
-    private static Map<String, Long> columnIndices;
+    static final class SimpleColumnInfo extends ColumnInfo {
+
+        public final long nameIndex;
+        public final long ageIndex;
+
+        SimpleColumnInfo(String path, Table table) {
+            final Map<String, Long> indicesMap = new HashMap<String, Long>(2);
+            this.nameIndex = getValidColumnIndex(path, table, "Simple", "name");
+            indicesMap.put("name", this.nameIndex);
+
+            this.ageIndex = getValidColumnIndex(path, table, "Simple", "age");
+            indicesMap.put("age", this.ageIndex);
+
+            setIndicesMap(indicesMap);
+        }
+    }
+
+    private final SimpleColumnInfo columnInfo;
     private static final List<String> FIELD_NAMES;
     static {
         List<String> fieldNames = new ArrayList<String>();
@@ -40,77 +53,83 @@ public class SimpleRealmProxy extends Simple
         FIELD_NAMES = Collections.unmodifiableList(fieldNames);
     }
 
+    SimpleRealmProxy(ColumnInfo columnInfo) {
+        this.columnInfo = (SimpleColumnInfo) columnInfo;
+    }
+
     @Override
+    @SuppressWarnings("cast")
     public String getName() {
         realm.checkIfValid();
-        return (java.lang.String) row.getString(INDEX_NAME);
+        return (java.lang.String) row.getString(columnInfo.nameIndex);
     }
 
     @Override
     public void setName(String value) {
         realm.checkIfValid();
-        row.setString(INDEX_NAME, (String) value);
+        if (value == null) {
+            row.setNull(columnInfo.nameIndex);
+            return;
+        }
+        row.setString(columnInfo.nameIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public int getAge() {
         realm.checkIfValid();
-        return (int) row.getLong(INDEX_AGE);
+        return (int) row.getLong(columnInfo.ageIndex);
     }
 
     @Override
     public void setAge(int value) {
         realm.checkIfValid();
-        row.setLong(INDEX_AGE, (long) value);
+        row.setLong(columnInfo.ageIndex, value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-            table.addColumn(RealmFieldType.STRING, "name");
-            table.addColumn(RealmFieldType.INTEGER, "age");
+            table.addColumn(RealmFieldType.STRING, "name", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "age", Table.NOT_NULLABLE);
             table.setPrimaryKey("");
             return table;
         }
         return transaction.getTable("class_Simple");
     }
 
-    public static void validateTable(ImplicitTransaction transaction) {
+    public static SimpleColumnInfo validateTable(ImplicitTransaction transaction) {
         if (transaction.hasTable("class_Simple")) {
             Table table = transaction.getTable("class_Simple");
-
             if (table.getColumnCount() != 2) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 2 but was " + table.getColumnCount());
             }
-
             Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 2; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
 
-            columnIndices = new HashMap<String, Long>();
-            for (String fieldName : getFieldNames()) {
-                long index = table.getColumnIndex(fieldName);
-                if (index == -1) {
-                    throw new RealmMigrationNeededException(transaction.getPath(), "Field '" + fieldName + "' not found for type Simple");
-                }
-                columnIndices.put(fieldName, index);
-            }
-            INDEX_NAME = table.getColumnIndex("name");
-            INDEX_AGE = table.getColumnIndex("age");
+            final SimpleColumnInfo columnInfo = new SimpleColumnInfo(transaction.getPath(), table);
 
             if (!columnTypes.containsKey("name")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'name' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("name") != RealmFieldType.STRING) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name' in existing Realm file.");
+            }
+            if (!table.isColumnNullable(columnInfo.nameIndex)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'name' is required. Either set @Required to field 'name' or migrate using io.realm.internal.Table.convertColumnToNullable().");
             }
             if (!columnTypes.containsKey("age")) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
             if (columnTypes.get("age") != RealmFieldType.INTEGER) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age'");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age' in existing Realm file.");
             }
+            if (table.isColumnNullable(columnInfo.ageIndex)) {
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'age' does support null values in the existing Realm file. Use corresponding boxed type for field 'age' or migrate using io.realm.internal.Table.convertColumnToNotNullable().");
+            }
+            return columnInfo;
         } else {
             throw new RealmMigrationNeededException(transaction.getPath(), "The Simple class is missing from the schema for this Realm.");
         }
@@ -124,26 +143,28 @@ public class SimpleRealmProxy extends Simple
         return FIELD_NAMES;
     }
 
-    public static Map<String,Long> getColumnIndices() {
-        return columnIndices;
-    }
-
+    @SuppressWarnings("cast")
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         Simple obj = realm.createObject(Simple.class);
         if (json.has("name")) {
             if (json.isNull("name")) {
-                obj.setName("");
+                obj.setName(null);
             } else {
                 obj.setName((String) json.getString("name"));
             }
         }
-        if (!json.isNull("age")) {
-            obj.setAge((int) json.getInt("age"));
+        if (json.has("age")) {
+            if (json.isNull("age")) {
+                throw new IllegalArgumentException("Trying to set non-nullable field age to null.");
+            } else {
+                obj.setAge((int) json.getInt("age"));
+            }
         }
         return obj;
     }
 
+    @SuppressWarnings("cast")
     public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         Simple obj = realm.createObject(Simple.class);
@@ -152,13 +173,18 @@ public class SimpleRealmProxy extends Simple
             String name = reader.nextName();
             if (name.equals("name")) {
                 if (reader.peek() == JsonToken.NULL) {
-                    obj.setName("");
                     reader.skipValue();
+                    obj.setName(null);
                 } else {
                     obj.setName((String) reader.nextString());
                 }
-            } else if (name.equals("age")  && reader.peek() != JsonToken.NULL) {
-                obj.setAge((int) reader.nextInt());
+            } else if (name.equals("age")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    throw new IllegalArgumentException("Trying to set non-nullable field age to null.");
+                } else {
+                    obj.setAge((int) reader.nextInt());
+                }
             } else {
                 reader.skipValue();
             }
@@ -177,13 +203,7 @@ public class SimpleRealmProxy extends Simple
     public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
-        realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
-        realmObject.setAge(newObject.getAge());
-        return realmObject;
-    }
-
-    static Simple update(Realm realm, Simple realmObject, Simple newObject, Map<RealmObject, RealmObjectProxy> cache) {
-        realmObject.setName(newObject.getName() != null ? newObject.getName() : "");
+        realmObject.setName(newObject.getName());
         realmObject.setAge(newObject.getAge());
         return realmObject;
     }
@@ -195,7 +215,7 @@ public class SimpleRealmProxy extends Simple
         }
         StringBuilder stringBuilder = new StringBuilder("Simple = [");
         stringBuilder.append("{name:");
-        stringBuilder.append(getName());
+        stringBuilder.append(getName() != null ? getName() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{age:");

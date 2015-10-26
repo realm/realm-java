@@ -46,7 +46,13 @@ android.libraryVariants.all { variant ->
         source "../realm-annotations/src/main/java"
         ext.androidJar = files(project.android.getBootClasspath())
         classpath = files(variant.javaCompile.classpath.files) + ext.androidJar
-        options.memberLevel = JavadocMemberLevel.PUBLIC
+        options {
+            memberLevel = JavadocMemberLevel.PUBLIC
+            docEncoding = 'UTF-8'
+            encoding = 'UTF-8'
+            charSet = 'UTF-8'
+            locale = 'en_US'
+        }
         exclude '**/internal/**'
         exclude '**/BuildConfig.java'
         exclude '**/R.java'
@@ -173,17 +179,17 @@ project.afterEvaluate {
 // [ exampleModuleDir, distModuleDir ] -> where to find module dir to copy. Add one for each submodule.
 // First sub module must be the app module
 def examples = [
-    introExample: ["RealmIntroExample", ["" : "app"]],
-    gridViewExample: ["RealmGridViewExample", ["" : "app"]],
-    migrationExample: ["RealmMigrationExample", ["" : "app"]],
-    adapterExample: ["RealmAdapterExample", ["" : "app"]],
-    threadExample: ["RealmThreadExample", ["" : "app"]],
-    jsonExample: ["RealmJsonExample", ["" : "app"]],
-    encryptionExample: ["RealmEncryptionExample", ["" : "app"]],
-    realmModuleExample: ["RealmModuleExample", [ app : "app"], [ library : "library"]]
+        introExample      : ["RealmIntroExample", ["": "app"]],
+        gridViewExample   : ["RealmGridViewExample", ["": "app"]],
+        migrationExample  : ["RealmMigrationExample", ["": "app"]],
+        adapterExample    : ["RealmAdapterExample", ["": "app"]],
+        threadExample     : ["RealmThreadExample", ["": "app"]],
+        jsonExample       : ["RealmJsonExample", ["": "app"]],
+        encryptionExample : ["RealmEncryptionExample", ["": "app"]],
+        realmModuleExample: ["RealmModuleExample", [app: "app"], [library: "library"]]
 ]
 
-def abi = [ 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips', 'x86' ]
+def abi = ['armeabi', 'armeabi-v7a', 'arm64-v8a', 'mips', 'x86']
 
 //for Ant filter
 import org.apache.tools.ant.filters.ReplaceTokens
@@ -256,7 +262,7 @@ task createEclipseJar(type: Zip) {
     dependsOn 'copyLibrariesToEclipseFolder'
     from 'build/intermediates/eclipse'
     exclude 'lib'
-    destinationDir = new File("${rootDir}/distribution/eclipse")
+    destinationDir = file("${rootDir}/distribution/eclipse")
     archiveName = "realm-${version}.jar"
 }
 
@@ -272,7 +278,7 @@ task createDistributionPackage(type: Zip) {
     dependsOn 'createDistributionFolder'
     from "${rootDir}/distribution"
     into "realm-java-${version}"
-    destinationDir = new File("${rootDir}")
+    destinationDir = file("${rootDir}")
     archiveName = "realm-java-${version}.zip"
 }
 
@@ -345,7 +351,7 @@ task findbugs(type: FindBugs) {
     ignoreFailures = false
     effort = "default"
     reportLevel = "medium"
-    excludeFilter = new File("${projectDir}/findbugs-filter.xml")
+    excludeFilter = file("${projectDir}/findbugs-filter.xml")
     classes = files("${projectDir}/build/intermediates/classes")
     source = fileTree('src/main/java/')
     classpath = files()

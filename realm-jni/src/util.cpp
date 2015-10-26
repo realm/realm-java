@@ -28,6 +28,14 @@ using namespace std;
 using namespace realm;
 using namespace realm::util;
 
+// Caching classes and constructors for boxed types.
+jclass java_lang_long;
+jmethodID java_lang_long_init;
+jclass java_lang_float;
+jmethodID java_lang_float_init;
+jclass java_lang_double;
+jmethodID java_lang_double_init;
+
 void ConvertException(JNIEnv* env, const char *file, int line)
 {
     std::ostringstream ss;
@@ -144,6 +152,10 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
         case CrossTableLink:
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = "This class is referenced by other classes. Remove those fields first before removing this class.";
+
+        case BadVersion:
+            jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
+            message = classStr;
             break;
     }
     if (jExceptionClass != NULL) {
@@ -183,6 +195,16 @@ void jprint(JNIEnv *env, char *txt)
     else
         ThrowException(env, NoSuchMethod, "Util", "javaPrint");
 #endif
+}
+
+void ThrowNullValueException(JNIEnv* env, Table* table, size_t col_ndx) {
+    std::ostringstream ss;
+    ss << "Trying to set a non-nullable field '"
+       << table->get_column_name(col_ndx)
+       << "' in '"
+       << table->get_name()
+       << "' to null.";
+    ThrowException(env, IllegalArgument, ss.str());
 }
 
 void jprintf(JNIEnv *env, const char *format, ...)
@@ -292,6 +314,10 @@ string concat_stringdata(const char *message, StringData strData)
 
 jstring to_jstring(JNIEnv* env, StringData str)
 {
+    if (str.is_null()) {
+        return NULL;
+    }
+    
     // For efficiency, if the incoming UTF-8 string is sufficiently
     // small, we will attempt to store the UTF-16 output into a stack
     // allocated buffer of static size. Otherwise we will have to
@@ -355,6 +381,12 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
     // input. This is guaranteed to be enough. However, to avoid
     // excessive over allocation, this is not done for larger input
     // strings.
+
+    if (str == NULL) {
+        m_is_null = true;
+        return;
+    }
+    m_is_null = false;
 
     JStringCharsAccessor chars(env, str);
 

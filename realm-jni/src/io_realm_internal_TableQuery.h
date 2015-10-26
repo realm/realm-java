@@ -361,11 +361,75 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeFindWithHandover
+ * Signature: (JJJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeFindAll
  * Signature: (JJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeFindAllWithHandover
+ * Signature: (JJJJJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeGetDistinctViewWithHandover
+ * Signature: (JJJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewWithHandover
+        (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeFindAllSortedWithHandover
+ * Signature: (JJJJJJJZ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong, jlong, jboolean);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeFindAllMultiSortedWithHandover
+ * Signature: (JJJJJJ[J[Z)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong, jlongArray, jbooleanArray);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeImportHandoverTableViewIntoSharedGroup
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTableViewIntoSharedGroup
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeImportHandoverRowIntoSharedGroup
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRowIntoSharedGroup
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeHandoverQuery
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
+  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
@@ -378,17 +442,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeSumInt
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeMaximumInt
- * Signature: (JJJJJ)J
+ * Signature: (JJJJJ)Ljava/lang/Long;
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeMinimumInt
- * Signature: (JJJJJ)J
+ * Signature: (JJJJJ)Ljava/lang/Long;
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
@@ -410,17 +474,17 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumFloat
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeMaximumFloat
- * Signature: (JJJJJ)F
+ * Signature: (JJJJJ)Ljava/lang/Float;
  */
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeMinimumFloat
- * Signature: (JJJJJ)F
+ * Signature: (JJJJJ)Ljava/lang/Float;
  */
-JNIEXPORT jfloat JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
@@ -442,17 +506,17 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeMaximumDouble
- * Signature: (JJJJJ)D
+ * Signature: (JJJJJ)Ljava/lang/Double;
  */
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeMinimumDouble
- * Signature: (JJJJJ)D
+ * Signature: (JJJJJ)Ljava/lang/Double;
  */
-JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
@@ -466,26 +530,42 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeMaximumDate
- * Signature: (JJJJJ)J
+ * Signature: (JJJJJ)Ljava/lang/Long;
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDate
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeMinimumDate
- * Signature: (JJJJJ)J
+ * Signature: (JJJJJ)Ljava/lang/Long;
  */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDate
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeIsNull
- * Signature: (JJ)V
+ * Signature: (J[J)V
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull
-  (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlongArray);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeIsEmpty
+ * Signature: (J[J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
+  (JNIEnv *, jobject, jlong, jlongArray);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeIsNotNull
+ * Signature: (J[J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
+  (JNIEnv *, jobject, jlong, jlongArray);
 
 /*
  * Class:     io_realm_internal_TableQuery
@@ -502,6 +582,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCount
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeCloseQueryHandover
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandover
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

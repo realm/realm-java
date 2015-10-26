@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm;
 
 import android.test.AndroidTestCase;
@@ -9,6 +25,10 @@ import java.util.EnumSet;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.FieldOrder;
+import io.realm.entities.NullTypes;
+import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.entities.PrimaryKeyAsString;
+import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.Table;
 
@@ -67,8 +87,8 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("FieldOrder")
-                        .addInt("field2")
-                        .addBoolean("field1");
+                        .addIntField("field2")
+                        .addBooleanField("field1");
             }
         };
 
@@ -109,9 +129,9 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("AnnotationTypes")
-                        .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
-                        .addString("indexString") // Forget to set @Index
-                        .addString("notIndexString");
+                        .addLongField("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
+                        .addStringField("indexString") // Forget to set @Index
+                        .addStringField("notIndexString");
             }
         };
 
@@ -144,9 +164,9 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("AnnotationTypes")
-                        .addLong("id") // Forget to set @PrimaryKey
-                        .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
-                        .addString("notIndexString");
+                        .addLongField("id") // Forget to set @PrimaryKey
+                        .addStringField("indexString", EnumSet.of(RealmModifier.INDEXED))
+                        .addStringField("notIndexString");
             }
         };
 
@@ -160,7 +180,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
-            if (!e.getMessage().equals("Primary key not defined for field 'id'")) {
+            if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. Add @PrimaryKey.")) {
                 fail(e.toString());
             }
         } finally {
@@ -168,6 +188,43 @@ public class RealmMigrationTests extends AndroidTestCase {
                 realm.close();
                 Realm.deleteRealm(realmConfig);
             }
+        }
+    }
+
+    // adding search index is idempotent
+    public void testAddingSearchIndexTwice() throws IOException {
+        Class[] classes = {PrimaryKeyAsLong.class, PrimaryKeyAsString.class};
+
+        for (final Class clazz : classes){
+            final boolean[] didMigrate = {false};
+
+            RealmMigration migration = new RealmMigration() {
+                @Override
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    Table table = realm.getTable(clazz);
+                    long columnIndex = table.getColumnIndex("id");
+                    table.addSearchIndex(columnIndex);
+                    if (clazz == PrimaryKeyAsLong.class) {
+                        columnIndex = table.getColumnIndex("name");
+                        table.convertColumnToNullable(columnIndex);
+                    }
+                    didMigrate[0] = true;
+                }
+            };
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(42)
+                    .schema(clazz)
+                    .migration(migration)
+                    .build();
+            Realm.deleteRealm(realmConfig);
+            TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+            Realm.migrateRealm(realmConfig);
+            realm = Realm.getInstance(realmConfig);
+            assertEquals(42, realm.getVersion());
+            assertTrue(didMigrate[0]);
+            Table table = realm.getTable(clazz);
+            assertEquals(true, table.hasSearchIndex(table.getColumnIndex("id")));
+            realm.close();
         }
     }
 
@@ -183,9 +240,9 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("AnnotationTypes")
-                        .addLong("id", EnumSet.of(RealmModifier.PRIMARY_KEY, RealmModifier.INDEXED))
-                        .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
-                        .addString("notIndexString");
+                        .addLongField("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
+                        .addStringField("indexString", EnumSet.of(RealmModifier.INDEXED))
+                        .addStringField("notIndexString");
             }
         };
 
@@ -213,10 +270,10 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("AnnotationTypes")
-                        .addInt("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
+                        .addIntField("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
                         .removeIndex("id")
-                        .addString("indexString", EnumSet.of(RealmModifier.INDEXED))
-                        .addString("notIndexString");
+                        .addStringField("indexString", EnumSet.of(RealmModifier.INDEXED))
+                        .addStringField("notIndexString");
             }
         };
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
@@ -256,4 +313,232 @@ public class RealmMigrationTests extends AndroidTestCase {
         } catch (RealmMigrationNeededException expected) {
         }
     }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. But @Required must be added, and forgetting so will give you
+    // a RealmMigrationNeeded exception.
+    public void testOpenPreNullRealmRequiredMissing() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration realmMigration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                // intentionally left empty
+            }
+        };
+
+        try {
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(0)
+                    .schema(StringOnly.class)
+                    .migration(realmMigration)
+                    .build();
+            Realm realm = Realm.getInstance(realmConfig);
+            realm.close();
+            fail();
+        } catch (RealmMigrationNeededException e) {
+            assertEquals("Field 'chars' is required. Either set @Required to field 'chars' or migrate using io.realm.internal.Table.convertColumnToNullable().",
+                    e.getMessage());
+        }
+    }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. An explicit migration step to convert to nullable, and the
+    // old class (without @Required) can be used,
+    public void testMigratePreNull() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                Table table = realm.getTable(StringOnly.class);
+                table.convertColumnToNullable(table.getColumnIndex("chars"));
+            }
+        };
+
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schemaVersion(1)
+                .schema(StringOnly.class)
+                .migration(migration)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+        realm.beginTransaction();
+        StringOnly stringOnly = realm.createObject(StringOnly.class);
+        stringOnly.setChars(null);
+        realm.commitTransaction();
+        realm.close();
+    }
+
+    // Pre-null Realms will leave columns not-nullable after the underlying storage engine has
+    // migrated the file format. If the user adds the @Required annotation to a field and does not
+    // change the schema version, no migration is needed. But then, null cannot be used as a value.
+    public void testOpenPreNullWithRequired() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                .schemaVersion(0)
+                .schema(AllTypes.class)
+                .build();
+        Realm realm = Realm.getInstance(realmConfig);
+
+        realm.beginTransaction();
+        try {
+            AllTypes allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnString(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+        realm.cancelTransaction();
+
+        realm.close();
+    }
+
+    // If a required field was nullable before, a RealmMigrationNeededException should be thrown
+    public void testNotSettingRequiredForNotNullableThrows() {
+        String[] notNullableFields = {"fieldStringNotNull", "fieldBytesNotNull", "fieldBooleanNotNull",
+                "fieldByteNotNull", "fieldShortNotNull", "fieldIntegerNotNull", "fieldLongNotNull",
+                "fieldFloatNotNull", "fieldDoubleNotNull", "fieldDateNotNull"};
+        //String[] notNullableFields = {"fieldBooleanNotNull"};
+        for (final String field : notNullableFields) {
+            final RealmMigration migration = new RealmMigration() {
+                @Override
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    if (oldVersion == -1) { // -1 == UNVERSIONED i.e., not initialized
+                        // No @Required for not nullable field
+                        TestHelper.initNullTypesTableExcludes(realm, field);
+                        Table table = realm.getTable(NullTypes.class);
+                        if (field.equals("fieldStringNotNull")) {
+                            // 1 String
+                            table.addColumn(RealmFieldType.STRING, field, Table.NULLABLE);
+                        } else if (field.equals("fieldBytesNotNull")) {
+                            // 2 Bytes
+                            table.addColumn(RealmFieldType.BINARY, field, Table.NULLABLE);
+                        } else if (field.equals("fieldBooleanNotNull")) {
+                            // 3 Boolean
+                            table.addColumn(RealmFieldType.BOOLEAN, field, Table.NULLABLE);
+                        } else if (field.equals("fieldByteNotNull") || field.equals("fieldShortNotNull") ||
+                                field.equals("fieldIntegerNotNull") || field.equals("fieldLongNotNull")) {
+                            // 4 Byte 5 Short 6 Integer 7 Long
+                            table.addColumn(RealmFieldType.INTEGER, field, Table.NULLABLE);
+                        } else if (field.equals("fieldFloatNotNull")) {
+                            // 8 Float
+                            table.addColumn(RealmFieldType.FLOAT, field, Table.NULLABLE);
+                        } else if (field.equals("fieldDoubleNotNull")) {
+                            // 9 Double
+                            table.addColumn(RealmFieldType.DOUBLE, field, Table.NULLABLE);
+                        } else if (field.equals("fieldDateNotNull")) {
+                            // 10 Date
+                            table.addColumn(RealmFieldType.DATE, field, Table.NULLABLE);
+                        }
+                        // 11 Object skipped
+                    }
+                }
+            };
+
+            @SuppressWarnings("unchecked")
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(1)
+                    .schema(NullTypes.class)
+                    .migration(migration)
+                    .build();
+            Realm.deleteRealm(realmConfig);
+            Realm.migrateRealm(realmConfig);
+
+            try {
+                realm = Realm.getInstance(realmConfig);
+                fail("Failed on " + field);
+            } catch (RealmMigrationNeededException e) {
+                assertEquals("Field '" + field + "' does support null values in the existing Realm file." +
+                        " Remove @Required or @PrimaryKey from field '" + field + "' " +
+                        "or migrate using io.realm.internal.Table.convertColumnToNotNullable().",
+                        e.getMessage());
+            }
+        }
+    }
+
+    // If a field is not required but was not nullable before, a RealmMigrationNeededException should be thrown
+    public void testSettingRequiredForNullableThrows() {
+        String[] notNullableFields = {"fieldStringNull", "fieldBytesNull", "fieldBooleanNull",
+                "fieldByteNull", "fieldShortNull", "fieldIntegerNull", "fieldLongNull",
+                "fieldFloatNull", "fieldDoubleNull", "fieldDateNull"};
+        for (final String field : notNullableFields) {
+            final RealmMigration migration = new RealmMigration() {
+                @Override
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    if (oldVersion == -1) {  // -1 == UNVERSIONED i.e., not been initialized
+                        // No @Required for not nullable field
+                        TestHelper.initNullTypesTableExcludes(realm, field);
+                        Table table = realm.getTable(NullTypes.class);
+                        if (field.equals("fieldStringNull")) {
+                            // 1 String
+                            table.addColumn(RealmFieldType.STRING, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldBytesNull")) {
+                            // 2 Bytes
+                            table.addColumn(RealmFieldType.BINARY, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldBooleanNull")) {
+                            // 3 Boolean
+                            table.addColumn(RealmFieldType.BOOLEAN, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldByteNull") || field.equals("fieldShortNull") ||
+                                field.equals("fieldIntegerNull") || field.equals("fieldLongNull")) {
+                            // 4 Byte 5 Short 6 Integer 7 Long
+                            table.addColumn(RealmFieldType.INTEGER, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldFloatNull")) {
+                            // 8 Float
+                            table.addColumn(RealmFieldType.FLOAT, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldDoubleNull")) {
+                            // 9 Double
+                            table.addColumn(RealmFieldType.DOUBLE, field, Table.NOT_NULLABLE);
+                        } else if (field.equals("fieldDateNull")) {
+                            // 10 Date
+                            table.addColumn(RealmFieldType.DATE, field, Table.NOT_NULLABLE);
+                        }
+                        // 11 Object skipped
+                    }
+                }
+            };
+
+            @SuppressWarnings("unchecked")
+            RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
+                    .schemaVersion(1)
+                    .schema(NullTypes.class)
+                    .migration(migration)
+                    .build();
+            Realm.deleteRealm(realmConfig);
+            Realm.migrateRealm(realmConfig);
+
+            try {
+                realm = Realm.getInstance(realmConfig);
+                fail("Failed on " + field);
+            } catch (RealmMigrationNeededException e) {
+                if (field.equals("fieldStringNull") || field.equals("fieldBytesNull") || field.equals("fieldDateNull")) {
+                    assertEquals("Field '" + field + "' is required. Either set @Required to field '" +
+                            field + "' " +
+                            "or migrate using io.realm.internal.Table.convertColumnToNullable().", e.getMessage());
+                } else {
+                    assertEquals("Field '" + field + "' does not support null values in the existing Realm file."
+                                    + " Either set @Required, use the primitive type for field '"
+                                    + field + "' or migrate using io.realm.internal.Table.convertColumnToNullable().",  e.getMessage());
+                }
+            }
+        }
+    }
+
+    public void testRealmOpenBeforeMigrationThrows() {
+        RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+        realm = Realm.getInstance(config);
+
+        try {
+            // Trigger manual migration. This can potentially change the schema, so should only be allowed when
+            // no-one else is working on the Realm.
+            Realm.migrateRealm(config, new RealmMigration() {
+                @Override
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    // Do nothing
+                }
+            });
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
+    // TODO Add unit tests for default nullability
+    // TODO Add unit tests for default Indexing for Primary keys
 }

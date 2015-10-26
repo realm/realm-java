@@ -19,15 +19,20 @@ package io.realm;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.TableOrView;
+import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
+import io.realm.internal.log.RealmLog;
 
 /**
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects
@@ -43,7 +48,7 @@ import io.realm.internal.TableView;
  * <p>
  * A RealmResults object cannot be passed between different threads.
  * <p>
- * Notice that a RealmResults is never null not even in the case where it contains no objects. You
+ * Notice that a RealmResults is never {@code null} not even in the case where it contains no objects. You
  * should always use the size() method to check if a RealmResults is empty or not.
  *
  * @param <E> The class of objects in this list
@@ -51,22 +56,26 @@ import io.realm.internal.TableView;
  * @see Realm#allObjects(Class)
  * @see io.realm.Realm#beginTransaction()
  */
-public class RealmResults<E extends RealmObject> extends AbstractList<E> {
+public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     BaseRealm realm;
     Class<E> classSpec;   // Return type
-    String className;     // Class name for DynamicRealmObjects -> TODO This is not set properly
+    String className;     // Class name used by DynamicRealmObjects
     private TableOrView table = null;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private long currentTableViewVersion = -1;
 
+    private final TableQuery query;
+    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    private Future<Long> pendingQuery;
+    private boolean isCompleted = false;
 
     static <E extends RealmObject> RealmResults<E> createFromClass(BaseRealm realm, Class<E> clazz) {
         return new RealmResults<E>(realm, clazz);
     }
 
-    static <E extends RealmObject> RealmResults<E> createFromQuery(BaseRealm realm, TableOrView table, Class<E> clazz) {
+    static <E extends RealmObject> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
         return new RealmResults<E>(realm, table, clazz);
     }
 
@@ -74,16 +83,24 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return new RealmResults<DynamicRealmObject>(realm, className);
     }
 
-    static RealmResults<DynamicRealmObject> createFromDynamicQuery(BaseRealm realm, TableOrView table, String className) {
+    static RealmResults<DynamicRealmObject> createFromDynamicTableOrView(BaseRealm realm, TableOrView table, String className) {
         return new RealmResults<DynamicRealmObject>(realm, table, className);
     }
 
     private RealmResults(BaseRealm realm, Class<E> classSpec) {
         this.realm = realm;
         this.classSpec = classSpec;
+        pendingQuery = null;
+        query = null;
     }
 
-    private RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
+    RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
+        this.realm = realm;
+        this.classSpec = clazz;
+        this.query = query;
+    }
+
+    RealmResults(BaseRealm realm, TableOrView table, Class<E> classSpec) {
         this(realm, classSpec);
         this.table = table;
     }
@@ -91,6 +108,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private RealmResults(BaseRealm realm, String className) {
         this.realm = realm;
         this.className = className;
+
+        //TODO need to guard all calls involving table since it's null until async query returns
+        pendingQuery = null;
+        query = null;
     }
 
     private RealmResults(BaseRealm realm, TableOrView table, String className) {
@@ -107,6 +128,16 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
+     * Check if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm}
+     * instance hasn't been closed.
+     *
+     * @return {@code true} if still valid to use, {@code false} otherwise.
+     */
+    public boolean isValid() {
+        return realm != null && !realm.isClosed();
+    }
+
+    /**
      * Returns a typed {@link io.realm.RealmQuery}, which can be used to query for specific
      * objects of this type.
      *
@@ -115,7 +146,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public RealmQuery<E> where() {
         realm.checkIfValid();
-        return RealmQuery.createSubQuery(this);
+        return RealmQuery.createQueryFromResult(this);
     }
 
     /**
@@ -131,7 +162,7 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = realm.get(classSpec, className, ((TableView)table).getSourceRowIndex(location));
+            obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
         } else {
             obj = realm.get(classSpec, className, location);
         }
@@ -176,6 +207,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public Iterator<E> iterator() {
+        if (!isLoaded()) {
+            // Collections.emptyIterator(); is only available since API 19
+            return Collections.<E>emptyList().iterator();
+        }
         return new RealmResultsIterator();
     }
 
@@ -188,6 +223,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public ListIterator<E> listIterator() {
+        if (!isLoaded()) {
+            // Collections.emptyListIterator() is only available since API 19
+            return Collections.<E>emptyList().listIterator();
+        }
         return new RealmResultsListIterator(0);
     }
 
@@ -202,6 +241,10 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public ListIterator<E> listIterator(int location) {
+        if (!isLoaded()) {
+            // Collections.emptyListIterator() is only available since API 19
+            return Collections.<E>emptyList().listIterator(location);
+        }
         return new RealmResultsListIterator(location);
     }
 
@@ -324,16 +367,21 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     @Override
     public int size() {
-        return ((Long)getTable().size()).intValue();
+        if (!isLoaded()) {
+            return 0;
+        } else {
+            return ((Long)getTable().size()).intValue();
+        }
     }
 
     /**
      * Find the minimum value of a field.
      *
-     * @param fieldName   The field to look for a minimum on. Only int, float, and double
-     *                    are supported.
-     * @return            The minimum value.
-     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
+     * @param fieldName   the field to look for a minimum on. Only number fields are supported.
+     * @return            if no objects exist or they all have {@code null} as the value for the given
+     *                    field, {@code null} will be returned. Otherwise the minimum value is returned.
+     *                    When determining the minimum value, objects with {@code null} values are ignored.
+     * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
@@ -355,7 +403,9 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @param fieldName  The field to look for the minimum date. If fieldName is not of Date type,
      *                   an exception is thrown.
-     * @return           The minimum date.
+     * @return           If no objects exist or they all have {@code null} as the value for the given
+     *                   date field, {@code null} will be returned. Otherwise the minimum date is returned.
+     *                   When determining the minimum date, objects with {@code null} values are ignored.
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date minDate(String fieldName) {
@@ -372,9 +422,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Find the maximum value of a field.
      *
-     * @param fieldName   The field to look for a maximum on. Only int, float, and double are supported.
-     * @return            The maximum value.
-     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
+     * @param fieldName   the field to look for a maximum on. Only number fields are supported.
+     * @return            if no objects exist or they all have {@code null} as the value for the given
+     *                    field, {@code null} will be returned. Otherwise the maximum value is returned.
+     *                    When determining the maximum value, objects with {@code null} values are ignored.
+     * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
@@ -394,9 +446,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Find the maximum date.
      *
-     * @param fieldName  The field to look for the maximum date. If fieldName is not of Date type,
+     * @param fieldName  the field to look for the maximum date. If fieldName is not of Date type,
      *                   an exception is thrown.
-     * @return           The maximum date.
+     * @return           if no objects exist or they all have {@code null} as the value for the given
+     *                   date field, {@code null} will be returned. Otherwise the maximum date is returned.
+     *                   When determining the maximum date, objects with {@code null} values are ignored.
      * @throws           java.lang.IllegalArgumentException if fieldName is not a Date field.
      */
     public Date maxDate(String fieldName) {
@@ -414,11 +468,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Calculate the sum of a given field.
      *
-     * @param fieldName   The field to sum. Only int, float, and double are supported.
-     * @return            The sum.
-     * @throws            java.lang.IllegalArgumentException if field is not int, float or double.
+     * @param fieldName   the field to sum. Only number fields are supported.
+     * @return            the sum. If no objects exist or they all have {@code null} as the value for the given field,
+     *                    {@code 0} will be returned. When computing the sum, objects with {@code null} values are ignored.
+     * @throws            java.lang.IllegalArgumentException if the field is not a number type.
      */
-
     public Number sum(String fieldName) {
         realm.checkIfValid();
         long columnIndex = table.getColumnIndex(fieldName);
@@ -438,11 +492,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Returns the average of a given field.
      *
-     * @param fieldName  The field to calculate average on. Only properties of type int,
-     *                   float and double are supported.
-     * @return           The average for the given field amongst objects in an RealmList. This
-     *                   will be of type double for both float and double field.
-     * @throws           java.lang.IllegalArgumentException if field is not int, float or double.
+     * @param fieldName  the field to calculate average on. Only number fields are supported.
+     * @return           The average for the given field amongst objects in query results. This
+     *                   will be of type double for all types of number fields. If no objects exist or
+     *                   they all have {@code null} as the value for the given field, {@code 0} will be returned.
+     *                   When computing the average, objects with {@code null} values are ignored.
+     * @throws           java.lang.IllegalArgumentException if the field is not a number type.
      */
     public double average(String fieldName) {
         realm.checkIfValid();
@@ -469,10 +524,12 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * {@link io.realm.RealmResults.RealmResultsIterator#remove()} instead.
      *
      * @param index      The array index identifying the object to be removed.
-     * @return           Always return null.
+     * @return           Always return {@code null}.
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     @Override
     public E remove(int index) {
+        realm.checkIfValid();
         TableOrView table = getTable();
         table.remove(index);
         return null; // Returning the object doesn't make sense, since it could no longer access any data.
@@ -484,8 +541,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * Using this method while iterating the list can result in a undefined behavior. Use
      * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     public void removeLast() {
+        realm.checkIfValid();
         TableOrView table = getTable();
         table.removeLast();
     }
@@ -493,8 +553,11 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Removes all objects from the list. This also deletes the objects from the
      * underlying Realm.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     public void clear() {
+        realm.checkIfValid();
         TableOrView table = getTable();
         table.clear();
     }
@@ -636,5 +699,138 @@ public class RealmResults<E extends RealmObject> extends AbstractList<E> {
          */
         @Override
         public void remove() { throw new RealmException("Removing elements not supported."); }
+    }
+
+    /**
+     * Swap the table_view pointer used by this RealmResults
+     * mostly called when updating the RealmResults from a worker thread.
+     * @param handoverTableViewPointer handover pointer to the new table_view
+     */
+    void swapTableViewPointer (long handoverTableViewPointer) {
+        table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
+        isCompleted = true;
+    }
+
+    /**
+     * Set the Future instance returned by the worker thread, we need this instance
+     * to force {@link #load()} an async query, we use it to determine if the current
+     * RealmResults is a sync or async one.
+     * @param pendingQuery pending query
+     */
+    void setPendingQuery (Future<Long> pendingQuery) {
+        this.pendingQuery = pendingQuery;
+        if (isLoaded()) {
+            // the query completed before RealmQuery
+            // had a chance to call setPendingQuery to register the pendingQuery (used btw
+            // to determine isLoaded behaviour)
+            onCompleted();
+        } // else, it will be handled by the Realm#handler
+    }
+
+    /**
+     * Returns {@code true} if the results are not yet loaded, {@code false} if they are
+     * still loading. Synchronous query methods like findAll() will always return {@code true},
+     * while asynchronous query methods like findAllAsync() will return {@code false} until
+     * the results are available.
+     * This will return {@code true} if called for a standalone object (created outside of Realm).
+     *
+     * @return {@code true} if the query has completed and the data is available {@code false} if the
+     *         query is still running
+     */
+    public boolean isLoaded () {
+        if (realm == null) {
+            return true;
+        }
+        realm.checkIfValid();
+        return pendingQuery == null || isCompleted;
+    }
+
+    /**
+     * Make an asynchronous query blocking. This will also trigger any registered listeners.
+     * This will return {@code true} for standalone object (created outside of Realm).
+     *
+     * {@link RealmChangeListener} when the query completes.
+     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
+     */
+    public boolean load() {
+        if (isLoaded()) {
+            return true;
+        } else {
+        // doesn't guarantee to import correctly the result (because the user may have advanced)
+        // in this case the Realm#handler will be responsible of retrying
+            return onCompleted();
+        }
+    }
+
+    /**
+     * Called to import the handover table_view pointer & notify listeners.
+     * This should be invoked once the {@link #pendingQuery} finish, unless the user force {@link #load()}.
+     *
+     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
+     */
+    private boolean onCompleted() {
+        try {
+            long tvHandover = pendingQuery.get();// make the query blocking
+            // this may fail with BadVersionException if the caller and/or the worker thread
+            // are not in sync. REALM_COMPLETED_ASYNC_QUERY will be fired by the worker thread
+            // this should handle more complex use cases like retry, ignore etc
+            table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
+            isCompleted = true;
+            notifyChangeListeners();
+        } catch (Exception e) {
+            RealmLog.d(e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Add a change listener to this RealmResults.
+     * @param listener the change listener to be notified
+     */
+    public void addChangeListener(RealmChangeListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        if (realm != null) {
+            realm.checkIfValid();
+        }
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+    }
+
+    /**
+     * Remove a previously registered listener.
+     * @param listener the instance to be removed.
+     */
+    public void removeChangeListener(RealmChangeListener listener) {
+        if (listener == null)
+            throw new IllegalArgumentException("Listener should not be null");
+
+        if (realm != null) {
+            realm.checkIfValid();
+        }
+        listeners.remove(listener);
+    }
+
+    /**
+     * Remove all registered listeners.
+     */
+    public void removeChangeListeners() {
+        if (realm != null) {
+            realm.checkIfValid();
+        }
+        listeners.clear();
+    }
+
+    /**
+     * Notify all registered listeners.
+     */
+    void notifyChangeListeners() {
+        realm.checkIfValid();
+        for (RealmChangeListener listener : listeners) {
+            listener.onChange();
+        }
     }
 }

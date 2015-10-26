@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
@@ -52,8 +53,9 @@ public abstract class RealmProxyMediator {
      *
      * @param clazz         RealmObject model class to validate.
      * @param transaction   Read transaction for the Realm to validate against.
+     * @return              The field indices map.
      */
-    public abstract void validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction);
+    public abstract ColumnInfo validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction);
 
     /**
      * Returns a map of non-obfuscated object field names to their internal realm name.
@@ -77,24 +79,18 @@ public abstract class RealmProxyMediator {
     /**
      * Creates a new instance of an RealmProxy for the given model class.
      *
-     * @param clazz RealmObject to create RealmProxy for.
+     * @param clazz      RealmObject to create RealmProxy for.
+     * @param columnInfo {@link ColumnInfo} object for the model class of {@code E}.
      * @return Created RealmProxy object.
      */
-    public abstract <E extends RealmObject> E newInstance(Class<E> clazz);
+    public abstract <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo);
 
     /**
      * Returns the list of model classes that Realm supports in this application.
      *
      * @return List of class references to model classes. Empty list if no models are supported.
      */
-    public abstract List<Class<? extends RealmObject>> getModelClasses();
-
-    /**
-     * Returns a map of the column indices for all Realm fields in the model class.
-     *
-     * @return Map from field name to column indices for all Realm fields in the model class.
-     */
-    public abstract  Map<String, Long> getColumnIndices(Class<? extends RealmObject> clazz);
+    public abstract Set<Class<? extends RealmObject>> getModelClasses();
 
     /**
      * Copy a non-manged RealmObject or a RealmObject from another Realm to this Realm. After being
