@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.Date;
 
 import io.realm.internal.CheckedRow;
+simport io.realm.internal.ColumnInfo;
+import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.Table;

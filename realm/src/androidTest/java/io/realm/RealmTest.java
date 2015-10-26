@@ -16,6 +16,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
 import junit.framework.AssertionFailedError;
@@ -43,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
@@ -236,7 +236,7 @@ public class RealmTest extends AndroidTestCase {
             realm = Realm.getInstance((Context) null); // throws when c.getDirectory() is called;
             // has nothing to do with Realm
             fail("Should throw an exception");
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             if (realm != null) {
                 realm.close();
@@ -701,7 +701,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.commitTransaction();
             fail();
-        } catch (IllegalStateException ignore) {
+        } catch (IllegalStateException ignored) {
         }
     }
 
@@ -725,7 +725,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.executeTransaction(null);
             fail("null transaction should throw");
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
 
         }
         assertFalse(testRealm.hasChanged());
@@ -754,7 +754,7 @@ public class RealmTest extends AndroidTestCase {
                     throw new RuntimeException("Boom");
                 }
             });
-        } catch (RealmException ignore) {
+        } catch (RealmException ignored) {
         }
         assertEquals(0, testRealm.allObjects(Owner.class).size());
     }
@@ -1116,7 +1116,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.copyToRealm((AllTypes) null);
             fail("Copying null objects into Realm should not be allowed");
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -2170,7 +2170,7 @@ public class RealmTest extends AndroidTestCase {
             try {
                 testRealm.distinct(AnnotationIndexTypes.class, "notIndex" + fieldName);
                 fail("notIndex" + fieldName);
-            } catch (UnsupportedOperationException ignore) {
+            } catch (UnsupportedOperationException ignored) {
             }
         }
     }
@@ -2184,7 +2184,7 @@ public class RealmTest extends AndroidTestCase {
         try {
             testRealm.distinct(AnnotationIndexTypes.class, "doesNotExist");
             fail();
-        } catch (IllegalArgumentException ignore) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -2195,7 +2195,7 @@ public class RealmTest extends AndroidTestCase {
             try {
                 testRealm.distinct(AllTypes.class, field);
                 fail(field);
-            } catch (UnsupportedOperationException ignore) {
+            } catch (UnsupportedOperationException ignored) {
             }
         }
     }
@@ -2210,5 +2210,52 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(testRealm.isInTransaction());
         testRealm.cancelTransaction();
         assertFalse(testRealm.isInTransaction());
+    }
+
+    // test for https://github.com/realm/realm-java/issues/1646
+    public void testClosingRealmWhileOtherThreadIsOpeningRealm() throws Exception {
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch endLatch = new CountDownLatch(1);
+
+        final List<Exception> exception = new ArrayList<Exception>();
+
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    startLatch.await();
+                } catch (InterruptedException e) {
+                    exception.add(e);
+                    return;
+                }
+
+                final Realm realm = Realm.getInstance(testConfig);
+                try {
+                    realm.where(AllTypes.class).equalTo("columnLong", 0L).findFirst();
+                } catch (Exception e) {
+                    exception.add(e);
+                } finally {
+                    endLatch.countDown();
+                    realm.close();
+                }
+            }
+        }.start();
+
+        // prevent for another thread to enter Realm.createAndValidate().
+        synchronized (BaseRealm.class) {
+            startLatch.countDown();
+
+            // wait for another thread's entering Realm.createAndValidate().
+            SystemClock.sleep(100L);
+
+            testRealm.close();
+            testRealm = null;
+        }
+
+        endLatch.await();
+
+        if (!exception.isEmpty()) {
+            throw exception.get(0);
+        }
     }
 }

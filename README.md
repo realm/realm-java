@@ -37,7 +37,7 @@ If you want to test recent bugfixes or features that have not been packaged in a
     }
 
     dependencies {
-      compile 'io.realm:realm-android:0.84.0-SNAPSHOT'
+      compile 'io.realm:realm-android:0.84.1-SNAPSHOT'
     }
 
 ## Building Realm
@@ -60,7 +60,7 @@ Prerequisites:
 
     ```
     sdk.dir=/<your home directory>/Library/Android/sdk
-    ndk.dir=/usr/local/Cellar/android-ndk/r10d
+    ndk.dir=/usr/local/Cellar/android-ndk-r10d
     ```
 * Or, if you would like to add environment variables to your profile:
 

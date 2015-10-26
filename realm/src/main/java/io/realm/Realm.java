@@ -47,6 +47,7 @@ import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
@@ -127,11 +128,15 @@ public final class Realm extends BaseRealm {
                 }
             };
 
+    // Map between Realm file that has already been validated and Model class's column information
+    static final Map<String, ColumnIndices> validatedRealmFiles = new HashMap<String, ColumnIndices>();
+
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable =
             new HashMap<Class<? extends RealmObject>, Table>();
 
     private static RealmConfiguration defaultConfiguration;
+
     /**
      * The constructor is private to enforce the use of the static one.
      *
@@ -236,8 +241,7 @@ public final class Realm extends BaseRealm {
     private static synchronized Realm create(RealmConfiguration configuration) {
         boolean autoRefresh = Looper.myLooper() != null;
         try {
-            boolean validateSchema = !validatedRealmFiles.contains(configuration.getPath());
-            return createAndValidate(configuration, validateSchema, autoRefresh);
+            return createAndValidate(configuration, null, autoRefresh);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -250,8 +254,12 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    private static Realm createAndValidate(RealmConfiguration configuration, boolean validateSchema, boolean autoRefresh) {
+    private static Realm createAndValidate(RealmConfiguration configuration, Boolean validateSchema, boolean autoRefresh) {
         synchronized (BaseRealm.class) {
+            if (validateSchema == null) {
+                validateSchema = !validatedRealmFiles.containsKey(configuration.getPath());
+            }
+
             // Check if a cached instance already exists for this thread
             String canonicalPath = configuration.getPath();
             Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
@@ -303,17 +311,9 @@ public final class Realm extends BaseRealm {
                     throw e;
                 }
             }
-            setupColumnIndices(realm);
+            realm.columnIndices = validatedRealmFiles.get(configuration.getPath());
 
             return realm;
-        }
-    }
-
-    private static void setupColumnIndices(Realm realm) {
-        RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-        Set<Class<? extends RealmObject>> modelClasses = mediator.getModelClasses();
-        for (Class<? extends RealmObject> modelClass : modelClasses) {
-            realm.columnIndices.addClass(modelClass, mediator.getColumnIndices(modelClass));
         }
     }
 
@@ -329,14 +329,17 @@ public final class Realm extends BaseRealm {
             }
 
             RealmProxyMediator mediator = realm.configuration.getSchemaMediator();
-            for (Class<? extends RealmObject> modelClass : mediator.getModelClasses()) {
+            final Set<Class<? extends RealmObject>> modelClasses = mediator.getModelClasses();
+            final Map<Class<? extends RealmObject>, ColumnInfo> columnInfoMap;
+            columnInfoMap = new HashMap<Class<? extends RealmObject>, ColumnInfo>(modelClasses.size());
+            for (Class<? extends RealmObject> modelClass : modelClasses) {
                 // Create and validate table
                 if (version == UNVERSIONED) {
                     mediator.createTable(modelClass, realm.sharedGroupManager.getTransaction());
                 }
-                mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction());
+                columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
             }
-            validatedRealmFiles.add(realm.getPath());
+            validatedRealmFiles.put(realm.getPath(), new ColumnIndices(columnInfoMap));
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction();
@@ -712,6 +715,23 @@ public final class Realm extends BaseRealm {
         getTable(clazz).moveLastOver(objectIndex);
     }
 
+    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
+        Table table = getTable(clazz);
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        E result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
+        result.row = row;
+        result.realm = this;
+        return result;
+    }
+
+    ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
+        final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
+        if (columnInfo == null) {
+            throw new IllegalStateException("No validated schema information found for " + configuration.getSchemaMediator().getTableName(clazz));
+        }
+        return columnInfo;
+    }
+
     /**
      * Copies a RealmObject to the Realm instance and returns the copy. Any further changes to the original RealmObject
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
@@ -913,7 +933,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
-     * returned in cases of multiple occurrences.
+     * returned in case of multiple occurrences.
      *
      * @param clazz the Class to get objects of.
      * @param fieldName the field name.
@@ -933,6 +953,37 @@ public final class Realm extends BaseRealm {
 
         TableView tableView = table.getDistinctView(columnIndex);
         return RealmResults.createFromQuery(this, tableView, clazz);
+s    }
+
+    /**
+     * Return a distinct set of objects of a specific class. As a Realm is unordered, it is undefined which objects are
+     * returned in case of multiple occurrences.
+     * This method is only available from a Looper thread.
+     *
+     * @param clazz the Class to get objects of.
+     * @param fieldName the field name.
+     * @return immediately an empty {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
+     * when the query completes.
+     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     */
+    public <E extends RealmObject> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+
+        Table table = this.getTable(clazz);
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        // check if the field is indexed
+        if (!table.hasSearchIndex(columnIndex)) {
+            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
+        }
+
+        return where(clazz).distinctAsync(columnIndex);
     }
 
     /**
@@ -1077,7 +1128,10 @@ public final class Realm extends BaseRealm {
 
     @Override
     protected void lastLocalInstanceClosed() {
-        validatedRealmFiles.remove(configuration.getPath());
+        // validatedRealmFiles must not modified while other thread is executing createAndValidate()
+        synchronized (BaseRealm.class) {
+            validatedRealmFiles.remove(configuration.getPath());
+        }
         realmsCache.get().remove(configuration);
     }
 
