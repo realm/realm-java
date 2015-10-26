@@ -58,6 +58,7 @@ public class SimpleRealmProxy extends Simple
     }
 
     @Override
+    @SuppressWarnings("cast")
     public String getName() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.nameIndex);
@@ -70,10 +71,11 @@ public class SimpleRealmProxy extends Simple
             row.setNull(columnInfo.nameIndex);
             return;
         }
-        row.setString(columnInfo.nameIndex, (String) value);
+        row.setString(columnInfo.nameIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public int getAge() {
         realm.checkIfValid();
         return (int) row.getLong(columnInfo.ageIndex);
@@ -82,7 +84,7 @@ public class SimpleRealmProxy extends Simple
     @Override
     public void setAge(int value) {
         realm.checkIfValid();
-        row.setLong(columnInfo.ageIndex, (long) value);
+        row.setLong(columnInfo.ageIndex, value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -141,6 +143,7 @@ public class SimpleRealmProxy extends Simple
         return FIELD_NAMES;
     }
 
+    @SuppressWarnings("cast")
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         Simple obj = realm.createObject(Simple.class);
@@ -161,6 +164,7 @@ public class SimpleRealmProxy extends Simple
         return obj;
     }
 
+    @SuppressWarnings("cast")
     public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         Simple obj = realm.createObject(Simple.class);
@@ -199,12 +203,6 @@ public class SimpleRealmProxy extends Simple
     public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
-        realmObject.setName(newObject.getName());
-        realmObject.setAge(newObject.getAge());
-        return realmObject;
-    }
-
-    static Simple update(Realm realm, Simple realmObject, Simple newObject, Map<RealmObject, RealmObjectProxy> cache) {
         realmObject.setName(newObject.getName());
         realmObject.setAge(newObject.getAge());
         return realmObject;

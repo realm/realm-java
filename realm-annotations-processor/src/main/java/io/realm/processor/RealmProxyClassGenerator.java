@@ -166,7 +166,7 @@ public class RealmProxyClassGenerator {
 
     private void emitClassFields(JavaWriter writer) throws IOException {
         writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE, Modifier.FINAL));
-        Set<String> emptyRealmLists = new HashSet<String>();
+        List<String> emptyRealmListInitializations = new ArrayList<String>();
         for (VariableElement variableElement : metadata.getFields()) {
             if (Utils.isRealmList(variableElement)) {
                 String genericType = Utils.getGenericType(variableElement);
@@ -175,14 +175,14 @@ public class RealmProxyClassGenerator {
                 String emptyRealmListName = "EMPTY_REALM_LIST_" + variableElement.getSimpleName().toString().toUpperCase();
                 writer.emitField("RealmList<" + genericType + ">", emptyRealmListName,
                         EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
-                emptyRealmLists.add(emptyRealmListName);
+                emptyRealmListInitializations.add(String.format("%s = new RealmList<%s>()", emptyRealmListName, genericType));
             }
         }
 
         writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
-        for (String emptyRealmListName : emptyRealmLists) {
-            writer.emitStatement(emptyRealmListName + " = new RealmList()");
+        for (String emptyListInitializationStatement : emptyRealmListInitializations) {
+            writer.emitStatement(emptyListInitializationStatement);
         }
         writer.emitStatement("List<String> fieldNames = new ArrayList<String>()");
         for (VariableElement field : metadata.getFields()) {
@@ -211,10 +211,10 @@ public class RealmProxyClassGenerator {
                  * Primitives and boxed types
                  */
                 String realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
-                String castingType = Constants.CASTING_TYPES.get(fieldTypeCanonicalName);
 
                 // Getter
                 writer.emitAnnotation("Override");
+                writer.emitAnnotation("SuppressWarnings", "\"cast\"");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement("realm.checkIfValid()");
 
@@ -258,8 +258,8 @@ public class RealmProxyClassGenerator {
                         .endControlFlow();
                 }
                 writer.emitStatement(
-                        "row.set%s(%s, (%s) value)",
-                        realmType, fieldIndexVariableReference(field), castingType);
+                        "row.set%s(%s, value)",
+                        realmType, fieldIndexVariableReference(field));
                 writer.endMethod();
             } else if (Utils.isRealmObject(field)) {
                 /**
@@ -689,6 +689,9 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitUpdateMethod(JavaWriter writer) throws IOException {
+        if (!metadata.hasPrimaryKey()) {
+            return;
+        }
 
         writer.beginMethod(
                 className, // Return type
@@ -838,6 +841,7 @@ public class RealmProxyClassGenerator {
 
 
     private void emitCreateOrUpdateUsingJsonObject(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("SuppressWarnings", "\"cast\"");
         writer.beginMethod(
                 className,
                 "createOrUpdateUsingJsonObject",
@@ -908,6 +912,7 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitCreateUsingJsonStream(JavaWriter writer) throws IOException {
+        writer.emitAnnotation("SuppressWarnings", "\"cast\"");
         writer.beginMethod(
                 className,
                 "createUsingJsonStream",
