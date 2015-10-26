@@ -60,7 +60,7 @@ Prerequisites:
 
     ```
     sdk.dir=/<your home directory>/Library/Android/sdk
-    ndk.dir=/usr/local/Cellar/android-ndk/r10d
+    ndk.dir=/usr/local/Cellar/android-ndk-r10d
     ```
 * Or, if you would like to add environment variables to your profile:
 
