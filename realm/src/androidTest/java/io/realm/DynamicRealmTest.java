@@ -367,7 +367,6 @@ public class DynamicRealmTest extends AndroidTestCase {
         realm.commitTransaction();
     }
 
-
     public void testDistinctInvalidClassNameThrows() {
         String[] classNames = new String[]{null, "", "foo", "foo.bar"};
         for (String className : classNames) {

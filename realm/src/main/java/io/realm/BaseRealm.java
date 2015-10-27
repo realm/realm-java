@@ -566,6 +566,12 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    protected void checkNotNullFieldName(String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+    }
+
     /**
      * Make sure that the new configuration doesn't clash with any existing configurations for the
      * Realm.

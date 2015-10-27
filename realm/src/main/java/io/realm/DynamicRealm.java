@@ -32,6 +32,8 @@ import io.realm.internal.TableView;
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
  * done using string based class names instead of class type references.
  *
+ * This is useful during migrations or when when working with string-based data like from CSV or XML files.
+ *
  * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file in both dynamic and typed mode, but
  * modifying the schema while having both a typed and dynamic version open is highly discouraged and will most likely
  * crash the typed Realm. During migrations only a DynamicRealm will be open.
@@ -66,7 +68,7 @@ public final class DynamicRealm extends BaseRealm {
     /**
      * Realm static constructor that returns a dynamic variant of the Realm instance defined by provided
      * {@link io.realm.RealmConfiguration}. Dynamic Realms do not care about schemaVersion and schemas, so opening a
-     * DynamicRealm will never trigger a migration
+     * DynamicRealm will never trigger a migration.
      *
      * @return the DynamicRealm defined by the configuration.
      * @see RealmConfiguration for details on how to configure a Realm.
@@ -145,7 +147,7 @@ public final class DynamicRealm extends BaseRealm {
     /**
      * Get all objects of a specific class name.
      *
-     * @param className the Class to get objects of
+     * @param className the Class to get objects of.
      * @return a {@link RealmResults} list containing the objects. If no results where found, an empty list
      * will be returned.
      * @see io.realm.RealmResults
@@ -155,7 +157,7 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
-     * Get all objects of a specific class name sorted by a field.  If no objects exist, the returned
+     * Get all objects of a specific class name sorted by a field. If no objects exist, the returned
      * {@link RealmResults} will not be {@code null}. Use {@link RealmResults#size()} to check the number of objects instead.
      *
      * @param className the class to get all objects from.
@@ -211,8 +213,7 @@ public final class DynamicRealm extends BaseRealm {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     @SuppressWarnings("unchecked")
-    public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[],
-                                                                    Sort sortOrders[]) {
+    public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[], Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
@@ -268,9 +269,7 @@ public final class DynamicRealm extends BaseRealm {
      * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
      */
     public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
-        if (fieldName == null) {
-            throw new IllegalArgumentException("fieldName must be provided.");
-        }
+        checkNotNullFieldName(fieldName);
         checkIfValid();
         Table table = this.getTable(className);
         long columnIndex = table.getColumnIndex(fieldName);
@@ -295,10 +294,8 @@ public final class DynamicRealm extends BaseRealm {
      * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
      */
     public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
-        if (fieldName == null) {
-            throw new IllegalArgumentException("fieldName must be provided.");
-        }
-
+        checkNotNullFieldName(fieldName);
+        checkIfValid();
         Table table = this.getTable(className);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
