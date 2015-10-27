@@ -1802,13 +1802,14 @@ public class RealmTest extends AndroidTestCase {
     // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
 /*    // Check that FinalizerRunnable can free native resources (phantom refs)
     public void testReferenceCleaning() throws NoSuchFieldException, IllegalAccessException {
+        testRealm.close();
 
         RealmConfiguration config = new RealmConfiguration.Builder(getContext()).name("myown").build();
         Realm.deleteRealm(config);
         testRealm = Realm.getInstance(config);
 
         // Manipulate field accessibility to facilitate testing
-        Field realmFileReference = RealmBase.class.getDeclaredField("sharedGroupManager");
+        Field realmFileReference = BaseRealm.class.getDeclaredField("sharedGroupManager");
         realmFileReference.setAccessible(true);
         Field contextField = SharedGroup.class.getDeclaredField("context");
         contextField.setAccessible(true);
@@ -1821,7 +1822,7 @@ public class RealmTest extends AndroidTestCase {
         io.realm.internal.Context context = (io.realm.internal.Context) contextField.get(realmFile.getSharedGroup());
         assertNotNull(context);
 
-        List<Reference<?>> rowReferences = (List<Reference<?>>) rowReferencesField.get(context);
+        Map<Reference<?>, Integer> rowReferences = (Map<Reference<?>, Integer>) rowReferencesField.get(context);
         assertNotNull(rowReferences);
 
         // insert some rows, then give the thread some time to cleanup
@@ -1846,6 +1847,7 @@ public class RealmTest extends AndroidTestCase {
             numberOfRetries++;
             System.gc();
         }
+        context.cleanNativeReferences();
 
         // we can't guarantee that all references have been GC'ed but we should detect a decrease
         boolean isDecreasing = rowReferences.size() < totalNumberOfReferences;
