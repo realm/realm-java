@@ -199,13 +199,10 @@ public final class DynamicRealmObject extends RealmObject {
 
     /**
      * Returns the {@code byte[]} value for a given field.
-     * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
-     * this method.
      *
      * @param fieldName name of field.
      * @return the byte[] value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
-     * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
      */
     public byte[] getBlob(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -571,7 +568,7 @@ public final class DynamicRealmObject extends RealmObject {
         String tableType = row.getTable().getName();
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
-            // Standalone lists doesn't know anything about the types they contain. They might even hold objects of
+            // Standalone lists don't know anything about the types they contain. They might even hold objects of
             // multiple types :(, so we have to check each item in the list.
             typeValidated = false;
         } else {

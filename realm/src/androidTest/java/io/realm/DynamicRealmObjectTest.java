@@ -100,7 +100,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         // Test all getters
         for (SupportedType type : SupportedType.values()) {
 
-            // We cannot modularize everything, so STRING is a special case with it's own set
+            // We cannot modularize everything, so STRING is a special case with its own set
             // of failing values. Only difference is the wrong type column has to be different.
             List<String> args = (type == SupportedType.STRING) ? stringArguments : arguments;
             try {
@@ -249,12 +249,8 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         NullTypes childObj = new NullTypes();
                         childObj.setId(1);
                         DynamicRealmObject dynamicChildObject = new DynamicRealmObject(realm.copyToRealm(childObj));
-
                         dObj.setObject(NullTypes.FIELD_OBJECT_NULL, dynamicChildObject);
-                        dObj.setObject(NullTypes.FIELD_OBJECT_NULL, null);
-                        assertNull(dObj.getObject(NullTypes.FIELD_OBJECT_NULL));
-
-                        dObj.setObject(NullTypes.FIELD_OBJECT_NULL, dynamicChildObject);
+                        assertNotNull(dObj.getObject(NullTypes.FIELD_OBJECT_NULL));
                         dObj.setNull(NullTypes.FIELD_OBJECT_NULL);
                         assertNull(dObj.getObject(NullTypes.FIELD_OBJECT_NULL));
                         break;
@@ -565,7 +561,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                             dObj.set(AllJavaTypes.FIELD_DATE, "foo");
                             break;
 
-                        // These types doesn't have a string representation that should be parsed.
+                        // These types don't have a string representation that should be parsed.
                         case BOOLEAN: // Boolean is special as it returns false for all strings != "true"
                         case BYTE:
                         case OBJECT:
