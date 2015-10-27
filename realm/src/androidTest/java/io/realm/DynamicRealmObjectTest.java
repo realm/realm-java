@@ -552,7 +552,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         dObj.set(AllJavaTypes.FIELD_DATE, "1000");
                         assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE));
 
-                    // These types doesn't have a string representation that could be parsed.
+                    // These types don't have a string representation that could be parsed.
                     case OBJECT:
                     case LIST:
                     case STRING:
