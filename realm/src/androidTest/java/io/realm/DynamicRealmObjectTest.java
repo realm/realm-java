@@ -313,6 +313,38 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
+    public void testSetNullOnRequiredFieldsThrows() {
+        realm.beginTransaction();
+        NullTypes obj = realm.createObject(NullTypes.class);
+        DynamicRealmObject dObj = new DynamicRealmObject(obj);
+        try {
+            for (SupportedType type : SupportedType.values()) {
+                try {
+                    switch (type) {
+                        case OBJECT: continue; // Ignore
+                        case LIST: dObj.setNull(NullTypes.FIELD_LIST_NULL); break;
+                        case BOOLEAN: dObj.setNull(NullTypes.FIELD_BOOLEAN_NOT_NULL); break;
+                        case BYTE: dObj.setNull(NullTypes.FIELD_BYTE_NOT_NULL); break;
+                        case SHORT: dObj.setNull(NullTypes.FIELD_SHORT_NOT_NULL); break;
+                        case INT: dObj.setNull(NullTypes.FIELD_INTEGER_NOT_NULL); break;
+                        case LONG: dObj.setNull(NullTypes.FIELD_LONG_NOT_NULL); break;
+                        case FLOAT: dObj.setNull(NullTypes.FIELD_FLOAT_NOT_NULL); break;
+                        case DOUBLE: dObj.setNull(NullTypes.FIELD_DOUBLE_NOT_NULL); break;
+                        case STRING: dObj.setNull(NullTypes.FIELD_STRING_NOT_NULL); break;
+                        case BINARY: dObj.setNull(NullTypes.FIELD_BYTES_NOT_NULL); break;
+                        case DATE: dObj.setNull(NullTypes.FIELD_DATE_NOT_NULL); break;
+                        default:
+                            fail("Unknown type: " + type);
+                    }
+                    fail("Setting value to null should throw: " + type);
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
     // Test types where you can set null using the typed setter instead of using setNull().
     public void testTypedSetNull() {
         realm.beginTransaction();
@@ -384,7 +416,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
-    public void testGenericSetListWrongTypeThrows() {
+    public void testUntypedSetListWrongTypeThrows() {
         realm.beginTransaction();
         AllTypes wrongObj = realm.createObject(AllTypes.class);
         try {
@@ -394,7 +426,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
-    public void testGenericSetListMixedTypesThrows() {
+    public void testUntypedSetListMixedTypesThrows() {
         realm.beginTransaction();
         AllJavaTypes obj1 = realm.createObject(AllJavaTypes.class);
         obj1.setFieldLong(2);
@@ -417,7 +449,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertEquals(dObj, list.get(0));
     }
 
-    public void testGenericGetterSetter() {
+    public void testUntypedGetterSetter() {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
