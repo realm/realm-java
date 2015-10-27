@@ -72,11 +72,13 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     public void testIllegalInputObjectThrows() {
         try {
             new DynamicRealmObject(null);
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         try {
             new DynamicRealmObject(dObj);
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
 
@@ -85,6 +87,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         realm.commitTransaction();
         try {
             new DynamicRealmObject(typedObj);
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
