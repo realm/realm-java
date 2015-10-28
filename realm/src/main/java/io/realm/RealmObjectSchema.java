@@ -545,6 +545,19 @@ public final class RealmObjectSchema {
     }
 
     /**
+     * Sets a field to be nullable, i.e. it should be to hold {@code null values}.
+     *
+     * @param fieldName name of field in the schema.
+     * @param nullable {@code true} if field should be nullable, {@false otherwise}.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if field name doesn't exists or the field already has the given nullable flag.
+     */
+    public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
+        setRequired(fieldName, !nullable);
+        return this;
+    }
+
+    /**
      * Checks if a given field is required, i.e. is not allowed to contain {@code null} values.
      *
      * @param fieldName field to check.

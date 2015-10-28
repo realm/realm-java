@@ -502,11 +502,11 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     break;
                 case OBJECT:
                     schema.addObjectField(AllJavaTypes.FIELD_OBJECT, schema);
-                    assertTrue(schema.isNullable(AllJavaTypes.FIELD_OBJECT));
+                    assertFalse(schema.isNullable(AllJavaTypes.FIELD_OBJECT)); // FIXME: When https://github.com/realm/realm-core/pull/1256 is released.
                     break;
                 case LIST:
                     // Lists are not nullable and cannot be configured to be so.
-                    schema.addListField(AllJavaTypes.FIELD_OBJECT, schema);
+                    schema.addListField(AllJavaTypes.FIELD_LIST, schema);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_LIST));
                     break;
                 default:
@@ -564,10 +564,10 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                 case OBJECT:
                     // Objects are always nullable and cannot be configured otherwise.
                     schema.addObjectField(AllJavaTypes.FIELD_OBJECT, schema);
-                    assertFalse(schema.isRequired((AllJavaTypes.FIELD_OBJECT)));
+                    assertTrue(schema.isRequired((AllJavaTypes.FIELD_OBJECT))); // FIXME: When https://github.com/realm/realm-core/pull/1256 is released.
                     break;
                 case LIST:
-                    schema.addListField(AllJavaTypes.FIELD_OBJECT, schema);
+                    schema.addListField(AllJavaTypes.FIELD_LIST, schema);
                     assertTrue(schema.isRequired((AllJavaTypes.FIELD_LIST)));
                     break;
                 default:

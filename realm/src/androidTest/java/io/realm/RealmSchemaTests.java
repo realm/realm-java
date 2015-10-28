@@ -132,18 +132,23 @@ public class RealmSchemaTests extends AndroidTestCase {
     }
 
     // Test that it if { A -> B  && B -> A } you should remove the individual fields first before removing the entire
-    // class.
+    // class. This also include transitive dependencies :/
     public void testRemoveClassWithReferencesThrows() {
         try {
-            realmSchema.removeClass("Owner");
+            realmSchema.removeClass("Cat");
             fail();
-        } catch (IllegalStateException expected) {
+        } catch (IllegalStateException ignored) {
         }
 
+        realmSchema.getClass("Owner").removeField("cat");
         realmSchema.getClass("Cat").removeField("owner");
-        realmSchema.getClass("Dog").removeField("owner");
-        realmSchema.getClass("DogPrimaryKey").removeField("owner");
-        realmSchema.removeClass("Owner");
-        assertFalse(realmSchema.hasClass("Owner"));
+        assertFalse(realmSchema.getClass("Cat").hasField("owner"));
+        assertFalse(realmSchema.getClass("Owner").hasField("cat"));
+        try {
+            realmSchema.removeClass("Cat");
+
+        } catch (IllegalStateException ignored) {
+        }
+        assertFalse(realmSchema.hasClass("Cat"));
     }
 }

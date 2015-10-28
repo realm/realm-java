@@ -50,7 +50,7 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, OutOfMemory, ss.str());
     }
-    catch (CrossTableLinkTarget& e) {
+    catch (realm::CrossTableLinkTarget& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, CrossTableLink, ss.str());
     }
