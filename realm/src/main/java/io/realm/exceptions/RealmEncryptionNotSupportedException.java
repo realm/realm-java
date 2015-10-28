@@ -16,6 +16,8 @@
 
 package io.realm.exceptions;
 
+import io.realm.internal.Keep;
+
 /**
  * On some devices (HTC One X for example), for some reason, the system doesn't pass the right
  * parameter (siginfo_t.si_addr) to the segfault signal handler which our encryption mechanism
@@ -24,6 +26,7 @@ package io.realm.exceptions;
  * problem exists which means that encryption cannot be used on this device.
  */
 @SuppressWarnings("unused") // Thrown by JNI
+@Keep
 public class RealmEncryptionNotSupportedException extends RuntimeException {
     public RealmEncryptionNotSupportedException(String message) {
         super(message);

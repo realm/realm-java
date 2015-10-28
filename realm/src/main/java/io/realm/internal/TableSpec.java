@@ -21,6 +21,7 @@ import java.util.List;
 
 import io.realm.RealmFieldType;
 
+@Keep
 public class TableSpec {
 
     public static class ColumnInfo {

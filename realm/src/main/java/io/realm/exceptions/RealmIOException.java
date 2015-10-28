@@ -16,9 +16,12 @@
 
 package io.realm.exceptions;
 
+import io.realm.internal.Keep;
+
 /**
  * Class for reporting problems with Realm files.
  */
+@Keep
 public class RealmIOException extends RuntimeException {
 
     public RealmIOException(Throwable cause) {

@@ -27,6 +27,10 @@ android {
     dexOptions {
         incremental false
     }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 }
 
 tasks.preBuild {
@@ -35,14 +39,15 @@ tasks.preBuild {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'org.jetbrains.anko:anko:0.6.2-19s'
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    compile 'org.jetbrains.anko:anko-sdk15:0.7.2'
     compile files("../../realm/build/libs/realm-${version}.jar")
 
     kapt files("../../realm/build/libs/realm-${version}.jar")
 }
 
 buildscript {
-    ext.kotlin_version = '0.12.213'
+    ext.kotlin_version = '1.0.0-beta-1038'
     repositories {
         jcenter()
     }
