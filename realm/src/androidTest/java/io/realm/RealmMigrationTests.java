@@ -256,40 +256,8 @@ public class RealmMigrationTests extends AndroidTestCase {
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
         assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
-    }
-
-    public void testNotSettingIndexForPrimaryKeyThrows() {
-        // Creating v0 of the the Realm
-        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
-        Realm.deleteRealm(originalConfig);
-        Realm.getInstance(originalConfig).close();
-
-        RealmMigration migration = new RealmMigration() {
-            @Override
-            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                RealmSchema schema = realm.getSchema();
-                schema.createClass("AnnotationTypes")
-                        .addIntField("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
-                        .removeIndex("id")
-                        .addStringField("indexString", EnumSet.of(RealmModifier.INDEXED))
-                        .addStringField("notIndexString");
-            }
-        };
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
-                .schemaVersion(1)
-                .schema(AllTypes.class, AnnotationTypes.class)
-                .migration(migration)
-                .build();
-
-        try {
-            realm = Realm.getInstance(realmConfig);
-            fail();
-        } catch (IllegalStateException e) {
-            if (!e.getMessage().equals("Field is not indexed: id")) {
-                fail(e.toString());
-            }
-        }
     }
 
     public void testGetPathFromMigrationException() throws IOException {

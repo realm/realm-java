@@ -152,6 +152,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
         case CrossTableLink:
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = "This class is referenced by other classes. Remove those fields first before removing this class.";
+            break;
 
         case BadVersion:
             jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");

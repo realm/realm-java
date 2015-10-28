@@ -131,7 +131,8 @@ public class RealmSchemaTests extends AndroidTestCase {
         }
     }
 
-    // Test that it if { A -> B  && B -> A } you should remove fields from B first.
+    // Test that it if { A -> B  && B -> A } you should remove the individual fields first before removing the entire
+    // class.
     public void testRemoveClassWithReferencesThrows() {
         try {
             realmSchema.removeClass("Owner");

@@ -519,26 +519,55 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a field to be nullable.
+     * Sets a field to be required, i.e. not allowed to hold {@code null values}.
      *
      * @param fieldName name of field in the schema.
-     * @param nullable {@code true} if field should be nullable. {@false otherwise}.
+     * @param required {@code true} if field should be required, {@false otherwise}.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or the field already has the given nullable flag.
+     * @throws IllegalArgumentException if field name doesn't exists or the field already has the given required flag.
      */
-    public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
-        throw new RealmException("Waiting for Null support");
+    public RealmObjectSchema setRequired(String fieldName, boolean required) {
+        long columnIndex = table.getColumnIndex(fieldName);
+        boolean currentColumnRequired = isRequired(fieldName);
+        if (required && currentColumnRequired) {
+            throw new IllegalStateException("Current field is already marked as Required: " + fieldName);
+        }
+        if (!required && !currentColumnRequired) {
+            throw new IllegalStateException("Current field is already marked as not Required: " + fieldName);
+        }
+
+        if (required) {
+            table.convertColumnToNotNullable(columnIndex);
+        } else {
+            table.convertColumnToNullable(columnIndex);
+        }
+        return this;
     }
 
     /**
-     * Checks if a given field is allowed to contain {@code null} values.
+     * Checks if a given field is required, i.e. is not allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
-     * @return {@code true} if it can have {@code null} values. {@code false} otherwise.
+     * @return {@code true} if it is requied, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exists.
+     * @see Required
+     */
+    public boolean isRequired(String fieldName) {
+        long columnIndex = table.getColumnIndex(fieldName);
+        return !table.isColumnNullable(columnIndex);
+    }
+
+    /**
+     * Checks if a given field is nullable, i.e. is allowed to contain {@code null} values.
+     *
+     * @param fieldName field to check.
+     * @return {@code true} if it is requied, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exists.
+     * @see Required
      */
     public boolean isNullable(String fieldName) {
-        throw new RealmException("Waiting for Null support");
+        long columnIndex = table.getColumnIndex(fieldName);
+        return table.isColumnNullable(columnIndex);
     }
 
     /**
@@ -641,7 +670,6 @@ public final class RealmObjectSchema {
                     "the same time.");
         }
     }
-
 
     /**
      * Iterator interface for traversing all objects with the current schema.
