@@ -82,7 +82,7 @@ public class RealmVersionChecker {
             conn.setReadTimeout(READ_TIMEOUT);
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String latestVersion = rd.readLine();
-            // if obtained string does not match the pattern, we are in the separate network.
+            // if the obtained string does not match the pattern, we are in a separate network.
             if (latestVersion.matches(REALM_VERSION_PATTERN)) {
                 result = latestVersion;
             }
