@@ -22,7 +22,10 @@ import java.util.Date;
 import java.util.List;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
+import io.realm.entities.NullTypes;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -61,18 +64,21 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         realm.close();
     }
 
+    // Types supported by the DynamicRealmObject.
     public enum SupportedType {
-        BOOLEAN, SHORT, INT, LONG, BYTE, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, LIST;
+        BOOLEAN, SHORT, INT, LONG, BYTE, FLOAT, DOUBLE, STRING, BINARY, DATE, OBJECT, LIST
     }
 
     public void testIllegalInputObjectThrows() {
         try {
             new DynamicRealmObject(null);
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         try {
             new DynamicRealmObject(dObj);
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
 
@@ -81,12 +87,13 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         realm.commitTransaction();
         try {
             new DynamicRealmObject(typedObj);
+            fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
     // Test that all getters fail if given invalid field name
-    public void testGetXXXIllegalFieldNameThrows() {
+    public void testTypedGetXXXIllegalFieldNameThrows() {
 
         // Set arguments
         String linkedField = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING;
@@ -95,6 +102,9 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
         // Test all getters
         for (SupportedType type : SupportedType.values()) {
+
+            // We cannot modularize everything, so STRING is a special case with its own set
+            // of failing values. Only difference is the wrong type column has to be different.
             List<String> args = (type == SupportedType.STRING) ? stringArguments : arguments;
             try {
                 callGetter(type, args);
@@ -127,7 +137,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
     }
 
     // Test that all getters fail if given an invalid field name
-    public void testSetXXXIllegalFieldNameThrows() {
+    public void testTypedSetXXXIllegalFieldNameThrows() {
 
         // Set arguments
         String linkedField = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING;
@@ -220,7 +230,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         assertEquals(dObj, dObj.getObject(AllJavaTypes.FIELD_OBJECT));
                         break;
                     case LIST:
-                    /* ignore, see testGetList/testSetList */
+                        // ignore, see testGetList/testSetList
                         break;
                     default:
                         fail();
@@ -231,29 +241,149 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
-    public void testTypedSetXXXWithNull() {
+    public void testSetNull() {
         realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+        NullTypes obj = realm.createObject(NullTypes.class);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
         try {
             for (SupportedType type : SupportedType.values()) {
                 switch (type) {
                     case OBJECT:
-                        dObj.setObject(AllJavaTypes.FIELD_OBJECT, null);
-                        assertNull(dObj.getObject(AllJavaTypes.FIELD_OBJECT));
+                        NullTypes childObj = new NullTypes();
+                        childObj.setId(1);
+                        DynamicRealmObject dynamicChildObject = new DynamicRealmObject(realm.copyToRealm(childObj));
+                        dObj.setObject(NullTypes.FIELD_OBJECT_NULL, dynamicChildObject);
+                        assertNotNull(dObj.getObject(NullTypes.FIELD_OBJECT_NULL));
+                        dObj.setNull(NullTypes.FIELD_OBJECT_NULL);
+                        assertNull(dObj.getObject(NullTypes.FIELD_OBJECT_NULL));
                         break;
                     case LIST:
+                        try {
+                            dObj.setNull(NullTypes.FIELD_LIST_NULL);
+                            fail();
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                        break;
+                    case BOOLEAN:
+                        dObj.setNull(NullTypes.FIELD_BOOLEAN_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_BOOLEAN_NULL));
+                        break;
+                    case BYTE:
+                        dObj.setNull(NullTypes.FIELD_BYTE_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_BYTE_NULL));
+                        break;
+                    case SHORT:
+                        dObj.setNull(NullTypes.FIELD_SHORT_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_SHORT_NULL));
+                        break;
+                    case INT:
+                        dObj.setNull(NullTypes.FIELD_INTEGER_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_INTEGER_NULL));
+                        break;
+                    case LONG:
+                        dObj.setNull(NullTypes.FIELD_LONG_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_LONG_NULL));
+                        break;
+                    case FLOAT:
+                        dObj.setNull(NullTypes.FIELD_FLOAT_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_FLOAT_NULL));
+                        break;
+                    case DOUBLE:
+                        dObj.setNull(NullTypes.FIELD_DOUBLE_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_DOUBLE_NULL));
+                        break;
+                    case STRING:
+                        dObj.setNull(NullTypes.FIELD_STRING_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_STRING_NULL));
+                        break;
+                    case BINARY:
+                        dObj.setNull(NullTypes.FIELD_BYTES_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_BYTES_NULL));
+                        break;
+                    case DATE:
+                        dObj.setNull(NullTypes.FIELD_DATE_NULL);
+                        assertTrue(dObj.isNull(NullTypes.FIELD_DATE_NULL));
+                        break;
+                    default:
+                        fail("Unknown type: " + type);
+                }
+            }
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    public void testSetNullOnRequiredFieldsThrows() {
+        realm.beginTransaction();
+        NullTypes obj = realm.createObject(NullTypes.class);
+        DynamicRealmObject dObj = new DynamicRealmObject(obj);
+        try {
+            for (SupportedType type : SupportedType.values()) {
+                try {
+                    switch (type) {
+                        case OBJECT: continue; // Ignore
+                        case LIST: dObj.setNull(NullTypes.FIELD_LIST_NULL); break;
+                        case BOOLEAN: dObj.setNull(NullTypes.FIELD_BOOLEAN_NOT_NULL); break;
+                        case BYTE: dObj.setNull(NullTypes.FIELD_BYTE_NOT_NULL); break;
+                        case SHORT: dObj.setNull(NullTypes.FIELD_SHORT_NOT_NULL); break;
+                        case INT: dObj.setNull(NullTypes.FIELD_INTEGER_NOT_NULL); break;
+                        case LONG: dObj.setNull(NullTypes.FIELD_LONG_NOT_NULL); break;
+                        case FLOAT: dObj.setNull(NullTypes.FIELD_FLOAT_NOT_NULL); break;
+                        case DOUBLE: dObj.setNull(NullTypes.FIELD_DOUBLE_NOT_NULL); break;
+                        case STRING: dObj.setNull(NullTypes.FIELD_STRING_NOT_NULL); break;
+                        case BINARY: dObj.setNull(NullTypes.FIELD_BYTES_NOT_NULL); break;
+                        case DATE: dObj.setNull(NullTypes.FIELD_DATE_NOT_NULL); break;
+                        default:
+                            fail("Unknown type: " + type);
+                    }
+                    fail("Setting value to null should throw: " + type);
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    // Test types where you can set null using the typed setter instead of using setNull().
+    public void testTypedSetNull() {
+        realm.beginTransaction();
+        NullTypes obj = realm.createObject(NullTypes.class);
+        DynamicRealmObject dObj = new DynamicRealmObject(obj);
+        try {
+            for (SupportedType type : SupportedType.values()) {
+                switch (type) {
+                    case OBJECT:
+                        dObj.setObject(NullTypes.FIELD_OBJECT_NULL, null);
+                        assertNull(dObj.getObject(NullTypes.FIELD_OBJECT_NULL));
+                        break;
+                    case LIST:
+                        try {
+                            dObj.setList(NullTypes.FIELD_LIST_NULL, null);
+                            fail();
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                        break;
+                    case DATE:
+                        dObj.setDate(NullTypes.FIELD_DATE_NULL, null);
+                        assertNull(dObj.getDate(NullTypes.FIELD_DATE_NULL));
+                        break;
+                    case STRING:
+                        dObj.setString(NullTypes.FIELD_STRING_NULL, null);
+                        assertNull(dObj.getString(NullTypes.FIELD_STRING_NULL));
+                        break;
+                    case BINARY:
+                        dObj.setBlob(NullTypes.FIELD_BYTES_NULL, null);
+                        assertNull(dObj.getBlob(NullTypes.FIELD_BYTES_NULL));
+                        break;
                     case BOOLEAN:
                     case SHORT:
                     case INT:
                     case LONG:
                     case FLOAT:
                     case DOUBLE:
-                    case STRING:
-                    case BINARY:
-                    case DATE:
                     default:
-                        // Ignore other types for now until null support is merged.
+                        // The typed setters for these cannot accept null as input.
                 }
             }
         } finally {
@@ -274,6 +404,44 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
+    public void testSetListWrongTypeThrows() {
+        realm.beginTransaction();
+        AllTypes wrongObj = realm.createObject(AllTypes.class);
+        DynamicRealmObject wrongDynamicObject = new DynamicRealmObject(wrongObj);
+        RealmList<DynamicRealmObject> wrongDynamicList = wrongDynamicObject.getList(AllTypes.FIELD_REALMLIST);
+        try {
+            dObj.setList(AllJavaTypes.FIELD_LIST, wrongDynamicList);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testUntypedSetListWrongTypeThrows() {
+        realm.beginTransaction();
+        AllTypes wrongObj = realm.createObject(AllTypes.class);
+        try {
+            dObj.set(AllJavaTypes.FIELD_LIST, wrongObj.getColumnRealmList());
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testUntypedSetListMixedTypesThrows() {
+        realm.beginTransaction();
+        AllJavaTypes obj1 = realm.createObject(AllJavaTypes.class);
+        obj1.setFieldLong(2);
+        CyclicType obj2 = realm.createObject(CyclicType.class);
+
+        RealmList<DynamicRealmObject> list = new RealmList<DynamicRealmObject>();
+        list.add(new DynamicRealmObject(obj1));
+        list.add(new DynamicRealmObject(obj2));
+        try {
+            dObj.set(AllJavaTypes.FIELD_LIST, list);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
     // List is not a simple getter, test separately.
     public void testGetList() {
         RealmList<DynamicRealmObject> list = dObj.getList(AllJavaTypes.FIELD_LIST);
@@ -281,7 +449,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertEquals(dObj, list.get(0));
     }
 
-    public void testGenericGetterSetter() {
+    public void testUntypedGetterSetter() {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
         DynamicRealmObject dObj = new DynamicRealmObject(obj);
@@ -349,36 +517,6 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
-    public void testUntypedSetWithNull() {
-        realm.beginTransaction();
-        AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
-        DynamicRealmObject dObj = new DynamicRealmObject(obj);
-        try {
-            for (SupportedType type : SupportedType.values()) {
-                switch (type) {
-                    case OBJECT:
-                        dObj.set(AllJavaTypes.FIELD_OBJECT, null);
-                        assertNull(dObj.getObject(AllJavaTypes.FIELD_OBJECT));
-                        break;
-                    case LIST:
-                    case BOOLEAN:
-                    case SHORT:
-                    case INT:
-                    case LONG:
-                    case FLOAT:
-                    case DOUBLE:
-                    case STRING:
-                    case BINARY:
-                    case DATE:
-                    default:
-                        // Ignore other types for now until Null support is merged.
-                }
-            }
-        } finally {
-            realm.cancelTransaction();
-        }
-    }
-
     public void testUntypedSetUsingStringConversion() {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
@@ -414,13 +552,16 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                         dObj.set(AllJavaTypes.FIELD_DATE, "1000");
                         assertEquals(new Date(1000), dObj.getDate(AllJavaTypes.FIELD_DATE));
 
-                    // These types don't have a string representation that should be parsed.
+                    // These types don't have a string representation that can be parsed.
                     case OBJECT:
                     case LIST:
                     case STRING:
                     case BINARY:
+                    case BYTE:
+                        continue;
+
                     default:
-                        // Ignore
+                        fail("Unknown type: " + type);
                 }
             }
         } finally {
@@ -455,14 +596,17 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                             dObj.set(AllJavaTypes.FIELD_DATE, "foo");
                             break;
 
-                        // These types doesn't have a string representation that should be parsed.
+                        // These types don't have a string representation that can be parsed.
                         case BOOLEAN: // Boolean is special as it returns false for all strings != "true"
+                        case BYTE:
                         case OBJECT:
                         case LIST:
                         case STRING:
                         case BINARY:
-                        default:
                             continue;
+
+                        default:
+                            fail("Unknown type: " + type);
                     }
                     fail(type + " failed");
                 } catch (IllegalArgumentException ignored) {
@@ -503,6 +647,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertFalse(dObj.hasField(""));
         assertFalse(dObj.hasField("foo"));
         assertFalse(dObj.hasField("foo.bar"));
+        assertFalse(dObj.hasField(TestHelper.getRandomString(65)));
     }
 
     public void testHasFieldTrue() {

@@ -53,6 +53,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 
@@ -925,9 +926,7 @@ public final class Realm extends BaseRealm {
      * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
      */
     public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String fieldName) {
-        if (fieldName == null) {
-            throw new IllegalArgumentException("fieldName must be provided.");
-        }
+        checkNotNullFieldName(fieldName);
         checkIfValid();
         Table table = this.getTable(clazz);
         long columnIndex = table.getColumnIndex(fieldName);
@@ -952,10 +951,7 @@ public final class Realm extends BaseRealm {
      * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
      */
     public <E extends RealmObject> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
-        if (fieldName == null) {
-            throw new IllegalArgumentException("fieldName must be provided.");
-        }
-
+        checkNotNullFieldName(fieldName);
         Table table = this.getTable(clazz);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {

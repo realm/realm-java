@@ -223,10 +223,10 @@ public class TestHelper {
     }
 
     public static String getRandomString(int length) {
-        Random random = new Random();
+        Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) random.nextInt(128));
+            sb.append((char) r.nextInt(128)); // Restrict to standard ASCII chars.
         }
         return sb.toString();
     }
@@ -459,6 +459,9 @@ public class TestHelper {
         if (!excludingField.equals("fieldObjectNull")) {
             table.addColumnLink(RealmFieldType.OBJECT, "fieldObjectNull", table);
         }
+
+        table.addColumnLink(RealmFieldType.LIST, "fieldListNull", table);
+
     }
 
     public static void populateForMultiSort(Realm typedRealm) {
