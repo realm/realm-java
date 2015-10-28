@@ -1564,4 +1564,34 @@ public class RealmQueryTest extends AndroidTestCase {
             }
         }
     }
+
+    // Test that deep queries work on a lot of data
+    public void testDeepLinkListQuery() {
+        testRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+
+                // Crash with i == 1000, 500, 100, 89, 85, 84
+                // Doesn't crash for i == 10, 50, 75, 82, 83
+                for (int i = 0; i < 84; i++) {
+                    AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
+                    obj.setFieldLong(i + 1);
+                    obj.setFieldBoolean(i % 2 == 0);
+                    obj.setFieldObject(obj);
+
+                    RealmResults<AllJavaTypes> items = realm.where(AllJavaTypes.class).findAll();
+                    RealmList<AllJavaTypes> fieldList = obj.getFieldList();
+                    for (int j = 0; j < items.size(); j++) {
+                        fieldList.add(items.get(j));
+                    }
+                }
+            }
+        });
+
+        for (int i = 0; i < 4; i++) {
+            RealmResults<AllJavaTypes> result = testRealm.where(AllJavaTypes.class)
+                    .equalTo("fieldList.fieldObject.fieldBoolean", true)
+                    .findAll();
+        }
+    }
 }
