@@ -563,7 +563,7 @@ public final class DynamicRealmObject extends RealmObject {
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
 
-        String tableType = row.getTable().getName();
+        String tableName = row.getTable().getName();
         boolean typeValidated;
         if (list.className == null && list.clazz == null) {
             // Standalone lists don't know anything about the types they contain. They might even hold objects of
@@ -571,9 +571,9 @@ public final class DynamicRealmObject extends RealmObject {
             typeValidated = false;
         } else {
             String listType = list.className != null ? list.className : realm.getTable(list.clazz).getName();
-            if (!tableType.equals(listType)) {
+            if (!tableName.equals(listType)) {
                 throw new IllegalArgumentException(String.format("The elements in the list is not the proper type. " +
-                        "Was %s expected %s.", listType, tableType));
+                        "Was %s expected %s.", listType, tableName));
             }
             typeValidated = true;
         }
@@ -585,9 +585,9 @@ public final class DynamicRealmObject extends RealmObject {
             RealmObject obj = list.get(i);
             if (!typeValidated) {
                 String elementType = obj.row.getTable().getName();
-                if (!tableType.equals(elementType)) {
-                    throw new IllegalArgumentException(String.format("Element at index %s is not the proper type. " +
-                            "Was %s expected %s.", i, elementType, tableType));
+                if (!tableName.equals(elementType)) {
+                    throw new IllegalArgumentException(String.format("Element at index %d is not the proper type. " +
+                            "Was %s expected %s.", i, elementType, tableName));
                 }
             }
             links.add(obj.row.getIndex());

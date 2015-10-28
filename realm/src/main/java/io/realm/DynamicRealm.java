@@ -32,7 +32,7 @@ import io.realm.internal.TableView;
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
  * done using string based class names instead of class type references.
  *
- * This is useful during migrations or when when working with string-based data like from CSV or XML files.
+ * This is useful during migrations or when working with string-based data like from CSV or XML files.
  *
  * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file in both dynamic and typed mode, but
  * modifying the schema while having both a typed and dynamic version open is highly discouraged and will most likely

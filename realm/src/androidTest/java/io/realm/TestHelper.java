@@ -229,7 +229,7 @@ public class TestHelper {
         Random r = new Random();
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append((char) r.nextInt(128));
+            sb.append((char) r.nextInt(128)); // Restrict to standard ASCII chars.
         }
         return sb.toString();
     }
