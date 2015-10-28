@@ -24,6 +24,7 @@ package io.realm.internal;
  *
  */
 @SuppressWarnings("serial")
+@Keep
 public class OutOfMemoryError extends Error {
 
     public OutOfMemoryError() {

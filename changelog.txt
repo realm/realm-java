@@ -2,6 +2,7 @@
  * Fixed a bug where simultaneous opening and closing a Realm on different threads might result in a NullPointerException (#1646).
  * Suppressed warnings reported by `lint -Xlint:all` (#1644).
  * Fixed a bug which allowed to externally modify the encryption key in a RealmConfiguration.
+ * Updated ProGuard configuration. See documentation https://realm.io/docs/java/latest/#proguard for more details.
 
 0.84.0
  * Added support for async queries and transactions.

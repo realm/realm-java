@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 // Make sure numbers match with <realm/column_type.hpp>
 // FIXME: Add a unit test that verifies the correct correspondence.
 
+@Keep
 public enum ColumnType {
     BOOLEAN(1),
     INTEGER(0),

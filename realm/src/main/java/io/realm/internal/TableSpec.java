@@ -19,6 +19,7 @@ package io.realm.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Keep
 public class TableSpec {
 
     public static class ColumnInfo {

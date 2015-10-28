@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm.exceptions;
+package io.realm.internal;
 
-import io.realm.internal.Keep;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * RealmException is Realm specific exceptions.
+ * This annotation is used to mark the classes to be kept by ProGuard/DexGuard.
+ * The ProGuard configuration must have '-keep class io.realm.internal.Keep'
+ * and '-keep @io.realm.internal.Keep class *'.
  */
-@Keep
-public class RealmException extends RuntimeException {
-
-    public RealmException(String detailMessage) {
-        super(detailMessage);
-    }
-
-    public RealmException(String detailMessage, Throwable exception) {
-        super(detailMessage, exception);
-    }
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.TYPE)
+public @interface Keep {
 }
