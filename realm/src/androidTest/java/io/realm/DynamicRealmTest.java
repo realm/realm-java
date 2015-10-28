@@ -184,6 +184,7 @@ public class DynamicRealmTest extends AndroidTestCase {
         realm.beginTransaction();
         try {
             realm.clear("I don't exist");
+            fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
@@ -365,7 +366,6 @@ public class DynamicRealmTest extends AndroidTestCase {
         }
         realm.commitTransaction();
     }
-
 
     public void testDistinctInvalidClassNameThrows() {
         String[] classNames = new String[]{null, "", "foo", "foo.bar"};

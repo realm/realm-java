@@ -566,6 +566,12 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    protected void checkNotNullFieldName(String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+    }
+
     /**
      * Make sure that the new configuration doesn't clash with any existing configurations for the
      * Realm.
@@ -644,7 +650,7 @@ abstract class BaseRealm implements Closeable {
             table = getTable(clazz);
             result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
         }
-        UncheckedRow row = table.getUncheckedRow(rowIndex); // TODO Checked row for dynamic object
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
         result.row = row;
         result.realm = this;
         return result;

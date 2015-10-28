@@ -90,7 +90,6 @@ public class CheckedRow extends UncheckedRow {
 
     @Override
     public boolean isNull(long columnIndex) {
-        RealmFieldType columnType = getColumnType(columnIndex);
         return super.isNull(columnIndex);
     }
 
@@ -137,5 +136,4 @@ public class CheckedRow extends UncheckedRow {
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
-    protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
 }
