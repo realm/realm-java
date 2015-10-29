@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm.exceptions;
+package io.realm.examples.kotlin.model
 
-import io.realm.internal.Keep;
+import io.realm.RealmObject
+import io.realm.annotations.RealmClass
 
-/**
- * RealmException is Realm specific exceptions.
- */
-@Keep
-public class RealmException extends RuntimeException {
-
-    public RealmException(String detailMessage) {
-        super(detailMessage);
-    }
-
-    public RealmException(String detailMessage, Throwable exception) {
-        super(detailMessage, exception);
-    }
+public open class Cat : RealmObject() {
+    public open var name: String? = null
 }

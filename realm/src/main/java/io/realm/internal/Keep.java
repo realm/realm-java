@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm.examples.kotlin.model
+package io.realm.internal;
 
-import io.realm.RealmObject
-import io.realm.annotations.RealmClass
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@RealmClass
-public open class Cat : RealmObject() {
-    public open var name: String = ""
+/**
+ * This annotation is used to mark the classes to be kept by ProGuard/DexGuard.
+ * The ProGuard configuration must have '-keep class io.realm.internal.Keep'
+ * and '-keep @io.realm.internal.Keep class *'.
+ */
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.TYPE)
+public @interface Keep {
 }

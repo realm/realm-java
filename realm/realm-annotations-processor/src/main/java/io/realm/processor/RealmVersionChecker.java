@@ -30,6 +30,7 @@ public class RealmVersionChecker {
 
     private static final String VERSION_URL = "http://static.realm.io/update/java?";
     private static final String REALM_VERSION = Version.VERSION;
+    private static final String REALM_VERSION_PATTERN = "\\d+\\.\\d+\\.\\d+";
     private static final int READ_TIMEOUT = 2000;
     private static final int CONNECT_TIMEOUT = 4000;
 
@@ -80,7 +81,11 @@ public class RealmVersionChecker {
             conn.setConnectTimeout(CONNECT_TIMEOUT);
             conn.setReadTimeout(READ_TIMEOUT);
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            result = rd.readLine();
+            String latestVersion = rd.readLine();
+            // if the obtained string does not match the pattern, we are in a separate network.
+            if (latestVersion.matches(REALM_VERSION_PATTERN)) {
+                result = latestVersion;
+            }
             rd.close();
         } catch (IOException e) {
             // We ignore this exception on purpose not to break the build system if this class fails

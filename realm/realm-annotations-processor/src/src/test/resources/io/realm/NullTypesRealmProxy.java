@@ -153,6 +153,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @Override
+    @SuppressWarnings("cast")
     public String getFieldStringNotNull() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.fieldStringNotNullIndex);
@@ -164,10 +165,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldStringNotNull to null.");
         }
-        row.setString(columnInfo.fieldStringNotNullIndex, (String) value);
+        row.setString(columnInfo.fieldStringNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public String getFieldStringNull() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.fieldStringNullIndex);
@@ -180,10 +182,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldStringNullIndex);
             return;
         }
-        row.setString(columnInfo.fieldStringNullIndex, (String) value);
+        row.setString(columnInfo.fieldStringNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Boolean getFieldBooleanNotNull() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.fieldBooleanNotNullIndex);
@@ -195,10 +198,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldBooleanNotNull to null.");
         }
-        row.setBoolean(columnInfo.fieldBooleanNotNullIndex, (boolean) value);
+        row.setBoolean(columnInfo.fieldBooleanNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Boolean getFieldBooleanNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldBooleanNullIndex)) {
@@ -214,10 +218,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldBooleanNullIndex);
             return;
         }
-        row.setBoolean(columnInfo.fieldBooleanNullIndex, (boolean) value);
+        row.setBoolean(columnInfo.fieldBooleanNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public byte[] getFieldBytesNotNull() {
         realm.checkIfValid();
         return (byte[]) row.getBinaryByteArray(columnInfo.fieldBytesNotNullIndex);
@@ -229,10 +234,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldBytesNotNull to null.");
         }
-        row.setBinaryByteArray(columnInfo.fieldBytesNotNullIndex, (byte[]) value);
+        row.setBinaryByteArray(columnInfo.fieldBytesNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public byte[] getFieldBytesNull() {
         realm.checkIfValid();
         return (byte[]) row.getBinaryByteArray(columnInfo.fieldBytesNullIndex);
@@ -245,10 +251,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldBytesNullIndex);
             return;
         }
-        row.setBinaryByteArray(columnInfo.fieldBytesNullIndex, (byte[]) value);
+        row.setBinaryByteArray(columnInfo.fieldBytesNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Byte getFieldByteNotNull() {
         realm.checkIfValid();
         return (byte) row.getLong(columnInfo.fieldByteNotNullIndex);
@@ -260,10 +267,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldByteNotNull to null.");
         }
-        row.setLong(columnInfo.fieldByteNotNullIndex, (long) value);
+        row.setLong(columnInfo.fieldByteNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Byte getFieldByteNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldByteNullIndex)) {
@@ -279,10 +287,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldByteNullIndex);
             return;
         }
-        row.setLong(columnInfo.fieldByteNullIndex, (long) value);
+        row.setLong(columnInfo.fieldByteNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Short getFieldShortNotNull() {
         realm.checkIfValid();
         return (short) row.getLong(columnInfo.fieldShortNotNullIndex);
@@ -294,10 +303,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldShortNotNull to null.");
         }
-        row.setLong(columnInfo.fieldShortNotNullIndex, (long) value);
+        row.setLong(columnInfo.fieldShortNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Short getFieldShortNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldShortNullIndex)) {
@@ -313,10 +323,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldShortNullIndex);
             return;
         }
-        row.setLong(columnInfo.fieldShortNullIndex, (long) value);
+        row.setLong(columnInfo.fieldShortNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Integer getFieldIntegerNotNull() {
         realm.checkIfValid();
         return (int) row.getLong(columnInfo.fieldIntegerNotNullIndex);
@@ -328,10 +339,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldIntegerNotNull to null.");
         }
-        row.setLong(columnInfo.fieldIntegerNotNullIndex, (long) value);
+        row.setLong(columnInfo.fieldIntegerNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Integer getFieldIntegerNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldIntegerNullIndex)) {
@@ -347,10 +359,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldIntegerNullIndex);
             return;
         }
-        row.setLong(columnInfo.fieldIntegerNullIndex, (long) value);
+        row.setLong(columnInfo.fieldIntegerNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Long getFieldLongNotNull() {
         realm.checkIfValid();
         return (long) row.getLong(columnInfo.fieldLongNotNullIndex);
@@ -362,10 +375,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldLongNotNull to null.");
         }
-        row.setLong(columnInfo.fieldLongNotNullIndex, (long) value);
+        row.setLong(columnInfo.fieldLongNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Long getFieldLongNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldLongNullIndex)) {
@@ -381,10 +395,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldLongNullIndex);
             return;
         }
-        row.setLong(columnInfo.fieldLongNullIndex, (long) value);
+        row.setLong(columnInfo.fieldLongNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Float getFieldFloatNotNull() {
         realm.checkIfValid();
         return (float) row.getFloat(columnInfo.fieldFloatNotNullIndex);
@@ -396,10 +411,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldFloatNotNull to null.");
         }
-        row.setFloat(columnInfo.fieldFloatNotNullIndex, (float) value);
+        row.setFloat(columnInfo.fieldFloatNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Float getFieldFloatNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldFloatNullIndex)) {
@@ -415,10 +431,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldFloatNullIndex);
             return;
         }
-        row.setFloat(columnInfo.fieldFloatNullIndex, (float) value);
+        row.setFloat(columnInfo.fieldFloatNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Double getFieldDoubleNotNull() {
         realm.checkIfValid();
         return (double) row.getDouble(columnInfo.fieldDoubleNotNullIndex);
@@ -430,10 +447,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldDoubleNotNull to null.");
         }
-        row.setDouble(columnInfo.fieldDoubleNotNullIndex, (double) value);
+        row.setDouble(columnInfo.fieldDoubleNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Double getFieldDoubleNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldDoubleNullIndex)) {
@@ -449,10 +467,11 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldDoubleNullIndex);
             return;
         }
-        row.setDouble(columnInfo.fieldDoubleNullIndex, (double) value);
+        row.setDouble(columnInfo.fieldDoubleNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Date getFieldDateNotNull() {
         realm.checkIfValid();
         return (java.util.Date) row.getDate(columnInfo.fieldDateNotNullIndex);
@@ -464,10 +483,11 @@ public class NullTypesRealmProxy extends NullTypes
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldDateNotNull to null.");
         }
-        row.setDate(columnInfo.fieldDateNotNullIndex, (Date) value);
+        row.setDate(columnInfo.fieldDateNotNullIndex, value);
     }
 
     @Override
+    @SuppressWarnings("cast")
     public Date getFieldDateNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldDateNullIndex)) {
@@ -483,7 +503,7 @@ public class NullTypesRealmProxy extends NullTypes
             row.setNull(columnInfo.fieldDateNullIndex);
             return;
         }
-        row.setDate(columnInfo.fieldDateNullIndex, (Date) value);
+        row.setDate(columnInfo.fieldDateNullIndex, value);
     }
 
     @Override
@@ -758,6 +778,7 @@ public class NullTypesRealmProxy extends NullTypes
         return FIELD_NAMES;
     }
 
+    @SuppressWarnings("cast")
     public static NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
         NullTypes obj = realm.createObject(NullTypes.class);
@@ -922,6 +943,7 @@ public class NullTypesRealmProxy extends NullTypes
         return obj;
     }
 
+    @SuppressWarnings("cast")
     public static NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
         NullTypes obj = realm.createObject(NullTypes.class);
@@ -1132,41 +1154,6 @@ public class NullTypesRealmProxy extends NullTypes
                 realmObject.setFieldObjectNull(cachefieldObjectNull);
             } else {
                 realmObject.setFieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
-            }
-        } else {
-            realmObject.setFieldObjectNull(null);
-        }
-        return realmObject;
-    }
-
-    static NullTypes update(Realm realm, NullTypes realmObject, NullTypes newObject, Map<RealmObject, RealmObjectProxy> cache) {
-        realmObject.setFieldStringNotNull(newObject.getFieldStringNotNull());
-        realmObject.setFieldStringNull(newObject.getFieldStringNull());
-        realmObject.setFieldBooleanNotNull(newObject.getFieldBooleanNotNull());
-        realmObject.setFieldBooleanNull(newObject.getFieldBooleanNull());
-        realmObject.setFieldBytesNotNull(newObject.getFieldBytesNotNull());
-        realmObject.setFieldBytesNull(newObject.getFieldBytesNull());
-        realmObject.setFieldByteNotNull(newObject.getFieldByteNotNull());
-        realmObject.setFieldByteNull(newObject.getFieldByteNull());
-        realmObject.setFieldShortNotNull(newObject.getFieldShortNotNull());
-        realmObject.setFieldShortNull(newObject.getFieldShortNull());
-        realmObject.setFieldIntegerNotNull(newObject.getFieldIntegerNotNull());
-        realmObject.setFieldIntegerNull(newObject.getFieldIntegerNull());
-        realmObject.setFieldLongNotNull(newObject.getFieldLongNotNull());
-        realmObject.setFieldLongNull(newObject.getFieldLongNull());
-        realmObject.setFieldFloatNotNull(newObject.getFieldFloatNotNull());
-        realmObject.setFieldFloatNull(newObject.getFieldFloatNull());
-        realmObject.setFieldDoubleNotNull(newObject.getFieldDoubleNotNull());
-        realmObject.setFieldDoubleNull(newObject.getFieldDoubleNull());
-        realmObject.setFieldDateNotNull(newObject.getFieldDateNotNull());
-        realmObject.setFieldDateNull(newObject.getFieldDateNull());
-        NullTypes fieldObjectNullObj = newObject.getFieldObjectNull();
-        if (fieldObjectNullObj != null) {
-            NullTypes cachefieldObjectNull = (NullTypes) cache.get(fieldObjectNullObj);
-            if (cachefieldObjectNull != null) {
-                realmObject.setFieldObjectNull(cachefieldObjectNull);
-            } else {
-                realmObject.setFieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, true, cache));
             }
         } else {
             realmObject.setFieldObjectNull(null);

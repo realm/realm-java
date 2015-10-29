@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '0.12.213'
+    ext.kotlin_version = '1.0.0-beta-1038'
     repositories {
         jcenter()
     }
@@ -39,11 +39,16 @@ android {
     dexOptions {
         incremental false
     }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
 }
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${kotlin_version}"
-    compile 'org.jetbrains.anko:anko:0.6.2-19s'
+    compile "org.jetbrains.kotlin:kotlin-reflect:${kotlin_version}"
+    compile 'org.jetbrains.anko:anko-sdk15:0.7.2'
     compile "io.realm:realm-android:${version}@aar"
     compile "io.realm:realm-annotations:${version}"
     kapt "io.realm:realm-annotations-processor:${version}"

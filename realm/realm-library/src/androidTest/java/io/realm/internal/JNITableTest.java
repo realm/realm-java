@@ -490,6 +490,7 @@ public class JNITableTest extends AndroidTestCase {
                     assertEquals(1, table.size());
 
                     table.convertColumnToNullable(colIndex);
+                    assertTrue(table.isColumnNullable(colIndex));
                     assertEquals(1, table.size());
                     assertEquals(2, table.getColumnCount());
                     assertTrue(table.getColumnIndex(columnName) >= 0);
@@ -559,6 +560,7 @@ public class JNITableTest extends AndroidTestCase {
                     assertEquals(2, table.size());
 
                     table.convertColumnToNotNullable(colIndex);
+                    assertFalse(table.isColumnNullable(colIndex));
                     assertEquals(2, table.size());
                     assertEquals(2, table.getColumnCount());
                     assertTrue(table.getColumnIndex(columnName) >= 0);

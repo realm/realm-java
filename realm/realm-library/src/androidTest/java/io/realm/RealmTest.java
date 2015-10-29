@@ -716,6 +716,16 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testDoubleCommitThrows() {
+        testRealm.beginTransaction();
+        testRealm.commitTransaction();
+        try {
+            testRealm.commitTransaction();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+    }
+
     public void testCancelTransaction() {
         populateTestRealm();
 
@@ -850,8 +860,7 @@ public class RealmTest extends AndroidTestCase {
         createAndTestFilename("Japanese", "東京都");
     }
 
-    // This test is slow. Move it to another testsuite that runs once a day on Jenkins.
-    public void rarely_run_testUTF8() {
+    public void testUTF8() {
         testRealm.beginTransaction();
         testRealm.clear(AllTypes.class);
         testRealm.commitTransaction();
@@ -903,7 +912,7 @@ public class RealmTest extends AndroidTestCase {
         return chars_array;
     }
 
-    // This test is disabled.
+    // This test is slow. Move it to another testsuite that runs once a day on Jenkins.
     // The test writes and reads random Strings.
     public void disabledTestUnicodeString() {
         List<String> chars_array = getCharacterArray();
@@ -1503,7 +1512,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Dog", realmObject.getDogOwner().getDog().getName());
     }
 
-   public void testCopyOrUpdateIterable() {
+    public void testCopyOrUpdateIterable() {
         testRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {

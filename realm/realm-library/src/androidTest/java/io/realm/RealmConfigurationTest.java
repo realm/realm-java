@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.test.AndroidTestCase;
+import android.test.MoreAsserts;
 
 import java.io.File;
 
@@ -415,5 +416,21 @@ public class RealmConfigurationTest extends AndroidTestCase {
         Realm realm2 = Realm.getInstance(config2);
         realm1.close();
         realm2.close();
+    }
+
+    public void testKeyStorage() throws Exception {
+        // Generate a key and use it in a RealmConfiguration
+        byte[] oldKey = TestHelper.getRandomKey(12345);
+        byte[] key = oldKey;
+        RealmConfiguration config = new RealmConfiguration.Builder(getContext()).encryptionKey(key).build();
+
+        // Generate a different key and assign it to the same variable
+        byte[] newKey = TestHelper.getRandomKey(67890);
+        MoreAsserts.assertNotEqual(key, newKey);
+        key = newKey;
+        MoreAsserts.assertEquals(key, newKey);
+
+        // Ensure that the stored key did not change
+        MoreAsserts.assertEquals(oldKey, config.getEncryptionKey());
     }
 }
