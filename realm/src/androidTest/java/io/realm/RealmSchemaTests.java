@@ -26,6 +26,7 @@ import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Owner;
+import io.realm.internal.Util;
 
 public class RealmSchemaTests extends AndroidTestCase {
 
@@ -49,7 +50,7 @@ public class RealmSchemaTests extends AndroidTestCase {
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
-        realm.cancelTransaction();
+//        realm.cancelTransaction();
         realm.close();
     }
 
@@ -140,15 +141,11 @@ public class RealmSchemaTests extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
 
-        realmSchema.getClass("Owner").removeField("cat");
-        realmSchema.getClass("Cat").removeField("owner");
-        assertFalse(realmSchema.getClass("Cat").hasField("owner"));
-        assertFalse(realmSchema.getClass("Owner").hasField("cat"));
-        try {
-            realmSchema.removeClass("Cat");
-
-        } catch (IllegalStateException ignored) {
-        }
+        RealmObjectSchema ownerSchema = realmSchema.getClass("Owner");
+        RealmObjectSchema catSchema = realmSchema.getClass("Cat");
+        ownerSchema.removeField("cat");
+        catSchema.removeField("owner");
+        realmSchema.removeClass("Cat");
         assertFalse(realmSchema.hasClass("Cat"));
     }
 }
