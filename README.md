@@ -99,6 +99,8 @@ The repository is organized in four Gradle projects:
  * The root folder is another Gradle project and all it does is orchestrating the other jobs
 
 This means that `./gradlew clean` and `./gradlew cleanExamples` will fail if `assembleExamples` has not been executed first.
+Note that IntelliJ [does not support multiple projects in the same window](https://youtrack.jetbrains.com/issue/IDEABKL-6118#)
+so each sub-project must be opened in its own window.
 
 ## Contributing
 
