@@ -233,6 +233,17 @@ public final class Realm extends BaseRealm {
     }
 
     /**
+     * Returns the {@link io.realm.RealmConfiguration} instance defined by
+     * {@link #setDefaultConfiguration(RealmConfiguration)}.
+     *
+     * @return the configuration set in {@link #setDefaultConfiguration(RealmConfiguration)}
+     * @see RealmConfiguration for details on how to configure a Realm.
+     */
+    public static RealmConfiguration getDefaultConfiguration() {
+        return defaultConfiguration;
+    }
+
+    /**
      * Removes the current default configuration (if any). Any further calls to {@link #getDefaultInstance()} will
      * fail until a new default configuration has been set using {@link #setDefaultConfiguration(RealmConfiguration)}.
      */
