@@ -291,7 +291,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
             std::ostringstream ss;
             ss << std::string("__TMP__") << j;
             if (table->get_column_index(ss.str()) == realm::not_found) {
-                table->insert_column(column_index, column_type, ss.str(), true);
+                table->insert_column(column_index, column_type, ss.str(), false);
                 tmp_column_name = ss.str();
                 break;
             }
