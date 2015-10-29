@@ -3,26 +3,391 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.2.3'
-        classpath 'de.undercouch:gradle-download-task:1.0'
-        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.4'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
-        classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
-        classpath 'com.novoda:gradle-android-command-plugin:1.3.0'
-        classpath 'com.github.skhatri:gradle-s3-plugin:1.0.2'
+        classpath 'ch.netzwerg:gradle-release-plugin:1.1.0'
     }
 }
 
-allprojects {
-  apply plugin: 'android-sdk-manager'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'ch.netzwerg.release'
 
-  group = 'io.realm'
-  version = file("${rootDir}/version.txt").text.trim();
-  repositories {
-    jcenter()
-  }
+def currentVersion = file("${projectDir}/version.txt").text.trim();
+
+def props = new Properties()
+props.load(new FileInputStream("${rootDir}/realm.properties"))
+props.each { key, val ->
+    project.set(key, val)
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+def getSdk() {
+    if (!System.env.ANDROID_HOME) {
+        throw new GradleException('The ANDROID_HOME environment variable is not set.')
+    }
+    def sdkDir = file(System.env.ANDROID_HOME)
+    if (!sdkDir.directory) {
+        throw new GradleException('The path provided in the ANDROID_HOME environment variable is not a folder.')
+    }
+    return sdkDir
+}
+
+def getNdk() {
+    if (!System.env.NDK_HOME) {
+        throw new GradleException('The NDK_HOME environment variable is not set.')
+    }
+    def ndkDir = file(System.env.NDK_HOME)
+    if (!ndkDir.directory) {
+        throw new GradleException('The path provided in the NDK_HOME environment variable is not a folder.')
+    } else if (!file("${sdndkDirkDir}/RELEASE.TXT").file) {
+        throw new GradleException('The path provided in the NDK_HOME environment variable does not seem to be an Android NDK.')
+    }
+    return ndkDir
+}
+
+task assembleGradlePlugin(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble the Realm Gradle plugin'
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['assemble']
+}
+
+task assembleRealm(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble the Realm project'
+    buildFile = file('realm/build.gradle')
+    tasks = ['assemble']
+}
+
+task check(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the JVM tests and checks Realm project'
+    buildFile = file('realm/build.gradle')
+    tasks = ['check']
+}
+
+task connectedCheck(type:GradleBuild) {
+    group = 'Test'
+    description = 'Run the Android unit tests of the Realm project'
+    buildFile = file('realm/build.gradle')
+    tasks = ['connectedCheck']
+}
+
+task installGradlePlugin(type:GradleBuild) {
+    description = 'Install the Realm Gradle plugin to the Maven Repo in ANDROID_HOME'
+    group = 'Install'
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['uploadArchives']
+}
+
+task installRealm(type:GradleBuild) {
+    group = 'Install'
+    description = 'Install the artifacts of Realm project to the Maven Repo in ANDROID_HOME'
+    buildFile = file('realm/build.gradle')
+    tasks = ['uploadArchives']
+}
+
+task assembleExamples(type:GradleBuild) {
+    dependsOn installGradlePlugin
+    dependsOn installRealm
+    group = 'Build'
+    description = 'Assemble the Realm examples'
+    buildFile = file('examples/build.gradle')
+    tasks = ['assemble']
+}
+
+task monkeyExamples(type:GradleBuild) {
+    dependsOn installGradlePlugin
+    dependsOn installRealm
+    group = 'Build'
+    description = 'Run the monkey tests on the Realm examples'
+    buildFile = file('examples/build.gradle')
+    tasks = ['monkeyRelease']
+}
+
+task javadoc(type:GradleBuild) {
+    description = 'Generate the Javadoc Jar for the Realm project'
+    group = 'Docs'
+    buildFile = file('realm/build.gradle')
+    tasks = ['javadocJar']
+}
+
+task eclipseJar(type:GradleBuild) {
+    description = 'Generate the Jar file to be used with Eclipse'
+    group = 'Artifact'
+    buildFile = file('realm/build.gradle')
+    tasks = ['shadowJar']
+}
+
+task gradleJar(type:Zip) {
+    description = 'Generate the jar file to be used with Gradle'
+    group = 'Artifact'
+    dependsOn eclipseJar
+    archiveName = "realm-android-${currentVersion}.jar"
+    destinationDir = file("${buildDir}/outputs/gradle")
+
+    from(zipTree("realm/realm-annotations-processor/build/libs/realm-android-${currentVersion}.jar"))
+    from('realm/realm-library/src/main/jniLibs/') {
+        include '**/*'
+        into 'lib'
+    }
+}
+
+task assemble {
+    group 'Build'
+    description = 'Build Realm, the Gradle plugin and the examples'
+    dependsOn assembleExamples
+    dependsOn gradleJar
+}
+
+task distributionPackage(type:Zip) {
+    description = 'Generate the distribution package'
+    dependsOn gradleJar
+    dependsOn assembleRealm
+    dependsOn javadoc
+
+    group = 'Artifact'
+    archiveName = "realm-java-${currentVersion}.zip"
+    destinationDir = file("${buildDir}/outputs/distribution")
+
+    from('changelog.txt')
+    from('LICENSE')
+    from('version.txt')
+    from('realm/realm-annotations-processor/build/libs') {
+        include 'realm-android-*.jar'
+        into 'eclipse'
+    }
+    from('realm/realm-library/src/main/jniLibs/') {
+        include '**/*'
+        into 'eclipse'
+    }
+    from("${buildDir}/outputs/gradle") {
+        include "realm-android-${currentVersion}.jar"
+        into 'gradle'
+    }
+    from('realm/realm-library/build/libs') {
+        include 'realm-android-*-javadoc.jar'
+        into 'docs'
+    }
+    from('realm/realm-library/build/docs') {
+        include '**/*'
+        into 'docs'
+    }
+    from('examples') {
+        exclude 'local.properties'
+        exclude '**/gradle'
+        exclude '**/.gradle'
+        exclude '**/build'
+        into 'examples'
+    }
+}
+
+task cleanRealm(type:GradleBuild) {
+    description = 'Clean the Realm project'
+    group = 'Clean'
+    buildFile = file('realm/build.gradle')
+    tasks = ['clean']
+}
+
+task cleanGradlePlugin(type:GradleBuild) {
+    description = 'Clean the Realm Gradle plugin project'
+    group = 'Clean'
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['clean']
+}
+
+task cleanExamples(type:GradleBuild) {
+    description = 'Clean the Realm examples'
+    group = 'Clean'
+    buildFile = file('examples/build.gradle')
+    tasks = ['clean']
+}
+
+task cleanLocalMavenRepos(type:Delete) {
+    description = 'Remove any Realm artifacts from the local Maven repositories'
+    group = 'Clean'
+    delete "${getSdk()}/extras/android/m2repository/io/realm"
+    delete "${System.env.HOME}/.m2/repository/io/realm"
+}
+
+task clean {
+    description = 'Perform all the other clean tasks'
+    group = 'Clean'
+    dependsOn cleanRealm
+    dependsOn cleanGradlePlugin
+    dependsOn cleanExamples
+    dependsOn cleanLocalMavenRepos
+}
+
+task uploadDistributionPackage(type: Exec) {
+    group = 'Release'
+    description = 'Upload the distribution package to S3'
+    dependsOn distributionPackage
+    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+}
+
+task createEmptyFile(type: Exec) {
+    group = 'Release'
+    description = 'Create an empty file that will serve as a link on S3'
+    dependsOn uploadDistributionPackage
+    commandLine 'touch', 'latest'
+}
+
+['java', 'android'].each() { link ->
+    task "upload${link.capitalize()}LatestLink"(type: Exec) {
+        group = 'Release'
+        description = "Update the link to the latest version for ${link.capitalize()}"
+        dependsOn createEmptyFile
+        commandLine 's3cmd', 'put', 'latest', "--add-header=x-amz-website-redirect-location:/downloads/java/realm-java-${currentVersion}.zip", "s3://static.realm.io/downloads/${link}/latest"
+    }
+}
+
+task uploadUpdateVersion(type: Exec) {
+    group = 'Release'
+    description = 'Update the file on S3 containing the latest version'
+    ['java', 'android'].each() { link ->
+        dependsOn "upload${link.capitalize()}LatestLink"
+    }
+    commandLine 's3cmd', 'put', "${rootDir}/version.txt", 's3://static.realm.io/update/java'
+}
+
+task distribute {
+    group = 'Release'
+    description = 'Distribute release artifacts to Bintray and S3'
+    dependsOn uploadUpdateVersion
+}
+
+def commonPom = {
+    licenses {
+        license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    issueManagement {
+        system 'github'
+        url 'https://github.com/realm/realm-java/issues'
+    }
+    scm {
+        url 'scm:https://github.com/realm/realm-java'
+        connection 'scm:git@github.com:realm/realm-java.git'
+        developerConnection 'scm:git@github.com:realm/realm-java.git'
+    }
+}
+
+publishing {
+    publications {
+        jarLibrary(MavenPublication) {
+            artifactId = 'realm-android-library'
+            artifact file("${buildDir}/outputs/gradle/realm-android-${currentVersion}.jar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-sources.jar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-javadoc.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-android')
+                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+                root.appendNode('packaging', 'jar')
+                root.children().last() + commonPom
+            }
+        }
+        aarLibrary(MavenPublication) {
+            artifactId = 'realm-android-library'
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-library-release.aar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-sources.jar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-javadoc.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-android')
+                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+                root.appendNode('packaging', 'aar')
+                root.children().last() + commonPom
+            }
+        }
+        annotations(MavenPublication) {
+            artifactId = 'realm-annotations'
+            artifact file("${rootDir}/realm/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-annotations')
+                root.appendNode('description', 'Annotations for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('url', 'http://realm.io')
+                root.appendNode('packaging', 'jar')
+                root.children().last() + commonPom
+            }
+        }
+        annotationsProcessor(MavenPublication) {
+            artifactId = 'realm-annotations-processor'
+            artifact file("${rootDir}/realm/realm-annotations-processor/build/libs/realm-annotations-processor-${currentVersion}.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-annotations-processor')
+                root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('url', 'http://realm.io')
+                root.appendNode('packaging', 'jar')
+                root.children().last() + commonPom
+            }
+        }
+        gradlePlugin(MavenPublication) {
+            artifactId = 'realm-gradle-plugin'
+            artifact file("${rootDir}/gradle-plugin/build/libs/gradle-plugin-${currentVersion}.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'gradle-realm-plugin')
+                root.appendNode('description', 'Gradle plugin for Realm. Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+                root.appendNode('packaging', 'jar')
+                root.children().last() + commonPom
+            }
+        }
+    }
+}
+
+artifactory {
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        }
+        defaults {
+            publications ('jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin')
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+
+    dryRun = true
+    publish = false
+
+    publications = ['jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin']
+    pkg {
+        repo = 'maven'
+        name = 'realm-android'
+        desc = 'Realm for Android'
+        websiteUrl = 'http://realm.io'
+        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
+        vcsUrl = 'https://github.com/realm/realm-java.git'
+        licenses = ['Apache-2.0']
+        labels = ['android', 'realm']
+        publicDownloadNumbers = false
+    }
+}
+
+release {
+  dependsOn distributionPackage
+  push = true
+  versionSuffix = '-SNAPSHOT'
+  tagPrefix = 'v'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
 }

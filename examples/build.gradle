@@ -1,0 +1,42 @@
+project.ext.sdkVersion = 23
+project.ext.buildTools = '23.0.0'
+
+def props = new Properties()
+props.load(new FileInputStream("${rootDir}/../realm.properties"))
+props.each { key, val ->
+    project.set(key, val)
+}
+
+allprojects {
+    def currentVersion = file("${rootDir}/../version.txt").text.trim()
+
+    buildscript {
+        repositories {
+            maven {
+                url "${System.env.ANDROID_HOME}/extras/android/m2repository"
+            }
+            jcenter()
+        }
+        dependencies {
+            classpath 'com.android.tools.build:gradle:1.2.3'
+            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+            classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.0'
+            classpath 'com.novoda:gradle-android-command-plugin:1.3.0'
+            classpath "io.realm:gradle-plugin:${currentVersion}"
+        }
+    }
+
+    group = 'io.realm'
+    version = currentVersion
+
+    repositories {
+        maven {
+            url "${System.env.ANDROID_HOME}/extras/android/m2repository"
+        }
+        jcenter()
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
+}
