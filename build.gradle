@@ -113,6 +113,13 @@ task javadoc(type:GradleBuild) {
     tasks = ['javadocJar']
 }
 
+task sourcesJar(type:GradleBuild) {
+    description = 'Generate the sources Jar for the Realm project'
+    group = 'Docs'
+    buildFile = file('realm/build.gradle')
+    tasks = ['sourcesJar']
+}
+
 task eclipseJar(type:GradleBuild) {
     description = 'Generate the Jar file to be used with Eclipse'
     group = 'Artifact'
