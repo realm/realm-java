@@ -1,0 +1,96 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.library'
+apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'maven-publish'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'maven'
+apply plugin: 'findbugs'
+apply plugin: 'checkstyle'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion '23.0.0'
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 23
+        project.archivesBaseName = "realm-android"
+    }
+}
+
+dependencies {
+    compile 'com.intellij:annotations:+@jar'
+    compile project(':realm-annotations')
+
+    androidTestApt project(':realm-annotations-processor')
+    androidTestApt project(':realm-annotations')
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source android.sourceSets.main.java.srcDirs
+    source "../realm-annotations/src/main/java"
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    options.memberLevel = JavadocMemberLevel.PUBLIC
+    exclude '**/internal/**'
+    exclude '**/BuildConfig.java'
+    exclude '**/R.java'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+preBuild.dependsOn ':realm-jni:buildAndroidJni'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
+        }
+    }
+}
+
+task findbugs(type: FindBugs) {
+    dependsOn assemble
+    group = 'Test'
+
+    ignoreFailures = false
+    effort = "default"
+    reportLevel = "medium"
+    excludeFilter = file("${projectDir}/findbugs-filter.xml")
+    classes = files("${projectDir}/build/intermediates/classes")
+    source = fileTree('src/main/java/')
+    classpath = files()
+    reports {
+        xml.enabled = false
+        html.enabled = true
+        xml {
+            destination "$project.buildDir/findbugs/findbugs-output.xml"
+        }
+        html {
+            destination "$project.buildDir/findbugs/findbugs-output.html"
+        }
+    }
+}
+
+task checkstyle(type: Checkstyle) {
+    group = 'Test'
+
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
+
+    def configProps = ['proj.module.dir': projectDir.absolutePath]
+    configProperties configProps
+
+    // empty classpath
+    classpath = files()
+}

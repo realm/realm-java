@@ -1,7 +1,0 @@
-repositories {
-    jcenter()
-}
-
-rootProject.dependencies {
-    compile project(':plugin')
-}
