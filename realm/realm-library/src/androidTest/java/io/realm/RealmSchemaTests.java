@@ -48,7 +48,7 @@ public class RealmSchemaTests extends AndroidTestCase {
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
-//        realm.cancelTransaction();
+        realm.cancelTransaction();
         realm.close();
     }
 
