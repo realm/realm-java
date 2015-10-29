@@ -33,6 +33,8 @@ import io.realm.internal.TableOrView;
  */
 public final class RealmObjectSchema {
 
+    private static Set<RealmModifier> NO_MODIFIERS = Collections.emptySet();
+
     private final BaseRealm realm;
     private final Table table;
     private final ImplicitTransaction transaction;
@@ -63,7 +65,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Set a new name of the this class. This is equivalent to renaming it.
+     * Sets a new name for this class. This is equivalent to renaming it.
      *
      * @param newClassName the new name for this class.
      * @see RealmSchema#renameClass(String, String)
@@ -85,7 +87,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addStringField(String fieldName) {
-        return addStringField(fieldName, Collections.EMPTY_SET);
+        return addStringField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -113,7 +115,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addShortField(String fieldName) {
-        return addShortField(fieldName, Collections.EMPTY_SET);
+        return addShortField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -141,7 +143,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addIntField(String fieldName) {
-        return addIntField(fieldName, Collections.EMPTY_SET);
+        return addIntField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -169,7 +171,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addLongField(String fieldName) {
-        return addLongField(fieldName, Collections.EMPTY_SET);
+        return addLongField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -197,7 +199,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addByteField(String fieldName) {
-        return addByteField(fieldName, Collections.EMPTY_SET);
+        return addByteField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -226,7 +228,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addBooleanField(String fieldName) {
-        return addBooleanField(fieldName, Collections.EMPTY_SET);
+        return addBooleanField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -254,7 +256,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addBlobField(String fieldName) {
-        return addBlobField(fieldName, Collections.EMPTY_SET);
+        return addBlobField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -282,9 +284,8 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addFloatField(String fieldName) {
-        return addFloatField(fieldName, Collections.EMPTY_SET);
+        return addFloatField(fieldName, NO_MODIFIERS);
     }
-
 
     /**
      * Adds a {@code float} field.
@@ -311,7 +312,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addDoubleField(String fieldName) {
-        return addDoubleField(fieldName, Collections.EMPTY_SET);
+        return addDoubleField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -339,7 +340,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addDateField(String fieldName) {
-        return addDateField(fieldName, Collections.EMPTY_SET);
+        return addDateField(fieldName, NO_MODIFIERS);
     }
 
     /**
@@ -458,7 +459,7 @@ public final class RealmObjectSchema {
      * Checks if a given field has a {@link io.realm.annotations.Index} defined.
      *
      * @param fieldName existing field name to check.
-     * @return {@code true} if field is indexed. {@false otherwise}.
+     * @return {@code true} if field is indexed, {@code false} otherwise.
      */
     public boolean hasIndex(String fieldName) {
         checkLegalName(fieldName);
@@ -522,13 +523,21 @@ public final class RealmObjectSchema {
      * Sets a field to be required, i.e. not allowed to hold {@code null values}.
      *
      * @param fieldName name of field in the schema.
-     * @param required {@code true} if field should be required, {@false otherwise}.
+     * @param required {@code true} if field should be required, {@code false} otherwise.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists or the field already has the given required flag.
      */
     public RealmObjectSchema setRequired(String fieldName, boolean required) {
         long columnIndex = table.getColumnIndex(fieldName);
         boolean currentColumnRequired = isRequired(fieldName);
+        RealmFieldType type = table.getColumnType(columnIndex);
+
+        if (type == RealmFieldType.OBJECT) {
+            throw new IllegalArgumentException("Cannot modify the required state for RealmObject references: " + fieldName);
+        }
+        if (type == RealmFieldType.LIST) {
+            throw new IllegalArgumentException("Cannot modify the required state for RealmList references: " + fieldName);
+        }
         if (required && currentColumnRequired) {
             throw new IllegalStateException("Current field is already marked as Required: " + fieldName);
         }
@@ -548,7 +557,7 @@ public final class RealmObjectSchema {
      * Sets a field to be nullable, i.e. it should be to hold {@code null values}.
      *
      * @param fieldName name of field in the schema.
-     * @param nullable {@code true} if field should be nullable, {@false otherwise}.
+     * @param nullable {@code true} if field should be nullable, {@code false} otherwise.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists or the field already has the given nullable flag.
      */
