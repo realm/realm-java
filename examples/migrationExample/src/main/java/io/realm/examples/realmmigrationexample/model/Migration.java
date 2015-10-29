@@ -25,19 +25,19 @@ import io.realm.RealmModifier;
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
 
-/***************************** NOTE: *********************************************
- * The API for migration is currently using internal lower level classes that will
- * be replaced by a new API very soon! Until then you will have to explore and use
- * below example as inspiration.
- *********************************************************************************
+/**
+ * Example of migrating a Realm file from version 0 (initial version) to it's last version (version 3).
  */
-
-
 public class Migration implements RealmMigration {
 
     @Override
     public void migrate(final DynamicRealm realm, long oldVersion, long newVersion) {
+        // During a migration, a DynamicRealm is exposed. A DynamicRealm is an untyped variant of a normal Realm, but
+        // otherwise have the same object creation and query capabilities.
+        // A DynamicRealm uses Strings instead of Class references which is needed as the Classes might not even
+        // exist or have a wrong name.
 
+        // The Realm schema can be used to create, modify or delete classes and their fields.
         RealmSchema schema = realm.getSchema();
 
         /*
@@ -59,6 +59,8 @@ public class Migration implements RealmMigration {
         // Migrate from version 0 to version 1
         if (oldVersion == 0) {
             RealmObjectSchema personSchema = schema.getObjectSchema("Person");
+
+            // Combine 'firstName' and 'lastName' in a new field called 'fullName'
             personSchema.addStringField("fullName", EnumSet.of(RealmModifier.REQUIRED))
                     .forEach(new RealmObjectSchema.Iterator() {
                         @Override
@@ -93,7 +95,7 @@ public class Migration implements RealmMigration {
                     .addStringField("name", EnumSet.of(RealmModifier.REQUIRED))
                     .addStringField("type", EnumSet.of(RealmModifier.REQUIRED));
 
-            // Add new field to old class and populate it with initial data
+            // Add a new field to and old class and populate it with initial data
             schema.getObjectSchema("Person")
                 .addListField("pets", petSchema)
                 .forEach(new RealmObjectSchema.Iterator() {
