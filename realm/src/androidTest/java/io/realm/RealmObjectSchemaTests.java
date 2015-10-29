@@ -39,7 +39,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         Realm.getInstance(realmConfig).close(); // Create Schema
         realm = DynamicRealm.getInstance(realmConfig);
         realmSchema = realm.getSchema();
-        DOG_SCHEMA = realmSchema.getClass("Dog");
+        DOG_SCHEMA = realmSchema.getObjectSchema("Dog");
         realm.beginTransaction();
         schema = realmSchema.createClass("NewClass");
     }
@@ -647,10 +647,10 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     case SHORT: schema.addShortField(AllJavaTypes.FIELD_SHORT, modifiers); break;
                     case INT: schema.addIntField(AllJavaTypes.FIELD_INT, modifiers); break;
                     case LONG: schema.addLongField(AllJavaTypes.FIELD_LONG, modifiers); break;
-                    case BYTE: schema.addByteField(AllJavaTypes.FIELD_BYTE); break;
-                    case BOOLEAN: schema.addBooleanField(AllJavaTypes.FIELD_BOOLEAN); break;
-                    case FLOAT: schema.addFloatField(AllJavaTypes.FIELD_FLOAT); break;
-                    case DOUBLE: schema.addDoubleField(AllJavaTypes.FIELD_DOUBLE); break;
+                    case BYTE: schema.addByteField(AllJavaTypes.FIELD_BYTE, modifiers); break;
+                    case BOOLEAN: schema.addBooleanField(AllJavaTypes.FIELD_BOOLEAN, modifiers); break;
+                    case FLOAT: schema.addFloatField(AllJavaTypes.FIELD_FLOAT, modifiers); break;
+                    case DOUBLE: schema.addDoubleField(AllJavaTypes.FIELD_DOUBLE, modifiers); break;
                     case BLOB: schema.addBlobField(AllJavaTypes.FIELD_BINARY, modifiers); break;
                     case DATE: schema.addDateField(AllJavaTypes.FIELD_DATE, modifiers); break;
                     case OBJECT:

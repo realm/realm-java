@@ -52,7 +52,7 @@ public final class RealmSchema {
      * @return Schema object for that class or {@code null} if the class doesn't exists.
      *
      */
-    public RealmObjectSchema getClass(String className) {
+    public RealmObjectSchema getObjectSchema(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalClassName = TABLE_PREFIX + className;
         if (transaction.hasTable(internalClassName)) {

@@ -18,7 +18,6 @@
 package io.realm;
 
 import android.test.AndroidTestCase;
-import android.util.Log;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +25,6 @@ import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Owner;
-import io.realm.internal.Util;
 
 public class RealmSchemaTests extends AndroidTestCase {
 
@@ -84,13 +82,13 @@ public class RealmSchemaTests extends AndroidTestCase {
     }
 
     public void testGetClass() {
-        RealmObjectSchema objectSchema = realmSchema.getClass(CLASS_ALL_JAVA_TYPES);
+        RealmObjectSchema objectSchema = realmSchema.getObjectSchema(CLASS_ALL_JAVA_TYPES);
         assertNotNull(objectSchema);
         assertEquals(CLASS_ALL_JAVA_TYPES, objectSchema.getClassName());
     }
 
     public void testGetClassNotInSchema() {
-        assertNull(realmSchema.getClass("Foo"));
+        assertNull(realmSchema.getObjectSchema("Foo"));
     }
 
     public void testRenameClass() {
@@ -141,8 +139,8 @@ public class RealmSchemaTests extends AndroidTestCase {
         } catch (IllegalStateException ignored) {
         }
 
-        RealmObjectSchema ownerSchema = realmSchema.getClass("Owner");
-        RealmObjectSchema catSchema = realmSchema.getClass("Cat");
+        RealmObjectSchema ownerSchema = realmSchema.getObjectSchema("Owner");
+        RealmObjectSchema catSchema = realmSchema.getObjectSchema("Cat");
         ownerSchema.removeField("cat");
         catSchema.removeField("owner");
         realmSchema.removeClass("Cat");

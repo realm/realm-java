@@ -16,10 +16,14 @@
 
 package io.realm.examples.realmmigrationexample.model;
 
-import io.realm.Realm;
+import java.util.EnumSet;
+
+import io.realm.DynamicRealm;
+import io.realm.DynamicRealmObject;
 import io.realm.RealmMigration;
-import io.realm.RealmFieldType;
-import io.realm.internal.Table;
+import io.realm.RealmModifier;
+import io.realm.RealmObjectSchema;
+import io.realm.RealmSchema;
 
 /***************************** NOTE: *********************************************
  * The API for migration is currently using internal lower level classes that will
@@ -30,8 +34,11 @@ import io.realm.internal.Table;
 
 
 public class Migration implements RealmMigration {
+
     @Override
-    public long execute(Realm realm, long version) {
+    public void migrate(final DynamicRealm realm, long oldVersion, long newVersion) {
+
+        RealmSchema schema = realm.getSchema();
 
         /*
             // Version 0
@@ -50,19 +57,18 @@ public class Migration implements RealmMigration {
         */
 
         // Migrate from version 0 to version 1
-        if (version == 0) {
-            Table personTable = realm.getTable(Person.class);
-
-            long fistNameIndex = getIndexForProperty(personTable, "firstName");
-            long lastNameIndex = getIndexForProperty(personTable, "lastName");
-            long fullNameIndex = personTable.addColumn(RealmFieldType.STRING, "fullName");
-            for (int i = 0; i < personTable.size(); i++) {
-                personTable.setString(fullNameIndex, i, personTable.getString(fistNameIndex, i) + " " +
-                        personTable.getString(lastNameIndex, i));
-            }
-            personTable.removeColumn(getIndexForProperty(personTable, "firstName"));
-            personTable.removeColumn(getIndexForProperty(personTable, "lastName"));
-            version++;
+        if (oldVersion == 0) {
+            RealmObjectSchema personSchema = schema.getObjectSchema("Person");
+            personSchema.addStringField("fullName", EnumSet.of(RealmModifier.REQUIRED))
+                    .forEach(new RealmObjectSchema.Iterator() {
+                        @Override
+                        public void next(DynamicRealmObject obj) {
+                            obj.set("fullName", obj.getString("firstName") + " " + obj.getString("lastName"));
+                        }
+                    })
+                    .removeField("firstName")
+                    .removeField("lastName");
+            oldVersion++;
         }
 
         /*
@@ -70,7 +76,6 @@ public class Migration implements RealmMigration {
                 class Pet                   // add a new model class
                     @Required
                     String name;
-                    @Required
                     String type;
 
                 class Person
@@ -81,23 +86,28 @@ public class Migration implements RealmMigration {
 
         */
         // Migrate from version 1 to version 2
-        if (version == 1) {
-            Table personTable = realm.getTable(Person.class);
-            Table petTable = realm.getTable(Pet.class);
-            long nameColumnIndex = petTable.addColumn(RealmFieldType.STRING, "name");
-            long typeColumnIndex = petTable.addColumn(RealmFieldType.STRING, "type");
-            long petsIndex = personTable.addColumnLink(RealmFieldType.LIST, "pets", petTable);
-            long fullNameIndex = getIndexForProperty(personTable, "fullName");
+        if (oldVersion == 1) {
 
-            for (int i = 0; i < personTable.size(); i++) {
-                if (personTable.getString(fullNameIndex, i).equals("JP McDonald")) {
-                    long rowIndex = petTable.addEmptyRow();
-                    petTable.setString(nameColumnIndex, rowIndex, "Jimbo");
-                    petTable.setString(typeColumnIndex, rowIndex, "dog");
-                    personTable.getUncheckedRow(i).getLinkList(petsIndex).add(rowIndex);
-                }
-            }
-            version++;
+            // Create a new class
+            RealmObjectSchema petSchema = schema.createClass("Pet")
+                    .addStringField("name", EnumSet.of(RealmModifier.REQUIRED))
+                    .addStringField("type", EnumSet.of(RealmModifier.REQUIRED));
+
+            // Add new field to old class and populate it with initial data
+            schema.getObjectSchema("Person")
+                .addListField("pets", petSchema)
+                .forEach(new RealmObjectSchema.Iterator() {
+                    @Override
+                    public void next(DynamicRealmObject obj) {
+                        if (obj.getString("fullName").equals("JP McDonald")) {
+                            DynamicRealmObject pet = realm.createObject("Pet");
+                            pet.setString("name", "Jimbo");
+                            pet.setString("type", "dog");
+                            obj.getList("pets").add(pet);
+                        }
+                    }
+                });
+            oldVersion++;
         }
 
         /*
@@ -113,39 +123,29 @@ public class Migration implements RealmMigration {
                     int age;
         */
         // Migrate from version 2 to version 3
-        if (version == 2) {
-            Table personTable = realm.getTable(Person.class);
-            long fullNameIndex = getIndexForProperty(personTable, "fullName");
-            // fullName is nullable now.
-            personTable.convertColumnToNullable(fullNameIndex);
+        if (oldVersion == 2) {
+            RealmObjectSchema personSchema = schema.getObjectSchema("Person");
+            personSchema.setNullable("fullName", true); // fullName is nullable now.
 
-            Table petTable = realm.getTable(Pet.class);
-            long oldTypeIndex = getIndexForProperty(petTable, "type");
-            long typeIndex = petTable.addColumn(RealmFieldType.INTEGER, "type");
-            for (int i = 0; i < petTable.size(); i++) {
-                String type = petTable.getString(oldTypeIndex, i);
-                if (type.equals("dog")) {
-                    petTable.setLong(typeIndex, i, 1);
-                }
-                else if (type.equals("cat")) {
-                    petTable.setLong(typeIndex, i, 2);
-                }
-                else if (type.equals("hamster")) {
-                    petTable.setLong(typeIndex, i, 3);
-                }
-            }
-            petTable.removeColumn(oldTypeIndex);
-            version++;
+            // Change type from String to int
+            schema.getObjectSchema("Pet")
+                .addIntField("type_tmp")
+                .forEach(new RealmObjectSchema.Iterator() {
+                    @Override
+                    public void next(DynamicRealmObject obj) {
+                        String oldType = obj.getString("type");
+                        if (oldType.equals("dog")) {
+                            obj.setLong("type_tmp", 1);
+                        } else if (oldType.equals("cat")) {
+                            obj.setInt("type_tmp", 2);
+                        } else if (oldType.equals("hamster")) {
+                            obj.setInt("type_tmp", 3);
+                        }
+                    }
+                })
+                .removeField("type")
+                .renameField("type_tmp", "type");
+            oldVersion++;
         }
-        return version;
-    }
-
-    private long getIndexForProperty(Table table, String name) {
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            if (table.getColumnName(i).equals(name)) {
-                return i;
-            }
-        }
-        return -1;
     }
 }

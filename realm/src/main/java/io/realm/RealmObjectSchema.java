@@ -99,11 +99,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addStringField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
+        checkNewFieldProperties(fieldName, modifiers);
         boolean nullable = !modifiers.contains(RealmModifier.REQUIRED);
-        long columnIndex = table.addColumn(RealmFieldType.STRING, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addField(RealmFieldType.STRING, fieldName, nullable, modifiers);
         return this;
     }
 
@@ -127,12 +125,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addShortField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
-        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
-        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
-        return this;
+        return addLongField(fieldName, modifiers);
     }
 
     /**
@@ -155,12 +148,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addIntField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
-        boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
-        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
-        return this;
+        return addLongField(fieldName, modifiers);
     }
 
     /**
@@ -183,11 +171,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addLongField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
+        checkNewFieldProperties(fieldName, modifiers);
         boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
-        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addField(RealmFieldType.INTEGER, fieldName, nullable, modifiers);
         return this;
     }
 
@@ -211,11 +197,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addByteField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
+        checkNewFieldProperties(fieldName, modifiers);
         boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
-        long columnIndex = table.addColumn(RealmFieldType.INTEGER, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addField(RealmFieldType.INTEGER, fieldName, nullable, modifiers);
         return this;
     }
 
@@ -240,11 +224,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addBooleanField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
+        checkNewFieldProperties(fieldName, modifiers);
         boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
-        long columnIndex = table.addColumn(RealmFieldType.BOOLEAN, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addField(RealmFieldType.BOOLEAN, fieldName, nullable, modifiers);
         return this;
     }
 
@@ -268,11 +250,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addBlobField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
+        checkNewFieldProperties(fieldName, modifiers);
         boolean nullable = !modifiers.contains(RealmModifier.REQUIRED);
-        long columnIndex = table.addColumn(RealmFieldType.BINARY, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addField(RealmFieldType.BINARY, fieldName, nullable, modifiers);
         return this;
     }
 
@@ -296,11 +276,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addFloatField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
+        checkNewFieldProperties(fieldName, modifiers);
         boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
-        long columnIndex = table.addColumn(RealmFieldType.FLOAT, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addField(RealmFieldType.FLOAT, fieldName, nullable, modifiers);
         return this;
     }
 
@@ -324,11 +302,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addDoubleField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
+        checkNewFieldProperties(fieldName, modifiers);
         boolean nullable = modifiers.contains(RealmModifier.NULLABLE);
-        long columnIndex = table.addColumn(RealmFieldType.DOUBLE, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addField(RealmFieldType.DOUBLE, fieldName, nullable, modifiers);
         return this;
     }
 
@@ -352,11 +328,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
     public RealmObjectSchema addDateField(String fieldName, Set<RealmModifier> modifiers) {
-        checkLegalName(fieldName);
-        checkFieldNameIsAvailable(fieldName);
+        checkNewFieldProperties(fieldName, modifiers);
         boolean nullable = !modifiers.contains(RealmModifier.REQUIRED);
-        long columnIndex = table.addColumn(RealmFieldType.DATE, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addField(RealmFieldType.DATE, fieldName, nullable, modifiers);
         return this;
     }
 
@@ -539,10 +513,10 @@ public final class RealmObjectSchema {
             throw new IllegalArgumentException("Cannot modify the required state for RealmList references: " + fieldName);
         }
         if (required && currentColumnRequired) {
-            throw new IllegalStateException("Current field is already marked as Required: " + fieldName);
+            throw new IllegalStateException("Field is already required: " + fieldName);
         }
         if (!required && !currentColumnRequired) {
-            throw new IllegalStateException("Current field is already marked as not Required: " + fieldName);
+            throw new IllegalStateException("Field is already nullable: " + fieldName);
         }
 
         if (required) {
@@ -648,6 +622,12 @@ public final class RealmObjectSchema {
         }
     }
 
+    private void checkNewFieldProperties(String fieldName, Set<RealmModifier> modifiers) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+        checkLegalModifiers(fieldName, modifiers);
+    }
+
     private void checkLegalName(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Field name must not be null or empty");
@@ -686,11 +666,16 @@ public final class RealmObjectSchema {
         }
     }
 
-    private void checkLegalModifiers(long columnIndex, Set<RealmModifier> modifiers) {
+    private void checkLegalModifiers(String fieldName, Set<RealmModifier> modifiers) {
         if (modifiers.contains(RealmModifier.REQUIRED) && modifiers.contains(RealmModifier.NULLABLE)) {
-            throw new RealmException(table.getColumnName(columnIndex) + " cannot be both @Required and nullable at " +
+            throw new IllegalArgumentException(fieldName + " cannot be both required and nullable at " +
                     "the same time.");
         }
+    }
+
+    private void addField(RealmFieldType fieldType, String fieldName, boolean nullable, Set<RealmModifier> modifiers) {
+        long columnIndex = table.addColumn(fieldType, fieldName, nullable);
+        addModifiers(columnIndex, modifiers);
     }
 
     /**
@@ -702,5 +687,3 @@ public final class RealmObjectSchema {
         void next(DynamicRealmObject obj);
     }
 }
-
-
