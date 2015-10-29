@@ -1509,7 +1509,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals("Dog", realmObject.getDogOwner().getDog().getName());
     }
 
-   public void testCopyOrUpdateIterable() {
+    public void testCopyOrUpdateIterable() {
         testRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
