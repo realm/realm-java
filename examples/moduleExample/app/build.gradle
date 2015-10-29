@@ -8,23 +8,35 @@ android {
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
-        applicationId "io.realm.examples.threads"
+        applicationId 'io.realm.examples.appmodules'
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion 15
         versionCode 1
         versionName "1.0"
     }
+
+    signingConfigs {
+        release {
+            storeFile file("keystore/release.keystore")
+            storePassword "realm1234"
+            keyAlias "realm-introexample"
+            keyPassword "realm1234"
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     command {
         events 2000
     }
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:21.0.+'
+    compile project(':moduleExample:library')
 }

@@ -28,17 +28,28 @@ The API reference is located at [realm.io/docs/java/api](http://realm.io/docs/ja
 
 ## Using Snapshots
 
-If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [OJO](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-android/)
 
+```gradle
+buildscript {
     repositories {
         maven {
             url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
         }
     }
-
     dependencies {
-      compile 'io.realm:realm-android:0.84.2-SNAPSHOT'
+        classpath "io.realm:gradle-plugin:<version>-SNAPSHOT"
     }
+}
+
+repositories {
+    maven {
+        url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+    }
+}
+```
+
+See [version.txt](version.txt) for the latest version number.
 
 ## Building Realm
 
@@ -46,42 +57,48 @@ In case you don't want to use the precompiled version, you can build Realm yours
 
 Prerequisites:
 
-* Make sure `make` is available in your `$PATH`
-* Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
-* Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
-* Download the **Android NDK (= r10d)** for [Mac](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
-* Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
+ * Make sure `make` is available in your `$PATH`
+ * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
+ * Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
+ * Download the **Android NDK (= r10d)** for [Mac](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
+ * Add two environment variables to your profile:
 
-    ```
-    brew tap homebrew/versions
-    brew install android-ndk-r10d
-    ```
-* Add a `local.properties` file at the root of this folder with the correct paths for the Android SDK and NDK, for example:
-
-    ```
-    sdk.dir=/<your home directory>/Library/Android/sdk
-    ndk.dir=/usr/local/Cellar/android-ndk-r10d
-    ```
-* Or, if you would like to add environment variables to your profile:
-
-    ```
-    export ANDROID_HOME=~/Library/Android/sdk
-    export NDK_HOME=/usr/local/Cellar/android-ndk/r10d
-    ```
+```
+export ANDROID_HOME=~/Library/Android/sdk
+export NDK_HOME=/usr/local/Cellar/android-ndk/r10d
+```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
-    ./gradlew androidJar
+```
+./gradlew assemble
+```
 
-That command will generate the .jar file containing the Realm runtime and the annotation processor. You will find it in realm/build/libs.
+That command will generate:
+
+ * a jar file for the Realm Gradle plugin
+ * an aar file for the Realm library
+ * a jar file for the annotations
+ * a jar file for the annotations processor
 
 ### Other Commands
 
- * `./gradlew realm:javadocRelease` will generate the Javadocs
- * `./gradlew realm:connectedCheck` will run the tests on a connected Android device
+ * `./gradlew tasks` will show all the available tasks
+ * `./gradlew javadoc` will generate the Javadocs
+ * `./gradlew monkeyExamples` will run the monkey tests on all the examples
 
-Generating the Javadoc using the command above will report a failure (1 error, 30+ warnings). The Javadoc is generated, and we will fix 
-`realm/build.gradle` in the near future.
+Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
+
+### Gotchas
+
+The repository is organized in four Gradle projects:
+
+ * `realm`: it contains the actual library (including the JNI layer), the annotations and the annotations processor.
+ * `gradle-plugin`: it contains the Gradle plugin.
+ * `examples`: it contains the example projects. This project directly depends on `gradle-plugin` which adds a dependency to the artifacts produced by `realm`.
+ * The root folder is another Gradle project and all it does is orchestrating the other jobs
+
+This means that `./gradlew clean` and `./gradlew cleanExamples` will fail if `assembleExamples` has not been executed first.
 
 ## Contributing
 
@@ -89,7 +106,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
 
 ## License
 
-Realm Java is published under the Apache 2.0 license.  
+Realm Java is published under the Apache 2.0 license.
 The underlying core is available under the [Realm Core Binary License](LICENSE#L210-L243) while we [work to open-source it under the Apache 2.0 license](http://realm.io/docs/java/#faq).
 
 **This product is not being made available to any person located in Cuba, Iran,
