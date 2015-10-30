@@ -34,6 +34,8 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.log.RealmLog;
+import io.realm.rx.Rx1ObservableFactory;
+import rx.Observable;
 
 /**
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects
@@ -806,6 +808,18 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             realm.checkIfValid();
         }
         listeners.clear();
+    }
+
+    /**
+     * Returns an RxJava Observable that monitors changes to this object. It will output the last known object when
+     * subscribed to.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if RxJava is not present. See XXX for more details.
+     */
+    public Observable<RealmResults<E>> observable() {
+        //noinspection unchecked
+        return Rx1ObservableFactory.from(this);
     }
 
     /**
