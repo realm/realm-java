@@ -472,6 +472,7 @@ public class JNITableTest extends AndroidTestCase {
                         table.setBinaryByteArray(colIndex, 0, new byte[]{0});
                     else if (columnType == ColumnType.STRING)
                         table.setString(colIndex, 0, "Foo");
+                    // if column is nullable not exception should be thrown
                     try {
                         table.addEmptyRow();
                         if (columnType == ColumnType.BINARY)
@@ -485,6 +486,9 @@ public class JNITableTest extends AndroidTestCase {
                             fail();
                         }
                     } catch (IllegalArgumentException ignored) {
+                        if (nullable) {
+                            fail();
+                        }
                     }
                     table.removeLast();
                     assertEquals(1, table.size());
@@ -497,6 +501,7 @@ public class JNITableTest extends AndroidTestCase {
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
                     table.addEmptyRow();
+                    // after converting to nullable, it is fine to set value to null i.e. no exception is thrown
                     if (columnType == ColumnType.BINARY)
                         table.setBinaryByteArray(colIndex, 0, null);
                     else if (columnType == ColumnType.STRING)
@@ -543,6 +548,7 @@ public class JNITableTest extends AndroidTestCase {
                         table.setBinaryByteArray(colIndex, 0, new byte[]{0});
                     else if (columnType == ColumnType.STRING)
                         table.setString(colIndex, 0, "Foo");
+                    // if column is nullable, setting a value to null is allowed (no exception is thrown)
                     try {
                         table.addEmptyRow();
                         if (columnType == ColumnType.BINARY)
@@ -551,7 +557,6 @@ public class JNITableTest extends AndroidTestCase {
                             table.setString(colIndex, 1, null);
                         else
                             table.getCheckedRow(1).setNull(colIndex);
-
                         if (!nullable) {
                             fail();
                         }
@@ -567,6 +572,7 @@ public class JNITableTest extends AndroidTestCase {
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
                     table.addEmptyRow();
+                    // after converting to not-nullable, setting values to null must throw an exception
                     try {
                         if (columnType == ColumnType.BINARY)
                             table.setBinaryByteArray(colIndex, 0, null);
@@ -574,9 +580,7 @@ public class JNITableTest extends AndroidTestCase {
                             table.setString(colIndex, 0, null);
                         else
                             table.getCheckedRow(0).setNull(colIndex);
-                        if (!nullable) {
-                            fail();
-                        }
+                        fail();
                     } catch (IllegalArgumentException ignored) {
                     }
                     table.removeLast();
