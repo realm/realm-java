@@ -75,7 +75,7 @@ Prerequisites:
     export NDK_HOME=/usr/local/Cellar/android-ndk-r10d/r10d
     ```
 
- * If you are using OS X, you'd be better to add following lines to profile in order for Android Studio to see those environment variables.
+ * If you are using OS X, you'd be better to add following lines to `~/.profile` in order for Android Studio to see those environment variables.
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
