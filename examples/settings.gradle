@@ -9,5 +9,6 @@ include 'moduleExample:app'
 include 'moduleExample:library'
 include 'realmModuleExample'
 include 'threadExample'
+include 'rxJavaExample'
 
 rootProject.name = 'examples'

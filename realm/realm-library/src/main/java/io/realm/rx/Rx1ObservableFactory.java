@@ -16,7 +16,6 @@
 
 package io.realm.rx;
 
-import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -24,8 +23,10 @@ import io.realm.RealmResults;
 import rx.Observable;
 import rx.subjects.BehaviorSubject;
 
+// TODO Should BehaviorSubjects be cached and reused?
+// TODO How to remove RealmChangeListener again? -> Wrap Observerable in a RealmObservable that can count number of
+// subscribers. When registering re-add listener, when 0 remove.
 public class Rx1ObservableFactory {
-
     /**
      * Creates an Observable for a RealmObject. It will emit the initial object when subscribed to and on each update
      * to the object.

@@ -5,8 +5,6 @@ import android.test.AndroidTestCase;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.CyclicType;
-import rx.Observable;
 import rx.functions.Action1;
 
 public class RxJavaTests extends AndroidTestCase {

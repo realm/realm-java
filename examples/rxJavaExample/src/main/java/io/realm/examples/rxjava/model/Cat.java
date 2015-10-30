@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.realm.examples.intro.model;
+package io.realm.examples.rxjava.model;
 
 import io.realm.RealmObject;
 
-public class Dog extends RealmObject {
+public class Cat extends RealmObject {
     private String name;
 
     public String getName() {
