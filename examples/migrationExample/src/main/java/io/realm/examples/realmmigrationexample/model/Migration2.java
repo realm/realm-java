@@ -62,8 +62,9 @@ public class Migration2 implements RealmMigration {
         // + Simple API = One (overloaded) method
         // + Types match the Java types 1:1
         // + Can reference annotations directly. No RealmModifier enum
-        // - More typing that previous version.
-        // - User have to learn the defaults for each field type
+        // + Less typing required for the advanced cases.
+        // - More typing that previous version for the simple version.
+        // - Has readability decreased a bit?
         RealmSchema schema2 = realm.getSchema();
         schema2.createObjectSchema("Foo")
                 .addField(String.class, "name")                                     // String (Nullable as default)
