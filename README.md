@@ -60,13 +60,27 @@ Prerequisites:
  * Make sure `make` is available in your `$PATH`
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
- * Download the **Android NDK (= r10d)** for [Mac](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
+ * Download the **Android NDK (= r10d)** for [OS X](http://dl.google.com/android/ndk/android-ndk-r10d-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin).
+ * Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
+
+    ```
+    brew tap homebrew/versions
+    brew install android-ndk-r10d
+    ```
+
  * Add two environment variables to your profile:
 
-```
-export ANDROID_HOME=~/Library/Android/sdk
-export NDK_HOME=/usr/local/Cellar/android-ndk/r10d
-```
+    ```
+    export ANDROID_HOME=~/Library/Android/sdk
+    export NDK_HOME=/usr/local/Cellar/android-ndk-r10d/r10d
+    ```
+
+ * If you are using OS X, you'd be better to add following lines to `~/.profile` in order for Android Studio to see those environment variables.
+
+    ```
+    launchctl setenv ANDROID_HOME "$ANDROID_HOME"
+    launchctl setenv NDK_HOME "$NDK_HOME"
+    ```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
