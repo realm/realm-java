@@ -26,7 +26,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
-import io.realm.rx.Rx1ObservableFactory;
+import io.realm.rx.RxObservableFactory;
 import rx.Observable;
 
 /**
@@ -280,7 +280,7 @@ public abstract class RealmObject<E extends RealmObject> {
      */
     public Observable<E> observable() {
         //noinspection unchecked
-        return Rx1ObservableFactory.from((E) this);
+        return RxObservableFactory.from((E) this);
     }
 
     /**

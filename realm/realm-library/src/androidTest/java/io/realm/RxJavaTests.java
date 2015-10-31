@@ -39,4 +39,31 @@ public class RxJavaTests extends AndroidTestCase {
         });
         assertTrue(subscribedNotified.get());
     }
+
+    public void testAsyncRealmResultsEmittedOnSubscribe() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        results.observable().subscribe(new Action1<RealmResults<AllTypes>>() {
+            @Override
+            public void call(RealmResults<AllTypes> rxResults) {
+                assertTrue(rxResults == results);
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+    }
+
+    public void testRealmResultsEmittedOnSubscribe() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        final RealmResults<AllTypes> results = realm.allObjects(AllTypes.class);
+        results.observable().subscribe(new Action1<RealmResults<AllTypes>>() {
+            @Override
+            public void call(RealmResults<AllTypes> rxResults) {
+                assertTrue(rxResults == results);
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+    }
+
 }

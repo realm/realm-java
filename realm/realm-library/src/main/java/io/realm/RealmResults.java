@@ -34,7 +34,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.log.RealmLog;
-import io.realm.rx.Rx1ObservableFactory;
+import io.realm.rx.RxObservableFactory;
 import rx.Observable;
 
 /**
@@ -819,7 +819,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public Observable<RealmResults<E>> observable() {
         //noinspection unchecked
-        return Rx1ObservableFactory.from(this);
+        return RxObservableFactory.from(this);
     }
 
     /**

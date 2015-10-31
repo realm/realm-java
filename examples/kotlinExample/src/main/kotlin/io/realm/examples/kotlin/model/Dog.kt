@@ -19,6 +19,6 @@ package io.realm.examples.kotlin.model
 import io.realm.RealmObject
 import io.realm.annotations.RealmClass
 
-public open class Dog : RealmObject() {
+public open class Dog : RealmObject<Dog>() {
     public open var name: String? = null
 }
