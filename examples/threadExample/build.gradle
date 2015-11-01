@@ -1,14 +1,16 @@
+apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
+apply plugin: 'realm'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
 
     defaultConfig {
         applicationId "io.realm.examples.threads"
+        targetSdkVersion rootProject.sdkVersion
         minSdkVersion 15
-        targetSdkVersion 21
         versionCode 1
         versionName "1.0"
     }
@@ -23,11 +25,6 @@ android {
     }
 }
 
-tasks.preBuild {
-    dependsOn ":realm:androidJar"
-}
-
 dependencies {
     compile 'com.android.support:appcompat-v7:21.0.+'
-    compile files("../../realm/build/libs/realm-${version}.jar")
 }
