@@ -21,6 +21,7 @@ import android.test.AndroidTestCase;
 import android.util.Log;
 
 import junit.framework.AssertionFailedError;
+import junit.framework.Test;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -605,6 +606,107 @@ public class NotificationsTest extends AndroidTestCase {
 
         realm.close();
         RealmLog.remove(logger);
+    }
+
+    // Verifies that the change listener on a RealmResults gets called immediately if a commit is executed on the
+    // same thread.
+    public void testRealmResultsChangeListenerCalledOnRefresh() {
+        final RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+        Realm realm = Realm.getInstance(config);
+
+        // Used to validate the result
+        final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
+
+        // Initial data
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        obj.setColumnLong(1);
+        realm.commitTransaction();
+
+        // Setup test
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+        results.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                listenerWasCalled.set(true);
+
+            }
+        });
+
+        realm.beginTransaction();
+        obj.setColumnString("Foo");
+        realm.commitTransaction();
+        realm.close();
+        assertTrue(listenerWasCalled.get());
+    }
+
+
+
+    // Verifies that the change listener on a Realm gets called immediately if a commit is executed on the
+    // same thread.
+    public void testRealmChangeListenerCalledOnRefresh() {
+        final RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+        Realm realm = Realm.getInstance(config);
+
+        // Used to validate the result
+        final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
+
+        // Initial data
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        obj.setColumnLong(1);
+        realm.commitTransaction();
+
+        // Setup test
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                listenerWasCalled.set(true);
+
+            }
+        });
+
+        realm.beginTransaction();
+        obj.setColumnString("Foo");
+        realm.commitTransaction();
+        realm.close();
+
+        assertTrue(listenerWasCalled.get());
+    }
+
+    // Verifies that the change listener on a RealmObject gets called immediately if a commit is executed on the
+    // same thread.
+    public void testRealmObjectChangeListenerCalledOnRefresh() {
+        final RealmConfiguration config = TestHelper.createConfiguration(getContext());
+        Realm.deleteRealm(config);
+        Realm realm = Realm.getInstance(config);
+
+        // Used to validate the result
+        final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
+
+        // Initial data
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        obj.setColumnLong(1);
+        realm.commitTransaction();
+
+        // Setup test
+        obj.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                listenerWasCalled.set(true);
+
+            }
+        });
+
+        realm.beginTransaction();
+        obj.setColumnString("Foo");
+        realm.commitTransaction();
+        realm.close();
+
+        assertTrue(listenerWasCalled.get());
     }
 
     private void awaitOrThrow(CountDownLatch latch) {
