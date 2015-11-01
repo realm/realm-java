@@ -2,6 +2,60 @@ Proposal for RxJava API
 
 Starting to think about an API for this:
 
+
+## API Proposal
+
+###  PUBLIC API
+
+All objects with RealmChangeListeners should also expose an Observable
+```
+Realm.observable()
+RealmObject.observable()
+RealmResults.observable()
+RealmList.observable()
+```
+
+Calling any of these methods should detect if RxJava is actually on the classpath and throw a proper exception if not.
+Note that just doing `realm.observable()` would not even compile in IntelliJ because it would not be able to import
+the `rx.Observable` class.
+
+
+Note, we don't expose an `observable()` on RealmQuery like e.g. SQLBrite does, this is not needed as your async
+RealmResults actually have the same function while being semantically clearer. Listining to changes to a query is a bit 
+odd, while changes to a query result makes a lot more sense.
+
+It has the slight downside that you cannot defer work when creating the observable. You actually have to trigger the
+query first. If this is deemed undesirable, we can expose the following methods on RealmQuery which will mimic our 
+current `find*` methods.
+
+```
+RealmQuery.observeAll(); // = RealmQuery.findAllAsync();
+RealmQuery.observeAllSorted(String name); 
+RealmQuery.observeAllSorted(String name, boolean sortOrder); 
+RealmQuery.observeAllSorted(String name, boolean sortOrder, String name2, boolean sortOrder2); 
+RealmQuery.observeFirst(); 
+```
+
+### PRIVATE API
+**RxObservableFactory**: Interface for all Rx implementations. Will make it easy to swap between RxJava1, RxJava2 if
+  needed.
+
+### CONFIGURING REALM
+Realm supports both libraries and app code using Realm independantly. However due to class loading conflicts we should
+not worry about a library wanting to use RxJava 1 while the app wanted to use RxJava 2. 
+
+This means we should be able to detect automatically which version of RxJava is being used and instantiate the
+appropriate factory without user involvement.
+
+### Examples 
+
+Examples of using this API can be found here:
+https://github.com/realm/realm-java/pull/1710
+
+
+-------------
+Update 01/11-2015: Until something 
+
 ## How to include RxJava?
 
 First concern is how to actually include RxJava. I see 3 solutions
@@ -155,3 +209,6 @@ Summary: We can add RxJava support today, but need to list a number of caveats.
 These caveats will automatically be reduced in future releases without effecting 
 the Observable API. When both #1208 and #989 are implemented we will have full 
 RxJava support.
+
+
+
