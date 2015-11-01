@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import io.realm.examples.rxjava.animation.AnimationActivity;
+import io.realm.examples.rxjava.gotchas.GotchasActivity;
 import io.realm.examples.rxjava.retrofit.RetrofitExample;
 import io.realm.examples.rxjava.throttle.ThrottleSearchActivity;
 
@@ -37,6 +38,7 @@ public class MainActivity extends Activity {
         put("Animation", AnimationActivity.class);
         put("Throttle search", ThrottleSearchActivity.class);
         put("Network", RetrofitExample.class);
+        put("Working with Realm", GotchasActivity.class);
     }};
 
     @Override

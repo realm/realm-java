@@ -3,6 +3,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import rx.functions.Action1;
@@ -66,4 +67,45 @@ public class RxJavaTests extends AndroidTestCase {
         assertTrue(subscribedNotified.get());
     }
 
+    public void testObjectEmittedOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        obj.observable().subscribe(new Action1<AllTypes>() {
+            @Override
+            public void call(AllTypes rxObject) {
+                subscriberCalled.addAndGet(1);
+            }
+        });
+
+        realm.beginTransaction();
+        obj.setColumnLong(1);
+        realm.commitTransaction();
+
+        assertEquals(2, subscriberCalled.get());
+    }
+
+    public void testResultsEmittedOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+
+        realm.beginTransaction();
+        RealmResults<AllTypes> results = realm.allObjects(AllTypes.class);
+        realm.commitTransaction();
+
+        results.observable().subscribe(new Action1<RealmResults<AllTypes>>() {
+            @Override
+            public void call(RealmResults<AllTypes> allTypes) {
+                subscriberCalled.addAndGet(1);
+            }
+        });
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        assertEquals(2, subscriberCalled.get());
+    }
 }

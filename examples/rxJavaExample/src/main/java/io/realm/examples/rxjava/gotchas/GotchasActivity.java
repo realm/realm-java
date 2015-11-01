@@ -23,18 +23,17 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Random;
 
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.common.model.Person;
-import rx.Observable;
 import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.functions.Func2;
+import rx.subscriptions.CompositeSubscription;
 
 public class GotchasActivity extends Activity {
 
@@ -55,13 +54,62 @@ public class GotchasActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        final RealmResults<Person> results = realm.where(Person.class).findAllSorted("name");
+        // distinct() and distinctUntilChanged() uses standard equals, with older objects stored in a HashMap.
+        // Realm objects auto-update which means the objects stored will also auto-update.
+        // This makes comparing against older objects impossible (even if the new object has changed) because the
+        // cached object will also have changed.
+        // `freeze()` will solve this, as we then also compare against a certain point in time.
+        // Until then, use specific keySelector function instead.
+        Subscription distinctItemTest = results.get(0).observable()
+                .distinct()
+                .subscribe(new Action1<Person>() {
+                    @Override
+                    public void call(Person p) {
+                        showStatus("This is called once: " + p.getName());
+                    }
+                });
+
+        Subscription distinctKeySelectorItemTest = results.get(0).observable()
+                .distinct(new Func1<Person, String>() {
+                    @Override
+                    public String call(Person p) {
+                        return p.getName();
+                    }
+                })
+                .subscribe(new Action1<Person>() {
+                    @Override
+                    public void call(Person p) {
+                        showStatus("This is called twice: " + p.getName());
+                    }
+                });
+
+
+        // Trigger updates
+        // FIXME: Changelisteners doesn't seem to trigger correctly.
+        // Investigate https://github.com/realm/realm-java/issues/1676 further
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.beginTransaction();
+                realm.allObjectsSorted(Person.class, "name", true).get(0).setName("Foo" + new Random().nextInt(100));
+                realm.commitTransaction();
+            }
+        }, null);
 
         // Objects are auto-updatable (not immutable)
         // TODO Test:
         // ReplaySubject
         // buffer
         // cache()
-        // distinctUntilChanged
+
+        subscription = new CompositeSubscription(distinctItemTest, distinctKeySelectorItemTest);
+    }
+
+    private void showStatus(String message) {
+        TextView v = new TextView(this);
+        v.setText(message);
+        container.addView(v);
     }
 
     @Override
