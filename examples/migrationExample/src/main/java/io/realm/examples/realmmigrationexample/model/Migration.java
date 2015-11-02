@@ -20,6 +20,7 @@ import java.util.EnumSet;
 
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
+import io.realm.RealmList;
 import io.realm.RealmMigration;
 import io.realm.RealmModifier;
 import io.realm.RealmObjectSchema;
@@ -61,10 +62,11 @@ public class Migration implements RealmMigration {
             RealmObjectSchema personSchema = schema.getObjectSchema("Person");
 
             // Combine 'firstName' and 'lastName' in a new field called 'fullName'
-            personSchema.addStringField("fullName", EnumSet.of(RealmModifier.REQUIRED))
-                    .forEach(new RealmObjectSchema.Iterator() {
+            personSchema
+                    .addField("fullName", String.class, RealmModifier.REQUIRED)
+                    .forEach(new RealmObjectSchema.Transformer() {
                         @Override
-                        public void next(DynamicRealmObject obj) {
+                        public void apply(DynamicRealmObject obj) {
                             obj.set("fullName", obj.getString("firstName") + " " + obj.getString("lastName"));
                         }
                     })
@@ -92,15 +94,15 @@ public class Migration implements RealmMigration {
 
             // Create a new class
             RealmObjectSchema petSchema = schema.createClass("Pet")
-                    .addStringField("name", EnumSet.of(RealmModifier.REQUIRED))
-                    .addStringField("type", EnumSet.of(RealmModifier.REQUIRED));
+                    .addField("name", String.class, RealmModifier.REQUIRED)
+                    .addField("type", String.class, RealmModifier.REQUIRED);
 
             // Add a new field to and old class and populate it with initial data
             schema.getObjectSchema("Person")
-                .addListField("pets", petSchema)
-                .forEach(new RealmObjectSchema.Iterator() {
+                .addField("pets", RealmList.class, petSchema)
+                .forEach(new RealmObjectSchema.Transformer() {
                     @Override
-                    public void next(DynamicRealmObject obj) {
+                    public void apply(DynamicRealmObject obj) {
                         if (obj.getString("fullName").equals("JP McDonald")) {
                             DynamicRealmObject pet = realm.createObject("Pet");
                             pet.setString("name", "Jimbo");
@@ -131,10 +133,10 @@ public class Migration implements RealmMigration {
 
             // Change type from String to int
             schema.getObjectSchema("Pet")
-                .addIntField("type_tmp")
-                .forEach(new RealmObjectSchema.Iterator() {
+                .addField("type_tmp", int.class)
+                .forEach(new RealmObjectSchema.Transformer() {
                     @Override
-                    public void next(DynamicRealmObject obj) {
+                    public void apply(DynamicRealmObject obj) {
                         String oldType = obj.getString("type");
                         if (oldType.equals("dog")) {
                             obj.setLong("type_tmp", 1);
