@@ -87,8 +87,8 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("FieldOrder")
-                        .addIntField("field2")
-                        .addBooleanField("field1");
+                        .addField(int.class, "field2")
+                        .addField(boolean.class, "field1");
             }
         };
 
@@ -129,9 +129,9 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("AnnotationTypes")
-                        .addLongField("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
-                        .addStringField("indexString") // Forget to set @Index
-                        .addStringField("notIndexString");
+                        .addField(long.class, "id", RealmModifier.PRIMARY_KEY)
+                        .addField(String.class, "indexString") // Forget to set @Index
+                        .addField(String.class, "notIndexString");
             }
         };
 
@@ -164,9 +164,9 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("AnnotationTypes")
-                        .addLongField("id") // Forget to set @PrimaryKey
-                        .addStringField("indexString", EnumSet.of(RealmModifier.INDEXED))
-                        .addStringField("notIndexString");
+                        .addField(long.class, "id") // Forget to set @PrimaryKey
+                        .addField(String.class, "indexString", RealmModifier.INDEXED)
+                        .addField(String.class, "notIndexString");
             }
         };
 
@@ -240,9 +240,9 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.createClass("AnnotationTypes")
-                        .addLongField("id", EnumSet.of(RealmModifier.PRIMARY_KEY))
-                        .addStringField("indexString", EnumSet.of(RealmModifier.INDEXED))
-                        .addStringField("notIndexString");
+                        .addField(long.class, "id", RealmModifier.PRIMARY_KEY)
+                        .addField(String.class, "indexString", RealmModifier.INDEXED)
+                        .addField(String.class, "notIndexString");
             }
         };
 

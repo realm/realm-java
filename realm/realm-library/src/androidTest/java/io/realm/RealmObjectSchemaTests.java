@@ -19,7 +19,7 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
-import java.util.EnumSet;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
@@ -69,62 +69,62 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             switch(fieldType) {
                 case STRING:
                     fieldName = AllJavaTypes.FIELD_STRING;
-                    schema.addStringField(fieldName);
+                    schema.addField(String.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case SHORT:
                     fieldName = AllJavaTypes.FIELD_SHORT;
-                    schema.addShortField(fieldName);
+                    schema.addField(short.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case INT:
                     fieldName = AllJavaTypes.FIELD_INT;
-                    schema.addIntField(fieldName);
+                    schema.addField(int.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case LONG:
                     fieldName = AllJavaTypes.FIELD_LONG;
-                    schema.addLongField(fieldName);
+                    schema.addField(long.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case BYTE:
                     fieldName = AllJavaTypes.FIELD_BYTE;
-                    schema.addByteField(fieldName);
+                    schema.addField(byte.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case BOOLEAN:
                     fieldName = AllJavaTypes.FIELD_BOOLEAN;
-                    schema.addBooleanField(fieldName);
+                    schema.addField(boolean.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case FLOAT:
                     fieldName = AllJavaTypes.FIELD_FLOAT;
-                    schema.addFloatField(fieldName);
+                    schema.addField(float.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case DOUBLE:
                     fieldName = AllJavaTypes.FIELD_DOUBLE;
-                    schema.addDoubleField(fieldName);
+                    schema.addField(double.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case BLOB:
                     fieldName = AllJavaTypes.FIELD_BINARY;
-                    schema.addBlobField(fieldName);
+                    schema.addField(byte[].class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case DATE:
                     fieldName = AllJavaTypes.FIELD_DATE;
-                    schema.addDateField(fieldName);
+                    schema.addField(Date.class, fieldName);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case OBJECT:
                     fieldName = AllJavaTypes.FIELD_OBJECT;
-                    schema.addObjectField(fieldName, DOG_SCHEMA);
+                    schema.addLinkField(RealmObject.class, fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case LIST:
                     fieldName = AllJavaTypes.FIELD_LIST;
-                    schema.addObjectField(fieldName, DOG_SCHEMA);
+                    schema.addLinkField(RealmList.class, fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
                 default:
@@ -146,37 +146,37 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             switch (fieldType) {
                 case STRING:
                     fieldName = AllJavaTypes.FIELD_STRING;
-                    schema.addStringField(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    schema.addField(String.class, fieldName, RealmModifier.INDEXED);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case SHORT:
                     fieldName = AllJavaTypes.FIELD_SHORT;
-                    schema.addShortField(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    schema.addField(short.class, fieldName, RealmModifier.INDEXED);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case INT:
                     fieldName = AllJavaTypes.FIELD_INT;
-                    schema.addIntField(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    schema.addField(int.class, fieldName, RealmModifier.INDEXED);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case LONG:
                     fieldName = AllJavaTypes.FIELD_LONG;
-                    schema.addLongField(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    schema.addField(long.class, fieldName, RealmModifier.INDEXED);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case BYTE:
                     fieldName = AllJavaTypes.FIELD_BYTE;
-                    schema.addByteField(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    schema.addField(byte.class, fieldName, RealmModifier.INDEXED);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case BOOLEAN:
                     fieldName = AllJavaTypes.FIELD_BOOLEAN;
-                    schema.addBooleanField(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    schema.addField(boolean.class, fieldName, RealmModifier.INDEXED);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case DATE:
                     fieldName = AllJavaTypes.FIELD_DATE;
-                    schema.addDateField(fieldName, EnumSet.of(RealmModifier.INDEXED));
+                    schema.addField(Date.class, fieldName, RealmModifier.INDEXED);
                     checkAddedAndRemovable(fieldName);
                     break;
                 default:
@@ -191,22 +191,22 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             switch (fieldType) {
                 case STRING:
                     fieldName = AllJavaTypes.FIELD_STRING;
-                    schema.addStringField(fieldName, EnumSet.of(RealmModifier.PRIMARY_KEY));
+                    schema.addField(String.class, fieldName, RealmModifier.PRIMARY_KEY);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case SHORT:
                     fieldName = AllJavaTypes.FIELD_SHORT;
-                    schema.addShortField(fieldName, EnumSet.of(RealmModifier.PRIMARY_KEY));
+                    schema.addField(short.class, fieldName, RealmModifier.PRIMARY_KEY);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case INT:
                     fieldName = AllJavaTypes.FIELD_INT;
-                    schema.addIntField(fieldName, EnumSet.of(RealmModifier.PRIMARY_KEY));
+                    schema.addField(int.class, fieldName, RealmModifier.PRIMARY_KEY);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case LONG:
                     fieldName = AllJavaTypes.FIELD_LONG;
-                    schema.addLongField(fieldName, EnumSet.of(RealmModifier.PRIMARY_KEY));
+                    schema.addField(long.class, fieldName, RealmModifier.PRIMARY_KEY);
                     checkAddedAndRemovable(fieldName);
                     break;
                 default:
@@ -222,7 +222,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_STRING, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addStringField(fieldName);
+                            schema.addField(String.class, fieldName);
                         }
                     });
                     break;
@@ -230,7 +230,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_SHORT, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addShortField(fieldName);
+                            schema.addField(short.class, fieldName);
                         }
                     });
                     break;
@@ -238,7 +238,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_INT, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addIntField(fieldName);
+                            schema.addField(int.class, fieldName);
                         }
                     });
                     break;
@@ -246,7 +246,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_LONG, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addLongField(fieldName);
+                            schema.addField(long.class, fieldName);
                         }
                     });
                     break;
@@ -254,7 +254,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_BYTE, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addByteField(fieldName);
+                            schema.addField(byte.class, fieldName);
                         }
                     });
                     break;
@@ -262,7 +262,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_BOOLEAN, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addBooleanField(fieldName);
+                            schema.addField(boolean.class, fieldName);
                         }
                     });
                     break;
@@ -270,7 +270,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_FLOAT, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addFloatField(fieldName);
+                            schema.addField(float.class, fieldName);
                         }
                     });
                     break;
@@ -278,7 +278,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_DOUBLE, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addDoubleField(fieldName);
+                            schema.addField(double.class, fieldName);
                         }
                     });
                     break;
@@ -286,7 +286,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_BINARY, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addBlobField(fieldName);
+                            schema.addField(byte[].class, fieldName);
                         }
                     });
                     break;
@@ -294,7 +294,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_DATE, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addDateField(fieldName);
+                            schema.addField(Date.class, fieldName);
                         }
                     });
                     break;
@@ -302,7 +302,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_OBJECT, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addObjectField(fieldName, DOG_SCHEMA);
+                            schema.addLinkField(RealmObject.class, fieldName, DOG_SCHEMA);
                         }
                     });
                     break;
@@ -310,7 +310,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_LIST, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addListField(fieldName, DOG_SCHEMA);
+                            schema.addLinkField(RealmList.class, fieldName, DOG_SCHEMA);
                         }
                     });
                     break;
@@ -336,18 +336,18 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             for (String fieldName : fieldNames) {
                 try {
                     switch(fieldType) {
-                        case STRING: schema.addStringField(fieldName); break;
-                        case SHORT: schema.addShortField(fieldName); break;
-                        case INT: schema.addIntField(fieldName); break;
-                        case LONG: schema.addLongField(fieldName); break;
-                        case BYTE: schema.addByteField(fieldName); break;
-                        case BOOLEAN: schema.addBooleanField(fieldName); break;
-                        case FLOAT: schema.addFloatField(fieldName); break;
-                        case DOUBLE: schema.addDoubleField(fieldName); break;
-                        case BLOB: schema.addBlobField(fieldName); break;
-                        case DATE: schema.addDateField(fieldName); break;
-                        case OBJECT: schema.addObjectField(fieldName, DOG_SCHEMA); break;
-                        case LIST: schema.addListField(fieldName, DOG_SCHEMA); break;
+                        case STRING: schema.addField(String.class, fieldName); break;
+                        case SHORT: schema.addField(short.class, fieldName); break;
+                        case INT: schema.addField(int.class, fieldName); break;
+                        case LONG: schema.addField(long.class, fieldName); break;
+                        case BYTE: schema.addField(byte.class, fieldName); break;
+                        case BOOLEAN: schema.addField(boolean.class, fieldName); break;
+                        case FLOAT: schema.addField(float.class, fieldName); break;
+                        case DOUBLE: schema.addField(double.class, fieldName); break;
+                        case BLOB: schema.addField(byte[].class, fieldName); break;
+                        case DATE: schema.addField(Date.class, fieldName); break;
+                        case OBJECT: schema.addLinkField(RealmObject.class, fieldName, DOG_SCHEMA); break;
+                        case LIST: schema.addLinkField(RealmList.class, fieldName, DOG_SCHEMA); break;
                         default:
                             fail("Unknown type: " + fieldType);
                     }
@@ -364,19 +364,19 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             switch (fieldType) {
                 case STRING:
                     fieldName = AllJavaTypes.FIELD_STRING;
-                    schema.addStringField(fieldName);
+                    schema.addField(String.class, fieldName);
                     break;
                 case SHORT:
                     fieldName = AllJavaTypes.FIELD_SHORT;
-                    schema.addShortField(fieldName);
+                    schema.addField(short.class, fieldName);
                     break;
                 case INT:
                     fieldName = AllJavaTypes.FIELD_INT;
-                    schema.addIntField(fieldName);
+                    schema.addField(int.class, fieldName);
                     break;
                 case LONG:
                     fieldName = AllJavaTypes.FIELD_LONG;
-                    schema.addLongField(fieldName);
+                    schema.addField(long.class, fieldName);
                     break;
                 default:
                     fail();
@@ -393,7 +393,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testAddPrimaryKeyFieldModifier_illegalFieldTypeThrows() {
         String fieldName = AllJavaTypes.FIELD_DOUBLE;
-        schema.addDoubleField(fieldName);
+        schema.addField(double.class, fieldName);
         try {
             schema.addPrimaryKey(fieldName);
             fail();
@@ -403,7 +403,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testAddIndexFieldModifier_illegalFieldTypeThrows() {
         String fieldName = AllJavaTypes.FIELD_DOUBLE;
-        schema.addDoubleField(fieldName);
+        schema.addField(double.class, fieldName);
         try {
             schema.addIndex(fieldName);
             fail();
@@ -417,31 +417,31 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             switch (fieldType) {
                 case STRING:
                     fieldName = AllJavaTypes.FIELD_STRING;
-                    schema.addStringField(fieldName);
+                    schema.addField(String.class, fieldName);
                     break;
                 case SHORT:
                     fieldName = AllJavaTypes.FIELD_SHORT;
-                    schema.addShortField(fieldName);
+                    schema.addField(short.class, fieldName);
                     break;
                 case INT:
                     fieldName = AllJavaTypes.FIELD_INT;
-                    schema.addIntField(fieldName);
+                    schema.addField(int.class, fieldName);
                     break;
                 case LONG:
                     fieldName = AllJavaTypes.FIELD_LONG;
-                    schema.addLongField(fieldName);
+                    schema.addField(long.class, fieldName);
                     break;
                 case BOOLEAN:
                     fieldName = AllJavaTypes.FIELD_BOOLEAN;
-                    schema.addBooleanField(fieldName);
+                    schema.addField(boolean.class, fieldName);
                     break;
                 case DATE:
                     fieldName = AllJavaTypes.FIELD_DATE;
-                    schema.addDateField(fieldName);
+                    schema.addField(Date.class, fieldName);
                     break;
                 case BYTE:
                     fieldName = AllJavaTypes.FIELD_BYTE;
-                    schema.addByteField(fieldName);
+                    schema.addField(byte.class, fieldName);
                     break;
                 default:
                     fail(fieldType + " failed");
@@ -457,72 +457,70 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testSetRemoveNullableField() {
         for (FieldType fieldType : FieldType.values()) {
-            EnumSet<RealmModifier> nullable = EnumSet.of(RealmModifier.NULLABLE);
-
             switch (fieldType) {
                 case STRING:
-                    schema.addStringField(AllJavaTypes.FIELD_STRING);
+                    schema.addField(String.class, AllJavaTypes.FIELD_STRING);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_STRING));
                     schema.setNullable(AllJavaTypes.FIELD_STRING, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_STRING));
                     break;
                 case SHORT:
-                    schema.addShortField(AllJavaTypes.FIELD_SHORT, nullable);
+                    schema.addField(Short.class, AllJavaTypes.FIELD_SHORT);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_SHORT));
                     schema.setNullable(AllJavaTypes.FIELD_SHORT, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_SHORT));
                     break;
                 case INT:
-                    schema.addIntField(AllJavaTypes.FIELD_INT, nullable);
+                    schema.addField(Integer.class, AllJavaTypes.FIELD_INT);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_INT));
                     schema.setNullable(AllJavaTypes.FIELD_INT, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_INT));
                     break;
                 case LONG:
-                    schema.addLongField(AllJavaTypes.FIELD_LONG, nullable);
+                    schema.addField(Long.class, AllJavaTypes.FIELD_LONG);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_LONG));
                     schema.setNullable(AllJavaTypes.FIELD_LONG, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_LONG));
                     break;
                 case BYTE:
-                    schema.addByteField(AllJavaTypes.FIELD_BYTE, nullable);
+                    schema.addField(Byte.class, AllJavaTypes.FIELD_BYTE);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_BYTE));
                     schema.setNullable(AllJavaTypes.FIELD_BYTE, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_BYTE));
                     break;
                 case BOOLEAN:
-                    schema.addBooleanField(AllJavaTypes.FIELD_BOOLEAN, nullable);
+                    schema.addField(Boolean.class, AllJavaTypes.FIELD_BOOLEAN);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_BOOLEAN));
                     schema.setNullable(AllJavaTypes.FIELD_BOOLEAN, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_BOOLEAN));
                     break;
                 case FLOAT:
-                    schema.addFloatField(AllJavaTypes.FIELD_FLOAT, nullable);
+                    schema.addField(Float.class, AllJavaTypes.FIELD_FLOAT);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_FLOAT));
                     schema.setNullable(AllJavaTypes.FIELD_FLOAT, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_FLOAT));
                     break;
                 case DOUBLE:
-                    schema.addDoubleField(AllJavaTypes.FIELD_DOUBLE, nullable);
+                    schema.addField(Double.class, AllJavaTypes.FIELD_DOUBLE);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_DOUBLE));
                     schema.setNullable(AllJavaTypes.FIELD_DOUBLE, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_DOUBLE));
                     break;
                 case BLOB:
-                    schema.addBlobField(AllJavaTypes.FIELD_BINARY);
+                    schema.addField(byte[].class, AllJavaTypes.FIELD_BINARY);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_BINARY));
                     schema.setNullable(AllJavaTypes.FIELD_BINARY, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_SHORT));
                     break;
                 case DATE:
-                    schema.addDateField(AllJavaTypes.FIELD_DATE);
+                    schema.addField(Date.class, AllJavaTypes.FIELD_DATE);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_DATE));
                     schema.setNullable(AllJavaTypes.FIELD_DATE, false);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_DATE));
                     break;
                 case OBJECT:
                     // Objects are always nullable and cannot be changed.
-                    schema.addObjectField(AllJavaTypes.FIELD_OBJECT, schema);
+                    schema.addLinkField(RealmObject.class, AllJavaTypes.FIELD_OBJECT, schema);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_OBJECT));
                     try {
                         schema.setNullable(AllJavaTypes.FIELD_OBJECT, false);
@@ -532,7 +530,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     break;
                 case LIST:
                     // Lists are not nullable and cannot be configured to be so.
-                    schema.addListField(AllJavaTypes.FIELD_LIST, schema);
+                    schema.addLinkField(RealmList.class, AllJavaTypes.FIELD_LIST, schema);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_LIST));
                     try {
                         schema.setNullable(AllJavaTypes.FIELD_LIST, true);
@@ -548,72 +546,70 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testSetRemoveRequiredField() {
         for (FieldType fieldType : FieldType.values()) {
-            EnumSet<RealmModifier> required = EnumSet.of(RealmModifier.REQUIRED);
-
             switch (fieldType) {
                 case STRING:
-                    schema.addStringField(AllJavaTypes.FIELD_STRING, required);
+                    schema.addField(String.class, AllJavaTypes.FIELD_STRING, RealmModifier.REQUIRED);
                     assertTrue(schema.isRequired(AllJavaTypes.FIELD_STRING));
                     schema.setRequired(AllJavaTypes.FIELD_STRING, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_STRING));
                     break;
                 case SHORT:
-                    schema.addShortField(AllJavaTypes.FIELD_SHORT);
+                    schema.addField(short.class, AllJavaTypes.FIELD_SHORT);
                     assertTrue(schema.isRequired(AllJavaTypes.FIELD_SHORT));
                     schema.setRequired(AllJavaTypes.FIELD_SHORT, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_SHORT));
                     break;
                 case INT:
-                    schema.addIntField(AllJavaTypes.FIELD_INT);
+                    schema.addField(int.class, AllJavaTypes.FIELD_INT);
                     assertTrue(schema.isRequired(AllJavaTypes.FIELD_INT));
                     schema.setRequired(AllJavaTypes.FIELD_INT, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_INT));
                     break;
                 case LONG:
-                    schema.addLongField(AllJavaTypes.FIELD_LONG);
+                    schema.addField(long.class, AllJavaTypes.FIELD_LONG);
                     assertTrue(schema.isRequired(AllJavaTypes.FIELD_LONG));
                     schema.setRequired(AllJavaTypes.FIELD_LONG, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_LONG));
                     break;
                 case BYTE:
-                    schema.addByteField(AllJavaTypes.FIELD_BYTE);
+                    schema.addField(byte.class, AllJavaTypes.FIELD_BYTE);
                     assertTrue(schema.isRequired((AllJavaTypes.FIELD_BYTE)));
                     schema.setRequired(AllJavaTypes.FIELD_BYTE, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_BYTE));
                     break;
                 case BOOLEAN:
-                    schema.addBooleanField(AllJavaTypes.FIELD_BOOLEAN);
+                    schema.addField(boolean.class, AllJavaTypes.FIELD_BOOLEAN);
                     assertTrue(schema.isRequired(AllJavaTypes.FIELD_BOOLEAN));
                     schema.setRequired(AllJavaTypes.FIELD_BOOLEAN, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_BOOLEAN));
                     break;
                 case FLOAT:
-                    schema.addFloatField(AllJavaTypes.FIELD_FLOAT);
+                    schema.addField(float.class, AllJavaTypes.FIELD_FLOAT);
                     assertTrue(schema.isRequired((AllJavaTypes.FIELD_FLOAT)));
                     schema.setRequired(AllJavaTypes.FIELD_FLOAT, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_FLOAT));
                     break;
                 case DOUBLE:
-                    schema.addDoubleField(AllJavaTypes.FIELD_DOUBLE);
+                    schema.addField(double.class, AllJavaTypes.FIELD_DOUBLE);
                     assertTrue(schema.isRequired((AllJavaTypes.FIELD_DOUBLE)));
                     schema.setRequired(AllJavaTypes.FIELD_DOUBLE, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_DOUBLE));
                     break;
                 case BLOB:
-                    schema.addBlobField(AllJavaTypes.FIELD_BINARY, required);
+                    schema.addField(byte[].class, AllJavaTypes.FIELD_BINARY, RealmModifier.REQUIRED);
                     assertTrue(schema.isRequired((AllJavaTypes.FIELD_BINARY)));
                     schema.setRequired(AllJavaTypes.FIELD_BINARY, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_BINARY));
                     break;
                 case DATE:
-                    schema.addDateField(AllJavaTypes.FIELD_DATE, required);
+                    schema.addField(Date.class, AllJavaTypes.FIELD_DATE, RealmModifier.REQUIRED);
                     assertTrue(schema.isRequired((AllJavaTypes.FIELD_DATE)));
                     schema.setRequired(AllJavaTypes.FIELD_DATE, false);
                     assertFalse(schema.isRequired(AllJavaTypes.FIELD_DATE));
                     break;
                 case OBJECT:
                     // Objects are always nullable and cannot be configured otherwise.
-                    schema.addObjectField(AllJavaTypes.FIELD_OBJECT, schema);
+                    schema.addLinkField(RealmObject.class, AllJavaTypes.FIELD_OBJECT, schema);
                     assertFalse(schema.isRequired((AllJavaTypes.FIELD_OBJECT)));
                     try {
                         schema.setRequired(AllJavaTypes.FIELD_OBJECT, false);
@@ -623,7 +619,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     break;
                 case LIST:
                     // Lists are always non-nullable and cannot be configured otherwise.
-                    schema.addListField(AllJavaTypes.FIELD_LIST, schema);
+                    schema.addLinkField(RealmList.class, AllJavaTypes.FIELD_LIST, schema);
                     assertTrue(schema.isRequired((AllJavaTypes.FIELD_LIST)));
                     try {
                         schema.setRequired(AllJavaTypes.FIELD_LIST, true);
@@ -637,37 +633,9 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testMixedRequiredNullableModifierThrows() {
-        for (FieldType fieldType : FieldType.values()) {
-            EnumSet<RealmModifier> modifiers = EnumSet.of(RealmModifier.REQUIRED, RealmModifier.NULLABLE);
-
-            try {
-                switch (fieldType) {
-                    case STRING: schema.addStringField(AllJavaTypes.FIELD_STRING, modifiers); break;
-                    case SHORT: schema.addShortField(AllJavaTypes.FIELD_SHORT, modifiers); break;
-                    case INT: schema.addIntField(AllJavaTypes.FIELD_INT, modifiers); break;
-                    case LONG: schema.addLongField(AllJavaTypes.FIELD_LONG, modifiers); break;
-                    case BYTE: schema.addByteField(AllJavaTypes.FIELD_BYTE, modifiers); break;
-                    case BOOLEAN: schema.addBooleanField(AllJavaTypes.FIELD_BOOLEAN, modifiers); break;
-                    case FLOAT: schema.addFloatField(AllJavaTypes.FIELD_FLOAT, modifiers); break;
-                    case DOUBLE: schema.addDoubleField(AllJavaTypes.FIELD_DOUBLE, modifiers); break;
-                    case BLOB: schema.addBlobField(AllJavaTypes.FIELD_BINARY, modifiers); break;
-                    case DATE: schema.addDateField(AllJavaTypes.FIELD_DATE, modifiers); break;
-                    case OBJECT:
-                    case LIST:
-                        continue; // Cannot set modifiers for these types
-                    default:
-                        fail("Unknown field type: " + fieldType);
-                }
-                fail(fieldType + " didn't throw");
-            } catch (IllegalArgumentException ignored) {
-            }
-        }
-    }
-
     public void testRemovePrimaryKey() {
         String fieldName = AllJavaTypes.FIELD_STRING;
-        schema.addStringField(fieldName);
+        schema.addField(String.class, fieldName);
         schema.addPrimaryKey(fieldName);
         assertTrue(schema.hasPrimaryKey());
         schema.removePrimaryKey();
@@ -676,7 +644,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testRemoveNonExistingPrimaryKeyThrows() {
         String fieldName = AllJavaTypes.FIELD_STRING;
-        schema.addStringField(fieldName);
+        schema.addField(String.class, fieldName);
         try {
             schema.removePrimaryKey();
             fail();
@@ -686,7 +654,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testRemoveIndex() {
         String fieldName = AllJavaTypes.FIELD_STRING;
-        schema.addStringField(fieldName, EnumSet.of(RealmModifier.INDEXED));
+        schema.addField(String.class, fieldName, RealmModifier.INDEXED);
         assertTrue(schema.hasIndex(fieldName));
         schema.removeIndex(fieldName);
         assertFalse(schema.hasIndex(fieldName));
@@ -694,7 +662,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testRemoveNonExistingIndexThrows() {
         String fieldName = AllJavaTypes.FIELD_STRING;
-        schema.addStringField(fieldName);
+        schema.addField(String.class, fieldName);
         try {
             schema.removeIndex(fieldName);
             fail();
@@ -704,7 +672,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testRemoveField() {
         String fieldName = AllJavaTypes.FIELD_STRING;
-        schema.addStringField(fieldName);
+        schema.addField(String.class, fieldName);
         assertTrue(schema.hasField(fieldName));
         schema.removeField(fieldName);
         assertFalse(schema.hasField(fieldName));
@@ -722,7 +690,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     public void testRenameField() {
         String oldFieldName = "old";
         String newFieldName = "new";
-        schema.addStringField(oldFieldName);
+        schema.addField(String.class, oldFieldName);
         assertTrue(schema.hasField(oldFieldName));
         assertFalse(schema.hasField(newFieldName));
         schema.renameField(oldFieldName, newFieldName);
@@ -743,7 +711,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     public void testRenameFieldToIllegalNameThrows() {
         String oldFieldName = "old";
         String newFieldName = "";
-        schema.addStringField(oldFieldName);
+        schema.addField(String.class, oldFieldName);
         try {
             schema.renameField(oldFieldName, newFieldName);
             fail();
@@ -767,9 +735,9 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         dog2.setInt("age", 2);
 
         final AtomicInteger totalAge = new AtomicInteger(0);
-        DOG_SCHEMA.forEach(new RealmObjectSchema.Iterator() {
+        DOG_SCHEMA.forEach(new RealmObjectSchema.Transformer() {
             @Override
-            public void next(DynamicRealmObject obj) {
+            public void apply(DynamicRealmObject obj) {
                 totalAge.addAndGet(obj.getInt("age"));
             }
         });

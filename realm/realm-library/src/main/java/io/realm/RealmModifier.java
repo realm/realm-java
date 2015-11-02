@@ -35,13 +35,6 @@ public enum RealmModifier {
     PRIMARY_KEY,
 
     /**
-     * Mark a field as explicitly being able to contain {@code null} values. The default behavior for
-     * allowing {@code null} depends on the type of the field.
-     * @see RealmObjectSchema
-     */
-    NULLABLE,
-
-    /**
      * Mark a field as explicitly not allowing null values. The default behavior for allowing {@code
      * null} depends on the type of the field.
      * @see io.realm.annotations.Required
