@@ -100,6 +100,7 @@ That command will generate:
  * `./gradlew tasks` will show all the available tasks
  * `./gradlew javadoc` will generate the Javadocs
  * `./gradlew monkeyExamples` will run the monkey tests on all the examples
+ * `./gradlew installRealmJava` will install the Realm library and plugin to mavenLocal()
 
 Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
 

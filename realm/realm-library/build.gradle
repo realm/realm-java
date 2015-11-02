@@ -48,14 +48,6 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 
 preBuild.dependsOn ':realm-jni:buildAndroidJni'
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
-        }
-    }
-}
-
 task findbugs(type: FindBugs) {
     dependsOn assemble
     group = 'Test'
