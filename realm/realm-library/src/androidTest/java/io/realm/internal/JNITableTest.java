@@ -511,12 +511,15 @@ public class JNITableTest extends AndroidTestCase {
                     assertEquals(colIndex, table.getColumnIndex(columnName));
 
                     table.addEmptyRow();
-                    if (columnType == BINARY)
+                    if (columnType == BINARY) {
                         table.setBinaryByteArray(colIndex, 0, null);
-                    else if (columnType == STRING)
+                    }
+                    else if (columnType == STRING) {
                         table.setString(colIndex, 0, null);
-                    else
+                    }
+                    else {
                         table.getCheckedRow(0).setNull(colIndex);
+                    }
 
                     assertEquals(2, table.size());
 
