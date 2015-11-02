@@ -1,4 +1,5 @@
 0.84.2
+ * Added Realm.isEmpty().
  * Fixed bug making it impossible to convert a field to being required during a migration.
 
 0.84.1

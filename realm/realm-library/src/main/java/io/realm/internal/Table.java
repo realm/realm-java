@@ -31,7 +31,7 @@ import io.realm.exceptions.RealmException;
  */
 public class Table implements TableOrView, TableSchema, Closeable {
 
-    public static final String TABLE_PREFIX = "class_";
+    public static final String TABLE_PREFIX = Util.getTablePrefix();
     public static final long INFINITE = -1;
     public static final String STRING_DEFAULT_VALUE = "";
     public static final long INTEGER_DEFAULT_VALUE = 0;
