@@ -1578,7 +1578,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
         if (arr_len == 1) {
             switch (col_type) {
                 case type_Link:
-                    pQuery->Not().and_query(src_table_ref->column<Link>(S(column_idx)).is_null());
+                    pQuery->and_query(src_table_ref->column<Link>(S(column_idx)).is_not_null());
                     break;
                 case type_LinkList:
                     // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
@@ -1604,7 +1604,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
         else {
             switch (col_type) {
                 case type_Link:
-                    pQuery->Not().and_query(src_table_ref->column<Link>(S(column_idx)).is_null());
+                    pQuery->and_query(src_table_ref->column<Link>(S(column_idx)).is_not_null());
                     break;
                 case type_LinkList:
                     // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE

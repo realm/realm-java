@@ -113,6 +113,13 @@ task javadoc(type:GradleBuild) {
     tasks = ['javadocJar']
 }
 
+task sourcesJar(type:GradleBuild) {
+    description = 'Generate the sources Jar for the Realm project'
+    group = 'Docs'
+    buildFile = file('realm/build.gradle')
+    tasks = ['sourcesJar']
+}
+
 task eclipseJar(type:GradleBuild) {
     description = 'Generate the Jar file to be used with Eclipse'
     group = 'Artifact'
@@ -282,8 +289,8 @@ publishing {
         jarLibrary(MavenPublication) {
             artifactId = 'realm-android-library'
             artifact file("${buildDir}/outputs/gradle/realm-android-${currentVersion}.jar")
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-sources.jar")
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-javadoc.jar")
+            artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")
+            artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-android')
@@ -296,8 +303,8 @@ publishing {
         aarLibrary(MavenPublication) {
             artifactId = 'realm-android-library'
             artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-library-release.aar")
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-sources.jar")
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-${currentVersion}-javadoc.jar")
+            artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")
+            artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-android')
