@@ -77,7 +77,7 @@ public class Util {
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
 
     /**
-     * Normalize a input class to it's original model class so it is transparent whether or not the input class
+     * Normalize a input class to it's original RealmObject class so it is transparent whether or not the input class
      * was a RealmProxy class.
      */
     public static Class<? extends RealmObject> getOriginalModelClass(Class<? extends RealmObject> clazz) {

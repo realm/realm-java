@@ -63,9 +63,9 @@ public final class RealmSchema {
     }
 
     /**
-     * Returns the {@link RealmObjectSchema} for all model classes that can be saved in this Realm.
+     * Returns the {@link RealmObjectSchema} for all RealmObject classes that can be saved in this Realm.
      *
-     * @return The set of all classes in this Realm or no model classes can be saved in the Realm.
+     * @return The set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
     public Set<RealmObjectSchema> getAll() {
         int tables = (int) transaction.size();

@@ -173,7 +173,7 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class.
 
      * @throws java.lang.IllegalArgumentException if no {@link Context} is provided.
-     * @throws RealmMigrationNeededException if the model classes no longer match the underlying Realm
+     * @throws RealmMigrationNeededException if the RealmObject classes no longer match the underlying Realm
      *                                       and it must be migrated.
      * @throws RealmIOException              if an error happened when accessing the underlying Realm
      *                                       file.
@@ -192,7 +192,7 @@ public final class Realm extends BaseRealm {
      *
      * @throws java.lang.NullPointerException If no default configuration has been defined.
      * @throws RealmMigrationNeededException If no migration has been provided by the default configuration and the
-     * model classes or version has has changed so a migration is required.
+     * RealmObject classes or version has has changed so a migration is required.
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
@@ -208,7 +208,7 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class
      *
      * @throws RealmMigrationNeededException If no migration has been provided by the configuration and the
-     * model classes or version has has changed so a migration is required.
+     * RealmObject classes or version has has changed so a migration is required.
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      * @see RealmConfiguration for details on how to configure a Realm.
      */

@@ -42,7 +42,7 @@ package io.realm;
  * }
  * </pre>
  *
- * During development when model classes can change frequently, it is possible to use
+ * During development when RealmObject classes can change frequently, it is possible to use
  * {@link io.realm.Realm#deleteRealm(RealmConfiguration)}. This will delete the database
  * file and eliminate the need for any migrations.
  *

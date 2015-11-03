@@ -29,7 +29,7 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
 
 /**
- * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
+ * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be
  * persisted. You then create your objects within a Realm, and use your custom subclasses instead
  * of using the RealmObject class directly.
  * <p>

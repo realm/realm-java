@@ -41,17 +41,17 @@ import io.realm.exceptions.RealmException;
 public abstract class RealmProxyMediator {
 
     /**
-     * Creates the backing table in Realm for the given model class.
+     * Creates the backing table in Realm for the given RealmObject class.
      *
-     * @param clazz         RealmObject model class to create backing table for.
+     * @param clazz         RealmObject class to create backing table for.
      * @param transaction   Read transaction for the Realm to create table in.
      */
     public abstract Table createTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction);
 
     /**
-     * Validate the backing table in Realm for the given model class.
+     * Validate the backing table in Realm for the given RealmObject class.
      *
-     * @param clazz         RealmObject model class to validate.
+     * @param clazz         {@link RealmObject} class to validate.
      * @param transaction   Read transaction for the Realm to validate against.
      * @return              The field indices map.
      */
@@ -60,35 +60,35 @@ public abstract class RealmProxyMediator {
     /**
      * Returns a map of non-obfuscated object field names to their internal realm name.
      *
-     * @param clazz  RealmObject model class reference.
-     * @return The simple name of an model class (before it has been obfuscated)
+     * @param clazz  {@link RealmObject} class reference.
+     * @return The simple name of an RealmObject class (before it has been obfuscated)
      */
     public abstract List<String> getFieldNames(Class<? extends RealmObject> clazz);
 
     /**
-     * Returns name that Realm should use for all it's internal tables. This is normally the unobfuscated named of a
+     * Returns the name that Realm should use for all it's internal tables. This is the un-obfuscated name of the
      * class.
      *
-     * @param clazz  RealmObject model class reference.
-     * @return The simple name of an model class (before it has been obfuscated)
+     * @param clazz  {@link RealmObject} class reference.
+     * @return The simple name of an RealmObject class (before it has been obfuscated)
      *
      * @throws java.lang.NullPointerException if null is given as argument.
      */
     public abstract String getTableName(Class<? extends RealmObject> clazz);
 
     /**
-     * Creates a new instance of an RealmProxy for the given model class.
+     * Creates a new instance of an RealmProxy for the given RealmObject class.
      *
-     * @param clazz      RealmObject to create RealmProxy for.
-     * @param columnInfo {@link ColumnInfo} object for the model class of {@code E}.
+     * @param clazz      {@link RealmObject} to create RealmProxy for.
+     * @param columnInfo {@link ColumnInfo} object for the RealmObject class of {@code E}.
      * @return Created RealmProxy object.
      */
     public abstract <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo);
 
     /**
-     * Returns the list of model classes that Realm supports in this application.
+     * Returns the list of RealmObject classes that can be saved in this Realm.
      *
-     * @return List of class references to model classes. Empty list if no models are supported.
+     * @return List of class references to RealmObject classes. Empty list if no RealmObject classes are supported.
      */
     public abstract Set<Class<? extends RealmObject>> getModelClasses();
 
@@ -109,7 +109,7 @@ public abstract class RealmProxyMediator {
      * @param clazz     Type of RealmObject
      * @param realm     Reference to Realm where to create the object.
      * @param json      JSON data
-     * @param update    True if Realm should try to update a existing object. This requires that the model has a @PrimaryKey
+     * @param update    True if Realm should try to update a existing object. This requires that the RealmObject has a @PrimaryKey
      * @return RealmObject that has been created or updated.
      * @throws JSONException If the JSON mapping doesn't match the expected class.
      */
