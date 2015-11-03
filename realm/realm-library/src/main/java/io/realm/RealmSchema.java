@@ -16,15 +16,15 @@
 
 package io.realm;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 
 /**
  * Class for interacting with the Realm schema using a dynamic API. This makes it possible
- * to add, delete and change the classes in the Relm.
+ * to add, delete and change the classes in the Realm.
  *
  * All changes must happen inside a write transaction for that Realm.
  *
@@ -32,7 +32,7 @@ import io.realm.internal.Table;
  */
 public final class RealmSchema {
 
-    private static final String TABLE_PREFIX = "class_"; // TODO Move to JNI Object store layer
+    private static final String TABLE_PREFIX = Table.TABLE_PREFIX;
     private static final String EMPTY_STRING_MSG = "Null or empty class names are not allowed";
     private final ImplicitTransaction transaction;
     private final BaseRealm realm;
@@ -52,7 +52,7 @@ public final class RealmSchema {
      * @return Schema object for that class or {@code null} if the class doesn't exists.
      *
      */
-    public RealmObjectSchema getObjectSchema(String className) {
+    public RealmObjectSchema get(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalClassName = TABLE_PREFIX + className;
         if (transaction.hasTable(internalClassName)) {
@@ -67,9 +67,9 @@ public final class RealmSchema {
      *
      * @return The set of all classes in this Realm or no model classes can be saved in the Realm.
      */
-    public Set<RealmObjectSchema> getAllClasses() {
+    public Set<RealmObjectSchema> getAll() {
         int tables = (int) transaction.size();
-        Set<RealmObjectSchema> schemas = new HashSet<RealmObjectSchema>(tables);
+        Set<RealmObjectSchema> schemas = new TreeSet<RealmObjectSchema>();
         for (int i = 0; i < tables; i++) {
             String tableName = transaction.getTableName(i);
             if (Table.isMetaTable(tableName)) {
@@ -87,7 +87,7 @@ public final class RealmSchema {
      * @param className Name of the class.
      * @return A Realm schema object for that class.
      */
-    public RealmObjectSchema createClass(String className) {
+    public RealmObjectSchema create(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         if (internalTableName.length() > Table.TABLE_MAX_LENGTH) {
@@ -106,7 +106,7 @@ public final class RealmSchema {
      *
      * @param className Name of the class to remove.
      */
-    public void removeClass(String className) {
+    public void remove(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalTableName = TABLE_PREFIX + className;
         checkHasTable(className, "Cannot remove class because it is not in this Realm: " + className);
@@ -116,18 +116,18 @@ public final class RealmSchema {
     /**
      * Renames a class already in the Realm.
      *
-     * @param oldName Old class name.
-     * @param newName New class name.
+     * @param oldClassName Old class name.
+     * @param newClassName New class name.
      * @return A schema object for renamed class.
      */
-    public RealmObjectSchema renameClass(String oldName, String newName) {
-        checkEmpty(oldName, "Class names cannot be empty or null");
-        checkEmpty(newName, "Class names cannot be empty or null");
-        String oldInternalName = TABLE_PREFIX + oldName;
-        String newInternalName = TABLE_PREFIX + newName;
-        checkHasTable(oldName, "Cannot rename class because it doesn't exist in this Realm: " + oldName);
+    public RealmObjectSchema rename(String oldClassName, String newClassName) {
+        checkEmpty(oldClassName, "Class names cannot be empty or null");
+        checkEmpty(newClassName, "Class names cannot be empty or null");
+        String oldInternalName = TABLE_PREFIX + oldClassName;
+        String newInternalName = TABLE_PREFIX + newClassName;
+        checkHasTable(oldClassName, "Cannot rename class because it doesn't exist in this Realm: " + oldClassName);
         if (transaction.hasTable(newInternalName)) {
-            throw new IllegalArgumentException(oldName + " cannot be renamed because the new class already exists: " + newName);
+            throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
         transaction.renameTable(oldInternalName, newInternalName);
         return new RealmObjectSchema(realm, transaction, transaction.getTable(newInternalName));
@@ -139,7 +139,7 @@ public final class RealmSchema {
      * @param className Class name to check.
      * @return {@code true} if the class already exists. {@code false} otherwise.
      */
-    public boolean hasClass(String className) {
+    public boolean contains(String className) {
         return transaction.hasTable(Table.TABLE_PREFIX + className);
     }
 

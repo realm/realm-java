@@ -85,7 +85,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.createClass("FieldOrder")
+                schema.create("FieldOrder")
                         .addField("field2", int.class)
                         .addField("field1", boolean.class);
             }
@@ -127,7 +127,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.createClass("AnnotationTypes")
+                schema.create("AnnotationTypes")
                         .addField("id", long.class, RealmModifier.PRIMARY_KEY)
                         .addField("indexString", String.class) // Forget to set @Index
                         .addField("notIndexString", String.class);
@@ -162,7 +162,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.createClass("AnnotationTypes")
+                schema.create("AnnotationTypes")
                         .addField("id", long.class) // Forget to set @PrimaryKey
                         .addField("indexString", String.class, RealmModifier.INDEXED)
                         .addField("notIndexString", String.class);
@@ -238,7 +238,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.createClass("AnnotationTypes")
+                schema.create("AnnotationTypes")
                         .addField("id", long.class, RealmModifier.PRIMARY_KEY)
                         .addField("indexString", String.class, RealmModifier.INDEXED)
                         .addField("notIndexString", String.class);

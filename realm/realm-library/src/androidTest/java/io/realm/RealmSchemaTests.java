@@ -25,6 +25,7 @@ import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Owner;
+import io.realm.internal.Util;
 
 public class RealmSchemaTests extends AndroidTestCase {
 
@@ -53,7 +54,7 @@ public class RealmSchemaTests extends AndroidTestCase {
     }
 
     public void testGetAllClasses() {
-        Set<RealmObjectSchema> objectSchemas = realmSchema.getAllClasses();
+        Set<RealmObjectSchema> objectSchemas = realmSchema.getAll();
         assertEquals(5, objectSchemas.size());
 
         List<String> expectedTables = Arrays.asList(CLASS_ALL_JAVA_TYPES, "Owner", "Cat", "Dog", "DogPrimaryKey");
@@ -65,8 +66,8 @@ public class RealmSchemaTests extends AndroidTestCase {
     }
 
     public void testCreateClass() {
-        realmSchema.createClass("Foo");
-        assertTrue(realmSchema.hasClass("Foo"));
+        realmSchema.create("Foo");
+        assertTrue(realmSchema.contains("Foo"));
     }
 
     public void testCreateClassInvalidNameThrows() {
@@ -74,57 +75,57 @@ public class RealmSchemaTests extends AndroidTestCase {
 
         for (String name : names) {
             try {
-                realmSchema.createClass(name);
+                realmSchema.create(name);
             } catch (IllegalArgumentException expected) {
             }
-            assertFalse(String.format("'%s' failed", name), realmSchema.hasClass(name));
+            assertFalse(String.format("'%s' failed", name), realmSchema.contains(name));
         }
     }
 
     public void testGetClass() {
-        RealmObjectSchema objectSchema = realmSchema.getObjectSchema(CLASS_ALL_JAVA_TYPES);
+        RealmObjectSchema objectSchema = realmSchema.get(CLASS_ALL_JAVA_TYPES);
         assertNotNull(objectSchema);
         assertEquals(CLASS_ALL_JAVA_TYPES, objectSchema.getClassName());
     }
 
     public void testGetClassNotInSchema() {
-        assertNull(realmSchema.getObjectSchema("Foo"));
+        assertNull(realmSchema.get("Foo"));
     }
 
     public void testRenameClass() {
-        realmSchema.renameClass("Owner", "Owner2");
-        assertFalse(realmSchema.hasClass("Owner"));
-        assertTrue(realmSchema.hasClass("Owner2"));
+        realmSchema.rename("Owner", "Owner2");
+        assertFalse(realmSchema.contains("Owner"));
+        assertTrue(realmSchema.contains("Owner2"));
     }
 
     public void testRenameClassInvalidArgumentsThrows() {
         try {
-            realmSchema.renameClass(null, CLASS_ALL_JAVA_TYPES);
+            realmSchema.rename(null, CLASS_ALL_JAVA_TYPES);
             fail();
         } catch (IllegalArgumentException expected) {
         }
 
         try {
-            realmSchema.renameClass(CLASS_ALL_JAVA_TYPES, null);
+            realmSchema.rename(CLASS_ALL_JAVA_TYPES, null);
             fail();
         } catch (IllegalArgumentException expected) {
         }
     }
 
     public void testRemoveClass() {
-        realmSchema.removeClass(CLASS_ALL_JAVA_TYPES);
-        assertFalse(realmSchema.hasClass(CLASS_ALL_JAVA_TYPES));
+        realmSchema.remove(CLASS_ALL_JAVA_TYPES);
+        assertFalse(realmSchema.contains(CLASS_ALL_JAVA_TYPES));
     }
 
     public void testRemoveClassInvalidClassNameThrows() {
         try {
-            realmSchema.removeClass("Foo");
+            realmSchema.remove("Foo");
             fail();
         } catch (IllegalArgumentException expected) {
         }
 
         try {
-            realmSchema.removeClass(null);
+            realmSchema.remove(null);
             fail();
         } catch (IllegalArgumentException expected) {
         }
@@ -133,17 +134,18 @@ public class RealmSchemaTests extends AndroidTestCase {
     // Test that it if { A -> B  && B -> A } you should remove the individual fields first before removing the entire
     // class. This also include transitive dependencies :/
     public void testRemoveClassWithReferencesThrows() {
+        Util.setDebugLevel(2);
         try {
-            realmSchema.removeClass("Cat");
+            realmSchema.remove("Cat");
             fail();
         } catch (IllegalStateException ignored) {
         }
 
-        RealmObjectSchema ownerSchema = realmSchema.getObjectSchema("Owner");
-        RealmObjectSchema catSchema = realmSchema.getObjectSchema("Cat");
+        RealmObjectSchema ownerSchema = realmSchema.get("Owner");
+        RealmObjectSchema catSchema = realmSchema.get("Cat");
         ownerSchema.removeField("cat");
         catSchema.removeField("owner");
-        realmSchema.removeClass("Cat");
-        assertFalse(realmSchema.hasClass("Cat"));
+        realmSchema.remove("Cat");
+        assertFalse(realmSchema.contains("Cat"));
     }
 }

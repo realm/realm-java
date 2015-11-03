@@ -40,9 +40,9 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         Realm.getInstance(realmConfig).close(); // Create Schema
         realm = DynamicRealm.getInstance(realmConfig);
         realmSchema = realm.getSchema();
-        DOG_SCHEMA = realmSchema.getObjectSchema("Dog");
+        DOG_SCHEMA = realmSchema.get("Dog");
         realm.beginTransaction();
-        schema = realmSchema.createClass("NewClass");
+        schema = realmSchema.create("NewClass");
     }
 
     @Override
@@ -725,7 +725,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         String newClassName = "Darby";
         DOG_SCHEMA.setClassName(newClassName);
         assertEquals(newClassName, DOG_SCHEMA.getClassName());
-        assertTrue(realmSchema.hasClass(newClassName));
+        assertTrue(realmSchema.contains(newClassName));
     }
 
     public void testForEach() {
