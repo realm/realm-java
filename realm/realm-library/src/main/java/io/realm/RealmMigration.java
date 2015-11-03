@@ -46,7 +46,7 @@ package io.realm;
  * {@link io.realm.Realm#deleteRealm(RealmConfiguration)}. This will delete the database
  * file and eliminate the need for any migrations.
  *
- * @see io.realm.RealmConfiguration.Builder#schemaVersion(int)
+ * @see io.realm.RealmConfiguration.Builder#schemaVersion(long)
  * @see io.realm.RealmConfiguration.Builder#migration(RealmMigration)
  * @see io.realm.RealmConfiguration.Builder#deleteRealmIfMigrationNeeded()
  */
