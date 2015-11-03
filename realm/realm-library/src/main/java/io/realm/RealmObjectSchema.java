@@ -16,11 +16,8 @@
 
 package io.realm;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -85,19 +82,19 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Returns the name of the Realm model class being represented by this schema.
+     * Returns the name of the RealmObject class being represented by this schema.
      * <p/>
-     * When using a normal {@link Realm} this name is the same as the {@link RealmObject} model class.
+     * When using a normal {@link Realm} this name is the same as the {@link RealmObject} class.
      * When using a {@link DynamicRealm} this is the name used in all API methods requiring a class name.
      *
-     * @return the name of the Realm model class represented by this schema.
+     * @return the name of the RealmObject class represented by this schema.
      */
     public String getClassName() {
         return table.getName().substring(Table.TABLE_PREFIX.length());
     }
 
     /**
-     * Sets a new name for this class. This is equivalent to renaming it.
+     * Sets a new name for this RealmObject class. This is equivalent to renaming it.
      *
      * @param newClassName the new name for this class.
      * @see RealmSchema#renameClass(String, String)
@@ -116,7 +113,7 @@ public final class RealmObjectSchema {
      * for the list of supported types. If the field should allow {@code null} values use the boxed type instead e.g.
      * {@code Integer.class} instead of {@code int.class}.
      * <p/>
-     * To add fields that reference other RealmObjects or RealmLists use {@link #addField(String, Class, RealmObjectSchema)}
+     * To add fields that reference other RealmObjects or RealmLists use {@link #addRealmObjectField(String, RealmObjectSchema)}
      * instead.
      *
      * @param fieldName name of the field to add.
@@ -145,29 +142,32 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Adds a new field that links to other RealmObjects or RealmLists.
+     * Adds a new field that references another {@link RealmObject}.
      *
      * @param fieldName  name of the field to add.
-     * @param typeClass  {@code RealmObject.class} or {@code RealmList.class}
      * @param linkedObjectSchema schema for the Realm type being referenced.
      * @return the updated schema.
-     * @throws IllegalArgumentException if the type isn't supported, field name is illegal or a field with that name
-     * already exists.
+     * @throws IllegalArgumentException if field name is illegal or a field with that name already exists.
      */
-    public RealmObjectSchema addField(String fieldName, Class<?> typeClass, RealmObjectSchema linkedObjectSchema) {
-        FieldMetaData metadata = SUPPORTED_LINKED_FIELDS.get(typeClass);
-        if (metadata == null) {
-            if (SUPPORTED_SIMPLE_FIELDS.containsKey(typeClass)) {
-                throw new IllegalArgumentException("Use addField() instead to add simple fields supported by Realm: " + fieldName);
-            } else {
-                throw new IllegalArgumentException(String.format("Realm doesn't support this field type: %s(%s)",
-                        fieldName, typeClass));
-            }
-        }
-
+    public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema linkedObjectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(metadata.realmType, fieldName, transaction.getTable(Table.TABLE_PREFIX + linkedObjectSchema.getClassName()));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName, transaction.getTable(Table.TABLE_PREFIX + linkedObjectSchema.getClassName()));
+        return this;
+    }
+
+    /**
+     * Adds a new field that references a {@link RealmList}.
+     *
+     * @param fieldName  name of the field to add.
+     * @param linkedObjectSchema schema for the Realm type being referenced.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if the field name is illegal or a field with that name already exists.
+     */
+    public RealmObjectSchema addRealmListField(String fieldName, RealmObjectSchema linkedObjectSchema) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+        table.addColumnLink(RealmFieldType.LIST, fieldName, transaction.getTable(Table.TABLE_PREFIX + linkedObjectSchema.getClassName()));
         return this;
     }
 
@@ -398,8 +398,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Iterate each object in the Realm that have the type defined by this schema. The order is
-     * undefined.
+     * Transform each RealmObject in the Realm that have this schema.
      *
      * @return This schema.
      */

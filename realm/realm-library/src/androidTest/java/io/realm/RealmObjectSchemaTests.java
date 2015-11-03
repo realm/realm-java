@@ -20,6 +20,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
@@ -119,12 +120,12 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     break;
                 case OBJECT:
                     fieldName = AllJavaTypes.FIELD_OBJECT;
-                    schema.addField(fieldName, RealmObject.class, DOG_SCHEMA);
+                    schema.addRealmObjectField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
                 case LIST:
                     fieldName = AllJavaTypes.FIELD_LIST;
-                    schema.addField(fieldName, RealmList.class, DOG_SCHEMA);
+                    schema.addRealmListField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
                 default:
@@ -302,7 +303,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_OBJECT, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addField(fieldName, RealmObject.class, DOG_SCHEMA);
+                            schema.addRealmObjectField(fieldName, DOG_SCHEMA);
                         }
                     });
                     break;
@@ -310,7 +311,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     checkAddFieldTwice(AllJavaTypes.FIELD_LIST, new FieldRunnable() {
                         @Override
                         public void run(String fieldName) {
-                            schema.addField(fieldName, RealmList.class, DOG_SCHEMA);
+                            schema.addRealmListField(fieldName, DOG_SCHEMA);
                         }
                     });
                     break;
@@ -346,8 +347,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                         case DOUBLE: schema.addField(fieldName, double.class); break;
                         case BLOB: schema.addField(fieldName, byte[].class); break;
                         case DATE: schema.addField(fieldName, Date.class); break;
-                        case OBJECT: schema.addField(fieldName, RealmObject.class, DOG_SCHEMA); break;
-                        case LIST: schema.addField(fieldName, RealmList.class, DOG_SCHEMA); break;
+                        case OBJECT: schema.addRealmObjectField(fieldName, DOG_SCHEMA); break;
+                        case LIST: schema.addRealmListField(fieldName, DOG_SCHEMA); break;
                         default:
                             fail("Unknown type: " + fieldType);
                     }
@@ -520,7 +521,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     break;
                 case OBJECT:
                     // Objects are always nullable and cannot be changed.
-                    schema.addField(AllJavaTypes.FIELD_OBJECT, RealmObject.class, schema);
+                    schema.addRealmObjectField(AllJavaTypes.FIELD_OBJECT, schema);
                     assertTrue(schema.isNullable(AllJavaTypes.FIELD_OBJECT));
                     try {
                         schema.setNullable(AllJavaTypes.FIELD_OBJECT, false);
@@ -530,7 +531,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     break;
                 case LIST:
                     // Lists are not nullable and cannot be configured to be so.
-                    schema.addField(AllJavaTypes.FIELD_LIST, RealmList.class, schema);
+                    schema.addRealmListField(AllJavaTypes.FIELD_LIST, schema);
                     assertFalse(schema.isNullable(AllJavaTypes.FIELD_LIST));
                     try {
                         schema.setNullable(AllJavaTypes.FIELD_LIST, true);
@@ -609,7 +610,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     break;
                 case OBJECT:
                     // Objects are always nullable and cannot be configured otherwise.
-                    schema.addField(AllJavaTypes.FIELD_OBJECT, RealmObject.class, schema);
+                    schema.addRealmObjectField(AllJavaTypes.FIELD_OBJECT, schema);
                     assertFalse(schema.isRequired((AllJavaTypes.FIELD_OBJECT)));
                     try {
                         schema.setRequired(AllJavaTypes.FIELD_OBJECT, false);
@@ -619,7 +620,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                     break;
                 case LIST:
                     // Lists are always non-nullable and cannot be configured otherwise.
-                    schema.addField(AllJavaTypes.FIELD_LIST, RealmList.class, schema);
+                    schema.addRealmListField(AllJavaTypes.FIELD_LIST, schema);
                     assertTrue(schema.isRequired((AllJavaTypes.FIELD_LIST)));
                     try {
                         schema.setRequired(AllJavaTypes.FIELD_LIST, true);
@@ -742,6 +743,18 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             }
         });
         assertEquals(3, totalAge.get());
+    }
+
+    public void testGetFieldNames() {
+        Set<String> fieldNames = DOG_SCHEMA.getFieldNames();
+        assertEquals(7, fieldNames.size());
+        assertTrue(fieldNames.contains("name"));
+        assertTrue(fieldNames.contains("age"));
+        assertTrue(fieldNames.contains("height"));
+        assertTrue(fieldNames.contains("weight"));
+        assertTrue(fieldNames.contains("hasTail"));
+        assertTrue(fieldNames.contains("birthday"));
+        assertTrue(fieldNames.contains("owner"));
     }
 
     private interface FieldRunnable {
