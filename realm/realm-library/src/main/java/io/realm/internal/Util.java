@@ -40,6 +40,11 @@ public class Util {
         System.out.print(txt);
     }
 
+    public static String getTablePrefix() {
+        return nativeGetTablePrefix();
+    }
+    static native String nativeGetTablePrefix();
+
 
     // Testcases run in nativeCode
     public enum Testcase {
