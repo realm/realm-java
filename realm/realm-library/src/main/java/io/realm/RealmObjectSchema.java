@@ -83,7 +83,7 @@ public final class RealmObjectSchema {
 
     /**
      * Returns the name of the RealmObject class being represented by this schema.
-     * <p/>
+     * <p>
      * When using a normal {@link Realm} this name is the same as the {@link RealmObject} class.
      * When using a {@link DynamicRealm} this is the name used in all API methods requiring a class name.
      *
@@ -99,20 +99,21 @@ public final class RealmObjectSchema {
      * @param className the new name for this class.
      * @see RealmSchema#rename(String, String)
      */
-    public void setClassName(String className) {
+    public RealmObjectSchema setClassName(String className) {
         checkEmpty(className);
         String internalTableName = Table.TABLE_PREFIX + className;
         if (transaction.hasTable(internalTableName)) {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
         transaction.renameTable(table.getName(), internalTableName);
+        return this;
     }
 
     /**
      * Adds a new simple field to the RealmObject class. The type must be one supported by Realm. See {@link RealmObject}
      * for the list of supported types. If the field should allow {@code null} values use the boxed type instead e.g.
      * {@code Integer.class} instead of {@code int.class}.
-     * <p/>
+     * <p>
      * To add fields that reference other RealmObjects or RealmLists use {@link #addRealmObjectField(String, RealmObjectSchema)}
      * instead.
      *
