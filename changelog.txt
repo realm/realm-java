@@ -2,6 +2,7 @@
  * Fixed a bug making it impossible to read Realms created by iOS if a class contained primary keys (#1703).
  * Added Realm.isEmpty().
  * Fixed bug making it impossible to convert a field to being required during a migration.
+ * Add Realm.getDefaultConfiguration() method.
 
 0.84.1
  * Updated Realm Core to 0.94.4
