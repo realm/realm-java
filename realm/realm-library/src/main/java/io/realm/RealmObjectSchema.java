@@ -115,7 +115,7 @@ public final class RealmObjectSchema {
      * {@code Integer.class} instead of {@code int.class}.
      * <p>
      * To add fields that reference other RealmObjects or RealmLists use {@link #addRealmObjectField(String, RealmObjectSchema)}
-     * instead.
+     * or {@link #addRealmListField(String, RealmObjectSchema)} instead.
      *
      * @param fieldName name of the field to add.
      * @param fieldType type of field to add. See {@link RealmObject} for the full list.
@@ -124,7 +124,7 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if the type isn't supported, field name is illegal or a field with that name
      * already exists.
      */
-    public RealmObjectSchema addField(String fieldName, Class<?> fieldType, RealmModifier... modifiers) {
+    public RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... modifiers) {
         FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
@@ -136,7 +136,7 @@ public final class RealmObjectSchema {
         }
 
         checkNewFieldName(fieldName);
-        boolean nullable = metadata.defaultNullable && !containsModifier(modifiers, RealmModifier.REQUIRED);
+        boolean nullable = metadata.defaultNullable && !containsModifier(modifiers, FieldAttribute.REQUIRED);
         long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
         addModifiers(columnIndex, modifiers);
         return this;
@@ -208,7 +208,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Tests if the schema has field defined with the given name.
+     * Tests if the class has field defined with the given name.
      *
      * @param fieldName field name to test.
      * @return {@code true} if the field exists, {@code false} otherwise.
@@ -218,12 +218,13 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Adds a index to a given field. This is the same as adding the {@code @Index} annotation on the field.
+     * Adds a index to a given field. This is the equivalent of adding the {@link io.realm.annotations.Index} annotation
+     * on the field.
      *
      * @param fieldName field to add name to rename.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be indexed or it already has a
-     *                                  index defined.
+     * index defined.
      */
     public RealmObjectSchema addIndex(String fieldName) {
         checkLegalName(fieldName);
@@ -237,10 +238,11 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Checks if a given field has a {@link io.realm.annotations.Index} defined.
+     * Checks if a given field has an index defined.
      *
      * @param fieldName existing field name to check.
      * @return {@code true} if field is indexed, {@code false} otherwise.
+     * @see io.realm.annotations.Index
      */
     public boolean hasIndex(String fieldName) {
         checkLegalName(fieldName);
@@ -268,12 +270,13 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Adds a primary key to a given field. This is the same as adding the {@code @PrimaryKey} annotation on the field.
+     * Adds a primary key to a given field. This is the same as adding the {@link io.realm.annotations.PrimaryKey}
+     * annotation on the field.
      *
      * @param fieldName field to add name to rename.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be a primary key or it already
-     *                                  has a primary key defined.
+     * has a primary key defined.
      */
     public RealmObjectSchema addPrimaryKey(String fieldName) {
         checkLegalName(fieldName);
@@ -286,8 +289,8 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Removes the primary key from this class. This is the same as removing the {@code @PrimaryKey} annotation from the
-     * class.
+     * Removes the primary key from this class. This is the same as removing the {@link io.realm.annotations.PrimaryKey}
+     * annotation from the class.
      *
      * @return the updated schema.
      * @throws IllegalArgumentException if the class doesn't have a primary key defined.
@@ -301,12 +304,14 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a field to be required, i.e. not allowed to hold {@code null values}.
+     * Sets a field to be required, i.e. not allowed to hold {@code null values}. This is equivalent to switching
+     * between boxed types and their primitive variant e.g. {@code Integer} to {@code int}.
      *
-     * @param fieldName name of field in the schema.
+     * @param fieldName name of field in the class.
      * @param required  {@code true} if field should be required, {@code false} otherwise.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists or the field already has the given required flag.
+     * @see Required
      */
     public RealmObjectSchema setRequired(String fieldName, boolean required) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -335,9 +340,10 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Sets a field to be nullable, i.e. it should be to hold {@code null values}.
+     * Sets a field to be nullable, i.e. it should be able to hold {@code null values}. This is equivalent to switching
+     * between primitive types and their boxed variant e.g. {@code int} to {@code Integer}.
      *
-     * @param fieldName name of field in the schema.
+     * @param fieldName name of field in the class.
      * @param nullable  {@code true} if field should be nullable, {@code false} otherwise.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists or the field already has the given nullable flag.
@@ -353,7 +359,7 @@ public final class RealmObjectSchema {
      * @param fieldName field to check.
      * @return {@code true} if it is requied, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exists.
-     * @see Required
+     * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -366,7 +372,7 @@ public final class RealmObjectSchema {
      * @param fieldName field to check.
      * @return {@code true} if it is requied, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exists.
-     * @see Required
+     * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
         long columnIndex = table.getColumnIndex(fieldName);
@@ -374,7 +380,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Checks if the object has a primary key defined.
+     * Checks if the class has a primary key defined.
      *
      * @return {@code true} if a primary key is defined, {@code false} otherwise.
      * @see io.realm.annotations.PrimaryKey
@@ -384,9 +390,9 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Return all fields in this schema.
+     * Return all fields in this class.
      *
-     * @return A list of all the fields in this schema.
+     * @return A list of all the fields in this class.
      */
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
@@ -398,7 +404,8 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Transform each RealmObject in the Realm that have this schema.
+     * Runs a transformation on each RealmObject instance of the current class. The object will be represented as a
+     * {@link DynamicRealmObject}.
      *
      * @return This schema.
      */
@@ -414,21 +421,20 @@ public final class RealmObjectSchema {
     }
 
     // Invariant: Field was just added
-    // TODO: Refactor to avoid 4xsearches.
-    private void addModifiers(long columnIndex, RealmModifier[] modifiers) {
+    private void addModifiers(long columnIndex, FieldAttribute[] modifiers) {
         if (modifiers != null && modifiers.length > 0) {
-            if (containsModifier(modifiers, RealmModifier.INDEXED)) {
+            if (containsModifier(modifiers, FieldAttribute.INDEXED)) {
                 table.addSearchIndex(columnIndex);
             }
 
-            if (containsModifier(modifiers, RealmModifier.PRIMARY_KEY)) {
+            if (containsModifier(modifiers, FieldAttribute.PRIMARY_KEY)) {
                 table.setPrimaryKey(columnIndex);
                 table.addSearchIndex(columnIndex);
             }
         }
     }
 
-    private boolean containsModifier(RealmModifier[] modifiers, RealmModifier modifier) {
+    private boolean containsModifier(FieldAttribute[] modifiers, FieldAttribute modifier) {
         if (modifiers == null || modifiers.length == 0) {
             return false;
         }
@@ -484,7 +490,7 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Transformer interface for traversing all objects with the current schema and apply a transformation on each.
+     * Transformer interface for traversing all objects of the current class and apply a transformation on each.
      *
      * @see #forEach(Transformer)
      */

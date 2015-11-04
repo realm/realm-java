@@ -95,10 +95,13 @@ abstract class BaseRealm implements Closeable {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
+    private RealmSchema schema;
+
     protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.sharedGroupManager = new SharedGroupManager(configuration);
+        this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         setAutoRefresh(autoRefresh);
     }
 
@@ -588,7 +591,7 @@ abstract class BaseRealm implements Closeable {
      * @return The {@link RealmSchema} for this Realm.
      */
     public RealmSchema getSchema() {
-        return new RealmSchema(this, sharedGroupManager.getTransaction());
+        return schema;
     }
 
     /**
@@ -724,9 +727,9 @@ abstract class BaseRealm implements Closeable {
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
-     * @param configuration Configuration for Realm that shoul be migrated
-     * @param migration If set, this migration block will override what is set in {@link RealmConfiguration}
-     * @param callback Delegate callback
+     * @param configuration configuration for the Realm that should be migrated
+     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
+     * @param callback callback for specific Realm type behaviors.
      */
     protected static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration, MigrationCallback callback) {
         if (configuration == null) {

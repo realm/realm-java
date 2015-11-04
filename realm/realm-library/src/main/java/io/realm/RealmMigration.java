@@ -17,7 +17,7 @@
 package io.realm;
 
 /**
- * The RealmMigration class is used to describe the migration of one Realm schema to another.
+ * The RealmMigration class is used to perform the migration of one Realm schema to another.
  * The schema for a Realm is defined by all classes in a project that extend
  * {@link io.realm.RealmObject}, so any changes to these classes will require a migration.
  *
@@ -27,7 +27,8 @@ package io.realm;
  * <pre>
  * public class CustomMigration implements RealmMigration {
  *   \@Override
- *   public long execute(DynamicRealm realm, long oldVersion, long newVersion) {
+ *   public long migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+ *     RealmSchema schema = realm.getSchema();
  *
  *     if (oldVersion == 0) {
  *       // Migrate from v0 to v1
@@ -54,7 +55,7 @@ public interface RealmMigration {
 
     /**
      * This method will be called if a migration is needed. The entire method is wrapped in a
-     * write transaction so it is possible to create/change or delete any existing objects as well
+     * write transaction so it is possible to create/change or delete any existing objects
      * without wrapping it in your own transaction.
      *
      * @param realm The Realm schema on which to perform the migration.

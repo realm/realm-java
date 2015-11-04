@@ -228,7 +228,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
             throw new IllegalArgumentException("Automatically copying DynamicRealmObjects from other Realms are not supported");
         }
 
-        // At this point the objet can only be a typed object, so the backing Realm cannot be a DynamicRealm.
+        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
         Realm realm = (Realm) this.realm;
         if (realm.getTable(object.getClass()).hasPrimaryKey()) {
             return realm.copyToRealmOrUpdate(object);

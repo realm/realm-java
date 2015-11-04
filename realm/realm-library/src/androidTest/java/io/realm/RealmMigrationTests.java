@@ -128,7 +128,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.create("AnnotationTypes")
-                        .addField("id", long.class, RealmModifier.PRIMARY_KEY)
+                        .addField("id", long.class, FieldAttribute.PRIMARY_KEY)
                         .addField("indexString", String.class) // Forget to set @Index
                         .addField("notIndexString", String.class);
             }
@@ -164,7 +164,7 @@ public class RealmMigrationTests extends AndroidTestCase {
                 RealmSchema schema = realm.getSchema();
                 schema.create("AnnotationTypes")
                         .addField("id", long.class) // Forget to set @PrimaryKey
-                        .addField("indexString", String.class, RealmModifier.INDEXED)
+                        .addField("indexString", String.class, FieldAttribute.INDEXED)
                         .addField("notIndexString", String.class);
             }
         };
@@ -239,8 +239,8 @@ public class RealmMigrationTests extends AndroidTestCase {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.create("AnnotationTypes")
-                        .addField("id", long.class, RealmModifier.PRIMARY_KEY)
-                        .addField("indexString", String.class, RealmModifier.INDEXED)
+                        .addField("id", long.class, FieldAttribute.PRIMARY_KEY)
+                        .addField("indexString", String.class, FieldAttribute.INDEXED)
                         .addField("notIndexString", String.class);
             }
         };

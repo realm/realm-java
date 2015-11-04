@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -40,7 +41,7 @@ public final class RealmSchema {
     /**
      * Creates a wrapper to easily manipulate the current schema of a Realm.
      */
-    public RealmSchema(BaseRealm realm, ImplicitTransaction transaction) {
+    RealmSchema(BaseRealm realm, ImplicitTransaction transaction) {
         this.realm = realm;
         this.transaction = transaction;
     }
@@ -68,9 +69,9 @@ public final class RealmSchema {
      * @return The set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
     public Set<RealmObjectSchema> getAll() {
-        int tables = (int) transaction.size();
-        Set<RealmObjectSchema> schemas = new TreeSet<RealmObjectSchema>();
-        for (int i = 0; i < tables; i++) {
+        int tableCount = (int) transaction.size();
+        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
+        for (int i = 0; i < tableCount; i++) {
             String tableName = transaction.getTableName(i);
             if (Table.isMetaTable(tableName)) {
                 continue;
@@ -102,7 +103,7 @@ public final class RealmSchema {
 
     /**
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
-     * to it will throw an {@link io.realm.exceptions.RealmException}. Remove those classes or fields first.
+     * to it will throw an {@link IllegalStateException}. Remove those classes or fields first.
      *
      * @param className Name of the class to remove.
      */
