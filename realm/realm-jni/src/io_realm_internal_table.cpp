@@ -1588,7 +1588,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
     try {
         Table* table = TBL(nativeTablePtr);
         Table* pk_table = TBL(nativePrivateKeyTablePtr);
-        const char* table_name = table->get_name().data();
+        const char* table_name = table->get_name().substr(6).data(); // Remove "class_" prefix
         size_t row_index = pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
 
         if (columnName == NULL || env->GetStringLength(columnName) == 0) {
@@ -1627,34 +1627,56 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
     return 0;
 }
 
-// Fixes interop issue with Cocoa Realm where the Primary Key table had different types.
+// 1) Fixes interop issue with Cocoa Realm where the Primary Key table had different types.
 // This affects:
 // - All Realms created by Cocoa and used by Realm-android up to 0.80.1
 // - All Realms created by Realm-Android 0.80.1 and below
 // See https://github.com/realm/realm-java/issues/1059
-// This methods converts the old (wrong) table format (string, integer) to the right (string,string) format.
+//
+// 2) Fix interop issue with Cocoa Realm where primary key tables on Cocoa doesn't have the "class_" prefix.
+// This affects:
+// - All Realms created by Cocoa and used by Realm-android up to 0.84.1
+// - All Realms created by Realm-Android 0.84.1 and below
+// See https://github.com/realm/realm-java/issues/1703
+
+// This methods converts the old (wrong) table format (string, integer) to the right (string,string) format and strips
+// any class names in the col[0] of their "class_" prefix
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTableIfNeeded
     (JNIEnv*, jobject, jlong groupNativePtr, jlong privateKeyTableNativePtr)
 {
+    const size_t CLASS_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX;
+    const size_t FIELD_COLUMN_INDEX = io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX;
+
     Group* group = G(groupNativePtr);
     Table* pk_table = TBL(privateKeyTableNativePtr);
-    if (pk_table->get_column_type(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX) == type_Int) {
+
+    // Fix wrong types (string, int) -> (string, string)
+    if (pk_table->get_column_type(FIELD_COLUMN_INDEX) == type_Int) {
         StringData tmp_col_name = StringData("tmp_field_name");
         size_t tmp_col_ndx = pk_table->add_column(DataType(type_String), tmp_col_name);
 
         // Create tmp string column with field name instead of column index
         size_t number_of_rows = pk_table->size();
         for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
-            StringData table_name = pk_table->get_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, row_ndx);
-            size_t col_ndx = static_cast<size_t>(pk_table->get_int(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX, row_ndx));
+            StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
+            size_t col_ndx = static_cast<size_t>(pk_table->get_int(FIELD_COLUMN_INDEX, row_ndx));
             StringData col_name = group->get_table(table_name)->get_column_name(col_ndx);
             pk_table->set_string(tmp_col_ndx, row_ndx, col_name);
         }
 
         // Delete old int column, and rename tmp column to same name
         // The column index for the renamed column will then be the same as the deleted old column
-        pk_table->remove_column(io_realm_internal_Table_PRIMARY_KEY_FIELD_COLUMN_INDEX);
+        pk_table->remove_column(FIELD_COLUMN_INDEX);
         pk_table->rename_column(pk_table->get_column_index(tmp_col_name), StringData("pk_property"));
+    }
+
+    // If needed remove "class_" prefix from class names
+    size_t number_of_rows = pk_table->size();
+    for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
+        StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
+        if (table_name.begins_with("class_")) {
+          pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, table_name.substr(6));
+        }
     }
 }
 

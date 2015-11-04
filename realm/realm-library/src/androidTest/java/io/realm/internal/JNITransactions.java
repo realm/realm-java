@@ -392,13 +392,25 @@ public class JNITransactions extends AndroidTestCase {
         assertEquals(42, t.getUncheckedRow(rowIndex).getLong(0));
     }
 
-    public void testPrimaryKeyTableMigration() throws IOException {
+    public void testFirstPrimaryKeyTableMigration() throws IOException {
         TestHelper.copyRealmFromAssets(getContext(), "080_annotationtypes.realm", "default.realm");
         SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
         ImplicitTransaction tr = db.beginImplicitTransaction();
         Table t = tr.getTable("class_AnnotationTypes");
         assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertTrue(t.hasPrimaryKey());
+        assertEquals(ColumnType.STRING, tr.getTable("pk").getColumnType(0));
+        db.close();
+    }
+
+    public void testSecondPrimaryKeyTableMigration() throws IOException {
+        TestHelper.copyRealmFromAssets(getContext(), "0841_annotationtypes.realm", "default.realm");
+        SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
+        ImplicitTransaction tr = db.beginImplicitTransaction();
+        Table t = tr.getTable("class_AnnotationTypes");
+        assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
+        assertTrue(t.hasPrimaryKey());
+        assertEquals("AnnotationTypes", tr.getTable("pk").getString(0, 0));
         db.close();
     }
 }
