@@ -33,7 +33,7 @@ import io.realm.Sort;
  */
 public class Table implements TableOrView, TableSchema, Closeable {
 
-    public static final String TABLE_PREFIX = "class_";
+    public static final String TABLE_PREFIX = Util.getTablePrefix();
     public static final long INFINITE = -1;
     public static final String STRING_DEFAULT_VALUE = "";
     public static final long INTEGER_DEFAULT_VALUE = 0;
@@ -631,7 +631,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
             if (pkTable == null) {
                 return NO_PRIMARY_KEY; // Free table = No primary key
             }
-            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, getName());
+
+            String tableName = getName();
+            if (tableName.startsWith(TABLE_PREFIX)) {
+                tableName = tableName.substring(TABLE_PREFIX.length());
+            }
+            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, tableName);
             if (rowIndex != NO_MATCH) {
                 String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
@@ -1076,9 +1081,15 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return pkTable;
     }
 
-    // Migration required to fix https://github.com/realm/realm-java/issues/1059
-    // This will convert INTEGER column to the corresponding STRING column if needed.
-    // Any database created on Realm-Java 0.80.1 and below will have this error.
+    /*
+     * 1) Migration required to fix https://github.com/realm/realm-java/issues/1059
+     * This will convert INTEGER column to the corresponding STRING column if needed.
+     * Any database created on Realm-Java 0.80.1 and below will have this error.
+     *
+     * 2) Migration required to fix: https://github.com/realm/realm-java/issues/1703
+     * This will remove the prefix "class_" from all table names in the pk_column
+     * Any database created on Realm-Java 0.84.1 and below will have this error.
+     */
     private void migratePrimaryKeyTableIfNeeded(Group group, Table pkTable) {
         nativeMigratePrimaryKeyTableIfNeeded(group.nativePtr, pkTable.nativePtr);
     }

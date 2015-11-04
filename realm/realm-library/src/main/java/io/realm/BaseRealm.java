@@ -459,6 +459,16 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Check if this {@link io.realm.Realm} contains any objects.
+     *
+     * @return {@code true} if empty, @{code false} otherwise.
+     */
+    public boolean isEmpty() {
+        checkIfValid();
+        return sharedGroupManager.getTransaction().isObjectTablesEmpty();
+    }
+
+    /**
      * Returns the ThreadLocal reference counter for this Realm.
      */
     protected abstract Map<RealmConfiguration, Integer> getLocalReferenceCount();
