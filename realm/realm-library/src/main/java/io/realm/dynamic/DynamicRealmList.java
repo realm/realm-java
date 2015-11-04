@@ -39,7 +39,7 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
      * Adds the specified object at the end of this List.
      *
      * @param object the object to add.
-     * @return true
+     * @return always true.
      * @throws IllegalArgumentException if object is either {@code null} or has the wrong type.
      */
     @Override
@@ -65,7 +65,7 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
      *
      * @param location the index of the element to return.
      * @return the element at the specified index.
-     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
     public DynamicRealmObject get(int location) {
@@ -78,7 +78,7 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
      *
      * @param location the index of the object to remove.
      * @return the removed object.
-     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
     public DynamicRealmObject remove(int location) {
@@ -88,14 +88,13 @@ public class DynamicRealmList extends AbstractList<DynamicRealmObject> {
     }
 
     /**
-     * Replaces the element at the specified location in this list with the
-     * specified object.
+     * Replaces the element at the specified location in this list with the specified object.
      *
      * @param location the index at which to put the specified object.
      * @param object the object to add.
      * @return the previous element at the index.
      * @throws IllegalArgumentException if object is either {@code null} or has the wrong type.
-     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
     public DynamicRealmObject set(int location, DynamicRealmObject object) {

@@ -25,9 +25,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Custom thread pool settings, instances of this executor can be paused, and resumed, this will
- * also set the appropriate number of Threads & wrap submitted tasks to set the thread priority
- * according to <a href="https://developer.android.com/training/multiple-threads/define-runnable.html"> Androids recommendation</a>.
+ * Custom thread pool settings, instances of this executor can be paused, and resumed, this will also set
+ * appropriate number of Threads & wrap submitted tasks to set the thread priority according to
+ * <a href="https://developer.android.com/training/multiple-threads/define-runnable.html"> Androids recommendation</a>.
  */
 public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
     // reduce context switch by using a number of thread proportionate to the number of cores

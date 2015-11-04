@@ -21,9 +21,9 @@ import java.util.concurrent.Future;
 /**
  * Represents a pending asynchronous Realm transaction.
  * <p>
- * Users are responsible for maintaining a reference to {@code RealmAsyncTask} in order
- * to call {@link #cancel()} in case of a configuration change for example (to avoid memory leak, as the
- * transaction will post the result to the caller's thread callback)
+ * Users are responsible for maintaining a reference to {@code RealmAsyncTask} in order to call {@link #cancel()} in
+ * case of a configuration change for example (to avoid memory leak, as the transaction will post the result to the
+ * caller's thread callback).
  */
 public class RealmAsyncTask {
     private final Future<?> pendingQuery;
@@ -34,7 +34,7 @@ public class RealmAsyncTask {
     }
 
     /**
-     * Attempts to cancel execution of this transaction (if it hasn't already completed or previously cancelled)
+     * Attempts to cancel execution of this transaction (if it hasn't already completed or previously cancelled).
      */
     public void cancel() {
         pendingQuery.cancel(true);
@@ -53,9 +53,9 @@ public class RealmAsyncTask {
     }
 
     /**
-     * Whether an attempt to cancel the transaction was performed
+     * Checks whether an attempt to cancel the transaction was performed.
      *
-     * @return {@code true} if {@link #cancel()} has already been called, {@code false} otherwise
+     * @return {@code true} if {@link #cancel()} has already been called, {@code false} otherwise.
      */
     public boolean isCancelled() {
         return isCancelled;

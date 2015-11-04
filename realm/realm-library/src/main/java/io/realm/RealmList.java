@@ -26,19 +26,18 @@ import io.realm.internal.LinkView;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
- * RealmList has two modes: A managed and non-managed mode. In managed mode all objects are persisted
- * inside a Realm, in non-managed mode it works as a normal ArrayList.
+ * RealmList has two modes: A managed and non-managed mode. In managed mode all objects are persisted inside a Realm, in
+ * non-managed mode it works as a normal ArrayList.
  * <p>
- * Only Realm can create managed RealmLists. Managed RealmLists will automatically update the
- * content whenever the underlying Realm is updated, and can only be accessed using the getter
- * of a {@link io.realm.RealmObject}.
+ * Only Realm can create managed RealmLists. Managed RealmLists will automatically update the content whenever the
+ * underlying Realm is updated, and can only be accessed using the getter of a {@link io.realm.RealmObject}.
  * <p>
- * Non-managed RealmLists can be created by the user and can contain both managed and non-managed
- * RealmObjects. This is useful when dealing with JSON deserializers like GSON or other
- * frameworks that inject values into a class. Non-managed elements in this list can be added to a
- * Realm using the {@link Realm#copyToRealm(Iterable)} method.
+ * Non-managed RealmLists can be created by the user and can contain both managed and non-managed RealmObjects. This is
+ * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
+ * Non-managed elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
  * <p>
- * @param <E> The class of objects in list.
+ *
+ * @param <E> the class of objects in list.
  */
 
 public class RealmList<E extends RealmObject> extends AbstractList<E> {
@@ -53,12 +52,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     private List<E> nonManagedList;
 
     /**
-     * Create a RealmList in non-managed mode, where the elements are not controlled by a Realm.
-     * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible
-     * to query the objects in this state.
+     * Creates a RealmList in non-managed mode, where the elements are not controlled by a Realm.
+     * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible to query
+     * the objects in this state.
      * <p>
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)}  to properly persist it's elements in
-     * Realm.
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist it's elements in Realm.
      */
     public RealmList() {
         managedMode = false;
@@ -66,14 +64,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Create a RealmList in non-managed mode with an initial list of elements.
-     * A RealmList in non-managed mode function as a {@link java.util.ArrayList} and it is not
-     * possible to query the objects in this state.
+     * Creates a RealmList in non-managed mode with an initial list of elements.
+     * A RealmList in non-managed mode function as a {@link java.util.ArrayList} and it is not possible to query the
+     * objects in this state.
      *
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all non-managed elements
-     * in Realm.
+     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all non-managed elements in Realm.
      *
-     * @param objects Initial objects in the list.
+     * @param objects initial objects in the list.
      */
     public RealmList(E... objects) {
         if (objects == null) {
@@ -87,9 +84,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     /**
      * Creates a RealmList from a LinkView, so its elements are managed by Realm.
      *
-     * @param clazz Type of elements in the Array
-     * @param view  Backing LinkView
-     * @param realm Reference to Realm containing the data
+     * @param clazz type of elements in the Array.
+     * @param view backing LinkView.
+     * @param realm reference to Realm containing the data.
      */
     RealmList(Class<E> clazz, LinkView view, Realm realm) {
         this.managedMode = true;
@@ -99,11 +96,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Check if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm}
-     * instance hasn't been closed.
+     * Checks if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm} instance hasn't
+     * been closed.
      *
-     * @return {@code true} if still valid to use, {@code false} otherwise or if it is a
-     * standalone object.
+     * @return {@code true} if still valid to use, {@code false} otherwise or if it is a standalone object.
      */
     public boolean isValid() {
         //noinspection SimplifiableIfStatement
@@ -131,10 +127,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
      * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
      * </ol>
+     *
      * @param location the index at which to insert.
      * @param object the object to add.
      * @throws IllegalStateException if Realm instance has been closed or container object has been removed.
-     * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location > size()}.
      */
     @Override
     public void add(int location, E object) {
@@ -159,6 +156,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
      * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
      * </ol>
+     *
      * @param object the object to add.
      * @return true
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
@@ -177,22 +175,21 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Replaces the element at the specified location in this list with the
-     * specified object.
+     * Replaces the element at the specified location in this list with the specified object.
      * <ol>
      * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
      * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
      *
-     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed.
+     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)} or
+     * {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
      * </ol>
      * @param location the index at which to put the specified object.
      * @param object the object to add.
      * @return the previous element at the index.
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
-     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
     public E set(int location, E object) {
@@ -223,13 +220,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * Moves an object from one position to another, while maintaining a fixed sized list.
      * RealmObjects will be shifted so no null values are introduced.
      *
-     * @param oldPos Index of RealmObject to move.
-     * @param newPos Target position. If newPos &lt; oldPos the object at the location will be shifted
-     *               to the right. If oldPos &lt; newPos, indexes &gt; oldPos will be shifted once to the
-     *               left.
-     *
+     * @param oldPos index of RealmObject to move.
+     * @param newPos target position. If newPos &lt; oldPos the object at the location will be shifted to the right. If
+     *               oldPos &lt; newPos, indexes &gt; oldPos will be shifted once to the left.
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
-     * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()[.
+     * @throws java.lang.IndexOutOfBoundsException if any position is outside [0, size()].
      */
     public void move(int oldPos, int newPos) {
         if (managedMode) {
@@ -270,7 +265,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @param location the index of the object to remove.
      * @return the removed object.
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
-     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
     public E remove(int location) {
@@ -290,7 +285,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @param location the index of the element to return.
      * @return the element at the specified index.
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
-     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}
+     * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
     public E get(int location) {
@@ -303,9 +298,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Find the first object.
+     * Finds the first object.
      *
-     * @return The first object or {@code null} if the list is empty.
+     * @return the first object or {@code null} if the list is empty.
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     public E first() {
@@ -319,9 +314,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Find the last object.
+     * Finds the last object.
      *
-     * @return The last object or {@code null} if the list is empty.
+     * @return the last object or {@code null} if the list is empty.
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     public E last() {
@@ -352,9 +347,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns a RealmQuery, which can be used to query for specific objects of this class
+     * Returns a RealmQuery, which can be used to query for specific objects of this class.
      *
-     * @return A RealmQuery object
+     * @return a RealmQuery object.
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see io.realm.RealmQuery
      */

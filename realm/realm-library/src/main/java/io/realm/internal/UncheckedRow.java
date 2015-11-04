@@ -41,11 +41,12 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     /**
-     * Get the row object associated to an index in a Table
-     * @param context the Realm context
-     * @param table the Table that holds the row
-     * @param index the index of the row
-     * @return an instance of Row for the table and index specified
+     * Gets the row object associated to an index in a Table.
+     *
+     * @param context the Realm context.
+     * @param table the Table that holds the row.
+     * @param index the index of the row.
+     * @return an instance of Row for the table and index specified.
      */
     public static UncheckedRow getByRowIndex(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
@@ -55,11 +56,12 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     /**
-     * Get the row object from a row pointer
-     * @param context the Realm context
-     * @param table the Table that holds the row
-     * @param nativeRowPointer pointer of a row
-     * @return an instance of Row for the table and row specified
+     * Gets the row object from a row pointer.
+     *
+     * @param context the Realm context.
+     * @param table the Table that holds the row.
+     * @param nativeRowPointer pointer of a row.
+     * @return an instance of Row for the table and row specified.
      */
     public static UncheckedRow getByRowPointer(Context context, Table table, long nativeRowPointer) {
         UncheckedRow row = new UncheckedRow(context, table, nativeRowPointer);
@@ -68,11 +70,12 @@ public class UncheckedRow extends NativeObject implements Row {
     }
 
     /**
-     * Get the row object associated to an index in a LinkView
-     * @param context the Realm context
-     * @param linkView the LinkView holding the row
-     * @param index the index of the row
-     * @return an instance of Row for the LinkView and index specified
+     * Gets the row object associated to an index in a LinkView.
+     *
+     * @param context the Realm context.
+     * @param linkView the LinkView holding the row.
+     * @param index the index of the row.
+     * @return an instance of Row for the LinkView and index specified.
      */
     public static UncheckedRow getByRowIndex(Context context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.nativeLinkViewPtr, index);
@@ -262,7 +265,7 @@ public class UncheckedRow extends NativeObject implements Row {
     /**
      * Converts the unchecked Row to a checked variant.
      *
-     * @return CheckedRow wrapping the same Realm data as the original Row.
+     * @return the {@link CheckedRow} wrapping the same Realm data as the original {@link Row}.
      */
     public CheckedRow convertToChecked() {
         return CheckedRow.getFromRow(this);

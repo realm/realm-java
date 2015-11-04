@@ -52,7 +52,7 @@ public class SubtableSchema implements TableSchema {
     protected native long nativeAddColumn(long nativeTablePtr, long[] path, int type, String name);
 
     /**
-     * Remove a column in the table dynamically.
+     * Removes a column in the table dynamically.
      */
     @Override
     public void removeColumn(long columnIndex) {
@@ -62,7 +62,7 @@ public class SubtableSchema implements TableSchema {
     protected native void nativeRemoveColumn(long nativeTablePtr, long[] path, long columnIndex);
 
     /**
-     * Rename a column in the table.
+     * Renames a column in the table.
      */
     @Override
     public void renameColumn(long columnIndex, String newName) {

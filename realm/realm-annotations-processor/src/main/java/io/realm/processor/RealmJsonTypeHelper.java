@@ -192,7 +192,7 @@ public class RealmJsonTypeHelper {
         private final String jsonType;
 
         /**
-         * Create a conversion between simple types which can be expressed as
+         * Creates a conversion between simple types which can be expressed as
          * RealmObject.setFieldName((<castType>) json.get<jsonType>) or
          * RealmObject.setFieldName((<castType>) reader.next<jsonType>
          *
