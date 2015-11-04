@@ -119,12 +119,12 @@ public final class RealmObjectSchema {
      *
      * @param fieldName name of the field to add.
      * @param fieldType type of field to add. See {@link RealmObject} for the full list.
-     * @param modifiers set of modifiers for this field.
+     * @param attributes set of attributes for this field.
      * @return the updated schema.
      * @throws IllegalArgumentException if the type isn't supported, field name is illegal or a field with that name
      * already exists.
      */
-    public RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... modifiers) {
+    public RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes) {
         FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
@@ -136,9 +136,9 @@ public final class RealmObjectSchema {
         }
 
         checkNewFieldName(fieldName);
-        boolean nullable = metadata.defaultNullable && !containsModifier(modifiers, FieldAttribute.REQUIRED);
+        boolean nullable = metadata.defaultNullable && !containsAttribute(attributes, FieldAttribute.REQUIRED);
         long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
-        addModifiers(columnIndex, modifiers);
+        addModifiers(columnIndex, attributes);
         return this;
     }
 
@@ -421,25 +421,25 @@ public final class RealmObjectSchema {
     }
 
     // Invariant: Field was just added
-    private void addModifiers(long columnIndex, FieldAttribute[] modifiers) {
-        if (modifiers != null && modifiers.length > 0) {
-            if (containsModifier(modifiers, FieldAttribute.INDEXED)) {
+    private void addModifiers(long columnIndex, FieldAttribute[] attributes) {
+        if (attributes != null && attributes.length > 0) {
+            if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
                 table.addSearchIndex(columnIndex);
             }
 
-            if (containsModifier(modifiers, FieldAttribute.PRIMARY_KEY)) {
+            if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
                 table.setPrimaryKey(columnIndex);
                 table.addSearchIndex(columnIndex);
             }
         }
     }
 
-    private boolean containsModifier(FieldAttribute[] modifiers, FieldAttribute modifier) {
-        if (modifiers == null || modifiers.length == 0) {
+    private boolean containsAttribute(FieldAttribute[] attributeList, FieldAttribute attribute) {
+        if (attributeList == null || attributeList.length == 0) {
             return false;
         }
-        for (int i = 0; i < modifiers.length; i++) {
-            if (modifiers[i] == modifier) {
+        for (int i = 0; i < attributeList.length; i++) {
+            if (attributeList[i] == attribute) {
                 return true;
             }
         }
