@@ -121,7 +121,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     TableOrView getTable() {
         if (table == null) {
-            return realm.getTable(classSpec);
+            return realm.schema.getTable(classSpec);
         } else {
             return table;
         }

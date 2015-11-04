@@ -200,7 +200,7 @@ public class RealmMigrationTests extends AndroidTestCase {
             RealmMigration migration = new RealmMigration() {
                 @Override
                 public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                    Table table = realm.getTable(clazz);
+                    Table table = realm.schema.getTable(clazz);
                     long columnIndex = table.getColumnIndex("id");
                     table.addSearchIndex(columnIndex);
                     if (clazz == PrimaryKeyAsLong.class) {
@@ -316,7 +316,7 @@ public class RealmMigrationTests extends AndroidTestCase {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table table = realm.getTable(StringOnly.class);
+                Table table = realm.schema.getTable(StringOnly.class);
                 table.convertColumnToNullable(table.getColumnIndex("chars"));
             }
         };
@@ -370,7 +370,7 @@ public class RealmMigrationTests extends AndroidTestCase {
                     if (oldVersion == -1) { // -1 == UNVERSIONED i.e., not initialized
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
-                        Table table = realm.getTable(NullTypes.class);
+                        Table table = realm.schema.getTable(NullTypes.class);
                         if (field.equals("fieldStringNotNull")) {
                             // 1 String
                             table.addColumn(RealmFieldType.STRING, field, Table.NULLABLE);
@@ -432,7 +432,7 @@ public class RealmMigrationTests extends AndroidTestCase {
                     if (oldVersion == -1) {  // -1 == UNVERSIONED i.e., not been initialized
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
-                        Table table = realm.getTable(NullTypes.class);
+                        Table table = realm.schema.getTable(NullTypes.class);
                         if (field.equals("fieldStringNull")) {
                             // 1 String
                             table.addColumn(RealmFieldType.STRING, field, Table.NOT_NULLABLE);

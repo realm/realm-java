@@ -313,7 +313,7 @@ public final class Realm extends BaseRealm {
                     throw e;
                 }
             }
-            realm.columnIndices = validatedRealmFiles.get(configuration.getPath());
+            realm.schema.columnIndices = validatedRealmFiles.get(configuration.getPath());
 
             return realm;
         }
@@ -841,7 +841,7 @@ public final class Realm extends BaseRealm {
                                                                     Sort sortOrder) {
         checkIfValid();
         Table table = getTable(clazz);
-        long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
+        long columnIndex = schema.columnIndices.getColumnIndex(clazz, fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }

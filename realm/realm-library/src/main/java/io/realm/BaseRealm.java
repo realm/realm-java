@@ -43,7 +43,6 @@ import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.Util;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
@@ -71,12 +70,6 @@ abstract class BaseRealm implements Closeable {
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
-    // Caches Dynamic Class objects given as Strings (both model classes and proxy classes) to Realm Tables
-    private final Map<String, Table> dynamicClassToTable = new HashMap<String, Table>();
-
-    // Caches Class objects (both model classes and proxy classes) to Realm Tables
-    private final Map<Class<? extends RealmObject>, Table> classToTable = new HashMap<Class<? extends RealmObject>, Table>();
-
     // thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
 
@@ -87,18 +80,21 @@ abstract class BaseRealm implements Closeable {
     protected RealmConfiguration configuration;
     protected SharedGroupManager sharedGroupManager;
     protected boolean autoRefresh;
+    RealmSchema schema;
     Handler handler;
-    ColumnIndices columnIndices;
+//    ColumnIndices columnIndices;
     HandlerController handlerController;
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
+
     protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.sharedGroupManager = new SharedGroupManager(configuration);
+        this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         setAutoRefresh(autoRefresh);
     }
 
@@ -499,33 +495,6 @@ abstract class BaseRealm implements Closeable {
         globalRealmFileReferenceCounter.put(canonicalPath, refCount - 1);
     }
 
-    // Public because of migrations
-    @Deprecated
-    public Table getTable(String className) {
-        className = Table.TABLE_PREFIX + className;
-        Table table = dynamicClassToTable.get(className);
-        if (table == null) {
-            if (!sharedGroupManager.hasTable(className)) {
-                throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
-            }
-            table = sharedGroupManager.getTable(className);
-            dynamicClassToTable.put(className, table);
-        }
-        return table;
-    }
-
-    // Public because of migrations
-    @Deprecated
-    public Table getTable(Class<? extends RealmObject> clazz) {
-        Table table = classToTable.get(clazz);
-        if (table == null) {
-            clazz = Util.getOriginalModelClass(clazz);
-            table = sharedGroupManager.getTable(configuration.getSchemaMediator().getTableName(clazz));
-            classToTable.put(clazz, table);
-        }
-        return table;
-    }
-
     boolean hasChanged() {
         return sharedGroupManager.hasChanged();
     }
@@ -578,7 +547,7 @@ abstract class BaseRealm implements Closeable {
      * @return The {@link RealmSchema} for this Realm.
      */
     public RealmSchema getSchema() {
-        return new RealmSchema(this, sharedGroupManager.getTransaction());
+        return schema;
     }
 
     /**
@@ -628,7 +597,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
-        Table table = getTable(clazz);
+        Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
         E result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
         result.row = row;
@@ -637,7 +606,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
-        final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
+        final ColumnInfo columnInfo = schema.columnIndices.getColumnInfo(clazz);
         if (columnInfo == null) {
             throw new IllegalStateException("No validated schema information found for " + configuration.getSchemaMediator().getTableName(clazz));
         }
@@ -651,12 +620,12 @@ abstract class BaseRealm implements Closeable {
         Table table;
         E result;
         if (dynamicClassName != null) {
-            table = getTable(dynamicClassName);
+            table = schema.getTable(dynamicClassName);
             @SuppressWarnings("unchecked")
             E dynamicObj = (E) new DynamicRealmObject();
             result = dynamicObj;
         } else {
-            table = getTable(clazz);
+            table = schema.getTable(clazz);
             result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
         }
         UncheckedRow row = table.getUncheckedRow(rowIndex);

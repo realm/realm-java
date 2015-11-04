@@ -127,7 +127,7 @@ public class TestHelper {
         RealmMigration realmMigration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table stringOnly = realm.getTable(StringOnly.class);
+                Table stringOnly = realm.schema.getTable(StringOnly.class);
                 stringOnly.convertColumnToNullable(stringOnly.getColumnIndex("chars"));
             }
         };
@@ -390,7 +390,7 @@ public class TestHelper {
     // Helper function to create all columns except the given excluding field for NullTypes.
     public static void initNullTypesTableExcludes(DynamicRealm realm, String excludingField) {
 
-        Table table = realm.getTable(NullTypes.class);
+        Table table = realm.schema.getTable(NullTypes.class);
         if (!excludingField.equals("id")) {
             table.addColumn(RealmFieldType.INTEGER, "id", Table.NOT_NULLABLE);
             table.addSearchIndex(table.getColumnIndex("id"));
