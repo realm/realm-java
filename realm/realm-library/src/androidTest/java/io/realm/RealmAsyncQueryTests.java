@@ -277,7 +277,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     populateTestRealm(realm, 10);
 
                     try {
-                        final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
+                        realm.where(AllTypes.class)
                                 .between("columnLong", 0, 4)
                                 .findAllAsync();
                         fail("Should not be able to use async query without a Looper thread");
@@ -336,7 +336,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     // the RealmQuery already has an argumentHolder, can't reuse it
                     try {
-                        RealmResults<AllTypes> allAsyncSorted = query.findAllSorted("columnLong");
+                        query.findAllSorted("columnLong");
                         fail("Should throw an exception, can not reuse RealmQuery");
                     } catch (IllegalStateException ignored) {
                         signalCallbackFinished.countDown();
@@ -1368,6 +1368,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                             try {
                                 assertTrue(result[0].isLoaded());
                                 assertEquals(5, result[0].size());
+                                @SuppressWarnings("unchecked")
                                 RealmResults<AllTypes> allTypes = (RealmResults<AllTypes>) result[0];
                                 for (int i = 0; i < 5; i++) {
                                     int iteration = (4 - i);
@@ -2312,6 +2313,64 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
         exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
+
+    // Checks that RealmChangeListeners on RealmResults are called when changes are committed to the Realm.
+    public void testAsyncRealmResultsChangeListenersCalledOnChanges() throws Throwable {
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
+        final CountDownLatch listenerCalled = new CountDownLatch(2);
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        final RealmConfiguration config = TestHelper.createConfiguration(getInstrumentation().getTargetContext());
+        Realm.deleteRealm(config);
+
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                Realm realm = null;
+                try {
+                    // 1. Start the async query
+                    realm = Realm.getInstance(config);
+                    RealmResults<AllTypes> result = realm.where(AllTypes.class).findAllAsync();
+
+                    // 2. Register listener. It should be called twice, first time when data is loaded. 2nd time
+                    // when the Unit test thread makes a commit.
+                    result.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            listenerCalled.countDown();
+                        }
+                    });
+                    Looper.loop();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+                } finally {
+                    if (realm != null) {
+                        realm.close();
+                    }
+                    signalClosedRealm.countDown();
+                }
+            }
+        });
+
+        // 3. Another thread creates the commit. This should trigger the RealmResults onChange listener
+        Realm realm = Realm.getInstance(config);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        realm.close();
+
+        // 4. Wait for Listener to be triggered correctly
+        TestHelper.awaitOrFail(listenerCalled);
+
+        // Cleanup
+        exitOrThrow(executorService, listenerCalled, signalClosedRealm, backgroundLooper, threadAssertionError);
+    }
+
+
 
     // *** Helper methods ***
 
