@@ -5,7 +5,7 @@ The databases are generated using the following iOS code:
 
 ////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2014 Realm Inc.
+// Copyright 2015 Realm Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ RLM_ARRAY_TYPE(IOSChild)
 @end
 
 @interface IOSAllTypes : RLMObject
+@property long id;
 @property bool boolCol;
 @property short shortCol;
 @property int intCol;
@@ -48,9 +49,9 @@ RLM_ARRAY_TYPE(IOSChild)
 RLM_ARRAY_TYPE(AllTypes)
 
 @implementation IOSAllTypes
-//+ (NSString *)primaryKey {
-//    return @"longCol";
-//}
++ (NSString *)primaryKey {
+    return @"id";
+}
 @end
 
 @implementation AppDelegate
@@ -61,14 +62,18 @@ RLM_ARRAY_TYPE(AllTypes)
     self.window.rootViewController = [[UIViewController alloc] init];
     [self.window makeKeyAndVisible];
 
+    NSLog(@"Documents Directory: %@", [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject]);
+
+    const NSString *version = @"0.96.2";
     const unsigned char no_bytes[] = {};
     const unsigned char bytes[] = {1,2,3};
 
-    [AppDelegate setDefaultRealm: @"0.90.4-alltypes.realm"];
+    [AppDelegate setDefaultRealm: [NSString stringWithFormat:@"%@-alltypes.realm", version]];
     RLMRealm *realm = [RLMRealm defaultRealm];
     [realm beginWriteTransaction];
     for (int i = 0; i < 10; i++) {
         IOSAllTypes *obj = [[IOSAllTypes alloc] init];
+        obj.id = i + 1;
         obj.boolCol = TRUE;
         obj.shortCol = 1 + i;
         obj.intCol = 10 + i;
@@ -90,7 +95,7 @@ RLM_ARRAY_TYPE(AllTypes)
     }
     [realm commitWriteTransaction];
 
-    [AppDelegate setDefaultRealm: @"0.90.4-alltypes-default.realm"];
+    [AppDelegate setDefaultRealm: [NSString stringWithFormat:@"%@-alltypes-default.realm", version]];
     realm = [RLMRealm defaultRealm];
     [realm beginWriteTransaction];
     IOSAllTypes *obj = [[IOSAllTypes alloc] init];
@@ -100,8 +105,7 @@ RLM_ARRAY_TYPE(AllTypes)
     [realm addObject:obj];
     [realm commitWriteTransaction];
 
-
-    [AppDelegate setDefaultRealm: @"0.90.4-alltypes-min.realm"];
+    [AppDelegate setDefaultRealm: [NSString stringWithFormat:@"%@-alltypes-min.realm", version]];
     realm = [RLMRealm defaultRealm];
     [realm beginWriteTransaction];
     obj = [[IOSAllTypes alloc] init];
@@ -117,8 +121,7 @@ RLM_ARRAY_TYPE(AllTypes)
     [realm addObject:obj];
     [realm commitWriteTransaction];
 
-
-    [AppDelegate setDefaultRealm: @"0.90.4-alltypes-max.realm"];
+    [AppDelegate setDefaultRealm: [NSString stringWithFormat:@"%@-alltypes-max.realm", version]];
     realm = [RLMRealm defaultRealm];
     [realm beginWriteTransaction];
     obj = [[IOSAllTypes alloc] init];
@@ -134,8 +137,7 @@ RLM_ARRAY_TYPE(AllTypes)
     [realm addObject:obj];
     [realm commitWriteTransaction];
 
-
-    [AppDelegate setDefaultRealm: @"0.90.5-alltypes-default-encrypted.realm"];
+    [AppDelegate setDefaultRealm: [NSString stringWithFormat:@"%@-alltypes-default-encrypted.realm", version]];
     uint8_t buffer[64];
     for (int i = 0; i < sizeof(buffer); i++) {
         buffer[i] = 1;
