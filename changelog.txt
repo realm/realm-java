@@ -1,6 +1,6 @@
 0.84.2
  * Added Realm.isEmpty().
- * Fixed a bug making it impossible to convert a field to being required during a migration.
+ * Fixed a bug making it impossible to convert a field to being required during a migration (#1695).
  * Fixed a bug making it impossible to read Realms created by iOS if a class contained primary keys (#1703).
 
 0.84.1
