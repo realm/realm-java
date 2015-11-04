@@ -16,13 +16,10 @@
 
 package io.realm.examples.realmmigrationexample.model;
 
-import java.util.EnumSet;
-
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
-import io.realm.RealmList;
+import io.realm.FieldAttribute;
 import io.realm.RealmMigration;
-import io.realm.RealmModifier;
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
 
@@ -62,7 +59,7 @@ public class Migration implements RealmMigration {
 
             // Combine 'firstName' and 'lastName' in a new field called 'fullName'
             personSchema
-                    .addField("fullName", String.class, RealmModifier.REQUIRED)
+                    .addField("fullName", String.class, FieldAttribute.REQUIRED)
                     .forEach(new RealmObjectSchema.Transformer() {
                         @Override
                         public void apply(DynamicRealmObject obj) {
@@ -93,12 +90,12 @@ public class Migration implements RealmMigration {
 
             // Create a new class
             RealmObjectSchema petSchema = schema.create("Pet")
-                    .addField("name", String.class, RealmModifier.REQUIRED)
-                    .addField("type", String.class, RealmModifier.REQUIRED);
+                    .addField("name", String.class, FieldAttribute.REQUIRED)
+                    .addField("type", String.class, FieldAttribute.REQUIRED);
 
             // Add a new field to and old class and populate it with initial data
             schema.get("Person")
-                .addField("pets", RealmList.class, petSchema)
+                .addRealmListField("pets", petSchema)
                 .forEach(new RealmObjectSchema.Transformer() {
                     @Override
                     public void apply(DynamicRealmObject obj) {
