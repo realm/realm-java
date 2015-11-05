@@ -20,9 +20,13 @@ import java.util.Date;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 public class IOSAllTypes extends RealmObject {
+
+    @PrimaryKey
+    private long id;
 
     private boolean boolCol;
     private short shortCol;
@@ -38,6 +42,14 @@ public class IOSAllTypes extends RealmObject {
     private Date dateCol = new Date(0);
     private IOSChild child;
     private RealmList<IOSChild> children;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public boolean isBoolCol() {
         return boolCol;

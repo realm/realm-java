@@ -1,4 +1,6 @@
 0.84.2
+ * Fixed a bug making it impossible to read Realms created by iOS if a class contained primary keys (#1703).
+ * Added Realm.isEmpty().
  * Fixed bug making it impossible to convert a field to being required during a migration.
 
 0.84.1
@@ -7,7 +9,7 @@
  * Updated ProGuard configuration. See documentation https://realm.io/docs/java/latest/#proguard for more details.
  * Updated Kotlin example to use 1.0.0-beta.
  * Fixed warnings reported by `lint -Xlint:all` (#1644).
- * Fixed a bug where simultaneous opening and closing a Realm on different threads might result in a NullPointerException (#1646).
+ * Fixed a bug where simultaneous opening and closing a Realm on diffesrent threads might result in a NullPointerException (#1646).
  * Fixed a bug which made it possible to externally modify the encryption key in a RealmConfiguration (#1678).
 
 0.84.0
