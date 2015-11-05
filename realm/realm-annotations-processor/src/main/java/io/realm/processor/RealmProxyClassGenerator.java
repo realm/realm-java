@@ -598,7 +598,7 @@ public class RealmProxyClassGenerator {
 
             writer
                 .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
-                    .emitStatement("realmObject = new %s(realm.getColumnInfo(%s.class))",
+                    .emitStatement("realmObject = new %s(realm.schema.getColumnInfo(%s.class))",
                             Utils.getProxyClassName(className),
                             className)
                     .emitStatement("realmObject.realm = realm")
@@ -862,7 +862,7 @@ public class RealmProxyClassGenerator {
                     .emitStatement("long rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
                             pkType, pkType, metadata.getPrimaryKey().getSimpleName())
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
-                            .emitStatement("obj = new %s(realm.getColumnInfo(%s.class))",
+                            .emitStatement("obj = new %s(realm.schema.getColumnInfo(%s.class))",
                                     Utils.getProxyClassName(className),
                                     className)
                             .emitStatement("obj.realm = realm")

@@ -486,7 +486,7 @@ public final class RealmObjectSchema{
                     ));
         }
         return columnIndex;
-    }s
+    }
 
     private void checkEmpty(String str) {
         if (str == null || str.isEmpty()) {

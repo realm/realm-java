@@ -35,8 +35,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnIndices;
-import io.realm.internal.ColumnInfo;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
@@ -88,8 +86,6 @@ abstract class BaseRealm implements Closeable {
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
-
-    private RealmSchema schema;
 
     protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
@@ -610,20 +606,11 @@ abstract class BaseRealm implements Closeable {
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
-        E result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
+        E result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
         result.row = row;
         result.realm = this;
         return result;
     }
-
-    ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
-        final ColumnInfo columnInfo = schema.columnIndices.getColumnInfo(clazz);
-        if (columnInfo == null) {
-            throw new IllegalStateException("No validated schema information found for " + configuration.getSchemaMediator().getTableName(clazz));
-        }
-        return columnInfo;
-    }
-
 
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
@@ -637,7 +624,7 @@ abstract class BaseRealm implements Closeable {
             result = dynamicObj;
         } else {
             table = schema.getTable(clazz);
-            result = configuration.getSchemaMediator().newInstance(clazz, getColumnInfo(clazz));
+            result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
         }
         UncheckedRow row = table.getUncheckedRow(rowIndex);
         result.row = row;

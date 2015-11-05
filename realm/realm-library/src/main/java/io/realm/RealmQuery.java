@@ -22,7 +22,6 @@ import android.os.Handler;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -2052,7 +2051,7 @@ public class RealmQuery<E extends RealmObject> {
 
         // prepare an empty reference of the RealmObject, so we can return it immediately (promise)
         // then update it once the query complete in the background.
-        final E result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.getColumnInfo(clazz));
+        final E result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.schema.getColumnInfo(clazz));
         final WeakReference<RealmObject> realmObjectWeakReference = new WeakReference<RealmObject>(result);
         realm.addAsyncRealmObject(realmObjectWeakReference, this);
         result.realm = realm;

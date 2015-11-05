@@ -24,6 +24,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
@@ -173,6 +174,13 @@ public final class RealmSchema {
         }
     }
 
+    ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
+        final ColumnInfo columnInfo = columnIndices.getColumnInfo(clazz);
+        if (columnInfo == null) {
+            throw new IllegalStateException("No validated schema information found for " + realm.configuration.getSchemaMediator().getTableName(clazz));
+        }
+        return columnInfo;
+    }
     Table getTable(String className) {
         className = Table.TABLE_PREFIX + className;
         Table table = dynamicClassToTable.get(className);
