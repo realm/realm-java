@@ -810,8 +810,8 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Gets all objects of a specific Class. If no objects exist, the returned RealmResults will not be null. The
-     * RealmResults.size() to check the number of objects instead.
+     * Gets all objects of a specific Class. If no objects exist, the returned RealmResults will not be {@code null}.
+     * The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the Class to get objects of.
      * @return a RealmResult list containing the objects.
@@ -823,7 +823,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Get all objects of a specific Class sorted by a field. If no objects exist, the returned {@link RealmResults}
-     * will not be null. The RealmResults.size() to check the number of objects instead.
+     * will not be {@code null}. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the Class to get objects of.
      * @param fieldName the field name to sort by.
@@ -848,7 +848,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Gets all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
-     * {@link RealmResults} will not be null. The RealmResults.size() to check the number of objects instead.
+     * {@link RealmResults} will not be {@code null}. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
