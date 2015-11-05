@@ -1142,7 +1142,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Manually triggers a migration on a RealmMigration.
+     * Manually trigger a migration on a RealmMigration.
      *
      * @param configuration the{@link RealmConfiguration}.
      * @param migration the {@link RealmMigration} to run on the Realm. This will override any migration set on the
