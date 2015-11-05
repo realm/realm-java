@@ -2281,6 +2281,64 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    // Bug reported https://github.com/realm/realm-java/issues/1728.
+    // Root cause is validatedRealmFiles will be cleaned when any thread's Realm ref counter reach 0.
+    public void testOpenRealmWhileTransactionInAnotherThread() throws Exception {
+        final CountDownLatch realmOpenedInBgLatch = new CountDownLatch(1);
+        final CountDownLatch realmClosedInFgLatch = new CountDownLatch(1);
+        final CountDownLatch transBeganInBgLatch = new CountDownLatch(1);
+        final CountDownLatch fgFinishedLatch = new CountDownLatch(1);
+        final CountDownLatch bgFinishedLatch = new CountDownLatch(1);
+        final List<Exception> exception = new ArrayList<Exception>();
+
+        // Step 1: testRealm is opened already.
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // Step 2: Open realm in background thread.
+                Realm realm = Realm.getInstance(testConfig);
+                realmOpenedInBgLatch.countDown();
+                try {
+                    realmClosedInFgLatch.await();
+                } catch (InterruptedException e) {
+                    exception.add(e);
+                    realm.close();
+                    return;
+                }
+
+                // Step 4: Start transaction in background
+                realm.beginTransaction();
+                transBeganInBgLatch.countDown();
+                try {
+                    fgFinishedLatch.await();
+                } catch (InterruptedException e) {
+                    exception.add(e);
+                }
+                // Step 6: Cancel Transaction and close realm in background
+                realm.cancelTransaction();
+                realm.close();
+                bgFinishedLatch.countDown();
+            }
+        });
+        thread.start();
+
+        realmOpenedInBgLatch.await();
+        // Step 3: Close all realm instances in foreground thread.
+        testRealm.close();
+        realmClosedInFgLatch.countDown();
+        transBeganInBgLatch.await();
+
+        // Step 5: Get a new Realm instance in foreground
+        testRealm = Realm.getInstance(testConfig);
+        fgFinishedLatch.countDown();
+        bgFinishedLatch.await();
+
+        if (!exception.isEmpty()) {
+            throw exception.get(0);
+        }
+    }
+
     public void testIsEmpty() {
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "empty_test.realm");
         Realm.deleteRealm(realmConfig);
