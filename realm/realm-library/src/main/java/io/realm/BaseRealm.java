@@ -89,6 +89,7 @@ abstract class BaseRealm implements Closeable {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
+    private RealmSchema schema;
 
     protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
@@ -455,6 +456,16 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Check if this {@link io.realm.Realm} contains any objects.
+     *
+     * @return {@code true} if empty, @{code false} otherwise.
+     */
+    public boolean isEmpty() {
+        checkIfValid();
+        return sharedGroupManager.getTransaction().isObjectTablesEmpty();
+    }
+
+    /**
      * Returns the ThreadLocal reference counter for this Realm.
      */
     protected abstract Map<RealmConfiguration, Integer> getLocalReferenceCount();
@@ -683,9 +694,9 @@ abstract class BaseRealm implements Closeable {
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
      *
-     * @param configuration Configuration for Realm that shoul be migrated
-     * @param migration If set, this migration block will override what is set in {@link RealmConfiguration}
-     * @param callback Delegate callback
+     * @param configuration configuration for the Realm that should be migrated
+     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
+     * @param callback callback for specific Realm type behaviors.
      */
     protected static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration, MigrationCallback callback) {
         if (configuration == null) {

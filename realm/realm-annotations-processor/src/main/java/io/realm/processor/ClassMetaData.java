@@ -392,8 +392,8 @@ public class ClassMetaData {
     }
 
     /**
-     * Returns true if the RealmObject class is considered to be a valid RealmObject class.
-     * RealmObject and Proxy classes also has the the @RealmClass annotation but are not considered valid
+     * Returns true if the class is considered to be a valid RealmObject class.
+     * RealmObject and Proxy classes also have the @RealmClass annotation but are not considered valid
      * RealmObject classes.
      */
     public boolean isModelClass() {
