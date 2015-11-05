@@ -1146,7 +1146,7 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration the{@link RealmConfiguration}.
      * @param migration the {@link RealmMigration} to run on the Realm. This will override any migration set on the
-     *      configuration.
+     *                  configuration.
      */
     public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
