@@ -24,7 +24,7 @@ package io.realm;
  * To support migrations from any previous schemaVersion to the newest, the following pattern is
  * recommended when writing a migration:
  *
- * <pre>
+ * {@code
  * public class CustomMigration implements RealmMigration {
  *   \@Override
  *   public long migrate(DynamicRealm realm, long oldVersion, long newVersion) {
@@ -45,7 +45,7 @@ package io.realm;
  *     }
  *   }
  * }
- * </pre>
+ * }
  *
  * During development when RealmObject classes can change frequently, it is possible to use
  * {@link io.realm.Realm#deleteRealm(RealmConfiguration)}. This will delete the database
