@@ -867,7 +867,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Gets all objects of a specific class sorted by two specific field names.  If no objects exist, the returned
-     * {@link RealmResults} will not be null. The RealmResults.size() to check the number of objects instead.
+     * {@link RealmResults} will not be {@code null}. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the class ti get objects of.
      * @param fieldName1 first field name to sort by.
