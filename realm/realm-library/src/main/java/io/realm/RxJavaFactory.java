@@ -126,7 +126,7 @@ public class RxJavaFactory implements RxObservableFactory {
     }
 
     private void checkRxJavaAvailable() {
-        if (rxJavaAvailble) {
+        if (!rxJavaAvailble) {
             throw new IllegalStateException("RxJava seems to be missing from the classpath. " +
                     "Remember to add it as a compile dependency. See XXX for more details.");
         }

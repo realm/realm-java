@@ -30,9 +30,10 @@ allprojects {
     version = currentVersion
 
     repositories {
-        maven {
-            url "${System.env.ANDROID_HOME}/extras/android/m2repository"
-        }
+        mavenLocal()
+//        maven {
+//            url "${System.env.ANDROID_HOME}/extras/android/m2repository"
+//        }
         jcenter()
     }
 }
