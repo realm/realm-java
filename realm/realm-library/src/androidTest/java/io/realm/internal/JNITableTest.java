@@ -371,7 +371,7 @@ public class JNITableTest extends AndroidTestCase {
 
     public void testColumnName() {
         Table t = new Table();
-        try { t.addColumn(STRING, "I am 64 characters.............................................."); fail("Only 63 characters supported"); } catch (IllegalArgumentException e) { }
+        try { t.addColumn(STRING, "I am 64 characters.............................................."); fail("Only 63 characters supported"); } catch (IllegalArgumentException ignored) { }
         t.addColumn(STRING, "I am 63 characters.............................................");
     }
 
@@ -487,11 +487,9 @@ public class JNITableTest extends AndroidTestCase {
                         table.addEmptyRow();
                         if (columnType == BINARY) {
                             table.setBinaryByteArray(colIndex, 1, null);
-                        }
-                        else if (columnType == STRING) {
+                        } else if (columnType == STRING) {
                             table.setString(colIndex, 1, null);
-                        }
-                        else {
+                        } else {
                             table.getCheckedRow(1).setNull(colIndex);
                         }
 
@@ -513,11 +511,9 @@ public class JNITableTest extends AndroidTestCase {
                     table.addEmptyRow();
                     if (columnType == BINARY) {
                         table.setBinaryByteArray(colIndex, 0, null);
-                    }
-                    else if (columnType == STRING) {
+                    } else if (columnType == STRING) {
                         table.setString(colIndex, 0, null);
-                    }
-                    else {
+                    } else {
                         table.getCheckedRow(0).setNull(colIndex);
                     }
 
@@ -525,11 +521,9 @@ public class JNITableTest extends AndroidTestCase {
 
                     if (columnType == BINARY) {
                         assertNull(table.getBinaryByteArray(colIndex, 1));
-                    }
-                    else if (columnType == STRING) {
+                    } else if (columnType == STRING) {
                         assertNull(table.getString(colIndex, 1));
-                    }
-                    else {
+                    } else {
                         assertTrue(table.getUncheckedRow(1).isNull(colIndex));
                     }
                 }
@@ -576,11 +570,9 @@ public class JNITableTest extends AndroidTestCase {
                         table.addEmptyRow();
                         if (columnType == BINARY) {
                             table.setBinaryByteArray(colIndex, 1, null);
-                        }
-                        else if (columnType == STRING) {
+                        } else if (columnType == STRING) {
                             table.setString(colIndex, 1, null);
-                        }
-                        else {
+                        } else {
                             table.getCheckedRow(1).setNull(colIndex);
                         }
 
@@ -602,11 +594,9 @@ public class JNITableTest extends AndroidTestCase {
                     try {
                         if (columnType == BINARY) {
                             table.setBinaryByteArray(colIndex, 0, null);
-                        }
-                        else if (columnType == STRING) {
+                        } else if (columnType == STRING) {
                             table.setString(colIndex, 0, null);
-                        }
-                        else {
+                        } else {
                             table.getCheckedRow(0).setNull(colIndex);
                         }
                         if (!nullable) {
@@ -619,12 +609,10 @@ public class JNITableTest extends AndroidTestCase {
 
                     if (columnType == BINARY) {
                         assertNotNull(table.getBinaryByteArray(colIndex, 1));
-                    }
-                    else if (columnType == STRING) {
+                    } else if (columnType == STRING) {
                         assertNotNull(table.getString(colIndex, 1));
                         assertEquals("", table.getString(colIndex, 1));
-                    }
-                    else {
+                    } else {
                         assertFalse(table.getUncheckedRow(1).isNull(colIndex));
                         switch (columnType) {
                             case BOOLEAN:
