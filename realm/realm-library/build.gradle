@@ -19,7 +19,7 @@ android {
 }
 
 dependencies {
-    provided 'io.reactivex:rxjava:1.0.14'
+    provided 'io.reactivex:rxjava:1.0.15'
     compile 'com.intellij:annotations:+@jar'
     compile project(':realm-annotations')
 
