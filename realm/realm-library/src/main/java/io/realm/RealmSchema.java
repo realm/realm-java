@@ -49,8 +49,8 @@ public final class RealmSchema {
     /**
      * Returns the Realm schema for a given class.
      *
-     * @param className Name of the class
-     * @return Schema object for that class or {@code null} if the class doesn't exists.
+     * @param className name of the class
+     * @return schema object for that class or {@code null} if the class doesn't exists.
      *
      */
     public RealmObjectSchema get(String className) {
@@ -66,7 +66,7 @@ public final class RealmSchema {
     /**
      * Returns the {@link RealmObjectSchema} for all RealmObject classes that can be saved in this Realm.
      *
-     * @return The set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
+     * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
     public Set<RealmObjectSchema> getAll() {
         int tableCount = (int) transaction.size();
@@ -85,8 +85,8 @@ public final class RealmSchema {
     /**
      * Adds a new class to the Realm.
      *
-     * @param className Name of the class.
-     * @return A Realm schema object for that class.
+     * @param className name of the class.
+     * @return a Realm schema object for that class.
      */
     public RealmObjectSchema create(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
@@ -105,7 +105,7 @@ public final class RealmSchema {
      * Removes a class from the Realm. All data will be removed. Removing a class while other classes point
      * to it will throw an {@link IllegalStateException}. Remove those classes or fields first.
      *
-     * @param className Name of the class to remove.
+     * @param className name of the class to remove.
      */
     public void remove(String className) {
         checkEmpty(className, EMPTY_STRING_MSG);
@@ -117,9 +117,9 @@ public final class RealmSchema {
     /**
      * Renames a class already in the Realm.
      *
-     * @param oldClassName Old class name.
-     * @param newClassName New class name.
-     * @return A schema object for renamed class.
+     * @param oldClassName old class name.
+     * @param newClassName new class name.
+     * @return a schema object for renamed class.
      */
     public RealmObjectSchema rename(String oldClassName, String newClassName) {
         checkEmpty(oldClassName, "Class names cannot be empty or null");
@@ -137,7 +137,7 @@ public final class RealmSchema {
     /**
      * Checks if a given class already exists in the schema.
      *
-     * @param className Class name to check.
+     * @param className class name to check.
      * @return {@code true} if the class already exists. {@code false} otherwise.
      */
     public boolean contains(String className) {
