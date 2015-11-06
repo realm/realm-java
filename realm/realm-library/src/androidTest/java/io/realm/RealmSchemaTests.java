@@ -76,7 +76,7 @@ public class RealmSchemaTests extends AndroidTestCase {
         for (String name : names) {
             try {
                 realmSchema.create(name);
-            } catch (IllegalArgumentException expected) {
+            } catch (IllegalArgumentException ignored) {
             }
             assertFalse(String.format("'%s' failed", name), realmSchema.contains(name));
         }
@@ -102,13 +102,13 @@ public class RealmSchemaTests extends AndroidTestCase {
         try {
             realmSchema.rename(null, CLASS_ALL_JAVA_TYPES);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
 
         try {
             realmSchema.rename(CLASS_ALL_JAVA_TYPES, null);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -121,13 +121,13 @@ public class RealmSchemaTests extends AndroidTestCase {
         try {
             realmSchema.remove("Foo");
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
 
         try {
             realmSchema.remove(null);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

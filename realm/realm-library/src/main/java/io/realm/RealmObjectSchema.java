@@ -138,7 +138,14 @@ public final class RealmObjectSchema {
         checkNewFieldName(fieldName);
         boolean nullable = metadata.defaultNullable && !containsAttribute(attributes, FieldAttribute.REQUIRED);
         long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
-        addModifiers(columnIndex, attributes);
+
+        try {
+            addModifiers(fieldName, attributes);
+        } catch (Exception e) {
+            // Modifiers have been removed by the addModifiers method()
+            table.removeColumn(columnIndex);
+            throw e;
+        }
         return this;
     }
 
@@ -185,6 +192,9 @@ public final class RealmObjectSchema {
             throw new IllegalStateException(fieldName + " does not exist.");
         }
         long columnIndex = getColumnIndex(fieldName);
+        if (table.getPrimaryKey() == columnIndex) {
+            table.setPrimaryKey(null);
+        }
         table.removeColumn(columnIndex);
         return this;
     }
@@ -218,10 +228,10 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Adds a index to a given field. This is the equivalent of adding the {@link io.realm.annotations.Index} annotation
+     * Adds an index to a given field. This is the equivalent of adding the {@link io.realm.annotations.Index} annotation
      * on the field.
      *
-     * @param fieldName field to add name to rename.
+     * @param fieldName field to add index to.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be indexed or it already has a
      * index defined.
@@ -273,7 +283,7 @@ public final class RealmObjectSchema {
      * Adds a primary key to a given field. This is the same as adding the {@link io.realm.annotations.PrimaryKey}
      * annotation on the field.
      *
-     * @param fieldName field to add name to rename.
+     * @param fieldName field to set as primary key.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be a primary key or it already
      * has a primary key defined.
@@ -310,7 +320,8 @@ public final class RealmObjectSchema {
      * @param fieldName name of field in the class.
      * @param required  {@code true} if field should be required, {@code false} otherwise.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or the field already has the given required flag.
+     * @throws IllegalArgumentException if the field name doesn't exists, cannot have the {@link Required} annotation or
+     *                                  the field already have been set as required.
      * @see Required
      */
     public RealmObjectSchema setRequired(String fieldName, boolean required) {
@@ -346,7 +357,7 @@ public final class RealmObjectSchema {
      * @param fieldName name of field in the class.
      * @param nullable  {@code true} if field should be nullable, {@code false} otherwise.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or the field already has the given nullable flag.
+     * @throws IllegalArgumentException if the field name doesn't exists, or cannot be set as nullable.
      */
     public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
         setRequired(fieldName, !nullable);
@@ -420,17 +431,37 @@ public final class RealmObjectSchema {
         return this;
     }
 
-    // Invariant: Field was just added
-    private void addModifiers(long columnIndex, FieldAttribute[] attributes) {
-        if (attributes != null && attributes.length > 0) {
-            if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
-                table.addSearchIndex(columnIndex);
+    // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.
+    private void addModifiers(String fieldName, FieldAttribute[] attributes) {
+        boolean indexAdded = false;
+        boolean primaryKeyAdded = false;
+        try {
+            if (attributes != null && attributes.length > 0) {
+                if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
+                    addIndex(fieldName);
+                    indexAdded = true;
+                }
+
+                if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+                    addIndex(fieldName);
+                    indexAdded = true;
+                    addPrimaryKey(fieldName);
+                    primaryKeyAdded = true;
+                }
+
+                // REQUIRED is being handled when adding the column using addField through the nullable parameter.
+            }
+        } catch (Exception e) {
+            // If something went wrong, revert all attributes
+            long columnIndex = getColumnIndex(fieldName);
+            if (indexAdded) {
+                table.removeSearchIndex(columnIndex);
+            }
+            if (primaryKeyAdded) {
+                table.setPrimaryKey(null);
             }
 
-            if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
-                table.setPrimaryKey(columnIndex);
-                table.addSearchIndex(columnIndex);
-            }
+            throw e;
         }
     }
 

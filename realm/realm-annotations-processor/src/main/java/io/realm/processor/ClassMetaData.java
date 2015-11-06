@@ -74,7 +74,8 @@ public class ClassMetaData {
                 stringType,
                 typeUtils.getPrimitiveType(TypeKind.SHORT),
                 typeUtils.getPrimitiveType(TypeKind.INT),
-                typeUtils.getPrimitiveType(TypeKind.LONG)
+                typeUtils.getPrimitiveType(TypeKind.LONG),
+                typeUtils.getPrimitiveType(TypeKind.BYTE)
         );
     }
 
