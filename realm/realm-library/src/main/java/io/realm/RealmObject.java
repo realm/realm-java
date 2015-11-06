@@ -26,7 +26,6 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
-import io.realm.rx.RxObservableFactory;
 import rx.Observable;
 
 /**
@@ -272,15 +271,16 @@ public abstract class RealmObject<E extends RealmObject> {
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this object. It will output the last known object when
+     * Returns an Rx Observable that monitors changes to this RealmObject. It will output the object when
      * subscribed to.
      *
      * @return RxJava Observable
-     * @throws UnsupportedOperationException if RxJava is not present. See XXX for more details.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="">RxJava and Realm</a>
      */
+    @SuppressWarnings("unchecked")
     public Observable<E> observable() {
-        //noinspection unchecked
-        return RxObservableFactory.from((E) this);
+        return realm.configuration.getRxFactory().from((E) this);
     }
 
     /**

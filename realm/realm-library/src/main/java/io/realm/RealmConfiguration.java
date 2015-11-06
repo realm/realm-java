@@ -77,6 +77,7 @@ public class RealmConfiguration {
     private final boolean deleteRealmIfMigrationNeeded;
     private final SharedGroup.Durability durability;
     private final RealmProxyMediator schemaMediator;
+    private final RxJavaFactory rxObservableFactory;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
@@ -88,6 +89,7 @@ public class RealmConfiguration {
         this.migration = builder.migration;
         this.durability = builder.durability;
         this.schemaMediator = createSchemaMediator(builder);
+        this.rxObservableFactory = new RxJavaFactory();
     }
 
     public File getRealmFolder() {
@@ -124,6 +126,10 @@ public class RealmConfiguration {
 
     public String getPath() {
         return canonicalPath;
+    }
+
+    RxObservableFactory getRxFactory() {
+        return rxObservableFactory;
     }
 
     @Override

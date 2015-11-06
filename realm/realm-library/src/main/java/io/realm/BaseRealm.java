@@ -44,13 +44,14 @@ import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * Base class for all Realm instances.
  *
  * @see io.realm.Realm
  */
-abstract class BaseRealm implements Closeable {
+abstract class BaseRealm<E extends BaseRealm> implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -177,6 +178,19 @@ abstract class BaseRealm implements Closeable {
         if (weakRefToRemove != null) {
             changeListeners.remove(weakRefToRemove);
         }
+    }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this realm. It will output the last state when
+     * subscribed to.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="">RxJava and Realm</a>
+     */
+    @SuppressWarnings("unchecked")
+    public Observable<E> observable() {
+        return (Observable<E>) configuration.getRxFactory().from(this);
     }
 
     void setHandler (Handler handler) {

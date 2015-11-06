@@ -34,7 +34,6 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.log.RealmLog;
-import io.realm.rx.RxObservableFactory;
 import rx.Observable;
 
 /**
@@ -811,15 +810,15 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns an RxJava Observable that monitors changes to this object. It will output the last known object when
+     * Returns an Rx Observable that monitors changes to this RealmResults. It will output the last results when
      * subscribed to.
      *
      * @return RxJava Observable
-     * @throws UnsupportedOperationException if RxJava is not present. See XXX for more details.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="">RxJava and Realm</a>
      */
     public Observable<RealmResults<E>> observable() {
-        //noinspection unchecked
-        return RxObservableFactory.from(this);
+        return realm.configuration.getRxFactory().from(this);
     }
 
     /**
