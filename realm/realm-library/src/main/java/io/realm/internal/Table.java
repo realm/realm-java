@@ -719,12 +719,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeGetDateTime(long nativeTablePtr, long columnIndex, long rowIndex);
 
     /**
-     * Get the value of a (string )cell.
+     * Gets the value of a (string )cell.
      *
-     * @param columnIndex
-     *            0 based index value of the column
-     * @param rowIndex
-     *            0 based index of the row.
+     * @param columnIndex 0 based index value of the column
+     * @param rowIndex 0 based index of the row.
      * @return value of the particular cell
      */
     @Override
@@ -1033,7 +1031,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * @param columnName the name of the field that will function primary key. "" or {@code null} will remove any
      *                   previous set magic key.
      * @throws {@link io.realm.exceptions.RealmException} if it is not possible to set the primary key due to the column
-     *      not having distinct values (i.e. violating the primary key constraint).
+     * not having distinct values (i.e. violating the primary key constraint).
      */
     public void setPrimaryKey(String columnName) {
         Table pkTable = getPrimaryKeyTable();

@@ -184,7 +184,7 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName Name of field.
      * @return the {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is
-     *      linked.
+     * linked.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain links to other objects.
      */
     public DynamicRealmObject getObject(String fieldName) {
@@ -241,6 +241,7 @@ public class DynamicRealmObject extends RealmObject {
 
     /**
      * Checks whether an object has the given field or not.
+     *
      * @param fieldName the field name to check.
      * @return {@code true} if the object has a field with the given name, {@code false} otherwise.
      */
@@ -390,7 +391,7 @@ public class DynamicRealmObject extends RealmObject {
      * @param fieldName the field name.
      * @param value the object to link to.
      * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, or the
-     *      type of DynamicRealmObject doesn't match.
+     * type of DynamicRealmObject doesn't match.
      */
     public void setObject(String fieldName, DynamicRealmObject value) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -418,8 +419,8 @@ public class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName the field name.
      * @param list the list of references.
-     * @throws IllegalArgumentException if field name doesn't exists, it doesn't contain a list of links or the type
-     *      of the object represented by the DynamicRealmObject doesn't match.
+     * @throws IllegalArgumentException if field name doesn't exists, it doesn't contain a list of links or the type of
+     * the object represented by the DynamicRealmObject doesn't match.
      */
     public void setList(String fieldName, DynamicRealmList list) {
         long columnIndex = row.getColumnIndex(fieldName);

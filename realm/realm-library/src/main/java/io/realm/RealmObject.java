@@ -110,7 +110,7 @@ public abstract class RealmObject {
     }
 
     /**
-     * Check if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
+     * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
      * {@link io.realm.Realm} been closed. It will always return false for stand alone objects.
      *
      * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a standalone object.
@@ -160,7 +160,7 @@ public abstract class RealmObject {
      * This will return {@code true} if called for a standalone object (created outside of Realm).
      *
      * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
-     *      progress.
+     * progress.
      */
     public final boolean isLoaded() {
         if (realm == null) {

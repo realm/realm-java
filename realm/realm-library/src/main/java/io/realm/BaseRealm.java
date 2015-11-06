@@ -288,7 +288,7 @@ abstract class BaseRealm implements Closeable {
     /**
      * Starts a transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or aborted by
      * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
-     * within a realm.
+     * within a Realm.
      * <br>
      * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the realm in the case of
      * pending updates from other threads.
@@ -303,7 +303,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the Realm reverts back to
-     * being read-only. An event is sent to notify all other realm instances that a change has occurred. When the event
+     * being read-only. An event is sent to notify all other Realm instances that a change has occurred. When the event
      * is received, the other Realms will get their objects and {@link io.realm.RealmResults} updated to reflect the
      * changes from this commit.
      */

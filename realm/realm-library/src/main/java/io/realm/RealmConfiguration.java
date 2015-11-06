@@ -224,7 +224,6 @@ public class RealmConfiguration {
          * The Realm file will be saved in the provided folder.
          *
          * @param folder Folder to save Realm file in. Folder must be writable.
-         *
          * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
          */
         public Builder(File folder) {

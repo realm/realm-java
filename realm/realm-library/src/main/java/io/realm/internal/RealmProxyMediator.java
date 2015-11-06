@@ -58,7 +58,7 @@ public abstract class RealmProxyMediator {
     public abstract ColumnInfo validateTable(Class<? extends RealmObject> clazz, ImplicitTransaction transaction);
 
     /**
-     * Returns a map of non-obfuscated object field names to their internal realm name.
+     * Returns a map of non-obfuscated object field names to their internal Realm name.
      *
      * @param clazz the {@link RealmObject} model class reference.
      * @return The simple name of an model class (before it has been obfuscated).
@@ -71,7 +71,6 @@ public abstract class RealmProxyMediator {
      *
      * @param clazz the {@link RealmObject} model class reference.
      * @return the simple name of an model class (before it has been obfuscated).
-     *
      * @throws java.lang.NullPointerException if null is given as argument.
      */
     public abstract String getTableName(Class<? extends RealmObject> clazz);
@@ -98,7 +97,7 @@ public abstract class RealmProxyMediator {
      *
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,
-     *                           {@code false} otherwise.
+     * {@code false} otherwise.
      * @param cache the cache for mapping between standalone objects and their {@link RealmProxy} representation.
      * @return the managed Realm object.
      */

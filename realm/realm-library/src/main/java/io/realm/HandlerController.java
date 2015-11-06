@@ -326,7 +326,7 @@ public class HandlerController implements Handler.Callback {
      * this thread.
      *
      * @return {@code true} if there is at least one (non GC'd) instance of {@link RealmResults} {@code false}
-     *      otherwise.
+     * otherwise.
      */
     private boolean threadContainsAsyncQueries () {
         deleteWeakReferences();

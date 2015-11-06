@@ -616,7 +616,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName the field to compare.
      * @param value the value to compare with.
      * @return the query object.
-     * @throws java.lang.IllegalArgumentException One or more arguments do not match class or field type.
+     * @throws java.lang.IllegalArgumentException if one or more arguments do not match class or field type.
      */
     public RealmQuery<E> greaterThan(String fieldName, int value) {
         long[] columnIndices = getColumnIndices(fieldName, ColumnType.INTEGER);
@@ -1106,7 +1106,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName the field to compare.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field name isn't valid or its type isn't either a RealmList,
-     *                                            String or byte array.
+     * String or byte array.
      */
     public RealmQuery<E> isEmpty(String fieldName) {
         long columnIndices[] = getColumnIndices(fieldName, ColumnType.STRING, ColumnType.BINARY, ColumnType.LINK_LIST);
@@ -1123,7 +1123,7 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName the field to sum. Only number fields are supported.
      * @return the sum if no objects exist or they all have {@code null} as the value for the given field, {@code 0}
-     *      will be returned. When computing the sum, objects with {@code null} values are ignored.
+     * will be returned. When computing the sum, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number sum(String fieldName) {
@@ -1186,8 +1186,8 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName the field to calculate average on. Only number fields are supported.
      * @return the average for the given field amongst objects in query results. This will be of type double for all
-     *      types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
-     *      {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
+     * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
+     * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public double average(String fieldName) {
@@ -1250,8 +1250,8 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName the field to look for a minimum on. Only number fields are supported.
      * @return if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
-     *      returned. Otherwise the minimum value is returned. When determining the minimum value, objects with
-     *      {@code null} values are ignored.
+     * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
+     * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number min(String fieldName) {
@@ -1276,7 +1276,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return the minimum value.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     *      given field.
+     * given field.
      * @deprecated please use {@link #min(String)} instead.
      */
     public long minimumInt(String fieldName) {
@@ -1291,7 +1291,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return the minimum value.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     *      given field.
+     * given field.
      * @deprecated please use {@link #min(String)} instead.
      */
     public double minimumDouble(String fieldName) {
@@ -1306,7 +1306,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return the minimum value.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     *      given field.
+     * given field.
      * @deprecated please use {@link #min(String)} instead.
      */
     public float minimumFloat(String fieldName) {
@@ -1319,8 +1319,8 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName the field name
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
-     *      will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
-     *      {@code null} values are ignored.
+     * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
+     * {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public Date minimumDate(String fieldName) {
@@ -1335,8 +1335,8 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName the field to look for a maximum on. Only number fields are supported.
      * @return  if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
-     *      returned. Otherwise the maximum value is returned. When determining the maximum value, objects with
-     *      {@code null} values are ignored.
+     * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
+     * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number max(String fieldName) {
@@ -1361,7 +1361,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return the maximum value.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     *      given field.
+     * given field.
      * @deprecated please use {@link #max(String)} instead.
      */
     public long maximumInt(String fieldName) {
@@ -1376,7 +1376,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return the maximum value.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     *      given field.
+     * given field.
      * @deprecated please use {@link #max(String)} instead.
      */
     public double maximumDouble(String fieldName) {
@@ -1391,7 +1391,7 @@ public class RealmQuery<E extends RealmObject> {
      * @return the maximum value.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     *      given field.
+     * given field.
      * @deprecated please use {@link #max(String)} instead.
      */
     public float maximumFloat(String fieldName) {
@@ -1404,8 +1404,8 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName the field name.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
-     *      will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
-     *      {@code null} values are ignored.
+     * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
+     * {@code null} values are ignored.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public Date maximumDate(String fieldName) {
@@ -1493,7 +1493,7 @@ public class RealmQuery<E extends RealmObject> {
      * Finds all objects that fulfill the query conditions.
      *
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     *      objects is returned.
+     * objects is returned.
      * @see io.realm.RealmResults
      */
     public RealmResults<E> findAll() {
@@ -1506,8 +1506,7 @@ public class RealmQuery<E extends RealmObject> {
      * This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *      {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query
-     *      completes.
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllAsync() {
@@ -1585,7 +1584,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortAscending sort ascending if <code>SORT_ORDER_ASCENDING</code>, sort descending
      *                      if <code>SORT_ORDER_DESCENDING</code>
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     *      objects is returned.
+     * objects is returned.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName, boolean sortAscending) {
@@ -1602,11 +1601,10 @@ public class RealmQuery<E extends RealmObject> {
 
     /**
      * Similar to {@link #findAllSorted(String, boolean)} but runs asynchronously on a worker thread (Need a Realm
-     *      opened from a looper thread to work).
+     * opened from a looper thread to work).
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *      {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query
-     *      completes.
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName, boolean sortAscending) {
@@ -1684,7 +1682,7 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @param fieldName the field name to sort by.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     *      objects is returned.
+     * objects is returned.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName) {
@@ -1696,8 +1694,7 @@ public class RealmQuery<E extends RealmObject> {
      * This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *      {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query
-     *      completes.
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @throws java.lang.IllegalArgumentException if field name does not exist.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName) {
@@ -1714,7 +1711,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortAscending sort ascending if <code>SORT_ORDER_ASCENDING</code>, sort descending if
      *                      <code>SORT_ORDER_DESCENDING</code>.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     *      objects is returned.
+     * objects is returned.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldNames[], boolean sortAscending[]) {
@@ -1747,8 +1744,7 @@ public class RealmQuery<E extends RealmObject> {
      * This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *      {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query
-     *      completes.
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final boolean[] sortAscending) {
@@ -1842,7 +1838,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName2 second field name
      * @param sortAscending2 sort order for second field
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     *      objects is returned.
+     * objects is returned.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
@@ -1855,8 +1851,7 @@ public class RealmQuery<E extends RealmObject> {
      * This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *      {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query
-     *      completes.
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName1, boolean sortAscending1,
@@ -1878,7 +1873,7 @@ public class RealmQuery<E extends RealmObject> {
      * @param fieldName3 third field name
      * @param sortAscending3 sort order for third field
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
-     *      objects is returned.
+     * objects is returned.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public RealmResults<E> findAllSorted(String fieldName1, boolean sortAscending1,
@@ -1894,8 +1889,7 @@ public class RealmQuery<E extends RealmObject> {
      * This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     *      {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query
-     *      completes.
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public RealmResults<E> findAllSortedAsync(String fieldName1, boolean sortAscending1,
@@ -1926,7 +1920,7 @@ public class RealmQuery<E extends RealmObject> {
      * This method is only available from a Looper thread.
      *
      * @return immediately an empty {@link RealmObject}. Users need to register a listener
-     *      {@link io.realm.RealmObject#addChangeListener} to be notified when the query completes.
+     * {@link io.realm.RealmObject#addChangeListener} to be notified when the query completes.
      */
     public E findFirstAsync() {
         checkQueryIsNotReused();
@@ -2034,7 +2028,7 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * exports & handovers the query to be used by a worker thread.
+     * Exports & handovers the query to be used by a worker thread.
      *
      * @return the exported handover pointer for this RealmQuery.
      */

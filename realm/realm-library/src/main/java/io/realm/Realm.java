@@ -170,8 +170,8 @@ public final class Realm extends BaseRealm {
      * @param context a non-null Android {@link android.content.Context}
      * @return an instance of the Realm class.
      * @throws java.lang.IllegalArgumentException if no {@link Context} is provided.
-     * @throws RealmMigrationNeededException if the model classes no longer match the underlying Realm
-     *      and it must be migrated.
+     * @throws RealmMigrationNeededException if the model classes no longer match the underlying Realm and it must be
+     * migrated.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getInstance(Context context) {
@@ -187,7 +187,7 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class.
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
-     *      model classes or version has has changed so a migration is required.
+     * model classes or version has has changed so a migration is required.
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
@@ -202,7 +202,7 @@ public final class Realm extends BaseRealm {
      * @param configuration {@link RealmConfiguration} used to open the Realm
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the model
-     *      classes or version has has changed so a migration is required.
+     * classes or version has has changed so a migration is required.
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
@@ -375,7 +375,7 @@ public final class Realm extends BaseRealm {
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json array with object data.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     *      {@link io.realm.annotations.PrimaryKey}.
+     * {@link io.realm.annotations.PrimaryKey}.
      * @see #createAllFromJson(Class, org.json.JSONArray)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
@@ -423,7 +423,7 @@ public final class Realm extends BaseRealm {
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with an array of JSON objects.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     *      {@link io.realm.annotations.PrimaryKey}.
+     * {@link io.realm.annotations.PrimaryKey}.
      * @see #createAllFromJson(Class, String)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
@@ -477,7 +477,7 @@ public final class Realm extends BaseRealm {
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the InputStream with a list of object data in JSON format.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     *      {@link io.realm.annotations.PrimaryKey}.
+     * {@link io.realm.annotations.PrimaryKey}.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -536,7 +536,7 @@ public final class Realm extends BaseRealm {
      * @param json {@link org.json.JSONObject} with object data.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     *      {@link io.realm.annotations.PrimaryKey}.
+     * {@link io.realm.annotations.PrimaryKey}.
      * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
@@ -584,7 +584,7 @@ public final class Realm extends BaseRealm {
      * @param json string with object data in JSON format.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     *      {@link io.realm.annotations.PrimaryKey}.
+     * {@link io.realm.annotations.PrimaryKey}.
      * @see #createObjectFromJson(Class, String)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
@@ -636,7 +636,7 @@ public final class Realm extends BaseRealm {
      * @param in the {@link InputStream} with object data in JSON format.
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
-     *      {@link io.realm.annotations.PrimaryKey}.
+     * {@link io.realm.annotations.PrimaryKey}.
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -732,7 +732,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Updates an existing RealmObject that is identified by the same {@link io.realm.annotations.PrimaryKey} or create
+     * Updates an existing RealmObject that is identified by the same {@link io.realm.annotations.PrimaryKey} or creates
      * a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects will be
      * either copied or updated.
      *
@@ -772,7 +772,7 @@ public final class Realm extends BaseRealm {
 
     /**
      * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or
-     * create a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects
+     * creates a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects
      * will be either copied or updated.
      *
      * @param objects a list of objects to update or copy into Realm.
@@ -983,7 +983,7 @@ public final class Realm extends BaseRealm {
      * Returns change listeners.
      * For internal testing purpose only.
      *
-     * @return changeListeners list of this realm instance.
+     * @return changeListeners list of this Realm instance.
      */
     protected List<WeakReference<RealmChangeListener>> getChangeListeners() {
         return changeListeners;
@@ -1133,8 +1133,9 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the
-     * latest version, nothing will happen.
+     * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the latest
+     * version, nothing will happen.
+     *
      * @param configuration {@link RealmConfiguration}
      */
     public static void migrateRealm(RealmConfiguration configuration) {
@@ -1164,7 +1165,7 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Delete the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
+     * Deletes the Realm file specified by the given {@link RealmConfiguration} from the filesystem.
      * The Realm must be unused and closed before calling this method.
      *
      * @param configuration a {@link RealmConfiguration}.

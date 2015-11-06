@@ -158,7 +158,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * </ol>
      *
      * @param object the object to add.
-     * @return true
+     * @return always true
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      */
     @Override
