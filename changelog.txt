@@ -2,6 +2,7 @@
  * Added Realm.isEmpty().
  * Fixed a bug making it impossible to convert a field to become required during a migration (#1695).
  * Fixed a bug making it impossible to read Realms created using primary keys and created by iOS (#1703).
+ * RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
 
 0.84.1
  * Updated Realm Core to 0.94.4

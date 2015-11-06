@@ -1461,7 +1461,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNull(
         } else {
             switch (col_type) {
                 case type_Link:
-                    pQuery->and_query(src_table_ref->column<Link>(S(column_idx)).is_null());
+                    ThrowException(env, IllegalArgument, "isNull() by nested query for link field is not supported.");
                     break;
                 case type_LinkList:
                     // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
@@ -1604,7 +1604,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNotNull
         else {
             switch (col_type) {
                 case type_Link:
-                    pQuery->and_query(src_table_ref->column<Link>(S(column_idx)).is_not_null());
+                    ThrowException(env, IllegalArgument, "isNotNull() by nested query for link field is not supported.");
                     break;
                 case type_LinkList:
                     // Cannot get here. Exception will be thrown in TBL_AND_COL_NULLABLE
