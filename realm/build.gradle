@@ -26,6 +26,9 @@ allprojects {
     version = file("${rootDir}/../version.txt").text.trim();
     repositories {
         jcenter()
+        maven {
+            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
     }
 }
 
