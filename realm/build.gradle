@@ -15,6 +15,10 @@ buildscript {
     }
 }
 
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 allprojects {
     def props = new Properties()
     props.load(new FileInputStream("${rootDir}/../realm.properties"))

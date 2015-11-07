@@ -40,7 +40,7 @@ dependencies {
     androidTestCompile 'com.android.support.test:runner:0.4.1'
     androidTestCompile 'com.android.support.test:rules:0.4.1'
     androidTestCompile 'junit:junit:4.12'
-    androidTestCompile 'dk.ilios:spanner:0.2.0-SNAPSHOT'
+    androidTestCompile 'dk.ilios:spanner:0.2.1-SNAPSHOT'
 }
 
 task sourcesJar(type: Jar) {
