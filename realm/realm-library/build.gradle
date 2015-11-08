@@ -15,6 +15,17 @@ android {
         minSdkVersion 9
         targetSdkVersion 23
         project.archivesBaseName = "realm-android"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    sourceSets {
+        androidTest {
+            java.srcDirs = ['src/benchmarks/java', 'src/androidTest/java']
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
     }
 }
 
@@ -24,6 +35,12 @@ dependencies {
 
     androidTestApt project(':realm-annotations-processor')
     androidTestApt project(':realm-annotations')
+
+    androidTestCompile 'com.android.support:support-annotations:23.0.1'
+    androidTestCompile 'com.android.support.test:runner:0.4.1'
+    androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'dk.ilios:spanner:0.3.0-SNAPSHOT'
 }
 
 task sourcesJar(type: Jar) {

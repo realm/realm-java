@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="io.realm" >
+          xmlns:tools="http://schemas.android.com/tools"
+          package="io.realm" >
+    <uses-sdk tools:overrideLibrary="dk.ilios.spanner" />
     <application android:allowBackup="true"/>
 </manifest>
