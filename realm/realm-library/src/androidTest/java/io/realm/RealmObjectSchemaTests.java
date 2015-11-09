@@ -20,10 +20,8 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
-import java.util.Objects;
 import java.util.Set;
 
-import io.realm.annotations.PrimaryKey;
 import io.realm.entities.AllJavaTypes;
 
 public class RealmObjectSchemaTests extends AndroidTestCase {
@@ -126,7 +124,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    // TODO These should also be allowed? BOOLEAN, BYTE, DATE
+    // TODO These should also be allowed? BOOLEAN, DATE
     public enum PrimaryKeyFieldType {
         STRING(String.class),
         SHORT(Short.class), PRIMITIVE_SHORT(short.class),
@@ -498,15 +496,24 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     }
 
     public void testRemoveField() {
-        String fieldName = AllJavaTypes.FIELD_STRING;
+        String fieldName = "foo";
         schema.addField(fieldName, String.class);
         assertTrue(schema.hasField(fieldName));
         schema.removeField(fieldName);
         assertFalse(schema.hasField(fieldName));
     }
 
+    public void testRemoveFieldWithPrimaryKey() {
+        String fieldName = "foo";
+        schema.addField(fieldName, String.class, FieldAttribute.PRIMARY_KEY);
+        assertTrue(schema.hasField(fieldName));
+        assertTrue(schema.hasPrimaryKey());
+        schema.removeField(fieldName);
+        assertFalse(schema.hasPrimaryKey());
+    }
+
     public void testRemoveNonExistingFieldThrows() {
-        String fieldName = AllJavaTypes.FIELD_STRING;
+        String fieldName = "foo";
         try {
             schema.removeField(fieldName);
             fail();

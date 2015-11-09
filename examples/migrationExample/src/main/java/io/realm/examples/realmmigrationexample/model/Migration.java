@@ -31,8 +31,8 @@ public class Migration implements RealmMigration {
     @Override
     public void migrate(final DynamicRealm realm, long oldVersion, long newVersion) {
         // During a migration, a DynamicRealm is exposed. A DynamicRealm is an untyped variant of a normal Realm, but
-        // otherwise have the same object creation and query capabilities.
-        // A DynamicRealm uses Strings instead of Class references which is needed as the Classes might not even
+        // otherwise has the same object creation and query capabilities.
+        // A DynamicRealm uses Strings instead of Class references which are needed as the Classes might not even
         // exist or have been renamed.
 
         // Access the Realm schema in order to create, modify or delete classes and their fields.
