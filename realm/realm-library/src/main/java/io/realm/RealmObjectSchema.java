@@ -403,7 +403,7 @@ public final class RealmObjectSchema {
     /**
      * Return all fields in this class.
      *
-     * @return A list of all the fields in this class.
+     * @return a list of all the fields in this class.
      */
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
@@ -418,7 +418,7 @@ public final class RealmObjectSchema {
      * Runs a transformation on each RealmObject instance of the current class. The object will be represented as a
      * {@link DynamicRealmObject}.
      *
-     * @return This schema.
+     * @return this schema.
      */
     public RealmObjectSchema forEach(Transformer transformer) {
         if (transformer != null) {
