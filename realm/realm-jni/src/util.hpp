@@ -433,7 +433,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
     }
 
     TR_ERR("Expected nullable column type")
-    ThrowException(env, IllegalArgument, "This filed is not nullable.");
+    ThrowException(env, IllegalArgument, "This field is not nullable.");
     return false;
 }
 
