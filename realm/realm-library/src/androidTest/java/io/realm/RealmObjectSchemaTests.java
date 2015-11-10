@@ -282,13 +282,10 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     public void testInvalidIndexedFieldAttributeThrows() {
         for (InvalidIndexFieldType fieldType : InvalidIndexFieldType.values()) {
             String fieldName = "foo";
-            switch (fieldType) {
-                default:
-                    try {
-                        schema.addField(fieldName, fieldType.getType(), FieldAttribute.INDEXED);
-                        fail(fieldType + " should not be allowed to be indexed");
-                    } catch (IllegalArgumentException ignored) {
-                    }
+            try {
+                schema.addField(fieldName, fieldType.getType(), FieldAttribute.INDEXED);
+                fail(fieldType + " should not be allowed to be indexed");
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
@@ -296,11 +293,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     public void testPrimaryKeyFieldAttribute() {
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String fieldName = "foo";
-            switch (fieldType) {
-                default:
-                    schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
-                    assertTrue(schema.hasPrimaryKey());
-            }
+            schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
+            assertTrue(schema.hasPrimaryKey());
             schema.removeField(fieldName);
         }
     }
@@ -308,13 +302,10 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     public void testInvalidPrimaryKeyFieldAttributeThrows() {
         for (InvalidPrimaryKeyFieldType fieldType : InvalidPrimaryKeyFieldType.values()) {
             String fieldName = "foo";
-            switch (fieldType) {
-                default:
-                    try {
-                        schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
-                        fail(fieldType + " should not be allowed to be a primary key");
-                    } catch (IllegalArgumentException ignored) {
-                    }
+            try {
+                schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
+                fail(fieldType + " should not be allowed to be a primary key");
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
