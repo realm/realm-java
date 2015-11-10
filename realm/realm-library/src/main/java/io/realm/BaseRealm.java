@@ -51,7 +51,7 @@ import io.realm.internal.log.RealmLog;
  *
  * @see io.realm.Realm
  */
-abstract class BaseRealm implements Closeable {
+class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -236,8 +236,7 @@ abstract class BaseRealm implements Closeable {
      * Checks if any open Realm instances are still referencing this file.
      */
     protected static boolean isFileOpen(RealmConfiguration configuration) {
-        Integer refCount = globalRealmFileReferenceCounter.get(configuration.getPath());
-        return refCount != null && refCount > 0;
+        return RealmCache.getGlobalRefCount(configuration) != 0;
     }
 
     /**
@@ -413,26 +412,20 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
         }
 
-        Map<RealmConfiguration, Integer> localRefCount = getLocalReferenceCount();
-        String canonicalPath = configuration.getPath();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
+        if (RealmCache.release(this) == 0) {
+            doClose();
         }
-        if (sharedGroupManager != null && references == 1) {
-            lastLocalInstanceClosed();
+    }
+
+    /**
+     * Closes the Realm instances and all its resources without checking the {@link RealmCache}.
+     */
+    protected void doClose() {
+        if (sharedGroupManager != null) {
             sharedGroupManager.close();
             sharedGroupManager = null;
-            releaseFileReference(configuration);
         }
-
-        int refCount = references - 1;
-        if (refCount < 0) {
-            RealmLog.w("Calling close() on a Realm that is already closed: " + canonicalPath);
-        }
-        localRefCount.put(configuration, Math.max(0, refCount));
-
-        if (handler != null && refCount <= 0) {
+        if (handler != null) {
             removeHandler();
         }
     }
@@ -458,46 +451,6 @@ abstract class BaseRealm implements Closeable {
     public boolean isEmpty() {
         checkIfValid();
         return sharedGroupManager.getTransaction().isObjectTablesEmpty();
-    }
-
-    /**
-     * Returns the ThreadLocal reference counter for this Realm.
-     */
-    protected abstract Map<RealmConfiguration, Integer> getLocalReferenceCount();
-
-    /**
-     * Callback when the last ThreadLocal instance of this Realm type has been closed.
-     */
-    protected abstract void lastLocalInstanceClosed();
-
-    /**
-     * Acquires a reference to the given Realm file.
-     */
-    static synchronized void acquireFileReference(RealmConfiguration configuration) {
-        String path = configuration.getPath();
-        Integer refCount = globalRealmFileReferenceCounter.get(path);
-        if (refCount == null) {
-            refCount = 0;
-        }
-        globalRealmFileReferenceCounter.put(path, refCount + 1);
-    }
-
-    /**
-     * Releases a reference to the Realm file. If reference count reaches 0 any cached configurations will be removed.
-     */
-    static synchronized void releaseFileReference(RealmConfiguration configuration) {
-        String canonicalPath = configuration.getPath();
-        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-        pathConfigurationCache.remove(configuration);
-        if (pathConfigurationCache.isEmpty()) {
-            globalPathConfigurationCache.remove(canonicalPath);
-        }
-
-        Integer refCount = globalRealmFileReferenceCounter.get(canonicalPath);
-        if (refCount == null || refCount == 0) {
-            throw new IllegalStateException("Trying to release a Realm file that is already closed");
-        }
-        globalRealmFileReferenceCounter.put(canonicalPath, refCount - 1);
     }
 
     boolean hasChanged() {
@@ -555,52 +508,6 @@ abstract class BaseRealm implements Closeable {
         return schema;
     }
 
-    /**
-     * Make sure that the new configuration doesn't clash with any existing configurations for the
-     * Realm.
-     *
-     * @throws IllegalArgumentException if the new configuration isn't valid.
-     */
-    protected static synchronized void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
-
-        String realmPath = newConfiguration.getPath();
-        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
-
-        if (pathConfigurationCache != null && pathConfigurationCache.size() > 0) {
-
-            // For the current restrictions, it is enough to just check one of the existing configurations.
-            RealmConfiguration cachedConfiguration = pathConfigurationCache.get(0);
-
-            // Check that encryption keys aren't different
-            if (!Arrays.equals(cachedConfiguration.getEncryptionKey(), newConfiguration.getEncryptionKey())) {
-                throw new IllegalArgumentException(DIFFERENT_KEY_MESSAGE);
-            }
-
-            // Check schema versions are the same
-            if (cachedConfiguration.getSchemaVersion() != newConfiguration.getSchemaVersion()) {
-                throw new IllegalArgumentException(String.format("Configurations cannot have different schema versions " +
-                                "if used to open the same file. %d vs. %d", cachedConfiguration.getSchemaVersion(),
-                        newConfiguration.getSchemaVersion()));
-            }
-
-            // Check that schema is the same
-            RealmProxyMediator cachedSchema = cachedConfiguration.getSchemaMediator();
-            RealmProxyMediator schema = newConfiguration.getSchemaMediator();
-            if (!cachedSchema.equals(schema)) {
-                throw new IllegalArgumentException("Two configurations with different schemas are trying to open " +
-                        "the same Realm file. Their schema must be the same: " + newConfiguration.getPath());
-            }
-
-            // Check if the durability is the same
-            SharedGroup.Durability cachedDurability = cachedConfiguration.getDurability();
-            SharedGroup.Durability newDurability = newConfiguration.getDurability();
-            if (!cachedDurability.equals(newDurability)) {
-                throw new IllegalArgumentException("A Realm cannot be both in-memory and persisted. Two conflicting " +
-                        "configurations pointing to " + newConfiguration.getPath() + " are being used.");
-            }
-        }
-    }
-
     <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
@@ -633,47 +540,51 @@ abstract class BaseRealm implements Closeable {
     /**
      * Deletes the Realm file defined by the given configuration.
      */
-    protected static synchronized boolean deleteRealm(RealmConfiguration configuration) {
-        if (isFileOpen(configuration)) {
-            throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
-                    "Remember to close() all the instances of the Realm before deleting its file.");
-        }
+    protected static boolean deleteRealm(RealmConfiguration configuration) {
+        synchronized (RealmCache.class) {
+            if (isFileOpen(configuration)) {
+                throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
+                        "Remember to close() all the instances of the Realm before deleting its file.");
+            }
 
-        boolean realmDeleted = true;
-        String canonicalPath = configuration.getPath();
-        File realmFolder = configuration.getRealmFolder();
-        String realmFileName = configuration.getRealmFileName();
-        List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
-                new File(realmFolder, realmFileName + ".lock"),
-                new File(realmFolder, realmFileName + ".lock_a"),
-                new File(realmFolder, realmFileName + ".lock_b"),
-                new File(realmFolder, realmFileName + ".log"));
-        for (File fileToDelete : filesToDelete) {
-            if (fileToDelete.exists()) {
-                boolean deleteResult = fileToDelete.delete();
-                if (!deleteResult) {
-                    realmDeleted = false;
-                    RealmLog.w("Could not delete the file " + fileToDelete);
+            boolean realmDeleted = true;
+            String canonicalPath = configuration.getPath();
+            File realmFolder = configuration.getRealmFolder();
+            String realmFileName = configuration.getRealmFileName();
+            List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
+                    new File(realmFolder, realmFileName + ".lock"),
+                    new File(realmFolder, realmFileName + ".lock_a"),
+                    new File(realmFolder, realmFileName + ".lock_b"),
+                    new File(realmFolder, realmFileName + ".log"));
+            for (File fileToDelete : filesToDelete) {
+                if (fileToDelete.exists()) {
+                    boolean deleteResult = fileToDelete.delete();
+                    if (!deleteResult) {
+                        realmDeleted = false;
+                        RealmLog.w("Could not delete the file " + fileToDelete);
+                    }
                 }
             }
-        }
 
-        return realmDeleted;
+            return realmDeleted;
+        }
     }
 
     /**
      * Compacts the Realm file defined by the given configuration.
      */
-    public static synchronized boolean compactRealm(RealmConfiguration configuration) {
-        if (configuration.getEncryptionKey() != null) {
-            throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
-        }
+    public static boolean compactRealm(RealmConfiguration configuration) {
+        synchronized (RealmCache.class) {
+            if (configuration.getEncryptionKey() != null) {
+                throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
+            }
 
-        if (isFileOpen(configuration)) {
-            throw new IllegalStateException("Cannot compact an open Realm");
-        }
+            if (isFileOpen(configuration)) {
+                throw new IllegalStateException("Cannot compact an open Realm");
+            }
 
-        return SharedGroupManager.compact(configuration);
+            return SharedGroupManager.compact(configuration);
+        }
     }
 
     /**
@@ -683,35 +594,37 @@ abstract class BaseRealm implements Closeable {
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
      * @param callback callback for specific Realm type behaviors.
      */
-    protected static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration, MigrationCallback callback) {
-        if (configuration == null) {
-            throw new IllegalArgumentException("RealmConfiguration must be provided");
-        }
-        if (migration == null && configuration.getMigration() == null) {
-            throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
-        }
-        if (isFileOpen(configuration)) {
-            throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
-        }
-
-        RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
-        DynamicRealm realm = null;
-        try {
-            realm = DynamicRealm.getInstance(configuration);
-            realm.beginTransaction();
-            long currentVersion = realm.getVersion();
-            realmMigration.migrate(realm, currentVersion, configuration.getSchemaVersion());
-            realm.setVersion(configuration.getSchemaVersion());
-            realm.commitTransaction();
-        } catch (RuntimeException e) {
-            if (realm != null) {
-                realm.cancelTransaction();
+    protected static void migrateRealm(RealmConfiguration configuration, RealmMigration migration, MigrationCallback callback) {
+        synchronized (RealmCache.class) {
+            if (configuration == null) {
+                throw new IllegalArgumentException("RealmConfiguration must be provided");
             }
-            throw e;
-        } finally {
-            if (realm != null) {
-                realm.close();
-                callback.migrationComplete();
+            if (migration == null && configuration.getMigration() == null) {
+                throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
+            }
+            if (isFileOpen(configuration)) {
+                throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
+            }
+
+            RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
+            DynamicRealm realm = null;
+            try {
+                realm = DynamicRealm.getInstance(configuration);
+                realm.beginTransaction();
+                long currentVersion = realm.getVersion();
+                realmMigration.migrate(realm, currentVersion, configuration.getSchemaVersion());
+                realm.setVersion(configuration.getSchemaVersion());
+                realm.commitTransaction();
+            } catch (RuntimeException e) {
+                if (realm != null) {
+                    realm.cancelTransaction();
+                }
+                throw e;
+            } finally {
+                if (realm != null) {
+                    realm.close();
+                    callback.migrationComplete();
+                }
             }
         }
     }
