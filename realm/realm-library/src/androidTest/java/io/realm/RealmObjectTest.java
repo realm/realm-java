@@ -438,6 +438,135 @@ public class RealmObjectTest extends AndroidTestCase {
         assertNull(objA.getObject());
     }
 
+    public void testSetStandaloneObjectToLink() {
+        CyclicType standalone = new CyclicType();
+
+        testRealm.beginTransaction();
+        try {
+            CyclicType target = testRealm.createObject(CyclicType.class);
+
+            try {
+                target.setObject(standalone);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testSetRemovedObjectToLink() {
+        testRealm.beginTransaction();
+        try {
+            CyclicType target = testRealm.createObject(CyclicType.class);
+
+            CyclicType removed = testRealm.createObject(CyclicType.class);
+            removed.removeFromRealm();
+
+            try {
+                target.setObject(removed);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testSetClosedObjectToLink() {
+        testRealm.beginTransaction();
+        CyclicType closed = testRealm.createObject(CyclicType.class);
+        testRealm.commitTransaction();
+        testRealm.close();
+        assertTrue(testRealm.isClosed());
+
+        testRealm = Realm.getInstance(realmConfig);
+        testRealm.beginTransaction();
+        try {
+            CyclicType target = testRealm.createObject(CyclicType.class);
+
+            try {
+                target.setObject(closed);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testSetStandaloneObjectToLinkLists() {
+        CyclicType standalone = new CyclicType();
+
+        testRealm.beginTransaction();
+        try {
+            CyclicType target = testRealm.createObject(CyclicType.class);
+
+            RealmList<CyclicType> list = new RealmList<>();
+            list.add(testRealm.createObject(CyclicType.class));
+            list.add(standalone);
+            list.add(testRealm.createObject(CyclicType.class));
+
+            try {
+                target.setObjects(list);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testSetRemovedObjectToLinkLists() {
+        testRealm.beginTransaction();
+        try {
+            CyclicType target = testRealm.createObject(CyclicType.class);
+
+            CyclicType removed = testRealm.createObject(CyclicType.class);
+            removed.removeFromRealm();
+
+            RealmList<CyclicType> list = new RealmList<>();
+            list.add(testRealm.createObject(CyclicType.class));
+            list.add(removed);
+            list.add(testRealm.createObject(CyclicType.class));
+
+            try {
+                target.setObjects(list);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
+    public void testSetClosedObjectToLinkLists() {
+        testRealm.beginTransaction();
+        CyclicType closed = testRealm.createObject(CyclicType.class);
+        testRealm.commitTransaction();
+        testRealm.close();
+        assertTrue(testRealm.isClosed());
+
+        testRealm = Realm.getInstance(realmConfig);
+        testRealm.beginTransaction();
+        try {
+            CyclicType target = testRealm.createObject(CyclicType.class);
+
+            RealmList<CyclicType> list = new RealmList<>();
+            list.add(testRealm.createObject(CyclicType.class));
+            list.add(closed);
+            list.add(testRealm.createObject(CyclicType.class));
+
+            try {
+                target.setObjects(list);
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
     public void testThreadModelClass() {
         // The model class' name (Thread) clashed with a common Java class.
         // The annotation process must be able to handle that.

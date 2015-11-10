@@ -522,6 +522,9 @@ public class NullTypesRealmProxy extends NullTypes
             row.nullifyLink(columnInfo.fieldObjectNullIndex);
             return;
         }
+        if (!value.isValid()) {
+            throw new IllegalArgumentException("'value' is not a valid managed object.");
+        }
         row.setLink(columnInfo.fieldObjectNullIndex, value.row.getIndex());
     }
 

@@ -211,6 +211,9 @@ public class AllTypesRealmProxy extends AllTypes
             row.nullifyLink(columnInfo.columnObjectIndex);
             return;
         }
+        if (!value.isValid()) {
+            throw new IllegalArgumentException("'value' is not a valid managed object.");
+        }
         row.setLink(columnInfo.columnObjectIndex, value.row.getIndex());
     }
 
@@ -242,6 +245,9 @@ public class AllTypesRealmProxy extends AllTypes
             return;
         }
         for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value) {
+            if (!linkedObject.isValid()) {
+                throw new IllegalArgumentException("Each element of 'value' must be an valid managed object.");
+            }
             links.add(linkedObject.row.getIndex());
         }
     }
