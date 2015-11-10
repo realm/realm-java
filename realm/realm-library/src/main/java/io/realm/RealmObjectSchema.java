@@ -484,16 +484,16 @@ public final class RealmObjectSchema {
 
     private void checkLegalName(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
-            throw new IllegalArgumentException("Field name must not be null or empty");
+            throw new IllegalArgumentException("Field name can not be null or empty");
         }
         if (fieldName.contains(".")) {
-            throw new IllegalArgumentException("Field name must not contain '.'");
+            throw new IllegalArgumentException("Field name can not contain '.'");
         }
     }
 
     private void checkFieldNameIsAvailable(String fieldName) {
         if (table.getColumnIndex(fieldName) != TableOrView.NO_MATCH) {
-            throw new IllegalArgumentException("Field already exist in '" + getClassName() + "': " + fieldName);
+            throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
         }
     }
 
@@ -507,7 +507,7 @@ public final class RealmObjectSchema {
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(
-                    String.format("Fieldname '%s' does not exist on schema for '%s",
+                    String.format("Field name '%s' does not exist on schema for '%s",
                             fieldName, getClassName()
                     ));
         }

@@ -24,14 +24,14 @@ import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
 
 /**
- * Example of migrating a Realm file from version 0 (initial version) to it's last version (version 3).
+ * Example of migrating a Realm file from version 0 (initial version) to its last version (version 3).
  */
 public class Migration implements RealmMigration {
 
     @Override
     public void migrate(final DynamicRealm realm, long oldVersion, long newVersion) {
         // During a migration, a DynamicRealm is exposed. A DynamicRealm is an untyped variant of a normal Realm, but
-        // otherwise has the same object creation and query capabilities.
+        // with the same object creation and query capabilities.
         // A DynamicRealm uses Strings instead of Class references which are needed as the Classes might not even
         // exist or have been renamed.
 
@@ -93,7 +93,7 @@ public class Migration implements RealmMigration {
                     .addField("name", String.class, FieldAttribute.REQUIRED)
                     .addField("type", String.class, FieldAttribute.REQUIRED);
 
-            // Add a new field to and old class and populate it with initial data
+            // Add a new field to an old class and populate it with initial data
             schema.get("Person")
                 .addRealmListField("pets", petSchema)
                 .forEach(new RealmObjectSchema.Transformer() {
