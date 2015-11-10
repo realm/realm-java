@@ -16,13 +16,27 @@
 
 package io.realm.internal;
 
+import java.lang.ref.ReferenceQueue;
+
 /**
  * The LinkView class represents a core {@link ColumnType#LINK_LIST}.
  */
-public class LinkView {
+public class LinkView extends NativeObject {
+
+    private static class LinkViewReference extends NativeObjectReference {
+
+        public LinkViewReference(NativeObject referent,
+                                 ReferenceQueue<? super NativeObject> referenceQueue) {
+            super(referent, referenceQueue);
+        }
+
+        @Override
+        protected void cleanup() {
+            nativeClose(nativePointer);
+        }
+    }
 
     private final Context context;
-    final long nativeLinkViewPtr;
     final Table parent;
     final long columnIndexInParent;
 
@@ -30,7 +44,11 @@ public class LinkView {
         this.context = context;
         this.parent = parent;
         this.columnIndexInParent = columnIndexInParent;
-        this.nativeLinkViewPtr = nativeLinkViewPtr;
+        this.nativePointer = nativeLinkViewPtr;
+
+        context.cleanNativeReferences();
+        context.rowReferences.put(new LinkViewReference(this, context.referenceQueue),
+                Context.NATIVE_REFERENCES_VALUE);
     }
 
     /**
@@ -59,51 +77,51 @@ public class LinkView {
     }
 
     public long getTargetRowIndex(long pos) {
-        return nativeGetTargetRowIndex(nativeLinkViewPtr, pos);
+        return nativeGetTargetRowIndex(nativePointer, pos);
     }
 
     public void add(long rowIndex) {
         checkImmutable();
-        nativeAdd(nativeLinkViewPtr, rowIndex);
+        nativeAdd(nativePointer, rowIndex);
     }
 
     public void insert(long pos, long rowIndex) {
         checkImmutable();
-        nativeInsert(nativeLinkViewPtr, pos, rowIndex);
+        nativeInsert(nativePointer, pos, rowIndex);
     }
 
     public void set(long pos, long rowIndex) {
         checkImmutable();
-        nativeSet(nativeLinkViewPtr, pos, rowIndex);
+        nativeSet(nativePointer, pos, rowIndex);
     }
 
     public void move(long oldPos, long newPos) {
         checkImmutable();
-        nativeMove(nativeLinkViewPtr, oldPos, newPos);
+        nativeMove(nativePointer, oldPos, newPos);
     }
 
     public void remove(long pos) {
         checkImmutable();
-        nativeRemove(nativeLinkViewPtr, pos);
+        nativeRemove(nativePointer, pos);
     }
 
     public void clear() {
         checkImmutable();
-        nativeClear(nativeLinkViewPtr);
+        nativeClear(nativePointer);
     }
 
     public long size() {
-        return nativeSize(nativeLinkViewPtr);
+        return nativeSize(nativePointer);
     }
 
     public boolean isEmpty() {
-        return nativeIsEmpty(nativeLinkViewPtr);
+        return nativeIsEmpty(nativePointer);
     }
 
     public TableQuery where() {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         this.context.executeDelayedDisposal();
-        long nativeQueryPtr = nativeWhere(nativeLinkViewPtr);
+        long nativeQueryPtr = nativeWhere(nativePointer);
         try {
             return new TableQuery(this.context, this.parent, nativeQueryPtr);
         } catch (RuntimeException e) {
@@ -113,7 +131,7 @@ public class LinkView {
     }
 
     public boolean isAttached() {
-        return nativeIsAttached(nativeLinkViewPtr);
+        return nativeIsAttached(nativePointer);
     }
 
     /**
@@ -129,7 +147,7 @@ public class LinkView {
         }
     }
 
-    protected static native void nativeClose(long nativeLinkViewPtr);
+    private static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
     private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
