@@ -75,17 +75,24 @@ task connectedCheck(type:GradleBuild) {
 }
 
 task installGradlePlugin(type:GradleBuild) {
-    description = 'Install the Realm Gradle plugin to the Maven Repo in ANDROID_HOME'
+    description = 'Install the Realm Gradle plugin into mavenLocal()'
     group = 'Install'
     buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['uploadArchives']
+    tasks = ['install']
 }
 
 task installRealm(type:GradleBuild) {
     group = 'Install'
-    description = 'Install the artifacts of Realm project to the Maven Repo in ANDROID_HOME'
+    description = 'Install the artifacts of Realm project into mavenLocal()'
     buildFile = file('realm/build.gradle')
-    tasks = ['uploadArchives']
+    tasks = ['install']
+}
+
+task installRealmJava(type:Task) {
+    dependsOn installGradlePlugin
+    dependsOn installRealm
+    group = 'Install'
+    description = 'Install the Realm library and Gradle plugin into mavenLocal()'
 }
 
 task assembleExamples(type:GradleBuild) {
@@ -214,7 +221,6 @@ task cleanExamples(type:GradleBuild) {
 task cleanLocalMavenRepos(type:Delete) {
     description = 'Remove any Realm artifacts from the local Maven repositories'
     group = 'Clean'
-    delete "${getSdk()}/extras/android/m2repository/io/realm"
     delete "${System.env.HOME}/.m2/repository/io/realm"
 }
 

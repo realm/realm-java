@@ -37,14 +37,6 @@ sourceSets {
 compileJava.dependsOn generateVersionClass
 compileTestJava.dependsOn ':realm-library:assemble'
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
-        }
-    }
-}
-
 // Generates the Jar for Eclipse
 shadowJar {
     from zipTree('../realm-library/build/intermediates/bundles/release/classes.jar')
