@@ -18,11 +18,11 @@ package io.realm;
 
 /**
  * The RealmMigration class is used to describe the migration of one Realm schema to another.
- * The schema for a Realm is defined by all classes in a project that extend
- * {@link io.realm.RealmObject}, so any changes to these classes will require a migration.
+ * The schema for a Realm is defined by all classes in a project that extend {@link io.realm.RealmObject}, so any
+ * changes to these classes will require a migration.
  *
- * To support migrations from any previous schemaVersion to the newest, the following pattern is
- * recommended when writing a migration:
+ * To support migrations from any previous schemaVersion to the newest, the following pattern is recommended when
+ * writing a migration:
  *
  * <pre>
  * public class CustomMigration implements RealmMigration {
@@ -44,8 +44,8 @@ package io.realm;
  * </pre>
  *
  * During development when model classes can change frequently, it is possible to use
- * {@link io.realm.Realm#deleteRealm(RealmConfiguration)}. This will delete the database
- * file and eliminate the need for any migrations.
+ * {@link io.realm.Realm#deleteRealm(RealmConfiguration)}. This will delete the database file and eliminate the need for
+ * any migrations.
  *
  * @see Realm#migrateRealm(RealmConfiguration)
  * @see Realm#migrateRealm(RealmConfiguration, RealmMigration)
@@ -53,11 +53,12 @@ package io.realm;
 public interface RealmMigration {
 
     /**
+     * Performs migration.
      * Implement this method in your subclass to perform migration.
      *
-     * @param realm The Realm on which to perform the migration.
-     * @param version The schemaVersion of the Realm at the start of the migration.
-     * @return The schemaVersion of the Realm after executing the migration.
+     * @param realm the Realm on which to perform the migration.
+     * @param version the schemaVersion of the Realm at the start of the migration.
+     * @return the schemaVersion of the Realm after executing the migration.
      */
     long execute(Realm realm, long version);
 }

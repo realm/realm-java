@@ -17,7 +17,7 @@
 package io.realm.internal;
 
 /**
- * The LinkView class represent a core {@link ColumnType#LINK_LIST}.
+ * The LinkView class represents a core {@link ColumnType#LINK_LIST}.
  */
 public class LinkView {
 
@@ -34,25 +34,25 @@ public class LinkView {
     }
 
     /**
-     * Returns a non-checking Row. Incorrect use of this Row will cause a hard Realm Core crash (SIGSEGV).
+     * Returns a non-checking {@link Row}. Incorrect use of this Row will cause a hard Realm Core crash (SIGSEGV).
      * Only use this method if you are sure that input parameters are valid, otherwise use {@link #getCheckedRow(long)}
      * which will throw appropriate exceptions if used incorrectly.
      *
-     * @param index Index of row to fetch.
-     * @return Unsafe row wrapper object.
+     * @param index the index of row to fetch.
+     * @return the unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long index) {
         return UncheckedRow.getByRowIndex(context, this, index);
     }
 
     /**
-     * Returns a wrapper for Row access. All access will be error checked at the JNI layer and will throw an
+     * Returns a wrapper for {@link Row} access. All access will be error checked at the JNI layer and will throw an
      * appropriate {@link RuntimeException} if used incorrectly.
      *
      * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
      *
-     * @param index Index of row to fetch.
-     * @return Safe row wrapper object.
+     * @param index the index of row to fetch.
+     * @return the safe row wrapper object.
      */
     public CheckedRow getCheckedRow(long index) {
         return CheckedRow.get(context, this, index);
@@ -117,7 +117,7 @@ public class LinkView {
     }
 
     /**
-     * Returns the Table which all links point to.
+     * Returns the {@link Table} which all links point to.
      */
     public Table getTable() {
         return parent;

@@ -46,7 +46,7 @@ import io.realm.internal.modules.FilterableMediator;
  *
  * {@code RealmConfiguration config = new RealmConfiguration.Builder(getContext()).build())}
  *
- * This will create a RealmConfiguration with the following properties
+ * This will create a RealmConfiguration with the following properties.
  * - Realm file is called "default.realm"
  * - It is saved in Context.getFilesDir()
  * - It has its schema version set to 0.
@@ -224,7 +224,6 @@ public class RealmConfiguration {
          * The Realm file will be saved in the provided folder.
          *
          * @param folder Folder to save Realm file in. Folder must be writable.
-         *
          * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
          */
         public Builder(File folder) {
@@ -304,7 +303,8 @@ public class RealmConfiguration {
          * Sets the schema version of the Realm. This must be equal to or higher than the schema version of the existing
          * Realm file, if any. If the schema version is higher than the already existing Realm, a migration is needed.
          *
-         * If no migration code is provided, Realm will throw a {@link io.realm.exceptions.RealmMigrationNeededException}.
+         * If no migration code is provided, Realm will throw a
+         * {@link io.realm.exceptions.RealmMigrationNeededException}.
          *
          * @see #migration(RealmMigration)
          */
@@ -318,8 +318,8 @@ public class RealmConfiguration {
 
         /**
          * Sets the {@link io.realm.RealmMigration} to be run if a migration is needed. If this migration fails to
-         * upgrade the on-disc schema to the runtime schema, a
-         * {@link io.realm.exceptions.RealmMigrationNeededException} will be thrown.
+         * upgrade the on-disc schema to the runtime schema, a {@link io.realm.exceptions.RealmMigrationNeededException}
+         * will be thrown.
          */
         public Builder migration(RealmMigration migration) {
             if (migration == null) {
@@ -364,9 +364,8 @@ public class RealmConfiguration {
          *
          * {@code builder.setModules(Realm.getDefaultMode(), new MyLibraryModule()); }
          *
-         * @param baseModule        First Realm module (required).
-         * @param additionalModules Additional Realm modules
-         *
+         * @param baseModule the first Realm module (required).
+         * @param additionalModules the additional Realm modules
          * @throws IllegalArgumentException if any of the modules doesn't have the {@link RealmModule} annotation.
          * @see Realm#getDefaultModule()
          */
@@ -411,7 +410,7 @@ public class RealmConfiguration {
         /**
          * Creates the RealmConfiguration based on the builder parameters.
          *
-         * @return The created RealmConfiguration.
+         * @return the created {@link RealmConfiguration}.
          */
         public RealmConfiguration build() {
             return new RealmConfiguration(this);

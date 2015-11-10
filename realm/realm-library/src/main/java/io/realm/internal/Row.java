@@ -27,11 +27,10 @@ public interface Row {
     long getColumnCount();
 
     /**
-     * Returns the name of a column identified by columnIndex. Notice that the
-     * index is zero based.
+     * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
      *
-     * @param columnIndex the column index
-     * @return the name of the column
+     * @param columnIndex the column index.
+     * @return the name of the column.
      */
     String getColumnName(long columnIndex);
 
@@ -39,15 +38,15 @@ public interface Row {
      * Returns the 0-based index of a column based on the name.
      *
      * @param columnName column name
-     * @return the index, -1 if not found
+     * @return the index, {@code -1} if not found
      */
     long getColumnIndex(String columnName);
 
     /**
-     * Get the type of a column identified by the columnIndex.
+     * Gets the type of a column identified by the columnIndex.
      *
      * @param columnIndex index of the column.
-     * @return Type of the particular column.
+     * @return the type of the particular column.
      */
     ColumnType getColumnType(long columnIndex);
 
@@ -106,8 +105,7 @@ public interface Row {
     /**
      * Checks if the row is still valid.
      *
-     * @return Returns true {@code true} if the row is still valid and attached to the underlying
-     * data. {@code false} otherwise.
+     * @return {@code true} if the row is still valid and attached to the underlying data. {@code false} otherwise.
      */
     boolean isAttached();
 

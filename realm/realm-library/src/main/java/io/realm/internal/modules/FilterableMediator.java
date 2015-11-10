@@ -38,7 +38,8 @@ import io.realm.internal.Table;
 import io.realm.internal.Util;
 
 /**
- * Specialized version of a RealmProxyMediator that can further filter the available classes based on provided filter
+ * Specialized version of a {@link RealmProxyMediator} that can further filter the available classes based on provided
+ * filter.
  */
 public class FilterableMediator extends RealmProxyMediator {
 
@@ -46,10 +47,10 @@ public class FilterableMediator extends RealmProxyMediator {
     private Set<Class<? extends RealmObject>> allowedClasses = new HashSet<Class<? extends RealmObject>>();
 
     /**
-     * Creates a filterable Mediator.
+     * Creates a filterable {@link RealmProxyMediator}.
      *
-     * @param originalMediator      Original auto generated mediator.
-     * @param allowedClasses                Subset of classes from original mediator to allow.
+     * @param originalMediator the original auto generated mediator.
+     * @param allowedClasses the subset of classes from original mediator to allow.
      */
     public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>> allowedClasses) {
         this.originalMediator = originalMediator;
