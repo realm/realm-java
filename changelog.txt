@@ -4,7 +4,7 @@
  * Fixed a bug making it impossible to read Realms created using primary keys and created by iOS (#1703).
  * Fixed some memory leaks when an Exception is thrown (#1730).
  * RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
- * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid(standalone, removed, closed) object (#1749).
+ * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed) object (#1749).
 
 0.84.1
  * Updated Realm Core to 0.94.4
