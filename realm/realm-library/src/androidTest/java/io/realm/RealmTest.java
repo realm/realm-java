@@ -160,25 +160,6 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void testGetInstanceClearsCacheWhenFailed() {
-        String REALM_NAME = "invalid_cache.realm";
-        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(42));
-        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(43));
-
-        Realm.deleteRealm(configA);
-        Realm realm = Realm.getInstance(configA); // Create starting Realm with key1
-        realm.close();
-        try {
-            Realm.getInstance(configB); // Try to open with key 2
-        } catch (IllegalArgumentException expected) {
-            // Delete Realm so key 2 works. This should work as a Realm shouldn't be cached
-            // if initialization failed.
-            assertTrue(Realm.deleteRealm(configA));
-            realm = Realm.getInstance(configB);
-            realm.close();
-        }
-    }
-
     public void testCheckValid() {
         // checkIfValid() must not throw any Exception against valid Realm instance.
         testRealm.checkIfValid();
@@ -189,15 +170,7 @@ public class RealmTest extends AndroidTestCase {
             fail("closed Realm instance must throw IllegalStateException.");
         } catch (IllegalStateException ignored) {
         }
-    }
-
-    public void testRealmCache() {
-        Realm newRealm = Realm.getInstance(getContext());
-        try {
-          assertEquals(testRealm, newRealm);
-        } finally {
-          newRealm.close();
-        }
+        testRealm = null;
     }
 
     public void testInternalRealmChangedHandlersRemoved() {
@@ -211,6 +184,7 @@ public class RealmTest extends AndroidTestCase {
         Realm realm = null;
         try {
             realm = Realm.getInstance(realmConfig);
+            assertFalse(testRealm == realm);
             assertEquals(1, Realm.getHandlers().size());
             realm.close();
 
@@ -1911,6 +1885,7 @@ public class RealmTest extends AndroidTestCase {
         // After exception thrown in another thread, nothing should be changed to the realm in this thread.
         testRealm.checkIfValid();
         testRealm.close();
+        testRealm = null;
     }
 
     public void testRealmIsClosed() {
@@ -1949,120 +1924,6 @@ public class RealmTest extends AndroidTestCase {
         testRealm.close();
     }
 
-    // We should not cache wrong configurations
-    public void testDontCacheWrongConfigurations() throws IOException {
-        testRealm.close();
-        String REALM_NAME = "encrypted.realm";
-        TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
-        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
-
-        RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
-                .name(REALM_NAME)
-                .encryptionKey(TestHelper.SHA512("foo"))
-                .migration(realmMigration)
-                .schema(StringOnly.class)
-                .build();
-
-        RealmConfiguration rightConfig = new RealmConfiguration.Builder(getContext())
-                .name(REALM_NAME)
-                .encryptionKey(TestHelper.SHA512("realm"))
-                .migration(realmMigration)
-                .schema(StringOnly.class)
-                .build();
-
-        // Open Realm with wrong key
-        try {
-            testRealm = Realm.getInstance(wrongConfig);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        // Try again with proper key
-        testRealm = Realm.getInstance(rightConfig);
-        assertNotNull(testRealm);
-    }
-
-    public void testDeletingRealmAlsoClearsConfigurationCache() throws IOException {
-        testRealm.close();
-        String REALM_NAME = "encrypted.realm";
-        byte[] oldPassword = TestHelper.SHA512("realm");
-        byte[] newPassword = TestHelper.SHA512("realm-copy");
-
-        TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
-        RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
-
-        RealmConfiguration config = new RealmConfiguration.Builder(getContext())
-                .name(REALM_NAME)
-                .encryptionKey(oldPassword)
-                .migration(realmMigration)
-                .schema(StringOnly.class)
-                .build();
-
-        // 1. Write a copy of the encrypted Realm to a new file
-        testRealm = Realm.getInstance(config);
-        File copiedRealm = new File(config.getRealmFolder(), "encrypted-copy.realm");
-        copiedRealm.delete();
-        testRealm.writeEncryptedCopyTo(copiedRealm, newPassword);
-        testRealm.close();
-        testRealm = null;
-
-        // 2. Delete the old Realm.
-        Realm.deleteRealm(config);
-
-        // 3. Rename the new file to the old file name.
-        copiedRealm.renameTo(new File(config.getRealmFolder(), REALM_NAME));
-
-        // 4. Try to open the file again with the new password
-        // If the configuration cache wasn't cleared this would fail as we would detect two
-        // configurations with 2 different passwords pointing to the same file.
-        RealmConfiguration newConfig = new RealmConfiguration.Builder(getContext())
-                .name(REALM_NAME)
-                .encryptionKey(newPassword)
-                .migration(realmMigration)
-                .schema(StringOnly.class)
-                .build();
-
-        testRealm = Realm.getInstance(newConfig);
-        assertNotNull(testRealm);
-    }
-
-    // Tests that if the same Realm file is opened on multiple threads, we only need to validate the schema on the first thread.
-    public void testValidateSchemasOverThreads() throws InterruptedException, TimeoutException, ExecutionException {
-        final RealmConfiguration config = TestHelper.createConfiguration(getContext(), "foo");
-        Realm.deleteRealm(config);
-
-        final CountDownLatch bgThreadLocked = new CountDownLatch(1);
-        final CountDownLatch mainThreadDone = new CountDownLatch(1);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(config);
-                realm.beginTransaction();
-                bgThreadLocked.countDown();
-                try {
-                    mainThreadDone.await(5, TimeUnit.SECONDS);
-                } catch (InterruptedException ignored) {
-                }
-                realm.close();
-            }
-        }).start();
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                Realm realm = Realm.getInstance(config);
-                realm.close();
-                mainThreadDone.countDown();
-                return true;
-            }
-        });
-
-        bgThreadLocked.await(2, TimeUnit.SECONDS);
-        assertTrue(future.get(10, TimeUnit.SECONDS));
-    }
-
     // Realm validation & initialization is done once, still ColumnIndices
     // should be populated for the subsequent Realm sharing the same configuration
     // even if we skip initialization & validation
@@ -2086,7 +1947,9 @@ public class RealmTest extends AndroidTestCase {
                 } catch (Exception e) {
                     threadError[0] = e;
                 } finally {
-                    realm.close();
+                    if (!realm.isClosed()) {
+                        realm.close();
+                    }
                 }
             }
         }).start();
@@ -2138,7 +2001,7 @@ public class RealmTest extends AndroidTestCase {
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
         bgThreadLatch.countDown();
-        awaitOrFail(bgClosedLatch);
+        bgClosedLatch.await();
     }
 
     private void awaitOrFail(CountDownLatch latch) {

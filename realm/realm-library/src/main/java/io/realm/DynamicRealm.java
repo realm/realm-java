@@ -19,11 +19,6 @@ package io.realm;
 
 import android.os.Looper;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
@@ -50,22 +45,6 @@ import io.realm.internal.TableView;
  */
 public final class DynamicRealm extends BaseRealm {
 
-    private static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
-            new ThreadLocal<Map<RealmConfiguration, DynamicRealm>>() {
-                @Override
-                protected Map<RealmConfiguration, DynamicRealm> initialValue() {
-                    return new HashMap<RealmConfiguration, DynamicRealm>();
-                }
-            };
-
-    private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
-            new ThreadLocal<Map<RealmConfiguration,Integer>>() {
-                @Override
-                protected Map<RealmConfiguration, Integer> initialValue() {
-                    return new HashMap<RealmConfiguration, Integer>();
-                }
-            };
-
     private DynamicRealm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
     }
@@ -82,7 +61,7 @@ public final class DynamicRealm extends BaseRealm {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
-        return create(configuration);
+        return RealmCache.createRealmOrGetFromCache(configuration, DynamicRealm.class);
     }
 
     /**
@@ -241,42 +220,14 @@ public final class DynamicRealm extends BaseRealm {
         return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
-    private static DynamicRealm create(RealmConfiguration configuration) {
-        synchronized (BaseRealm.class) {
-
-            // Check if a cached instance already exists for this thread
-            String canonicalPath = configuration.getPath();
-            Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-            Integer references = localRefCount.get(configuration);
-            if (references == null) {
-                references = 0;
-            }
-            Map<RealmConfiguration, DynamicRealm> realms = realmsCache.get();
-            DynamicRealm realm = realms.get(configuration);
-            if (realm != null) {
-                localRefCount.put(configuration, references + 1);
-                return realm;
-            }
-
-            // Create new DynamicRealm and cache it. All exception code paths must close the DynamicRealm otherwise we risk
-            // serving faulty cache data.
-            validateAgainstExistingConfigurations(configuration);
-            boolean autoRefresh = Looper.myLooper() != null;
-            realm = new DynamicRealm(configuration, autoRefresh);
-            List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-            if (pathConfigurationCache == null) {
-                pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-                globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
-            }
-            pathConfigurationCache.add(configuration);
-            realms.put(configuration, realm);
-            localRefCount.put(configuration, references + 1);
-
-            // Increment global reference counter
-            realm.acquireFileReference(configuration);
-
-            return realm;
-        }
+    /**
+     * Creates a {@link DynamicRealm} instance without checking the existence in the {@link RealmCache}.
+     *
+     * @return a {@link DynamicRealm} instance.
+     */
+    static DynamicRealm createInstance(RealmConfiguration configuration) {
+        boolean autoRefresh = Looper.myLooper() != null;
+        return new DynamicRealm(configuration, autoRefresh);
     }
 
     /**
@@ -328,16 +279,6 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         return where(className).distinctAsync(columnIndex);
-    }
-
-    @Override
-    protected void lastLocalInstanceClosed() {
-        realmsCache.get().remove(configuration);
-    }
-
-    @Override
-    protected Map<RealmConfiguration, Integer> getLocalReferenceCount() {
-        return referenceCount.get();
     }
 
     /**

@@ -18,6 +18,7 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.test.AndroidTestCase;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -45,6 +46,23 @@ import static junit.framework.Assert.fail;
 import io.realm.entities.StringOnly;
 
 public class TestHelper {
+
+    public static class ExpectedCountCallback implements RealmCache.Callback {
+
+        private int expectedCount;
+        private AndroidTestCase testCase;
+
+        ExpectedCountCallback(AndroidTestCase testCase, int expectedCount) {
+            this.expectedCount = expectedCount;
+            this.testCase = testCase;
+        }
+
+        @Override
+        public void onResult(int count) {
+            testCase.assertEquals(expectedCount, count);
+        }
+    }
+
 
     public static RealmFieldType getColumnType(Object o){
         if (o instanceof Boolean)

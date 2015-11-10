@@ -130,41 +130,6 @@ public class DynamicRealmTest extends AndroidTestCase {
         assertTrue(Realm.deleteRealm(defaultConfig));
     }
 
-    // Test that the closed Realm isn't kept in the Realm instance cache
-    public void testRealmCacheIsCleared() {
-        realm.close(); // Close DynamicRealm created in setup to prevent it interfering with caches here.
-        Realm typedRealm = Realm.getInstance(defaultConfig);
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
-
-        typedRealm.close(); // Still a dynamic instance open, but the typed Realm cache must still be cleared.
-        dynamicRealm.close();
-
-        try {
-            // If cache isn't cleared this would crash because of a closed shared group.
-            typedRealm = Realm.getInstance(defaultConfig);
-            assertEquals(0, typedRealm.where(AllTypes.class).count());
-        } finally {
-            typedRealm.close();
-        }
-    }
-
-    // Test that the closed DynamicRealms isn't kept in the DynamicRealm instance cache
-    public void testDynamicRealmCacheIsCleared() {
-        DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
-        Realm typedRealm = Realm.getInstance(defaultConfig);
-
-        dynamicRealm.close(); // Still an instance open, but DynamicRealm cache must still be cleared.
-        typedRealm.close();
-
-        try {
-            // If cache isn't cleared this would crash because of a closed shared group.
-            dynamicRealm = DynamicRealm.getInstance(defaultConfig);
-            assertEquals(0, dynamicRealm.getVersion());
-        } finally {
-            dynamicRealm.close();
-        }
-    }
-
     public void testCreateObject() {
         realm.beginTransaction();
         DynamicRealmObject obj = realm.createObject(CLASS_ALL_TYPES);
