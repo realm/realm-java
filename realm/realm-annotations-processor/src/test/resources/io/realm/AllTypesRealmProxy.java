@@ -246,7 +246,7 @@ public class AllTypesRealmProxy extends AllTypes
         }
         for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value) {
             if (!linkedObject.isValid()) {
-                throw new IllegalArgumentException("Each element of 'value' must be an valid managed object.");
+                throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
             }
             links.add(linkedObject.row.getIndex());
         }
