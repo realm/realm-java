@@ -31,10 +31,9 @@ public class JsonUtils {
      * - "<long>"
      * - "/Date(<long>[+-Zone])/"
      *
-     * @param date   String input of date of the the supported types.
-     * @return Date object or null if invalid input.
-     *
-     * @throws NumberFormatException If date is not a proper long or has an illegal format.
+     * @param date the String input of date of the the supported types.
+     * @return the Date object or null if invalid input.
+     * @throws NumberFormatException if date is not a proper long or has an illegal format.
      */
     public static Date stringToDate(String date) {
         if (date == null || date.length() == 0) return null;
@@ -50,8 +49,8 @@ public class JsonUtils {
     /**
      * Converts a Json string to byte[]. String must be Base64 encoded.
      *
-     * @param str   Base 64 encoded bytes.
-     * @return Byte array or empty byte array
+     * @param str the base 64 encoded bytes.
+     * @return the Byte array or empty byte array.
      */
     public static byte[] stringToBytes(String str) {
         if (str == null || str.length() == 0) return new byte[0];

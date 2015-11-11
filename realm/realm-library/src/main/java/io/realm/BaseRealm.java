@@ -103,13 +103,14 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Set the auto-refresh status of the Realm instance.
+     * Sets the auto-refresh status of the Realm instance.
      * <p>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
-     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in another thread.
-     * This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled thread.
+     * (RealmResults and RealmObjects instances) when a commit is performed on a Realm acting on the same file in
+     * another thread. This feature is only available if the Realm instance lives is a {@link android.os.Looper} enabled
+     * thread.
      *
-     * @param autoRefresh true will turn auto-refresh on, false will turn it off.
+     * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
@@ -128,9 +129,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Retrieve the auto-refresh status of the Realm instance.
+     * Retrieves the auto-refresh status of the Realm instance.
      *
-     * @return the auto-refresh status
+     * @return the auto-refresh status.
      */
     public boolean isAutoRefresh() {
         return autoRefresh;
@@ -138,6 +139,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Checks if the Realm is currently in a transaction.
+     *
      * @return {@code true} if inside a transaction, {@code false} otherwise.
      */
     public boolean isInTransaction() {
@@ -146,7 +148,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Add a change listener to the Realm.
+     * Adds a change listener to the Realm.
      * <p>
      * The listeners will be executed:
      * <ul>
@@ -155,7 +157,7 @@ abstract class BaseRealm implements Closeable {
      * <li>On every call to {@link io.realm.Realm#refresh()}</li>
      * </ul>
      *
-     * @param listener the change listener
+     * @param listener the change listener.
      * @see io.realm.RealmChangeListener
      */
     public void addChangeListener(RealmChangeListener listener) {
@@ -171,9 +173,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Remove the specified change listener
+     * Removes the specified change listener.
      *
-     * @param listener the change listener to be removed
+     * @param listener the change listener to be removed.
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener listener) {
@@ -199,7 +201,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Remove all user-defined change listeners
+     * Removes all user-defined change listeners.
      *
      * @see io.realm.RealmChangeListener
      */
@@ -209,7 +211,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Remove and stop the current thread handler as gracefully as possible.
+     * Removes and stops the current thread handler as gracefully as possible.
      */
     protected void removeHandler() {
         handlers.remove(handler);
@@ -247,32 +249,32 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Write a compacted copy of the Realm to the given destination File.
+     * Writes a compacted copy of the Realm to the given destination File.
      * <p>
      * The destination file cannot already exist.
      * <p>
-     * Note that if this is called from within a transaction it writes the
-     * current data, and not the data as it was when the last transaction was committed.
+     * Note that if this is called from within a transaction it writes the current data, and not the data as it was when
+     * the last transaction was committed.
      *
-     * @param destination File to save the Realm to
-     * @throws java.io.IOException if any write operation fails
+     * @param destination file to save the Realm to.
+     * @throws java.io.IOException if any write operation fails.
      */
     public void writeCopyTo(File destination) throws java.io.IOException {
         writeEncryptedCopyTo(destination, null);
     }
 
     /**
-     * Write a compacted and encrypted copy of the Realm to the given destination File.
+     * Writes a compacted and encrypted copy of the Realm to the given destination File.
      * <p>
      * The destination file cannot already exist.
      * <p>
-     * Note that if this is called from within a transaction it writes the current data, and not the
-     * data as it was when the last transaction was committed.
+     * Note that if this is called from within a transaction it writes the current data, and not the data as it was when
+     * the last transaction was committed.
      * <p>
      *
-     * @param destination File to save the Realm to
-     * @param key a 64-byte encryption key
-     * @throws java.io.IOException if any write operation fails
+     * @param destination file to save the Realm to.
+     * @param key a 64-byte encryption key.
+     * @throws java.io.IOException if any write operation fails.
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
@@ -284,7 +286,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Refresh the Realm instance and all the RealmResults and RealmObjects instances coming from it.
+     * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
      * It also calls the listeners associated to the Realm instance.
      */
     @SuppressWarnings("UnusedDeclaration")
@@ -295,15 +297,15 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Starts a transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or
-     * aborted by {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically
-     * create, update and delete objects within a realm.
+     * Starts a transaction, this must be closed with {@link io.realm.Realm#commitTransaction()} or aborted by
+     * {@link io.realm.Realm#cancelTransaction()}. Transactions are used to atomically create, update and delete objects
+     * within a Realm.
      * <br>
-     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the realm
-     * in the case of pending updates from other threads.
+     * Before beginning the transaction, {@link io.realm.Realm#beginTransaction()} updates the realm in the case of
+     * pending updates from other threads.
      * <br>
-     * Notice: it is not possible to nest transactions. If you start a transaction within a
-     * transaction an exception is thrown.
+     * Notice: it is not possible to nest transactions. If you start a transaction within a transaction an exception is
+     * thrown.
      */
     public void beginTransaction() {
         checkIfValid();
@@ -311,11 +313,10 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the
-     * Realm reverts back to being read-only. An event is sent to notify all other realm instances
-     * that a change has occurred. When the event is received, the other Realms will get their
-     * objects and {@link io.realm.RealmResults} updated to reflect
-     * the changes from this commit.
+     * All changes since {@link io.realm.Realm#beginTransaction()} are persisted to disk and the Realm reverts back to
+     * being read-only. An event is sent to notify all other Realm instances that a change has occurred. When the event
+     * is received, the other Realms will get their objects and {@link io.realm.RealmResults} updated to reflect the
+     * changes from this commit.
      */
     public void commitTransaction() {
         checkIfValid();
@@ -349,8 +350,8 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Revert all writes (created, updated, or deleted objects) made in the current write
-     * transaction and end the transaction.
+     * Reverts all writes (created, updated, or deleted objects) made in the current write transaction and end the
+     * transaction.
      * <br>
      * The Realm reverts back to read-only.
      * <br>
@@ -362,8 +363,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Checks if a Realm's underlying resources are still available or not getting accessed from
-     * the wrong thread.
+     * Checks if a Realm's underlying resources are still available or not getting accessed from the wrong thread.
      */
     protected void checkIfValid() {
         // Check if the Realm instance has been closed
@@ -380,7 +380,7 @@ abstract class BaseRealm implements Closeable {
     /**
      * Returns the canonical path to where this Realm is persisted on disk.
      *
-     * @return The canonical path to the Realm file.
+     * @return the canonical path to the Realm file.
      * @see File#getCanonicalPath()
      */
     public String getPath() {
@@ -390,7 +390,7 @@ abstract class BaseRealm implements Closeable {
     /**
      * Returns the {@link RealmConfiguration} for this Realm.
      *
-     * @return {@link RealmConfiguration} for this Realm.
+     * @return the {@link RealmConfiguration} for this Realm.
      */
     public RealmConfiguration getConfiguration() {
         return configuration;
@@ -399,7 +399,7 @@ abstract class BaseRealm implements Closeable {
     /**
      * Returns the schema version for this Realm.
      *
-     * @return The schema version for the Realm file backing this Realm.
+     * @return the schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
         if (!sharedGroupManager.hasTable("metadata")) {
@@ -412,8 +412,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Closes the Realm instance and all its resources.
      * <p>
-     * It's important to always remember to close Realm instances when you're done with it in order
-     * not to leak memory, file descriptors or grow the size of Realm file out of measure.
+     * It's important to always remember to close Realm instances when you're done with it in order not to leak memory,
+     * file descriptors or grow the size of Realm file out of measure.
      */
     @Override
     public void close() {
@@ -446,7 +446,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Check if the {@link io.realm.Realm} instance has already been closed.
+     * Checks if the {@link io.realm.Realm} instance has already been closed.
      *
      * @return {@code true} if closed, {@code false} otherwise.
      */
@@ -459,7 +459,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Check if this {@link io.realm.Realm} contains any objects.
+     * Checks if this {@link io.realm.Realm} contains any objects.
      *
      * @return {@code true} if empty, @{code false} otherwise.
      */
@@ -479,7 +479,7 @@ abstract class BaseRealm implements Closeable {
     protected abstract void lastLocalInstanceClosed();
 
     /**
-     * Acquire a reference to the Realm file referenced in the given configuration.
+     * Acquires a reference to the given Realm file.
      */
     static synchronized void acquireFileReference(RealmConfiguration configuration) {
         String path = configuration.getPath();
@@ -491,8 +491,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Releases a reference to the Realm file. If reference count reaches 0 any cached configurations
-     * will be removed.
+     * Releases a reference to the Realm file. If reference count reaches 0 any cached configurations will be removed.
      */
     static synchronized void releaseFileReference(RealmConfiguration configuration) {
         String canonicalPath = configuration.getPath();
@@ -586,7 +585,7 @@ abstract class BaseRealm implements Closeable {
      * Make sure that the new configuration doesn't clash with any existing configurations for the
      * Realm.
      *
-     * @throws IllegalArgumentException If the new configuration isn't valid.
+     * @throws IllegalArgumentException if the new configuration isn't valid.
      */
     protected static synchronized void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
 

@@ -12,7 +12,8 @@ public class AndroidLogger implements Logger {
     private String logTag = "REALM";
 
     /**
-     * Manually set a logging tag.
+     * Manually sets a logging tag.
+     *
      * @param tag Logging tag to use for all subsequent logging calls.
      */
     public void setTag(String tag) {
@@ -20,8 +21,9 @@ public class AndroidLogger implements Logger {
     }
 
     /**
-     * Override the provided logger behavior and only log if log entry has a level equal or higher.
-     * @param logLevel Minimum log level to report.
+     * Overrides the provided logger behavior and only log if log entry has a level equal or higher.
+     *
+     * @param logLevel the minimum log level to report.
      */
     public void setMinimumLogLevel(int logLevel) {
         minimumLogLevel = logLevel;

@@ -892,11 +892,10 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return;
 
-        jsize arr_len = env->GetArrayLength(columnIndices);
-        jsize asc_len = env->GetArrayLength(ascending);
-
-        jlong *long_arr = env->GetLongArrayElements(columnIndices, NULL);
-        jboolean *bool_arr = env->GetBooleanArrayElements(ascending, NULL);
+        JniLongArray long_arr(env, columnIndices);
+        JniBooleanArray bool_arr(env, ascending);
+        jsize arr_len = long_arr.len();
+        jsize asc_len = bool_arr.len();
 
         if (arr_len == 0) {
             ThrowException(env, IllegalArgument, "You must provide at least one field name.");
@@ -915,8 +914,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
         std::vector<bool> ascendings;
 
         for (int i = 0; i < arr_len; ++i) {
-            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), long_arr[i]))
+            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), long_arr[i])) {
                 return;
+            }
             int colType = TV(nativeViewPtr)->get_column_type( S(long_arr[i]) );
             switch (colType) {
                 case type_Bool:
@@ -934,8 +934,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeSortMulti(
             }
         }
         TV(nativeViewPtr)->sort(indices, ascendings);
-        env->ReleaseLongArrayElements(columnIndices, long_arr, 0);
-        env->ReleaseBooleanArrayElements(ascending, bool_arr, 0);
     } CATCH_STD()
 }
 

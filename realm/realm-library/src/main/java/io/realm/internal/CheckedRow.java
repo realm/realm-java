@@ -43,36 +43,42 @@ public class CheckedRow extends UncheckedRow {
     }
 
     /**
-     * Get the row object associated to an index in a Table.
+     * Gets the row object associated to an index in a {@link Table}.
+     *
      * @param context the Realm context.
-     * @param table the Table that holds the row.
+     * @param table the {@link Table} that holds the row.
      * @param index the index of the row.
      * @return an instance of Row for the table and index specified.
      */
     public static CheckedRow get(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
         CheckedRow row = new CheckedRow(context, table, nativeRowPointer);
-        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), context.ROW_REFERENCES_VALUE);
+        context.rowReferences.put(new UncheckedRowNativeObjectReference(row, context.referenceQueue),
+                Context.NATIVE_REFERENCES_VALUE);
         return row;
     }
 
     /**
-     * Get the row object associated to an index in a LinkView.
+     * Gets the row object associated to an index in a {@link LinkView}.
+     *
      * @param context the Realm context.
-     * @param linkView the LinkView holding the row.
+     * @param linkView the {@link LinkView} holding the row.
      * @param index the index of the row.
-     * @return a checked instance of Row for the LinkView and index specified.
+     * @return a checked instance of {@link Row} for the {@link LinkView} and index specified.
      */
     public static CheckedRow get(Context context, LinkView linkView, long index) {
-        long nativeRowPointer = linkView.nativeGetRow(linkView.nativeLinkViewPtr, index);
-        CheckedRow row = new CheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent), nativeRowPointer);
-        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), context.ROW_REFERENCES_VALUE);
+        long nativeRowPointer = linkView.nativeGetRow(linkView.nativePointer, index);
+        CheckedRow row = new CheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent),
+                nativeRowPointer);
+        context.rowReferences.put(new UncheckedRowNativeObjectReference(row, context.referenceQueue),
+                Context.NATIVE_REFERENCES_VALUE);
         return row;
     }
 
     /**
-     * Convert a unchecked row to a checked row.
-     * @return an checked instance of Row.
+     * Converts a {@link UncheckedRow} to a {@link CheckedRow}.
+     *
+     * @return an checked instance of {@link Row}.
      */
     public static CheckedRow getFromRow(UncheckedRow row) {
         return new CheckedRow(row);

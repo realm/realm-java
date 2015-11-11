@@ -27,9 +27,9 @@ import io.realm.Sort;
 
 
 /**
- * This class is a base class for all Realm tables. The class supports all low
- * level methods (define/insert/delete/update) a table has. All the native
- * communications to the Realm C++ library are also handled by this class.
+ * This class is a base class for all Realm tables. The class supports all low level methods
+ * (define/insert/delete/update) a table has. All the native communications to the Realm C++ library are also handled by
+ * this class.
  */
 public class Table implements TableOrView, TableSchema, Closeable {
 
@@ -64,9 +64,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
-     * Construct a Table base object. It can be used to register columns in this
-     * table. Registering into table is allowed only for empty tables. It
-     * creates a native reference of the object and keeps a reference to it.
+     * Constructs a Table base object. It can be used to register columns in this table. Registering into table is
+     * allowed only for empty tables. It creates a native reference of the object and keeps a reference to it.
      */
     public Table() {
         this.parent = null; // No parent in free-standing table
@@ -137,7 +136,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /*
-     * Check if the Table is valid.
+     * Checks if the Table is valid.
      * Whenever a Table/subtable is changed/updated all it's subtables are invalidated.
      * You can no longer perform any actions on the table, and if done anyway, an exception is thrown.
      * The only method you can call is 'isValid()'.
@@ -169,12 +168,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native boolean nativeIsRootTable(long nativeTablePtr);
 
     /**
-     * Add a column to the table dynamically.
+     * Adds a column to the table dynamically.
      *
-     * @param type The column type.
-     * @param name The field/column name
-     * @param isNullable true if column can contain null values, false otherwise
-     * @return
+     * @param type the column type.
+     * @param name the field/column name.
+     * @param isNullable {@code true} if column can contain null values, {@ code false}e otherwise.
+     * @return the index of the new column.
      */
     public long addColumn(RealmFieldType type, String name, boolean isNullable) {
         verifyColumnName(name);
@@ -182,8 +181,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Add a non-nullable column to the table dynamically.
-     * @return Index of the new column.
+     * Adds a non-nullable column to the table dynamically.
+     *
+     * @return the index of the new column.
      */
     @Override
     public long addColumn(RealmFieldType type, String name) {
@@ -193,8 +193,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
 
     /**
-     * Add a link column to the table dynamically.
-     * @return Index of the new column.
+     * Adds a link column to the table dynamically.
+     *
+     * @return the index of the new column.
      */
     public long addColumnLink (RealmFieldType type, String name, Table table) {
         verifyColumnName(name);
@@ -204,7 +205,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeAddColumnLink(long nativeTablePtr, int type, String name, long targetTablePtr);
 
     /**
-     * Remove a column in the table dynamically.
+     * Removes a column in the table dynamically.
      */
     @Override
     public void removeColumn(long columnIndex) {
@@ -214,7 +215,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native void nativeRemoveColumn(long nativeTablePtr, long columnIndex);
 
     /**
-     * Rename a column in the table.
+     * Renames a column in the table.
      */
     @Override
     public void renameColumn(long columnIndex, String newName) {
@@ -225,10 +226,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native void nativeRenameColumn(long nativeTablePtr, long columnIndex, String name);
 
     /**
-     * Is a column nullable?
+     * Checks whether the specific column is nullable?
      *
-     * @param columnIndex
-     * @return true if column is nullable, false otherwise.
+     * @param columnIndex the column index.
+     * @return {@code true} if column is nullable, {@code false} otherwise.
      */
     public boolean isColumnNullable(long columnIndex) {
         return nativeIsColumnNullable(nativePtr, columnIndex);
@@ -237,8 +238,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native boolean nativeIsColumnNullable(long nativePtr, long columnIndex);
 
     /**
-     * Convert a column to be nullable.
-     * @param columnIndex
+     * Converts a column to be nullable.
+     *
+     * @param columnIndex the column index.
      */
     public void convertColumnToNullable(long columnIndex) {
         nativeConvertColumnToNullable(nativePtr, columnIndex);
@@ -247,8 +249,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native void nativeConvertColumnToNullable(long nativeTablePtr, long columnIndex);
 
     /**
-     * Convert a column to be not nullable. null values will be converted to default values.
-     * @param columnIndex
+     * Converts a column to be not nullable. null values will be converted to default values.
+     *
+     * @param columnIndex the column index.
      */
     public void convertColumnToNotNullable(long columnIndex) {
         nativeConvertColumnToNotNullable(nativePtr, columnIndex);
@@ -269,9 +272,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     // Table Size and deletion. AutoGenerated subclasses are nothing to do with this
     // class.
     /**
-     * Get the number of entries/rows of this table.
+     * Gets the number of entries/rows of this table.
      *
-     * @return The number of rows.
+     * @return the number of rows.
      */
     @Override
     public long size() {
@@ -283,7 +286,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      * Checks whether this table is empty or not.
      *
-     * @return true if empty, otherwise false.
+     * @return {@code true} if empty, otherwise {@code false}.
      */
     @Override
     public boolean isEmpty() {
@@ -322,11 +325,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native TableSpec nativeGetTableSpec(long nativeTablePtr);
 
     /**
-     * Returns the name of a column identified by columnIndex. Notice that the
-     * index is zero based.
+     * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
      *
-     * @param columnIndex the column index
-     * @return the name of the column
+     * @param columnIndex the column index.
+     * @return the name of the column.
      */
     @Override
     public String getColumnName(long columnIndex) {
@@ -338,8 +340,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param columnName column name
-     * @return the index, {@link #NO_MATCH} if not found
+     * @param columnName column name.
+     * @return the index, {@link #NO_MATCH} if not found.
      */
     @Override
     public long getColumnIndex(String columnName) {
@@ -353,10 +355,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
-     * Get the type of a column identified by the columnIndex.
+     * Gets the type of a column identified by the columnIndex.
      *
      * @param columnIndex index of the column.
-     * @return Type of the particular column.
+     * @return the type of the particular column.
      */
     @Override
     public RealmFieldType getColumnType(long columnIndex) {
@@ -366,8 +368,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 
     /**
-     * Removes a row from the specific index. As of now the entry is simply
-     * removed from the table.
+     * Removes a row from the specific index. As of now the entry is simply removed from the table.
      *
      * @param rowIndex the row index (starting with 0)
      *
@@ -483,11 +484,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
 
     /**
-     * Appends the specified row to the end of the table.
-     * For internal testing usage only.
+     * Appends the specified row to the end of the table. For internal testing usage only.
      *
-     * @param values
-     * @return The row index of the appended row
+     * @param values values.
+     * @return the row index of the appended row.
      */
     protected long add(Object... values) {
         long rowIndex = addEmptyRow();
@@ -574,10 +574,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Returns a view sorted by the specified column and order
-     * @param columnIndex
-     * @param order
-     * @return
+     * Returns a view sorted by the specified column and order.
+     *
+     * @param columnIndex the column index.
+     * @param order the {@link TableView.Order}.
+     * @return a sorted view.
      */
     public TableView getSortedView(long columnIndex, Sort sortOrder){
         // Execute the disposal of abandoned realm objects each time a new realm object is created
@@ -592,9 +593,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Returns a view sorted by the specified column by the default order
-     * @param columnIndex
-     * @return
+     * Returns a view sorted by the specified column by the default order.
+     *
+     * @param columnIndex the column index.
+     * @return a sorted view.
      */
     public TableView getSortedView(long columnIndex) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
@@ -621,7 +623,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      * Returns the column index for the primary key.
      *
-     * @return Column index or {@code #NO_MATCH} if no primary key is set.
+     * @return the column index or {@code #NO_MATCH} if no primary key is set.
      */
     public long getPrimaryKey() {
         if (cachedPrimaryKeyColumnIndex >= 0 || cachedPrimaryKeyColumnIndex == NO_PRIMARY_KEY) {
@@ -650,16 +652,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     /**
      * Checks if a given column is a primary key column.
-     * @param columnIndex   Index of column in the table.
-     * @return              True if column is a primary key, false otherwise.
+     *
+     * @param columnIndex the ndex of column in the table.
+     * @return {@code true} if column is a primary key, {@code false} otherwise.
      */
     public boolean isPrimaryKey(long columnIndex) {
         return columnIndex >= 0 && columnIndex == getPrimaryKey();
     }
 
     /**
-     * Check if a table has a primary key.
-     * @return True if primary key is defined, false otherwise.
+     * Checks if a table has a primary key.
+     *
+     * @return {@code true} if primary key is defined, {@code false} otherwise.
      */
     public boolean hasPrimaryKey() {
         return getPrimaryKey() >= 0;
@@ -727,12 +731,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native long nativeGetDateTime(long nativeTablePtr, long columnIndex, long rowIndex);
 
     /**
-     * Get the value of a (string )cell.
+     * Gets the value of a (string )cell.
      *
-     * @param columnIndex
-     *            0 based index value of the column
-     * @param rowIndex
-     *            0 based index of the row.
+     * @param columnIndex 0 based index value of the column
+     * @param rowIndex 0 based index of the row.
      * @return value of the particular cell
      */
     @Override
@@ -743,12 +745,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
     protected native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
 
     /**
-     * Get the value of a (binary) cell.
+     * Gets the value of a (binary) cell.
      *
-     * @param columnIndex
-     *            0 based index value of the cell column
-     * @param rowIndex
-     *            0 based index value of the cell row
+     * @param columnIndex 0 based index value of the cell column.
+     * @param rowIndex 0 based index value of the cell row.
      * @return value of the particular cell.
      */
     /*
@@ -808,12 +808,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      *
      * Note: The subtable returned will have to be closed again after use.
-     * You can let javas garbage collector handle that or better yet call close()
-     * after use.
+     * You can let javas garbage collector handle that or better yet call close() after use.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @return TableBase the subtable at the requested cell
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @return the TableBase the subtable at the requested.
      */
     @Override
     public Table getSubtable(long columnIndex, long rowIndex) {
@@ -868,8 +867,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
      * If error checking is required, use {@link #getCheckedRow(long)} instead.
      *
-     * @param index Index of row to fetch.
-     * @return Unsafe row wrapper object.
+     * @param index the index of row to fetch.
+     * @return the unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long index) {
         return UncheckedRow.getByRowIndex(context, this, index);
@@ -879,21 +878,21 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
      * If error checking is required, use {@link #getCheckedRow(long)} instead.
      *
-     * @param nativeRowPointer Pointer to the row to fetch.
-     * @return Unsafe row wrapper object.
+     * @param nativeRowPointer the pointer to the row to fetch.
+     * @return the unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRowByPointer(long nativeRowPointer) {
         return UncheckedRow.getByRowPointer(context, this, nativeRowPointer);
     }
 
     /**
-     * Returns a wrapper around Row access. All access will be error checked in JNI and will throw an
-     * appropriate {@link RuntimeException} if used incorrectly.
+     * Returns a wrapper around Row access. All access will be error checked in JNI and will throw an appropriate
+     * {@link RuntimeException} if used incorrectly.
      *
      * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
      *
-     * @param index Index of row to fetch./
-     * @return Safe row wrapper object.
+     * @param index the index of row to fetch.
+     * @return the safe row wrapper object.
      */
     public CheckedRow getCheckedRow(long index) {
         return CheckedRow.get(context, this, index);
@@ -961,12 +960,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      * Sets the value for a (binary) cell.
      *
-     * @param columnIndex
-     *            column index of the cell
-     * @param rowIndex
-     *            row index of the cell
-     * @param data
-     *            the ByteBuffer must be allocated with ByteBuffer.allocateDirect(len)
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param data the ByteBuffer must be allocated with {@code ByteBuffer.allocateDirect(len)}.
      */
 
     /*
@@ -996,11 +992,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      * Sets the value for a (mixed typed) cell.
      *
-     * @param columnIndex
-     *            column index of the cell
-     * @param rowIndex
-     *            row index of the cell
-     * @param data
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param data the value.
      */
     @Override
     public void setMixed(long columnIndex, long rowIndex, Mixed data) {
@@ -1044,15 +1038,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Define a primary key for this table. This needs to be called manually before inserting data
-     * into the table.
+     * Define a primary key for this table. This needs to be called manually before inserting data into the table.
      *
-     * @param columnName    Name of the field that will function primary key. "" or <code>null</code>
-     *                      will remove any previous set magic key.
-     *
-     * @throws              {@link io.realm.exceptions.RealmException} if it is not possible to set
-     *                      the primary key due to the column not having distinct values (i.e.
-     *                      violating the primary key constraint).
+     * @param columnName the name of the field that will function primary key. "" or {@code null} will remove any
+     *                   previous set magic key.
+     * @throws {@link io.realm.exceptions.RealmException} if it is not possible to set the primary key due to the column
+     * not having distinct values (i.e. violating the primary key constraint).
      */
     public void setPrimaryKey(String columnName) {
         Table pkTable = getPrimaryKeyTable();
@@ -1546,8 +1537,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     /**
      * Compares the schema of the current instance of Table with another instance.
-     * @param table The instance to compare with. It cannot be null.
-     * @return true if the two instances have the same schema (column names and types)
+     *
+     * @param table the instance to compare with. It cannot be null.
+     * @return {@code true} if the two instances have the same schema (column names and types).
      */
     public boolean hasSameSchema(Table table) {
         if (table == null) {

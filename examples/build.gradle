@@ -7,14 +7,17 @@ props.each { key, val ->
     project.set(key, val)
 }
 
+// Don't cache SNAPSHOT (changing) dependencies.
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 allprojects {
     def currentVersion = file("${rootDir}/../version.txt").text.trim()
 
     buildscript {
         repositories {
-            maven {
-                url "${System.env.ANDROID_HOME}/extras/android/m2repository"
-            }
+            mavenLocal()
             jcenter()
         }
         dependencies {
@@ -30,9 +33,7 @@ allprojects {
     version = currentVersion
 
     repositories {
-        maven {
-            url "${System.env.ANDROID_HOME}/extras/android/m2repository"
-        }
+        mavenLocal()
         jcenter()
     }
 }

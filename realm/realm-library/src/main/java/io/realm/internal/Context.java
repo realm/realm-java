@@ -30,8 +30,8 @@ public class Context {
     // whose disposal need to be handed over from the garbage 
     // collection thread to the users thread.
 
-    // Reserved to be used only as a placeholder by rowReferences Map to avoid autoboxing allocations
-    static final Integer ROW_REFERENCES_VALUE = 0;
+    // Reserved to be used only as a placeholder by native references Map to avoid autoboxing allocations
+    static final Integer NATIVE_REFERENCES_VALUE = 0;
 
     private List<Long> abandonedTables = new ArrayList<Long>();
     private List<Long> abandonedTableViews = new ArrayList<Long>();
@@ -62,14 +62,14 @@ public class Context {
             }
             abandonedQueries.clear();
 
-            cleanRows();
+            cleanNativeReferences();
         }
     }
 
-    public void cleanRows() {
+    public void cleanNativeReferences() {
         NativeObjectReference reference = (NativeObjectReference) referenceQueue.poll();
         while (reference != null) {
-            UncheckedRow.nativeClose(reference.nativePointer);
+            reference.clear();
             rowReferences.remove(reference);
             reference = (NativeObjectReference) referenceQueue.poll();
         }

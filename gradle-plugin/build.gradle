@@ -23,14 +23,6 @@ targetCompatibility = 1.6
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim();
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
-        }
-    }
-}
-
 //for Ant filter
 import org.apache.tools.ant.filters.ReplaceTokens
 
