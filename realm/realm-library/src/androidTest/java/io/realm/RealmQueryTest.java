@@ -1103,14 +1103,14 @@ public class RealmQueryTest extends AndroidTestCase {
         assertEquals(2, testRealm.where(NullTypes.class).isNull(
                 NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_DATE_NULL).count());
         // 11 Object
-        // FIXME: Currently, Realm Core does not support isNull() query for nested link field.
+        // FIXME: Currently not support by Realm core
         //assertEquals(1, testRealm.where(NullTypes.class).isNull(
         //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
         try {
             testRealm.where(NullTypes.class).isNull(
-                    NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
+                    NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count();
             fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmError ignored) {
         }
     }
 
@@ -1228,12 +1228,12 @@ public class RealmQueryTest extends AndroidTestCase {
         // 11 Object
         //assertEquals(1, testRealm.where(NullTypes.class).isNotNull(
         //        NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count());
-        // FIXME: Currently, Realm Core does not support isNotNull() query for nested link field.
+        // FIXME: Currently, link queries don't work fully on null
         try {
             testRealm.where(NullTypes.class).isNotNull(
-                    NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL);
+                    NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_OBJECT_NULL).count();
             fail();
-        } catch (IllegalArgumentException ignored) {
+        } catch (RealmError ignored) {
         }
     }
 
