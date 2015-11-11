@@ -45,7 +45,7 @@ public class RealmAsyncTask {
         // accumulate in work queues, which may causes a memory leak
         // if the task hold references (to an enclosing class for example)
         // we can use purge() but one caveat applies: if a second thread attempts to add
-        // something to the pool (suing the execute() method) at the same time the
+        // something to the pool (using the execute() method) at the same time the
         // first thread is attempting to purge the queue the attempt to purge
         // the queue fails and the cancelled object remain in the queue.
         // A better way to cancel objects with thread pools is to use the remove()

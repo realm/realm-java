@@ -1,8 +1,9 @@
 0.85.0
+ * BREAKING CHANGE: Realm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
  * Added Realm.isEmpty().
  * RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
  * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed, from different Realm) object (#1749).
- * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712) 
+ * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712).
  * The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle)
 
 0.84.2
