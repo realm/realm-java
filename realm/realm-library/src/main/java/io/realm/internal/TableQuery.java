@@ -425,12 +425,12 @@ public class TableQuery implements Closeable {
     }
 
     /**
-     * Perform a find query then handover the resulted Row (ready to be imported by another
-     * thread/shared_group).
-     * @param bgSharedGroupPtr current shared_group from which to operate the query
-     * @param nativeReplicationPtr replication pointer associated with the shared_group
-     * @param ptrQuery query to run the the find against
-     * @return pointer to the handover result (table_view)
+     * Performs a find query then handover the resulted Row (ready to be imported by another thread/shared_group).
+     *
+     * @param bgSharedGroupPtr current shared_group from which to operate the query.
+     * @param nativeReplicationPtr replication pointer associated with the shared_group.
+     * @param ptrQuery query to run the the find against.
+     * @return pointer to the handover result (table_view).
      */
     public long findWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long ptrQuery) {
         validateQuery();
@@ -514,7 +514,8 @@ public class TableQuery implements Closeable {
     }
 
     /**
-     * Handover the query, so it can be used by other SharedGroup (in different thread)
+     * Handovers the query, so it can be used by other SharedGroup (in different thread)
+     *
      * @param callerSharedGroupPtr native pointer to the SharedGroup holding the query
      * @return native pointer to the handover query
      */

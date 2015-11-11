@@ -1367,8 +1367,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
 {
     Table* pTable = TBL(nativeTablePtr);
 
-    jsize arr_len = env->GetArrayLength(columnIndices);
-    jsize asc_len = env->GetArrayLength(ascending);
+    JniLongArray long_arr(env, columnIndices);
+    JniBooleanArray bool_arr(env, ascending);
+    jsize arr_len = long_arr.len();
+    jsize asc_len = bool_arr.len();
+
     if (arr_len == 0) {
         ThrowException(env, IllegalArgument, "You must provide at least one field name.");
         return 0;
@@ -1382,15 +1385,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
         return 0;
     }
 
-    jlong *long_arr = env->GetLongArrayElements(columnIndices, NULL);
-    jboolean *bool_arr = env->GetBooleanArrayElements(ascending, NULL);
-
     std::vector<size_t> indices(S(arr_len));
     std::vector<bool> ascendings(S(arr_len));
 
     for (int i = 0; i < arr_len; ++i) {
-        if (!TBL_AND_COL_INDEX_VALID(env, pTable, S(long_arr[i]) ))
+        if (!TBL_AND_COL_INDEX_VALID(env, pTable, S(long_arr[i]) )) {
             return 0;
+        }
         int colType = pTable->get_column_type( S(long_arr[i]) );
         switch (colType) {
             case type_Int:
@@ -1407,9 +1408,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeGetSortedViewMulti(
                 return 0;
         }
     }
-
-    env->ReleaseLongArrayElements(columnIndices, long_arr, 0);
-    env->ReleaseBooleanArrayElements(ascending, bool_arr, 0);
 
     try {
         TableView* pTableView = new TableView(pTable->get_sorted_view(indices, ascendings));

@@ -20,8 +20,7 @@ package io.realm.internal.async;
 import io.realm.Sort;
 
 /**
- * Value holder class to encapsulate the arguments of a RealmQuery
- * (in case we want to re-query)
+ * Value holder class to encapsulate the arguments of a RealmQuery (in case we want to re-query).
  */
 public class ArgumentsHolder {
     public final static int TYPE_FIND_ALL = 0;

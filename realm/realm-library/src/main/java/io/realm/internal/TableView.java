@@ -25,24 +25,19 @@ import io.realm.Sort;
 
 
 /**
- * This class represents a view of a particular table. We can think of
- * a tableview is a subset of a table. It contains less than or
- * equal to the number of entries of a table. A table view is often a
- * result of a query.
+ * This class represents a view of a particular table. We can think of a tableview is a subset of a table. It contains
+ * less than or equal to the number of entries of a table. A table view is often a result of a query.
  *
- * The view don't copy data from the table, but merely has a list of
- * row-references into the original table with the real data.
+ * The view don't copy data from the table, but merely has a list of row-references into the original table with the
+ * real data.
  *
- * The class serves as a base class of all table view. It is a raw level table view, users
- * are not encouraged to use this class. Instead users are advised to use
- * the generated subclass version of the table.
+ * The class serves as a base class of all table view. It is a raw level table view, users are not encouraged to use
+ * this class. Instead users are advised to use the generated subclass version of the table.
  *
- * Let us assume we are going to keep track of a table to store the employees
- * of a company or an organization.
+ * Let us assume we are going to keep track of a table to store the employees of a company or an organization.
  *
- * Following is a small example how to use the auto-generated class of the
- * tableview. For that purpose we will first define the spec of an employee
- * entity
+ * Following is a small example how to use the auto-generated class of the tableview. For that purpose we will first
+ * define the spec of an employee entity
  *
  *  @DefineTable
  *  public class employee {
@@ -59,11 +54,9 @@ import io.realm.Sort;
  * 2. EmployeeTable
  * 3. EmployeeView.
  *
- * In this class context our interest is EmployeeView which will be inherited from
- * this class.
+ * In this class context our interest is EmployeeView which will be inherited from this class.
  *
  * The generated class will have more specialized method to do operations on TableView.
- *
  */
 public class TableView implements TableOrView, Closeable {
     protected boolean DEBUG = false; //true;
@@ -87,14 +80,13 @@ public class TableView implements TableOrView, Closeable {
     }
 
     /**
-     * Creates a TableView with already created Java TableView Object and a
-     * native native TableView object reference. The method is not supposed to
-     * be called by the user of the db. The method is for internal use only.
+     * Creates a TableView with already created Java TableView Object and a native native TableView object reference.
+     * The method is not supposed to be called by the user of the db. The method is for internal use only.
      *
      * @param context
      * @param parent A table.
      * @param nativePtr pointer to table view.
-     * @param query a reference to the query which the table view is based
+     * @param query a reference to the query which the table view is based.
      */
     protected TableView(Context context, Table parent, long nativePtr, TableQuery query) {
         this.context = context;
@@ -137,7 +129,7 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Checks whether this table is empty or not.
      *
-     * @return true if empty, otherwise false.
+     * @return {@code true} if empty, otherwise {@code false}.
      */
     @Override
     public boolean isEmpty(){
@@ -145,9 +137,9 @@ public class TableView implements TableOrView, Closeable {
     }
 
     /**
-     * Get the number of entries/rows of this table.
+     * Gets the number of entries/rows of this table.
      *
-     * @return The number of rows.
+     * @return the number of rows.
      */
     @Override
     public long size() {
@@ -157,9 +149,10 @@ public class TableView implements TableOrView, Closeable {
     protected native long nativeSize(long nativeViewPtr);
 
     /**
-     * Returns the index of the row in the source table
-     * @param rowIndex in the TableView
-     * @return the translated row number in the source table
+     * Returns the index of the row in the source table.
+     *
+     * @param rowIndex row index in the TableView.
+     * @return the translated row number in the source table.
      */
     public long getSourceRowIndex(long rowIndex) {
         return nativeGetSourceRowIndex(nativePtr, rowIndex);
@@ -180,11 +173,10 @@ public class TableView implements TableOrView, Closeable {
     protected native long nativeGetColumnCount(long nativeViewPtr);
 
     /**
-     * Returns the name of a column identified by columnIndex. Notice that the
-     * index is zero based.
+     * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
      *
-     * @param columnIndex the column index
-     * @return the name of the column
+     * @param columnIndex the column index.
+     * @return the name of the column.
      */
     @Override
     public String getColumnName(long columnIndex) {
@@ -196,8 +188,8 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Returns the 0-based index of a column based on the name.
      *
-     * @param columnName column name
-     * @return the index, -1 if not found
+     * @param columnName column name.
+     * @return the index, {@code -1} if not found.
      */
     @Override
     public long getColumnIndex(String columnName) {
@@ -210,10 +202,10 @@ public class TableView implements TableOrView, Closeable {
 
 
     /**
-     * Get the type of a column identified by the columnIndex.
+     * Gets the type of a column identified by the columnIndex.
      *
      * @param columnIndex index of the column.
-     * @return Type of the particular column.
+     * @return type of the particular column.
      */
     @Override
     public RealmFieldType getColumnType(long columnIndex) {
@@ -223,7 +215,7 @@ public class TableView implements TableOrView, Closeable {
     protected native int nativeGetColumnType(long nativeViewPtr, long columnIndex);
 
     /**
-     * Get the value of the particular (integer) cell.
+     * Gets the value of the particular (integer) cell.
      *
      * @param columnIndex 0 based index value of the column.
      * @param rowIndex 0 based row value of the column.
@@ -237,7 +229,7 @@ public class TableView implements TableOrView, Closeable {
     protected native long nativeGetLong(long nativeViewPtr, long columnIndex, long rowIndex);
 
     /**
-     * Get the value of the particular (boolean) cell.
+     * Gets the value of the particular (boolean) cell.
      *
      * @param columnIndex 0 based index value of the cell column.
      * @param rowIndex 0 based index of the row.
@@ -251,7 +243,7 @@ public class TableView implements TableOrView, Closeable {
     protected native boolean nativeGetBoolean(long nativeViewPtr, long columnIndex, long rowIndex);
 
     /**
-     * Get the value of the particular (float) cell.
+     * Gets the value of the particular (float) cell.
      *
      * @param columnIndex 0 based index value of the cell column.
      * @param rowIndex 0 based index of the row.
@@ -265,7 +257,7 @@ public class TableView implements TableOrView, Closeable {
     protected native float nativeGetFloat(long nativeViewPtr, long columnIndex, long rowIndex);
 
     /**
-     * Get the value of the particular (double) cell.
+     * Gets the value of the particular (double) cell.
      *
      * @param columnIndex 0 based index value of the cell column.
      * @param rowIndex 0 based index of the row.
@@ -279,7 +271,7 @@ public class TableView implements TableOrView, Closeable {
     protected native double nativeGetDouble(long nativeViewPtr, long columnIndex, long rowIndex);
 
     /**
-     * Get the value of the particular (date) cell.
+     * Gets the value of the particular (date) cell.
      *
      * @param columnIndex 0 based index value of the cell column.
      * @param rowIndex 0 based index of the row.
@@ -293,11 +285,11 @@ public class TableView implements TableOrView, Closeable {
     protected native long nativeGetDateTimeValue(long nativeViewPtr, long columnIndex, long rowIndex);
 
     /**
-     * Get the value of a (string )cell.
+     * Gets the value of a (string )cell.
      *
-     * @param columnIndex 0 based index value of the column
+     * @param columnIndex 0 based index value of the column.
      * @param rowIndex 0 based index of the row.
-     * @return value of the particular cell
+     * @return value of the particular cell.
      */
     @Override
     public String getString(long columnIndex, long rowIndex){
@@ -308,10 +300,10 @@ public class TableView implements TableOrView, Closeable {
 
 
     /**
-     * Get the  value of a (binary) cell.
+     * Gets the  value of a (binary) cell.
      *
-     * @param columnIndex 0 based index value of the cell column
-     * @param rowIndex 0 based index value of the cell row
+     * @param columnIndex 0 based index value of the cell column.
+     * @param rowIndex 0 based index value of the cell row.
      * @return value of the particular cell.
      */
     /*
@@ -389,9 +381,9 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Sets the value for a particular (integer) cell.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param value
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param value the value.
      */
     @Override
     public void setLong(long columnIndex, long rowIndex, long value){
@@ -404,9 +396,9 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Sets the value for a particular (boolean) cell.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param value
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param value the value.
      */
     @Override
     public void setBoolean(long columnIndex, long rowIndex, boolean value){
@@ -419,9 +411,9 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Sets the value for a particular (float) cell.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param value
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param value the value.
      */
     @Override
     public void setFloat(long columnIndex, long rowIndex, float value){
@@ -434,9 +426,9 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Sets the value for a particular (double) cell.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param value
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param value the value.
      */
     @Override
     public void setDouble(long columnIndex, long rowIndex, double value){
@@ -449,9 +441,9 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Sets the value for a particular (date) cell.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param value
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param value the value.
      */
     @Override
     public void setDate(long columnIndex, long rowIndex, Date value){
@@ -464,9 +456,9 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Sets the value for a particular (sting) cell.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param value
+     * @param columnIndex column index of the.
+     * @param rowIndex row index of the cell.
+     * @param value the value.
      */
     @Override
     public void setString(long columnIndex, long rowIndex, String value){
@@ -479,9 +471,9 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Sets the value for a particular (binary) cell.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param data
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param data the value.
      */
     /*
     @Override
@@ -504,9 +496,9 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Sets the value for a particular (mixed typed) cell.
      *
-     * @param columnIndex column index of the cell
-     * @param rowIndex row index of the cell
-     * @param data
+     * @param columnIndex column index of the cell.
+     * @param rowIndex row index of the cell.
+     * @param data the value.
      */
     @Override
     public void setMixed(long columnIndex, long rowIndex, Mixed data){
@@ -549,7 +541,7 @@ public class TableView implements TableOrView, Closeable {
      * Removes a particular row identified by the index from the tableview.
      * The corresponding row of the underlying table also get deleted.
      *
-     * @param rowIndex the row index
+     * @param rowIndex the row index.
      */
     @Override
     public void remove(long rowIndex){
@@ -722,14 +714,12 @@ public class TableView implements TableOrView, Closeable {
     //
 
     /**
-     * Calculate the sum of the values in a particular column of this
-     * tableview.
+     * Calculate the sum of the values in a particular column of this tableview.
      *
-     * Note: the type of the column marked by the columnIndex has to be of
-     * type RealmFieldType.ColumnTypeInt.
+     * Note: the type of the column marked by the columnIndex has to be of type RealmFieldType.INTEGER.
      *
-     * @param columnIndex column index
-     * @return the sum of the values in the column
+     * @param columnIndex column index.
+     * @return the sum of the values in the column.
      */
     @Override
     public long sumLong(long columnIndex){
@@ -741,11 +731,11 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Returns the maximum value of the cells in a column.
      *
-     * Note: for this method to work the Type of the column
-     * identified by the columnIndex has to be RealmFieldType.ColumnTypeInt.
+     * Note: for this method to work the Type of the column identified by the columnIndex has to be
+     * RealmFieldType.INTEGER.
      *
-     * @param columnIndex column index
-     * @return the maximum value
+     * @param columnIndex column index.
+     * @return the maximum value.
      */
     @Override
     public Long maximumLong(long columnIndex){
@@ -757,11 +747,11 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Returns the minimum value of the cells in a column.
      *
-     * Note: for this method to work the Type of the column
-     * identified by the columnIndex has to be RealmFieldType.ColumnTypeInt.
+     * Note: for this method to work the Type of the column identified by the columnIndex has to be
+     * RealmFieldType.INTEGER.
      *
-     * @param columnIndex column index
-     * @return the minimum value
+     * @param columnIndex column index.
+     * @return the minimum value.
      */
     @Override
     public Long minimumLong(long columnIndex){

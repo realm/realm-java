@@ -18,10 +18,8 @@ package io.realm.internal;
 
 
 /**
- * Can be thrown when realm runs out of memory.
- * A JVM that catches this will be able to cleanup, e.g. release other resources
- * to avoid also running out of memory.
- *
+ * Can be thrown when Realm runs out of memory.
+ * A JVM that catches this will be able to cleanup, e.g. release other resources to avoid also running out of memory.
  */
 @SuppressWarnings("serial")
 @Keep
