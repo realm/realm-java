@@ -559,7 +559,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         DynamicRealmObject dog2 = realm.createObject(className);
         dog2.setInt("age", 2);
 
-        DOG_SCHEMA.forEach(new RealmObjectSchema.Transformer() {
+        DOG_SCHEMA.tranform(new RealmObjectSchema.Function() {
             @Override
             public void apply(DynamicRealmObject obj) {
                 obj.setInt("age", obj.getInt("age") + 1);

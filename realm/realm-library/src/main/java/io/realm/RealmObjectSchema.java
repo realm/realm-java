@@ -415,16 +415,16 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Runs a transformation on each RealmObject instance of the current class. The object will be represented as a
-     * {@link DynamicRealmObject}.
+     * Runs a transformation function on each RealmObject instance of the current class. The object will be represented
+     * as a {@link DynamicRealmObject}.
      *
      * @return this schema.
      */
-    public RealmObjectSchema forEach(Transformer transformer) {
-        if (transformer != null) {
+    public RealmObjectSchema transform(Function function) {
+        if (function != null) {
             long size = table.size();
             for (long i = 0; i < size; i++) {
-                transformer.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
+                function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
             }
         }
 
@@ -521,11 +521,11 @@ public final class RealmObjectSchema {
     }
 
     /**
-     * Transformer interface for traversing all objects of the current class and apply a transformation on each.
+     * Function interface, used when traversing all objects of the current class and apply a function on each.
      *
-     * @see #forEach(Transformer)
+     * @see #transform(Function)
      */
-    public interface Transformer {
+    public interface Function {
         void apply(DynamicRealmObject obj);
     }
 

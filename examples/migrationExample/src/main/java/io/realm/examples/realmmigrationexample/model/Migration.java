@@ -60,7 +60,7 @@ public class Migration implements RealmMigration {
             // Combine 'firstName' and 'lastName' in a new field called 'fullName'
             personSchema
                     .addField("fullName", String.class, FieldAttribute.REQUIRED)
-                    .forEach(new RealmObjectSchema.Transformer() {
+                    .transform(new RealmObjectSchema.Function() {
                         @Override
                         public void apply(DynamicRealmObject obj) {
                             obj.set("fullName", obj.getString("firstName") + " " + obj.getString("lastName"));
@@ -96,7 +96,7 @@ public class Migration implements RealmMigration {
             // Add a new field to an old class and populate it with initial data
             schema.get("Person")
                 .addRealmListField("pets", petSchema)
-                .forEach(new RealmObjectSchema.Transformer() {
+                .transform(new RealmObjectSchema.Function() {
                     @Override
                     public void apply(DynamicRealmObject obj) {
                         if (obj.getString("fullName").equals("JP McDonald")) {
@@ -130,7 +130,7 @@ public class Migration implements RealmMigration {
             // Change type from String to int
             schema.get("Pet")
                 .addField("type_tmp", int.class)
-                .forEach(new RealmObjectSchema.Transformer() {
+                .transform(new RealmObjectSchema.Function() {
                     @Override
                     public void apply(DynamicRealmObject obj) {
                         String oldType = obj.getString("type");
