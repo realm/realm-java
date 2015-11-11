@@ -136,7 +136,7 @@ jclass GetClass(JNIEnv* env, const char* classStr);
 
 // Debug trace
 extern int trace_level;
-extern const char* log_tag;
+extern const char *log_tag;
 
 #if TRACE
   #if defined(ANDROID)
@@ -669,7 +669,5 @@ inline jobject NewFloat(JNIEnv* env, float value)
 {
     return env->NewObject(java_lang_float, java_lang_float_init, value);
 }
-
-extern const char* const TABLE_PREFIX;
 
 #endif // REALM_JAVA_UTIL_HPP

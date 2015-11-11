@@ -224,16 +224,6 @@ public class Group implements Closeable {
         return nativeWriteToMem(nativePtr);
     }
 
-    /*
-     * Check if the Group contains any objects. It only checks for "class_" tables or non-metadata tables, e.g. this
-     * return true if the "pk" table contained information.
-     *
-     * @return {@code true} if empty, @{code false} otherwise.
-     */
-    public boolean isObjectTablesEmpty() {
-        return nativeIsEmpty(nativePtr);
-    }
-
 /*
  * TODO: Find a way to release the malloc'ed native memory automatically
 
@@ -277,5 +267,4 @@ public class Group implements Closeable {
     protected native String nativeToJson(long nativeGroupPtr);
     protected native void nativeCommit(long nativeGroupPtr);
     protected native String nativeToString(long nativeGroupPtr);
-    protected native boolean nativeIsEmpty(long nativeGroupPtr);
 }

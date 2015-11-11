@@ -29,9 +29,7 @@ using std::string;
 
 // used by logging
 int trace_level = 0;
-const char* log_tag = "REALM";
-
-const char* const TABLE_PREFIX = "class_";
+const char *log_tag = "REALM";
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*)
 {
@@ -73,12 +71,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Util_nativeSetDebugLevel(JNIEnv*, 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Util_nativeGetMemUsage(JNIEnv*, jclass)
 {
     return GetMemUsage();
-}
-
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix(
-    JNIEnv* env, jclass)
-{
-    return to_jstring(env, string(TABLE_PREFIX));
 }
 
 // -------------------------- Testcases for exception handling

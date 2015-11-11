@@ -2338,33 +2338,4 @@ public class RealmTest extends AndroidTestCase {
             throw exception.get(0);
         }
     }
-
-    public void testIsEmpty() {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "empty_test.realm");
-        Realm.deleteRealm(realmConfig);
-        Realm emptyRealm = Realm.getInstance(realmConfig);
-
-        assertTrue(emptyRealm.isEmpty());
-
-        emptyRealm.beginTransaction();
-        PrimaryKeyAsLong obj = new PrimaryKeyAsLong();
-        obj.setId(1);
-        obj.setName("Foo");
-        emptyRealm.copyToRealm(obj);
-        assertFalse(emptyRealm.isEmpty());
-        emptyRealm.cancelTransaction();
-
-        assertTrue(emptyRealm.isEmpty());
-
-        emptyRealm.beginTransaction();
-        obj = new PrimaryKeyAsLong();
-        obj.setId(1);
-        obj.setName("Foo");
-        emptyRealm.copyToRealm(obj);
-        emptyRealm.commitTransaction();
-
-        assertFalse(emptyRealm.isEmpty());
-
-        emptyRealm.close();
-    }
 }

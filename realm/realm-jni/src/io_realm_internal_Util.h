@@ -25,14 +25,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Util_nativeSetDebugLevel
 
 /*
  * Class:     io_realm_internal_Util
- * Method:    nativeGetTablePrefix
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeGetTablePrefix
-  (JNIEnv *, jclass);
-
-/*
- * Class:     io_realm_internal_Util
  * Method:    nativeTestcase
  * Signature: (IZJ)Ljava/lang/String;
  */
