@@ -286,12 +286,6 @@ public class RealmProxyClassGenerator {
                     writer.emitStatement("row.nullifyLink(%s)", fieldIndexVariableReference(field));
                     writer.emitStatement("return");
                 writer.endControlFlow();
-                writer.beginControlFlow("if (!value.isValid())");
-                    writer.emitStatement("throw new IllegalArgumentException(\"'value' is not a valid managed object.\")");
-                writer.endControlFlow();
-                writer.beginControlFlow("if (value.realm != this.realm)");
-                    writer.emitStatement("throw new IllegalArgumentException(\"'value' belongs to a different Realm.\")");
-                writer.endControlFlow();
                 writer.emitStatement("row.setLink(%s, value.row.getIndex())", fieldIndexVariableReference(field));
                 writer.endMethod();
             } else if (Utils.isRealmList(field)) {
@@ -333,13 +327,7 @@ public class RealmProxyClassGenerator {
                     writer.emitStatement("return");
                 writer.endControlFlow();
                 writer.beginControlFlow("for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value)");
-                    writer.beginControlFlow("if (!linkedObject.isValid())");
-                        writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must be a valid managed object.\")");
-                    writer.endControlFlow();
-                    writer.beginControlFlow("if (linkedObject.realm != this.realm)");
-                        writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must belong to the same Realm.\")");
-                    writer.endControlFlow();
-                    writer.emitStatement("links.add(linkedObject.row.getIndex())");
+                        writer.emitStatement("links.add(linkedObject.row.getIndex())");
                 writer.endControlFlow();
                 writer.endMethod();
             } else {

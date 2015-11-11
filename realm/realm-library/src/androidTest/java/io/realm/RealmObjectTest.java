@@ -29,7 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
@@ -66,6 +65,7 @@ public class RealmObjectTest extends AndroidTestCase {
 
     // Row realmGetRow()
     public void testRealmGetRowReturnsValidRow() {
+
         testRealm.beginTransaction();
         RealmObject realmObject = testRealm.createObject(AllTypes.class);
 
@@ -224,6 +224,7 @@ public class RealmObjectTest extends AndroidTestCase {
     }
 
     public boolean methodWrongThread(final Method method) throws ExecutionException, InterruptedException {
+
         testRealm = Realm.getInstance(getContext());
         testRealm.beginTransaction();
         testRealm.createObject(AllTypes.class);
@@ -414,6 +415,7 @@ public class RealmObjectTest extends AndroidTestCase {
         } catch (Exception ignored) {
             fail();
         }
+
     }
 
     public void testSetNullLink() {
@@ -434,292 +436,6 @@ public class RealmObjectTest extends AndroidTestCase {
         }
         testRealm.commitTransaction();
         assertNull(objA.getObject());
-    }
-
-    public void testSetStandaloneObjectToLink() {
-        CyclicType standalone = new CyclicType();
-
-        testRealm.beginTransaction();
-        try {
-            CyclicType target = testRealm.createObject(CyclicType.class);
-
-            try {
-                target.setObject(standalone);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
-    }
-
-    public void testSetRemovedObjectToLink() {
-        testRealm.beginTransaction();
-        try {
-            CyclicType target = testRealm.createObject(CyclicType.class);
-
-            CyclicType removed = testRealm.createObject(CyclicType.class);
-            removed.removeFromRealm();
-
-            try {
-                target.setObject(removed);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
-    }
-
-    public void testSetClosedObjectToLink() {
-        testRealm.beginTransaction();
-        CyclicType closed = testRealm.createObject(CyclicType.class);
-        testRealm.commitTransaction();
-        testRealm.close();
-        assertTrue(testRealm.isClosed());
-
-        testRealm = Realm.getInstance(realmConfig);
-        testRealm.beginTransaction();
-        try {
-            CyclicType target = testRealm.createObject(CyclicType.class);
-
-            try {
-                target.setObject(closed);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
-    }
-
-    public void testSetObjectFromAnotherRealmToLink() {
-        Realm anotherRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                .name("another.realm").build());
-        //noinspection TryFinallyCanBeTryWithResources
-        try {
-            anotherRealm.beginTransaction();
-            CyclicType objFromAnotherRealm = anotherRealm.createObject(CyclicType.class);
-            anotherRealm.commitTransaction();
-
-            testRealm.beginTransaction();
-            try {
-                CyclicType target = testRealm.createObject(CyclicType.class);
-
-                try {
-                    target.setObject(objFromAnotherRealm);
-                    fail();
-                } catch (IllegalArgumentException ignored) {
-                }
-            } finally {
-                testRealm.cancelTransaction();
-            }
-        } finally {
-            anotherRealm.close();
-        }
-    }
-
-    public void testSetObjectFromAnotherThreadToLink() throws InterruptedException {
-        final CountDownLatch createLatch = new CountDownLatch(1);
-        final CountDownLatch testEndLatch = new CountDownLatch(1);
-
-        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<>();
-
-        java.lang.Thread thread = new java.lang.Thread() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-
-                // 1. create an object
-                realm.beginTransaction();
-                objFromAnotherThread.set(realm.createObject(CyclicType.class));
-                realm.commitTransaction();
-
-                createLatch.countDown();
-                try {
-                    testEndLatch.await();
-                } catch (InterruptedException ignored) {
-                }
-
-                // 3. close Realm in this thread and finish.
-                realm.close();
-            }
-        };
-        thread.start();
-
-        createLatch.await();
-        // 2. set created object to target
-        testRealm.beginTransaction();
-        try {
-            CyclicType target = testRealm.createObject(CyclicType.class);
-            try {
-                target.setObject(objFromAnotherThread.get());
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        } finally {
-            testEndLatch.countDown();
-            testRealm.cancelTransaction();
-        }
-
-        // wait for finishing the thread
-        thread.join();
-    }
-
-    public void testSetStandaloneObjectToLinkLists() {
-        CyclicType standalone = new CyclicType();
-
-        testRealm.beginTransaction();
-        try {
-            CyclicType target = testRealm.createObject(CyclicType.class);
-
-            RealmList<CyclicType> list = new RealmList<>();
-            list.add(testRealm.createObject(CyclicType.class));
-            list.add(standalone);
-            list.add(testRealm.createObject(CyclicType.class));
-
-            try {
-                target.setObjects(list);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
-    }
-
-    public void testSetRemovedObjectToLinkLists() {
-        testRealm.beginTransaction();
-        try {
-            CyclicType target = testRealm.createObject(CyclicType.class);
-
-            CyclicType removed = testRealm.createObject(CyclicType.class);
-            removed.removeFromRealm();
-
-            RealmList<CyclicType> list = new RealmList<>();
-            list.add(testRealm.createObject(CyclicType.class));
-            list.add(removed);
-            list.add(testRealm.createObject(CyclicType.class));
-
-            try {
-                target.setObjects(list);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
-    }
-
-    public void testSetClosedObjectToLinkLists() {
-        testRealm.beginTransaction();
-        CyclicType closed = testRealm.createObject(CyclicType.class);
-        testRealm.commitTransaction();
-        testRealm.close();
-        assertTrue(testRealm.isClosed());
-
-        testRealm = Realm.getInstance(realmConfig);
-        testRealm.beginTransaction();
-        try {
-            CyclicType target = testRealm.createObject(CyclicType.class);
-
-            RealmList<CyclicType> list = new RealmList<>();
-            list.add(testRealm.createObject(CyclicType.class));
-            list.add(closed);
-            list.add(testRealm.createObject(CyclicType.class));
-
-            try {
-                target.setObjects(list);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
-    }
-
-    public void testSetObjectFromAnotherRealmToLinkLists() {
-        Realm anotherRealm = Realm.getInstance(new RealmConfiguration.Builder(getContext())
-                .name("another.realm").build());
-        //noinspection TryFinallyCanBeTryWithResources
-        try {
-            anotherRealm.beginTransaction();
-            CyclicType objFromAnotherRealm = anotherRealm.createObject(CyclicType.class);
-            anotherRealm.commitTransaction();
-
-            testRealm.beginTransaction();
-            try {
-                CyclicType target = testRealm.createObject(CyclicType.class);
-
-                RealmList<CyclicType> list = new RealmList<>();
-                list.add(testRealm.createObject(CyclicType.class));
-                list.add(objFromAnotherRealm);
-                list.add(testRealm.createObject(CyclicType.class));
-
-                try {
-                    target.setObjects(list);
-                    fail();
-                } catch (IllegalArgumentException ignored) {
-                }
-            } finally {
-                testRealm.cancelTransaction();
-            }
-        } finally {
-            anotherRealm.close();
-        }
-    }
-
-    public void testSetObjectFromAnotherThreadToLinkLists() throws InterruptedException {
-        final CountDownLatch createLatch = new CountDownLatch(1);
-        final CountDownLatch testEndLatch = new CountDownLatch(1);
-
-        final AtomicReference<CyclicType> objFromAnotherThread = new AtomicReference<>();
-
-        java.lang.Thread thread = new java.lang.Thread() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-
-                // 1. create an object
-                realm.beginTransaction();
-                objFromAnotherThread.set(realm.createObject(CyclicType.class));
-                realm.commitTransaction();
-
-                createLatch.countDown();
-                try {
-                    testEndLatch.await();
-                } catch (InterruptedException ignored) {
-                }
-
-                // 3. close Realm in this thread and finish.
-                realm.close();
-            }
-        };
-        thread.start();
-
-        createLatch.await();
-        // 2. set created object to target
-        testRealm.beginTransaction();
-        try {
-            CyclicType target = testRealm.createObject(CyclicType.class);
-
-            RealmList<CyclicType> list = new RealmList<>();
-            list.add(testRealm.createObject(CyclicType.class));
-            list.add(objFromAnotherThread.get());
-            list.add(testRealm.createObject(CyclicType.class));
-
-            try {
-                target.setObjects(list);
-                fail();
-            } catch (IllegalArgumentException ignored) {
-            }
-        } finally {
-            testEndLatch.countDown();
-            testRealm.cancelTransaction();
-        }
-
-        // wait for finishing the thread
-        thread.join();
     }
 
     public void testThreadModelClass() {

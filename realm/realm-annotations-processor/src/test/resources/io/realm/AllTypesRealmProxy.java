@@ -211,12 +211,6 @@ public class AllTypesRealmProxy extends AllTypes
             row.nullifyLink(columnInfo.columnObjectIndex);
             return;
         }
-        if (!value.isValid()) {
-            throw new IllegalArgumentException("'value' is not a valid managed object.");
-        }
-        if (value.realm != this.realm) {
-            throw new IllegalArgumentException("'value' belongs to a different Realm.");
-        }
         row.setLink(columnInfo.columnObjectIndex, value.row.getIndex());
     }
 
@@ -248,12 +242,6 @@ public class AllTypesRealmProxy extends AllTypes
             return;
         }
         for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value) {
-            if (!linkedObject.isValid()) {
-                throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
-            }
-            if (linkedObject.realm != this.realm) {
-                throw new IllegalArgumentException("Each element of 'value' must belong to the same Realm.");
-            }
             links.add(linkedObject.row.getIndex());
         }
     }
