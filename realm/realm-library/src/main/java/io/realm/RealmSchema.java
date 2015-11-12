@@ -20,8 +20,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
@@ -74,7 +72,9 @@ public final class RealmSchema {
         checkEmpty(className, EMPTY_STRING_MSG);
         String internalClassName = TABLE_PREFIX + className;
         if (transaction.hasTable(internalClassName)) {
-            return new RealmObjectSchema(realm, transaction, transaction.getTable(internalClassName), null);
+            Table table = transaction.getTable(internalClassName);
+            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
+            return new RealmObjectSchema(realm, table, columnIndices);
         } else {
             return null;
         }
@@ -94,7 +94,8 @@ public final class RealmSchema {
                 continue;
             }
             Table table = transaction.getTable(tableName);
-            schemas.add(new RealmObjectSchema(realm, transaction, table, null));
+            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
+            schemas.add(new RealmObjectSchema(realm, table, columnIndices));
         }
         return schemas;
     }
@@ -115,7 +116,8 @@ public final class RealmSchema {
             throw new IllegalArgumentException("Class already exists: " + className);
         }
         Table table = transaction.getTable(internalTableName);
-        return new RealmObjectSchema(realm, transaction, table, null);
+        RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
+        return new RealmObjectSchema(realm, table, columnIndices);
     }
 
     /**
@@ -148,7 +150,9 @@ public final class RealmSchema {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
         transaction.renameTable(oldInternalName, newInternalName);
-        return new RealmObjectSchema(realm, transaction, transaction.getTable(newInternalName), null);
+        Table table = transaction.getTable(newInternalName);
+        RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
+        return new RealmObjectSchema(realm, table, columnIndices);
     }
 
     /**
@@ -209,7 +213,7 @@ public final class RealmSchema {
         if (classSchema == null) {
             clazz = Util.getOriginalModelClass(clazz);
             Table table = transaction.getTable(realm.configuration.getSchemaMediator().getTableName(clazz));
-            classSchema = new RealmObjectSchema(realm, transaction, table, columnIndices.getColumnInfo(clazz).getIndicesMap());
+            classSchema = new RealmObjectSchema(realm, table, columnIndices.getColumnInfo(clazz).getIndicesMap());
             classToSchema.put(clazz, classSchema);
         }
         return classSchema;
@@ -223,7 +227,8 @@ public final class RealmSchema {
                 throw new IllegalArgumentException("The class " + className + " doesn't exist in this Realm.");
             }
             Table table = transaction.getTable(className);
-            dynamicSchema = new RealmObjectSchema(realm, transaction, table, null);
+            RealmObjectSchema.DynamicColumnMap columnIndices = new RealmObjectSchema.DynamicColumnMap(table);
+            dynamicSchema = new RealmObjectSchema(realm, table, columnIndices);
             dynamicClassToSchema.put(className, dynamicSchema);
         }
         return dynamicSchema;

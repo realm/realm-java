@@ -74,15 +74,15 @@ public final class RealmObjectSchema {
     /**
      * Creates a schema object for a given Realm class.
      *
-     * @param realm       Realm holding the objects.
-     * @param transaction transaction object for the current Realm.
-     * @param table       table representation of the Realm class
+     * @param realm Realm holding the objects.
+     * @param table table representation of the Realm class
+     * @param columnIndices mapping between field names and column indexes for the given table
      */
-    RealmObjectSchema(BaseRealm realm, ImplicitTransaction transaction, Table table, Map<String, Long> columnIndices) {
+    RealmObjectSchema(BaseRealm realm, Table table, Map<String, Long> columnIndices) {
         this.realm = realm;
-        this.transaction = transaction;
+        this.transaction = realm.sharedGroupManager.getTransaction();
         this.table = table;
-        this.columnIndices = (columnIndices != null) ? columnIndices : new DynamicColumnMap(table);
+        this.columnIndices = columnIndices;
     }
 
     /**
@@ -633,7 +633,7 @@ public final class RealmObjectSchema {
         }
     }
 
-    private static class DynamicColumnMap implements Map<String, Long> {
+    static class DynamicColumnMap implements Map<String, Long> {
         private final Table table;
 
         public DynamicColumnMap(Table table) {
