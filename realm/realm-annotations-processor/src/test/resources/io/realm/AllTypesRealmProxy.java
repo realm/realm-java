@@ -415,7 +415,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!json.isNull("columnString")) {
                 long rowIndex = table.findFirstString(pkColumnIndex, json.getString("columnString"));
                 if (rowIndex != TableOrView.NO_MATCH) {
-                    obj = new AllTypesRealmProxy(realm.getColumnInfo(AllTypes.class));
+                    obj = new AllTypesRealmProxy(realm.schema.getColumnInfo(AllTypes.class));
                     obj.realm = realm;
                     obj.row = table.getUncheckedRow(rowIndex);
                 }
@@ -604,7 +604,7 @@ public class AllTypesRealmProxy extends AllTypes
             }
             long rowIndex = table.findFirstString(pkColumnIndex, object.getColumnString());
             if (rowIndex != TableOrView.NO_MATCH) {
-                realmObject = new AllTypesRealmProxy(realm.getColumnInfo(AllTypes.class));
+                realmObject = new AllTypesRealmProxy(realm.schema.getColumnInfo(AllTypes.class));
                 realmObject.realm = realm;
                 realmObject.row = table.getUncheckedRow(rowIndex);
                 cache.put(object, (RealmObjectProxy) realmObject);
