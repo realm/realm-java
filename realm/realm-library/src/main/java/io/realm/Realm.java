@@ -174,7 +174,7 @@ public final class Realm extends BaseRealm {
      * @param context a non-null Android {@link android.content.Context}
      * @return an instance of the Realm class.
      * @throws java.lang.IllegalArgumentException if no {@link Context} is provided.
-     * @throws RealmMigrationNeededException if the model classes no longer match the underlying Realm and it must be
+     * @throws RealmMigrationNeededException if the RealmObject classes no longer match the underlying Realm and it must be
      * migrated.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      */
@@ -191,7 +191,7 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class.
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
-     * model classes or version has has changed so a migration is required.
+     * RealmObject classes or version has has changed so a migration is required.
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
@@ -205,7 +205,7 @@ public final class Realm extends BaseRealm {
      *
      * @param configuration {@link RealmConfiguration} used to open the Realm
      * @return an instance of the Realm class
-     * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the model
+     * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the RealmObject
      * classes or version has has changed so a migration is required.
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      * @see RealmConfiguration for details on how to configure a Realm.
@@ -1116,12 +1116,6 @@ public final class Realm extends BaseRealm {
      */
     public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
         BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
-
-            @Override
-            public BaseRealm getRealm(RealmConfiguration configuration) {
-                return Realm.createAndValidate(configuration, false, Looper.myLooper() != null);
-           }
-
             @Override
             public void migrationComplete() {
                 realmsCache.remove();

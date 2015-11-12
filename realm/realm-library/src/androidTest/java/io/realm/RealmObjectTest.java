@@ -1104,7 +1104,7 @@ public class RealmObjectTest extends AndroidTestCase {
                 .name("columnSwapped.realm")
                 .migration(new RealmMigration() {
                     @Override
-                    public long execute(Realm realm, long version) {
+                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                         final Table table = realm.getTable(StringAndInt.class);
                         final long strIndex = table.getColumnIndex("str");
                         final long numberIndex = table.getColumnIndex("number");
@@ -1123,8 +1123,6 @@ public class RealmObjectTest extends AndroidTestCase {
                             table.addColumn(RealmFieldType.INTEGER, "number");
                         }
                         table.convertColumnToNullable(newStrIndex);
-
-                        return 1L;
                     }
                 })
                 .build();
@@ -1132,8 +1130,8 @@ public class RealmObjectTest extends AndroidTestCase {
                 .name("columnSwapped.realm")
                 .migration(new RealmMigration() {
                     @Override
-                    public long execute(Realm realm, long version) {
-                        return 1L;
+                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                        // Do nothing
                     }
                 })
                 .schemaVersion(1L)

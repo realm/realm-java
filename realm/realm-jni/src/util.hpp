@@ -109,7 +109,6 @@ enum ExceptionKind {
     ClassNotFound = 0,
     NoSuchField = 1,
     NoSuchMethod = 2,
-
     IllegalArgument = 3,
     IOFailed = 4,
     FileNotFound = 5,
@@ -122,7 +121,8 @@ enum ExceptionKind {
     RuntimeError = 12,
     RowInvalid = 13,
     EncryptionNotSupported = 14,
-    BadVersion = 15
+    CrossTableLink = 15,
+    BadVersion = 16
 // NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 

@@ -29,8 +29,8 @@ import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
 
 /**
- * In Realm you define your model classes by sub-classing RealmObject and adding fields to be persisted. You then create
- * your objects within a Realm, and use your custom subclasses instead of using the RealmObject class directly.
+ * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
+ * create your objects within a Realm, and use your custom subclasses instead of using the RealmObject class directly.
  * <p>
  * An annotation processor will create a proxy class for your RealmObject subclass. The getters and setters should not
  * contain any custom code of logic as they are overridden as part of the annotation process.

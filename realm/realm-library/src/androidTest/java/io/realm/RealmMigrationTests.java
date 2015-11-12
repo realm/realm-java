@@ -83,14 +83,11 @@ public class RealmMigrationTests extends AndroidTestCase {
         // V2 config
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table languageTable = realm.getTable(FieldOrder.class);
-                if (languageTable.getColumnCount() == 0) {
-                    languageTable.addColumn(RealmFieldType.INTEGER, "field2");
-                    languageTable.addColumn(RealmFieldType.BOOLEAN, "field1");
-                }
-
-                return version + 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create("FieldOrder")
+                        .addField("field2", int.class)
+                        .addField("field1", boolean.class);
             }
         };
 
@@ -119,65 +116,76 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testNotSettingIndexThrows() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
+        // Create v1 of the Realm
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                long columnIndex = table.addColumn(RealmFieldType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                // Primary key will be indexed automatically
-                table.addSearchIndex(columnIndex);
-                table.addColumn(RealmFieldType.STRING, "indexString");
-                table.addColumn(RealmFieldType.STRING, "notIndexString");
-                // Forget to set @Index
-                return 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create("AnnotationTypes")
+                        .addField("id", long.class, FieldAttribute.PRIMARY_KEY)
+                        .addField("indexString", String.class) // Forget to set @Index
+                        .addField("notIndexString", String.class);
             }
         };
+
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
-
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException expected) {
+        } finally {
+            if (realm != null) {
+                realm.close();
+                Realm.deleteRealm(realmConfig);
+            }
         }
     }
 
     public void testNotSettingPrimaryKeyThrows() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                if (table.getColumnCount() == 0) {
-                    long columnIndex = table.addColumn(RealmFieldType.INTEGER, "id");
-                    table.addSearchIndex(columnIndex);
-                    // Forget to set @PrimaryKey
-                    columnIndex = table.addColumn(RealmFieldType.STRING, "indexString");
-                    table.addSearchIndex(columnIndex);
-                    table.addColumn(RealmFieldType.STRING, "notIndexString");
-                }
-                return 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create("AnnotationTypes")
+                        .addField("id", long.class) // Forget to set @PrimaryKey
+                        .addField("indexString", String.class, FieldAttribute.INDEXED)
+                        .addField("notIndexString", String.class);
             }
         };
+
+        // Create v1 of the Realm
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
-
         try {
             realm = Realm.getInstance(realmConfig);
             fail();
         } catch (RealmMigrationNeededException e) {
             if (!e.getMessage().equals("Primary key not defined for field 'id' in existing Realm file. Add @PrimaryKey.")) {
-                fail(e.getMessage());
+                fail(e.toString());
+            }
+        } finally {
+            if (realm != null) {
+                realm.close();
+                Realm.deleteRealm(realmConfig);
             }
         }
     }
@@ -191,7 +199,7 @@ public class RealmMigrationTests extends AndroidTestCase {
 
             RealmMigration migration = new RealmMigration() {
                 @Override
-                public long execute(Realm realm, long version) {
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                     Table table = realm.getTable(clazz);
                     long columnIndex = table.getColumnIndex("id");
                     table.addSearchIndex(columnIndex);
@@ -200,7 +208,6 @@ public class RealmMigrationTests extends AndroidTestCase {
                         table.convertColumnToNullable(columnIndex);
                     }
                     didMigrate[0] = true;
-                    return 42;
                 }
             };
             RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
@@ -221,66 +228,35 @@ public class RealmMigrationTests extends AndroidTestCase {
     }
 
     public void testSetAnnotations() {
+
+        // Create v0 of the Realm
+        RealmConfiguration originalConfig = new RealmConfiguration.Builder(getContext()).schema(AllTypes.class).build();
+        Realm.deleteRealm(originalConfig);
+        Realm.getInstance(originalConfig).close();
+
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                if (table.getColumnCount() == 0) {
-                    long columnIndex = table.addColumn(RealmFieldType.INTEGER, "id");
-                    table.setPrimaryKey("id");
-                    // Primary key will be indexed automatically
-                    table.addSearchIndex(columnIndex);
-                    columnIndex = table.addColumn(RealmFieldType.STRING, "indexString", Table.NULLABLE);
-                    table.addSearchIndex(columnIndex);
-                    table.addColumn(RealmFieldType.STRING, "notIndexString", Table.NULLABLE);
-                }
-                return 1;
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                schema.create("AnnotationTypes")
+                        .addField("id", long.class, FieldAttribute.PRIMARY_KEY)
+                        .addField("indexString", String.class, FieldAttribute.INDEXED)
+                        .addField("notIndexString", String.class);
             }
         };
 
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schemaVersion(1)
-                .schema(AnnotationTypes.class)
+                .schema(AllTypes.class, AnnotationTypes.class)
                 .migration(migration)
                 .build();
-        Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
 
         realm = Realm.getInstance(realmConfig);
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertTrue(table.hasPrimaryKey());
+        assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
         assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
-    }
-
-    public void testNotSettingIndexForPrimaryKeyThrows() {
-        RealmMigration migration = new RealmMigration() {
-            @Override
-            public long execute(Realm realm, long version) {
-                Table table = realm.getTable(AnnotationTypes.class);
-                table.addColumn(RealmFieldType.INTEGER, "id");
-                table.setPrimaryKey("id");
-                // Forget to add search index primary key
-                long columnIndex = table.addColumn(RealmFieldType.STRING, "indexString");
-                table.addSearchIndex(columnIndex);
-                table.addColumn(RealmFieldType.STRING, "notIndexString");
-                return 1;
-            }
-        };
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
-                .schemaVersion(1)
-                .schema(AnnotationTypes.class)
-                .migration(migration)
-                .build();
-        Realm.deleteRealm(realmConfig);
-        Realm.migrateRealm(realmConfig);
-
-        try {
-            realm = Realm.getInstance(realmConfig);
-            fail();
-        } catch (RealmMigrationNeededException expected) {
-        }
-
     }
 
     public void testGetPathFromMigrationException() throws IOException {
@@ -312,9 +288,8 @@ public class RealmMigrationTests extends AndroidTestCase {
         TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
         RealmMigration realmMigration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 // intentionally left empty
-                return 0;
             }
         };
 
@@ -340,10 +315,9 @@ public class RealmMigrationTests extends AndroidTestCase {
         TestHelper.copyRealmFromAssets(getContext(), "default-before-migration.realm", Realm.DEFAULT_REALM_NAME);
         RealmMigration migration = new RealmMigration() {
             @Override
-            public long execute(Realm realm, long version) {
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 Table table = realm.getTable(StringOnly.class);
                 table.convertColumnToNullable(table.getColumnIndex("chars"));
-                return 1;
             }
         };
 
@@ -392,8 +366,8 @@ public class RealmMigrationTests extends AndroidTestCase {
         for (final String field : notNullableFields) {
             final RealmMigration migration = new RealmMigration() {
                 @Override
-                public long execute(Realm realm, long version) {
-                    if (version == -1) { // -1 == UNVERSIONED i.e., not initialized
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    if (oldVersion == -1) { // -1 == UNVERSIONED i.e., not initialized
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
                         Table table = realm.getTable(NullTypes.class);
@@ -422,7 +396,6 @@ public class RealmMigrationTests extends AndroidTestCase {
                         }
                         // 11 Object skipped
                     }
-                    return 1;
                 }
             };
 
@@ -455,8 +428,8 @@ public class RealmMigrationTests extends AndroidTestCase {
         for (final String field : notNullableFields) {
             final RealmMigration migration = new RealmMigration() {
                 @Override
-                public long execute(Realm realm, long version) {
-                    if (version == -1) {  // -1 == UNVERSIONED i.e., not been initialized
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    if (oldVersion == -1) {  // -1 == UNVERSIONED i.e., not been initialized
                         // No @Required for not nullable field
                         TestHelper.initNullTypesTableExcludes(realm, field);
                         Table table = realm.getTable(NullTypes.class);
@@ -485,7 +458,6 @@ public class RealmMigrationTests extends AndroidTestCase {
                         }
                         // 11 Object skipped
                     }
-                    return 1;
                 }
             };
 
@@ -525,12 +497,15 @@ public class RealmMigrationTests extends AndroidTestCase {
             // no-one else is working on the Realm.
             Realm.migrateRealm(config, new RealmMigration() {
                 @Override
-                public long execute(Realm realm, long version) {
-                    return 0;
+                public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                    // Do nothing
                 }
             });
             fail();
         } catch (IllegalStateException ignored) {
         }
     }
+
+    // TODO Add unit tests for default nullability
+    // TODO Add unit tests for default Indexing for Primary keys
 }

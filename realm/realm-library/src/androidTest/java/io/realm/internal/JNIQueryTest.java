@@ -754,7 +754,6 @@ public class JNIQueryTest extends TestCase {
         table.add(new Date(1000));
 
         assertEquals(new Date(10000), table.where().maximumDate(0));
-
     }
 
 
@@ -768,7 +767,6 @@ public class JNIQueryTest extends TestCase {
         table.add(new Date(1000));
 
         assertEquals(new Date(0), table.where().minimumDate(0));
-
     }
 
     public void testDateQuery() throws Exception {

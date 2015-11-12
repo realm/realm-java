@@ -95,10 +95,13 @@ abstract class BaseRealm implements Closeable {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
     }
 
+    private RealmSchema schema;
+
     protected BaseRealm(RealmConfiguration configuration, boolean autoRefresh) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.sharedGroupManager = new SharedGroupManager(configuration);
+        this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         setAutoRefresh(autoRefresh);
     }
 
@@ -402,10 +405,10 @@ abstract class BaseRealm implements Closeable {
      * @return the schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
-        if (!sharedGroupManager.hasTable("metadata")) {
+        if (!sharedGroupManager.hasTable(Table.METADATA_TABLE_NAME)) {
             return UNVERSIONED;
         }
-        Table metadataTable = sharedGroupManager.getTable("metadata");
+        Table metadataTable = sharedGroupManager.getTable(Table.METADATA_TABLE_NAME);
         return metadataTable.getLong(0, 0);
     }
 
@@ -541,7 +544,7 @@ abstract class BaseRealm implements Closeable {
 
     // package protected so unit tests can access it
     void setVersion(long version) {
-        Table metadataTable = sharedGroupManager.getTable("metadata");
+        Table metadataTable = sharedGroupManager.getTable(Table.METADATA_TABLE_NAME);
         if (metadataTable.getColumnCount() == 0) {
             metadataTable.addColumn(RealmFieldType.INTEGER, "version");
             metadataTable.addEmptyRow();
@@ -579,6 +582,15 @@ abstract class BaseRealm implements Closeable {
         if (fieldName == null) {
             throw new IllegalArgumentException("fieldName must be provided.");
         }
+    }
+
+    /**
+     * Returns the schema for this Realm.
+     *
+     * @return The {@link RealmSchema} for this Realm.
+     */
+    public RealmSchema getSchema() {
+        return schema;
     }
 
     /**
@@ -713,8 +725,12 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
+     *
+     * @param configuration configuration for the Realm that should be migrated
+     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
+     * @param callback callback for specific Realm type behaviors.
      */
-    public static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration, MigrationCallback callback) {
+    protected static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration, MigrationCallback callback) {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
@@ -726,12 +742,19 @@ abstract class BaseRealm implements Closeable {
         }
 
         RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
-        BaseRealm realm = null;
+        DynamicRealm realm = null;
         try {
-            realm = callback.getRealm(configuration);
+            realm = DynamicRealm.getInstance(configuration);
             realm.beginTransaction();
-            realm.setVersion(realmMigration.execute((Realm) realm, realm.getVersion())); // FIXME Remove cast with new migration API
+            long currentVersion = realm.getVersion();
+            realmMigration.migrate(realm, currentVersion, configuration.getSchemaVersion());
+            realm.setVersion(configuration.getSchemaVersion());
             realm.commitTransaction();
+        } catch (RuntimeException e) {
+            if (realm != null) {
+                realm.cancelTransaction();
+            }
+            throw e;
         } finally {
             if (realm != null) {
                 realm.close();
@@ -756,8 +779,6 @@ abstract class BaseRealm implements Closeable {
 
     // Internal delegate for migrations
     protected interface MigrationCallback {
-        BaseRealm getRealm(RealmConfiguration configuration);
-
         void migrationComplete();
     }
 }

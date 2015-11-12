@@ -18,6 +18,7 @@ package io.realm;
 
 import java.nio.ByteBuffer;
 
+import io.realm.internal.Keep;
 import io.realm.internal.Mixed;
 
 /**
@@ -27,6 +28,7 @@ import io.realm.internal.Mixed;
  * convert between normal Java types and the Realm types. However it is possible to access these
  * types through a {@link DynamicRealmObject}.
  */
+@Keep
 public enum RealmFieldType {
     // Make sure numbers match with <realm/column_type.hpp>
     INTEGER(0),

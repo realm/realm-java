@@ -214,13 +214,19 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
-        if (!(realm instanceof Realm))  {
-            throw new IllegalStateException("Not supported for RealmList containing DynamicRealmObjects");
-        }
-        Realm realm = (Realm) this.realm;
+        // Object is already in this realm
         if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
+
+        // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as you
+        // have to run a full schema validation for each object.
+        if (object instanceof DynamicRealmObject) {
+            throw new IllegalArgumentException("Automatically copying DynamicRealmObjects from other Realms are not supported");
+        }
+
+        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
+        Realm realm = (Realm) this.realm;
         if (realm.getTable(object.getClass()).hasPrimaryKey()) {
             return realm.copyToRealmOrUpdate(object);
         } else {

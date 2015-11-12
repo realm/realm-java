@@ -27,7 +27,7 @@ import io.realm.internal.android.JsonUtils;
 
 /**
  * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
- * Using a DynamicRealmObject is slower than using the regular model class.
+ * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
 public final class DynamicRealmObject extends RealmObject {
 
@@ -612,7 +612,7 @@ public final class DynamicRealmObject extends RealmObject {
     }
 
     /**
-     * Return the type of object. This will normally correspond to the name of a model class that is extending
+     * Return the type of object. This will normally correspond to the name of a class that is extending
      * {@link RealmObject}.
      *
      * @return this objects type.

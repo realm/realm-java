@@ -24,6 +24,7 @@ import java.util.Date;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.DogPrimaryKey;
 import io.realm.exceptions.RealmException;
 
 public class DynamicRealmTest extends AndroidTestCase {
@@ -169,6 +170,24 @@ public class DynamicRealmTest extends AndroidTestCase {
         DynamicRealmObject obj = realm.createObject(CLASS_ALL_TYPES);
         realm.commitTransaction();
         assertTrue(obj.isValid());
+    }
+
+    public void testCreateObjectWithPrimaryKey() {
+        realm.beginTransaction();
+        DynamicRealmObject dog = realm.createObject(DogPrimaryKey.CLASS_NAME, 42);
+        assertEquals(42, dog.getLong("id"));
+        realm.cancelTransaction();
+    }
+
+    public void testCreateObjectWithIllegalPrimaryKeyValueThrows() {
+        realm.beginTransaction();
+        try {
+            realm.createObject(DogPrimaryKey.CLASS_NAME, "bar");
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
     }
 
     public void testWhere() {

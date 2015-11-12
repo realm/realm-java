@@ -33,10 +33,12 @@ import io.realm.Sort;
  */
 public class Table implements TableOrView, TableSchema, Closeable {
 
+    public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
     public static final String TABLE_PREFIX = Util.getTablePrefix();
     public static final long INFINITE = -1;
     public static final String STRING_DEFAULT_VALUE = "";
     public static final long INTEGER_DEFAULT_VALUE = 0;
+    public static final String METADATA_TABLE_NAME = "metadata";
     public static final boolean NULLABLE = true;
     public static final boolean NOT_NULLABLE = false;
 
@@ -46,6 +48,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private static final String PRIMARY_KEY_FIELD_COLUMN_NAME = "pk_property";
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
+
 
     protected long nativePtr;
 
@@ -1053,6 +1056,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         cachedPrimaryKeyColumnIndex = nativeSetPrimaryKey(pkTable.nativePtr, nativePtr, columnName);
     }
 
+    public void setPrimaryKey(long columnIndex) {
+        setPrimaryKey(nativeGetColumnName(nativePtr, columnIndex));
+    }
+
     private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
 
     private Table getPrimaryKeyTable() {
@@ -1549,4 +1556,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     protected native boolean nativeHasSameSchema(long thisTable, long otherTable);
+
+    /**
+     * Checks if a given table name is a meta-table, i.e. a table used by Realm to track its internal state.
+     */
+    public static boolean isMetaTable(String tableName) {
+        return (tableName.equals(METADATA_TABLE_NAME) || tableName.equals(PRIMARY_KEY_TABLE_NAME));
+    }
 }
