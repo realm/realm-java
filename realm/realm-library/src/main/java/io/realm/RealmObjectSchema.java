@@ -143,7 +143,14 @@ public final class RealmObjectSchema{
         checkNewFieldName(fieldName);
         boolean nullable = metadata.defaultNullable && !containsAttribute(attributes, FieldAttribute.REQUIRED);
         long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
-        addModifiers(columnIndex, attributes);
+
+        try {
+            addModifiers(fieldName, attributes);
+        } catch (Exception e) {
+            // Modifiers have been removed by the addModifiers method()
+            table.removeColumn(columnIndex);
+            throw e;
+        }
         return this;
     }
 
@@ -190,6 +197,9 @@ public final class RealmObjectSchema{
             throw new IllegalStateException(fieldName + " does not exist.");
         }
         long columnIndex = getColumnIndex(fieldName);
+        if (table.getPrimaryKey() == columnIndex) {
+            table.setPrimaryKey(null);
+        }
         table.removeColumn(columnIndex);
         return this;
     }
@@ -223,10 +233,10 @@ public final class RealmObjectSchema{
     }
 
     /**
-     * Adds a index to a given field. This is the equivalent of adding the {@link io.realm.annotations.Index} annotation
+     * Adds an index to a given field. This is the equivalent of adding the {@link io.realm.annotations.Index} annotation
      * on the field.
      *
-     * @param fieldName field to add name to rename.
+     * @param fieldName field to add index to.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be indexed or it already has a
      * index defined.
@@ -278,7 +288,7 @@ public final class RealmObjectSchema{
      * Adds a primary key to a given field. This is the same as adding the {@link io.realm.annotations.PrimaryKey}
      * annotation on the field.
      *
-     * @param fieldName field to add name to rename.
+     * @param fieldName field to set as primary key.
      * @return the updated schema.
      * @throws IllegalArgumentException if field name doesn't exists, the field cannot be a primary key or it already
      * has a primary key defined.
@@ -315,7 +325,8 @@ public final class RealmObjectSchema{
      * @param fieldName name of field in the class.
      * @param required  {@code true} if field should be required, {@code false} otherwise.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or the field already has the given required flag.
+     * @throws IllegalArgumentException if the field name doesn't exists, cannot have the {@link Required} annotation or
+     *                                  the field already have been set as required.
      * @see Required
      */
     public RealmObjectSchema setRequired(String fieldName, boolean required) {
@@ -351,7 +362,7 @@ public final class RealmObjectSchema{
      * @param fieldName name of field in the class.
      * @param nullable  {@code true} if field should be nullable, {@code false} otherwise.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or the field already has the given nullable flag.
+     * @throws IllegalArgumentException if the field name doesn't exists, or cannot be set as nullable.
      */
     public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
         setRequired(fieldName, !nullable);
@@ -397,7 +408,7 @@ public final class RealmObjectSchema{
     /**
      * Return all fields in this class.
      *
-     * @return A list of all the fields in this class.
+     * @return a list of all the fields in this class.
      */
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
@@ -409,33 +420,53 @@ public final class RealmObjectSchema{
     }
 
     /**
-     * Runs a transformation on each RealmObject instance of the current class. The object will be represented as a
-     * {@link DynamicRealmObject}.
+     * Runs a transformation function on each RealmObject instance of the current class. The object will be represented
+     * as a {@link DynamicRealmObject}.
      *
-     * @return This schema.
+     * @return this schema.
      */
-    public RealmObjectSchema forEach(Transformer transformer) {
-        if (transformer != null) {
+    public RealmObjectSchema transform(Function function) {
+        if (function != null) {
             long size = table.size();
             for (long i = 0; i < size; i++) {
-                transformer.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
+                function.apply(new DynamicRealmObject(realm, table.getCheckedRow(i)));
             }
         }
 
         return this;
     }
 
-    // Invariant: Field was just added
-    private void addModifiers(long columnIndex, FieldAttribute[] attributes) {
-        if (attributes != null && attributes.length > 0) {
-            if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
-                table.addSearchIndex(columnIndex);
+    // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.
+    private void addModifiers(String fieldName, FieldAttribute[] attributes) {
+        boolean indexAdded = false;
+        boolean primaryKeyAdded = false;
+        try {
+            if (attributes != null && attributes.length > 0) {
+                if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
+                    addIndex(fieldName);
+                    indexAdded = true;
+                }
+
+                if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+                    addIndex(fieldName);
+                    indexAdded = true;
+                    addPrimaryKey(fieldName);
+                    primaryKeyAdded = true;
+                }
+
+                // REQUIRED is being handled when adding the column using addField through the nullable parameter.
+            }
+        } catch (Exception e) {
+            // If something went wrong, revert all attributes
+            long columnIndex = getColumnIndex(fieldName);
+            if (indexAdded) {
+                table.removeSearchIndex(columnIndex);
+            }
+            if (primaryKeyAdded) {
+                table.setPrimaryKey(null);
             }
 
-            if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
-                table.setPrimaryKey(columnIndex);
-                table.addSearchIndex(columnIndex);
-            }
+            throw e;
         }
     }
 
@@ -458,16 +489,16 @@ public final class RealmObjectSchema{
 
     private void checkLegalName(String fieldName) {
         if (fieldName == null || fieldName.isEmpty()) {
-            throw new IllegalArgumentException("Field name must not be null or empty");
+            throw new IllegalArgumentException("Field name can not be null or empty");
         }
         if (fieldName.contains(".")) {
-            throw new IllegalArgumentException("Field name must not contain '.'");
+            throw new IllegalArgumentException("Field name can not contain '.'");
         }
     }
 
     private void checkFieldNameIsAvailable(String fieldName) {
         if (table.getColumnIndex(fieldName) != TableOrView.NO_MATCH) {
-            throw new IllegalArgumentException("Field already exist in '" + getClassName() + "': " + fieldName);
+            throw new IllegalArgumentException("Field already exists in '" + getClassName() + "': " + fieldName);
         }
     }
 
@@ -481,7 +512,7 @@ public final class RealmObjectSchema{
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(
-                    String.format("Fieldname '%s' does not exist on schema for '%s",
+                    String.format("Field name '%s' does not exist on schema for '%s",
                             fieldName, getClassName()
                     ));
         }
@@ -496,7 +527,7 @@ public final class RealmObjectSchema{
 
     /**
      * Returns the column indices for the given field name. If a linked field is defined, the column index for
-     * each
+     * each field.
      *
      * @param fieldDescription fieldName or link path to a field name.
      * @param validColumnTypes Legal field type for the last field a
@@ -610,11 +641,11 @@ public final class RealmObjectSchema{
     }
 
     /**
-     * Transformer interface for traversing all objects of the current class and apply a transformation on each.
+     * Function interface, used when traversing all objects of the current class and apply a function on each.
      *
-     * @see #forEach(Transformer)
+     * @see #transform(Function)
      */
-    public interface Transformer {
+    public interface Function {
         void apply(DynamicRealmObject obj);
     }
 

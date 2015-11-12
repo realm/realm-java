@@ -17,14 +17,27 @@
 package io.realm.internal;
 
 import io.realm.RealmFieldType;
+import java.lang.ref.ReferenceQueue;
 
 /**
- * The LinkView class represent a core {@link RealmFieldType#LIST}.
+ * The LinkView class represents a core {@link RealmFieldType#LIST}.
  */
-public class LinkView {
+public class LinkView extends NativeObject {
+
+    private static class LinkViewReference extends NativeObjectReference {
+
+        public LinkViewReference(NativeObject referent,
+                                 ReferenceQueue<? super NativeObject> referenceQueue) {
+            super(referent, referenceQueue);
+        }
+
+        @Override
+        protected void cleanup() {
+            nativeClose(nativePointer);
+        }
+    }
 
     private final Context context;
-    final long nativeLinkViewPtr;
     final Table parent;
     final long columnIndexInParent;
 
@@ -32,80 +45,84 @@ public class LinkView {
         this.context = context;
         this.parent = parent;
         this.columnIndexInParent = columnIndexInParent;
-        this.nativeLinkViewPtr = nativeLinkViewPtr;
+        this.nativePointer = nativeLinkViewPtr;
+
+        context.cleanNativeReferences();
+        context.rowReferences.put(new LinkViewReference(this, context.referenceQueue),
+                Context.NATIVE_REFERENCES_VALUE);
     }
 
     /**
-     * Returns a non-checking Row. Incorrect use of this Row will cause a hard Realm Core crash (SIGSEGV).
+     * Returns a non-checking {@link Row}. Incorrect use of this Row will cause a hard Realm Core crash (SIGSEGV).
      * Only use this method if you are sure that input parameters are valid, otherwise use {@link #getCheckedRow(long)}
      * which will throw appropriate exceptions if used incorrectly.
      *
-     * @param index Index of row to fetch.
-     * @return Unsafe row wrapper object.
+     * @param index the index of row to fetch.
+     * @return the unsafe row wrapper object.
      */
     public UncheckedRow getUncheckedRow(long index) {
         return UncheckedRow.getByRowIndex(context, this, index);
     }
 
     /**
-     * Returns a wrapper for Row access. All access will be error checked at the JNI layer and will throw an
+     * Returns a wrapper for {@link Row} access. All access will be error checked at the JNI layer and will throw an
      * appropriate {@link RuntimeException} if used incorrectly.
      *
      * If error checking is done elsewhere, consider using {@link #getUncheckedRow(long)} for better performance.
      *
-     * @param index Index of row to fetch.
-     * @return Safe row wrapper object.
+     * @param index the index of row to fetch.
+     * @return the safe row wrapper object.
      */
     public CheckedRow getCheckedRow(long index) {
         return CheckedRow.get(context, this, index);
     }
 
     public long getTargetRowIndex(long pos) {
-        return nativeGetTargetRowIndex(nativeLinkViewPtr, pos);
+        return nativeGetTargetRowIndex(nativePointer, pos);
     }
 
     public void add(long rowIndex) {
         checkImmutable();
-        nativeAdd(nativeLinkViewPtr, rowIndex);
+        nativeAdd(nativePointer, rowIndex);
     }
 
     public void insert(long pos, long rowIndex) {
         checkImmutable();
-        nativeInsert(nativeLinkViewPtr, pos, rowIndex);
+        nativeInsert(nativePointer, pos, rowIndex);
     }
 
     public void set(long pos, long rowIndex) {
         checkImmutable();
-        nativeSet(nativeLinkViewPtr, pos, rowIndex);
+        nativeSet(nativePointer, pos, rowIndex);
     }
 
     public void move(long oldPos, long newPos) {
         checkImmutable();
-        nativeMove(nativeLinkViewPtr, oldPos, newPos);
+        nativeMove(nativePointer, oldPos, newPos);
     }
 
     public void remove(long pos) {
         checkImmutable();
-        nativeRemove(nativeLinkViewPtr, pos);
+        nativeRemove(nativePointer, pos);
     }
 
     public void clear() {
         checkImmutable();
-        nativeClear(nativeLinkViewPtr);
+        nativeClear(nativePointer);
     }
 
     public long size() {
-        return nativeSize(nativeLinkViewPtr);
+        return nativeSize(nativePointer);
     }
 
     public boolean isEmpty() {
-        return nativeIsEmpty(nativeLinkViewPtr);
+        return nativeIsEmpty(nativePointer);
     }
 
     public TableQuery where() {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         this.context.executeDelayedDisposal();
-        long nativeQueryPtr = nativeWhere(nativeLinkViewPtr);
+        long nativeQueryPtr = nativeWhere(nativePointer);
         try {
             return new TableQuery(this.context, this.parent, nativeQueryPtr);
         } catch (RuntimeException e) {
@@ -115,11 +132,11 @@ public class LinkView {
     }
 
     public boolean isAttached() {
-        return nativeIsAttached(nativeLinkViewPtr);
+        return nativeIsAttached(nativePointer);
     }
 
     /**
-     * Returns the Table which all links point to.
+     * Returns the {@link Table} which all links point to.
      */
     public Table getTable() {
         return parent;
@@ -131,7 +148,7 @@ public class LinkView {
         }
     }
 
-    protected static native void nativeClose(long nativeLinkViewPtr);
+    private static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
     private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);

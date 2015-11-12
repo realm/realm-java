@@ -24,12 +24,14 @@ package io.realm;
 public enum FieldAttribute {
     /**
      * Mark a field as indexed.
+     *
      * @see io.realm.annotations.Index
      */
     INDEXED,
 
     /**
-     * Mark a field as a primary key. This also implicitly make it {@link #INDEXED}.
+     * Mark a field as a primary key. This also implicitly mark it as {@link #INDEXED}.
+     *
      * @see io.realm.annotations.PrimaryKey
      */
     PRIMARY_KEY,
@@ -37,6 +39,7 @@ public enum FieldAttribute {
     /**
      * Mark a field as explicitly not allowing null values. The default behavior for allowing {@code
      * null} depends on the type of the field.
+     *
      * @see io.realm.annotations.Required
      * @see RealmObjectSchema#setRequired(String, boolean)
      */

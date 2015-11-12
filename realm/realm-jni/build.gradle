@@ -3,8 +3,17 @@ import java.security.MessageDigest
 ext.coreVersion = '0.94.4'
 // empty or comment out this to disable hash checking
 ext.coreSha256Hash = 'feeae46e5ebdb7ce912b3f111b6a044c4dd0ef7b7eac9b313f8c7a40664d9fae'
-ext.forceDownloadCore = false
-ext.clang = false // gcc is default for the NDK. It also produces smaller binaries
+ext.forceDownloadCore =
+        project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
+// gcc is default for the NDK. It also produces smaller binaries
+ext.clang = project.hasProperty('clang') ? project.getProperty('clang').toBoolean() : false
+// Build with debug symbols
+ext.debugBuild = project.hasProperty('debugBuild') ? project.getProperty('debugBuild').toBoolean() : false
+// Strip the symbols from the so file or not. If debugBuild is true, this one will be always false.
+ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('stripSymbols').toBoolean() : true
+// Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
+// core source code.
+ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
 
 def commonCflags = [ '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
 
@@ -75,11 +84,13 @@ buildscript {
 
 apply plugin: 'de.undercouch.download'
 
-if (project.clang instanceof String) {
-    ext.clang = Boolean.parseBoolean(project.clang)
+if (ext.debugBuild) {
+    // Debug build should never strip symbols
+    ext.stripSymbols = false
 }
-if (project.forceDownloadCore instanceof String) {
-    ext.forceDownloadCore = Boolean.parseBoolean(project.forceDownloadCore)
+if (ext.coreSourcePath) {
+    // Run the "sh build.sh get-version" to get the core version.
+    ext.coreVersion = "sh build.sh get-version".execute([], file(coreSourcePath)).text.trim()
 }
 
 def getNdk() {
@@ -98,6 +109,14 @@ def getNdk() {
         throw new GradleException("Your NDK version: ${detectedNdkVersion}. Realm JNI should be compiled with the version ${ndkVersion} of NDK.")
     }
     return ndkDir
+}
+
+def getStrippedExt() {
+    return stripSymbols ? "-stripped" : ""
+}
+
+def getDebugExt() {
+    return debugBuild ? "-dbg" : ""
 }
 
 ext.coreArchiveFile = rootProject.file("../core-android-${project.coreVersion}.tar.gz")
@@ -163,11 +182,40 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     }
 }
 
+task compileCore(group: 'build setup', description: 'Compile the core library from source code') {
+    // Build the library from core source code
+    doFirst {
+        if (!coreSourcePath) {
+            throw new GradleException('The coreSourcePath is not set.')
+        }
+        exec {
+            workingDir = coreSourcePath
+            commandLine = [
+                    "bash",
+                    "build.sh",
+                    "build-android"
+            ]
+        }
+    }
+
+    // Copy the core tar ball
+    doLast {
+        copy {
+            from "${coreSourcePath}/realm-core-android-${coreVersion}.tar.gz"
+            into project.coreArchiveFile.parent
+            rename "realm-core-android-${coreVersion}.tar.gz", "core-android-${coreVersion}.tar.gz"
+        }
+    }
+}
+
 task deployCore(group: 'build setup', description: 'Deploy the latest version of realm core') {
-    dependsOn { downloadCore }
+    dependsOn {
+        coreSourcePath ? compileCore : downloadCore
+    }
 
     outputs.upToDateWhen {
-        if (coreDownloaded) {
+        // Clean up the coreDir if it is newly downloaded or compiled from source
+        if (coreDownloaded || coreSourcePath) {
             return false
         }
 
@@ -232,27 +280,27 @@ targets.each { target ->
             "-l${Runtime.getRuntime().availableProcessors()}",
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
-            "REALM_CFLAGS=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
+            "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -flto",
+            "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -flto",
             'LIB_SUFFIX_SHARED=.so',
-            "librealm-jni-${target.name}.so"
+            "librealm-jni-${target.name}${getDebugExt()}.so"
         ]
     }
 
     task "copyAndroidJni${target.name.capitalize()}"(dependsOn: "buildAndroidJni${target.name.capitalize()}") << {
         copy {
-            from "${projectDir}/src/librealm-jni-${target.name}-stripped.so"
+            from "${projectDir}/src/librealm-jni-${target.name}${getDebugExt()}${getStrippedExt()}.so"
             into "${projectDir}/../realm-library/src/main/jniLibs/${target.jniFolder}"
-            rename "librealm-jni-${target.name}-stripped.so", 'librealm-jni.so'
+            rename "librealm-jni-${target.name}${getDebugExt()}${getStrippedExt()}.so", 'librealm-jni.so'
         }
 
         // Store the unstripped version
         copy {
-            from "${projectDir}/src/librealm-jni-${target.name}.so"
+            from "${projectDir}/src/librealm-jni-${target.name}${getDebugExt()}.so"
             into "${projectDir}/../build/output/jniLibs-unstripped/${target.jniFolder}"
-            rename "librealm-jni-${target.name}.so", 'librealm-jni.so'
+            rename "librealm-jni-${target.name}${getDebugExt()}.so", 'librealm-jni.so'
         }
     }
 }
@@ -268,6 +316,7 @@ task clean(type: Delete) {
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
     delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
+    delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.so')
 
     doLast {
         targets.each { target ->

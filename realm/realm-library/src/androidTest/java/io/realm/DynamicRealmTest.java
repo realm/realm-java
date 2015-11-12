@@ -184,7 +184,7 @@ public class DynamicRealmTest extends AndroidTestCase {
         try {
             realm.createObject(DogPrimaryKey.CLASS_NAME, "bar");
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm.cancelTransaction();
         }

@@ -433,7 +433,7 @@ inline bool ColIsNullable(JNIEnv* env, T* pTable, jlong columnIndex)
     }
 
     TR_ERR("Expected nullable column type")
-    ThrowException(env, IllegalArgument, "This filed is not nullable.");
+    ThrowException(env, IllegalArgument, "This field is not nullable.");
     return false;
 }
 
@@ -560,6 +560,92 @@ private:
     JNIEnv* m_env;
     jbyteArray m_array;
     jbyte* m_ptr;
+};
+
+class JniLongArray {
+public:
+    JniLongArray(JNIEnv* env, jlongArray javaArray)
+        : m_env(env)
+        , m_javaArray(javaArray)
+        , m_arrayLength(env->GetArrayLength(javaArray))
+        , m_array(env->GetLongArrayElements(javaArray, NULL))
+        , m_releaseMode(JNI_ABORT) {
+    }
+
+    ~JniLongArray()
+    {
+        m_env->ReleaseLongArrayElements(m_javaArray, m_array, m_releaseMode);
+    }
+
+    inline jsize len() const noexcept
+    {
+        return m_arrayLength;
+    }
+
+    inline jlong* ptr() const noexcept
+    {
+        return m_array;
+    }
+
+    inline jlong& operator[](const int index) noexcept
+    {
+        return m_array[index];
+    }
+
+    inline void updateOnRelease() noexcept
+    {
+        m_releaseMode = 0;
+    }
+
+private:
+    JNIEnv*    const m_env;
+    jlongArray const m_javaArray;
+    jsize      const m_arrayLength;
+    jlong*     const m_array;
+    jint             m_releaseMode;
+};
+
+class JniBooleanArray {
+public:
+    JniBooleanArray(JNIEnv* env, jbooleanArray javaArray)
+        : m_env(env)
+        , m_javaArray(javaArray)
+        , m_arrayLength(env->GetArrayLength(javaArray))
+        , m_array(env->GetBooleanArrayElements(javaArray, NULL))
+        , m_releaseMode(JNI_ABORT) {
+    }
+
+    ~JniBooleanArray()
+    {
+        m_env->ReleaseBooleanArrayElements(m_javaArray, m_array, m_releaseMode);
+    }
+
+    inline jsize len() const noexcept
+    {
+        return m_arrayLength;
+    }
+
+    inline jboolean* ptr() const noexcept
+    {
+        return m_array;
+    }
+
+    inline jboolean& operator[](const int index) noexcept
+    {
+        return m_array[index];
+    }
+
+    inline void updateOnRelease() noexcept
+    {
+        m_releaseMode = 0;
+    }
+
+private:
+    JNIEnv*       const m_env;
+    jbooleanArray const m_javaArray;
+    jsize         const m_arrayLength;
+    jboolean*     const m_array;
+    jint                m_releaseMode;
 };
 
 extern jclass java_lang_long;

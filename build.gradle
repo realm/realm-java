@@ -75,17 +75,24 @@ task connectedCheck(type:GradleBuild) {
 }
 
 task installGradlePlugin(type:GradleBuild) {
-    description = 'Install the Realm Gradle plugin to the Maven Repo in ANDROID_HOME'
+    description = 'Install the Realm Gradle plugin into mavenLocal()'
     group = 'Install'
     buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['uploadArchives']
+    tasks = ['install']
 }
 
 task installRealm(type:GradleBuild) {
     group = 'Install'
-    description = 'Install the artifacts of Realm project to the Maven Repo in ANDROID_HOME'
+    description = 'Install the artifacts of Realm project into mavenLocal()'
     buildFile = file('realm/build.gradle')
-    tasks = ['uploadArchives']
+    tasks = ['install']
+}
+
+task installRealmJava(type:Task) {
+    dependsOn installGradlePlugin
+    dependsOn installRealm
+    group = 'Install'
+    description = 'Install the Realm library and Gradle plugin into mavenLocal()'
 }
 
 task assembleExamples(type:GradleBuild) {
@@ -214,7 +221,6 @@ task cleanExamples(type:GradleBuild) {
 task cleanLocalMavenRepos(type:Delete) {
     description = 'Remove any Realm artifacts from the local Maven repositories'
     group = 'Clean'
-    delete "${getSdk()}/extras/android/m2repository/io/realm"
     delete "${System.env.HOME}/.m2/repository/io/realm"
 }
 
@@ -287,7 +293,8 @@ def commonPom = {
 publishing {
     publications {
         jarLibrary(MavenPublication) {
-            artifactId = 'realm-android-library'
+            groupId 'io.realm'
+            artifactId = 'realm-android'
             artifact file("${buildDir}/outputs/gradle/realm-android-${currentVersion}.jar")
             artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")
             artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")
@@ -301,13 +308,14 @@ publishing {
             }
         }
         aarLibrary(MavenPublication) {
+            groupId 'io.realm'
             artifactId = 'realm-android-library'
             artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-library-release.aar")
             artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")
             artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")
             pom.withXml {
                 Node root = asNode()
-                root.appendNode('name', 'realm-android')
+                root.appendNode('name', 'realm-android-library')
                 root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
                 root.appendNode('url', 'http://realm.io')
                 root.appendNode('packaging', 'aar')
@@ -315,6 +323,7 @@ publishing {
             }
         }
         annotations(MavenPublication) {
+            groupId 'io.realm'
             artifactId = 'realm-annotations'
             artifact file("${rootDir}/realm/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
             pom.withXml {
@@ -327,6 +336,7 @@ publishing {
             }
         }
         annotationsProcessor(MavenPublication) {
+            groupId 'io.realm'
             artifactId = 'realm-annotations-processor'
             artifact file("${rootDir}/realm/realm-annotations-processor/build/libs/realm-annotations-processor-${currentVersion}.jar")
             pom.withXml {
@@ -339,6 +349,7 @@ publishing {
             }
         }
         gradlePlugin(MavenPublication) {
+            groupId 'io.realm'
             artifactId = 'realm-gradle-plugin'
             artifact file("${rootDir}/gradle-plugin/build/libs/gradle-plugin-${currentVersion}.jar")
             pom.withXml {

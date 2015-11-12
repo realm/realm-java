@@ -106,12 +106,31 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    // TODO These should also be allowed? BOOLEAN, BYTE, DATE
+    public enum InvalidIndexFieldType {
+        FLOAT(Float.class), PRIMITIVE_FLOAT(float.class),
+        DOUBLE(Double.class), PRIMITIVE_DOUBLE(double.class),
+        BLOB(byte[].class),
+        OBJECT(RealmObject.class),
+        LIST(RealmList.class);
+
+        Class<?> clazz;
+
+        public Class<?> getType() {
+            return clazz;
+        }
+
+        InvalidIndexFieldType(Class<?> clazz) {
+            this.clazz = clazz;
+        }
+    }
+
+    // TODO These should also be allowed? BOOLEAN, DATE
     public enum PrimaryKeyFieldType {
         STRING(String.class),
         SHORT(Short.class), PRIMITIVE_SHORT(short.class),
         INT(Integer.class), PRIMITIVE_INT(int.class),
-        LONG(Long.class), PRIMITIVE_LONG(long.class);
+        LONG(Long.class), PRIMITIVE_LONG(long.class),
+        BYTE(Byte.class), PRIMITIVE_BYTE(byte.class);
 
         Class<?> clazz;
 
@@ -120,6 +139,26 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
 
         PrimaryKeyFieldType(Class<?> clazz) {
+            this.clazz = clazz;
+        }
+    }
+
+    public enum InvalidPrimaryKeyFieldType {
+        BOOLEAN(Boolean.class), PRIMITIVE_BOOLEAN(boolean.class),
+        FLOAT(Float.class), PRIMITIVE_FLOAT(float.class),
+        DOUBLE(Double.class), PRIMITIVE_DOUBLE(double.class),
+        BLOB(byte[].class),
+        DATE(Date.class),
+        OBJECT(RealmObject.class),
+        LIST(RealmList.class);
+
+        Class<?> clazz;
+
+        public Class<?> getType() {
+            return clazz;
+        }
+
+        InvalidPrimaryKeyFieldType(Class<?> clazz) {
             this.clazz = clazz;
         }
     }
@@ -213,6 +252,64 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
+    public void testRequiredFieldAttribute() {
+        for (FieldType fieldType : FieldType.values()) {
+            String fieldName = "foo";
+            switch (fieldType) {
+                case OBJECT: continue; // Not possible
+                case LIST: continue; // Not possible
+                default:
+                    // All simple types
+                    schema.addField(fieldName, fieldType.getType(), FieldAttribute.REQUIRED);
+                    assertTrue(schema.isRequired(fieldName));
+                    schema.removeField(fieldName);
+            }
+        }
+    }
+
+    public void testIndexedFieldAttribute() {
+        for (IndexFieldType fieldType : IndexFieldType.values()) {
+            String fieldName = "foo";
+            switch (fieldType) {
+                default:
+                    schema.addField(fieldName, fieldType.getType(), FieldAttribute.INDEXED);
+                    assertTrue(fieldType + " failed", schema.hasIndex(fieldName));
+            }
+            schema.removeField(fieldName);
+        }
+    }
+
+    public void testInvalidIndexedFieldAttributeThrows() {
+        for (InvalidIndexFieldType fieldType : InvalidIndexFieldType.values()) {
+            String fieldName = "foo";
+            try {
+                schema.addField(fieldName, fieldType.getType(), FieldAttribute.INDEXED);
+                fail(fieldType + " should not be allowed to be indexed");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    public void testPrimaryKeyFieldAttribute() {
+        for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
+            String fieldName = "foo";
+            schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
+            assertTrue(schema.hasPrimaryKey());
+            schema.removeField(fieldName);
+        }
+    }
+
+    public void testInvalidPrimaryKeyFieldAttributeThrows() {
+        for (InvalidPrimaryKeyFieldType fieldType : InvalidPrimaryKeyFieldType.values()) {
+            String fieldName = "foo";
+            try {
+                schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
+                fail(fieldType + " should not be allowed to be a primary key");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
     public void testAddPrimaryKeyFieldModifier_alreadyExistsThrows() {
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String fieldName = "foo";
@@ -230,21 +327,35 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testAddPrimaryKeyFieldModifier_illegalFieldTypeThrows() {
         String fieldName = "foo";
-        schema.addField(fieldName, double.class);
-        try {
-            schema.addPrimaryKey(fieldName);
-            fail();
-        } catch (IllegalArgumentException ignored) {
+        for (InvalidPrimaryKeyFieldType fieldType : InvalidPrimaryKeyFieldType.values()) {
+            switch (fieldType) {
+                case OBJECT: schema.addRealmObjectField(fieldName, DOG_SCHEMA); break;
+                case LIST: schema.addRealmListField(fieldName, DOG_SCHEMA); break;
+                default: schema.addField(fieldName, fieldType.getType());
+            }
+            try {
+                schema.addPrimaryKey(fieldName);
+                fail(fieldType + " should not be a legal primary key");
+            } catch (IllegalArgumentException ignored) {
+            }
+            schema.removeField(fieldName);
         }
     }
 
     public void testAddIndexFieldModifier_illegalFieldTypeThrows() {
         String fieldName = "foo";
-        schema.addField(fieldName, double.class);
-        try {
-            schema.addIndex(fieldName);
-            fail();
-        } catch (IllegalArgumentException ignored) {
+        for (InvalidIndexFieldType fieldType : InvalidIndexFieldType.values()) {
+            switch (fieldType) {
+                case OBJECT: schema.addRealmObjectField(fieldName, DOG_SCHEMA); break;
+                case LIST: schema.addRealmListField(fieldName, DOG_SCHEMA); break;
+                default: schema.addField(fieldName, fieldType.getType());
+            }
+            try {
+                schema.addIndex(fieldName);
+                fail(fieldType + " should not be allowed to be indexed.");
+            } catch (IllegalArgumentException ignored) {
+            }
+            schema.removeField(fieldName);
         }
     }
 
@@ -376,15 +487,24 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     }
 
     public void testRemoveField() {
-        String fieldName = AllJavaTypes.FIELD_STRING;
+        String fieldName = "foo";
         schema.addField(fieldName, String.class);
         assertTrue(schema.hasField(fieldName));
         schema.removeField(fieldName);
         assertFalse(schema.hasField(fieldName));
     }
 
+    public void testRemoveFieldWithPrimaryKey() {
+        String fieldName = "foo";
+        schema.addField(fieldName, String.class, FieldAttribute.PRIMARY_KEY);
+        assertTrue(schema.hasField(fieldName));
+        assertTrue(schema.hasPrimaryKey());
+        schema.removeField(fieldName);
+        assertFalse(schema.hasPrimaryKey());
+    }
+
     public void testRemoveNonExistingFieldThrows() {
-        String fieldName = AllJavaTypes.FIELD_STRING;
+        String fieldName = "foo";
         try {
             schema.removeField(fieldName);
             fail();
@@ -439,7 +559,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         DynamicRealmObject dog2 = realm.createObject(className);
         dog2.setInt("age", 2);
 
-        DOG_SCHEMA.forEach(new RealmObjectSchema.Transformer() {
+        DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
             @Override
             public void apply(DynamicRealmObject obj) {
                 obj.setInt("age", obj.getInt("age") + 1);

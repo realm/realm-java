@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * Primary keys on Strings also counts as having the {@link io.realm.annotations.Index} annotation.
  *
  * Only one field pr. RealmObject class can have this annotation and it is only allowed on the following
- * types: String, short, int, long
+ * types: String, short, int, long, byte
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.FIELD)

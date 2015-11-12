@@ -34,7 +34,7 @@ public final class DynamicRealmObject extends RealmObject {
     /**
      * Creates a dynamic Realm object based on an existing object.
      *
-     * @param obj Realm object to convert to a dynamic object. Only objects managed by {@link Realm} can be used.
+     * @param obj the Realm object to convert to a dynamic object. Only objects managed by {@link Realm} can be used.
      * @throws IllegalArgumentException if object isn't managed by Realm or is a {@link DynamicRealmObject} already.
      */
     public DynamicRealmObject(RealmObject obj) {
@@ -97,7 +97,7 @@ public final class DynamicRealmObject extends RealmObject {
      * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the boolean value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain booleans.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
@@ -112,7 +112,7 @@ public final class DynamicRealmObject extends RealmObject {
      * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the int value. Integer values exceeding {@code Integer.MAX_VALUE} will wrap.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
@@ -126,7 +126,7 @@ public final class DynamicRealmObject extends RealmObject {
      * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the short value. Integer values exceeding {@code Short.MAX_VALUE} will wrap.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
@@ -140,7 +140,7 @@ public final class DynamicRealmObject extends RealmObject {
      * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the long value. Integer values exceeding {@code Long.MAX_VALUE} will wrap.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
@@ -155,7 +155,7 @@ public final class DynamicRealmObject extends RealmObject {
      * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the byte value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain integers.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
@@ -170,7 +170,7 @@ public final class DynamicRealmObject extends RealmObject {
      * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the float value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain floats.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
@@ -185,7 +185,7 @@ public final class DynamicRealmObject extends RealmObject {
      * If the field is nullable use {@link #isNull(String)} to check for {@code null} instead of using
      * this method.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the double value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain doubles.
      * @throws io.realm.exceptions.RealmException if the return value would be {@code null}.
@@ -198,7 +198,7 @@ public final class DynamicRealmObject extends RealmObject {
     /**
      * Returns the {@code byte[]} value for a given field.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the byte[] value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain binary data.
      */
@@ -210,7 +210,7 @@ public final class DynamicRealmObject extends RealmObject {
     /**
      * Returns the {@code String} value for a given field.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the String value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain Strings.
      */
@@ -222,7 +222,7 @@ public final class DynamicRealmObject extends RealmObject {
     /**
      * Returns the {@code Date} value for a given field.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the Date value.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain Dates.
      */
@@ -238,7 +238,7 @@ public final class DynamicRealmObject extends RealmObject {
     /**
      * Returns the object being linked to from this field.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the {@link DynamicRealmObject} representation of the linked object or {@code null} if no object is linked.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain links to other objects.
      */
@@ -256,7 +256,7 @@ public final class DynamicRealmObject extends RealmObject {
     /**
      * Returns the {@link RealmList} of objects being linked to from this field.
      *
-     * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return the {@link RealmList} data for this field.
      * @throws IllegalArgumentException if field name doesn't exists or it doesn't contain a list of links.
      */
@@ -271,6 +271,7 @@ public final class DynamicRealmObject extends RealmObject {
      * Checks if the value of a given field is {@code null}.
      *
      * @param fieldName name of field.
+     * @param fieldName the name of the field.
      * @return {@code true} if field value is null, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exists.
      */
