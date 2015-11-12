@@ -136,7 +136,6 @@ public class RealmQuery<E extends RealmObject> {
         this.table = schema.getTable();
         this.view = null;
         this.query = table.where();
-//        this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
     }
 
     private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
@@ -146,7 +145,6 @@ public class RealmQuery<E extends RealmObject> {
         this.table = schema.getTable();
         this.view = null;
         this.query = queryResults.getTable().where();
-//        this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
     }
 
     private RealmQuery(BaseRealm realm, LinkView view, Class<E> clazz) {
@@ -156,7 +154,6 @@ public class RealmQuery<E extends RealmObject> {
         this.view = view;
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = schema.getTable();
-//        this.columns = realm.columnIndices.getColumnInfo(clazz).getIndicesMap();
     }
 
     private RealmQuery(BaseRealm realm, String className) {
@@ -165,7 +162,6 @@ public class RealmQuery<E extends RealmObject> {
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = table.where();
-//        this.columns = schema.getnew DynamicColumnMap(table);
     }
 
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
@@ -174,7 +170,6 @@ public class RealmQuery<E extends RealmObject> {
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.getTable();
         this.query = queryResults.getTable().where();
-//        this.columns = new DynamicColumnMap(table);
     }
 
     private RealmQuery(BaseRealm realm, LinkView view, String className) {
@@ -184,7 +179,6 @@ public class RealmQuery<E extends RealmObject> {
         this.view = view;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.getTable();
-//        this.columns = new DynamicColumnMap(table);
     }
 
     /**

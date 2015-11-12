@@ -80,7 +80,6 @@ abstract class BaseRealm implements Closeable {
     protected boolean autoRefresh;
     RealmSchema schema;
     Handler handler;
-//    ColumnIndices columnIndices;
     HandlerController handlerController;
 
     static {

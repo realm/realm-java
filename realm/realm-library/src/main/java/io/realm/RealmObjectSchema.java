@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import io.realm.annotations.Required;
 import io.realm.internal.ImplicitTransaction;
@@ -36,7 +35,7 @@ import io.realm.internal.TableOrView;
  *
  * @see io.realm.RealmMigration
  */
-public final class RealmObjectSchema{
+public final class RealmObjectSchema {
 
     private static final Map<Class<?>, FieldMetaData> SUPPORTED_SIMPLE_FIELDS;
     static {
@@ -462,10 +461,6 @@ public final class RealmObjectSchema{
             if (indexAdded) {
                 table.removeSearchIndex(columnIndex);
             }
-            if (primaryKeyAdded) {
-                table.setPrimaryKey(null);
-            }
-
             throw e;
         }
     }
@@ -527,23 +522,25 @@ public final class RealmObjectSchema{
 
     /**
      * Returns the column indices for the given field name. If a linked field is defined, the column index for
-     * each field.
+     * each field is returned
      *
      * @param fieldDescription fieldName or link path to a field name.
      * @param validColumnTypes Legal field type for the last field a
-     * @return
+     * @return list of column indices.
      */
     // TODO: consider another caching strategy so linked classes are included in the cache.
     long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
         if (fieldDescription == null || fieldDescription.equals("")) {
             throw new IllegalArgumentException("Non-empty fieldname must be provided");
         }
+        if (fieldDescription.endsWith(".")) {
+            throw new IllegalArgumentException("Illegal field name. It cannot end with a '.'");
+        }
         Table table = this.table;
         boolean checkColumnType = validColumnTypes != null && validColumnTypes.length > 0;
         if (containsDot(fieldDescription)) {
-
             // Resolve field description down to last field name
-            String[] names = splitString(fieldDescription); //fieldName.split("\\.");
+            String[] names = fieldDescription.split("\\.");
             long[] columnIndices = new long[names.length];
             for (int i = 0; i < names.length - 1; i++) {
                 long index = table.getColumnIndex(names[i]);
@@ -587,31 +584,6 @@ public final class RealmObjectSchema{
         return s.indexOf('.') != -1;
     }
 
-    private String[] splitString(String s) {
-        int i, j, n;
-
-        // count the number of .
-        n = 0;
-        for (i = 0; i < s.length(); i++)
-            if (s.charAt(i) == '.')
-                n++;
-
-        // split at .
-        String[] arr = new String[n+1];
-        i = 0;
-        n = 0;
-        j = s.indexOf('.');
-        while (j != -1) {
-            arr[n] = s.substring(i, j);
-            i = j+1;
-            j = s.indexOf('.', i);
-            n++;
-        }
-        arr[n] = s.substring(s.lastIndexOf('.')+1);
-
-        return arr;
-    }
-
     private boolean isValidType(RealmFieldType columnType, RealmFieldType[] validColumnTypes) {
         for (int i = 0; i < validColumnTypes.length; i++) {
             if (validColumnTypes[i] == columnType) {
@@ -623,7 +595,8 @@ public final class RealmObjectSchema{
 
     /**
      * Returns the underlying table backing this schema.
-     * @return The underlying {@link Table}
+     *
+     * @return the underlying {@link Table}.
      */
     Table getTable() {
         return table;
@@ -631,10 +604,10 @@ public final class RealmObjectSchema{
 
     /**
      * Returns the column index in the underlying table for the given field name.
-     * INVARIANT: fieldName should be present
+     * INVARIANT: fieldName should be present.
      *
-     * @param fieldName
-     * @return
+     * @param fieldName field name to find index for.
+     * @return column index
      */
     Long getFieldIndex(String fieldName) {
         return columnIndices.get(fieldName);
@@ -660,8 +633,6 @@ public final class RealmObjectSchema{
         }
     }
 
-
-    // FIXME Replace with Schema when it is available
     private static class DynamicColumnMap implements Map<String, Long> {
         private final Table table;
 
