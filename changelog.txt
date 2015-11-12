@@ -2,6 +2,7 @@
  * Added Realm.isEmpty().
  * RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
  * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed, from different Realm) object (#1749).
+ * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712) 
 
 0.84.2
  * Fixed a bug making it impossible to convert a field to become required during a migration (#1695).
