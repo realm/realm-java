@@ -533,8 +533,8 @@ public final class RealmObjectSchema {
         if (fieldDescription == null || fieldDescription.equals("")) {
             throw new IllegalArgumentException("Non-empty fieldname must be provided");
         }
-        if (fieldDescription.endsWith(".")) {
-            throw new IllegalArgumentException("Illegal field name. It cannot end with a '.'");
+        if (fieldDescription.startsWith(".") || fieldDescription.endsWith(".")) {
+            throw new IllegalArgumentException("Illegal field name. It cannot start or end with a '.': " + fieldDescription);
         }
         Table table = this.table;
         boolean checkColumnType = validColumnTypes != null && validColumnTypes.length > 0;
