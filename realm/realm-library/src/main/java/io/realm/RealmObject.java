@@ -192,7 +192,7 @@ public abstract class RealmObject {
         if (!isCompleted) {
             isCompleted = true;
             long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());
-            Table table = realm.getTable(getClass());
+            Table table = realm.schema.getTable(getClass());
             this.row = table.getUncheckedRowByPointer(nativeRowPointer);
             notifyChangeListeners();
         }// else: already loaded query no need to import again the pointer

@@ -16,11 +16,13 @@
 
 package io.realm;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import io.realm.annotations.Required;
 import io.realm.internal.ImplicitTransaction;
@@ -59,26 +61,28 @@ public final class RealmObjectSchema {
 
     private static final Map<Class<?>, FieldMetaData> SUPPORTED_LINKED_FIELDS;
     static {
-        SUPPORTED_LINKED_FIELDS = new HashMap<>();
+        SUPPORTED_LINKED_FIELDS = new HashMap<Class<?>, FieldMetaData>();
         SUPPORTED_LINKED_FIELDS.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, false));
         SUPPORTED_LINKED_FIELDS.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, false));
     }
 
     private final BaseRealm realm;
-    private final Table table;
+    final Table table;
     private final ImplicitTransaction transaction;
+    private final Map<String, Long> columnIndices;
 
     /**
      * Creates a schema object for a given Realm class.
      *
-     * @param realm       Realm holding the objects.
-     * @param transaction transaction object for the current Realm.
-     * @param table       table representation of the Realm class
+     * @param realm Realm holding the objects.
+     * @param table table representation of the Realm class
+     * @param columnIndices mapping between field names and column indexes for the given table
      */
-    RealmObjectSchema(BaseRealm realm, ImplicitTransaction transaction, Table table) {
+    RealmObjectSchema(BaseRealm realm, Table table, Map<String, Long> columnIndices) {
         this.realm = realm;
-        this.transaction = transaction;
+        this.transaction = realm.sharedGroupManager.getTransaction();
         this.table = table;
+        this.columnIndices = columnIndices;
     }
 
     /**
@@ -407,7 +411,7 @@ public final class RealmObjectSchema {
      */
     public Set<String> getFieldNames() {
         int columnCount = (int) table.getColumnCount();
-        Set<String> columnNames = new TreeSet<String>();
+        Set<String> columnNames = new LinkedHashSet<>(columnCount);
         for (int i = 0; i < columnCount; i++) {
             columnNames.add(table.getColumnName(i));
         }
@@ -434,7 +438,6 @@ public final class RealmObjectSchema {
     // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.
     private void addModifiers(String fieldName, FieldAttribute[] attributes) {
         boolean indexAdded = false;
-        boolean primaryKeyAdded = false;
         try {
             if (attributes != null && attributes.length > 0) {
                 if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
@@ -446,7 +449,6 @@ public final class RealmObjectSchema {
                     addIndex(fieldName);
                     indexAdded = true;
                     addPrimaryKey(fieldName);
-                    primaryKeyAdded = true;
                 }
 
                 // REQUIRED is being handled when adding the column using addField through the nullable parameter.
@@ -457,10 +459,6 @@ public final class RealmObjectSchema {
             if (indexAdded) {
                 table.removeSearchIndex(columnIndex);
             }
-            if (primaryKeyAdded) {
-                table.setPrimaryKey(null);
-            }
-
             throw e;
         }
     }
@@ -521,6 +519,86 @@ public final class RealmObjectSchema {
     }
 
     /**
+     * Returns the column indices for the given field name. If a linked field is defined, the column index for
+     * each field is returned
+     *
+     * @param fieldDescription fieldName or link path to a field name.
+     * @param validColumnTypes Legal field type for the last field in a linked field
+     * @return list of column indices.
+     */
+    // TODO: consider another caching strategy so linked classes are included in the cache.
+    long[] getColumnIndices(String fieldDescription, RealmFieldType... validColumnTypes) {
+        if (fieldDescription == null || fieldDescription.equals("")) {
+            throw new IllegalArgumentException("Non-empty fieldname must be provided");
+        }
+        if (fieldDescription.startsWith(".") || fieldDescription.endsWith(".")) {
+            throw new IllegalArgumentException("Illegal field name. It cannot start or end with a '.': " + fieldDescription);
+        }
+        Table table = this.table;
+        boolean checkColumnType = validColumnTypes != null && validColumnTypes.length > 0;
+        if (fieldDescription.contains(".")) {
+            // Resolve field description down to last field name
+            String[] names = fieldDescription.split("\\.");
+            long[] columnIndices = new long[names.length];
+            for (int i = 0; i < names.length - 1; i++) {
+                long index = table.getColumnIndex(names[i]);
+                if (index < 0) {
+                    throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
+                }
+                RealmFieldType type = table.getColumnType(index);
+                if (type == RealmFieldType.OBJECT || type == RealmFieldType.LIST) {
+                    table = table.getLinkTarget(index);
+                    columnIndices[i] = index;
+                } else {
+                    throw new IllegalArgumentException("Invalid query: " + names[i] + " does not refer to a class.");
+                }
+            }
+
+            // Check if last field name is a valid field
+            String columnName = names[names.length - 1];
+            long columnIndex = table.getColumnIndex(columnName);
+            columnIndices[names.length - 1] = columnIndex;
+            if (columnIndex < 0) {
+                throw new IllegalArgumentException(columnName + " is not a field name in class " + table.getName());
+            }
+            if (checkColumnType && !isValidType(table.getColumnType(columnIndex), validColumnTypes)) {
+                throw new IllegalArgumentException(String.format("Field '%s': type mismatch.", names[names.length - 1]));
+            }
+            return columnIndices;
+        } else {
+            if (getFieldIndex(fieldDescription) == null) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exist.", fieldDescription));
+            }
+            RealmFieldType tableColumnType = table.getColumnType(getFieldIndex(fieldDescription));
+            if (checkColumnType && !isValidType(tableColumnType, validColumnTypes)) {
+                throw new IllegalArgumentException(String.format("Field '%s': type mismatch. Was %s, expected %s.",
+                        fieldDescription, tableColumnType, Arrays.toString(validColumnTypes)));
+            }
+            return new long[] {getFieldIndex(fieldDescription)};
+        }
+    }
+
+    private boolean isValidType(RealmFieldType columnType, RealmFieldType[] validColumnTypes) {
+        for (int i = 0; i < validColumnTypes.length; i++) {
+            if (validColumnTypes[i] == columnType) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the column index in the underlying table for the given field name.
+     * INVARIANT: fieldName should be present.
+     *
+     * @param fieldName field name to find index for.
+     * @return column index
+     */
+    Long getFieldIndex(String fieldName) {
+        return columnIndices.get(fieldName);
+    }
+
+    /**
      * Function interface, used when traversing all objects of the current class and apply a function on each.
      *
      * @see #transform(Function)
@@ -537,6 +615,74 @@ public final class RealmObjectSchema {
         public FieldMetaData(RealmFieldType realmType, boolean defaultNullable) {
             this.realmType = realmType;
             this.defaultNullable = defaultNullable;
+        }
+    }
+
+    static class DynamicColumnMap implements Map<String, Long> {
+        private final Table table;
+
+        public DynamicColumnMap(Table table) {
+            this.table = table;
+        }
+
+        @Override
+        public Long get(Object key) {
+            return table.getColumnIndex((String) key);
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean containsValue(Object value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Set<Entry<String, Long>> entrySet() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Set<String> keySet() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Long put(String key, Long value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void putAll(Map<? extends String, ? extends Long> map) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Long remove(Object key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int size() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Collection<Long> values() {
+            throw new UnsupportedOperationException();
         }
     }
 }

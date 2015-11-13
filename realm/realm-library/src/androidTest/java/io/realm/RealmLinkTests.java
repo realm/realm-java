@@ -455,20 +455,22 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat..hasTail", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
-
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo(".cat.hasTail", true).findAll();
+            fail("Should throw Exception");
+        } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail.", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
-
+        } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("not.there", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
-
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

@@ -89,7 +89,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public DynamicRealmObject createObject(String className) {
         checkIfValid();
-        Table table = getTable(className);
+        Table table = schema.getTable(className);
         long rowIndex = table.addEmptyRow();
         return get(DynamicRealmObject.class, className, rowIndex);
     }
@@ -104,7 +104,7 @@ public final class DynamicRealm extends BaseRealm {
      * @throws IllegalStateException if the class doesn't have a primary key defined.
      */
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
-        Table table = getTable(className);
+        Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return new DynamicRealmObject(this, table.getCheckedRow(index));
     }
@@ -132,7 +132,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public void clear(String className) {
         checkIfValid();
-        getTable(className).clear();
+        schema.getTable(className).clear();
     }
 
     /**
@@ -183,7 +183,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName, Sort sortOrder) {
         checkIfValid();
-        Table table = getTable(className);
+        Table table = schema.getTable(className);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
@@ -230,7 +230,7 @@ public final class DynamicRealm extends BaseRealm {
     @SuppressWarnings("unchecked")
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[], Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
-        Table table = this.getTable(className);
+        Table table = schema.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
         return RealmResults.createFromDynamicTableOrView(this, tableView, className);
@@ -286,7 +286,7 @@ public final class DynamicRealm extends BaseRealm {
     public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
         checkNotNullFieldName(fieldName);
         checkIfValid();
-        Table table = this.getTable(className);
+        Table table = schema.getTable(className);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
@@ -311,7 +311,7 @@ public final class DynamicRealm extends BaseRealm {
     public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
         checkNotNullFieldName(fieldName);
         checkIfValid();
-        Table table = this.getTable(className);
+        Table table = schema.getTable(className);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
