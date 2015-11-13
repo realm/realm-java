@@ -18,6 +18,8 @@ package io.realm;
 
 import android.content.Context;
 
+import com.getkeepsafe.relinker.ReLinker;
+
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -244,6 +246,8 @@ public class RealmConfiguration {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
             initializeBuilder(context.getFilesDir());
+            // FIXME: Using ReLinker to load .so file adds a string Android dependency
+            ReLinker.loadLibrary(context, "realm-jni");
         }
 
         // Setup builder in its initial state

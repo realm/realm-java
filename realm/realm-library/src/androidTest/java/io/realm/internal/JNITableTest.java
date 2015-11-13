@@ -27,7 +27,7 @@ import static io.realm.internal.ColumnType.*;
 
 public class JNITableTest extends AndroidTestCase {
 
-    Table t = new Table();
+    Table t;
 
     Table createTestTable() {
         Table t = new Table();

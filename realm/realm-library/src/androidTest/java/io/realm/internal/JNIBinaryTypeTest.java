@@ -37,6 +37,4 @@ public class JNIBinaryTypeTest extends TestCase {
         //table.close();
         table = null;
     }
-
-
 }

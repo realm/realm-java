@@ -20,10 +20,6 @@ import io.realm.RealmObject;
 
 public class Util {
 
-    static {
-        RealmCore.loadLibrary();
-    }
-
     public static long getNativeMemUsage() {
         return nativeGetMemUsage();
     }
