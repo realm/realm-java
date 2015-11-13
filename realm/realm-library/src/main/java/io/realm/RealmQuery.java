@@ -133,7 +133,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = realm;
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = schema.getTable();
+        this.table = schema.table;
         this.view = null;
         this.query = table.where();
     }
@@ -142,7 +142,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = queryResults.realm;
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = schema.getTable();
+        this.table = schema.table;
         this.view = null;
         this.query = queryResults.getTable().where();
     }
@@ -153,14 +153,14 @@ public class RealmQuery<E extends RealmObject> {
         this.query = view.where();
         this.view = view;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = schema.getTable();
+        this.table = schema.table;
     }
 
     private RealmQuery(BaseRealm realm, String className) {
         this.realm = realm;
         this.className = className;
         this.schema = realm.schema.getSchemaForClass(className);
-        this.table = schema.getTable();
+        this.table = schema.table;
         this.query = table.where();
     }
 
@@ -168,7 +168,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = queryResults.realm;
         this.className = className;
         this.schema = realm.schema.getSchemaForClass(className);
-        this.table = schema.getTable();
+        this.table = schema.table;
         this.query = queryResults.getTable().where();
     }
 
@@ -178,7 +178,7 @@ public class RealmQuery<E extends RealmObject> {
         this.query = view.where();
         this.view = view;
         this.schema = realm.schema.getSchemaForClass(className);
-        this.table = schema.getTable();
+        this.table = schema.table;
     }
 
     /**

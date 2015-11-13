@@ -61,13 +61,13 @@ public final class RealmObjectSchema {
 
     private static final Map<Class<?>, FieldMetaData> SUPPORTED_LINKED_FIELDS;
     static {
-        SUPPORTED_LINKED_FIELDS = new HashMap<>();
+        SUPPORTED_LINKED_FIELDS = new HashMap<Class<?>, FieldMetaData>();
         SUPPORTED_LINKED_FIELDS.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, false));
         SUPPORTED_LINKED_FIELDS.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, false));
     }
 
     private final BaseRealm realm;
-    private final Table table;
+    final Table table;
     private final ImplicitTransaction transaction;
     private final Map<String, Long> columnIndices;
 
@@ -438,7 +438,6 @@ public final class RealmObjectSchema {
     // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.
     private void addModifiers(String fieldName, FieldAttribute[] attributes) {
         boolean indexAdded = false;
-        boolean primaryKeyAdded = false;
         try {
             if (attributes != null && attributes.length > 0) {
                 if (containsAttribute(attributes, FieldAttribute.INDEXED)) {
@@ -450,7 +449,6 @@ public final class RealmObjectSchema {
                     addIndex(fieldName);
                     indexAdded = true;
                     addPrimaryKey(fieldName);
-                    primaryKeyAdded = true;
                 }
 
                 // REQUIRED is being handled when adding the column using addField through the nullable parameter.
@@ -525,7 +523,7 @@ public final class RealmObjectSchema {
      * each field is returned
      *
      * @param fieldDescription fieldName or link path to a field name.
-     * @param validColumnTypes Legal field type for the last field a
+     * @param validColumnTypes Legal field type for the last field in a linked field
      * @return list of column indices.
      */
     // TODO: consider another caching strategy so linked classes are included in the cache.
@@ -538,7 +536,7 @@ public final class RealmObjectSchema {
         }
         Table table = this.table;
         boolean checkColumnType = validColumnTypes != null && validColumnTypes.length > 0;
-        if (containsDot(fieldDescription)) {
+        if (fieldDescription.contains(".")) {
             // Resolve field description down to last field name
             String[] names = fieldDescription.split("\\.");
             long[] columnIndices = new long[names.length];
@@ -580,10 +578,6 @@ public final class RealmObjectSchema {
         }
     }
 
-    private boolean containsDot(String s) {
-        return s.indexOf('.') != -1;
-    }
-
     private boolean isValidType(RealmFieldType columnType, RealmFieldType[] validColumnTypes) {
         for (int i = 0; i < validColumnTypes.length; i++) {
             if (validColumnTypes[i] == columnType) {
@@ -591,15 +585,6 @@ public final class RealmObjectSchema {
             }
         }
         return false;
-    }
-
-    /**
-     * Returns the underlying table backing this schema.
-     *
-     * @return the underlying {@link Table}.
-     */
-    Table getTable() {
-        return table;
     }
 
     /**

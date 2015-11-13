@@ -185,6 +185,7 @@ public final class RealmSchema {
         }
         return columnInfo;
     }
+
     Table getTable(String className) {
         className = Table.TABLE_PREFIX + className;
         Table table = dynamicClassToTable.get(className);
