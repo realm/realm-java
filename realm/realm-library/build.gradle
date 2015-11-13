@@ -17,10 +17,17 @@ android {
         project.archivesBaseName = "realm-android"
     }
 }
+repositories {
+    jcenter()
+    maven { url "https://jitpack.io" }
+}
 
 dependencies {
     compile 'com.intellij:annotations:+@jar'
     compile project(':realm-annotations')
+
+    // https://github.com/KeepSafe/ReLinker
+    compile 'com.github.KeepSafe:ReLinker:1.0'
 
     androidTestApt project(':realm-annotations-processor')
     androidTestApt project(':realm-annotations')
