@@ -1,9 +1,7 @@
 0.85.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
- * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants
-   has been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
- * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants has been
-   replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
+ * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants have been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
+ * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants have been replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
  * Added new Dynamic API using DynamicRealm and DynamicRealmObject.
  * Added Realm.getSchema() and DynamicRealm.getSchema().
  * Added Realm.isEmpty().
