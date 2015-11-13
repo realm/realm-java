@@ -1,3 +1,6 @@
+0.85
+ * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
+
 0.84.2
  * Added Realm.isEmpty().
  * Fixed a bug making it impossible to convert a field to become required during a migration (#1695).
