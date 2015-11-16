@@ -15,6 +15,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 23
         project.archivesBaseName = "realm-android"
+        consumerProguardFiles 'consumer-proguard-rules.pro'
     }
 }
 
