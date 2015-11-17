@@ -77,7 +77,7 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
         assertTrue(future.get());
-        assertTrue(Realm.realmsCache.get().isEmpty());
+        assertEquals(0, RealmCache.getGlobalRefCount(new RealmConfiguration.Builder(getContext()).build()));
     }
 
     public void testSetAutoRefreshOnHandlerThread() throws ExecutionException, InterruptedException {
@@ -97,7 +97,7 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
         assertTrue(future.get());
-        assertTrue(Realm.realmsCache.get().isEmpty());
+        assertEquals(0, RealmCache.getGlobalRefCount(new RealmConfiguration.Builder(getContext()).build()));
     }
 
     public void testRemoveNotifications () throws InterruptedException, ExecutionException {
@@ -201,7 +201,7 @@ public class NotificationsTest extends AndroidTestCase {
         }
 
         assertEquals(1, counter.get());
-        assertTrue(Realm.realmsCache.get().isEmpty());
+        assertEquals(0, RealmCache.getGlobalRefCount(new RealmConfiguration.Builder(getContext()).build()));
     }
 
     public void testAutoUpdateRealmResults() throws InterruptedException, ExecutionException {
@@ -279,7 +279,7 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(TEST_SIZE, results.get(1).intValue());
 
         assertEquals(1, counter.get());
-        assertTrue(Realm.realmsCache.get().isEmpty());
+        assertEquals(0, RealmCache.getGlobalRefCount(new RealmConfiguration.Builder(getContext()).build()));
     }
 
     // TODO Disabled until we can figure out why this times out so often on the build server

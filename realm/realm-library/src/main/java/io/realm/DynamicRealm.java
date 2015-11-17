@@ -19,11 +19,6 @@ package io.realm;
 
 import android.os.Looper;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
@@ -32,34 +27,23 @@ import io.realm.internal.TableView;
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
  * done using string based class names instead of class type references.
  *
- * This is useful during migrations or when working with string-based data like from CSV or XML files.
+ * This is useful during migrations or when working with string-based data like CSV or XML files.
  *
  * The same {@link io.realm.RealmConfiguration} can be used to open a Realm file in both dynamic and typed mode, but
  * modifying the schema while having both a typed and dynamic version open is highly discouraged and will most likely
  * crash the typed Realm. During migrations only a DynamicRealm will be open.
  *
- * Dynamic Realms do not enforce schemas and schema versions and {@link RealmMigration} code is not used even if it
- * has been defined in the {@link RealmConfiguration}.
+ * Dynamic Realms do not enforce schemas or schema versions and {@link RealmMigration} code is not used even if it has
+ * been defined in the {@link RealmConfiguration}.
  *
- * @see io.realm.Realm
+ * This means that the schema is not created or validated until a Realm has been opened in typed mode, so if a Realm
+ * file is opened in dynamic mode first it will not contain any information about classes and fields, and any queries
+ * for classes defined by the schema will fail.
+ *
+ * @see Realm
+ * @see RealmSchema
  */
 public final class DynamicRealm extends BaseRealm {
-
-    private static final ThreadLocal<Map<RealmConfiguration, DynamicRealm>> realmsCache =
-            new ThreadLocal<Map<RealmConfiguration, DynamicRealm>>() {
-                @Override
-                protected Map<RealmConfiguration, DynamicRealm> initialValue() {
-                    return new HashMap<RealmConfiguration, DynamicRealm>();
-                }
-            };
-
-    private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
-            new ThreadLocal<Map<RealmConfiguration,Integer>>() {
-                @Override
-                protected Map<RealmConfiguration, Integer> initialValue() {
-                    return new HashMap<RealmConfiguration, Integer>();
-                }
-            };
 
     private DynamicRealm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
@@ -77,7 +61,7 @@ public final class DynamicRealm extends BaseRealm {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
-        return create(configuration);
+        return (DynamicRealm) RealmCache.createRealmOrGetFromCache(configuration, DynamicRealm.class);
     }
 
     /**
@@ -89,7 +73,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public DynamicRealmObject createObject(String className) {
         checkIfValid();
-        Table table = getTable(className);
+        Table table = schema.getTable(className);
         long rowIndex = table.addEmptyRow();
         return get(DynamicRealmObject.class, className, rowIndex);
     }
@@ -104,7 +88,7 @@ public final class DynamicRealm extends BaseRealm {
      * @throws IllegalStateException if the class doesn't have a primary key defined.
      */
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
-        Table table = getTable(className);
+        Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
         return new DynamicRealmObject(this, table.getCheckedRow(index));
     }
@@ -132,7 +116,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public void clear(String className) {
         checkIfValid();
-        getTable(className).clear();
+        schema.getTable(className).clear();
     }
 
     /**
@@ -183,7 +167,7 @@ public final class DynamicRealm extends BaseRealm {
      */
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldName, Sort sortOrder) {
         checkIfValid();
-        Table table = getTable(className);
+        Table table = schema.getTable(className);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
@@ -230,48 +214,20 @@ public final class DynamicRealm extends BaseRealm {
     @SuppressWarnings("unchecked")
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[], Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
-        Table table = this.getTable(className);
+        Table table = schema.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
         return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
-    private static DynamicRealm create(RealmConfiguration configuration) {
-        synchronized (BaseRealm.class) {
-
-            // Check if a cached instance already exists for this thread
-            String canonicalPath = configuration.getPath();
-            Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-            Integer references = localRefCount.get(configuration);
-            if (references == null) {
-                references = 0;
-            }
-            Map<RealmConfiguration, DynamicRealm> realms = realmsCache.get();
-            DynamicRealm realm = realms.get(configuration);
-            if (realm != null) {
-                localRefCount.put(configuration, references + 1);
-                return realm;
-            }
-
-            // Create new DynamicRealm and cache it. All exception code paths must close the DynamicRealm otherwise we risk
-            // serving faulty cache data.
-            validateAgainstExistingConfigurations(configuration);
-            boolean autoRefresh = Looper.myLooper() != null;
-            realm = new DynamicRealm(configuration, autoRefresh);
-            List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-            if (pathConfigurationCache == null) {
-                pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-                globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
-            }
-            pathConfigurationCache.add(configuration);
-            realms.put(configuration, realm);
-            localRefCount.put(configuration, references + 1);
-
-            // Increment global reference counter
-            realm.acquireFileReference(configuration);
-
-            return realm;
-        }
+    /**
+     * Creates a {@link DynamicRealm} instance without checking the existence in the {@link RealmCache}.
+     *
+     * @return a {@link DynamicRealm} instance.
+     */
+    static DynamicRealm createInstance(RealmConfiguration configuration) {
+        boolean autoRefresh = Looper.myLooper() != null;
+        return new DynamicRealm(configuration, autoRefresh);
     }
 
     /**
@@ -286,7 +242,7 @@ public final class DynamicRealm extends BaseRealm {
     public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
         checkNotNullFieldName(fieldName);
         checkIfValid();
-        Table table = this.getTable(className);
+        Table table = schema.getTable(className);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
@@ -311,7 +267,7 @@ public final class DynamicRealm extends BaseRealm {
     public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
         checkNotNullFieldName(fieldName);
         checkIfValid();
-        Table table = this.getTable(className);
+        Table table = schema.getTable(className);
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex == -1) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
@@ -323,16 +279,6 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         return where(className).distinctAsync(columnIndex);
-    }
-
-    @Override
-    protected void lastLocalInstanceClosed() {
-        realmsCache.get().remove(configuration);
-    }
-
-    @Override
-    protected Map<RealmConfiguration, Integer> getLocalReferenceCount() {
-        return referenceCount.get();
     }
 
     /**

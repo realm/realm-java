@@ -1,12 +1,19 @@
-0.84.2
+0.85.0
+ * BREAKING CHANGE: The Migration API has been replaced with a new API.
+ * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants have been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
+ * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants have been replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
+ * Added new Dynamic API using DynamicRealm and DynamicRealmObject.
+ * Added Realm.getSchema() and DynamicRealm.getSchema().
  * Added Realm.isEmpty().
+ * RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
+ * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed, from different Realm) object (#1749).
+
+0.84.2
  * Fixed a bug making it impossible to convert a field to become required during a migration (#1695).
  * Fixed a bug making it impossible to read Realms created using primary keys and created by iOS (#1703).
  * Fixed some memory leaks when an Exception is thrown (#1730).
  * Fixed a memory leak when using relationships (#1285).
  * Fixed a bug causing cached column indices to be cleared too soon (#1732).
- * RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
- * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed, from different Realm) object (#1749).
 
 0.84.1
  * Updated Realm Core to 0.94.4
@@ -45,10 +52,6 @@
    - Fixed a bug, so isNull link queries now always return true if any part is null.
 
 0.83
- * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants
-   has been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
- * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants has been
-   replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
  * BREAKING CHANGE: Database file format update. The Realm file created by this version cannot be used by previous versions of Realm.
  * BREAKING CHANGE: Removed deprecated methods and constructors from the Realm class.
  * BREAKING CHANGE: Introduced boxed types Boolean, Byte, Short, Integer, Long, Float and Double. Added null support. Introduced annotation @Required to indicate a field is not nullable. String, Date and byte[] became nullable by default which means a RealmMigrationNeededException will be thrown if an previous version of a Realm file is opened.

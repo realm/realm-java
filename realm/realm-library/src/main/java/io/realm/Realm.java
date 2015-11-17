@@ -53,7 +53,6 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
-import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
 
@@ -112,22 +111,6 @@ public final class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
-    protected static final ThreadLocal<Map<RealmConfiguration, Realm>> realmsCache =
-            new ThreadLocal<Map<RealmConfiguration, Realm>>() {
-                @Override
-                protected Map<RealmConfiguration, Realm> initialValue() {
-                    return new HashMap<RealmConfiguration, Realm>();
-                }
-            };
-
-    private static final ThreadLocal<Map<RealmConfiguration, Integer>> referenceCount =
-            new ThreadLocal<Map<RealmConfiguration,Integer>>() {
-                @Override
-                protected Map<RealmConfiguration, Integer> initialValue() {
-                    return new HashMap<RealmConfiguration, Integer>();
-                }
-            };
-
     // Map between Realm file that has already been validated and Model class's column information
     static final Map<String, ColumnIndices> validatedRealmFiles = new HashMap<String, ColumnIndices>();
 
@@ -149,7 +132,7 @@ public final class Realm extends BaseRealm {
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
      * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
-    private Realm(RealmConfiguration configuration, boolean autoRefresh) {
+    Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
     }
 
@@ -197,7 +180,7 @@ public final class Realm extends BaseRealm {
         if (defaultConfiguration == null) {
             throw new NullPointerException("No default RealmConfiguration was found. Call setDefaultConfiguration() first");
         }
-        return create(defaultConfiguration);
+        return (Realm) RealmCache.createRealmOrGetFromCache(defaultConfiguration, Realm.class);
     }
 
     /**
@@ -214,7 +197,7 @@ public final class Realm extends BaseRealm {
         if (configuration == null) {
             throw new IllegalArgumentException("A non-null RealmConfiguration must be provided");
         }
-        return create(configuration);
+        return (Realm) RealmCache.createRealmOrGetFromCache(configuration, Realm.class);
     }
 
     /**
@@ -238,10 +221,17 @@ public final class Realm extends BaseRealm {
         defaultConfiguration = null;
     }
 
-    private static synchronized Realm create(RealmConfiguration configuration) {
-        boolean autoRefresh = Looper.myLooper() != null;
+    /**
+     * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
+     *
+     * @param configuration {@link RealmConfiguration} used to create the Realm.
+     * @param columnIndices if this is not  {@code null} value, the {@link BaseRealm#columnIndices} will be initialized
+     *                      to it. Otherwise, {@link BaseRealm#columnIndices} will be populated from the Realm file.
+     * @return a {@link Realm} instance.
+     */
+    static Realm createInstance(RealmConfiguration configuration, ColumnIndices columnIndices) {
         try {
-            return createAndValidate(configuration, null, autoRefresh);
+            return createAndValidate(configuration, columnIndices);
 
         } catch (RealmMigrationNeededException e) {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
@@ -250,73 +240,37 @@ public final class Realm extends BaseRealm {
                 migrateRealm(configuration);
             }
 
-            return createAndValidate(configuration, true, autoRefresh);
+            return createAndValidate(configuration, columnIndices);
         }
     }
 
-    private static Realm createAndValidate(RealmConfiguration configuration, Boolean validateSchema, boolean autoRefresh) {
-        synchronized (BaseRealm.class) {
-            if (validateSchema == null) {
-                validateSchema = !validatedRealmFiles.containsKey(configuration.getPath());
-            }
-
-            // Check if a cached instance already exists for this thread
-            String canonicalPath = configuration.getPath();
-            Map<RealmConfiguration, Integer> localRefCount = referenceCount.get();
-            Integer references = localRefCount.get(configuration);
-            if (references == null) {
-                references = 0;
-            }
-            Map<RealmConfiguration, Realm> realms = realmsCache.get();
-            Realm realm = realms.get(configuration);
-            if (realm != null) {
-                localRefCount.put(configuration, references + 1);
-                return realm;
-            }
-
-            // Create new Realm and cache it. All exception code paths must close the Realm otherwise we risk serving
-            // faulty cache data.
-            validateAgainstExistingConfigurations(configuration);
-            realm = new Realm(configuration, autoRefresh);
-            List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-            if (pathConfigurationCache == null) {
-                pathConfigurationCache = new CopyOnWriteArrayList<RealmConfiguration>();
-                globalPathConfigurationCache.put(canonicalPath, pathConfigurationCache);
-            }
-            pathConfigurationCache.add(configuration);
-            realms.put(configuration, realm);
-            localRefCount.put(configuration, references + 1);
-
-            // Increment global reference counter
-            realm.acquireFileReference(configuration);
-            // Increment Realm file reference counter
-            acquireRealmFileReference(configuration);
-
-            // Check versions of Realm
-            long currentVersion = realm.getVersion();
-            long requiredVersion = configuration.getSchemaVersion();
-            if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && validateSchema) {
-                realm.close();
-                throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
-            }
-            if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && validateSchema) {
-                realm.close();
-                throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
-            }
-
-            // Initialize Realm schema if needed
-            if (validateSchema) {
-                try {
-                    initializeRealm(realm);
-                } catch (RuntimeException e) {
-                    realm.close();
-                    throw e;
-                }
-            }
-            realm.columnIndices = validatedRealmFiles.get(configuration.getPath());
-
-            return realm;
+    static Realm createAndValidate(RealmConfiguration configuration, ColumnIndices columnIndices) {
+        boolean autoRefresh = Looper.myLooper() != null;
+        Realm realm = new Realm(configuration, autoRefresh);
+        long currentVersion = realm.getVersion();
+        long requiredVersion = configuration.getSchemaVersion();
+        if (currentVersion != UNVERSIONED && currentVersion < requiredVersion && columnIndices == null) {
+            realm.doClose();
+            throw new RealmMigrationNeededException(configuration.getPath(), String.format("Realm on disk need to migrate from v%s to v%s", currentVersion, requiredVersion));
         }
+        if (currentVersion != UNVERSIONED && requiredVersion < currentVersion && columnIndices == null) {
+            realm.doClose();
+            throw new IllegalArgumentException(String.format("Realm on disk is newer than the one specified: v%s vs. v%s", currentVersion, requiredVersion));
+        }
+
+        // Initialize Realm schema if needed
+        if (columnIndices == null) {
+            try {
+                initializeRealm(realm);
+            } catch (RuntimeException e) {
+                realm.doClose();
+                throw e;
+            }
+        } else {
+            realm.schema.columnIndices = columnIndices;
+        }
+
+        return realm;
     }
 
     @SuppressWarnings("unchecked")
@@ -341,7 +295,7 @@ public final class Realm extends BaseRealm {
                 }
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
             }
-            validatedRealmFiles.put(realm.getPath(), new ColumnIndices(columnInfoMap));
+            realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction();
@@ -824,7 +778,7 @@ public final class Realm extends BaseRealm {
                                                                     Sort sortOrder) {
         checkIfValid();
         Table table = getTable(clazz);
-        long columnIndex = columnIndices.getColumnIndex(clazz, fieldName);
+        long columnIndex = schema.columnIndices.getColumnIndex(clazz, fieldName);
         if (columnIndex < 0) {
             throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
         }
@@ -1080,23 +1034,6 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    @Override
-    protected Map<RealmConfiguration, Integer> getLocalReferenceCount() {
-        return referenceCount.get();
-    }
-
-    @Override
-    protected void lastLocalInstanceClosed() {
-        // validatedRealmFiles must not modified while other thread is executing createAndValidate()
-        synchronized (BaseRealm.class) {
-            // All Realm instances with this file have been closed. Decrease the counter.
-            if (releaseRealmFileReference(configuration) == 0) {
-                validatedRealmFiles.remove(configuration.getPath());
-            }
-        }
-        realmsCache.get().remove(configuration);
-    }
-
     /**
      * Manually trigger the migration associated with a given RealmConfiguration. If Realm is already at the latest
      * version, nothing will happen.
@@ -1118,7 +1055,6 @@ public final class Realm extends BaseRealm {
         BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
             @Override
             public void migrationComplete() {
-                realmsCache.remove();
             }
         });
     }

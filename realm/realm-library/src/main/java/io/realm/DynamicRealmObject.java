@@ -571,7 +571,7 @@ public final class DynamicRealmObject extends RealmObject {
             // multiple types :(, so we have to check each item in the list.
             typeValidated = false;
         } else {
-            String listType = list.className != null ? list.className : realm.getTable(list.clazz).getName();
+            String listType = list.className != null ? list.className : realm.schema.getTable(list.clazz).getName();
             if (!tableName.equals(listType)) {
                 throw new IllegalArgumentException(String.format("The elements in the list is not the proper type. " +
                         "Was %s expected %s.", listType, tableName));
