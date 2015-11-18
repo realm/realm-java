@@ -54,7 +54,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             Realm.setDefaultConfiguration(null);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -62,7 +62,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             Realm.getDefaultInstance();
             fail();
-        } catch (NullPointerException expected) {
+        } catch (NullPointerException ignored) {
         }
     }
 
@@ -70,7 +70,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             Realm.getInstance((RealmConfiguration) null);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -78,7 +78,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             new RealmConfiguration.Builder((File) null).build();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -87,7 +87,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             new RealmConfiguration.Builder(folder).build();
             fail("Assuming that subfolders are created automatically should fail");
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -95,7 +95,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             new RealmConfiguration.Builder(getContext()).name(null).build();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -103,7 +103,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             new RealmConfiguration.Builder(getContext()).name("").build();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -125,7 +125,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             new RealmConfiguration.Builder(getContext()).encryptionKey(null).build();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -139,7 +139,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
             try {
                 new RealmConfiguration.Builder(getContext()).encryptionKey(key).build();
                 fail("Key with length " + key.length + " should throw an exception");
-            } catch (IllegalArgumentException expected) {
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
@@ -148,7 +148,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             new RealmConfiguration.Builder(getContext()).schemaVersion(-1).build();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -161,7 +161,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
             try {
                 realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(version).build());
                 fail("Version " + version + " should throw an exception");
-            } catch (IllegalArgumentException expected) {
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
@@ -176,7 +176,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
             config = new RealmConfiguration.Builder(getContext()).schemaVersion(42).schema(AllTypesPrimaryKey.class).build();
             realm = Realm.getInstance(config);
             fail("A migration should be required");
-        } catch (RealmMigrationNeededException expected) {
+        } catch (RealmMigrationNeededException ignored) {
         }
     }
 
@@ -186,7 +186,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             assertEquals(3, realm.getTable(Owner.class).getColumnCount());
             fail("Owner should to be part of the schema");
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -194,7 +194,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             new RealmConfiguration.Builder(getContext()).migration(null).build();
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -203,14 +203,14 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             new RealmConfiguration.Builder(getContext()).setModules(new Object());
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
 
         // Test second argument
         try {
             new RealmConfiguration.Builder(getContext()).setModules(Realm.getDefaultModule(), new Object());
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -284,7 +284,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             realm = Realm.getInstance(new RealmConfiguration.Builder(getContext()).schemaVersion(42).build());
             fail();
-        } catch (RealmMigrationNeededException expected) {
+        } catch (RealmMigrationNeededException ignored) {
         }
     }
 
@@ -342,7 +342,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             Realm.getInstance(config2);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm1.close();
         }
@@ -356,7 +356,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             realm = Realm.getInstance(config2);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm1.close();
         }
@@ -370,7 +370,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
         try {
             Realm.getInstance(config2);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             realm1.close();
         }
