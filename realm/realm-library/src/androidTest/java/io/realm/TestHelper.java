@@ -231,6 +231,70 @@ public class TestHelper {
         return sb.toString();
     }
 
+    /**
+     * Returns a naive logger that can be used to test the values that are sent to the logger.
+     */
+    public static class TestLogger implements Logger {
+
+        public String message;
+        public Throwable throwable;
+
+        @Override
+        public void v(String message) {
+            this.message = message;
+        }
+
+        @Override
+        public void v(String message, Throwable t) {
+            this.message = message;
+            this.throwable = t;
+        }
+
+        @Override
+        public void d(String message) {
+            this.message = message;
+        }
+
+        @Override
+        public void d(String message, Throwable t) {
+            this.message = message;
+            this.throwable = t;
+        }
+
+        @Override
+        public void i(String message) {
+            this.message = message;
+        }
+
+        @Override
+        public void i(String message, Throwable t) {
+            this.message = message;
+            this.throwable = t;
+        }
+
+        @Override
+        public void w(String message) {
+            this.message = message;
+        }
+
+        @Override
+        public void w(String message, Throwable t) {
+            this.message = message;
+            this.throwable = t;
+        }
+
+        @Override
+        public void e(String message) {
+            this.message = message;
+        }
+
+        @Override
+        public void e(String message, Throwable t) {
+            this.message = message;
+            this.throwable = t;
+        }
+    }
+
     public static class StubInputStream extends InputStream {
         @Override
         public int read() throws IOException {
