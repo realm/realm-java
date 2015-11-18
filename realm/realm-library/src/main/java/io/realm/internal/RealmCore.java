@@ -16,6 +16,10 @@
 
 package io.realm.internal;
 
+import android.content.Context;
+
+import com.getkeepsafe.relinker.ReLinker;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -119,6 +123,14 @@ public class RealmCore {
         libraryIsLoaded = true;
 
         Version.coreLibVersionCompatible(true);
+    }
+
+    public static synchronized void loadLibrary(Context context) {
+        if (libraryIsLoaded) {
+            return;
+        }
+        ReLinker.loadLibrary(context, "realm-jni");
+        libraryIsLoaded = true;
     }
 
     private static String loadLibraryWindows() {

@@ -18,8 +18,6 @@ package io.realm;
 
 import android.content.Context;
 
-import com.getkeepsafe.relinker.ReLinker;
-
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -30,6 +28,7 @@ import java.util.Set;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.modules.CompositeMediator;
@@ -246,7 +245,7 @@ public class RealmConfiguration {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
             initializeBuilder(context.getFilesDir());
-            ReLinker.loadLibrary(context, "realm-jni");
+            RealmCore.loadLibrary(context);
         }
 
         // Setup builder in its initial state
