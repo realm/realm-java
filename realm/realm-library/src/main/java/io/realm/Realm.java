@@ -1015,11 +1015,12 @@ public final class Realm extends BaseRealm {
         try {
             transaction.execute(this);
             commitTransaction();
-        } catch (RuntimeException e) {
-            cancelTransaction();
-            throw new RealmException("Error during transaction.", e);
-        } catch (Error e) {
-            cancelTransaction();
+        } catch (Throwable e) {
+            if (isInTransaction()) {
+                cancelTransaction();
+            } else {
+                RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+            }
             throw e;
         }
     }
@@ -1069,11 +1070,19 @@ public final class Realm extends BaseRealm {
                                 });
                             }
                         } else {
-                            bgRealm.cancelTransaction();
+                            if (bgRealm.isInTransaction()) {
+                                bgRealm.cancelTransaction();
+                            } else {
+                                RealmLog.w("Thread is interrupted. Could not cancel transaction, not currently in a transaction.");
+                            }
                         }
 
                     } catch (final Exception e) {
-                        bgRealm.cancelTransaction();
+                        if (bgRealm.isInTransaction()) {
+                            bgRealm.cancelTransaction();
+                        } else {
+                            RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+                        }
                         if (callback != null
                                 && handler != null
                                 && !Thread.currentThread().isInterrupted()

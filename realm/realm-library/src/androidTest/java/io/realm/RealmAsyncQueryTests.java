@@ -40,6 +40,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
+import io.realm.internal.log.RealmLog;
 import io.realm.proxy.HandlerProxy;
 
 public class RealmAsyncQueryTests extends InstrumentationTestCase {
@@ -99,6 +100,81 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     threadAssertionError[0] = e;
 
                 } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm.length > 0 && realm[0] != null) {
+                        realm[0].close();
+                    }
+                    signalClosedRealm.countDown();
+                }
+            }
+        });
+
+        exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+    }
+
+    public void testAsyncTransactionThatThrowsRuntimeException() throws Throwable {
+        final TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final Realm[] realm = new Realm[1];
+        final Throwable[] threadAssertionError = new Throwable[1];// to catch both Exception & AssertionError
+        final Looper[] backgroundLooper = new Looper[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                try {
+                    RealmLog.add(testLogger);
+                    realm[0] = openRealmInstance("testAsyncTransaction");
+
+                    assertEquals(0, realm[0].allObjects(Owner.class).size());
+
+                    realm[0].executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            Owner owner = realm.createObject(Owner.class);
+                            owner.setName("Owner");
+                            realm.cancelTransaction(); // Cancel the transaction then throw
+                            throw new RuntimeException("Boom");
+                        }
+                    }, new Realm.Transaction.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            try {
+                                fail("Should not reach success if runtime exception is thrown in callback.");
+                            } catch (AssertionFailedError e) {
+                                threadAssertionError[0] = e;
+                            } finally {
+                                signalCallbackFinished.countDown();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            try {
+                                // Ensure we are giving developers quality messages in the logs.
+                                assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
+                            } catch (AssertionFailedError afe) {
+                                threadAssertionError[0] = afe;
+                            } finally {
+                                signalCallbackFinished.countDown();
+                            }
+                        }
+                    });
+
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    RealmLog.remove(testLogger);
                     if (signalCallbackFinished.getCount() > 0) {
                         signalCallbackFinished.countDown();
                     }

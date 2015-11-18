@@ -64,6 +64,7 @@ import io.realm.entities.StringOnly;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
+import io.realm.internal.log.RealmLog;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -775,11 +776,33 @@ public class RealmTest extends AndroidTestCase {
                     throw new RuntimeException("Boom");
                 }
             });
-        } catch (RealmException ignored) {
+        } catch (RuntimeException ignored) {
         }
         assertEquals(0, testRealm.allObjects(Owner.class).size());
     }
 
+    public void testExecuteTransactionCancelledInExecuteThrowsRuntimeException() {
+        assertEquals(0, testRealm.allObjects(Owner.class).size());
+        TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        try {
+            RealmLog.add(testLogger);
+            testRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    Owner owner = realm.createObject(Owner.class);
+                    owner.setName("Owner");
+                    realm.cancelTransaction();
+                    throw new RuntimeException("Boom");
+                }
+            });
+        } catch (RuntimeException ignored) {
+            // Ensure that we pass a valuable error message to the logger for developers.
+            assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
+        } finally {
+            RealmLog.remove(testLogger);
+        }
+        assertEquals(0, testRealm.allObjects(Owner.class).size());
+    }
 
     // void clear(Class<?> classSpec)
     public void testClear() {
@@ -1361,7 +1384,7 @@ public class RealmTest extends AndroidTestCase {
                 obj.setColumnFloat(1.23F);
                 obj.setColumnDouble(1.234D);
                 obj.setColumnBoolean(false);
-                obj.setColumnBinary(new byte[] {1, 2, 3});
+                obj.setColumnBinary(new byte[]{1, 2, 3});
                 obj.setColumnDate(new Date(1000));
                 obj.setColumnRealmObject(new DogPrimaryKey(1, "Dog1"));
                 obj.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(2, "Dog2")));
@@ -1374,7 +1397,7 @@ public class RealmTest extends AndroidTestCase {
                 obj2.setColumnFloat(2.23F);
                 obj2.setColumnDouble(2.234D);
                 obj2.setColumnBoolean(true);
-                obj2.setColumnBinary(new byte[] {2, 3, 4});
+                obj2.setColumnBinary(new byte[]{2, 3, 4});
                 obj2.setColumnDate(new Date(2000));
                 obj2.setColumnRealmObject(new DogPrimaryKey(3, "Dog3"));
                 obj2.setColumnRealmList(new RealmList<DogPrimaryKey>(new DogPrimaryKey(4, "Dog4")));
@@ -1392,7 +1415,7 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(2.23F, obj.getColumnFloat());
         assertEquals(2.234D, obj.getColumnDouble());
         assertEquals(true, obj.isColumnBoolean());
-        assertArrayEquals(new byte[] {2, 3, 4}, obj.getColumnBinary());
+        assertArrayEquals(new byte[]{2, 3, 4}, obj.getColumnBinary());
         assertEquals(new Date(2000), obj.getColumnDate());
         assertEquals("Dog3", obj.getColumnRealmObject().getName());
         assertEquals(1, obj.getColumnRealmList().size());
