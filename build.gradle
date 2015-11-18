@@ -57,7 +57,7 @@ task assembleRealm(type:GradleBuild) {
     group = 'Build'
     description = 'Assemble the Realm project'
     buildFile = file('realm/build.gradle')
-    tasks = ['assemble']
+    tasks = ['assemble', 'javadocJar', 'sourcesJar']
 }
 
 task check(type:GradleBuild) {
@@ -303,7 +303,6 @@ publishing {
                 root.appendNode('name', 'realm-android')
                 root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
                 root.appendNode('url', 'http://realm.io')
-                root.appendNode('packaging', 'jar')
                 root.children().last() + commonPom
             }
         }
@@ -318,7 +317,6 @@ publishing {
                 root.appendNode('name', 'realm-android-library')
                 root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
                 root.appendNode('url', 'http://realm.io')
-                root.appendNode('packaging', 'aar')
                 root.children().last() + commonPom
             }
         }
@@ -331,7 +329,6 @@ publishing {
                 root.appendNode('name', 'realm-annotations')
                 root.appendNode('description', 'Annotations for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
-                root.appendNode('packaging', 'jar')
                 root.children().last() + commonPom
             }
         }
@@ -344,7 +341,6 @@ publishing {
                 root.appendNode('name', 'realm-annotations-processor')
                 root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
-                root.appendNode('packaging', 'jar')
                 root.children().last() + commonPom
             }
         }
@@ -357,7 +353,6 @@ publishing {
                 root.appendNode('name', 'gradle-realm-plugin')
                 root.appendNode('description', 'Gradle plugin for Realm. Realm is a mobile database: a replacement for SQLite & ORMs.')
                 root.appendNode('url', 'http://realm.io')
-                root.appendNode('packaging', 'jar')
                 root.children().last() + commonPom
             }
         }

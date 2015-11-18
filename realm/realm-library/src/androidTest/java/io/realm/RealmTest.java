@@ -2331,6 +2331,18 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testCannotRefreshInTransaction() {
+        testRealm.beginTransaction();
+        try {
+            testRealm.refresh();
+            fail("Cannot refresh in a Transaction. Expected IllegalStateException to be thrown.");
+        } catch (IllegalStateException e) {
+            assertEquals(e.getMessage(), "Cannot refresh inside of a transaction.");
+        } finally {
+            testRealm.cancelTransaction();
+        }
+    }
+
     public void testIsEmpty() {
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "empty_test.realm");
         Realm.deleteRealm(realmConfig);
