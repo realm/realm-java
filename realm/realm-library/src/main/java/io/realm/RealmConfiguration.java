@@ -228,6 +228,7 @@ public class RealmConfiguration {
          * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
          */
         public Builder(File folder) {
+            RealmCore.loadLibrary();
             initializeBuilder(folder);
         }
 
@@ -244,8 +245,8 @@ public class RealmConfiguration {
             if (context == null) {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
-            initializeBuilder(context.getFilesDir());
             RealmCore.loadLibrary(context);
+            initializeBuilder(context.getFilesDir());
         }
 
         // Setup builder in its initial state
