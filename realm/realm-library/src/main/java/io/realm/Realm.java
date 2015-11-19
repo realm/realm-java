@@ -43,7 +43,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -147,7 +146,6 @@ public final class Realm extends BaseRealm {
      * @param configuration the {@link RealmConfiguration} used to open the Realm.
      * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
-     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
@@ -207,7 +205,6 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the model
      * classes or version has has changed so a migration is required.
-     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
