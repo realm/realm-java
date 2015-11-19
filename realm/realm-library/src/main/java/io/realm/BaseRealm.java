@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.RealmProxyMediator;
@@ -265,7 +264,6 @@ abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
      * @throws java.io.IOException if any write operation fails.
-     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
         if (destination == null) {

@@ -121,7 +121,6 @@ enum ExceptionKind {
     FatalError = 11,
     RuntimeError = 12,
     RowInvalid = 13,
-    EncryptionNotSupported = 14,
     BadVersion = 15
 // NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
