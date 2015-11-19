@@ -271,6 +271,9 @@ task distribute {
     dependsOn uploadUpdateVersion
 }
 
+// This is just a placeholder for the release plugin
+task build {}
+
 def commonPom = {
     licenses {
         license {
@@ -395,8 +398,7 @@ bintray {
 }
 
 release {
-  dependsOn distributionPackage
-  push = true
+  push = false
   versionSuffix = '-SNAPSHOT'
   tagPrefix = 'v'
 }
