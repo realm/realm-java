@@ -99,6 +99,10 @@ public class RealmCore {
 
     // Although loadLibrary is synchronized internally from AOSP 4.3, for the compatibility reason,
     // KEEP synchronized here for the old devices!
+
+    /**
+     * Loads the .so file. This method is useful for static blocks as it does not rely on access to a Context.
+     */
     public static synchronized void loadLibrary() {
         if (libraryIsLoaded) {
             // The java native should ensure only load the lib once, but we met some problems before.
@@ -125,6 +129,12 @@ public class RealmCore {
         Version.coreLibVersionCompatible(true);
     }
 
+    /**
+     * Loads the .so file. Typically, the .so file is installed and can be found by System.loadLibrary() but
+     * can be damaged or missing. This happens for the Android installer, especially when apps are installed
+     * through other means than the official Play store. In this case, the .so file can be found in the .apk.
+     * In other to access the .apk, a Context much be provided.
+     */
     public static synchronized void loadLibrary(Context context) {
         if (libraryIsLoaded) {
             return;
