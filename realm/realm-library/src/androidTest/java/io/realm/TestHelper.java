@@ -450,6 +450,70 @@ public class TestHelper {
         testRealm.commitTransaction();
     }
 
+    public static void populateAllNonNullRowsForNumericTesting (Realm realm) {
+        NullTypes nullTypes1 = new NullTypes();
+        nullTypes1.setId(1);
+        nullTypes1.setFieldIntegerNull(3);
+        nullTypes1.setFieldFloatNull(4F);
+        nullTypes1.setFieldDoubleNull(5D);
+        nullTypes1.setFieldBooleanNull(true);
+        nullTypes1.setFieldStringNull("4");
+        nullTypes1.setFieldDateNull(new Date(12345));
+
+        NullTypes nullTypes2 = new NullTypes();
+        nullTypes2.setId(2);
+        nullTypes2.setFieldIntegerNull(-1);
+        nullTypes2.setFieldFloatNull(-2F);
+        nullTypes2.setFieldDoubleNull(-3D);
+        nullTypes2.setFieldBooleanNull(false);
+        nullTypes2.setFieldStringNull("str");
+        nullTypes2.setFieldDateNull(new Date(-2000));
+
+        NullTypes nullTypes3 = new NullTypes();
+        nullTypes3.setId(3);
+        nullTypes3.setFieldIntegerNull(4);
+        nullTypes3.setFieldFloatNull(5F);
+        nullTypes3.setFieldDoubleNull(6D);
+        nullTypes3.setFieldBooleanNull(false);
+        nullTypes3.setFieldStringNull("0");
+        nullTypes3.setFieldDateNull(new Date(0));
+
+        realm.beginTransaction();
+        realm.copyToRealm(nullTypes1);
+        realm.copyToRealm(nullTypes2);
+        realm.copyToRealm(nullTypes3);
+        realm.commitTransaction();
+    }
+
+    public static void populatePartialNullRowsForNumericTesting (Realm realm) {
+        NullTypes nullTypes1 = new NullTypes();
+        nullTypes1.setId(1);
+        nullTypes1.setFieldIntegerNull(3);
+        nullTypes1.setFieldFloatNull(4F);
+        nullTypes1.setFieldDoubleNull(5D);
+        nullTypes1.setFieldBooleanNull(true);
+        nullTypes1.setFieldStringNull("4");
+        nullTypes1.setFieldDateNull(new Date(12345));
+
+        NullTypes nullTypes2 = new NullTypes();
+        nullTypes2.setId(2);
+
+        NullTypes nullTypes3 = new NullTypes();
+        nullTypes3.setId(3);
+        nullTypes3.setFieldIntegerNull(4);
+        nullTypes3.setFieldFloatNull(5F);
+        nullTypes3.setFieldDoubleNull(6D);
+        nullTypes3.setFieldBooleanNull(false);
+        nullTypes3.setFieldStringNull("0");
+        nullTypes3.setFieldDateNull(new Date(0));
+
+        realm.beginTransaction();
+        realm.copyToRealm(nullTypes1);
+        realm.copyToRealm(nullTypes2);
+        realm.copyToRealm(nullTypes3);
+        realm.commitTransaction();
+    }
+
     public static void populateAllNullRowsForNumericTesting(Realm realm) {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);

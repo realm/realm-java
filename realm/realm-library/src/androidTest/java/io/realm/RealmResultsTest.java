@@ -420,14 +420,14 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(0d, resultList.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
     }
 
-    // Test sum on nullable rows with partial null values
+    // Test average on nullable rows with partial null values
     public void testAvgGivesCorrectValueForPartialNullRows() {
         populatePartialNullRowsForNumericTesting();
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
-        assertEquals(1, resultList.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(2f, resultList.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
-        assertEquals(3d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
+        assertEquals(0.5, resultList.average(NullTypes.FIELD_INTEGER_NULL), 0d);
+        assertEquals(1.0, resultList.average(NullTypes.FIELD_FLOAT_NULL), 0f);
+        assertEquals(1.5, resultList.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
     }
 
     public void testRemove() {
