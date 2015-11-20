@@ -333,7 +333,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(3d, results.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
-    public void testSumGivesCorrectValue() {
+    public void testSum() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
 
         Number sum = resultList.sum(FIELD_LONG);
@@ -342,7 +342,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     // Test sum on nullable rows with all null values
-    public void testSumGivesCorrectValueForAllNullRows() {
+    public void testSumForAllNullRows() {
         TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
@@ -352,7 +352,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     // Test sum on nullable rows with partial null values
-    public void testSumGivesCorrectValueForPartialNullRows() {
+    public void testSumForPartialNullRows() {
         populatePartialNullRowsForNumericTesting();
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
@@ -361,7 +361,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals(3d, resultList.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
-    public void testSumGivesCorrectValueWithNonLatinColumnNames() {
+    public void testSumWithNonLatinColumnNames() {
         RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class).findAll();
 
         Number sum = resultList.sum(FIELD_KOREAN_CHAR);
@@ -373,7 +373,7 @@ public class RealmResultsTest extends AndroidTestCase {
         assertEquals((TEST_DATA_SIZE - 1) * TEST_DATA_SIZE / 2, sum.intValue());
     }
 
-    public void testAvgGivesCorrectValue() {
+    public void testAvg() {
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).findAll();
         double N = (double) TEST_DATA_SIZE;
 
@@ -402,7 +402,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     // Test average on empty columns
-    public void testAvgGivesCorrectValueForEmptyColumns() {
+    public void testAvgForEmptyColumns() {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
         assertEquals(0d, resultList.average(NullTypes.FIELD_INTEGER_NOT_NULL), 0d);
@@ -411,7 +411,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     // Test average on nullable rows with all null values
-    public void testAvgGivesCorrectValueForAllNullRows() {
+    public void testAvgForAllNullRows() {
         TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
@@ -421,7 +421,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
     // Test average on nullable rows with partial null values
-    public void testAvgGivesCorrectValueForPartialNullRows() {
+    public void testAvgForPartialNullRows() {
         populatePartialNullRowsForNumericTesting();
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 

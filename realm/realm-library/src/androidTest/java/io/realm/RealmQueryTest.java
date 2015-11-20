@@ -1011,8 +1011,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertNull(query.minimumDate(NullTypes.FIELD_DATE_NULL));
     }
 
-    // Test min on columns with partial null rows
-    public void testMinGivesCorrectValueForAllNonNullRows() {
+    // Test min on columns with all non-null rows
+    public void testMinForAllNonNullRows() {
         TestHelper.populateAllNonNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1023,7 +1023,7 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test min on columns with partial null rows
-    public void testMinGivesCorrectValueForPartialNullRows() {
+    public void testMinForPartialNullRows() {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1052,8 +1052,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertNull(query.maximumDate(NullTypes.FIELD_DATE_NULL));
     }
 
-    // Test max on columns with partial null rows
-    public void testMaxGivesCorrectValueForAllNonNullRows() {
+    // Test max on columns with all non-null rows
+    public void testMaxForAllNonNullRows() {
         TestHelper.populateAllNonNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1064,7 +1064,7 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test max on columns with partial null rows
-    public void testMaxGivesCorrectValueForPartialNullRows() {
+    public void testMaxForPartialNullRows() {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1092,8 +1092,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertEquals(0d, query.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
     }
 
-    // Test average on columns with partial null rows
-    public void testAvgGivesCorrectValueForAllNonNullRows() {
+    // Test average on columns with all non-null rows
+    public void testAvgForAllNonNullRows() {
         TestHelper.populateAllNonNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1104,7 +1104,7 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test average on columns with partial null rows
-    public void testAvgGivesCorrectValueForPartialNullRows() {
+    public void testAvgForPartialNullRows() {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1132,8 +1132,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertEquals(0d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
-    // Test sum on columns with partial null rows
-    public void testSumGivesCorrectValueForAllNonNullRows() {
+    // Test sum on columns with all non-null rows
+    public void testSumForAllNonNullRows() {
         TestHelper.populateAllNonNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1143,7 +1143,7 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test sum on columns with partial null rows
-    public void testSumGivesCorrectValueForPartialNullRows() {
+    public void testSumForPartialNullRows() {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
