@@ -1673,7 +1673,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
         StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
         if (table_name.begins_with("class_")) {
-          pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, table_name.substr(6));
+            // New string copy is needed, since the original memory will be changed.
+            std::string new_table_name(table_name.substr(6));
+            pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, new_table_name);
         }
     }
 }
