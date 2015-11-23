@@ -30,8 +30,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
@@ -67,10 +69,17 @@ abstract class BaseRealm implements Closeable {
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
-    // thread pool for all async operations (Query & transaction)
+    // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
 
-    protected final List<WeakReference<RealmChangeListener>> changeListeners =
+    // Keep a strong reference to the registered RealmChangeListener
+    // user should unregister those listeners
+    protected final CopyOnWriteArrayList<RealmChangeListener> changeListeners =
+            new CopyOnWriteArrayList<RealmChangeListener>();
+
+    // Keep a weak reference to the registered RealmChangeListener those are Weak since
+    // for some UC (ex: RealmBaseAdapter) we don't know when it's the best time to unregister the listener
+    protected final List<WeakReference<RealmChangeListener>> weakChangeListeners =
             new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
 
     protected long threadId;
@@ -146,19 +155,35 @@ abstract class BaseRealm implements Closeable {
      *     <li>On every call to {@link io.realm.Realm#refresh()}</li>
      * </ul>
      *
+     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
+     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
+     *
      * @param listener the change listener.
      * @see io.realm.RealmChangeListener
+     * @see #removeChangeListener(RealmChangeListener)
+     * @see #removeAllChangeListeners()
      */
     public void addChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        for (WeakReference<RealmChangeListener> ref : changeListeners) {
+        changeListeners.addIfAbsent(listener);
+    }
+
+    /**
+     * For internal use only.
+     * Sometimes we don't know when to unregister listeners (ex: {@link RealmBaseAdapter}). Using
+     * a WeakReference the listener doesn't need to be explicitly unregistered.
+     *
+     * @param listener the change listener.
+     */
+    void addChangeListenerAsWeakReference(RealmChangeListener listener) {
+        for (WeakReference<RealmChangeListener> ref : weakChangeListeners) {
             if (ref.get() == listener) {
                 // It has already been added before
                 return;
             }
         }
 
-        changeListeners.add(new WeakReference<RealmChangeListener>(listener));
+        weakChangeListeners.add(new WeakReference<RealmChangeListener>(listener));
     }
 
     /**
@@ -166,20 +191,22 @@ abstract class BaseRealm implements Closeable {
      *
      * @param listener the change listener to be removed.
      * @see io.realm.RealmChangeListener
+     * @see #addChangeListener(RealmChangeListener)
      */
     public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        WeakReference<RealmChangeListener> weakRefToRemove = null;
-        for (WeakReference<RealmChangeListener> weakRef : changeListeners) {
-            if (listener == weakRef.get()) {
-                weakRefToRemove = weakRef;
-                // There won't be duplicated entries, checking is done when adding
-                break;
-            }
-        }
-        if (weakRefToRemove != null) {
-            changeListeners.remove(weakRefToRemove);
-        }
+        changeListeners.remove(listener);
+    }
+
+    /**
+     * Removes all user-defined change listeners.
+     *
+     * @see io.realm.RealmChangeListener
+     * @see #addChangeListener(RealmChangeListener)
+     */
+    public void removeAllChangeListeners() {
+        checkIfValid();
+        changeListeners.clear();
     }
 
     void setHandler (Handler handler) {
@@ -187,16 +214,6 @@ abstract class BaseRealm implements Closeable {
         handlers.remove(this.handler);
         handlers.put(handler, configuration.getPath());
         this.handler = handler;
-    }
-
-    /**
-     * Removes all user-defined change listeners.
-     *
-     * @see io.realm.RealmChangeListener
-     */
-    public void removeAllChangeListeners() {
-        checkIfValid();
-        changeListeners.clear();
     }
 
     /**
@@ -210,14 +227,21 @@ abstract class BaseRealm implements Closeable {
     }
 
     protected void sendNotifications() {
-        Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
+        // notify strong reference listener
+        Iterator<RealmChangeListener> iteratorStrongListeners = changeListeners.iterator();
+        while (iteratorStrongListeners.hasNext()) {
+            RealmChangeListener listener = iteratorStrongListeners.next();
+            listener.onChange();
+        }
+        // notify weak reference listener (internals)
+        Iterator<WeakReference<RealmChangeListener>> iteratorWeakListeners = weakChangeListeners.iterator();
         List<WeakReference<RealmChangeListener>> toRemoveList = null;
-        while (iterator.hasNext()) {
-            WeakReference<RealmChangeListener> weakRef = iterator.next();
+        while (iteratorWeakListeners.hasNext()) {
+            WeakReference<RealmChangeListener> weakRef = iteratorWeakListeners.next();
             RealmChangeListener listener = weakRef.get();
             if (listener == null) {
                 if (toRemoveList == null) {
-                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(changeListeners.size());
+                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(weakChangeListeners.size());
                 }
                 toRemoveList.add(weakRef);
             } else {
@@ -225,7 +249,7 @@ abstract class BaseRealm implements Closeable {
             }
         }
         if (toRemoveList != null) {
-            changeListeners.removeAll(toRemoveList);
+            weakChangeListeners.removeAll(toRemoveList);
         }
     }
 
