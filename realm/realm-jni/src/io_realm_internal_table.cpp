@@ -223,11 +223,16 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNullabl
         for (size_t i = 0; i < table->size(); ++i) {
             switch (column_type) {
                 case type_String:
-                    table->set_string(column_index, i, table->get_string(column_index + 1, i));
+                    // Payload copy is needed
+                    table->set_string(column_index, i, std::string(table->get_string(column_index + 1, i)));
                     break;
-                case type_Binary:
-                    table->set_binary(column_index, i, table->get_binary(column_index + 1, i));
+                case type_Binary: {
+                    // Payload copy is needed
+                    BinaryData bd = table->get_binary(column_index + 1, i);
+                    std::vector<char> binary_copy(bd.data(), bd.data() + bd.size());
+                    table->set_binary(column_index, i, BinaryData(binary_copy.data(), binary_copy.size()));
                     break;
+                }
                 case type_Int:
                     table->set_int(column_index, i, table->get_int(column_index + 1, i));
                     break;
@@ -306,7 +311,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                         table->set_string(column_index, i, "");
                     }
                     else {
-                        table->set_string(column_index, i, sd);
+                        // Payload copy is needed
+                        table->set_string(column_index, i, std::string(sd));
                     }
                     break;
                 }
@@ -316,7 +322,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeConvertColumnToNotNull
                         table->set_binary(column_index, i, BinaryData(""));
                     }
                     else {
-                        table->set_binary(column_index, i, bd);
+                        // Payload copy is needed
+                        std::vector<char> bd_copy(bd.data(), bd.data() + bd.size());
+                        table->set_binary(column_index, i, BinaryData(bd_copy.data(), bd_copy.size()));
                     }
                     break;
                 }
@@ -1586,7 +1594,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeSetPrimaryKey(
     try {
         Table* table = TBL(nativeTablePtr);
         Table* pk_table = TBL(nativePrivateKeyTablePtr);
-        const char* table_name = table->get_name().substr(6).data(); // Remove "class_" prefix
+        const std::string table_name(table->get_name().substr(6)); // Remove "class_" prefix
         size_t row_index = pk_table->find_first_string(io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX, table_name);
 
         if (columnName == NULL || env->GetStringLength(columnName) == 0) {
@@ -1659,7 +1667,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
             StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
             size_t col_ndx = static_cast<size_t>(pk_table->get_int(FIELD_COLUMN_INDEX, row_ndx));
             StringData col_name = group->get_table(table_name)->get_column_name(col_ndx);
-            pk_table->set_string(tmp_col_ndx, row_ndx, col_name);
+            // Make a copy of the string
+            pk_table->set_string(tmp_col_ndx, row_ndx, std::string(col_name));
         }
 
         // Delete old int column, and rename tmp column to same name
@@ -1673,7 +1682,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeMigratePrimaryKeyTable
     for (size_t row_ndx = 0; row_ndx < number_of_rows; row_ndx++) {
         StringData table_name = pk_table->get_string(CLASS_COLUMN_INDEX, row_ndx);
         if (table_name.begins_with("class_")) {
-          pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, table_name.substr(6));
+            // New string copy is needed, since the original memory will be changed.
+            pk_table->set_string(CLASS_COLUMN_INDEX, row_ndx, std::string(table_name.substr(6)));
         }
     }
 }
