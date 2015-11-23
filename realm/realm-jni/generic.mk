@@ -1824,8 +1824,14 @@ ifeq ($(OS),Darwin)
 
 # See http://www.mikeash.com/pyblog/friday-qa-2009-11-06-linking-and-install-names.html
 
+define SHARED_LIBRARY_RULE_DARWIN
+$(1): $(2)
+	$$(strip $(3)) -o $(1)
+	$(STRIP) -x $(1)
+endef
+
 # ARGS: qual_lib_name, deps, cmd, version
-SHARED_LIBRARY_RULE = $(if $(4),$(call SHARED_LIBRARY_RULE_VER,$(1),$(2),$(3),$(call MAP_SHARED_LIB_VERSION,$(1),$(4))),$(SHARED_LIBRARY_RULE_DEFAULT))
+SHARED_LIBRARY_RULE = $(if $(4),$(call SHARED_LIBRARY_RULE_VER,$(1),$(2),$(3),$(call MAP_SHARED_LIB_VERSION,$(1),$(4))),$(SHARED_LIBRARY_RULE_DARWIN))
 
 # ARGS: qual_lib_name, deps, cmd, mapped_version
 SHARED_LIBRARY_RULE_VER = $(call SHARED_LIBRARY_RULE_VER_2,$(1),$(2),$(3),$(word 1,$(4)),$(word 2,$(4)),$(word 3,$(4)))

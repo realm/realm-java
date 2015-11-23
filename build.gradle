@@ -88,6 +88,11 @@ task installRealm(type:GradleBuild) {
     tasks = ['uploadArchives']
 }
 
+task assembleRobolectric(type:GradleBuild) {
+    buildFile = file('realm/build.gradle')
+    tasks = ['assembleRobolectric']
+}
+
 task assembleExamples(type:GradleBuild) {
     dependsOn installGradlePlugin
     dependsOn installRealm

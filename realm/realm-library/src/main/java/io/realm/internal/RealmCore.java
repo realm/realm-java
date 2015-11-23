@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.Throwable;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Locale;
@@ -60,6 +61,12 @@ public class RealmCore {
         return (os.contains("win"));
     }
 
+    public static boolean osIsDarwin()
+    {
+        String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
+        return (os.contains("mac"));
+    }
+
     public static byte[] serialize(Serializable value) {
         try {
             ByteArrayOutputStream mem = new ByteArrayOutputStream();
@@ -92,7 +99,6 @@ public class RealmCore {
         System.out.println(caption + ": " + cursor);
     }
 */
-
     // Although loadLibrary is synchronized internally from AOSP 4.3, for the compatibility reason,
     // KEEP synchronized here for the old devices!
     public static synchronized void loadLibrary() {
@@ -104,17 +110,11 @@ public class RealmCore {
 
         if (osIsWindows()) {
             loadLibraryWindows();
-        }
-        else {
-            String jnilib;
-            String debug = System.getenv("REALM_JAVA_DEBUG");
-            if (debug == null || debug.isEmpty()) {
-                jnilib = "realm-jni";
-            }
-            else {
-                jnilib = "realm-jni-dbg";
-            }
-            System.loadLibrary(jnilib);
+        } else if (osIsDarwin()) {
+            resetLibraryPath();
+            loadLibrary("realm-jni-darwin", "realm-jni-darwin");
+        } else {
+            loadLibrary("realm-jni", "realm-jni-dbg");
         }
         libraryIsLoaded = true;
 
@@ -146,6 +146,24 @@ public class RealmCore {
             }
         }
         return jnilib;
+    }
+
+    private static void loadLibrary(String releaseJniLib, String debugJniLib) {
+        String jnilib;
+        String debug = System.getenv("REALM_JAVA_DEBUG");
+        if (debug == null || debug.isEmpty()) {
+            jnilib = releaseJniLib;
+        }
+        else {
+            jnilib = debugJniLib;
+        }
+        try {
+            System.loadLibrary(jnilib);
+        } catch (Throwable e) {
+            System.err.println("error: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     private static String loadCorrectLibrary(String... libraryCandidateNames) {

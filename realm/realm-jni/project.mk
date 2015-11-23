@@ -38,7 +38,9 @@ endif
 #endif
 
 ifeq ($(REALM_ANDROID),)
-  REALM_LDFLAGS += -llog
+  ifneq ($(OS),Darwin)
+    REALM_LDFLAGS += -llog
+  endif
   CFLAGS_INCLUDE += $(JAVA_CFLAGS)
   ifneq ($(REALM_ENABLE_MEM_USAGE),)
     PROJECT_CFLAGS += -DREALM_ENABLE_MEM_USAGE
