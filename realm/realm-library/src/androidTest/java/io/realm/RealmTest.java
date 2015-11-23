@@ -70,6 +70,7 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 public class RealmTest extends AndroidTestCase {
 
     protected final static int TEST_DATA_SIZE = 10;
+    protected final static dobule DELTA = 1e-15;
     protected Realm testRealm;
 
     protected List<String> columnData = new ArrayList<String>();
@@ -829,7 +830,7 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
-    public void createAndTestFilename(String language, String fileName) {
+    private void createAndTestFilename(String language, String fileName) {
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), fileName);
         Realm.deleteRealm(realmConfig);
         Realm realm1 = Realm.getInstance(realmConfig);
@@ -938,7 +939,7 @@ public class RealmTest extends AndroidTestCase {
             stringOnly.setChars(test_char);
             testRealm.commitTransaction();
 
-            get_data = testRealm.allObjects(StringOnly.class).get(0).getChars();
+            testRealm.allObjects(StringOnly.class).get(0).getChars();
 
             testRealm.beginTransaction();
             testRealm.clear(StringOnly.class);
@@ -1199,8 +1200,8 @@ public class RealmTest extends AndroidTestCase {
         assertNotSame(allTypes, realmTypes); // Objects should not be considered equal
         assertEquals(allTypes.getColumnString(), realmTypes.getColumnString()); // But they contain the same data
         assertEquals(allTypes.getColumnLong(), realmTypes.getColumnLong());
-        assertEquals(allTypes.getColumnFloat(), realmTypes.getColumnFloat());
-        assertEquals(allTypes.getColumnDouble(), realmTypes.getColumnDouble());
+        assertEquals(allTypes.getColumnFloat(), realmTypes.getColumnFloat(), DELTA);
+        assertEquals(allTypes.getColumnDouble(), realmTypes.getColumnDouble(), DELTA);
         assertEquals(allTypes.isColumnBoolean(), realmTypes.isColumnBoolean());
         assertEquals(allTypes.getColumnDate(), realmTypes.getColumnDate());
         assertArrayEquals(allTypes.getColumnBinary(), realmTypes.getColumnBinary());
@@ -1389,8 +1390,8 @@ public class RealmTest extends AndroidTestCase {
         // Check that the the only element has all its properties updated
         assertEquals("Bar", obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
-        assertEquals(2.23F, obj.getColumnFloat());
-        assertEquals(2.234D, obj.getColumnDouble());
+        assertEquals(2.23F, obj.getColumnFloat(), DELTA);
+        assertEquals(2.234D, obj.getColumnDouble(), DELTA);
         assertEquals(true, obj.isColumnBoolean());
         assertArrayEquals(new byte[] {2, 3, 4}, obj.getColumnBinary());
         assertEquals(new Date(2000), obj.getColumnDate());
@@ -1451,8 +1452,8 @@ public class RealmTest extends AndroidTestCase {
         AllTypesPrimaryKey obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
         assertNull(obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
-        assertEquals(0.0F, obj.getColumnFloat());
-        assertEquals(0.0D, obj.getColumnDouble());
+        assertEquals(0.0F, obj.getColumnFloat(), DELTA);
+        assertEquals(0.0D, obj.getColumnDouble(), DELTA);
         assertEquals(false, obj.isColumnBoolean());
         assertNull(obj.getColumnBinary());
         assertNull(obj.getColumnDate());
