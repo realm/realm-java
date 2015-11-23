@@ -86,6 +86,11 @@ publishing {
                 root.appendNode('name', 'realm-annotations-processor')
                 root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
+                def dependenciesNode = root.appendNode('dependencies')
+                def dependencyNode = dependenciesNode.appendNode('dependency')
+                dependencyNode.appendNode('groupId', 'com.squareup')
+                dependencyNode.appendNode('artifactId', 'javawriter')
+                dependencyNode.appendNode('version', '2.5.0')
                 root.children().last() + commonPom
             }
         }
