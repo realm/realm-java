@@ -71,7 +71,7 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 public class RealmTest extends AndroidTestCase {
 
     protected final static int TEST_DATA_SIZE = 10;
-    protected final static dobule DELTA = 1e-15;
+    protected final static double DELTA = 1e-15;
     protected Realm testRealm;
 
     protected List<String> columnData = new ArrayList<String>();
