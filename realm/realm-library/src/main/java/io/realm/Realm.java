@@ -43,7 +43,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -135,6 +134,10 @@ public final class Realm extends BaseRealm {
     private final Map<Class<? extends RealmObject>, Table> classToTable =
             new HashMap<Class<? extends RealmObject>, Table>();
 
+    // Reference count on currently opened Realm instances.
+    // We need to know if all typed Realm instance of all threads are closed in order to clean up validatedRealmFiles.
+    private static final Map<String, Integer> typedRealmFileReferenceCounter = new HashMap<String, Integer>();
+
     private static RealmConfiguration defaultConfiguration;
     protected ColumnIndices columnIndices;
     /**
@@ -143,7 +146,6 @@ public final class Realm extends BaseRealm {
      * @param configuration the {@link RealmConfiguration} used to open the Realm.
      * @param autoRefresh {@code true} if Realm should auto-refresh. {@code false} otherwise.
      * @throws IllegalArgumentException if trying to open an encrypted Realm with the wrong key.
-     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     private Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
@@ -203,7 +205,6 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the model
      * classes or version has has changed so a migration is required.
-     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
@@ -285,6 +286,8 @@ public final class Realm extends BaseRealm {
 
             // Increment global reference counter
             realm.acquireFileReference(configuration);
+            // Increment Realm file reference counter
+            acquireRealmFileReference(configuration);
 
             // Check versions of Realm
             long currentVersion = realm.getVersion();
@@ -1009,11 +1012,12 @@ public final class Realm extends BaseRealm {
         try {
             transaction.execute(this);
             commitTransaction();
-        } catch (RuntimeException e) {
-            cancelTransaction();
-            throw new RealmException("Error during transaction.", e);
-        } catch (Error e) {
-            cancelTransaction();
+        } catch (Throwable e) {
+            if (isInTransaction()) {
+                cancelTransaction();
+            } else {
+                RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+            }
             throw e;
         }
     }
@@ -1063,11 +1067,19 @@ public final class Realm extends BaseRealm {
                                 });
                             }
                         } else {
-                            bgRealm.cancelTransaction();
+                            if (bgRealm.isInTransaction()) {
+                                bgRealm.cancelTransaction();
+                            } else {
+                                RealmLog.w("Thread is interrupted. Could not cancel transaction, not currently in a transaction.");
+                            }
                         }
 
                     } catch (final Exception e) {
-                        bgRealm.cancelTransaction();
+                        if (bgRealm.isInTransaction()) {
+                            bgRealm.cancelTransaction();
+                        } else {
+                            RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+                        }
                         if (callback != null
                                 && handler != null
                                 && !Thread.currentThread().isInterrupted()
@@ -1127,7 +1139,10 @@ public final class Realm extends BaseRealm {
     protected void lastLocalInstanceClosed() {
         // validatedRealmFiles must not modified while other thread is executing createAndValidate()
         synchronized (BaseRealm.class) {
-            validatedRealmFiles.remove(configuration.getPath());
+            // All Realm instances with this file have been closed. Decrease the counter.
+            if (releaseRealmFileReference(configuration) == 0) {
+                validatedRealmFiles.remove(configuration.getPath());
+            }
         }
         realmsCache.get().remove(configuration);
     }
@@ -1240,6 +1255,45 @@ public final class Realm extends BaseRealm {
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not create an instance of " + moduleName, e);
         }
+    }
+
+    /**
+     * Acquire a reference to the given Realm file.
+     * This function call should be called in a synchronized block on {@code BaseRealm.class}.
+     *
+     * @return the reference count after acquiring.
+     */
+    private static int acquireRealmFileReference(RealmConfiguration configuration) {
+        String path = configuration.getPath();
+        Integer refCount = typedRealmFileReferenceCounter.get(path);
+        if (refCount == null) {
+            refCount = 0;
+        }
+        refCount += 1;
+        typedRealmFileReferenceCounter.put(path, refCount);
+        return refCount;
+    }
+
+    /**
+     * Releases a reference to the Realm file. If reference count reaches 0 any cached configurations
+     * will be removed.
+     * This function call should be called in a synchronized block on BaseRealm.class
+     *
+     * @return the reference count after releasing.
+     */
+    private static int releaseRealmFileReference(RealmConfiguration configuration) {
+        String path = configuration.getPath();
+        Integer refCount = typedRealmFileReferenceCounter.get(path);
+        if (refCount == null || refCount <= 0) {
+            throw new IllegalStateException("Trying to release a Realm file that is already closed");
+        }
+        refCount -= 1;
+        if (refCount == 0) {
+            typedRealmFileReferenceCounter.remove(path);
+        } else {
+            typedRealmFileReferenceCounter.put(path, refCount);
+        }
+        return refCount;
     }
 
     /**

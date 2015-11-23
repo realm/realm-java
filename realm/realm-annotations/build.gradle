@@ -4,11 +4,3 @@ apply plugin: 'maven-publish'
 
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
-        }
-    }
-}

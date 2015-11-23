@@ -18,7 +18,6 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
-#include <realm/util/encryption_not_supported_exception.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
@@ -41,10 +40,6 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     std::ostringstream ss;
     try {
         throw;
-    }
-    catch (realm::util::EncryptionNotSupportedOnThisDevice& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, EncryptionNotSupported, ss.str());
     }
     catch (std::bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -138,11 +133,6 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
         case RowInvalid:
             jExceptionClass = env->FindClass("java/lang/IllegalStateException");
             message = "Illegal State: " + classStr;
-            break;
-
-        case EncryptionNotSupported:
-            jExceptionClass = env->FindClass("io/realm/exceptions/RealmEncryptionNotSupportedException");
-            message = classStr;
             break;
 
         case BadVersion:

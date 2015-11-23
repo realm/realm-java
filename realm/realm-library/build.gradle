@@ -15,6 +15,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 23
         project.archivesBaseName = "realm-android"
+        consumerProguardFiles 'proguard-rules.pro'
     }
 }
 
@@ -35,7 +36,14 @@ task javadoc(type: Javadoc) {
     source android.sourceSets.main.java.srcDirs
     source "../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    options.memberLevel = JavadocMemberLevel.PUBLIC
+    options {
+        title = "Realm ${project.version}"
+        memberLevel = JavadocMemberLevel.PUBLIC
+        docEncoding = 'UTF-8'
+        encoding = 'UTF-8'
+        charSet = 'UTF-8'
+        locale = 'en_US'
+    }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
     exclude '**/R.java'
@@ -47,14 +55,6 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 preBuild.dependsOn ':realm-jni:buildAndroidJni'
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file://localhost${System.env.ANDROID_HOME}/extras/android/m2repository")
-        }
-    }
-}
 
 task findbugs(type: FindBugs) {
     dependsOn assemble

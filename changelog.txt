@@ -1,9 +1,20 @@
-0.84.2
+0.85.0
+ * BREAKING CHANGE: Removed RealmEncryptionNotSupportedException since the encryption implementation changed in Realm's underlying storage engine. Encryption is now supported on all devices.
+ * BREAKING CHANGE: Realm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
+ * BREAKING CHANGE: RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
  * Added Realm.isEmpty().
+ * Setters in managed object for RealmObject and RealmList now throw IllegalArgumentException if the value contains an invalid (standalone, removed, closed, from different Realm) object (#1749).
+ * Attempting to refresh a Realm while a transaction is in process will now throw an IllegalStateException (#1712).
+ * The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle)
+ * Updated Realm Core to 0.95
+   - Removed reliance on POSIX signals when using encryption.
+ 
+0.84.2
  * Fixed a bug making it impossible to convert a field to become required during a migration (#1695).
  * Fixed a bug making it impossible to read Realms created using primary keys and created by iOS (#1703).
- * RealmQuery.isNull() and RealmQuery.isNotNull() now throw IllegalArgumentException instead of RealmError if the fieldname is a linked field and the last element is a link (#1693).
  * Fixed some memory leaks when an Exception is thrown (#1730).
+ * Fixed a memory leak when using relationships (#1285).
+ * Fixed a bug causing cached column indices to be cleared too soon (#1732).
 
 0.84.1
  * Updated Realm Core to 0.94.4
@@ -16,7 +27,7 @@
 
 0.84.0
  * Added support for async queries and transactions.
- * Added support for parsing JSON Dates with timezone information. (Thank you @LateralKevin!)
+ * Added support for parsing JSON Dates with timezone information. (Thank you @LateralKevin)
  * Added RealmQuery.isEmpty().
  * Added Realm.isClosed() method.
  * Added Realm.distinct() method.
@@ -88,7 +99,7 @@
  * Deprecated Realm.deleteFile(). It has been replaced by Realm.deleteRealm(RealmConfiguration).
  * Deprecated Realm.compactFile(). It has been replaced by Realm.compactRealm(RealmConfiguration).
  * RealmList.add(), RealmList.addAt() and RealmList.set() now copy standalone objects transparently into Realm.
- * Realm now works with Kotlin (M12+). (thanks @cypressious)
+ * Realm now works with Kotlin (M12+). (Thank you @cypressious)
  * Fixed a performance regression introduced in 0.80.3 occurring during the validation of the Realm schema.
  * Added a check to give a better error message when null is used as value for a primary key.
  * Fixed unchecked cast warnings when building with Realm.

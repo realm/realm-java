@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnType;
 import io.realm.internal.RealmProxyMediator;
@@ -56,6 +55,7 @@ abstract class BaseRealm implements Closeable {
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
+    private static final String CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE = "Cannot refresh inside of a transaction.";
 
     // Map between all Realm file paths and all known configurations pointing to that file.
     protected static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
@@ -264,7 +264,6 @@ abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
      * @throws java.io.IOException if any write operation fails.
-     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
         if (destination == null) {
@@ -281,6 +280,9 @@ abstract class BaseRealm implements Closeable {
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
         checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
+        }
         sharedGroupManager.advanceRead();
         sendNotifications();
     }
