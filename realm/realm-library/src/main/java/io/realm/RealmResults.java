@@ -20,7 +20,6 @@ package io.realm;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -67,7 +66,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public static final boolean SORT_ORDER_DESCENDING = false;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
-    private long currentTableViewVersion = -1;
 
     private final TableQuery query;
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
@@ -566,31 +564,16 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 //        throw new NoSuchMethodError();
 //    }
 
-    private void assertRealmIsStable() {
-        long version = table.sync();
-        if (currentTableViewVersion > -1 && version != currentTableViewVersion) {
-            throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Use iterators methods instead.");
-        }
-
-        currentTableViewVersion = version;
-    }
-
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
     private class RealmResultsIterator implements Iterator<E> {
 
         int pos = -1;
 
-        RealmResultsIterator() {
-            currentTableViewVersion = table.sync();
-        }
-
         public boolean hasNext() {
-            assertRealmIsStable();
             return pos + 1 < size();
         }
 
         public E next() {
-            assertRealmIsStable();
             pos++;
             if (pos >= size()) {
                 throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
@@ -639,19 +622,16 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         @Override
         public boolean hasPrevious() {
-            assertRealmIsStable();
             return pos > 0;
         }
 
         @Override
         public int nextIndex() {
-            assertRealmIsStable();
             return pos + 1;
         }
 
         @Override
         public E previous() {
-            assertRealmIsStable();
             pos--;
             if (pos < 0) {
                 throw new IndexOutOfBoundsException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
@@ -661,7 +641,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         @Override
         public int previousIndex() {
-            assertRealmIsStable();
             return pos;
         }
 
