@@ -71,7 +71,6 @@ import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 public class RealmTest extends AndroidTestCase {
 
     protected final static int TEST_DATA_SIZE = 10;
-    protected final static double DELTA = 1e-15;
     protected Realm testRealm;
 
     protected List<String> columnData = new ArrayList<String>();
@@ -1223,8 +1222,8 @@ public class RealmTest extends AndroidTestCase {
         assertNotSame(allTypes, realmTypes); // Objects should not be considered equal
         assertEquals(allTypes.getColumnString(), realmTypes.getColumnString()); // But they contain the same data
         assertEquals(allTypes.getColumnLong(), realmTypes.getColumnLong());
-        assertEquals(allTypes.getColumnFloat(), realmTypes.getColumnFloat(), DELTA);
-        assertEquals(allTypes.getColumnDouble(), realmTypes.getColumnDouble(), DELTA);
+        assertEquals(allTypes.getColumnFloat(), realmTypes.getColumnFloat(), 0);
+        assertEquals(allTypes.getColumnDouble(), realmTypes.getColumnDouble(), 0);
         assertEquals(allTypes.isColumnBoolean(), realmTypes.isColumnBoolean());
         assertEquals(allTypes.getColumnDate(), realmTypes.getColumnDate());
         assertArrayEquals(allTypes.getColumnBinary(), realmTypes.getColumnBinary());
@@ -1413,8 +1412,8 @@ public class RealmTest extends AndroidTestCase {
         // Check that the the only element has all its properties updated
         assertEquals("Bar", obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
-        assertEquals(2.23F, obj.getColumnFloat(), DELTA);
-        assertEquals(2.234D, obj.getColumnDouble(), DELTA);
+        assertEquals(2.23F, obj.getColumnFloat(), 0);
+        assertEquals(2.234D, obj.getColumnDouble(), 0);
         assertEquals(true, obj.isColumnBoolean());
         assertArrayEquals(new byte[]{2, 3, 4}, obj.getColumnBinary());
         assertEquals(new Date(2000), obj.getColumnDate());
@@ -1475,8 +1474,8 @@ public class RealmTest extends AndroidTestCase {
         AllTypesPrimaryKey obj = testRealm.allObjects(AllTypesPrimaryKey.class).first();
         assertNull(obj.getColumnString());
         assertEquals(1, obj.getColumnLong());
-        assertEquals(0.0F, obj.getColumnFloat(), DELTA);
-        assertEquals(0.0D, obj.getColumnDouble(), DELTA);
+        assertEquals(0.0F, obj.getColumnFloat(), 0);
+        assertEquals(0.0D, obj.getColumnDouble(), 0);
         assertEquals(false, obj.isColumnBoolean());
         assertNull(obj.getColumnBinary());
         assertNull(obj.getColumnDate());
