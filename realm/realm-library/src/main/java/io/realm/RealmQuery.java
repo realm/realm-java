@@ -1107,45 +1107,6 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
-    /**
-     * Calculates the sum of a field.
-     *
-     * @param fieldName the field name.
-     * @return the sum.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @deprecated please use {@link #sum(String)} instead.
-     */
-    public long sumInt(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.sumInt(columnIndex);
-    }
-
-    /**
-     * Calculates the sum of a field.
-     *
-     * @param fieldName the field name.
-     * @return the sum.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @deprecated please use {@link #sum(String)} instead.
-     */
-    public double sumDouble(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.sumDouble(columnIndex);
-    }
-
-    /**
-     * Calculates the sum of a field.
-     *
-     * @param fieldName the field name.
-     * @return the sum.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @deprecated please use {@link #sum(String)} instead.
-     */
-    public double sumFloat(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.sumFloat(columnIndex);
-    }
-
     // Average
 
     /**
@@ -1169,45 +1130,6 @@ public class RealmQuery<E extends RealmObject> {
             default:
                 throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
         }
-    }
-
-    /**
-     * Calculates the average of a field.
-     *
-     * @param fieldName the field name.
-     * @return the average.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @deprecated please use {@link #average(String)} instead.
-     */
-    public double averageInt(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.averageInt(columnIndex);
-    }
-
-    /**
-     * Calculate the average of a field.
-     *
-     * @param fieldName the field name.
-     * @return the average.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @deprecated please use {@link #average(String)} instead.
-     */
-    public double averageDouble(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.averageDouble(columnIndex);
-    }
-
-    /**
-     * Calculates the average of a field.
-     *
-     * @param fieldName the field name.
-     * @return the average.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @deprecated please use {@link #average(String)} instead.
-     */
-    public double averageFloat(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.averageFloat(columnIndex);
     }
 
     // Min
@@ -1234,51 +1156,6 @@ public class RealmQuery<E extends RealmObject> {
             default:
                 throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
         }
-    }
-
-    /**
-     * Finds the minimum value of a field.
-     *
-     * @param fieldName the field name.
-     * @return the minimum value.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     * given field.
-     * @deprecated please use {@link #min(String)} instead.
-     */
-    public long minimumInt(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.minimumInt(columnIndex);
-    }
-
-    /**
-     * Finds the minimum value of a field.
-     *
-     * @param fieldName the field name.
-     * @return the minimum value.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     * given field.
-     * @deprecated please use {@link #min(String)} instead.
-     */
-    public double minimumDouble(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.minimumDouble(columnIndex);
-    }
-
-    /**
-     * Finds the minimum value of a field.
-     *
-     * @param fieldName the field name.
-     * @return the minimum value.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     * given field.
-     * @deprecated please use {@link #min(String)} instead.
-     */
-    public float minimumFloat(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.minimumFloat(columnIndex);
     }
 
     /**
@@ -1319,51 +1196,6 @@ public class RealmQuery<E extends RealmObject> {
             default:
                 throw new IllegalArgumentException(String.format(TYPE_MISMATCH, fieldName, "int, float or double"));
         }
-    }
-
-    /**
-     * Finds the maximum value of a field.
-     *
-     * @param fieldName the field name.
-     * @return the maximum value.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     * given field.
-     * @deprecated please use {@link #max(String)} instead.
-     */
-    public long maximumInt(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.maximumInt(columnIndex);
-    }
-
-    /**
-     * Find the maximum value of a field.
-     *
-     * @param fieldName the field name.
-     * @return the maximum value.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     * given field.
-     * @deprecated please use {@link #max(String)} instead.
-     */
-    public double maximumDouble(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.maximumDouble(columnIndex);
-    }
-
-    /**
-     * Finds the maximum value of a field.
-     *
-     * @param fieldName the field name.
-     * @return the maximum value.
-     * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
-     * @throws java.lang.NullPointerException if no objects exist or they all have {@code null} as the value for the
-     * given field.
-     * @deprecated please use {@link #max(String)} instead.
-     */
-    public float maximumFloat(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
-        return this.query.maximumFloat(columnIndex);
     }
 
     /**
