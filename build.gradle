@@ -160,6 +160,7 @@ task distributionPackage(type:Zip) {
     dependsOn gradleJar
     dependsOn assembleRealm
     dependsOn javadoc
+    dependsOn eclipseJar
 
     group = 'Artifact'
     archiveName = "realm-java-${currentVersion}.zip"
