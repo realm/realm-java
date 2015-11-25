@@ -37,7 +37,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringAndInt;
 import io.realm.entities.Thread;
-import io.realm.internal.ColumnType;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 
@@ -1105,8 +1104,8 @@ public class RealmObjectTest extends AndroidTestCase {
                 .name("columnSwapped.realm")
                 .migration(new RealmMigration() {
                     @Override
-                    public long execute(Realm realm, long version) {
-                        final Table table = realm.getTable(StringAndInt.class);
+                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                        final Table table = realm.schema.getTable(StringAndInt.class);
                         final long strIndex = table.getColumnIndex("str");
                         final long numberIndex = table.getColumnIndex("number");
 
@@ -1117,15 +1116,13 @@ public class RealmObjectTest extends AndroidTestCase {
                         final long newStrIndex;
                         // swap column indices
                         if (strIndex < numberIndex) {
-                            table.addColumn(ColumnType.INTEGER, "number");
-                            newStrIndex = table.addColumn(ColumnType.STRING, "str");
+                            table.addColumn(RealmFieldType.INTEGER, "number");
+                            newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
                         } else {
-                            newStrIndex = table.addColumn(ColumnType.STRING, "str");
-                            table.addColumn(ColumnType.INTEGER, "number");
+                            newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
+                            table.addColumn(RealmFieldType.INTEGER, "number");
                         }
                         table.convertColumnToNullable(newStrIndex);
-
-                        return 1L;
                     }
                 })
                 .build();
@@ -1133,8 +1130,8 @@ public class RealmObjectTest extends AndroidTestCase {
                 .name("columnSwapped.realm")
                 .migration(new RealmMigration() {
                     @Override
-                    public long execute(Realm realm, long version) {
-                        return 1L;
+                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                        // Do nothing
                     }
                 })
                 .schemaVersion(1L)

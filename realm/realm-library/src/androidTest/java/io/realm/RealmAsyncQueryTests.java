@@ -1467,7 +1467,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     populateTestRealm(realm, 10);
                     final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
                             .between("columnLong", 0, 4)
-                            .findAllSortedAsync("columnString", RealmResults.SORT_ORDER_DESCENDING);
+                            .findAllSortedAsync("columnString", Sort.DESCENDING);
 
                     result[0] = realmResults;
 
@@ -1546,7 +1546,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     populateTestRealm(realm[0], 10);
                     final RealmResults<AllTypes> realmResults = realm[0].where(AllTypes.class)
                             .between("columnLong", 4, 8)
-                            .findAllSortedAsync("columnString", RealmResults.SORT_ORDER_ASCENDING);
+                            .findAllSortedAsync("columnString", Sort.ASCENDING);
 
                     assertFalse(realmResults.isLoaded());
                     assertEquals(0, realmResults.size());
@@ -1656,10 +1656,10 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
 
                     populateTestRealm(realm, 10);
                     final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
-                            .findAllSortedAsync("columnString", RealmResults.SORT_ORDER_ASCENDING);
+                            .findAllSortedAsync("columnString", Sort.ASCENDING);
                     final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
                             .between("columnLong", 0, 4)
-                            .findAllSortedAsync("columnString", RealmResults.SORT_ORDER_DESCENDING);
+                            .findAllSortedAsync("columnString", Sort.DESCENDING);
 
                     assertFalse(realmResults1.isLoaded());
                     assertFalse(realmResults2.isLoaded());
@@ -1833,11 +1833,11 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     realm.commitTransaction();
                     final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
                             .findAllSortedAsync(new String[]{"columnString", "columnLong"},
-                                    new boolean[]{RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_DESCENDING});
+                                    new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
                     final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
                             .between("columnLong", 0, 5)
                             .findAllSortedAsync(new String[]{"columnString", "columnLong"},
-                                    new boolean[]{RealmResults.SORT_ORDER_DESCENDING, RealmResults.SORT_ORDER_ASCENDING});
+                                    new Sort[]{Sort.DESCENDING, Sort.ASCENDING});
 
                     assertFalse(realmResults1.isLoaded());
                     assertFalse(realmResults2.isLoaded());

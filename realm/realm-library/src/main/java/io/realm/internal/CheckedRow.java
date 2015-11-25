@@ -17,6 +17,8 @@
 
 package io.realm.internal;
 
+import io.realm.RealmFieldType;
+
 /**
  * Checked wrapper for Row data in Realm Core. All methods called through this will check that input parameters are
  * valid or throw an appropriate exception.
@@ -84,8 +86,8 @@ public class CheckedRow extends UncheckedRow {
 
     @Override
     public boolean isNullLink(long columnIndex) {
-        ColumnType columnType = getColumnType(columnIndex);
-        if (columnType == ColumnType.LINK || columnType == ColumnType.LINK_LIST) {
+        RealmFieldType columnType = getColumnType(columnIndex);
+        if (columnType == RealmFieldType.OBJECT || columnType == RealmFieldType.LIST) {
             return super.isNullLink(columnIndex);
         } else {
             return false; // Unsupported types always return false
@@ -94,17 +96,16 @@ public class CheckedRow extends UncheckedRow {
 
     @Override
     public boolean isNull(long columnIndex) {
-        ColumnType columnType = getColumnType(columnIndex);
         return super.isNull(columnIndex);
     }
 
     @Override
     public void setNull(long columnIndex) {
-        ColumnType columnType = getColumnType(columnIndex);
-        if (columnType == ColumnType.STRING) {
+        RealmFieldType columnType = getColumnType(columnIndex);
+        if (columnType == RealmFieldType.STRING) {
             super.setString(columnIndex, null);
         }
-        else if (columnType == ColumnType.BINARY) {
+        else if (columnType == RealmFieldType.BINARY) {
             super.setBinaryByteArray(columnIndex, null);
         }
         else {
@@ -141,5 +142,4 @@ public class CheckedRow extends UncheckedRow {
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
-    protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
 }

@@ -21,6 +21,8 @@ import junit.framework.TestCase;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.RealmFieldType;
+
 // Tables get detached
 
 public class JNIGarbageCollectorQueryTest extends TestCase {
@@ -61,7 +63,7 @@ public class JNIGarbageCollectorQueryTest extends TestCase {
     public void testGetSubtable(){
 
         t = new Table();
-        t.addColumn(ColumnType.TABLE, "table");
+        t.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "table");
 
         long count = 100;
         long loop = 100;

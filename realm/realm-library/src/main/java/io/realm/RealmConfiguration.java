@@ -205,6 +205,31 @@ public class RealmConfiguration {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("");
+        stringBuilder.append("realmFolder: "); stringBuilder.append(realmFolder.toString());
+        stringBuilder.append("\n");
+        stringBuilder.append("realmFileName : "); stringBuilder.append(realmFileName);
+        stringBuilder.append("\n");
+        stringBuilder.append("canonicalPath: "); stringBuilder.append(canonicalPath);
+        stringBuilder.append("\n");
+        stringBuilder.append("key: ");
+        stringBuilder.append("[length: " + Integer.toString(key == null ? 0 : KEY_LENGTH) + "]");
+        stringBuilder.append("\n");
+        stringBuilder.append("schemaVersion: "); stringBuilder.append(Long.toString(schemaVersion));
+        stringBuilder.append("\n");
+        stringBuilder.append("migration: "); stringBuilder.append(migration);
+        stringBuilder.append("\n");
+        stringBuilder.append("deleteRealmIfMigrationNeeded: "); stringBuilder.append(deleteRealmIfMigrationNeeded);
+        stringBuilder.append("\n");
+        stringBuilder.append("durability: "); stringBuilder.append(durability);
+        stringBuilder.append("\n");
+        stringBuilder.append("schemaMediator: "); stringBuilder.append(schemaMediator);
+
+        return stringBuilder.toString();
+    }
+
     /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */

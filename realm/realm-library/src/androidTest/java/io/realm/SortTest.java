@@ -30,8 +30,8 @@ public class SortTest extends AndroidTestCase {
     private final static String[] ORDER_STRING_INT = {FIELD_STRING, FIELD_LONG};
     private final static String[] ORDER_INT_STRING = {FIELD_LONG, FIELD_STRING};
 
-    private final static boolean[] ORDER_ASC_ASC = {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_ASCENDING};
-    private final static boolean[] ORDER_ASC_DES = {RealmResults.SORT_ORDER_ASCENDING, RealmResults.SORT_ORDER_DESCENDING};
+    private final static Sort[] ORDER_ASC_ASC = {Sort.ASCENDING, Sort.ASCENDING};
+    private final static Sort[] ORDER_ASC_DES = {Sort.ASCENDING, Sort.DESCENDING};
 
     @Override
     public void setUp() {
@@ -74,7 +74,7 @@ public class SortTest extends AndroidTestCase {
 
         // zero fields specified
         try {
-            allTypes.sort(new String[]{}, new boolean[]{});
+            allTypes.sort(new String[]{}, new Sort[]{});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -88,7 +88,7 @@ public class SortTest extends AndroidTestCase {
 
         // null is not allowed
         try {
-            allTypes.sort(null, null);
+            allTypes.sort(null, (Sort[])null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -270,7 +270,7 @@ public class SortTest extends AndroidTestCase {
 
         // zero fields specified
         try {
-            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new boolean[]{});
+            testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new Sort[]{});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -285,7 +285,7 @@ public class SortTest extends AndroidTestCase {
 
         // null is not allowed
         try {
-            testRealm.allObjectsSorted(AllTypes.class, null, null);
+            testRealm.allObjectsSorted(AllTypes.class, null, (Sort[])null);
             fail();
         } catch (IllegalArgumentException ignored) {}
         try {

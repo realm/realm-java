@@ -18,6 +18,7 @@ package io.realm.entities;
 
 import java.util.Date;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
@@ -57,7 +58,7 @@ public class NullTypes extends RealmObject {
     public static String FIELD_DATE_NOT_NULL = "fieldDateNotNull";
     public static String FIELD_DATE_NULL = "fieldDateNull";
     public static String FIELD_OBJECT_NULL = "fieldObjectNull";
-
+    public static String FIELD_LIST_NULL = "fieldListNull";
 
     @PrimaryKey
     private int id;
@@ -103,6 +104,8 @@ public class NullTypes extends RealmObject {
     private Date fieldDateNull;
 
     private NullTypes fieldObjectNull;
+
+    private RealmList<NullTypes> fieldListNull;
 
     public int getId() {
         return id;
@@ -278,5 +281,13 @@ public class NullTypes extends RealmObject {
 
     public void setFieldObjectNull(NullTypes fieldObjectNull) {
         this.fieldObjectNull = fieldObjectNull;
+    }
+
+    public RealmList<NullTypes> getFieldListNull() {
+        return fieldListNull;
+    }
+
+    public void setFieldListNull(RealmList<NullTypes> fieldListNull) {
+        this.fieldListNull = fieldListNull;
     }
 }
