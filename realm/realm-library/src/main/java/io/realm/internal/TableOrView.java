@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import io.realm.RealmFieldType;
+
 /**
  * Specification of the common operations for the low-level table and view API.
  */
@@ -66,7 +68,7 @@ public interface TableOrView {
 
     long getColumnIndex(String name);
 
-    ColumnType getColumnType(long columnIndex);
+    RealmFieldType getColumnType(long columnIndex);
 
     /**
      * Gets the long value of a cell of the table/view identified by the columnIndex and rowIndex.
@@ -145,7 +147,7 @@ public interface TableOrView {
      */
     long getLink(long columnIndex, long rowIndex);
 
-    ColumnType getMixedType(long columnIndex, long rowIndex);
+    RealmFieldType getMixedType(long columnIndex, long rowIndex);
 
     Table getSubtable(long columnIndex, long rowIndex);
 

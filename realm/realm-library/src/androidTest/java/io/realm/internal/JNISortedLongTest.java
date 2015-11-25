@@ -18,14 +18,16 @@ package io.realm.internal;
 
 import junit.framework.TestCase;
 
+import io.realm.RealmFieldType;
+
 public class JNISortedLongTest extends TestCase {
     Table table;
     TableView view;
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.INTEGER, "number");
-        table.addColumn(ColumnType.STRING, "name");
+        table.addColumn(RealmFieldType.INTEGER, "number");
+        table.addColumn(RealmFieldType.STRING, "name");
 
         table.add(1, "A");
         table.add(10, "B");

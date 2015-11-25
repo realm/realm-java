@@ -34,6 +34,7 @@ import io.realm.Realm;
 import io.realm.RealmAsyncTask;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.examples.threads.model.Dot;
 
 /**
@@ -65,8 +66,8 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
                 .between("x", 25, 75)
                 .between("y", 0, 50)
                 .findAllSortedAsync(
-                         "x", RealmResults.SORT_ORDER_ASCENDING,
-                         "y", RealmResults.SORT_ORDER_DESCENDING
+                         "x", Sort.ASCENDING,
+                         "y", Sort.DESCENDING
                  );
         dotAdapter.updateList(allSortedDots);
         allSortedDots.addChangeListener(this);

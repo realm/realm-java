@@ -74,7 +74,8 @@ public class ClassMetaData {
                 stringType,
                 typeUtils.getPrimitiveType(TypeKind.SHORT),
                 typeUtils.getPrimitiveType(TypeKind.INT),
-                typeUtils.getPrimitiveType(TypeKind.LONG)
+                typeUtils.getPrimitiveType(TypeKind.LONG),
+                typeUtils.getPrimitiveType(TypeKind.BYTE)
         );
     }
 
@@ -112,7 +113,7 @@ public class ClassMetaData {
         return true; // Meta data was successfully generated
     }
 
-    // Check that only allowed methods are present in the model class
+    // Check that only allowed methods are present in the RealmObject class
     private boolean checkMethods() {
         for (ExecutableElement executableElement : methods) {
             String methodName = executableElement.getSimpleName().toString();
@@ -122,7 +123,7 @@ public class ClassMetaData {
             if (modifiers.contains(Modifier.STATIC)) {
                 continue; // We're cool with static methods. Move along!
             } else if (!modifiers.contains(Modifier.PUBLIC)) {
-                Utils.error("The methods of the model must be public", executableElement);
+                Utils.error("The methods of the RealmObject class must be public", executableElement);
                 return false;
             }
 
@@ -138,7 +139,7 @@ public class ClassMetaData {
                     return false;
                 }
             } else {
-                Utils.error("Only getters and setters should be defined in model classes", executableElement);
+                Utils.error("Only getters and setters should be defined in RealmObject classes", executableElement);
                 return false;
             }
         }
@@ -158,7 +159,7 @@ public class ClassMetaData {
         return true;
     }
 
-    // Verify that a setter is used to set a field in the model class.
+    // Verify that a setter is used to set a field in the RealmObject class.
     // Note: This is done heuristically by comparing the name of setter with the name of the field.
     // Annotation processors does not allow us to inspect individual statements.
     private boolean checkSetterMethod(String methodName) {
@@ -191,7 +192,7 @@ public class ClassMetaData {
         return found;
     }
 
-    // Verify that a getter is used to get a field in the model class.
+    // Verify that a getter is used to get a field in the RealmObject class.
     // Note: This is done heuristically by comparing the name of getter with the name of the field.
     // Annotation processors does not allow us to inspect individual statements.
     private boolean checkGetterMethod(String methodName) {
@@ -296,10 +297,10 @@ public class ClassMetaData {
                     // STRING, DATE, INTEGER, BOOLEAN
                     String elementTypeCanonicalName = variableElement.asType().toString();
                     String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
-                    if (columnType != null && (columnType.equals("ColumnType.STRING") ||
-                            columnType.equals("ColumnType.DATE") ||
-                            columnType.equals("ColumnType.INTEGER") ||
-                            columnType.equals("ColumnType.BOOLEAN"))) {
+                    if (columnType != null && (columnType.equals("RealmFieldType.STRING") ||
+                            columnType.equals("RealmFieldType.DATE") ||
+                            columnType.equals("RealmFieldType.INTEGER") ||
+                            columnType.equals("RealmFieldType.BOOLEAN"))) {
                         indexedFields.add(variableElement);
                     } else {
                         Utils.error("@Index is not applicable to this field " + element + ".");
@@ -360,7 +361,7 @@ public class ClassMetaData {
                 }
 
                 if (!variableElement.getModifiers().contains(Modifier.PRIVATE)) {
-                    Utils.error("The fields of the model must be private", variableElement);
+                    Utils.error("The fields of the RealmObject class must be private", variableElement);
                     return false;
                 }
 
@@ -392,9 +393,9 @@ public class ClassMetaData {
     }
 
     /**
-     * Returns true if the model class is considered to be a true model class.
-     * RealmObject and Proxy classes also has the the @RealmClass annotation but is not considered true
-     * model classes.
+     * Returns {@code true} if the class is considered to be a valid RealmObject class.
+     * RealmObject and Proxy classes also have the @RealmClass annotation but are not considered valid
+     * RealmObject classes.
      */
     public boolean isModelClass() {
         String type = classType.toString();

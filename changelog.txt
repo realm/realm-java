@@ -1,5 +1,10 @@
 0.86.0
-* BREAKING CHANGE: `Realm.addChangeListener`, `RealmObject.addChangeListener` and `RealmResults.addChangeListener` hold a strong reference to the listener, you should unregister the listener to avoid memory leaks.
+ * BREAKING CHANGE: The Migration API has been replaced with a new API.
+ * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants have been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
+ * BREAKING CHANGE: RealmQuery.CASE_SENSITIVE and RealmQuery.CASE_INSENSITIVE constants have been replaced by Case.SENSITIVE and Case.INSENSITIVE enums.
+ * BREAKING CHANGE: Realm.addChangeListener, RealmObject.addChangeListener and RealmResults.addChangeListener hold a strong reference to the listener, you should unregister the listener to avoid memory leaks.
+ * Added new Dynamic API using DynamicRealm and DynamicRealmObject.
+ * Added Realm.getSchema() and DynamicRealm.getSchema().
 
 0.85.0
  * BREAKING CHANGE: Removed RealmEncryptionNotSupportedException since the encryption implementation changed in Realm's underlying storage engine. Encryption is now supported on all devices.
@@ -24,7 +29,7 @@
    - Fixed a bug that could cause a crash when running the same query multiple times.
  * Updated ProGuard configuration. See documentation https://realm.io/docs/java/latest/#proguard for more details.
  * Updated Kotlin example to use 1.0.0-beta.
- * Fixed warnings reported by `lint -Xlint:all` (#1644).
+ * Fixed warnings reported by "lint -Xlint:all" (#1644).
  * Fixed a bug where simultaneous opening and closing a Realm from different threads might result in a NullPointerException (#1646).
  * Fixed a bug which made it possible to externally modify the encryption key in a RealmConfiguration (#1678).
 

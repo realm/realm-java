@@ -20,14 +20,16 @@ package io.realm.internal;
 
 import junit.framework.TestCase;
 
+import io.realm.RealmFieldType;
+
 @SuppressWarnings("unused")
 public class JNIDistinctTest extends TestCase {
     Table table;
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.INTEGER, "number");
-        table.addColumn(ColumnType.STRING, "name");
+        table.addColumn(RealmFieldType.INTEGER, "number");
+        table.addColumn(RealmFieldType.STRING, "name");
 
         long i = 0;
         table.add(0, "A");
