@@ -1,0 +1,126 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        //classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+    }
+}
+
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+def currentVersion = file("${projectDir}/version.txt").text.trim();
+
+version = currentVersion
+
+def commonPom = {
+    version = currentVersion
+    licenses {
+        license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    issueManagement {
+        system 'github'
+        url 'https://github.com/realm/realm-java/issues'
+    }
+    scm {
+        url 'scm:https://github.com/realm/realm-java'
+        connection 'scm:git@github.com:realm/realm-java.git'
+        developerConnection 'scm:git@github.com:realm/realm-java.git'
+    }
+}
+
+publishing {
+    publications {
+        jarLibrary(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-android'
+            artifact file("${buildDir}/outputs/gradle/realm-android-${currentVersion}.jar")
+            //artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")
+            //artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-android')
+                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
+        aarLibrary(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-android-library'
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-library-release.aar")
+            //artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")
+            //artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-android-library')
+                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
+        annotations(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-annotations'
+            artifact file("${rootDir}/realm/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-annotations')
+                root.appendNode('description', 'Annotations for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
+        annotationsProcessor(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-annotations-processor'
+            artifact file("${rootDir}/realm/realm-annotations-processor/build/libs/realm-annotations-processor-${currentVersion}.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-annotations-processor')
+                root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
+        gradlePlugin(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-gradle-plugin'
+            artifact file("${rootDir}/gradle-plugin/build/libs/gradle-plugin-${currentVersion}.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'gradle-realm-plugin')
+                root.appendNode('description', 'Gradle plugin for Realm. Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+
+    dryRun = false
+    publish = false
+
+    publications = ['annotations']
+    pkg {
+        repo = 'maven'
+        name = 'realm-annotations'
+        desc = 'Realm for Android'
+        websiteUrl = 'http://realm.io'
+        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
+        vcsUrl = 'https://github.com/realm/realm-java.git'
+        licenses = ['Apache-2.0']
+        labels = ['android', 'realm']
+        publicDownloadNumbers = false
+    }
+}
