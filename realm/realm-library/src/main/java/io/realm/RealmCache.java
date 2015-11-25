@@ -67,12 +67,22 @@ class RealmCache {
     // Realm instances in other threads doesn't have to initialize the column indices again.
     private ColumnIndices typedColumnIndices;
 
+    private RealmChangeNotifier changeNotifier;
+
     // Realm path will be used as the key to store different RealmCaches. Different Realm configurations with same path
     // are not allowed and an exception will be thrown when trying to add it to the cache map.
     private static Map<String, RealmCache> cachesMap = new HashMap<String, RealmCache>();
 
+
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
+
+    private static RealmChangeNotifier.Callback notifierCallback = new RealmChangeNotifier.Callback() {
+        @Override
+        public void onChanged(RealmConfiguration configuration) {
+             BaseRealm.notifyHandlers(configuration);
+        }
+    };
 
     private RealmCache(RealmConfiguration config) {
         configuration = config;
@@ -89,7 +99,7 @@ class RealmCache {
      * @param realmClass class of {@link Realm} or {@link DynamicRealm} to be created in or gotten from the cache.
      * @return the {@link Realm} or {@link DynamicRealm} instance.
      */
-    static synchronized <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
+    static synchronized <E extends BaseRealm> E createRealmOrGetFromCache(final RealmConfiguration configuration,
                                                         Class<E> realmClass) {
         boolean isCacheInMap = true;
         RealmCache cache = cachesMap.get(configuration.getPath());
@@ -123,6 +133,8 @@ class RealmCache {
             // The cache is not in the map yet. Add it to the map after the Realm instance created successfully.
             if (!isCacheInMap) {
                 cachesMap.put(configuration.getPath(), cache);
+                // Start notifier thread
+                cache.changeNotifier = new RealmChangeNotifier(configuration, notifierCallback);
             }
             refAndCount.localRealm.set(realm);
             refAndCount.localCount.set(0);
@@ -198,6 +210,7 @@ class RealmCache {
             // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
             if (totalRefCount == 0) {
                 cachesMap.remove(canonicalPath);
+                cache.changeNotifier.close();
             }
 
             // No more local reference to this Realm in current thread, close the instance.

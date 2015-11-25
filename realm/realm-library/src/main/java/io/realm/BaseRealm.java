@@ -270,23 +270,35 @@ abstract class BaseRealm implements Closeable {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
 
+        if (handlerController != null) {
+            // Notify at once on thread doing the commit
+            handlerController.notifyGlobalListeners();
+            // notify RealmResults & RealmObject callbacks
+            handlerController.notifyTypeBasedListeners();
+            // if we have empty async RealmObject then rerun
+            if (handlerController.threadContainsAsyncEmptyRealmObject()) {
+                handlerController.updateAsyncEmptyRealmObject();
+            }
+        }
+    }
+
+    public boolean waitForChange() {
+        if (sharedGroupManager.getSharedGroup().waitForChange()) {
+            sharedGroupManager.getSharedGroup().advanceRead();
+            return true;
+        }
+        return false;
+    }
+
+    public void stopWaitForChange() {
+        sharedGroupManager.getSharedGroup().setWaitForChangeEnabled(false);
+    }
+
+    static void notifyHandlers(RealmConfiguration configuration) {
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();
             String realmPath = handlerIntegerEntry.getValue();
 
-            // Notify at once on thread doing the commit
-            if (handler.equals(this.handler)) {
-                handlerController.notifyGlobalListeners();
-                // notify RealmResults & RealmObject callbacks
-                handlerController.notifyTypeBasedListeners();
-                // if we have empty async RealmObject then rerun
-                if (handlerController.threadContainsAsyncEmptyRealmObject()) {
-                    handlerController.updateAsyncEmptyRealmObject();
-                }
-                continue;
-            }
-
-            // For all other threads, use the Handler
             // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
             // as the target thread consumes messages at the same time. In this case it is not a problem as worst
             // case we end up with two REALM_CHANGED messages in the queue.

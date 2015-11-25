@@ -317,19 +317,24 @@ public class HandlerController implements Handler.Callback {
             updateAsyncQueries();
 
         } else {
-            RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " no async queries, advance_read");
+            SharedGroup.VersionID oldVersion = realm.sharedGroupManager.getVersion();
             realm.sharedGroupManager.advanceRead();
-            notifyGlobalListeners();
-            // notify RealmResults & RealmObject callbacks (type based notifications)
-            notifySyncRealmResultsCallbacks();
-            notifyRealmObjectCallbacks();
+            SharedGroup.VersionID newVersion = realm.sharedGroupManager.getVersion();
+            RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " no async queries, advance_read." +
+                    " Old version: " + oldVersion + ". New version: " + newVersion);
+            if (oldVersion.compareTo(newVersion) != 0) {
+                notifyGlobalListeners();
+                // notify RealmResults & RealmObject callbacks (type based notifications)
+                notifySyncRealmResultsCallbacks();
+                notifyRealmObjectCallbacks();
 
-            // empty async RealmObject shouldn't block the realm to advance
-            // they're empty so no risk on running into a corrupt state
-            // where the pointer (Row) is using one version of a Realm, whereas the
-            // current Realm is advancing to a newer version (they're empty anyway)
-            if (threadContainsAsyncEmptyRealmObject()) {
-                updateAsyncEmptyRealmObject();
+                // empty async RealmObject shouldn't block the realm to advance
+                // they're empty so no risk on running into a corrupt state
+                // where the pointer (Row) is using one version of a Realm, whereas the
+                // current Realm is advancing to a newer version (they're empty anyway)
+                if (threadContainsAsyncEmptyRealmObject()) {
+                    updateAsyncEmptyRealmObject();
+                }
             }
         }
     }

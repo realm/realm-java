@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -2489,5 +2490,61 @@ public class RealmTest extends AndroidTestCase {
         assertEquals(2, results.size());
         assertEquals("B", results.get(0).getName());
         assertTrue(results.get(0) == results.get(1));
+    }
+
+    public void testWaitForChange() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch changedLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result = new AtomicBoolean(false);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(testConfig);
+                openedLatch.countDown();
+                result.set(realm.waitForChange());
+                changedLatch.countDown();
+                result.set(realm.waitForChange());
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        openedLatch.await();
+        Thread.sleep(100);
+        testRealm.beginTransaction();
+        testRealm.commitTransaction();
+        changedLatch.await();
+        Thread.sleep(500);
+        testRealm.beginTransaction();
+        testRealm.commitTransaction();
+        assertTrue(result.get());
+        closedLatch.await();
+    }
+
+    public void testStopWaitForChange() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch canceledLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result = new AtomicBoolean(false);
+        final Realm[] otherRealm = new Realm[1];
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                otherRealm[0] = Realm.getInstance(testConfig);
+                openedLatch.countDown();
+                result.set(otherRealm[0].waitForChange());
+                canceledLatch.countDown();
+                otherRealm[0].close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        openedLatch.await();
+        otherRealm[0].stopWaitForChange();
+        assertFalse(result.get());
+        closedLatch.await();
     }
 }

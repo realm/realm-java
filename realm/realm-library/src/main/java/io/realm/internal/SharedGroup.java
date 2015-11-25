@@ -82,7 +82,7 @@ public class SharedGroup implements Closeable {
         checkNativePtrNotZero();
     }
 
-    void advanceRead() {
+    public void advanceRead() {
         nativeAdvanceRead(nativePtr, nativeReplicationPtr);
     }
 
@@ -149,7 +149,7 @@ public class SharedGroup implements Closeable {
         }
     }
 
-    void endRead() {
+    public void endRead() {
         if (isClosed())
             throw new IllegalStateException("Can't endRead() on closed group. " +
                     "ReadTransaction is invalid.");
@@ -249,7 +249,19 @@ public class SharedGroup implements Closeable {
         return new VersionID (versionId[0], versionId[1]);
 
     }
-    
+
+    public boolean waitForChange() {
+        return nativeWaitForChange(nativePtr);
+    }
+
+    public void setWaitForChangeEnabled(boolean enabled) {
+        if (enabled) {
+            nativeEnableWaitForChange(nativePtr);
+        } else {
+            nativeWaitForChangeRelease(nativePtr);
+        }
+    }
+
     public static class VersionID implements Comparable<VersionID> {
         final long version;
         final long index;
@@ -307,4 +319,7 @@ public class SharedGroup implements Closeable {
     private native void nativeAdvanceReadToVersion(long nativePtr, long nativeReplicationPtr,
                                                    long version, long index);
     private native void nativePromoteToWrite(long nativePtr, long nativeReplicationPtr);
+    private native boolean nativeWaitForChange(long nativePtr);
+    private native void nativeWaitForChangeRelease(long nativePtr);
+    private native void nativeEnableWaitForChange(long nativePtr);
 }
