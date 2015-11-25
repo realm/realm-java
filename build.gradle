@@ -181,7 +181,7 @@ task distributionPackage(type:Zip) {
         into 'gradle'
     }
     from('realm/realm-library/build/libs') {
-        include 'realm-android-*-javadoc.jar'
+        include 'realm-android-${currentVersion}-javadoc.jar'
         into 'docs'
     }
     from('realm/realm-library/build/docs') {
