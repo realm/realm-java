@@ -14,7 +14,7 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 23
-        project.archivesBaseName = "realm-android"
+        project.archivesBaseName = "realm-android-library"
         consumerProguardFiles 'proguard-rules.pro'
     }
 }
