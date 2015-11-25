@@ -1,5 +1,9 @@
+
 0.86.0
 * BREAKING CHANGE: `Realm.addChangeListener`, `RealmObject.addChangeListener` and `RealmResults.addChangeListener` hold a strong reference to the listener, you should unregister the listener to avoid memory leaks.
+
+0.85.1
+ * Fixed a bug which could corrupt primary key information when updating from a Realm version <= 0.84.1 (#1775).
 
 0.85.0
  * BREAKING CHANGE: Removed RealmEncryptionNotSupportedException since the encryption implementation changed in Realm's underlying storage engine. Encryption is now supported on all devices.
@@ -11,7 +15,7 @@
  * The Realm AAR now also contains the ProGuard configuration (#1767). (Thank you @skyisle)
  * Updated Realm Core to 0.95
    - Removed reliance on POSIX signals when using encryption.
- 
+
 0.84.2
  * Fixed a bug making it impossible to convert a field to become required during a migration (#1695).
  * Fixed a bug making it impossible to read Realms created using primary keys and created by iOS (#1703).
