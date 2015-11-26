@@ -1,4 +1,3 @@
-
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
  * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants have been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
@@ -7,6 +6,7 @@
  * BREAKING CHANGE: Removed deprecated methods RealmQuery.minimum{Int,Float,Double}, RealmQuery.maximum{Int,Float,Double}, RealmQuery.sum{Int,Float,Double} and RealmQuery.average{Int,Float,Double}. Use RealmQuery.min(), RealmQuery.max(), RealmQuery.sum() and RealmQuery.average() instead.
  * Added new Dynamic API using DynamicRealm and DynamicRealmObject.
  * Added Realm.getSchema() and DynamicRealm.getSchema().
+ * Realm.createOrUpdateObjectFromJson() now works correctly if the RealmObject class contains a primary key (#1777).
 
 0.85.1
  * Fixed a bug which could corrupt primary key information when updating from a Realm version <= 0.84.1 (#1775).
