@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -33,7 +32,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
-import java.util.Set;
 
 public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
@@ -881,10 +879,13 @@ public class RealmProxyClassGenerator {
                             .emitStatement("obj.row = table.getUncheckedRow(rowIndex)")
                         .endControlFlow()
                     .endControlFlow()
-                .endControlFlow()
-                .beginControlFlow("if (obj == null)")
-                    .emitStatement("obj = realm.createObject(%s.class)", className)
                 .endControlFlow();
+
+            writer.beginControlFlow("if (obj == null)");
+            String primaryKeyFieldType = metadata.getPrimaryKey().asType().toString();
+            String primaryKeyFieldName = metadata.getPrimaryKey().getSimpleName().toString();
+            RealmJsonTypeHelper.emitCreateObjectWithPrimaryKeyValue(className, primaryKeyFieldType, primaryKeyFieldName, writer);
+            writer.endControlFlow();
         }
 
         for (VariableElement field : metadata.getFields()) {

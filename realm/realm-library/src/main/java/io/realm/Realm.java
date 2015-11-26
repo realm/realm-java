@@ -572,12 +572,29 @@ public final class Realm extends BaseRealm {
         if (clazz == null || inputStream == null) {
             return null;
         }
-
-        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
-        try {
-            return configuration.getSchemaMediator().createUsingJsonStream(clazz, this, reader);
-        } finally {
-            reader.close();
+        Table table = getTable(clazz);
+        if (table.hasPrimaryKey()) {
+            // As we need the primary key value we have to first parse the entire input stream as in the general
+            // case that value might be the last property :(
+            Scanner scanner = null;
+            try {
+                scanner = getFullStringScanner(inputStream);
+                JSONObject json = new JSONObject(scanner.next());
+                return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+            } catch (JSONException e) {
+                throw new RealmException("Failed to read JSON", e);
+            } finally {
+                if (scanner != null) {
+                    scanner.close();
+                }
+            }
+        } else {
+            JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
+            try {
+                return configuration.getSchemaMediator().createUsingJsonStream(clazz, this, reader);
+            } finally {
+                reader.close();
+            }
         }
     }
 

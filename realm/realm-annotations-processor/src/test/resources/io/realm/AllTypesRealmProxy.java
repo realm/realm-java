@@ -422,7 +422,15 @@ public class AllTypesRealmProxy extends AllTypes
             }
         }
         if (obj == null) {
-            obj = realm.createObject(AllTypes.class);
+            if (json.has("columnString")) {
+                if (json.isNull("columnString")) {
+                    obj = realm.createObject(AllTypes.class, null);
+                } else {
+                    obj = realm.createObject(AllTypes.class, json.getString("columnString"));
+                }
+            } else {
+                obj = realm.createObject(AllTypes.class);
+            }
         }
         if (json.has("columnString")) {
             if (json.isNull("columnString")) {
