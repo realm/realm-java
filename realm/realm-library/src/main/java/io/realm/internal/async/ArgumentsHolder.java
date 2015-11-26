@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package io.realm.internal.async;
 
 import io.realm.Sort;
