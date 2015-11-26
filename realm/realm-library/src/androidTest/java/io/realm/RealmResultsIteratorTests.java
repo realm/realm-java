@@ -150,19 +150,13 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
             for (AllTypes obj : result) {
                 obj.removeFromRealm();
             }
-        } catch (ConcurrentModificationException ignored) {
-            return;
         } finally {
             testRealm.cancelTransaction();
         }
-
-        fail("Modifying Realm while iterating is not allowed");
     }
 
-    // TODO: Should we reenable this test?
-    // Query iterator should still be valid if we modify Realm after query but before iterator is
-    // fetched.
-    public void DISABLEDtestIteratorValidAfterAutoUpdate() {
+    // Query iterator should still be valid if we modify Realm after query but before iterator is fetched.
+    public void testIteratorValidAfterAutoUpdate() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
         testRealm.beginTransaction();
@@ -178,7 +172,6 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         assertEquals(sum(0, TEST_DATA_SIZE - 2), realmSum);
     }
 
-
     public void testIteratorStandardBehavior() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
 
@@ -190,6 +183,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
 
         assertEquals(sum(0, TEST_DATA_SIZE - 1), realmSum);
     }
+
     // TODO: Should we reenable this test?
     public void DISABLEDtestIteratorRemove() {
         RealmResults<AllTypes> result = testRealm.allObjects(AllTypes.class);
