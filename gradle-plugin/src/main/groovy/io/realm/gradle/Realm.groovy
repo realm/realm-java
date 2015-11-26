@@ -10,8 +10,9 @@ class Realm implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(AndroidAptPlugin)
         project.repositories.add(project.getRepositories().jcenter());
-        project.dependencies.add("compile", "io.realm:realm-android:${Version.VERSION}@aar");
+        project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}");
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}");
         project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}");
+        project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}");
     }
 }

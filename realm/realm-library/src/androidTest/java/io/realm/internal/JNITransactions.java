@@ -21,8 +21,10 @@ import android.test.AndroidTestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.TestHelper;
@@ -412,6 +414,34 @@ public class JNITransactions extends AndroidTestCase {
         assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertTrue(t.hasPrimaryKey());
         assertEquals("AnnotationTypes", tr.getTable("pk").getString(0, 0));
+        db.close();
+    }
+
+    // See https://github.com/realm/realm-java/issues/1775 .
+    // Before 0.84.2, pk table added prefix "class_" to every class's name.
+    // After 0.84.2, the pk table should be migrated automatically to remove the "class_".
+    // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
+    // "NClass", "Meclass" and etc..
+    // The 0841_pk_migration.realm is made to produce the issue.
+    public void testPrimaryKeyTableMigratedWithRightName() throws IOException {
+        List<String> tableNames = Arrays.asList(
+                "ChatList", "Drafts", "Member", "Message", "Notifs", "NotifyLink", "PopularPost",
+                "Post", "Tags", "Threads", "User");
+
+        TestHelper.copyRealmFromAssets(getContext(), "0841_pk_migration.realm", "default.realm");
+        SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(),
+                Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
+
+        ImplicitTransaction tr = db.beginImplicitTransaction();
+        // To trigger migratePrimaryKeyTableIfNeeded.
+        tr.getTable("class_ChatList").getPrimaryKey();
+
+        Table table =  tr.getTable("pk");
+        for (int i = 0; i < table.size(); i++) {
+            UncheckedRow row = table.getUncheckedRow(i);
+            // io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX 0LL
+            assertTrue(tableNames.contains(row.getString(0)));
+        }
         db.close();
     }
 }
