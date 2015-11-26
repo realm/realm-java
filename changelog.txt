@@ -7,6 +7,7 @@
  * Added new Dynamic API using DynamicRealm and DynamicRealmObject.
  * Added Realm.getSchema() and DynamicRealm.getSchema().
  * Realm.createOrUpdateObjectFromJson() now works correctly if the RealmObject class contains a primary key (#1777).
+ * Updated Realm Core to 0.95.1
 
 0.85.1
  * Fixed a bug which could corrupt primary key information when updating from a Realm version <= 0.84.1 (#1775).
