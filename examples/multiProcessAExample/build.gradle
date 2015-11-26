@@ -1,0 +1,27 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.application'
+apply plugin: 'android-command'
+apply plugin: 'realm'
+
+android {
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
+
+    defaultConfig {
+        applicationId "io.realm.examples.realmmultiprocessaexample"
+        targetSdkVersion rootProject.sdkVersion
+        minSdkVersion 9
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.android.support:appcompat-v7:23.1.1'
+}
