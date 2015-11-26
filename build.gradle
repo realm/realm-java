@@ -4,14 +4,12 @@ buildscript {
     }
     dependencies {
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
         classpath 'ch.netzwerg:gradle-release-plugin:1.1.0'
     }
 }
 
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim();
@@ -308,6 +306,8 @@ task bintrayGradlePlugin(type: GradleBuild) {
 }
 
 task bintrayUpload {
+    description = 'Publish all the Realm artifacts to Bintray'
+    group = 'Distribute'
     dependsOn bintrayAar
     dependsOn bintrayJar
     dependsOn bintrayAnnotations
@@ -417,27 +417,6 @@ artifactory {
         defaults {
             publications ('jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin')
         }
-    }
-}
-
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-
-    dryRun = false
-    publish = false
-
-    publications = ['jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin']
-    pkg {
-        repo = 'maven'
-        name = 'realm-android'
-        desc = 'Realm for Android'
-        websiteUrl = 'http://realm.io'
-        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
-        vcsUrl = 'https://github.com/realm/realm-java.git'
-        licenses = ['Apache-2.0']
-        labels = ['android', 'realm']
-        publicDownloadNumbers = false
     }
 }
 
