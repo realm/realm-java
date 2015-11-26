@@ -272,6 +272,49 @@ task distribute {
     dependsOn uploadUpdateVersion
 }
 
+task bintrayAar(type: GradleBuild) {
+    description = 'Publish the Realm AAR to Bintray'
+    group = 'Distribute'
+    buildFile = file('bintrayAar.gradle')
+    tasks = ['bintrayUpload']
+}
+
+task bintrayJar(type: GradleBuild) {
+    description = 'Publish the Realm Jar to Bintray'
+    group = 'Distribute'
+    buildFile = file('bintrayJar.gradle')
+    tasks = ['bintrayUpload']
+}
+
+task bintrayAnnotations(type: GradleBuild) {
+    description = 'Publish the Realm Annotations to Bintray'
+    group = 'Distribute'
+    buildFile = file('bintrayAnnotations.gradle')
+    tasks = ['bintrayUpload']
+}
+
+task bintrayAnnotationsProcessor(type: GradleBuild) {
+    description = 'Publish the Realm AP to Bintray'
+    group = 'Distribute'
+    buildFile = file('bintrayAnnotationsProcessor.gradle')
+    tasks = ['bintrayUpload']
+}
+
+task bintrayGradlePlugin(type: GradleBuild) {
+    description = 'Publish the Realm Gradle Plugin to Bintray'
+    group = 'Distribute'
+    buildFile = file('bintrayGradlePlugin.gradle')
+    tasks = ['bintrayUpload']
+}
+
+task bintrayUpload {
+    dependsOn bintrayAar
+    dependsOn bintrayJar
+    dependsOn bintrayAnnotations
+    dependsOn bintrayAnnotationsProcessor
+    dependsOn bintrayGradlePlugin
+}
+
 // This is just a placeholder for the release plugin
 task build {}
 

@@ -3,7 +3,6 @@ buildscript {
         jcenter()
     }
     dependencies {
-        //classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
     }
 }
