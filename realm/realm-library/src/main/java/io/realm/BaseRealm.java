@@ -29,11 +29,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.SharedGroupManager;
@@ -593,10 +591,6 @@ abstract class BaseRealm implements Closeable {
      * Compacts the Realm file defined by the given configuration.
      */
     public static boolean compactRealm(final RealmConfiguration configuration) {
-        if (configuration.getEncryptionKey() != null) {
-            throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
-        }
-
         final AtomicBoolean result = new AtomicBoolean(false);
 
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
