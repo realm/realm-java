@@ -1719,11 +1719,12 @@ public class RealmQuery<E extends RealmObject> {
      * @return the object found or {@code null} if no object matches the query conditions.
      * @see io.realm.RealmObject
      */
+    @SuppressWarnings("unchecked")
     public E findFirst() {
         checkQueryIsNotReused();
         long rowIndex = this.query.find();
         if (rowIndex >= 0) {
-            return realm.get(clazz, className, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
+            return (E) realm.get(clazz, className, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
         } else {
             return null;
         }
