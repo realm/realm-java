@@ -1,5 +1,9 @@
-package io.realm;
+package io.realm.rx;
 
+import io.realm.BaseRealm;
+import io.realm.RealmList;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
 import rx.Observable;
 
 /**
@@ -18,8 +22,8 @@ public interface RxObservableFactory {
     <E extends BaseRealm> Observable<E> from(E realm);
 
     /**
-     * Creates an Observable for a RealmResults. It should emit the initial results when subscribed to and on each
-     * update to the results.
+     * Creates an Observable for a {@link RealmResults}. It should emit the initial results when subscribed to and on
+     * each update to the results.
      *
      * RealmResults observables are effectively hot observables as RealmObjects auto-update.
      *

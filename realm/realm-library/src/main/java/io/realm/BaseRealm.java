@@ -44,27 +44,21 @@ import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
+import io.realm.rx.RxObservableFactory;
 import rx.Observable;
 
 /**
  * Base class for all Realm instances.
  *
  * @see io.realm.Realm
+ * @see io.realm.DynamicRealm
  */
-abstract class BaseRealm<E extends BaseRealm> implements Closeable {
+public abstract class BaseRealm<E extends BaseRealm> implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
-    private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE = "Cannot refresh inside of a transaction.";
-
-    // Map between all Realm file paths and all known configurations pointing to that file.
-    protected static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
-            new HashMap<String, List<RealmConfiguration>>();
-
-    // Reference count on currently open Realm instances (both normal and dynamic).
-    protected static final Map<String, Integer> globalRealmFileReferenceCounter = new HashMap<String, Integer>();
 
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -198,6 +192,8 @@ abstract class BaseRealm<E extends BaseRealm> implements Closeable {
     public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
         changeListeners.remove(listener);
+    }
+
     /**
      * Returns an Rx Observable that monitors changes to this realm. It will output the last state when
      * subscribed to.
@@ -209,8 +205,6 @@ abstract class BaseRealm<E extends BaseRealm> implements Closeable {
     @SuppressWarnings("unchecked")
     public Observable<E> observable() {
         return (Observable<E>) configuration.getRxFactory().from(this);
-    }
-
     }
 
     /**

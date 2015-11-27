@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.rx;
 
+import io.realm.BaseRealm;
+import io.realm.DynamicRealm;
+import io.realm.DynamicRealmObject;
+import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmList;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
@@ -23,13 +31,18 @@ import rx.subscriptions.Subscriptions;
 
 /**
  * Factory class for creating Observables for RxJava (<=1.0.15).
- * TODO Test compatibility with RxJava2/RxMobile
+ *
+ * @see Realm#observable()
+ * @see RealmObject#observable()
+ * @see RealmResults#observable()
+ * @see DynamicRealm#observable()
+ * @see DynamicRealmObject#observable()
  */
-public class RxJavaFactory implements RxObservableFactory {
+public final class RealmObservableFactory implements RxObservableFactory {
 
     private boolean rxJavaAvailble;
 
-    public RxJavaFactory() {
+    public RealmObservableFactory() {
         try {
             Class.forName("rx.Observable");
             rxJavaAvailble = true;
@@ -128,7 +141,7 @@ public class RxJavaFactory implements RxObservableFactory {
     private void checkRxJavaAvailable() {
         if (!rxJavaAvailble) {
             throw new IllegalStateException("RxJava seems to be missing from the classpath. " +
-                    "Remember to add it as a compile dependency. See XXX for more details.");
+                    "Remember to add it as a compile dependency. See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
     }
 }
