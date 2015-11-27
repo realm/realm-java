@@ -118,8 +118,25 @@ public class RealmConfiguration {
         return durability;
     }
 
+    /**
+     * Returns the mediator instance of schema which is defined by this configuration.
+     * This method is left public by mistake and will be removed.
+     *
+     * @return the mediator of the schema.
+     * @deprecated use {@link #getRealmObjectClasses()} instead if you need to access to the set of model classes.
+     */
+    @Deprecated
     public RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
+    }
+
+    /**
+     * Returns the unmodifiable {@link Set} of model classes that make up the schema for this Realm.
+     *
+     * @return unmodifiable {@link Set} of model classes.
+     */
+    public Set<Class<? extends RealmObject>> getRealmObjectClasses() {
+        return schemaMediator.getModelClasses();
     }
 
     public String getPath() {
@@ -176,11 +193,13 @@ public class RealmConfiguration {
         }
 
         // Otherwise combine all mediators
-        CompositeMediator mediator = new CompositeMediator();
+        RealmProxyMediator[] mediators = new RealmProxyMediator[modules.size()];
+        int i = 0;
         for (Object module : modules) {
-            mediator.addMediator(getModuleMediator(module.getClass().getCanonicalName()));
+            mediators[i] = getModuleMediator(module.getClass().getCanonicalName());
+            i++;
         }
-        return mediator;
+        return new CompositeMediator(mediators);
     }
 
     // Finds the mediator associated with a given module

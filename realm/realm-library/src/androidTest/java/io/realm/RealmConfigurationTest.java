@@ -20,15 +20,20 @@ import android.test.AndroidTestCase;
 import android.test.MoreAsserts;
 
 import java.io.File;
+import java.util.Set;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnimalModule;
+import io.realm.entities.Cat;
+import io.realm.entities.CatOwner;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.HumanModule;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.modules.CompositeMediator;
+import io.realm.internal.modules.FilterableMediator;
 
 public class RealmConfigurationTest extends AndroidTestCase {
 
@@ -432,5 +437,78 @@ public class RealmConfigurationTest extends AndroidTestCase {
 
         // Ensure that the stored key did not change
         MoreAsserts.assertEquals(oldKey, config.getEncryptionKey());
+    }
+
+    public void testModelClassesForDefaultMediator() throws Exception {
+        assertTrue(defaultConfig.getSchemaMediator() instanceof DefaultRealmModuleMediator);
+
+        final Set<Class<? extends RealmObject>> realmClasses = defaultConfig.getRealmObjectClasses();
+
+        assertTrue(realmClasses.contains(AllTypes.class));
+
+        // tests returned Set is unmodifiable.
+        try {
+            realmClasses.add(AllTypes.class);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    public void testModelClassesForGeneratedMediator() throws Exception {
+        final RealmConfiguration config = new RealmConfiguration.Builder(getContext())
+                .setModules(new HumanModule()).build();
+        assertTrue(config.getSchemaMediator() instanceof HumanModuleMediator);
+
+        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+
+        assertFalse(realmClasses.contains(AllTypes.class));
+        assertTrue(realmClasses.contains(CatOwner.class));
+        assertFalse(realmClasses.contains(Cat.class));
+
+        // tests returned Set is unmodifiable.
+        try {
+            realmClasses.add(AllTypes.class);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    public void testModelClassesForCompositeMediator() throws Exception {
+        final RealmConfiguration config = new RealmConfiguration.Builder(getContext())
+                .setModules(new HumanModule(), new AnimalModule()).build();
+        assertTrue(config.getSchemaMediator() instanceof CompositeMediator);
+
+        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+
+        assertFalse(realmClasses.contains(AllTypes.class));
+        assertTrue(realmClasses.contains(CatOwner.class));
+        assertTrue(realmClasses.contains(Cat.class));
+
+        // tests returned Set is unmodifiable.
+        try {
+            realmClasses.add(AllTypes.class);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    public void testModelClassesForFilterableMediator() throws Exception {
+        //noinspection unchecked
+        final RealmConfiguration config = new RealmConfiguration.Builder(getContext())
+                .schema(AllTypes.class, CatOwner.class).build();
+        assertTrue(config.getSchemaMediator() instanceof FilterableMediator);
+
+        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+
+        assertTrue(realmClasses.contains(AllTypes.class));
+        assertTrue(realmClasses.contains(CatOwner.class));
+        assertFalse(realmClasses.contains(Cat.class));
+
+        // tests returned Set is unmodifiable.
+        try {
+            realmClasses.add(AllTypes.class);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
     }
 }
