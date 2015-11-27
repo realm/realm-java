@@ -91,10 +91,10 @@ publishing {
         gradlePlugin(MavenPublication) {
             groupId 'io.realm'
             artifactId = 'realm-gradle-plugin'
-            artifact file("${rootDir}/gradle-plugin/build/libs/gradle-plugin-${currentVersion}.jar")
+            artifact file("${rootDir}/gradle-plugin/build/libs/realm-gradle-plugin-${currentVersion}.jar")
             pom.withXml {
                 Node root = asNode()
-                root.appendNode('name', 'gradle-realm-plugin')
+                root.appendNode('name', 'realm-gradle-plugin')
                 root.appendNode('description', 'Gradle plugin for Realm. Realm is a mobile database: a replacement for SQLite & ORMs.')
                 root.appendNode('url', 'http://realm.io')
                 def dependenciesNode = root.appendNode('dependencies')
