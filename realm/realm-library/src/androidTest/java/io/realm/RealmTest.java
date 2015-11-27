@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
@@ -1070,10 +1071,12 @@ public class RealmTest extends AndroidTestCase {
         Realm.deleteRealm(realmConfig);
         Realm realm = Realm.getInstance(realmConfig);
         realm.close();
-        assertTrue(Realm.compactRealm(realmConfig));
-        realm = Realm.getInstance(realmConfig);
-        assertFalse(realm.isClosed());
-        realm.close();
+        // TODO: remove try/catch block when compacting encrypted Realms is supported
+        try {
+            assertTrue(Realm.compactRealm(realmConfig));
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
     }
 
     public void testCompactEncryptedPopulatedRealmFile() {
@@ -1086,13 +1089,12 @@ public class RealmTest extends AndroidTestCase {
 
         populateTestRealm(realm, 100);
         realm.close();
-
-        assertTrue(Realm.compactRealm(realmConfig));
-
-        realm = Realm.getInstance(realmConfig);
-        assertFalse(realm.isClosed());
-        assertEquals(100, realm.allObjects(AllTypes.class).size());
-        realm.close();
+        // TODO: remove try/catch block when compacting encrypted Realms is supported
+        try {
+            assertTrue(Realm.compactRealm(realmConfig));
+            fail();
+        } catch (IllegalArgumentException expected) {
+        }
     }
 
     public void testCompactEmptyRealmFile() throws IOException {
