@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.test.AndroidTestCase;
 import android.util.Log;
@@ -77,7 +79,8 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
         assertTrue(future.get());
-        assertTrue(Realm.realmsCache.get().isEmpty());
+        RealmCache.invokeWithGlobalRefCount(new RealmConfiguration.Builder(getContext()).build(),
+                new TestHelper.ExpectedCountCallback(this, 0));
     }
 
     public void testSetAutoRefreshOnHandlerThread() throws ExecutionException, InterruptedException {
@@ -97,7 +100,8 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
         assertTrue(future.get());
-        assertTrue(Realm.realmsCache.get().isEmpty());
+        RealmCache.invokeWithGlobalRefCount(new RealmConfiguration.Builder(getContext()).build(),
+                new TestHelper.ExpectedCountCallback(this, 0));
     }
 
     public void testRemoveNotifications () throws InterruptedException, ExecutionException {
@@ -201,7 +205,8 @@ public class NotificationsTest extends AndroidTestCase {
         }
 
         assertEquals(1, counter.get());
-        assertTrue(Realm.realmsCache.get().isEmpty());
+        RealmCache.invokeWithGlobalRefCount(new RealmConfiguration.Builder(getContext()).build(),
+                new TestHelper.ExpectedCountCallback(this, 0));
     }
 
     public void testAutoUpdateRealmResults() throws InterruptedException, ExecutionException {
@@ -279,7 +284,8 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(TEST_SIZE, results.get(1).intValue());
 
         assertEquals(1, counter.get());
-        assertTrue(Realm.realmsCache.get().isEmpty());
+        RealmCache.invokeWithGlobalRefCount(new RealmConfiguration.Builder(getContext()).build(),
+                new TestHelper.ExpectedCountCallback(this, 0));
     }
 
     // TODO Disabled until we can figure out why this times out so often on the build server
@@ -473,7 +479,7 @@ public class NotificationsTest extends AndroidTestCase {
                 counter.incrementAndGet();
             }
         };
-        realm.addChangeListener(listener);
+        realm.addChangeListenerAsWeakReference(listener);
 
         // There is no guaranteed way to release the WeakReference,
         // just clear it.
@@ -605,6 +611,87 @@ public class NotificationsTest extends AndroidTestCase {
 
         realm.close();
         RealmLog.remove(logger);
+    }
+
+    public void testHandlerThreadShouldReceiveNotification() throws ExecutionException, InterruptedException {
+        final AssertionFailedError[] assertionFailedErrors = new AssertionFailedError[1];
+        final CountDownLatch backgroundThreadReady = new CountDownLatch(1);
+        final CountDownLatch numberOfInvocation = new CountDownLatch(1);
+
+        HandlerThread handlerThread = new HandlerThread("handlerThread");
+        handlerThread.start();
+        Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    assertEquals("handlerThread", Thread.currentThread().getName());
+                } catch (AssertionFailedError e) {
+                    assertionFailedErrors[0] = e;
+                }
+                final Realm backgroundRealm = Realm.getInstance(getContext());
+                backgroundRealm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        backgroundRealm.close();
+                        numberOfInvocation.countDown();
+                    }
+                });
+                backgroundThreadReady.countDown();
+            }
+        });
+        awaitOrThrow(backgroundThreadReady);
+        // At this point the background thread started & registered the listener
+
+        Realm realm = Realm.getInstance(getContext());
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        awaitOrThrow(numberOfInvocation);
+        realm.close();
+        handlerThread.quit();
+        if (assertionFailedErrors[0] != null) {
+            throw assertionFailedErrors[0];
+        }
+    }
+
+    public void testNonLooperThreadShouldNotifyLooperThreadAboutCommit() throws Throwable {
+        final CountDownLatch mainThreadReady = new CountDownLatch(1);
+        final CountDownLatch numberOfInvocation = new CountDownLatch(1);
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                TestHelper.awaitOrFail(mainThreadReady);
+                Realm realm = Realm.getInstance(getContext());
+                realm.beginTransaction();
+                realm.createObject(AllTypes.class);
+                realm.commitTransaction();
+                realm.close();
+            }
+        };
+        thread.start();
+
+        HandlerThread mainThread = new HandlerThread("mainThread");
+        mainThread.start();
+        Handler handler = new Handler(mainThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final Realm mainRealm = Realm.getInstance(getContext());
+                mainRealm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        mainRealm.close();
+                        numberOfInvocation.countDown();
+                    }
+                });
+                mainThreadReady.countDown();
+            }
+        });
+
+        awaitOrThrow(numberOfInvocation);
+        mainThread.quit();
     }
 
     private void awaitOrThrow(CountDownLatch latch) {

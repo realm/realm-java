@@ -138,20 +138,21 @@ public class QueryUpdateTask implements Runnable {
                                 queryEntry.handoverQueryPointer,
                                 0, Table.INFINITE, Table.INFINITE,
                                 queryEntry.queryArguments.columnIndex,
-                                queryEntry.queryArguments.ascending);
+                                queryEntry.queryArguments.sortOrder.getValue());
 
                         result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
                         queryEntry.handoverQueryPointer = 0L;
                         break;
                     }
                     case ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED:
+
                         long handoverTableViewPointer = TableQuery.nativeFindAllMultiSortedWithHandover(
                                 sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(),
                                 queryEntry.handoverQueryPointer,
                                 0, Table.INFINITE, Table.INFINITE,
                                 queryEntry.queryArguments.columnIndices,
-                                queryEntry.queryArguments.ascendings);
+                                TableQuery.getNativeSortOrderValues(queryEntry.queryArguments.sortOrders));
 
                         result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
                         queryEntry.handoverQueryPointer = 0L;

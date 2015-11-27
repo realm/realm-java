@@ -29,13 +29,11 @@ import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
 /**
- * In Realm you define your model classes by sub-classing RealmObject and adding fields to be
- * persisted. You then create your objects within a Realm, and use your custom subclasses instead
- * of using the RealmObject class directly.
+ * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
+ * create your objects within a Realm, and use your custom subclasses instead of using the RealmObject class directly.
  * <p>
- * An annotation processor will create a proxy class for your RealmObject subclass. The getters and
- * setters should not contain any custom code of logic as they are overridden as part of the annotation
- * process.
+ * An annotation processor will create a proxy class for your RealmObject subclass. The getters and setters should not
+ * contain any custom code of logic as they are overridden as part of the annotation process.
  * <p>
  * A RealmObject is currently limited to the following:
  *
@@ -60,20 +58,20 @@ import rx.Observable;
  *   <li>RealmList</li>
  * </ul>
  * <p>
- * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code>
- * when storing within a Realm.
+ * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code> when storing
+ * within a Realm.
  * <p>
- * Getter and setter names must have the name {@code getXXX} or {@code setXXX} if
- * the field name is {@code XXX}. Getters for fields of type boolean can be called {@code isXXX} as
- * well. Fields with a m-prefix must have getters and setters named setmXXX and getmXXX which is
- * the default behavior when Android Studio automatically generates the getters and setters.
+ * Getter and setter names must have the name {@code getXXX} or {@code setXXX} if the field name is {@code XXX}. Getters
+ * for fields of type boolean can be called {@code isXXX} as well. Fields with a m-prefix must have getters and setters
+ * named setmXXX and getmXXX which is the default behavior when Android Studio automatically generates the getters and
+ * setters.
  * <p>
- * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and
- * don't require either a getter or setter.
+ * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and don't require either a
+ * getter or setter.
  * <p>
- * Realm will create indexes for fields annotated with {@link io.realm.annotations.Index}. This
- * will speedup queries but will have a negative impact on inserts and updates.
- * * <p>
+ * Realm will create indexes for fields annotated with {@link io.realm.annotations.Index}. This will speedup queries but
+ * will have a negative impact on inserts and updates.
+ * <p>
  * A RealmObject cannot be passed between different threads.
  *
  * @see Realm#createObject(Class)
@@ -84,7 +82,7 @@ import rx.Observable;
 public abstract class RealmObject<E extends RealmObject> {
 
     protected Row row;
-    protected Realm realm;
+    protected BaseRealm realm;
 
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
@@ -93,8 +91,8 @@ public abstract class RealmObject<E extends RealmObject> {
     /**
      * Removes the object from the Realm it is currently associated to.
      * <p>
-     * After this method is called the object will be invalid and any operation (read or write)
-     * performed on it will fail with an IllegalStateException
+     * After this method is called the object will be invalid and any operation (read or write) performed on it will
+     * fail with an IllegalStateException
      *
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
@@ -112,39 +110,18 @@ public abstract class RealmObject<E extends RealmObject> {
     }
 
     /**
-     * Check if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor
-     * has the {@link io.realm.Realm} been closed. It will always return false for stand alone
-     * objects.
+     * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
+     * {@link io.realm.Realm} been closed. It will always return false for stand alone objects.
      *
-     * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a
-     * standalone object.
+     * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a standalone object.
      */
     public final boolean isValid() {
         return row != null && row.isAttached();
     }
 
     /**
-     * Returns the Realm instance this object belongs to. Internal use only.
-     *
-     * @return The Realm this object belongs to or {@code null} if it is a standalone object.
-     */
-    protected static Realm getRealm(RealmObject obj) {
-        return obj.realm;
-    }
-
-    /**
-     * Returns the {@link Row} representing this object. Internal use only.
-     *
-     * @return The {@link Row} this object belongs to or {@code null} if it is a standalone object.
-     */
-    protected static Row getRow(RealmObject obj) {
-        return obj.row;
-    }
-
-    /**
-     * Set the Future instance returned by the worker thread, we need this instance
-     * to force {@link #load()} an async query, we use it to determine if the current
-     * RealmResults is a sync or async one.
+     * Sets the Future instance returned by the worker thread, we need this instance to force {@link #load()} an async
+     * query, we use it to determine if the current RealmResults is a sync or async one.
      *
      * @param pendingQuery pending query.
      */
@@ -160,13 +137,12 @@ public abstract class RealmObject<E extends RealmObject> {
     }
 
     /**
-     * Determine if the current RealmObject is obtained synchronously or asynchronously (from
-     * a worker thread). Synchronous RealmObjects are by definition blocking hence this method
-     * will always return {@code true} for them.
+     * Determines if the current RealmObject is obtained synchronously or asynchronously (from a worker thread).
+     * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
      * This will return {@code true} if called for a standalone object (created outside of Realm).
      *
-     * @return {@code true} if the query has completed and the data is available {@code false} if the
-     * query is in progress.
+     * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
+     * progress.
      */
     public final boolean isLoaded() {
         if (realm == null) {
@@ -177,7 +153,7 @@ public abstract class RealmObject<E extends RealmObject> {
     }
 
     /**
-     * Make an asynchronous query blocking. This will also trigger any registered listeners.
+     * Makes an asynchronous query blocking. This will also trigger any registered listeners.
      * Note: This will return {@code true} if called for a standalone object (created outside of Realm).
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
@@ -216,14 +192,14 @@ public abstract class RealmObject<E extends RealmObject> {
         if (!isCompleted) {
             isCompleted = true;
             long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());
-            Table table = realm.getTable(getClass());
+            Table table = realm.schema.getTable(getClass());
             this.row = table.getUncheckedRowByPointer(nativeRowPointer);
             notifyChangeListeners();
         }// else: already loaded query no need to import again the pointer
     }
 
     /**
-     * Add a change listener to this RealmObject.
+     * Adds a change listener to this RealmObject.
      *
      * @param listener the change listener to be notified.
      */
@@ -242,7 +218,7 @@ public abstract class RealmObject<E extends RealmObject> {
     }
 
     /**
-     * Remove a previously registered listener.
+     * Removes a previously registered listener.
      *
      * @param listener the instance to be removed.
      */
@@ -259,7 +235,7 @@ public abstract class RealmObject<E extends RealmObject> {
     }
 
     /**
-     * Remove all registered listeners.
+     * Removes all registered listeners.
      */
     public final void removeChangeListeners() {
         if (realm != null) {
@@ -284,7 +260,7 @@ public abstract class RealmObject<E extends RealmObject> {
     }
 
     /**
-     * Notify all registered listeners.
+     * Notifies all registered listeners.
      */
     void notifyChangeListeners() {
         realm.checkIfValid();

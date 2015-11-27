@@ -109,7 +109,6 @@ enum ExceptionKind {
     ClassNotFound = 0,
     NoSuchField = 1,
     NoSuchMethod = 2,
-
     IllegalArgument = 3,
     IOFailed = 4,
     FileNotFound = 5,
@@ -121,8 +120,8 @@ enum ExceptionKind {
     FatalError = 11,
     RuntimeError = 12,
     RowInvalid = 13,
-    EncryptionNotSupported = 14,
-    BadVersion = 15
+    CrossTableLink = 15,
+    BadVersion = 16
 // NOTE!!!!: Please also add test cases to Util.java when introducing a new exception kind.
 };
 
@@ -560,6 +559,92 @@ private:
     JNIEnv* m_env;
     jbyteArray m_array;
     jbyte* m_ptr;
+};
+
+class JniLongArray {
+public:
+    JniLongArray(JNIEnv* env, jlongArray javaArray)
+        : m_env(env)
+        , m_javaArray(javaArray)
+        , m_arrayLength(env->GetArrayLength(javaArray))
+        , m_array(env->GetLongArrayElements(javaArray, NULL))
+        , m_releaseMode(JNI_ABORT) {
+    }
+
+    ~JniLongArray()
+    {
+        m_env->ReleaseLongArrayElements(m_javaArray, m_array, m_releaseMode);
+    }
+
+    inline jsize len() const noexcept
+    {
+        return m_arrayLength;
+    }
+
+    inline jlong* ptr() const noexcept
+    {
+        return m_array;
+    }
+
+    inline jlong& operator[](const int index) noexcept
+    {
+        return m_array[index];
+    }
+
+    inline void updateOnRelease() noexcept
+    {
+        m_releaseMode = 0;
+    }
+
+private:
+    JNIEnv*    const m_env;
+    jlongArray const m_javaArray;
+    jsize      const m_arrayLength;
+    jlong*     const m_array;
+    jint             m_releaseMode;
+};
+
+class JniBooleanArray {
+public:
+    JniBooleanArray(JNIEnv* env, jbooleanArray javaArray)
+        : m_env(env)
+        , m_javaArray(javaArray)
+        , m_arrayLength(env->GetArrayLength(javaArray))
+        , m_array(env->GetBooleanArrayElements(javaArray, NULL))
+        , m_releaseMode(JNI_ABORT) {
+    }
+
+    ~JniBooleanArray()
+    {
+        m_env->ReleaseBooleanArrayElements(m_javaArray, m_array, m_releaseMode);
+    }
+
+    inline jsize len() const noexcept
+    {
+        return m_arrayLength;
+    }
+
+    inline jboolean* ptr() const noexcept
+    {
+        return m_array;
+    }
+
+    inline jboolean& operator[](const int index) noexcept
+    {
+        return m_array[index];
+    }
+
+    inline void updateOnRelease() noexcept
+    {
+        m_releaseMode = 0;
+    }
+
+private:
+    JNIEnv*       const m_env;
+    jbooleanArray const m_javaArray;
+    jsize         const m_arrayLength;
+    jboolean*     const m_array;
+    jint                m_releaseMode;
 };
 
 extern jclass java_lang_long;

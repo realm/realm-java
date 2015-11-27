@@ -121,7 +121,7 @@ public class MigrationExampleActivity extends Activity {
             stringBuilder.append(person.toString()).append("\n");
         }
 
-        return (stringBuilder.length() == 0) ? "<empty>" : stringBuilder.toString();
+        return (stringBuilder.length() == 0) ? "<data was deleted>" : stringBuilder.toString();
     }
 
     private void showStatus(Realm realm) {

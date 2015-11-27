@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm;
 
 import android.test.AndroidTestCase;
@@ -59,7 +60,7 @@ public class IOSRealmTests extends AndroidTestCase {
         for (String iosVersion : IOS_VERSIONS) {
             TestHelper.prepareDatabaseFromAssets(getContext(),  "ios/" + iosVersion + "-alltypes.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
-            RealmResults<IOSAllTypes> result = realm.allObjectsSorted(IOSAllTypes.class, "id", RealmResults.SORT_ORDER_ASCENDING);
+            RealmResults<IOSAllTypes> result = realm.allObjectsSorted(IOSAllTypes.class, "id", Sort.ASCENDING);
 
             // Verify metadata
             Table table = realm.getTable(IOSAllTypes.class);

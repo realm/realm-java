@@ -44,15 +44,15 @@ import io.realm.annotations.RealmClass;
  *  <li>Minimize reflection.</li>
  *  <li>Realm code can be obfuscated as much as possible.</li>
  *  <li>Library projects must be able to use Realm without interfering with app code.</li>
- *  <li>App code must be able to use model classes provided by library code.</li>
+ *  <li>App code must be able to use RealmObject classes provided by library code.</li>
  *  <li>It should work for app developers out of the box (ie. put the burden on the library developer)</li>
  * </ul>
  *
  * <h1>SUMMARY</h1>
  *
  * <ol>
- *  <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;modelClass&gt;RealmProxy.java</li>
- *  <li>Create a DefaultRealmModule containing all model classes (if needed).</li>
+ *  <li>Create proxy classes for all classes marked with @RealmClass. They are named &lt;className&gt;RealmProxy.java</li>
+ *  <li>Create a DefaultRealmModule containing all RealmObject classes (if needed).</li>
  *  <li>Create a RealmProxyMediator class for all classes marked with @RealmModule. They are named <moduleName>Mediator.java</li>
  * </ol>
  *
@@ -60,7 +60,7 @@ import io.realm.annotations.RealmClass;
  *
  * <ol>
  * <li>A RealmObjectProxy object is created for each class annotated with {@link io.realm.annotations.RealmClass}. This
- * proxy extends the original model class and rewires all field access to point to the native Realm memory instead of
+ * proxy extends the original RealmObject class and rewires all field access to point to the native Realm memory instead of
  * Java memory. It also adds some static helper methods to the class.</li>
  *
  * <li>The annotation processor is either in "library" mode or in "app" mode. This is defined by having a class
@@ -75,7 +75,7 @@ import io.realm.annotations.RealmClass;
  * helper methods should be done through this Mediator.</li>
  * </ol>
  *
- * This allows ProGuard to obfuscate all model and proxy classes as all access to the static methods now happens through
+ * This allows ProGuard to obfuscate all RealmObject and proxy classes as all access to the static methods now happens through
  * the Mediator, and the only requirement is now that only RealmModule and Mediator class names cannot be obfuscated.
  *
  *
@@ -86,7 +86,7 @@ import io.realm.annotations.RealmClass;
  * <ol>
  *  <li>Open a Realm.</li>
  *  <li>Assign one or more modules (that are allowed to overlap). If no module is assigned, the default module is used.</li>
- *  <li>The Realm schema is now defined as all model classes known by these modules.</li>
+ *  <li>The Realm schema is now defined as all RealmObject classes known by these modules.</li>
  *  <li>Each time a static helper method is needed, Realm can now delegate these method calls to the appropriate
  *    Mediator which in turn will delegate the method call to the appropriate RealmObjectProxy class.</li>
  * </ol>

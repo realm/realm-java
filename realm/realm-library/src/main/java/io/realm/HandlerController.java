@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package io.realm;
@@ -35,7 +34,7 @@ import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
 
 /**
- * Centralise all Handler callbacks, including updating async queries and refreshing the Realm.
+ * Centralises all Handler callbacks, including updating async queries and refreshing the Realm.
  */
 public class HandlerController implements Handler.Callback {
     static final int REALM_CHANGED = 14930352; // Hopefully it won't clash with other message IDs.
@@ -322,8 +321,11 @@ public class HandlerController implements Handler.Callback {
     }
 
     /**
-     * This will prevent advanceReading from accidentally advancing the thread and potentially re-run the queries in this thread.
-     * @return {@code true} if there is at least one (non GC'd) instance of {@link RealmResults} {@code false} otherwise
+     * This will prevent advanceReading from accidentally advancing the thread and potentially re-run the queries in
+     * this thread.
+     *
+     * @return {@code true} if there is at least one (non GC'd) instance of {@link RealmResults} {@code false}
+     * otherwise.
      */
     private boolean threadContainsAsyncQueries () {
         deleteWeakReferences();

@@ -21,15 +21,15 @@ import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 
 /**
- * The RealmBaseAdapter class is an abstract utility class for binding UI elements to Realm data,
- * much like an {@link android.widget.CursorAdapter}.
+ * The RealmBaseAdapter class is an abstract utility class for binding UI elements to Realm data, much like an
+ * {@link android.widget.CursorAdapter}.
  * <p>
- * This adapter will automatically handle any updates to its data and call
- * {@link #notifyDataSetChanged()} as appropriate.
+ * This adapter will automatically handle any updates to its data and call {@link #notifyDataSetChanged()} as
+ * appropriate.
  * <p>
- * The RealmAdapter will stop receiving updates if the Realm instance providing the
- * {@link io.realm.RealmResults} is closed. Trying to access read objects, will at this point also
- * result in a {@link io.realm.exceptions.RealmException}.
+ * The RealmAdapter will stop receiving updates if the Realm instance providing the {@link io.realm.RealmResults} is
+ * closed. Trying to access read objects, will at this point also result in a
+ * {@link io.realm.exceptions.RealmException}.
  */
 public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
 
@@ -53,14 +53,14 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         };
 
         if (listener != null && realmResults != null) {
-            realmResults.getRealm().addChangeListener(listener);
+            realmResults.realm.addChangeListenerAsWeakReference(listener);
         }
     }
 
     /**
-     * How many items are in the data set.
+     * Returns how many items are in the data set.
      *
-     * @return Count of items.
+     * @return count of items.
      */
     @Override
     public int getCount() {
@@ -73,8 +73,8 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     /**
      * Returns the item associated with the specified position.
      *
-     * @param i Index of item whose data we want.
-     * @return The item at the specified position.
+     * @param i index of item whose data we want.
+     * @return the item at the specified position.
      */
     @Override
     public T getItem(int i) {
@@ -85,12 +85,11 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     /**
-     * Returns the current ID for an item. Note that item IDs are not stable so you cannot rely on
-     * the item ID being the same after {@link #notifyDataSetChanged()} or
-     * {@link #updateRealmResults(RealmResults)} has been called.
+     * Returns the current ID for an item. Note that item IDs are not stable so you cannot rely on the item ID being the
+     * same after {@link #notifyDataSetChanged()} or {@link #updateRealmResults(RealmResults)} has been called.
      *
-     * @param i Index of item in the adapter
-     * @return Current item ID.
+     * @param i index of item in the adapter.
+     * @return current item ID.
      */
     @Override
     public long getItemId(int i) {
@@ -99,8 +98,8 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     /**
-     * Update the RealmResults associated to the Adapter. Useful when the query has been changed.
-     * If the query does not change you might consider using the automaticUpdate feature
+     * Updates the RealmResults associated to the Adapter. Useful when the query has been changed.
+     * If the query does not change you might consider using the automaticUpdate feature.
      *
      * @param queryResults the new RealmResults coming from the new query.
      */
@@ -108,10 +107,10 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         if (listener != null) {
             // Making sure that Adapter is refreshed correctly if new RealmResults come from another Realm
             if (this.realmResults != null) {
-                this.realmResults.getRealm().removeChangeListener(listener);
+                this.realmResults.realm.removeChangeListener(listener);
             }
             if (queryResults != null) {
-                queryResults.getRealm().addChangeListener(listener);
+                queryResults.realm.addChangeListener(listener);
             }
         }
 

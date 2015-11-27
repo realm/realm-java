@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package io.realm.internal;
@@ -24,14 +23,13 @@ import java.io.IOException;
 import io.realm.RealmConfiguration;
 
 /**
- * This class wraps access to a given Realm file on a single thread including its {@link SharedGroup}
- * and {@link ImplicitTransaction}. By nature this means that this class is not thread safe and
- * should only be used from the thread that created it.
+ * This class wraps access to a given Realm file on a single thread including its {@link SharedGroup} and
+ * {@link ImplicitTransaction}. By nature this means that this class is not thread safe and should only be used from the
+ * thread that created it.
  *
- * Realm is a MVCC database (Multiversion concurrency control), which means that multiple
- * versions of the data might exist in the same file. By default the file is always opened on the
- * latest version and it is possible to advance to the latest version by calling
- * {@link #advanceRead()}.
+ * Realm is a MVCC database (Multiversion concurrency control), which means that multiple versions of the data might
+ * exist in the same file. By default the file is always opened on the latest version and it is possible to advance to
+ * the latest version by calling {@link #advanceRead()}.
  */
 public class SharedGroupManager implements Closeable {
 
@@ -51,7 +49,7 @@ public class SharedGroupManager implements Closeable {
     }
 
     /**
-     * Close the underlying {@link SharedGroup} and free any native resources.
+     * Closes the underlying {@link SharedGroup} and free any native resources.
      */
     @Override
     public void close() {
@@ -70,14 +68,14 @@ public class SharedGroupManager implements Closeable {
     }
 
     /**
-     * Advance the Realm file to the latest version.
+     * Advances the Realm file to the latest version.
      */
     public void advanceRead() {
         transaction.advanceRead();
     }
 
     /**
-     * Advance the Realm file to the given version.
+     * Advances the Realm file to the given version.
      */
     public void advanceRead(SharedGroup.VersionID version) {
         transaction.advanceRead(version);
@@ -105,21 +103,21 @@ public class SharedGroupManager implements Closeable {
     }
 
     /**
-     * Make the file writable. This will block all other threads and processes from making it writable as well.
+     * Makes the file writable. This will block all other threads and processes from making it writable as well.
      */
     public void promoteToWrite() {
         transaction.promoteToWrite();
     }
 
     /**
-     * Commit any pending changes to the file and return to read-only mode.
+     * Commits any pending changes to the file and return to read-only mode.
      */
     public void commitAndContinueAsRead() {
         transaction.commitAndContinueAsRead();
     }
 
     /**
-     * Rollback any changes to the file since it was made writable and continue in read-only mode.
+     * Rollbacks any changes to the file since it was made writable and continue in read-only mode.
      */
     public void rollbackAndContinueAsRead() {
         transaction.rollbackAndContinueAsRead();
@@ -127,6 +125,7 @@ public class SharedGroupManager implements Closeable {
 
     /**
      * Checks if a given table exists.
+     *
      * @return {code true} if the table exists. {@code false} otherwise.
      */
     public boolean hasTable(String tableName) {

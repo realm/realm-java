@@ -23,6 +23,9 @@ import io.realm.annotations.Index;
 
 // Class for testing annotation index only
 public class AnnotationIndexTypes extends RealmObject {
+
+    public static final String CLASS_NAME = "AnnotationIndexTypes";
+
     @Index
     private String indexString;
     private String notIndexString;

@@ -23,6 +23,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,29 +39,33 @@ import io.realm.internal.Table;
 import io.realm.internal.Util;
 
 /**
- * Specialized version of a RealmProxyMediator that can further filter the available classes based on provided filter
+ * Specialized version of a {@link RealmProxyMediator} that can further filter the available classes based on provided
+ * filter.
  */
 public class FilterableMediator extends RealmProxyMediator {
 
-    private RealmProxyMediator originalMediator;
-    private Set<Class<? extends RealmObject>> allowedClasses = new HashSet<Class<? extends RealmObject>>();
+    private final RealmProxyMediator originalMediator;
+    private final Set<Class<? extends RealmObject>> allowedClasses;
 
     /**
-     * Creates a filterable Mediator.
+     * Creates a filterable {@link RealmProxyMediator}.
      *
-     * @param originalMediator      Original auto generated mediator.
-     * @param allowedClasses                Subset of classes from original mediator to allow.
+     * @param originalMediator the original auto generated mediator.
+     * @param allowedClasses the subset of classes from original mediator to allow.
      */
     public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmObject>> allowedClasses) {
         this.originalMediator = originalMediator;
+
+        Set<Class<? extends RealmObject>> tempAllowedClasses = new HashSet<Class<? extends RealmObject>>();
         if (originalMediator != null) {
             Set<Class<? extends RealmObject>> originalClasses = originalMediator.getModelClasses();
             for (Class<? extends RealmObject> clazz : allowedClasses) {
                 if (originalClasses.contains(clazz)) {
-                    this.allowedClasses.add(clazz);
+                    tempAllowedClasses.add(clazz);
                 }
             }
         }
+        this.allowedClasses = Collections.unmodifiableSet(tempAllowedClasses);
     }
 
     public RealmProxyMediator getOriginalMediator() {
@@ -99,7 +104,7 @@ public class FilterableMediator extends RealmProxyMediator {
 
     @Override
     public Set<Class<? extends RealmObject>> getModelClasses() {
-        return new HashSet<Class<? extends RealmObject>>(allowedClasses);
+        return allowedClasses;
     }
 
     @Override

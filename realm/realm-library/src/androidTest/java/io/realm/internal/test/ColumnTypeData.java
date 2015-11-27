@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm.internal.test;
 
-import io.realm.internal.ColumnType;
+import io.realm.RealmFieldType;
 
 public class ColumnTypeData {
 
-    public ColumnType type;
+    public RealmFieldType type;
 
-    public ColumnTypeData(ColumnType type) {
+    public ColumnTypeData(RealmFieldType type) {
         this.type = type;
     }
 }

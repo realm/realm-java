@@ -22,8 +22,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * This class is used to serialize tables to either disk or memory. It consists
- * of a collection of tables.
+ * This class is used to serialize tables to either disk or memory. It consists of a collection of tables.
  */
 public class Group implements Closeable {
 
@@ -113,7 +112,7 @@ public class Group implements Closeable {
     /**
      * Checks if a group has been closed and can no longer be used.
      *
-     * @return True if closed, false otherwise.
+     * @return {@code true} if closed, {@code false} otherwise.
      */
     boolean isClosed() {
         return nativePtr == 0;
@@ -144,10 +143,10 @@ public class Group implements Closeable {
     }
 
     /**
-     * Checks whether table exists in the Group.
+     * Checks whether {@link Table} exists in the Group.
      *
-     * @param name  The name of the table.
-     * @return      true if the table exists, otherwise false.
+     * @param name the name of the {@link Table}.
+     * @return {@code true} if the table exists, otherwise {@code false}.
      */
     public boolean hasTable(String name) {
         verifyGroupIsValid();
@@ -166,10 +165,28 @@ public class Group implements Closeable {
     }
 
     /**
+     * Removes a table from the group and delete all data.
+     */
+    public void removeTable(String name) {
+        nativeRemoveTable(nativePtr, name);
+    }
+
+    native void nativeRemoveTable(long nativeGroupPtr, String tableName);
+
+    /**
+     * Renames a table
+     */
+    public void renameTable(String oldName, String newName) {
+        nativeRenameTable(nativePtr, oldName, newName);
+    }
+
+    native void nativeRenameTable(long nativeGroupPtr, String oldName, String newName);
+
+    /**
      * Returns a table with the specified name.
      *
-     * @param name  The name of the table.
-     * @return      The table if it exists, otherwise create it.
+     * @param name the name of the {@link Table}.
+     * @return the {@link Table} if it exists, otherwise create it.
      */
     public Table getTable(String name) {
         verifyGroupIsValid();
@@ -196,13 +213,12 @@ public class Group implements Closeable {
     }
 
     /**
-     * Serialize the group to the specific file on the disk using encryption.
+     * Serializes the group to the specific file on the disk using encryption.
      *
-     * @param file
-     *            A File object representing the file.
-     * @param key A 64 bytes long byte array containing the key to the encrypted Realm file. Can be null if
-     *            encryption is not required.
-     * @throws IOException
+     * @param file a File object representing the file.
+     * @param key A 64 bytes long byte array containing the key to the encrypted Realm file. Can be null if encryption
+     *            is not required.
+     * @throws IOException.
      */
     public void writeToFile(File file, byte[] key) throws IOException {
         verifyGroupIsValid();
@@ -217,9 +233,9 @@ public class Group implements Closeable {
     }
 
     /**
-     * Serialize the group to a memory buffer. The byte[] is owned by the JVM.
+     * Serializes the group to a memory buffer. The byte[] is owned by the JVM.
      *
-     * @return Binary array of the serialized group.
+     * @return the binary array of the serialized group.
      */
     public byte[] writeToMem() {
         verifyGroupIsValid();
@@ -227,9 +243,8 @@ public class Group implements Closeable {
     }
 
     /*
-     * Check if the Group contains any objects. It only checks for "class_"
-     * tables or non-metadata tables, e.g. this return true if the "pk" table
-     * contained information.
+     * Check if the Group contains any objects. It only checks for "class_" tables or non-metadata tables, e.g. this
+     * return true if the "pk" table contained information.
      *
      * @return {@code true} if empty, @{code false} otherwise.
      */
@@ -261,9 +276,6 @@ public class Group implements Closeable {
         return nativeToString(nativePtr);
     }
 
-    private void throwImmutable() {
-        throw new IllegalStateException("Objects cannot be changed outside a transaction; see beginTransaction() for details.");
-    }
 
     protected native long createNative();
     protected native long createNative(String filepath, int value);

@@ -43,7 +43,7 @@ jmethodID GetMixedMethodID(JNIEnv* env, const char* methodStr, const char* typeS
 DataType GetMixedObjectType(JNIEnv* env, jobject jMixed)
 {
     // Call Java "Mixed.getType"
-    static jmethodID jGetTypeMethodId = GetMixedMethodID(env, "getType", "()Lio/realm/internal/ColumnType;");
+    static jmethodID jGetTypeMethodId = GetMixedMethodID(env, "getType", "()Lio/realm/RealmFieldType;");
     if (jGetTypeMethodId == NULL)
         return DataType(0);
 
@@ -121,7 +121,7 @@ jobject CreateJMixedFromMixed(JNIEnv* env, Mixed& mixed)
         {
             // param input: Table* t.
             TR("   --Mixed(type_Table)")
-            jmethodID consId = GetMixedMethodID(env, "<init>", "(Lio/realm/internal/ColumnType;)V");
+            jmethodID consId = GetMixedMethodID(env, "<init>", "(Lio/realm/RealmFieldType;)V");
 
             jobject jColumnType = NULL; // GetJColumnTypeFromColumnType(env, type_Table);
             if (consId)

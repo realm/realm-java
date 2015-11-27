@@ -156,7 +156,7 @@ public class RealmAnalytics {
     }
 
     /**
-     * Compute an anonymous app/library id from the packages containing Realm model classes
+     * Compute an anonymous app/library id from the packages containing RealmObject classes
      * @return the anonymous app/library id
      * @throws NoSuchAlgorithmException
      */

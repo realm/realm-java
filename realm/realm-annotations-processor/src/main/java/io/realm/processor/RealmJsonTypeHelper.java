@@ -26,9 +26,9 @@ import java.util.Map;
  * Helper class for converting between Json types and data types in Java that are supported by Realm.
  */
 public class RealmJsonTypeHelper {
-    private static final Map<String, JsonToRealmTypeConverter> JAVA_TO_JSON_TYPES;
+    private static final Map<String, JsonToRealmFieldTypeConverter> JAVA_TO_JSON_TYPES;
     static {
-        JAVA_TO_JSON_TYPES = new HashMap<String, JsonToRealmTypeConverter>();
+        JAVA_TO_JSON_TYPES = new HashMap<String, JsonToRealmFieldTypeConverter>();
         JAVA_TO_JSON_TYPES.put("byte", new SimpleTypeConverter("byte", "Int"));
         JAVA_TO_JSON_TYPES.put("short", new SimpleTypeConverter("short", "Int"));
         JAVA_TO_JSON_TYPES.put("int", new SimpleTypeConverter("int", "Int"));
@@ -44,7 +44,7 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("java.lang.Double", new SimpleTypeConverter("double", "Double"));
         JAVA_TO_JSON_TYPES.put("java.lang.Boolean", new SimpleTypeConverter("boolean", "Boolean"));
         JAVA_TO_JSON_TYPES.put("java.lang.String", new SimpleTypeConverter("String", "String"));
-        JAVA_TO_JSON_TYPES.put("java.util.Date", new JsonToRealmTypeConverter() {
+        JAVA_TO_JSON_TYPES.put("java.util.Date", new JsonToRealmFieldTypeConverter() {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
                     throws IOException {
@@ -79,8 +79,13 @@ public class RealmJsonTypeHelper {
                         .emitStatement("obj.%s(JsonUtils.stringToDate(reader.nextString()))", setter)
                     .endControlFlow();
             }
+
+            @Override
+            public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException {
+                throw new IllegalArgumentException("Date is not allowed as a primary key value.");
+            }
         });
-        JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmTypeConverter() {
+        JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmFieldTypeConverter() {
             @Override
             public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
                     throws IOException {
@@ -105,12 +110,25 @@ public class RealmJsonTypeHelper {
                         .emitStatement("obj.%s(JsonUtils.stringToBytes(reader.nextString()))", setter)
                     .endControlFlow();
             }
+
+            @Override
+            public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException {
+                throw new IllegalArgumentException("byte[] is not allowed as a primary key value.");
+            }
         });
+    }
+
+    public static void emitCreateObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String qualifiedFieldType,
+                                                           String fieldName, JavaWriter writer) throws IOException {
+        JsonToRealmFieldTypeConverter typeEmitter = JAVA_TO_JSON_TYPES.get(qualifiedFieldType);
+        if (typeEmitter != null) {
+            typeEmitter.emitGetObjectWithPrimaryKeyValue(qualifiedRealmObjectClass, fieldName, writer);
+        }
     }
 
     public static void emitFillJavaTypeWithJsonValue(String setter, String fieldName, String qualifiedFieldType,
                                                      JavaWriter writer) throws IOException {
-        JsonToRealmTypeConverter typeEmitter = JAVA_TO_JSON_TYPES.get(qualifiedFieldType);
+        JsonToRealmFieldTypeConverter typeEmitter = JAVA_TO_JSON_TYPES.get(qualifiedFieldType);
         if (typeEmitter != null) {
             typeEmitter.emitTypeConversion(setter, fieldName, qualifiedFieldType, writer);
         }
@@ -186,13 +204,13 @@ public class RealmJsonTypeHelper {
             .endControlFlow();
     }
 
-    private static class SimpleTypeConverter implements JsonToRealmTypeConverter {
+    private static class SimpleTypeConverter implements JsonToRealmFieldTypeConverter {
 
         private final String castType;
         private final String jsonType;
 
         /**
-         * Create a conversion between simple types which can be expressed as
+         * Creates a conversion between simple types which can be expressed as
          * RealmObject.setFieldName((<castType>) json.get<jsonType>) or
          * RealmObject.setFieldName((<castType>) reader.next<jsonType>
          *
@@ -244,12 +262,28 @@ public class RealmJsonTypeHelper {
                     .emitStatement("obj.%s((%s) reader.next%s())", setter, castType, jsonType)
                 .endControlFlow();
         }
+
+        @Override
+        public void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException {
+            // No error checking is done here for valid primary key types. This should be done by the annotation
+            // processor
+            writer
+                .beginControlFlow("if (json.has(\"%s\"))", fieldName)
+                    .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
+                        .emitStatement("obj = realm.createObject(%s.class, null)", qualifiedRealmObjectClass)
+                    .nextControlFlow("else")
+                        .emitStatement("obj = realm.createObject(%s.class, json.get%s(\"%s\"))",
+                                qualifiedRealmObjectClass, jsonType, fieldName)
+                    .endControlFlow()
+                .nextControlFlow("else")
+                    .emitStatement("obj = realm.createObject(%s.class)", qualifiedRealmObjectClass)
+                .endControlFlow();
+        }
     }
 
-    private interface JsonToRealmTypeConverter {
-        void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
-                throws IOException;
-        void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
-                throws IOException;
+    private interface JsonToRealmFieldTypeConverter {
+        void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException;
+        void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException;
+        void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException;
     }
 }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.internal.android;
 
 import android.util.Log;
@@ -12,7 +28,8 @@ public class AndroidLogger implements Logger {
     private String logTag = "REALM";
 
     /**
-     * Manually set a logging tag.
+     * Manually sets a logging tag.
+     *
      * @param tag Logging tag to use for all subsequent logging calls.
      */
     public void setTag(String tag) {
@@ -20,8 +37,9 @@ public class AndroidLogger implements Logger {
     }
 
     /**
-     * Override the provided logger behavior and only log if log entry has a level equal or higher.
-     * @param logLevel Minimum log level to report.
+     * Overrides the provided logger behavior and only log if log entry has a level equal or higher.
+     *
+     * @param logLevel the minimum log level to report.
      */
     public void setMinimumLogLevel(int logLevel) {
         minimumLogLevel = logLevel;

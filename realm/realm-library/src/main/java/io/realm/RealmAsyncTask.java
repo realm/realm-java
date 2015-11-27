@@ -21,9 +21,9 @@ import java.util.concurrent.Future;
 /**
  * Represents a pending asynchronous Realm transaction.
  * <p>
- * Users are responsible for maintaining a reference to {@code RealmAsyncTask} in order
- * to call {@link #cancel()} in case of a configuration change for example (to avoid memory leak, as the
- * transaction will post the result to the caller's thread callback)
+ * Users are responsible for maintaining a reference to {@code RealmAsyncTask} in order to call {@link #cancel()} in
+ * case of a configuration change for example (to avoid memory leak, as the transaction will post the result to the
+ * caller's thread callback).
  */
 public class RealmAsyncTask {
     private final Future<?> pendingQuery;
@@ -34,7 +34,7 @@ public class RealmAsyncTask {
     }
 
     /**
-     * Attempts to cancel execution of this transaction (if it hasn't already completed or previously cancelled)
+     * Attempts to cancel execution of this transaction (if it hasn't already completed or previously cancelled).
      */
     public void cancel() {
         pendingQuery.cancel(true);
@@ -45,7 +45,7 @@ public class RealmAsyncTask {
         // accumulate in work queues, which may causes a memory leak
         // if the task hold references (to an enclosing class for example)
         // we can use purge() but one caveat applies: if a second thread attempts to add
-        // something to the pool (suing the execute() method) at the same time the
+        // something to the pool (using the execute() method) at the same time the
         // first thread is attempting to purge the queue the attempt to purge
         // the queue fails and the cancelled object remain in the queue.
         // A better way to cancel objects with thread pools is to use the remove()
@@ -53,9 +53,9 @@ public class RealmAsyncTask {
     }
 
     /**
-     * Whether an attempt to cancel the transaction was performed
+     * Checks whether an attempt to cancel the transaction was performed.
      *
-     * @return {@code true} if {@link #cancel()} has already been called, {@code false} otherwise
+     * @return {@code true} if {@link #cancel()} has already been called, {@code false} otherwise.
      */
     public boolean isCancelled() {
         return isCancelled;

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-
 package io.realm.internal.async;
+
+import io.realm.Sort;
+
 /**
- * Value holder class to encapsulate the arguments of a RealmQuery
- * (in case we want to re-query)
+ * Value holder class to encapsulate the arguments of a RealmQuery (in case we want to re-query).
  */
 public class ArgumentsHolder {
     public final static int TYPE_FIND_ALL = 0;
@@ -29,9 +30,9 @@ public class ArgumentsHolder {
 
     public final int type;
     public long columnIndex;
-    public boolean ascending;
+    public Sort sortOrder;
     public long[] columnIndices;
-    public boolean[] ascendings;
+    public Sort[] sortOrders;
 
     public ArgumentsHolder(int type) {
         this.type = type;
