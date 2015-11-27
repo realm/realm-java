@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm;
 
 import android.test.AndroidTestCase;
@@ -34,8 +35,7 @@ public class MediatorTest extends AndroidTestCase {
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public void testMediatorsEquality() {
         final DefaultRealmModuleMediator defaultMediator = new DefaultRealmModuleMediator();
-        final CompositeMediator compositeMediator = new CompositeMediator();
-        compositeMediator.addMediator(defaultMediator);
+        final CompositeMediator compositeMediator = new CompositeMediator(defaultMediator);
         final FilterableMediator filterableMediator = new FilterableMediator(defaultMediator, defaultMediator.getModelClasses());
 
         assertEquals(defaultMediator, defaultMediator);
@@ -61,9 +61,10 @@ public class MediatorTest extends AndroidTestCase {
     }
 
     public void testCompositeMediatorModelClassesCount() {
-        final CompositeMediator mediator = new CompositeMediator();
-        mediator.addMediator(new HumanModuleMediator());
-        mediator.addMediator(new AnimalModuleMediator());
+        final CompositeMediator mediator = new CompositeMediator(
+                new HumanModuleMediator(),
+                new AnimalModuleMediator()
+        );
 
         final int modelsInHumanModule = HumanModule.class.getAnnotation(RealmModule.class).classes().length;
         final int modelsInAnimalModule = AnimalModule.class.getAnnotation(RealmModule.class).classes().length;

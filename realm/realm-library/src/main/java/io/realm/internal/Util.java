@@ -59,7 +59,8 @@ public class Util {
         Exception_RuntimeError(12),
         Exception_RowInvalid(13),
         Exception_EncryptionNotSupported(14),
-        Exception_BadVersion(15);
+        Exception_CrossTableLink(15),
+        Exception_BadVersion(16);
 
         private final int nativeTestcase;
         Testcase(int nativeValue) {
@@ -77,7 +78,7 @@ public class Util {
     static native String nativeTestcase(int testcase, boolean dotest, long parm1);
 
     /**
-     * Normalizes a input class to it's original model class so it is transparent whether or not the input class
+     * Normalizes a input class to it's original RealmObject class so it is transparent whether or not the input class
      * was a RealmProxy class.
      */
     public static Class<? extends RealmObject> getOriginalModelClass(Class<? extends RealmObject> clazz) {

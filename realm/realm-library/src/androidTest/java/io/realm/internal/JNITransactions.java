@@ -21,11 +21,14 @@ import android.test.AndroidTestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.TestHelper;
+import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
@@ -59,7 +62,7 @@ public class JNITransactions extends AndroidTestCase {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         WriteTransaction trans = db.beginWrite();
         Table t = trans.getTable("TestTable");
-        t.addColumn(ColumnType.STRING, "colName");
+        t.addColumn(RealmFieldType.STRING, "colName");
         t.setPrimaryKey("colName");
         return t;
     }
@@ -68,7 +71,7 @@ public class JNITransactions extends AndroidTestCase {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         WriteTransaction trans = db.beginWrite();
         Table t = trans.getTable("TestTable");
-        t.addColumn(ColumnType.INTEGER, "colName");
+        t.addColumn(RealmFieldType.INTEGER, "colName");
         t.setPrimaryKey("colName");
         return t;
     }
@@ -82,8 +85,8 @@ public class JNITransactions extends AndroidTestCase {
     protected void writeOneTransaction(SharedGroup db, long rows) {
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(ColumnType.STRING, "name");
-        tbl.addColumn(ColumnType.INTEGER, "number");
+        tbl.addColumn(RealmFieldType.STRING, "name");
+        tbl.addColumn(RealmFieldType.INTEGER, "number");
 
 
         for (long row=0; row < rows; row++)
@@ -155,7 +158,7 @@ public class JNITransactions extends AndroidTestCase {
             Table tbl = rt.getTable("EmployeeTable");
             rt.endRead();
             try {
-                tbl.addColumn(ColumnType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
+                tbl.addColumn(RealmFieldType.STRING, "newString"); //Should throw exception, as adding a column is not allowed in read transaction
                 fail();
             } catch (IllegalStateException e) {
                 //assertNotNull(e);
@@ -189,7 +192,7 @@ public class JNITransactions extends AndroidTestCase {
 
         try {
             Table tbl = trans.getTable("EmployeeTable");
-            tbl.addColumn(ColumnType.STRING, "name");
+            tbl.addColumn(RealmFieldType.STRING, "name");
             trans.commit();
             try {
                 trans.commit(); // should throw
@@ -221,8 +224,8 @@ public class JNITransactions extends AndroidTestCase {
         {
             WriteTransaction trans = db.beginWrite();
             Table tbl = trans.getTable("EmployeeTable");
-            tbl.addColumn(ColumnType.STRING, "name");
-            tbl.addColumn(ColumnType.INTEGER, "number");
+            tbl.addColumn(RealmFieldType.STRING, "name");
+            tbl.addColumn(RealmFieldType.INTEGER, "number");
 
             // allow commit before any changes
             assertEquals(0, tbl.size());
@@ -302,8 +305,8 @@ public class JNITransactions extends AndroidTestCase {
 
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(ColumnType.STRING, "name");
-        tbl.addColumn(ColumnType.INTEGER, "number");
+        tbl.addColumn(RealmFieldType.STRING, "name");
+        tbl.addColumn(RealmFieldType.INTEGER, "number");
         tbl.setPrimaryKey("name");
 
         tbl.add("Foo", 42);
@@ -329,7 +332,7 @@ public class JNITransactions extends AndroidTestCase {
 
         WriteTransaction trans = db.beginWrite();
         Table tbl = trans.getTable("EmployeeTable");
-        tbl.addColumn(ColumnType.STRING, "name");
+        tbl.addColumn(RealmFieldType.STRING, "name");
         tbl.setPrimaryKey("name");
 
         // Create first entry with name "foo"
@@ -399,7 +402,7 @@ public class JNITransactions extends AndroidTestCase {
         Table t = tr.getTable("class_AnnotationTypes");
         assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertTrue(t.hasPrimaryKey());
-        assertEquals(ColumnType.STRING, tr.getTable("pk").getColumnType(0));
+        assertEquals(RealmFieldType.STRING, tr.getTable("pk").getColumnType(0));
         db.close();
     }
 
@@ -411,6 +414,34 @@ public class JNITransactions extends AndroidTestCase {
         assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
         assertTrue(t.hasPrimaryKey());
         assertEquals("AnnotationTypes", tr.getTable("pk").getString(0, 0));
+        db.close();
+    }
+
+    // See https://github.com/realm/realm-java/issues/1775 .
+    // Before 0.84.2, pk table added prefix "class_" to every class's name.
+    // After 0.84.2, the pk table should be migrated automatically to remove the "class_".
+    // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
+    // "NClass", "Meclass" and etc..
+    // The 0841_pk_migration.realm is made to produce the issue.
+    public void testPrimaryKeyTableMigratedWithRightName() throws IOException {
+        List<String> tableNames = Arrays.asList(
+                "ChatList", "Drafts", "Member", "Message", "Notifs", "NotifyLink", "PopularPost",
+                "Post", "Tags", "Threads", "User");
+
+        TestHelper.copyRealmFromAssets(getContext(), "0841_pk_migration.realm", "default.realm");
+        SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(),
+                Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
+
+        ImplicitTransaction tr = db.beginImplicitTransaction();
+        // To trigger migratePrimaryKeyTableIfNeeded.
+        tr.getTable("class_ChatList").getPrimaryKey();
+
+        Table table =  tr.getTable("pk");
+        for (int i = 0; i < table.size(); i++) {
+            UncheckedRow row = table.getUncheckedRow(i);
+            // io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX 0LL
+            assertTrue(tableNames.contains(row.getString(0)));
+        }
         db.close();
     }
 }

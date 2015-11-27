@@ -23,6 +23,18 @@ import io.realm.RealmObject;
 import io.realm.annotations.Required;
 
 public class AllTypes extends RealmObject {
+
+    public static final String CLASS_NAME = "AllTypes";
+    public static final String FIELD_STRING = "columnString";
+    public static final String FIELD_LONG = "columnLong";
+    public static final String FIELD_FLOAT = "columnFloat";
+    public static final String FIELD_DOUBLE = "columnDouble";
+    public static final String FIELD_BOOLEAN = "columnBoolean";
+    public static final String FIELD_DATE = "columnDate";
+    public static final String FIELD_BINARY = "columnBinary";
+    public static final String FIELD_REALMOBJECT = "columnRealmObject";
+    public static final String FIELD_REALMLIST = "columnRealmList";
+
     @Required
     private String columnString = "";
     private long columnLong;

@@ -159,10 +159,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Util_nativeTestcase(
             if (dotest)
                 ThrowException(env, RowInvalid, "parm1", "parm2");
             break;
-        case EncryptionNotSupported:
-            expect = "io.realm.exceptions.RealmEncryptionNotSupportedException: parm1";
+        case CrossTableLink:
+            expect = "java.lang.IllegalStateException: This class is referenced by other classes. Remove those fields first before removing this class.";
             if (dotest)
-                ThrowException(env, EncryptionNotSupported, "parm1", "parm2");
+                ThrowException(env, CrossTableLink, "parm1");
             break;
         case BadVersion:
             expect = "io.realm.internal.async.BadVersionException: parm1";

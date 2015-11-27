@@ -119,8 +119,25 @@ public class RealmConfiguration {
         return durability;
     }
 
+    /**
+     * Returns the mediator instance of schema which is defined by this configuration.
+     * This method is left public by mistake and will be removed.
+     *
+     * @return the mediator of the schema.
+     * @deprecated use {@link #getRealmObjectClasses()} instead if you need to access to the set of model classes.
+     */
+    @Deprecated
     public RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
+    }
+
+    /**
+     * Returns the unmodifiable {@link Set} of model classes that make up the schema for this Realm.
+     *
+     * @return unmodifiable {@link Set} of model classes.
+     */
+    public Set<Class<? extends RealmObject>> getRealmObjectClasses() {
+        return schemaMediator.getModelClasses();
     }
 
     public String getPath() {
@@ -177,11 +194,13 @@ public class RealmConfiguration {
         }
 
         // Otherwise combine all mediators
-        CompositeMediator mediator = new CompositeMediator();
+        RealmProxyMediator[] mediators = new RealmProxyMediator[modules.size()];
+        int i = 0;
         for (Object module : modules) {
-            mediator.addMediator(getModuleMediator(module.getClass().getCanonicalName()));
+            mediators[i] = getModuleMediator(module.getClass().getCanonicalName());
+            i++;
         }
-        return mediator;
+        return new CompositeMediator(mediators);
     }
 
     // Finds the mediator associated with a given module
@@ -204,6 +223,31 @@ public class RealmConfiguration {
         } catch (IllegalAccessException e) {
             throw new RealmException("Could not create an instance of " + mediatorName, e);
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("");
+        stringBuilder.append("realmFolder: "); stringBuilder.append(realmFolder.toString());
+        stringBuilder.append("\n");
+        stringBuilder.append("realmFileName : "); stringBuilder.append(realmFileName);
+        stringBuilder.append("\n");
+        stringBuilder.append("canonicalPath: "); stringBuilder.append(canonicalPath);
+        stringBuilder.append("\n");
+        stringBuilder.append("key: ");
+        stringBuilder.append("[length: " + Integer.toString(key == null ? 0 : KEY_LENGTH) + "]");
+        stringBuilder.append("\n");
+        stringBuilder.append("schemaVersion: "); stringBuilder.append(Long.toString(schemaVersion));
+        stringBuilder.append("\n");
+        stringBuilder.append("migration: "); stringBuilder.append(migration);
+        stringBuilder.append("\n");
+        stringBuilder.append("deleteRealmIfMigrationNeeded: "); stringBuilder.append(deleteRealmIfMigrationNeeded);
+        stringBuilder.append("\n");
+        stringBuilder.append("durability: "); stringBuilder.append(durability);
+        stringBuilder.append("\n");
+        stringBuilder.append("schemaMediator: "); stringBuilder.append(schemaMediator);
+
+        return stringBuilder.toString();
     }
 
     /**
@@ -285,10 +329,6 @@ public class RealmConfiguration {
 
         /**
          * Sets the 64 bit key used to encrypt and decrypt the Realm file.
-         * <p>
-         * Note that a few older devices do not support the encryption used by Realm. These devices will instead throw a
-         * {@link io.realm.exceptions.RealmEncryptionNotSupportedException } when the Realm is opened. See
-         * {@link io.realm.exceptions.RealmEncryptionNotSupportedException } for further details.
          */
         public Builder encryptionKey(byte[] key) {
             if (key == null) {

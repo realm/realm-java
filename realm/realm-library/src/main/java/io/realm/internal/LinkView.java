@@ -16,10 +16,11 @@
 
 package io.realm.internal;
 
+import io.realm.RealmFieldType;
 import java.lang.ref.ReferenceQueue;
 
 /**
- * The LinkView class represents a core {@link ColumnType#LINK_LIST}.
+ * The LinkView class represents a core {@link RealmFieldType#LIST}.
  */
 public class LinkView extends NativeObject {
 

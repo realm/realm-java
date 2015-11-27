@@ -20,13 +20,16 @@ import junit.framework.TestCase;
 
 import java.util.Date;
 
+import io.realm.RealmFieldType;
+
 public class JNIMixedSubtableTest extends TestCase {
 
     public void testGetSubtableFromMixedColumnTest() {
+        Util.setDebugLevel(2);
         Table table = new Table();
 
-        table.addColumn(ColumnType.INTEGER, "num");
-        table.addColumn(ColumnType.MIXED, "mix");
+        table.addColumn(RealmFieldType.INTEGER, "num");
+        table.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mix");
 
         // No rows added yet
         try { Table subtable = table.getSubtable(1, 0); fail("No rows added, index out of bounds"); } catch (ArrayIndexOutOfBoundsException e) { }
@@ -73,7 +76,7 @@ public class JNIMixedSubtableTest extends TestCase {
 
         /* FIXME: Subtable in Mixed is currently not supported
         // Now we specifically set the Mixed value to a subtable
-        table.setMixed(1, 0, new Mixed(ColumnType.TABLE));
+        table.setMixed(1, 0, new Mixed(RealmFieldType.UNSUPPORTED_TABLE));
         // Getting a subtable on the mixed column is now allowed
         Table subtable = table.getSubtable(1, 0);
         */
@@ -84,10 +87,10 @@ public class JNIMixedSubtableTest extends TestCase {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.INTEGER, "num");
-        tableSpec.addColumn(ColumnType.MIXED, "mix");
+        tableSpec.addColumn(RealmFieldType.INTEGER, "num");
+        tableSpec.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mix");
         TableSpec subspec = tableSpec.addSubtableColumn("subtable");
-        subspec.addColumn(ColumnType.INTEGER, "num");
+        subspec.addColumn(RealmFieldType.INTEGER, "num");
         table.updateFromSpec(tableSpec);
 
         // Shouldn't work: no Mixed stored yet
@@ -107,14 +110,14 @@ public class JNIMixedSubtableTest extends TestCase {
         long ROW = 0;
         // Add empty row - the simple way
         table.addEmptyRow();
-        table.setMixed(1, ROW, new Mixed(ColumnType.TABLE));
+        table.setMixed(1, ROW, new Mixed(RealmFieldType.UNSUPPORTED_TABLE));
         assertEquals(1, table.size());
         assertEquals(0, table.getSubtableSize(1, 0));
 
         // Create schema for the one Mixed cell with a subtable
         Table subtable = table.getSubtable(1, ROW);
         TableSpec subspecMixed = subtable.getTableSpec();
-        subspecMixed.addColumn(ColumnType.INTEGER, "num");
+        subspecMixed.addColumn(RealmFieldType.INTEGER, "num");
         subtable.updateFromSpec(subspecMixed);
 
         // Insert value in the Mixed subtable
@@ -132,12 +135,12 @@ public class JNIMixedSubtableTest extends TestCase {
         Table table = new Table();
 
         TableSpec tableSpec = new TableSpec();
-        tableSpec.addColumn(ColumnType.INTEGER, "num");
-        tableSpec.addColumn(ColumnType.MIXED, "mix");
+        tableSpec.addColumn(RealmFieldType.INTEGER, "num");
+        tableSpec.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mix");
         table.updateFromSpec(tableSpec);
 
         table.addEmptyRow();
-        table.setMixed(1, 0, new Mixed(ColumnType.TABLE));
+        table.setMixed(1, 0, new Mixed(RealmFieldType.UNSUPPORTED_TABLE));
 
         Table subtable = table.getSubtable(1, 0);
     }

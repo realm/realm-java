@@ -46,9 +46,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
 
     private final boolean managedMode;
-    private Class<E> clazz;
-    private LinkView view;
-    private Realm realm;
+    protected Class<E> clazz;
+    protected String className;
+    protected LinkView view;
+    protected BaseRealm realm;
     private List<E> nonManagedList;
 
     /**
@@ -84,15 +85,22 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     /**
      * Creates a RealmList from a LinkView, so its elements are managed by Realm.
      *
-     * @param clazz type of elements in the Array.
-     * @param view backing LinkView.
-     * @param realm reference to Realm containing the data.
+     * @param clazz type of elements in the Array
+     * @param linkView  backing LinkView
+     * @param realm reference to Realm containing the data
      */
-    RealmList(Class<E> clazz, LinkView view, Realm realm) {
+    RealmList(Class<E> clazz, LinkView linkView, BaseRealm realm) {
         this.managedMode = true;
         this.clazz = clazz;
-        this.view = view;
+        this.view = linkView;
         this.realm = realm;
+    }
+
+    RealmList(String className, LinkView linkView, BaseRealm realm) {
+        this.managedMode = true;
+        this.view = linkView;
+        this.realm = realm;
+        this.className = className;
     }
 
     /**
@@ -206,9 +214,19 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
+        // Object is already in this realm
         if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
             return object;
         }
+
+        // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as you
+        // have to run a full schema validation for each object.
+        if (object instanceof DynamicRealmObject) {
+            throw new IllegalArgumentException("Automatically copying DynamicRealmObjects from other Realms are not supported");
+        }
+
+        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
+        Realm realm = (Realm) this.realm;
         if (realm.getTable(object.getClass()).hasPrimaryKey()) {
             return realm.copyToRealmOrUpdate(object);
         } else {
@@ -291,7 +309,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public E get(int location) {
         if (managedMode) {
             checkValidView();
-            return realm.get(clazz, view.getTargetRowIndex(location));
+            long rowIndex = view.getTargetRowIndex(location);
+            return realm.get(clazz, className, rowIndex);
         } else {
             return nonManagedList.get(location);
         }
@@ -356,7 +375,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public RealmQuery<E> where() {
         if (managedMode) {
             checkValidView();
-            return new RealmQuery<E>(this.realm, view, clazz);
+            return RealmQuery.createQueryFromList(this);
         } else {
             throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }

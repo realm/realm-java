@@ -3,9 +3,9 @@ package io.realm;
 
 import android.util.JsonReader;
 import android.util.JsonToken;
+import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
-import io.realm.internal.ColumnType;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.LinkView;
 import io.realm.internal.RealmObjectProxy;
@@ -211,6 +211,12 @@ public class AllTypesRealmProxy extends AllTypes
             row.nullifyLink(columnInfo.columnObjectIndex);
             return;
         }
+        if (!value.isValid()) {
+            throw new IllegalArgumentException("'value' is not a valid managed object.");
+        }
+        if (value.realm != this.realm) {
+            throw new IllegalArgumentException("'value' belongs to a different Realm.");
+        }
         row.setLink(columnInfo.columnObjectIndex, value.row.getIndex());
     }
 
@@ -242,6 +248,12 @@ public class AllTypesRealmProxy extends AllTypes
             return;
         }
         for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value) {
+            if (!linkedObject.isValid()) {
+                throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
+            }
+            if (linkedObject.realm != this.realm) {
+                throw new IllegalArgumentException("Each element of 'value' must belong to the same Realm.");
+            }
             links.add(linkedObject.row.getIndex());
         }
     }
@@ -249,21 +261,21 @@ public class AllTypesRealmProxy extends AllTypes
     public static Table initTable(ImplicitTransaction transaction) {
         if (!transaction.hasTable("class_AllTypes")) {
             Table table = transaction.getTable("class_AllTypes");
-            table.addColumn(ColumnType.STRING, "columnString", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.INTEGER, "columnLong", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.FLOAT, "columnFloat", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.DOUBLE, "columnDouble", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.BOOLEAN, "columnBoolean", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.DATE, "columnDate", Table.NOT_NULLABLE);
-            table.addColumn(ColumnType.BINARY, "columnBinary", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.STRING, "columnString", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "columnLong", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.FLOAT, "columnFloat", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.DOUBLE, "columnDouble", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "columnBoolean", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.DATE, "columnDate", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BINARY, "columnBinary", Table.NOT_NULLABLE);
             if (!transaction.hasTable("class_AllTypes")) {
                 AllTypesRealmProxy.initTable(transaction);
             }
-            table.addColumnLink(ColumnType.LINK, "columnObject", transaction.getTable("class_AllTypes"));
+            table.addColumnLink(RealmFieldType.OBJECT, "columnObject", transaction.getTable("class_AllTypes"));
             if (!transaction.hasTable("class_AllTypes")) {
                 AllTypesRealmProxy.initTable(transaction);
             }
-            table.addColumnLink(ColumnType.LINK_LIST, "columnRealmList", transaction.getTable("class_AllTypes"));
+            table.addColumnLink(RealmFieldType.LIST, "columnRealmList", transaction.getTable("class_AllTypes"));
             table.addSearchIndex(table.getColumnIndex("columnString"));
             table.setPrimaryKey("columnString");
             return table;
@@ -277,7 +289,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (table.getColumnCount() != 9) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Field count does not match - expected 9 but was " + table.getColumnCount());
             }
-            Map<String, ColumnType> columnTypes = new HashMap<String, ColumnType>();
+            Map<String, RealmFieldType> columnTypes = new HashMap<String, RealmFieldType>();
             for (long i = 0; i < 9; i++) {
                 columnTypes.put(table.getColumnName(i), table.getColumnType(i));
             }
@@ -287,7 +299,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnString")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnString' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("columnString") != ColumnType.STRING) {
+            if (columnTypes.get("columnString") != RealmFieldType.STRING) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'columnString' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.columnStringIndex)) {
@@ -302,7 +314,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnLong")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnLong' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("columnLong") != ColumnType.INTEGER) {
+            if (columnTypes.get("columnLong") != RealmFieldType.INTEGER) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'long' for field 'columnLong' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.columnLongIndex)) {
@@ -311,7 +323,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnFloat")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnFloat' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("columnFloat") != ColumnType.FLOAT) {
+            if (columnTypes.get("columnFloat") != RealmFieldType.FLOAT) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'float' for field 'columnFloat' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.columnFloatIndex)) {
@@ -320,7 +332,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnDouble")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnDouble' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("columnDouble") != ColumnType.DOUBLE) {
+            if (columnTypes.get("columnDouble") != RealmFieldType.DOUBLE) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'double' for field 'columnDouble' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.columnDoubleIndex)) {
@@ -329,7 +341,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnBoolean")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnBoolean' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("columnBoolean") != ColumnType.BOOLEAN) {
+            if (columnTypes.get("columnBoolean") != RealmFieldType.BOOLEAN) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'boolean' for field 'columnBoolean' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.columnBooleanIndex)) {
@@ -338,7 +350,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnDate")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnDate' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("columnDate") != ColumnType.DATE) {
+            if (columnTypes.get("columnDate") != RealmFieldType.DATE) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'Date' for field 'columnDate' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.columnDateIndex)) {
@@ -347,7 +359,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnBinary")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnBinary' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("columnBinary") != ColumnType.BINARY) {
+            if (columnTypes.get("columnBinary") != RealmFieldType.BINARY) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'byte[]' for field 'columnBinary' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.columnBinaryIndex)) {
@@ -356,7 +368,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnObject")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnObject' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
             }
-            if (columnTypes.get("columnObject") != ColumnType.LINK) {
+            if (columnTypes.get("columnObject") != RealmFieldType.OBJECT) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'AllTypes' for field 'columnObject'");
             }
             if (!transaction.hasTable("class_AllTypes")) {
@@ -369,7 +381,7 @@ public class AllTypesRealmProxy extends AllTypes
             if (!columnTypes.containsKey("columnRealmList")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'columnRealmList'");
             }
-            if (columnTypes.get("columnRealmList") != ColumnType.LINK_LIST) {
+            if (columnTypes.get("columnRealmList") != RealmFieldType.LIST) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'AllTypes' for field 'columnRealmList'");
             }
             if (!transaction.hasTable("class_AllTypes")) {
@@ -403,14 +415,22 @@ public class AllTypesRealmProxy extends AllTypes
             if (!json.isNull("columnString")) {
                 long rowIndex = table.findFirstString(pkColumnIndex, json.getString("columnString"));
                 if (rowIndex != TableOrView.NO_MATCH) {
-                    obj = new AllTypesRealmProxy(realm.getColumnInfo(AllTypes.class));
+                    obj = new AllTypesRealmProxy(realm.schema.getColumnInfo(AllTypes.class));
                     obj.realm = realm;
                     obj.row = table.getUncheckedRow(rowIndex);
                 }
             }
         }
         if (obj == null) {
-            obj = realm.createObject(AllTypes.class);
+            if (json.has("columnString")) {
+                if (json.isNull("columnString")) {
+                    obj = realm.createObject(AllTypes.class, null);
+                } else {
+                    obj = realm.createObject(AllTypes.class, json.getString("columnString"));
+                }
+            } else {
+                obj = realm.createObject(AllTypes.class);
+            }
         }
         if (json.has("columnString")) {
             if (json.isNull("columnString")) {
@@ -592,7 +612,7 @@ public class AllTypesRealmProxy extends AllTypes
             }
             long rowIndex = table.findFirstString(pkColumnIndex, object.getColumnString());
             if (rowIndex != TableOrView.NO_MATCH) {
-                realmObject = new AllTypesRealmProxy(realm.getColumnInfo(AllTypes.class));
+                realmObject = new AllTypesRealmProxy(realm.schema.getColumnInfo(AllTypes.class));
                 realmObject.realm = realm;
                 realmObject.row = table.getUncheckedRow(rowIndex);
                 cache.put(object, (RealmObjectProxy) realmObject);

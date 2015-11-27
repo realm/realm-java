@@ -22,6 +22,8 @@ import junit.framework.TestCase;
 
 import java.util.Date;
 
+import io.realm.RealmFieldType;
+import io.realm.Sort;
 import io.realm.TestHelper;
 
 @SuppressWarnings("deprecation")
@@ -36,14 +38,14 @@ public class JNIViewTest extends TestCase {
     public void setUp() {
         //Specify table
         t = new Table();
-        t.addColumn(ColumnType.STRING, "Name");
-        t.addColumn(ColumnType.BOOLEAN,   "Study");
-        t.addColumn(ColumnType.INTEGER,    "Age");
-        t.addColumn(ColumnType.DATE,   "Birthday");
+        t.addColumn(RealmFieldType.STRING, "Name");
+        t.addColumn(RealmFieldType.BOOLEAN,   "Study");
+        t.addColumn(RealmFieldType.INTEGER,    "Age");
+        t.addColumn(RealmFieldType.DATE,   "Birthday");
 
         // Add unsupported column types
-        t.addColumn(ColumnType.MIXED,  "Unsupported3");
-        t.addColumn(ColumnType.TABLE,  "Unsupported4");
+        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED,  "Unsupported3");
+        t.addColumn(RealmFieldType.UNSUPPORTED_TABLE,  "Unsupported4");
 
         //Add data
         t.add("cc", true,  24, date1, 0, null);
@@ -95,7 +97,7 @@ public class JNIViewTest extends TestCase {
         assertEquals("dd", view.getString(0, 3));
 
         //Sort descending - creating a new view
-        view.sort(2, TableView.Order.descending);
+        view.sort(2, Sort.DESCENDING);
         assertEquals(35, view.getLong(2, 0));
         assertEquals(24, view.getLong(2, 1));
         assertEquals(22, view.getLong(2, 2));
@@ -104,7 +106,7 @@ public class JNIViewTest extends TestCase {
 
         //Sort ascending.
         TableView view2 = t.where().findAll();
-        view2.sort(2, TableView.Order.ascending);
+        view2.sort(2, Sort.ASCENDING);
         assertEquals(22, view2.getLong(2, 0));
         assertEquals(22, view2.getLong(2, 1));
         assertEquals(24, view2.getLong(2, 2));
@@ -123,7 +125,7 @@ public class JNIViewTest extends TestCase {
     public void testSetBinary() {
 
         Table table = new Table();
-        table.addColumn(ColumnType.BINARY, "binary");
+        table.addColumn(RealmFieldType.BINARY, "binary");
 
         byte[] arr1 = new byte[] {1,2,3};
         table.add(new Object[]{arr1});
@@ -141,17 +143,17 @@ public class JNIViewTest extends TestCase {
 
     public void testSubtable() {
         Table persons = new Table();
-        persons.addColumn(ColumnType.STRING, "name");
-        persons.addColumn(ColumnType.STRING, "email");
-        persons.addColumn(ColumnType.TABLE, "addresses");
+        persons.addColumn(RealmFieldType.STRING, "name");
+        persons.addColumn(RealmFieldType.STRING, "email");
+        persons.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "addresses");
 
         TableSchema addresses = persons.getSubtableSchema(2);
-        addresses.addColumn(ColumnType.STRING, "street");
-        addresses.addColumn(ColumnType.INTEGER, "zipcode");
-        addresses.addColumn(ColumnType.TABLE, "phone_numbers");
+        addresses.addColumn(RealmFieldType.STRING, "street");
+        addresses.addColumn(RealmFieldType.INTEGER, "zipcode");
+        addresses.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "phone_numbers");
 
         TableSchema phone_numbers = addresses.getSubtableSchema(2);
-        phone_numbers.addColumn(ColumnType.INTEGER, "number");
+        phone_numbers.addColumn(RealmFieldType.INTEGER, "number");
 
         // Inserting data
         persons.add("Mr X", "xx@xxxx.com",
@@ -238,9 +240,9 @@ public class JNIViewTest extends TestCase {
 
     public void testGetSourceRow() {
         Table t = new Table();
-        t.addColumn(ColumnType.STRING, "");
-        t.addColumn(ColumnType.INTEGER, "");
-        t.addColumn(ColumnType.BOOLEAN, "");
+        t.addColumn(RealmFieldType.STRING, "");
+        t.addColumn(RealmFieldType.INTEGER, "");
+        t.addColumn(RealmFieldType.BOOLEAN, "");
 
         t.add("1", 1, true);
         t.add("2", 2, true);
@@ -262,9 +264,9 @@ public class JNIViewTest extends TestCase {
 
     public void testGetSourceRowNoRows() {
         Table t = new Table();
-        t.addColumn(ColumnType.STRING, "");
-        t.addColumn(ColumnType.INTEGER, "");
-        t.addColumn(ColumnType.BOOLEAN, "");
+        t.addColumn(RealmFieldType.STRING, "");
+        t.addColumn(RealmFieldType.INTEGER, "");
+        t.addColumn(RealmFieldType.BOOLEAN, "");
         // No data is added
         TableView v = t.where().findAll();
 
@@ -314,7 +316,7 @@ public class JNIViewTest extends TestCase {
 
     public void testShouldSearchByColumnValue() {
         Table table = new Table();
-        table.addColumn(ColumnType.STRING, "name");
+        table.addColumn(RealmFieldType.STRING, "name");
 
         table.add("Foo");
         table.add("Bar");
@@ -328,7 +330,7 @@ public class JNIViewTest extends TestCase {
 
     public void testShouldQueryInView() {
         Table table = new Table();
-        table.addColumn(ColumnType.STRING, "name");
+        table.addColumn(RealmFieldType.STRING, "name");
 
         table.add("A1");
         table.add("B");
@@ -349,14 +351,14 @@ public class JNIViewTest extends TestCase {
 
     public void testGetNonExistingColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.INTEGER, "int");
+        t.addColumn(RealmFieldType.INTEGER, "int");
         TableView view = t.where().findAll();
         assertEquals(-1, view.getColumnIndex("non-existing column"));
     }
 
     public void testGetNullColumn() {
         Table t = new Table();
-        t.addColumn(ColumnType.INTEGER, "");
+        t.addColumn(RealmFieldType.INTEGER, "");
         TableView view = t.where().findAll();
         try { view.getColumnIndex(null); fail("Getting null column"); } catch(IllegalArgumentException e) { }
     }
@@ -364,9 +366,9 @@ public class JNIViewTest extends TestCase {
 
     public void testViewToString() {
         Table t = new Table();
-        t.addColumn(ColumnType.STRING, "stringCol");
-        t.addColumn(ColumnType.INTEGER, "intCol");
-        t.addColumn(ColumnType.BOOLEAN, "boolCol");
+        t.addColumn(RealmFieldType.STRING, "stringCol");
+        t.addColumn(RealmFieldType.INTEGER, "intCol");
+        t.addColumn(RealmFieldType.BOOLEAN, "boolCol");
 
         t.add("s1", 1, true);
         t.add("s2", 2, false);
@@ -423,7 +425,7 @@ public class JNIViewTest extends TestCase {
 
     public void testViewShouldInvalidate() {
         Table t = new Table();
-        t.addColumn(ColumnType.INTEGER, "intCol");
+        t.addColumn(RealmFieldType.INTEGER, "intCol");
         t.add(1);
         t.add(2);
         t.add(3);
@@ -452,7 +454,7 @@ public class JNIViewTest extends TestCase {
     public void testMaximumDate() {
 
         Table table = new Table();
-        table.addColumn(ColumnType.DATE, "date");
+        table.addColumn(RealmFieldType.DATE, "date");
 
         table.add(new Date(0));
         table.add(new Date(10000));
@@ -467,7 +469,7 @@ public class JNIViewTest extends TestCase {
     public void testMinimumDate() {
 
         Table table = new Table();
-        table.addColumn(ColumnType.DATE, "date");
+        table.addColumn(RealmFieldType.DATE, "date");
 
         table.add(new Date(10000));
         table.add(new Date(0));

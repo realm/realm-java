@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm;
 
 import android.content.res.AssetManager;
@@ -36,8 +37,11 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.Dog;
+import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NullTypes;
+import io.realm.entities.OwnerPrimaryKey;
 import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -137,7 +141,7 @@ public class RealmJsonTest extends AndroidTestCase {
         AllTypes obj = testRealm.allObjects(AllTypes.class).first();
         Calendar cal = GregorianCalendar.getInstance();
         cal.setTimeZone(TimeZone.getTimeZone("Australia/West"));
-        cal.set(2015,Calendar.OCTOBER, 03, 14, 45, 33);
+        cal.set(2015, Calendar.OCTOBER, 03, 14, 45, 33);
         cal.set(Calendar.MILLISECOND, 0);
         Date convDate = obj.getColumnDate();
 
@@ -937,7 +941,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 1 String
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(0)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(0)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -946,7 +950,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 2 Bytes
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(1)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(1)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -955,7 +959,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 3 Boolean
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(2)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(2)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -964,7 +968,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 4 Byte
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(3)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(3)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -973,7 +977,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 5 Short
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(4)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(4)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -982,7 +986,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 6 Integer
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(5)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(5)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -991,7 +995,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 7 Long
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(6)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(6)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -1000,7 +1004,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 8 Float
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(7)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(7)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -1009,7 +1013,7 @@ public class RealmJsonTest extends AndroidTestCase {
         // 9 Double
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(8)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(8)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
@@ -1018,11 +1022,71 @@ public class RealmJsonTest extends AndroidTestCase {
         // 10 Date
         try {
             testRealm.beginTransaction();
-            testRealm.createObjectFromJson(NullTypes.class, convertJsonObjectToStream(array.getJSONObject(9)));
+            testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, convertJsonObjectToStream(array.getJSONObject(9)));
             fail();
         } catch (IllegalArgumentException ignored) {
         } finally {
             testRealm.cancelTransaction();
         }
+    }
+
+    // Check that using createOrUpdateObject will set the primary key directly instead of first setting
+    // it to the default value (which can fail)
+    public void testCreateOrUpdateObjectWithPrimaryKeySetValueDirectly_jsonObject() throws JSONException {
+        JSONObject newObject = new JSONObject("{\"id\": 1, \"name\": \"bar\"}");
+
+        testRealm.beginTransaction();
+        testRealm.createObject(OwnerPrimaryKey.class); // id = 0
+        testRealm.createOrUpdateObjectFromJson(OwnerPrimaryKey.class, newObject);
+        testRealm.commitTransaction();
+        RealmResults<OwnerPrimaryKey> owners = testRealm.where(OwnerPrimaryKey.class).findAll();
+        assertEquals(2, owners.size());
+        assertEquals(1, owners.get(1).getId());
+        assertEquals("bar", owners.get(1).getName());
+    }
+
+    // Check that using createOrUpdateObject will set the primary key directly instead of first setting
+    // it to the default value (which can fail)
+    public void testCreateObjectWithPrimaryKeySetValueDirectly_jsonObject() throws JSONException {
+        JSONObject newObject = new JSONObject("{\"id\": 1, \"name\": \"bar\"}");
+
+        testRealm.beginTransaction();
+        testRealm.createObject(OwnerPrimaryKey.class); // id = 0
+        testRealm.createObjectFromJson(OwnerPrimaryKey.class, newObject);
+        testRealm.commitTransaction();
+        RealmResults<OwnerPrimaryKey> owners = testRealm.where(OwnerPrimaryKey.class).findAll();
+        assertEquals(2, owners.size());
+        assertEquals(1, owners.get(1).getId());
+        assertEquals("bar", owners.get(1).getName());
+    }
+
+    // Check that using createOrUpdateObject will set the primary key directly instead of first setting
+    // it to the default value (which can fail)
+    public void testCreateOrUpdateObjectWithPrimaryKeySetValueDirectly_stream() throws JSONException, IOException {
+        InputStream stream = TestHelper.stringToStream("{\"id\": 1, \"name\": \"bar\"}");
+
+        testRealm.beginTransaction();
+        testRealm.createObject(OwnerPrimaryKey.class); // id = 0
+        testRealm.createOrUpdateObjectFromJson(OwnerPrimaryKey.class, stream);
+        testRealm.commitTransaction();
+        RealmResults<OwnerPrimaryKey> owners = testRealm.where(OwnerPrimaryKey.class).findAll();
+        assertEquals(2, owners.size());
+        assertEquals(1, owners.get(1).getId());
+        assertEquals("bar", owners.get(1).getName());
+    }
+
+    // createObject using primary keys doesn't work if the Check that using createOrUpdateObject will set the primary key directly instead of first setting
+    // it to the default value (which can fail)
+    public void testCreateObjectWithPrimaryKeySetValueDirectly_stream() throws JSONException, IOException {
+        InputStream stream = TestHelper.stringToStream("{\"id\": 1, \"name\": \"bar\"}");
+
+        testRealm.beginTransaction();
+        testRealm.createObject(OwnerPrimaryKey.class); // id = 0
+        testRealm.createObjectFromJson(OwnerPrimaryKey.class, stream);
+        testRealm.commitTransaction();
+        RealmResults<OwnerPrimaryKey> owners = testRealm.where(OwnerPrimaryKey.class).findAll();
+        assertEquals(2, owners.size());
+        assertEquals(1, owners.get(1).getId());
+        assertEquals("bar", owners.get(1).getName());
     }
 }

@@ -22,19 +22,21 @@ import junit.framework.TestCase;
 
 import java.util.Date;
 
+import io.realm.RealmFieldType;
+
 public class JNIRowTest extends TestCase {
 
     public void testRow() {
 
         Table table = new Table();
 
-        table.addColumn(ColumnType.STRING, "string");
-        table.addColumn(ColumnType.INTEGER, "integer");
-        table.addColumn(ColumnType.FLOAT, "float");
-        table.addColumn(ColumnType.DOUBLE, "double");
-        table.addColumn(ColumnType.BOOLEAN, "boolean");
-        table.addColumn(ColumnType.DATE, "date");
-        table.addColumn(ColumnType.BINARY, "binary");
+        table.addColumn(RealmFieldType.STRING, "string");
+        table.addColumn(RealmFieldType.INTEGER, "integer");
+        table.addColumn(RealmFieldType.FLOAT, "float");
+        table.addColumn(RealmFieldType.DOUBLE, "double");
+        table.addColumn(RealmFieldType.BOOLEAN, "boolean");
+        table.addColumn(RealmFieldType.DATE, "date");
+        table.addColumn(RealmFieldType.BINARY, "binary");
 
 
         byte[] data = new byte[2];
@@ -75,7 +77,7 @@ public class JNIRowTest extends TestCase {
     public void testMixed() {
         Table table = new Table();
 
-        table.addColumn(ColumnType.MIXED, "mixed");
+        table.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
 
         table.addEmptyRows(2);
 
@@ -96,13 +98,13 @@ public class JNIRowTest extends TestCase {
 
         Table table = new Table();
 
-        long colStringIndex = table.addColumn(ColumnType.STRING, "string", true);
-        long colIntIndex = table.addColumn(ColumnType.INTEGER, "integer", true);
-        table.addColumn(ColumnType.FLOAT, "float");
-        table.addColumn(ColumnType.DOUBLE, "double");
-        long colBoolIndex = table.addColumn(ColumnType.BOOLEAN, "boolean", true);
-        table.addColumn(ColumnType.DATE, "date");
-        table.addColumn(ColumnType.BINARY, "binary");
+        long colStringIndex = table.addColumn(RealmFieldType.STRING, "string", true);
+        long colIntIndex = table.addColumn(RealmFieldType.INTEGER, "integer", true);
+        table.addColumn(RealmFieldType.FLOAT, "float");
+        table.addColumn(RealmFieldType.DOUBLE, "double");
+        long colBoolIndex = table.addColumn(RealmFieldType.BOOLEAN, "boolean", true);
+        table.addColumn(RealmFieldType.DATE, "date");
+        table.addColumn(RealmFieldType.BINARY, "binary");
 
         long rowIndex = table.addEmptyRow();
         UncheckedRow row = table.getUncheckedRow(rowIndex);
