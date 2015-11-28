@@ -30,7 +30,7 @@ public interface RxObservableFactory {
      * @param results RealmResults to listen to changes for.
      * @param <E> Type of RealmObject
      */
-    <E extends RealmObject<E>> Observable<RealmResults<E>> from(RealmResults<E> results);
+    <E extends RealmObject> Observable<RealmResults<E>> from(RealmResults<E> results);
 
     /**
      * Creates an Observable for a RealmList. It should emit the initial list when subscribed to and on each
@@ -41,7 +41,7 @@ public interface RxObservableFactory {
      * @param list RealmObject to listen to changes for.
      * @param <E> Type of RealmObject
      */
-    <E extends RealmObject<E>> Observable<RealmList<E>> from(RealmList<E> list);
+    <E extends RealmObject> Observable<RealmList<E>> from(RealmList<E> list);
 
 
     /**
@@ -53,5 +53,5 @@ public interface RxObservableFactory {
      * @param object RealmObject to listen to changes for.
      * @param <E> Type of RealmObject
      */
-    <E extends RealmObject<E>> Observable<E> from(E object);
+    <E extends RealmObject> Observable<E> from(E object);
 }

@@ -5,12 +5,16 @@
 - Observables might have a default Scheduler they operate on that is 
   different than the one the RealmObject was created on.
   
-- RealmObjects auto-update. Observables that operate on multiple "versions" 
+- RealmObjects are live objects that automatically staty up to date. Observables that operate on multiple "versions"
   will most likely not work as expected.
 
 - Retrofit automatically offload to a worker thread.
 
 - Use Realm async API instead of subscribeOn to offload Realm work.
+
+- You can use Realm.copyFromRealm to make a copy of Realm data
+
+
 
 
 ## Resources (TODO)

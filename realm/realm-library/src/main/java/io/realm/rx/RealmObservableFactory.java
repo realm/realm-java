@@ -79,7 +79,7 @@ public final class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmObject<E>> Observable<RealmResults<E>> from(final RealmResults<E> results) {
+    public <E extends RealmObject> Observable<RealmResults<E>> from(final RealmResults<E> results) {
         checkRxJavaAvailable();
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
@@ -106,13 +106,13 @@ public final class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmObject<E>> Observable<RealmList<E>> from(RealmList<E> list) {
+    public <E extends RealmObject> Observable<RealmList<E>> from(RealmList<E> list) {
         checkRxJavaAvailable();
         throw new RuntimeException("RealmList does not support change listeners yet, so cannot create an Observable");
     }
 
     @Override
-    public <E extends RealmObject<E>> Observable<E> from(final E object) {
+    public <E extends RealmObject> Observable<E> from(final E object) {
         checkRxJavaAvailable();
         return Observable.create(new Observable.OnSubscribe<E>() {
             @Override

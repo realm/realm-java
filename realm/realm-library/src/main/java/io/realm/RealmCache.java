@@ -89,7 +89,7 @@ class RealmCache {
      * @param realmClass class of {@link Realm} or {@link DynamicRealm} to be created in or gotten from the cache.
      * @return the {@link Realm} or {@link DynamicRealm} instance.
      */
-    static synchronized <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration,
+    static synchronized <E extends BaseRealm<E>> E createRealmOrGetFromCache(RealmConfiguration configuration,
                                                         Class<E> realmClass) {
         boolean isCacheInMap = true;
         RealmCache cache = cachesMap.get(configuration.getPath());

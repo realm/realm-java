@@ -42,7 +42,7 @@ import io.realm.internal.TableView;
  * @see Realm
  * @see RealmSchema
  */
-public final class DynamicRealm extends BaseRealm {
+public final class DynamicRealm extends BaseRealm<DynamicRealm> {
 
     private DynamicRealm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);

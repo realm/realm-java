@@ -31,7 +31,7 @@ public class RxJavaTests extends AndroidTestCase {
         realm.commitTransaction();
 
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        obj.observable().subscribe(new Action1<AllTypes>() {
+        obj.observable(AllTypes.class).subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 assertTrue(rxObject == obj);
@@ -74,7 +74,7 @@ public class RxJavaTests extends AndroidTestCase {
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        obj.observable().subscribe(new Action1<AllTypes>() {
+        obj.observable(AllTypes.class).subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 subscriberCalled.addAndGet(1);

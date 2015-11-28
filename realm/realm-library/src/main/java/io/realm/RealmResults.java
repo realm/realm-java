@@ -157,15 +157,14 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
      */
     @Override
-    @SuppressWarnings("unchecked")
     public E get(int location) {
         E obj;
         realm.checkIfValid();
         TableOrView table = getTable();
         if (table instanceof TableView) {
-            obj = (E) realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
+            obj = realm.get(classSpec, className, ((TableView) table).getSourceRowIndex(location));
         } else {
-            obj = (E) realm.get(classSpec, className, location);
+            obj = realm.get(classSpec, className, location);
         }
 
         return obj;

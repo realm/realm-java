@@ -25,15 +25,12 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.SharedGroupManager;
@@ -44,7 +41,6 @@ import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
-import io.realm.rx.RxObservableFactory;
 import rx.Observable;
 
 /**
@@ -53,7 +49,7 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
-public abstract class BaseRealm<E extends BaseRealm> implements Closeable {
+public abstract class BaseRealm<T extends BaseRealm<T>> implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -203,8 +199,8 @@ public abstract class BaseRealm<E extends BaseRealm> implements Closeable {
      * @see <a href="">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
-    public Observable<E> observable() {
-        return (Observable<E>) configuration.getRxFactory().from(this);
+    public Observable<T> observable() {
+        return (Observable<T>) configuration.getRxFactory().from(this);
     }
 
     /**
