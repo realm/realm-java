@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import rx.functions.Action1;
+import rx.functions.Func1;
 
 public class RxJavaTests extends AndroidTestCase {
 
@@ -31,7 +32,7 @@ public class RxJavaTests extends AndroidTestCase {
         realm.commitTransaction();
 
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        obj.observable(AllTypes.class).subscribe(new Action1<AllTypes>() {
+        obj.observable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 assertTrue(rxObject == obj);
@@ -74,7 +75,7 @@ public class RxJavaTests extends AndroidTestCase {
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        obj.observable(AllTypes.class).subscribe(new Action1<AllTypes>() {
+        obj.observable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 subscriberCalled.addAndGet(1);

@@ -79,7 +79,7 @@ import rx.Observable;
  */
 
 @RealmClass
-public abstract class RealmObject {
+public abstract class RealmObject<E extends RealmObject> {
 
     protected Row row;
     protected BaseRealm realm;
@@ -254,11 +254,7 @@ public abstract class RealmObject {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="">RxJava and Realm</a>
      */
-    @SuppressWarnings("unchecked")
-    public <E extends RealmObject> Observable<E> observable(Class<E> type) {
-        if (!this.getClass().isInstance(type)) {
-            throw new IllegalArgumentException("This RealmObject cannot be cast to the desired type:" + type);
-        }
+    public Observable<E> observable() {
         return realm.configuration.getRxFactory().from((E) this);
     }
 
