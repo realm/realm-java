@@ -49,7 +49,7 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
-public abstract class BaseRealm<T extends BaseRealm<T>> implements Closeable {
+public abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -191,17 +191,14 @@ public abstract class BaseRealm<T extends BaseRealm<T>> implements Closeable {
     }
 
     /**
-     * Returns an Rx Observable that monitors changes to this realm. It will output the last state when
+     * Returns an Rx Observable that monitors changes to this Realm. It will output the last state when
      * subscribed to.
      *
      * @return RxJava Observable
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="">RxJava and Realm</a>
      */
-    @SuppressWarnings("unchecked")
-    public Observable<T> observable() {
-        return (Observable<T>) configuration.getRxFactory().from(this);
-    }
+    public abstract Observable observable();
 
     /**
      * Removes all user-defined change listeners.

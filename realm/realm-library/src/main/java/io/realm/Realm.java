@@ -54,6 +54,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableView;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -106,7 +107,7 @@ import io.realm.internal.log.RealmLog;
  * @see <a href="http://en.wikipedia.org/wiki/ACID">ACID</a>
  * @see <a href="https://github.com/realm/realm-java/tree/master/examples">Examples using Realm</a>
  */
-public final class Realm extends BaseRealm<Realm> {
+public final class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
 
@@ -128,6 +129,14 @@ public final class Realm extends BaseRealm<Realm> {
      */
     Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Observable<Realm> observable() {
+        return configuration.getRxFactory().from(this);
     }
 
     @Override
