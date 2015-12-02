@@ -61,6 +61,18 @@ publishing {
                 root.appendNode('name', 'realm-android-library')
                 root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
                 root.appendNode('url', 'http://realm.io')
+
+                def repositoriesNode = root.appendNode('repositories')
+                def repositoryNode = repositoriesNode.appendNode('repository')
+                repositoryNode.appendNode('id', 'jitpack.io')
+                repositoryNode.appendNode('url', 'https://jitpack.io')
+
+                def dependenciesNode = root.appendNode('dependencies')
+                def dependencyNode = dependenciesNode.appendNode('dependency')
+                dependencyNode.appendNode('groupId', 'com.github.KeepSafe')
+                dependencyNode.appendNode('artifactId', 'ReLinker')
+                dependencyNode.appendNode('version', '1.1')
+
                 root.children().last() + commonPom
             }
         }
