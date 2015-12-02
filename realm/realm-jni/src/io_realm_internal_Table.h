@@ -805,6 +805,15 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_Table_nativeRowToString
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
   (JNIEnv *, jobject, jlong, jlong);
 
+/*
+ * Class:     io_realm_internal_Table
+ * Method:    nativeVersion
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
+        JNIEnv*, jobject, jlong);
+
+
 #ifdef __cplusplus
 }
 #endif

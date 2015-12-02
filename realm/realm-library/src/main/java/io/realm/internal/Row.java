@@ -119,27 +119,27 @@ public interface Row {
     boolean hasColumn(String fieldName);
 
     Row EMPTY_ROW = new Row() {
-        private final static String UNLOADED_ROW_MESSAGE = "Can't modify an row that hasn't been loaded, make sure the instance" +
+        private final static String UNLOADED_ROW_MESSAGE = "Can't access a row that hasn't been loaded, make sure the instance" +
                 " is loaded by calling RealmObject.isLoaded";
 
         @Override
         public long getColumnCount() {
-            return 0;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public String getColumnName(long columnIndex) {
-            return null;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public long getColumnIndex(String columnName) {
-            return 0;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public RealmFieldType getColumnType(long columnIndex) {
-            return null;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
@@ -149,57 +149,57 @@ public interface Row {
 
         @Override
         public long getIndex() {
-            return 0;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public long getLong(long columnIndex) {
-            return 0;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public boolean getBoolean(long columnIndex) {
-            return false;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public float getFloat(long columnIndex) {
-            return 0;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public double getDouble(long columnIndex) {
-            return 0;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public Date getDate(long columnIndex) {
-            return null;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public String getString(long columnIndex) {
-            return "";
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public byte[] getBinaryByteArray(long columnIndex) {
-            return new byte[0];
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public Mixed getMixed(long columnIndex) {
-            return null;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public RealmFieldType getMixedType(long columnIndex) {
-            return null;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
         public long getLink(long columnIndex) {
-            return 0;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
@@ -219,7 +219,7 @@ public interface Row {
 
         @Override
         public LinkView getLinkList(long columnIndex) {
-            return null;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
 
         @Override
@@ -279,7 +279,7 @@ public interface Row {
 
         @Override
         public boolean hasColumn(String fieldName) {
-            return false;
+            throw new IllegalStateException(UNLOADED_ROW_MESSAGE);
         }
     };
 }

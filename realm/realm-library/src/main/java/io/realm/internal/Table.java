@@ -21,9 +21,9 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.RealmFieldType;
-import io.realm.exceptions.RealmPrimaryKeyConstraintException;
-import io.realm.exceptions.RealmException;
 import io.realm.Sort;
+import io.realm.exceptions.RealmException;
+import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 
 /**
@@ -1555,7 +1555,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeHasSameSchema(this.nativePtr, table.nativePtr);
     }
 
-    protected native boolean nativeHasSameSchema(long thisTable, long otherTable);
+    private native boolean nativeHasSameSchema(long thisTable, long otherTable);
 
     /**
      * Checks if a given table name is a meta-table, i.e. a table used by Realm to track its internal state.
@@ -1563,4 +1563,17 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public static boolean isMetaTable(String tableName) {
         return (tableName.equals(METADATA_TABLE_NAME) || tableName.equals(PRIMARY_KEY_TABLE_NAME));
     }
+
+    /**
+     * Report the current versioning counter for the table. The versioning counter is guaranteed to
+     * change when the contents of the table changes after advance_read() or promote_to_write(), or
+     * immediately after calls to methods which change the table.
+     *
+     * @return version_counter for the table.
+     */
+    public long version() {
+        return nativeVersion(nativePtr);
+    }
+
+    private native long nativeVersion(long nativeTablePtr);
 }

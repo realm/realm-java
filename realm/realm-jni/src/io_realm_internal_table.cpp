@@ -1693,3 +1693,20 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
 {
     return *TBL(thisTablePtr)->get_descriptor() == *TBL(otherTablePtr)->get_descriptor();
 }
+
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
+        JNIEnv* env, jobject, jlong nativeTablePtr)
+{
+    bool valid = (TBL(nativeTablePtr) != NULL);
+    if (valid) {
+        if (!TBL(nativeTablePtr)->is_attached()) {
+            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            return 0;
+        }
+    }
+    try {
+        return (jlong) TBL(nativeTablePtr)->get_version_counter();
+    } CATCH_STD()
+    return 0;
+}

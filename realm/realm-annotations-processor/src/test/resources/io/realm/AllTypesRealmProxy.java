@@ -74,10 +74,8 @@ public class AllTypesRealmProxy extends AllTypes
 
     private final AllTypesColumnInfo columnInfo;
     private RealmList<AllTypes> columnRealmListRealmList;
-    private static RealmList<AllTypes> EMPTY_REALM_LIST_COLUMNREALMLIST;
     private static final List<String> FIELD_NAMES;
     static {
-        EMPTY_REALM_LIST_COLUMNREALMLIST = new RealmList<AllTypes>();
         List<String> fieldNames = new ArrayList<String>();
         fieldNames.add("columnString");
         fieldNames.add("columnLong");
@@ -228,14 +226,8 @@ public class AllTypesRealmProxy extends AllTypes
             return columnRealmListRealmList;
         } else {
             LinkView linkView = row.getLinkList(columnInfo.columnRealmListIndex);
-            if (linkView == null) {
-                // return empty non managed RealmList if the LinkView is null
-                // useful for non-initialized RealmObject (async query returns empty Row while the query is still running)
-                return EMPTY_REALM_LIST_COLUMNREALMLIST;
-            } else {
-                columnRealmListRealmList = new RealmList<AllTypes>(AllTypes.class, linkView, realm);
-                return columnRealmListRealmList;
-            }
+            columnRealmListRealmList = new RealmList<AllTypes>(AllTypes.class, linkView, realm);
+            return columnRealmListRealmList;
         }
     }
 

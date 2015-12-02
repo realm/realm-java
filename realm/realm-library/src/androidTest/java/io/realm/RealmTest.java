@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
@@ -2015,6 +2016,7 @@ public class RealmTest extends AndroidTestCase {
     public void testProcessLocalListenersAfterRefresh() throws InterruptedException {
         // Used to validate the result
         final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
+        final AtomicBoolean typeListenerWasCalled = new AtomicBoolean(false);
 
         // Used by the background thread to wait for the main thread to do the write operation
         final CountDownLatch bgThreadLatch = new CountDownLatch(1);
@@ -2023,7 +2025,14 @@ public class RealmTest extends AndroidTestCase {
         Thread backgroundThread = new Thread() {
             @Override
             public void run() {
+                // this will allow to register a listener.
+                // we don't start looping to prevent the callback to be invoked via
+                // the handler mechanism, the purpose of this test is to make sure refresh calls
+                // the listeners.
+                Looper.prepare();
+
                 Realm bgRealm = Realm.getInstance(testConfig);
+                RealmResults<Dog> dogs = bgRealm.where(Dog.class).findAll();
                 try {
                     bgRealm.addChangeListener(new RealmChangeListener() {
                         @Override
@@ -2031,9 +2040,17 @@ public class RealmTest extends AndroidTestCase {
                             listenerWasCalled.set(true);
                         }
                         });
+                    dogs.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            typeListenerWasCalled.set(true);
+                        }
+                    });
+
                     bgThreadLatch.await(); // Wait for the main thread to do a write operation
                     bgRealm.refresh(); // This should call the listener
                     assertTrue(listenerWasCalled.get());
+                    assertTrue(typeListenerWasCalled.get());
                 } catch (InterruptedException e) {
                     fail();
                 } finally {

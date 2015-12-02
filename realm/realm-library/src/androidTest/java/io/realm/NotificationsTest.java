@@ -104,8 +104,8 @@ public class NotificationsTest extends AndroidTestCase {
                 new TestHelper.ExpectedCountCallback(this, 0));
     }
 
-    public void testRemoveNotifications () throws InterruptedException, ExecutionException {
-        final AtomicInteger counter= new AtomicInteger(0);
+    public void testRemoveNotifications() throws InterruptedException, ExecutionException {
+        final AtomicInteger counter = new AtomicInteger(0);
         RealmChangeListener listener = new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -125,7 +125,7 @@ public class NotificationsTest extends AndroidTestCase {
     }
 
     public void testAddDuplicatedListener() {
-        final AtomicInteger counter= new AtomicInteger(0);
+        final AtomicInteger counter = new AtomicInteger(0);
         RealmChangeListener listener = new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -479,11 +479,11 @@ public class NotificationsTest extends AndroidTestCase {
                 counter.incrementAndGet();
             }
         };
-        realm.addChangeListenerAsWeakReference(listener);
+        realm.handlerController.addChangeListenerAsWeakReference(listener);
 
         // There is no guaranteed way to release the WeakReference,
         // just clear it.
-        for (WeakReference<RealmChangeListener> weakRef : realm.getChangeListeners()) {
+        for (WeakReference<RealmChangeListener> weakRef : realm.handlerController.weakChangeListeners) {
             weakRef.clear();
         }
 
@@ -492,7 +492,7 @@ public class NotificationsTest extends AndroidTestCase {
         realm.commitTransaction();
 
         assertEquals(0, counter.get());
-        assertEquals(0, realm.getChangeListeners().size());
+        assertEquals(0, realm.handlerController.weakChangeListeners.size());
     }
 
     // Tests that if the same configuration is used on 2 different Looper threads that each gets its own Handler. This
@@ -599,7 +599,7 @@ public class NotificationsTest extends AndroidTestCase {
         });
 
         // Create a commit on another thread
-        awaitOrThrow(backgroundLooperStartedAndStopped);
+        TestHelper.awaitOrFail(backgroundLooperStartedAndStopped);
         Realm realm = Realm.getInstance(config);
         Logger logger = TestHelper.getFailureLogger(Log.WARN);
         RealmLog.add(logger);
@@ -607,7 +607,7 @@ public class NotificationsTest extends AndroidTestCase {
         realm.beginTransaction();
         realm.commitTransaction(); // If the Handler on the background is notified it will trigger a Log warning.
         mainThreadCommitCompleted.countDown();
-        awaitOrThrow(backgroundThreadStopped);
+        TestHelper.awaitOrFail(backgroundThreadStopped);
 
         realm.close();
         RealmLog.remove(logger);
@@ -640,7 +640,7 @@ public class NotificationsTest extends AndroidTestCase {
                 backgroundThreadReady.countDown();
             }
         });
-        awaitOrThrow(backgroundThreadReady);
+        TestHelper.awaitOrFail(backgroundThreadReady);
         // At this point the background thread started & registered the listener
 
         Realm realm = Realm.getInstance(getContext());
@@ -648,7 +648,7 @@ public class NotificationsTest extends AndroidTestCase {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        awaitOrThrow(numberOfInvocation);
+        TestHelper.awaitOrFail(numberOfInvocation);
         realm.close();
         handlerThread.quit();
         if (assertionFailedErrors[0] != null) {
@@ -690,17 +690,180 @@ public class NotificationsTest extends AndroidTestCase {
             }
         });
 
-        awaitOrThrow(numberOfInvocation);
+        TestHelper.awaitOrFail(numberOfInvocation);
         mainThread.quit();
     }
 
-    private void awaitOrThrow(CountDownLatch latch) {
-        try {
-            if (!latch.await(5, TimeUnit.SECONDS)) {
-                fail("Latch timed out " + latch);
+    // The presence of async RealmResults block any `REALM_CHANGE` notification causing historically the Realm
+    // to advance to the latest version. We make sure in this test that all Realm listeners will be notified
+    // regardless of the presence of an async RealmResults that will delay the `REALM_CHANGE` sometimes
+    public void testAsyncRealmResultsShouldNotBlockBackgroundCommitNotification() throws Throwable {
+        final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
+        final AtomicInteger numberOfAsyncRealmResultsCallbackInvocation = new AtomicInteger(0);
+        final CountDownLatch signalTestFinished = new CountDownLatch(2);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final Realm[] realm = new Realm[1];
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                try {
+                    realm[0] = Realm.getInstance(getContext());
+                    realm[0].addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            RealmResults<Dog> dogs = null; // to keep it as a strong reference
+                            switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
+                                case 1: {
+                                    // first commit
+                                    dogs = realm[0].where(Dog.class).findAllAsync();
+                                    assertTrue(dogs.load());
+                                    dogs.addChangeListener(new RealmChangeListener() {
+                                        @Override
+                                        public void onChange() {
+                                            numberOfAsyncRealmResultsCallbackInvocation.incrementAndGet();
+                                        }
+                                    });
+
+                                    new Thread() {
+                                        @Override
+                                        public void run() {
+                                            Realm realm = Realm.getInstance(getContext());
+                                            realm.beginTransaction();
+                                            realm.createObject(Dog.class);
+                                            realm.commitTransaction();
+                                            realm.close();
+                                            signalTestFinished.countDown();
+                                        }
+                                    }.start();
+                                    break;
+                                }
+                                case 2: {
+                                    // finish test
+                                    signalTestFinished.countDown();
+                                    break;
+                                }
+                            }
+                        }
+                    });
+
+                    realm[0].handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            realm[0].beginTransaction();
+                            realm[0].createObject(Dog.class);
+                            realm[0].commitTransaction();
+                        }
+                    });
+
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalTestFinished.getCount() > 0) {
+                        signalTestFinished.countDown();
+                    }
+                    if (realm.length > 0 && realm[0] != null) {
+                        realm[0].close();
+                    }
+                    signalClosedRealm.countDown();
+                }
             }
-        } catch (InterruptedException e) {
-            fail("Latch was interrupted " + e);
-        }
+        });
+
+        TestHelper.exitOrThrow(executorService, signalTestFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+    }
+
+    // The presence of async RealmResults block any `REALM_CHANGE` notification causing historically the Realm
+    // to advance to the latest version. We make sure in this test that all Realm listeners will be notified
+    // regardless of the presence of an async RealmObject that will delay the `REALM_CHANGE` sometimes
+    public void testAsyncRealmObjectShouldNotBlockBackgroundCommitNotification() throws Throwable {
+        final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
+        final AtomicInteger numberOfAsyncRealmObjectCallbackInvocation = new AtomicInteger(0);
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final Realm[] realm = new Realm[1];
+        final Throwable[] threadAssertionError = new Throwable[1];// to catch both Exception & AssertionError
+        final Looper[] backgroundLooper = new Looper[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                try {
+                    realm[0] = Realm.getInstance(getContext());
+                    realm[0].addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            Dog dog = null; // to keep it as a strong reference
+                            switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
+                                case 1: {
+                                    // first commit
+                                    dog = realm[0].where(Dog.class).findFirstAsync();
+                                    assertTrue(dog.load());
+                                    dog.addChangeListener(new RealmChangeListener() {
+                                        @Override
+                                        public void onChange() {
+                                            numberOfAsyncRealmObjectCallbackInvocation.incrementAndGet();
+                                        }
+                                    });
+
+                                    new Thread() {
+                                        @Override
+                                        public void run() {
+                                            Realm realm = Realm.getInstance(getContext());
+                                            realm.beginTransaction();
+                                            realm.createObject(Dog.class);
+                                            realm.commitTransaction();
+                                            realm.close();
+                                        }
+                                    }.start();
+                                    break;
+                                }
+                                case 2: {
+                                    // finish test
+                                    signalTestFinished.countDown();
+                                    break;
+                                }
+                            }
+                        }
+                    });
+
+                    realm[0].handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            realm[0].beginTransaction();
+                            realm[0].createObject(Dog.class);
+                            realm[0].commitTransaction();
+                        }
+                    });
+
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalTestFinished.getCount() > 0) {
+                        signalTestFinished.countDown();
+                    }
+                    if (realm.length > 0 && realm[0] != null) {
+                        realm[0].close();
+                    }
+                    signalClosedRealm.countDown();
+                }
+            }
+        });
+
+        TestHelper.exitOrThrow(executorService, signalTestFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 }
