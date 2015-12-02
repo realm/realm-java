@@ -54,6 +54,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableView;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -128,6 +129,14 @@ public final class Realm extends BaseRealm {
      */
     Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Observable<Realm> observable() {
+        return configuration.getRxFactory().from(this);
     }
 
     @Override

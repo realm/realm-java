@@ -33,6 +33,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects are not copied from
@@ -820,6 +821,18 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             realm.checkIfValid();
         }
         listeners.clear();
+    }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmResults. It will output the last results when
+     * subscribed to.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="">RxJava and Realm</a>
+     */
+    public Observable<RealmResults<E>> observable() {
+        return realm.configuration.getRxFactory().from(this);
     }
 
     /**

@@ -25,15 +25,12 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.SharedGroupManager;
@@ -44,26 +41,20 @@ import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * Base class for all Realm instances.
  *
  * @see io.realm.Realm
+ * @see io.realm.DynamicRealm
  */
-abstract class BaseRealm implements Closeable {
+public abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
-    private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE = "Cannot refresh inside of a transaction.";
-
-    // Map between all Realm file paths and all known configurations pointing to that file.
-    protected static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
-            new HashMap<String, List<RealmConfiguration>>();
-
-    // Reference count on currently open Realm instances (both normal and dynamic).
-    protected static final Map<String, Integer> globalRealmFileReferenceCounter = new HashMap<String, Integer>();
 
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
@@ -198,6 +189,16 @@ abstract class BaseRealm implements Closeable {
         checkIfValid();
         changeListeners.remove(listener);
     }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this Realm. It will output the last state when
+     * subscribed to.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="">RxJava and Realm</a>
+     */
+    public abstract Observable observable();
 
     /**
      * Removes all user-defined change listeners.

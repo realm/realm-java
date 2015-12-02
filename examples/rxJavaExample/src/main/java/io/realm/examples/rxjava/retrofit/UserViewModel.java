@@ -14,11 +14,29 @@
  * limitations under the License.
  */
 
-package io.realm.examples.kotlin.model
+package io.realm.examples.rxjava.retrofit;
 
-import io.realm.RealmObject
-import io.realm.annotations.RealmClass
+public class UserViewModel {
 
-public open class Dog : RealmObject<Dog>() {
-    public open var name: String? = null
+    private final String username;
+    private final int publicRepos;
+    private final int publicGists;
+
+    public UserViewModel(String username, int publicRepos, int publicGists) {
+        this.username = username;
+        this.publicRepos = publicRepos;
+        this.publicGists = publicGists;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public int getPublicRepos() {
+        return publicRepos;
+    }
+
+    public int getPublicGists() {
+        return publicGists;
+    }
 }

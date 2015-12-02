@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package io.realm.examples.kotlin.model
+package io.realm.examples.rxjava.retrofit;
 
-import io.realm.RealmObject
-import io.realm.annotations.RealmClass
+import retrofit.http.GET;
+import retrofit.http.Path;
+import rx.Observable;
 
-public open class Dog : RealmObject<Dog>() {
-    public open var name: String? = null
+/**
+ * GitHub API definition
+ */
+public interface GithubApi {
+    /**
+     * See https://developer.github.com/v3/users/
+     */
+    @GET("/users/{user}")
+    Observable<GitHubUser> user(@Path("user") String user);
 }

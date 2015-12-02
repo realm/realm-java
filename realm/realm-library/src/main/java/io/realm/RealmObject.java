@@ -21,12 +21,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.RealmClass;
-import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
@@ -79,7 +79,7 @@ import io.realm.internal.log.RealmLog;
  */
 
 @RealmClass
-public abstract class RealmObject {
+public abstract class RealmObject<E extends RealmObject> {
 
     protected Row row;
     protected BaseRealm realm;
@@ -244,6 +244,18 @@ public abstract class RealmObject {
             throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");
         }
         listeners.clear();
+    }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmObject. It will output the object when
+     * subscribed to.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="">RxJava and Realm</a>
+     */
+    public Observable<E> observable() {
+        return realm.configuration.getRxFactory().from((E) this);
     }
 
     /**

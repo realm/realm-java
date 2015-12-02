@@ -21,6 +21,7 @@ import android.os.Looper;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import rx.Observable;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -278,6 +279,14 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         return where(className).distinctAsync(columnIndex);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Observable<DynamicRealm> observable() {
+        return configuration.getRxFactory().from(this);
     }
 
     /**

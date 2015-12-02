@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package io.realm.examples.kotlin.model
+package io.realm.examples.rxjava.retrofit;
 
-import io.realm.RealmObject
-import io.realm.annotations.RealmClass
-
-public open class Dog : RealmObject<Dog>() {
-    public open var name: String? = null
+/**
+ * Model class for GitHub users: https://developer.github.com/v3/users/#get-a-single-user
+ */
+public class GitHubUser {
+    public String name;
+    public String email;
+    public int public_repos;
+    public int public_gists;
 }
