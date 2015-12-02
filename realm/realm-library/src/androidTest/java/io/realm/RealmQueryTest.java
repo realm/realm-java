@@ -1104,10 +1104,9 @@ public class RealmQueryTest extends AndroidTestCase {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
-        // TODO update expected values after core's fix
-        assertEquals((7/(double)3) /* should be 3.5 */, query.average(NullTypes.FIELD_INTEGER_NULL), 0d);
-        assertEquals(3.0 /* should be 4.5 */, query.average(NullTypes.FIELD_FLOAT_NULL), 0f);
-        assertEquals(3.666 /* should be 5.5 */, query.average(NullTypes.FIELD_DOUBLE_NULL), 0.001d);
+        assertEquals(3.5, query.average(NullTypes.FIELD_INTEGER_NULL), 0d);
+        assertEquals(4.5, query.average(NullTypes.FIELD_FLOAT_NULL), 0d);
+        assertEquals(5.5, query.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
     }
 
     // Test sum on empty columns
