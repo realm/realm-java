@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
@@ -908,16 +906,6 @@ public final class Realm extends BaseRealm {
         }
 
         return where(clazz).distinctAsync(columnIndex);
-    }
-
-    /**
-     * Returns change listeners.
-     * For internal testing purpose only.
-     *
-     * @return changeListeners list of this Realm instance.
-     */
-    List<WeakReference<RealmChangeListener>> getChangeListeners() {
-        return weakChangeListeners;
     }
 
     /**

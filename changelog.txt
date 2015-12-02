@@ -1,3 +1,7 @@
+0.87.0
+* BREAKING CHANGE: Realm.addChangeListener, RealmObject.addChangeListener and RealmResults.addChangeListener will throw an IllegalStateException when invoked on a non-Looper thread. This is to prevent registering listeners that will not be invoked.
+* BREAKING CHANGE: trying to access a property on an unloaded RealmObject obtained asynchronously will throw an IllegalStateException
+
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
  * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants have been replaced by Sort.ASCENDING and Sort.DESCENDING enums.

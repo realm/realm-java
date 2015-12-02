@@ -234,7 +234,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testAddField_illegalFieldNameThrows() {
         String[] fieldNames = new String[] { null, "", "foo.bar", TestHelper.getRandomString(65) };
-        for (SchemaFieldType schemaFieldType: SchemaFieldType.values()) {
+        for (SchemaFieldType schemaFieldType : SchemaFieldType.values()) {
             for (String fieldName : fieldNames) {
                 try {
                     switch(schemaFieldType) {
