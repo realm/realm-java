@@ -426,7 +426,7 @@ public class RealmResultsTest extends AndroidTestCase {
         RealmResults<NullTypes> resultList = testRealm.where(NullTypes.class).findAll();
 
         assertEquals(0.5, resultList.average(NullTypes.FIELD_INTEGER_NULL), 0d);
-        assertEquals(1.0, resultList.average(NullTypes.FIELD_FLOAT_NULL), 0f);
+        assertEquals(1.0, resultList.average(NullTypes.FIELD_FLOAT_NULL), 0d);
         assertEquals(1.5, resultList.average(NullTypes.FIELD_DOUBLE_NULL), 0d);
     }
 

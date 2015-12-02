@@ -1051,16 +1051,12 @@ public class RealmTest extends AndroidTestCase {
         final RealmConfiguration configuration = testRealm.getConfiguration();
         testRealm.close();
         testRealm = null;
-        Realm.compactRealm(configuration);
+        assertTrue(Realm.compactRealm(configuration));
         testRealm = Realm.getInstance(configuration);
     }
 
-    public void testCompactRealmFileThrowsIfOpen() throws IOException {
-        try {
-            Realm.compactRealm(TestHelper.createConfiguration(getContext()));
-            fail();
-        } catch (IllegalStateException expected) {
-        }
+    public void testCompactRealmFileFailsIfOpen() throws IOException {
+        assertFalse(Realm.compactRealm(TestHelper.createConfiguration(getContext())));
     }
 
     public void testCompactEncryptedEmptyRealmFile() {

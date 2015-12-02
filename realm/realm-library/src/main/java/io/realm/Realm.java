@@ -1103,12 +1103,14 @@ public final class Realm extends BaseRealm {
      * This method removes this free space and the file size is thereby reduced.
      * Objects within the Realm files are untouched.
      * <p>
-     * The file must be closed before this method is called.<br>
+     * The file must be closed before this method is called, otherwise {@code false} will be returned.<br>
      * The file system should have free space for at least a copy of the Realm file.<br>
      * The Realm file is left untouched if any file operation fails.<br>
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return {@code true} if successful, {@code false} if any file operation failed.
+     * @throws IllegalArgumentException if the realm file is encrypted. Compacting an encrypted Realm file is not
+     * supported yet.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
         return BaseRealm.compactRealm(configuration);
