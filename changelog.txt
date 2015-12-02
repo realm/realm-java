@@ -8,7 +8,10 @@
  * Added new Dynamic API using DynamicRealm and DynamicRealmObject.
  * Added Realm.getSchema() and DynamicRealm.getSchema().
  * Realm.createOrUpdateObjectFromJson() now works correctly if the RealmObject class contains a primary key (#1777).
- * Updated Realm Core to 0.95.1
+ * Realm.compactRealm() doesn't throw an exception if the Realm file is opened. It just returns false instead.
+ * Updated Realm Core to 0.95.3
+   - Fixed a bug where RealmQuery.average(String) returned a wrong value for a nullable Long/Integer/Short/Byte field (#1803).
+   - Fixed a bug where RealmQuery.average(String) wrongly counted the null value for average calculation (#1854).
 
 0.85.1
  * Fixed a bug which could corrupt primary key information when updating from a Realm version <= 0.84.1 (#1775).
