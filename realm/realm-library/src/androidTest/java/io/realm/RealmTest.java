@@ -42,7 +42,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
@@ -1742,6 +1741,56 @@ public class RealmTest extends AndroidTestCase {
         File tmpFile = new File(getContext().getFilesDir(), "tmp");
         tmpFile.delete();
         assertTrue(tmpFile.createNewFile());
+    }
+
+    public void testDeleteRealmFile() throws InterruptedException {
+        File tempDir = new File(getContext().getFilesDir(), "delete_test_dir");
+        if (!tempDir.exists()) {
+            tempDir.mkdir();
+        }
+
+        assertTrue(tempDir.isDirectory());
+
+        // Delete all files in the directory
+        for (File file : tempDir.listFiles()) {
+            file.delete();
+        }
+
+        final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
+
+        final CountDownLatch readyToCloseLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+
+        Realm realm = Realm.getInstance(configuration);
+        // Create another Realm to ensure the log files are generated
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(configuration);
+                try {
+                    readyToCloseLatch.await();
+                } catch (InterruptedException ignored) {
+                }
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        readyToCloseLatch.countDown();
+        realm.close();
+        closedLatch.await();
+
+        // ATTENTION: log, log_a, log_b will be deleted when the other thread close the Realm peacefully. And we force
+        // user to close all Realm instances before deleting. It would be difficult to simulate a case that log files
+        // exist before deletion. Let's keep the case like this for now, we might allow user to delete Realm even there
+        // are instances opened in the future.
+        assertTrue(Realm.deleteRealm(configuration));
+
+        // Directory should be empty now
+        assertEquals(0, tempDir.listFiles().length);
     }
 
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)

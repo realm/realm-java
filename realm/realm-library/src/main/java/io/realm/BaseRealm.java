@@ -555,7 +555,7 @@ abstract class BaseRealm implements Closeable {
     /**
      * Deletes the Realm file defined by the given configuration.
      */
-    protected static boolean deleteRealm(final RealmConfiguration configuration) {
+    static boolean deleteRealm(final RealmConfiguration configuration) {
         final AtomicBoolean realmDeleted = new AtomicBoolean(true);
 
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
@@ -571,8 +571,8 @@ abstract class BaseRealm implements Closeable {
                 String realmFileName = configuration.getRealmFileName();
                 List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
                         new File(realmFolder, realmFileName + ".lock"),
-                        new File(realmFolder, realmFileName + ".lock_a"),
-                        new File(realmFolder, realmFileName + ".lock_b"),
+                        new File(realmFolder, realmFileName + ".log_a"),
+                        new File(realmFolder, realmFileName + ".log_b"),
                         new File(realmFolder, realmFileName + ".log"));
                 for (File fileToDelete : filesToDelete) {
                     if (fileToDelete.exists()) {
