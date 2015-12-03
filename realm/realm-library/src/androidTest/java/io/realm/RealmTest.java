@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
@@ -42,7 +43,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
@@ -1744,6 +1744,56 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(tmpFile.createNewFile());
     }
 
+    public void testDeleteRealmFile() throws InterruptedException {
+        File tempDir = new File(getContext().getFilesDir(), "delete_test_dir");
+        if (!tempDir.exists()) {
+            tempDir.mkdir();
+        }
+
+        assertTrue(tempDir.isDirectory());
+
+        // Delete all files in the directory
+        for (File file : tempDir.listFiles()) {
+            file.delete();
+        }
+
+        final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
+
+        final CountDownLatch readyToCloseLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+
+        Realm realm = Realm.getInstance(configuration);
+        // Create another Realm to ensure the log files are generated
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(configuration);
+                try {
+                    readyToCloseLatch.await();
+                } catch (InterruptedException ignored) {
+                }
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        readyToCloseLatch.countDown();
+        realm.close();
+        closedLatch.await();
+
+        // ATTENTION: log, log_a, log_b will be deleted when the other thread close the Realm peacefully. And we force
+        // user to close all Realm instances before deleting. It would be difficult to simulate a case that log files
+        // exist before deletion. Let's keep the case like this for now, we might allow user to delete Realm even there
+        // are instances opened in the future.
+        assertTrue(Realm.deleteRealm(configuration));
+
+        // Directory should be empty now
+        assertEquals(0, tempDir.listFiles().length);
+    }
+
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)
     public void testMutableMethodsOutsideTransactions() throws JSONException, IOException {
 
@@ -1966,6 +2016,7 @@ public class RealmTest extends AndroidTestCase {
     public void testProcessLocalListenersAfterRefresh() throws InterruptedException {
         // Used to validate the result
         final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
+        final AtomicBoolean typeListenerWasCalled = new AtomicBoolean(false);
 
         // Used by the background thread to wait for the main thread to do the write operation
         final CountDownLatch bgThreadLatch = new CountDownLatch(1);
@@ -1974,7 +2025,14 @@ public class RealmTest extends AndroidTestCase {
         Thread backgroundThread = new Thread() {
             @Override
             public void run() {
+                // this will allow to register a listener.
+                // we don't start looping to prevent the callback to be invoked via
+                // the handler mechanism, the purpose of this test is to make sure refresh calls
+                // the listeners.
+                Looper.prepare();
+
                 Realm bgRealm = Realm.getInstance(testConfig);
+                RealmResults<Dog> dogs = bgRealm.where(Dog.class).findAll();
                 try {
                     bgRealm.addChangeListener(new RealmChangeListener() {
                         @Override
@@ -1982,9 +2040,17 @@ public class RealmTest extends AndroidTestCase {
                             listenerWasCalled.set(true);
                         }
                         });
+                    dogs.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            typeListenerWasCalled.set(true);
+                        }
+                    });
+
                     bgThreadLatch.await(); // Wait for the main thread to do a write operation
                     bgRealm.refresh(); // This should call the listener
                     assertTrue(listenerWasCalled.get());
+                    assertTrue(typeListenerWasCalled.get());
                 } catch (InterruptedException e) {
                     fail();
                 } finally {
