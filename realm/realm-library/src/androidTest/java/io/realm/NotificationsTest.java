@@ -495,6 +495,45 @@ public class NotificationsTest extends AndroidTestCase {
         assertEquals(0, realm.handlerController.weakChangeListeners.size());
     }
 
+
+    // Test that that a WeakReferenceListener can be removed.
+    // This test is not a proper GC test, but just ensures that listeners can be removed from the list of weak listeners
+    // without throwing an exception.
+    public void testRemovingWeakReferenceListener() throws InterruptedException {
+        final AtomicInteger counter = new AtomicInteger(0);
+        realm = Realm.getInstance(getContext());
+        RealmChangeListener listenerA = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                counter.incrementAndGet();
+            }
+        };
+        RealmChangeListener listenerB = new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                counter.incrementAndGet();
+            }
+        };
+        realm.handlerController.addChangeListenerAsWeakReference(listenerA);
+
+        // There is no guaranteed way to release the WeakReference,
+        // just clear it.
+        for (WeakReference<RealmChangeListener> weakRef : realm.handlerController.weakChangeListeners) {
+            weakRef.clear();
+        }
+
+        realm.handlerController.addChangeListenerAsWeakReference(listenerB);
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        assertEquals(1, counter.get());
+        assertEquals(1, realm.handlerController.weakChangeListeners.size());
+    }
+
+
+
     // Tests that if the same configuration is used on 2 different Looper threads that each gets its own Handler. This
     // prevents commitTransaction from accidentally posting messages to Handlers which might reference a closed Realm.
     public void testDoNotUseClosedHandler() throws InterruptedException {
