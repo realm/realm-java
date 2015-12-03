@@ -169,7 +169,7 @@ public abstract class BaseRealm implements Closeable {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="">RxJava and Realm</a>
      */
-    public abstract Observable observable();
+    public abstract Observable asObservable();
 
     /**
      * Removes all user-defined change listeners.

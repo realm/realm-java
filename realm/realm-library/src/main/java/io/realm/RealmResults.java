@@ -836,7 +836,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="">RxJava and Realm</a>
      */
-    public Observable<RealmResults<E>> observable() {
+    public Observable<RealmResults<E>> asObservable() {
         return realm.configuration.getRxFactory().from(this);
     }
 

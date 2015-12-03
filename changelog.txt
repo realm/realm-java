@@ -1,5 +1,7 @@
 0.87.0
  * Added Realm.copyFromRealm() for creating detached copies of Realm objects.
+ * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
+ * Added RealmConfiguration.Builder.rxFactory() and RxObservableFactory for custom RxJava observable factory classes.
 
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.

@@ -32,11 +32,11 @@ import rx.subscriptions.Subscriptions;
 /**
  * Factory class for creating Observables for RxJava (<=1.0.15).
  *
- * @see Realm#observable()
- * @see RealmObject#observable()
- * @see RealmResults#observable()
- * @see DynamicRealm#observable()
- * @see DynamicRealmObject#observable()
+ * @see Realm#asObservable()
+ * @see RealmObject#asObservable()
+ * @see RealmResults#asObservable()
+ * @see DynamicRealm#asObservable()
+ * @see DynamicRealmObject#asObservable()
  */
 public final class RealmObservableFactory implements RxObservableFactory {
 
@@ -52,11 +52,38 @@ public final class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends BaseRealm> Observable<E> from(final E realm) {
+    public Observable<Realm> from(final Realm realm) {
         checkRxJavaAvailable();
-        return Observable.create(new Observable.OnSubscribe<E>() {
+        return Observable.create(new Observable.OnSubscribe<Realm>() {
             @Override
-            public void call(final Subscriber<? super E> subscriber) {
+            public void call(final Subscriber<? super Realm> subscriber) {
+                final RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        subscriber.onNext(realm);
+                    }
+                };
+                realm.addChangeListener(listener);
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        realm.removeChangeListener(listener);
+                    }
+                }));
+
+                // Immediately call onNext with the current value as due to Realms auto-update it will be the latest
+                // value.
+                subscriber.onNext(realm);
+            }
+        });
+    }
+
+    @Override
+    public Observable<DynamicRealm> from(final DynamicRealm realm) {
+        checkRxJavaAvailable();
+        return Observable.create(new Observable.OnSubscribe<DynamicRealm>() {
+            @Override
+            public void call(final Subscriber<? super DynamicRealm> subscriber) {
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {

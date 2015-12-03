@@ -285,7 +285,7 @@ public final class DynamicRealm extends BaseRealm {
      * {@inheritDoc}
      */
     @Override
-    public Observable<DynamicRealm> observable() {
+    public Observable<DynamicRealm> asObservable() {
         return configuration.getRxFactory().from(this);
     }
 

@@ -271,7 +271,7 @@ public abstract class RealmObject<E extends RealmObject> {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="">RxJava and Realm</a>
      */
-    public Observable<E> observable() {
+    public Observable<E> asObservable() {
         return realm.configuration.getRxFactory().from((E) this);
     }
 

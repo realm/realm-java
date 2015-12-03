@@ -130,7 +130,7 @@ public final class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Override
-    public Observable<Realm> observable() {
+    public Observable<Realm> asObservable() {
         return configuration.getRxFactory().from(this);
     }
 
