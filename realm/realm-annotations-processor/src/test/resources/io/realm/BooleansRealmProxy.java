@@ -290,6 +290,31 @@ public class BooleansRealmProxy extends Booleans
         return realmObject;
     }
 
+    public static Booleans createDetachedCopy(Booleans realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
+        if (currentDepth > maxDepth || realmObject == null) {
+            return null;
+        }
+        CacheData<Booleans> cachedObject = (CacheData) cache.get(realmObject);
+        Booleans standaloneObject;
+        if (cachedObject != null) {
+            // Reuse cached object or recreate it because it was encountered at a lower depth.
+            if (currentDepth >= cachedObject.minDepth) {
+                return cachedObject.object;
+            } else {
+                standaloneObject = cachedObject.object;
+                cachedObject.minDepth = currentDepth;
+            }
+        } else {
+            standaloneObject = new Booleans();
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
+        }
+        standaloneObject.setDone(realmObject.isDone());
+        standaloneObject.setReady(realmObject.isReady());
+        standaloneObject.setmCompleted(realmObject.ismCompleted());
+        standaloneObject.setAnotherBoolean(realmObject.getAnotherBoolean());
+        return standaloneObject;
+    }
+
     @Override
     public String toString() {
         if (!isValid()) {
