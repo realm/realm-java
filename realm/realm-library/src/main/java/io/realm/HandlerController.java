@@ -156,7 +156,6 @@ public class HandlerController implements Handler.Callback {
             // Check if Listener already exists
             if (weakListener == listener) {
                 addListener = false;
-                break;
             }
         }
         if (toRemoveList != null) {
