@@ -381,6 +381,34 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    /**
+     * Returns true if the list contains the specified element, when attached to a Realm. This
+     * method will query the native Realm core engine to quickly find the specified element.
+     *
+     * If this list is not attached to a Realm, the default {@link List#contains(Object)}
+     * operation will occur.
+     *
+     * @param object The element whose presence in this list is to be tested.
+     * @return {@code true} if this list contains the specified element, otherwise {@code false}.
+     */
+    @Override
+    public boolean contains(Object object) {
+        boolean contains = false;
+        if (managedMode) {
+            if (object instanceof RealmObject) {
+                RealmObject realmObject = (RealmObject) object;
+                if (realmObject.row == null || !realm.getPath().equals(realmObject.realm.getPath())) {
+                    contains = false;
+                } else {
+                    contains = view.contains(realmObject.row.getIndex());
+                }
+            }
+        } else {
+            contains = nonManagedList.contains(object);
+        }
+        return contains;
+    }
+
     private void checkValidObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
