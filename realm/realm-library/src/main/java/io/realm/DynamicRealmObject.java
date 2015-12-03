@@ -30,6 +30,7 @@ import io.realm.internal.android.JsonUtils;
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
 public final class DynamicRealmObject extends RealmObject {
+    private String className;
 
     /**
      * Creates a dynamic Realm object based on an existing object.
@@ -62,6 +63,10 @@ public final class DynamicRealmObject extends RealmObject {
     DynamicRealmObject(BaseRealm realm, Row row) {
         this.realm = realm;
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
+    }
+
+    DynamicRealmObject(String className) {
+        this.className = className;
     }
 
     /**
@@ -710,5 +715,13 @@ public final class DynamicRealmObject extends RealmObject {
         sb.replace(sb.length() - 2, sb.length(), "");
         sb.append("]");
         return sb.toString();
+    }
+
+    @Override
+    protected Table getTable() {
+        if (className != null) {
+            return realm.schema.getTable(className);
+        }
+        return super.getTable();
     }
 }

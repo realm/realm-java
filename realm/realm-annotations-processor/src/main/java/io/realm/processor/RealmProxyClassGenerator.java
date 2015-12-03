@@ -164,24 +164,15 @@ public class RealmProxyClassGenerator {
 
     private void emitClassFields(JavaWriter writer) throws IOException {
         writer.emitField(columnInfoClassName(), "columnInfo", EnumSet.of(Modifier.PRIVATE, Modifier.FINAL));
-        List<String> emptyRealmListInitializations = new ArrayList<String>();
         for (VariableElement variableElement : metadata.getFields()) {
             if (Utils.isRealmList(variableElement)) {
                 String genericType = Utils.getGenericType(variableElement);
                 writer.emitField("RealmList<" + genericType + ">", variableElement.getSimpleName().toString() + "RealmList", EnumSet.of(Modifier.PRIVATE));
-
-                String emptyRealmListName = "EMPTY_REALM_LIST_" + variableElement.getSimpleName().toString().toUpperCase();
-                writer.emitField("RealmList<" + genericType + ">", emptyRealmListName,
-                        EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
-                emptyRealmListInitializations.add(String.format("%s = new RealmList<%s>()", emptyRealmListName, genericType));
             }
         }
 
         writer.emitField("List<String>", "FIELD_NAMES", EnumSet.of(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL));
         writer.beginInitializer(true);
-        for (String emptyListInitializationStatement : emptyRealmListInitializations) {
-            writer.emitStatement(emptyListInitializationStatement);
-        }
         writer.emitStatement("List<String> fieldNames = new ArrayList<String>()");
         for (VariableElement field : metadata.getFields()) {
             writer.emitStatement("fieldNames.add(\"%s\")", field.getSimpleName().toString());
@@ -307,15 +298,9 @@ public class RealmProxyClassGenerator {
                         writer.emitStatement("return " + fieldName + "RealmList");
                 writer.nextControlFlow("else");
                     writer.emitStatement("LinkView linkView = row.getLinkList(%s)", fieldIndexVariableReference(field));
-                writer.beginControlFlow("if (linkView == null)");
-                writer.emitSingleLineComment("return empty non managed RealmList if the LinkView is null");
-                writer.emitSingleLineComment("useful for non-initialized RealmObject (async query returns empty Row while the query is still running)");
-                    writer.emitStatement("return EMPTY_REALM_LIST_" + fieldName.toUpperCase());
-                writer.nextControlFlow("else");
                     writer.emitStatement(fieldName + "RealmList = new RealmList<%s>(%s.class, linkView, realm)",
                         genericType, genericType);
                     writer.emitStatement("return " + fieldName + "RealmList");
-                writer.endControlFlow();
                 writer.endControlFlow();
 
                 writer.endMethod();
