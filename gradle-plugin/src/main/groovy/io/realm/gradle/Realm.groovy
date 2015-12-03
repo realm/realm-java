@@ -9,6 +9,7 @@ class Realm implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.plugins.apply(AndroidAptPlugin)
+        project.android.registerTransform(new RealmTransformer())
         project.repositories.add(project.getRepositories().jcenter());
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}");
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}");

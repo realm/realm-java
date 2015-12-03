@@ -8,13 +8,8 @@ props.each { key, val ->
 }
 
 repositories {
+    mavenLocal()
     jcenter()
-}
-
-dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    compile 'com.neenbedankt.gradle.plugins:android-apt:1.8'
 }
 
 sourceCompatibility = 1.6
@@ -22,6 +17,15 @@ targetCompatibility = 1.6
 
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim();
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    compile 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    compile 'com.android.tools.build:transform-api:1.5.0'
+    compile 'org.javassist:javassist:3.20.0-GA'
+    compile "io.realm:realm-annotations:${version}"
+}
 
 //for Ant filter
 import org.apache.tools.ant.filters.ReplaceTokens
