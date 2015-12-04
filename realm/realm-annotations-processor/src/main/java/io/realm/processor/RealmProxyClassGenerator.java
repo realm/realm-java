@@ -116,6 +116,7 @@ public class RealmProxyClassGenerator {
         emitCreateUsingJsonStream(writer);
         emitCopyOrUpdateMethod(writer);
         emitCopyMethod(writer);
+        emitCreateDetachedCopyMethod(writer);
         emitUpdateMethod(writer);
         emitToStringMethod(writer);
         emitHashcodeMethod(writer);
@@ -679,6 +680,70 @@ public class RealmProxyClassGenerator {
         }
 
         writer.emitStatement("return realmObject");
+        writer.endMethod();
+        writer.emitEmptyLine();
+    }
+
+    private void emitCreateDetachedCopyMethod(JavaWriter writer) throws IOException {
+        writer.beginMethod(
+                className, // Return type
+                "createDetachedCopy", // Method name
+                EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
+                className, "realmObject", "int", "currentDepth", "int", "maxDepth", "Map<RealmObject, CacheData<RealmObject>>", "cache");
+        writer
+            .beginControlFlow("if (currentDepth > maxDepth || realmObject == null)")
+                .emitStatement("return null")
+            .endControlFlow()
+            .emitStatement("CacheData<%s> cachedObject = (CacheData) cache.get(realmObject)", className)
+            .emitStatement("%s standaloneObject", className)
+            .beginControlFlow("if (cachedObject != null)")
+                .emitSingleLineComment("Reuse cached object or recreate it because it was encountered at a lower depth.")
+                .beginControlFlow("if (currentDepth >= cachedObject.minDepth)")
+                    .emitStatement("return cachedObject.object")
+                .nextControlFlow("else")
+                    .emitStatement("standaloneObject = cachedObject.object")
+                    .emitStatement("cachedObject.minDepth = currentDepth")
+                .endControlFlow()
+            .nextControlFlow("else")
+                .emitStatement("standaloneObject = new %s()", className)
+                .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject))")
+            .endControlFlow();
+
+        for (VariableElement field : metadata.getFields()) {
+            String fieldName = field.getSimpleName().toString();
+            String setter = metadata.getSetter(fieldName);
+            String getter = metadata.getGetter(fieldName);
+
+            if (Utils.isRealmObject(field)) {
+                writer
+                    .emitEmptyLine()
+                    .emitSingleLineComment("Deep copy of %s", fieldName)
+                    .emitStatement("standaloneObject.%s(%s.createDetachedCopy(realmObject.%s(), currentDepth + 1, maxDepth, cache))",
+                                setter, Utils.getProxyClassSimpleName(field), getter);
+            } else if (Utils.isRealmList(field)) {
+                writer
+                    .emitEmptyLine()
+                    .emitSingleLineComment("Deep copy of %s", fieldName)
+                    .beginControlFlow("if (currentDepth == maxDepth)")
+                        .emitStatement("standaloneObject.%s(null)", setter)
+                    .nextControlFlow("else")
+                        .emitStatement("RealmList<%s> managed%sList = realmObject.%s()", Utils.getGenericType(field), fieldName, getter)
+                        .emitStatement("RealmList<%1$s> standalone%2$sList = new RealmList<%1$s>()", Utils.getGenericType(field), fieldName)
+                        .emitStatement("standaloneObject.%s(standalone%sList)", setter, fieldName)
+                        .emitStatement("int nextDepth = currentDepth + 1")
+                        .emitStatement("int size = managed%sList.size()", fieldName)
+                        .beginControlFlow("for (int i = 0; i < size; i++)")
+                            .emitStatement("%s item = %s.createDetachedCopy(managed%sList.get(i), nextDepth, maxDepth, cache)",
+                                    Utils.getGenericType(field), Utils.getProxyClassSimpleName(field), fieldName)
+                            .emitStatement("standalone%sList.add(item)", fieldName)
+                        .endControlFlow()
+                    .endControlFlow();
+            } else {
+                writer.emitStatement("standaloneObject.%s(realmObject.%s())", metadata.getSetter(fieldName), getter);
+            }
+        }
+
+        writer.emitStatement("return standaloneObject");
         writer.endMethod();
         writer.emitEmptyLine();
     }

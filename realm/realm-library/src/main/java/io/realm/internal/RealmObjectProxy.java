@@ -16,10 +16,25 @@
 
 package io.realm.internal;
 
+import io.realm.RealmObject;
+
 /**
  * Empty interface making it easy to determine if an object is the generated RealmProxy class or the original class.
  *
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
 public interface RealmObjectProxy {
+
+    /**
+     * Tuple class for saving meta data about a cached RealmObject.
+     */
+    class CacheData<E extends RealmObject> {
+        public int minDepth;
+        public final E object;
+
+        public CacheData(int minDepth, E object) {
+            this.minDepth = minDepth;
+            this.object = object;
+        }
+    }
 }

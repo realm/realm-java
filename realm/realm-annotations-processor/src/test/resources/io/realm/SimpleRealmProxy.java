@@ -208,6 +208,29 @@ public class SimpleRealmProxy extends Simple
         return realmObject;
     }
 
+    public static Simple createDetachedCopy(Simple realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
+        if (currentDepth > maxDepth || realmObject == null) {
+            return null;
+        }
+        CacheData<Simple> cachedObject = (CacheData) cache.get(realmObject);
+        Simple standaloneObject;
+        if (cachedObject != null) {
+            // Reuse cached object or recreate it because it was encountered at a lower depth.
+            if (currentDepth >= cachedObject.minDepth) {
+                return cachedObject.object;
+            } else {
+                standaloneObject = cachedObject.object;
+                cachedObject.minDepth = currentDepth;
+            }
+        } else {
+            standaloneObject = new Simple();
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
+        }
+        standaloneObject.setName(realmObject.getName());
+        standaloneObject.setAge(realmObject.getAge());
+        return standaloneObject;
+    }
+
     @Override
     public String toString() {
         if (!isValid()) {
