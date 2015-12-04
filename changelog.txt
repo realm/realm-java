@@ -1,5 +1,6 @@
 0.87.0
  * Added Realm.copyFromRealm() for creating detached copies of Realm objects.
+ * Added RealmObjectSchema.getFieldType()
  * Added unitTestExample to showcase unit and instrumentation tests. Examples include jUnit3, jUnit4, Espresso, Robolectric, and MPowermock usage with Realm (#1440).
 
 0.86.0

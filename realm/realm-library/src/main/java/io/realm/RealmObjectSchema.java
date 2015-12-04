@@ -599,6 +599,16 @@ public final class RealmObjectSchema {
     }
 
     /**
+     * Returns the type used by the underlying storage engine to represent this field.
+     *
+     * @return the underlying type used by Realm to represent this field.
+     */
+    public RealmFieldType getFieldType(String fieldName) {
+        long columnIndex = getColumnIndex(fieldName);
+        return table.getColumnType(columnIndex);
+    }
+
+    /**
      * Function interface, used when traversing all objects of the current class and apply a function on each.
      *
      * @see #transform(Function)
