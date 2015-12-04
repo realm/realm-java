@@ -67,6 +67,53 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         }
     }
 
+    public void test_callback_on_new_object_sync() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 3) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                realm.beginTransaction();
+                final Dog akamaru = realm.createObject(Dog.class);
+                akamaru.setName("Akamaru");
+                realm.commitTransaction();
+
+                akamaru.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals("Akamaru", akamaru.getName());
+                        typebasedCommitInvocations.incrementAndGet();
+                    }
+                });
+
+                // this commit should not trigger the type based callback
+                // it will re-run the query in the background though
+                realm.beginTransaction();
+                realm.commitTransaction();
+
+                realm.beginTransaction();
+                akamaru.setAge(17);
+                realm.commitTransaction();
+            }
+        });
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
+    }
+
+
     // ********************************************************************************* //
     // UC 1.
     // Callback should be invoked after a relevant commit (one that should impact the
