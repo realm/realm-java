@@ -16,7 +16,6 @@
 
 package io.realm.rx;
 
-import io.realm.BaseRealm;
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
 import io.realm.Realm;
@@ -30,7 +29,7 @@ import rx.functions.Action0;
 import rx.subscriptions.Subscriptions;
 
 /**
- * Factory class for creating Observables for RxJava (<=1.0.15).
+ * Factory class for creating Observables for RxJava (<=1.0.*).
  *
  * @see Realm#asObservable()
  * @see RealmObject#asObservable()

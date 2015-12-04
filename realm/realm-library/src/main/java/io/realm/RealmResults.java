@@ -829,12 +829,12 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Returns an Rx Observable that monitors changes to this RealmResults. It will output the last results when
+     * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
      * subscribed to.
      *
      * @return RxJava Observable
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
-     * @see <a href="">RxJava and Realm</a>
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public Observable<RealmResults<E>> asObservable() {
         return realm.configuration.getRxFactory().from(this);

@@ -148,7 +148,7 @@ public class RealmConfiguration {
     }
 
     /**
-     * Returns the {@link RxObservableFactory} used to create Rx Observables from Realm.
+     * Returns the {@link RxObservableFactory} that is used to create Rx Observables from Realm objects.
      *
      * @return the factory instance used to create Rx Observables.
      */
@@ -437,7 +437,7 @@ public class RealmConfiguration {
         }
 
         /**
-         * Sets the {@link RxObservableFactory} used to create RxObservables from Realm.
+         * Sets the {@link RxObservableFactory} used to create Rx Observables from Realm objects.
          * The default factory is {@link RealmObservableFactory}.
          *
          * @param factory factory to use.

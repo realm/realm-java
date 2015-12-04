@@ -162,12 +162,12 @@ public abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Returns an Rx Observable that monitors changes to this Realm. It will output the last state when
-     * subscribed to.
+     * Returns an Rx Observable that monitors changes to this Realm. It will emit the current state when subscribed
+     * to.
      *
      * @return RxJava Observable
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
-     * @see <a href="">RxJava and Realm</a>
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public abstract Observable asObservable();
 

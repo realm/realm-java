@@ -264,12 +264,12 @@ public abstract class RealmObject<E extends RealmObject> {
     }
 
     /**
-     * Returns an Rx Observable that monitors changes to this RealmObject. It will output the object when
+     * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to.
      *
      * @return RxJava Observable
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
-     * @see <a href="">RxJava and Realm</a>
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public Observable<E> asObservable() {
         return realm.configuration.getRxFactory().from((E) this);

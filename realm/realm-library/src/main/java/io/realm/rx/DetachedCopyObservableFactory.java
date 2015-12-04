@@ -1,6 +1,5 @@
 package io.realm.rx;
 
-import io.realm.BaseRealm;
 import io.realm.DynamicRealm;
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -9,14 +8,14 @@ import io.realm.RealmResults;
 import rx.Observable;
 
 /**
- * Specialized factory class for creating RxJava Observables that create detached deep copies of all Realm objects before
- * emitting them. This is effectively a snapshot of the Realm data at a given point in time.
+ * Specialized factory class for creating RxJava Observables that create detached deep copies of all Realm objects
+ * before emitting them. This is effectively a snapshot of the Realm data at a given point in time.
  *
  * This has the following implications:
  *
  * - Increased memory usage, as all fields including references are copied to the Java heap.
- * - The Realm object is now considered a "standalone" object. Future changes to it are not persisted in Realm, but
- *   the object will no longer automatically update either.
+ * - The Realm object is now considered a "standalone" object. Future changes to it are not persisted in Realm and the
+ *   object will no longer automatically update either.
  * - All guarantees of staying consistent with other data from persisted Realm objects are gone.
  * - The object is no longer thread-confined and can be parsed between threads.
  *

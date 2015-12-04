@@ -219,10 +219,4 @@ public class RxJavaTests extends AndroidTestCase {
         dynamicRealm.close();
     }
 
-
-
-
-
-
-
 }
