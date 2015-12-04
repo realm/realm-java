@@ -24,7 +24,6 @@ public class AnotherAPKService extends Service {
     public void onCreate() {
         super.onCreate();
         if (realm == null) {
-            Realm.enableInterprocessNotification(this, targetPackageName);
             Context extContext;
             try {
                 extContext = createPackageContext(targetPackageName, Context.CONTEXT_IGNORE_SECURITY);
@@ -54,7 +53,6 @@ public class AnotherAPKService extends Service {
         if (realm != null) {
             realm.close();
             realm = null;
-            Realm.disableInterprocessNotification();
         }
     }
 

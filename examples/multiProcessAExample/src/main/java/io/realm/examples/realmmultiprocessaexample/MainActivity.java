@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
             realm.removeChangeListener(listener);
             realm.close();
             realm = null;
-            Realm.disableInterprocessNotification();
         }
     }
 }

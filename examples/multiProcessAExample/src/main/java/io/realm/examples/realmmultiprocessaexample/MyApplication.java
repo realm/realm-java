@@ -10,7 +10,6 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Realm.enableInterprocessNotification(this, null);
         RealmConfiguration configuration = new RealmConfiguration.Builder(this).build();
         Realm.setDefaultConfiguration(configuration);
     }

@@ -42,7 +42,6 @@ public class AnotherProcessService extends Service {
         if (realm != null) {
             realm.close();
             realm = null;
-            Realm.disableInterprocessNotification();
         }
     }
 
