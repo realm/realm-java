@@ -38,7 +38,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.realm:gradle-plugin:<version>-SNAPSHOT"
+        classpath "io.realm:realm-gradle-plugin:<version>-SNAPSHOT"
     }
 }
 
