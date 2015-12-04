@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import rx.Subscription;
 import rx.functions.Action1;
 
 public class RxJavaTests extends AndroidTestCase {
@@ -217,6 +218,20 @@ public class RxJavaTests extends AndroidTestCase {
 
         assertEquals(2, subscriberCalled.get());
         dynamicRealm.close();
+    }
+
+    public void testUnsubscribe() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        Subscription subscription = realm.asObservable().subscribe(new Action1<Realm>() {
+            @Override
+            public void call(Realm rxRealm) {
+                assertTrue(rxRealm == realm);
+                subscribedNotified.set(true);
+            }
+        });
+        assertEquals(1, realm.handlerController.changeListeners.size());
+        subscription.unsubscribe();
+        assertEquals(0, realm.handlerController.changeListeners.size());
     }
 
 }
