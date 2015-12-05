@@ -284,7 +284,7 @@ public class RealmLinkTests extends AndroidTestCase {
         RealmResults<Owner> owners5 = testRealm.where(Owner.class).contains("cat.name", "Blackie").findAll();
         assertEquals(1, owners5.size());
 
-        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", RealmQuery.CASE_INSENSITIVE).findAll();
+        RealmResults<Owner> owners6 = testRealm.where(Owner.class).equalTo("cat.name", "blackIE", Case.INSENSITIVE).findAll();
         assertEquals(1, owners6.size());
     }
 
@@ -455,20 +455,22 @@ public class RealmLinkTests extends AndroidTestCase {
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat..hasTail", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
-
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo(".cat.hasTail", true).findAll();
+            fail("Should throw Exception");
+        } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("cat.hasTail.", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
-
+        } catch (IllegalArgumentException ignored) {
         }
         try {
             RealmResults<Owner> owners = testRealm.where(Owner.class).equalTo("not.there", true).findAll();
             fail("Should throw Exception");
-        } catch (IllegalArgumentException e) {
-
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

@@ -12,12 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package io.realm.internal;
 
 import java.util.Date;
+
+import io.realm.RealmFieldType;
 
 /**
  * Row wrapper that stubs all access with IllegalStateExceptions except for isAttached. This can be used instead of
@@ -43,7 +44,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public ColumnType getColumnType(long columnIndex) {
+    public RealmFieldType getColumnType(long columnIndex) {
         throw getStubException();
     }
 
@@ -98,7 +99,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public ColumnType getMixedType(long columnIndex) {
+    public RealmFieldType getMixedType(long columnIndex) {
         throw getStubException();
     }
 

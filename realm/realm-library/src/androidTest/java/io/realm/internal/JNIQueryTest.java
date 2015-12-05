@@ -21,6 +21,9 @@ import junit.framework.TestCase;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.Case;
+import io.realm.RealmFieldType;
+import io.realm.Sort;
 import io.realm.TestHelper;
 
 public class JNIQueryTest extends TestCase {
@@ -29,8 +32,8 @@ public class JNIQueryTest extends TestCase {
 
     void init() {
         table = new Table();
-        table.addColumn(ColumnType.INTEGER, "number");
-        table.addColumn(ColumnType.STRING, "name");
+        table.addColumn(RealmFieldType.INTEGER, "number");
+        table.addColumn(RealmFieldType.STRING, "name");
 
         table.add(10, "A");
         table.add(11, "B");
@@ -45,7 +48,7 @@ public class JNIQueryTest extends TestCase {
 
         init();
 
-        TableView sortedView = table.getSortedView(0, TableView.Order.descending);
+        TableView sortedView = table.getSortedView(0, Sort.DESCENDING);
 
         TableView result = sortedView.where().findAll();
 
@@ -150,14 +153,14 @@ public class JNIQueryTest extends TestCase {
         try { query.equalTo(new long[]{10}, "a").findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case true
-        try { query.equalTo(new long[]{-1}, "a", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(new long[]{9}, "a", true).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(new long[]{10}, "a", true).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, "a", Case.SENSITIVE).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, "a", Case.SENSITIVE).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{10}, "a", Case.SENSITIVE).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case false
-        try { query.equalTo(new long[]{-1}, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(new long[]{9}, "a", false).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.equalTo(new long[]{10}, "a", false).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{-1}, "a", Case.INSENSITIVE).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{9}, "a", Case.INSENSITIVE).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.equalTo(new long[]{10}, "a", Case.INSENSITIVE).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
     public void testInvalidColumnIndexNotEqualTo() {
@@ -192,14 +195,14 @@ public class JNIQueryTest extends TestCase {
         try { query.notEqualTo(new long[]{10}, "a").findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case true
-        try { query.notEqualTo(new long[]{-1}, "a", true).findAll(); fail("-1column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(new long[]{9}, "a", true).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(new long[]{10}, "a", true).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, "a", Case.SENSITIVE).findAll(); fail("-1column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{9}, "a", Case.SENSITIVE).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{10}, "a", Case.SENSITIVE).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case false
-        try { query.notEqualTo(new long[]{-1}, "a", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(new long[]{9}, "a", false).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.notEqualTo(new long[]{10}, "a", false).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{-1}, "a", Case.INSENSITIVE).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{9}, "a", Case.INSENSITIVE).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.notEqualTo(new long[]{10}, "a", Case.INSENSITIVE).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
 
@@ -347,20 +350,20 @@ public class JNIQueryTest extends TestCase {
         try { query.contains(new long[]{10}, "hey").findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case true
-        try { query.contains(new long[]{-1}, "hey", true).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(new long[]{9}, "hey", true).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(new long[]{10}, "hey", true).findAll(); fail("-0 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey", Case.SENSITIVE).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{9}, "hey", Case.SENSITIVE).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{10}, "hey", Case.SENSITIVE).findAll(); fail("-0 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
 
         // String case false
-        try { query.contains(new long[]{-1}, "hey", false).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(new long[]{9}, "hey", false).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
-        try { query.contains(new long[]{10}, "hey", false).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{-1}, "hey", Case.INSENSITIVE).findAll(); fail("-1 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{9}, "hey", Case.INSENSITIVE).findAll();  fail("9 column index"); }  catch (ArrayIndexOutOfBoundsException e) {}
+        try { query.contains(new long[]{10}, "hey", Case.INSENSITIVE).findAll(); fail("10 column index"); } catch (ArrayIndexOutOfBoundsException e) {}
     }
 
     public void testNullInputQuery() {
         Table t = new Table();
-        t.addColumn(ColumnType.DATE, "dateCol");
-        t.addColumn(ColumnType.STRING, "stringCol");
+        t.addColumn(RealmFieldType.DATE, "dateCol");
+        t.addColumn(RealmFieldType.STRING, "stringCol");
 
         Date nullDate = null;
         try { t.where().equalTo(new long[]{0}, nullDate);               fail("Date is null"); } catch (IllegalArgumentException e) { }
@@ -374,16 +377,16 @@ public class JNIQueryTest extends TestCase {
         try { t.where().between(new long[]{0}, nullDate, nullDate);     fail("Dates are null"); } catch (IllegalArgumentException e) { }
 
         String nullString = null;
-        try { t.where().equalTo(new long[]{1}, nullString);             fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().equalTo(new long[]{1}, nullString, false);      fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().notEqualTo(new long[]{1}, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().notEqualTo(new long[]{1}, nullString, false);   fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().contains(new long[]{1}, nullString);            fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().contains(new long[]{1}, nullString, false);     fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().beginsWith(new long[]{1}, nullString);          fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().beginsWith(new long[]{1}, nullString, false);   fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().endsWith(new long[]{1}, nullString);            fail("String is null"); } catch (IllegalArgumentException e) { }
-        try { t.where().endsWith(new long[]{1}, nullString, false);     fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().equalTo(new long[]{1}, nullString);                         fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().equalTo(new long[]{1}, nullString, Case.INSENSITIVE);       fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().notEqualTo(new long[]{1}, nullString);                      fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().notEqualTo(new long[]{1}, nullString, Case.INSENSITIVE);    fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().contains(new long[]{1}, nullString);                        fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().contains(new long[]{1}, nullString, Case.INSENSITIVE);      fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().beginsWith(new long[]{1}, nullString);                      fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().beginsWith(new long[]{1}, nullString, Case.INSENSITIVE);    fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().endsWith(new long[]{1}, nullString);                        fail("String is null"); } catch (IllegalArgumentException e) { }
+        try { t.where().endsWith(new long[]{1}, nullString, Case.INSENSITIVE);      fail("String is null"); } catch (IllegalArgumentException e) { }
     }
 
 
@@ -392,9 +395,9 @@ public class JNIQueryTest extends TestCase {
         // Create a table
         Table table = new Table();
 
-        table.addColumn(ColumnType.STRING, "username");
-        table.addColumn(ColumnType.INTEGER, "score");
-        table.addColumn(ColumnType.BOOLEAN, "completed");
+        table.addColumn(RealmFieldType.STRING, "username");
+        table.addColumn(RealmFieldType.INTEGER, "score");
+        table.addColumn(RealmFieldType.BOOLEAN, "completed");
 
         // Insert some values
         table.add("Arnold", 420, false);    // 0
@@ -654,9 +657,9 @@ public class JNIQueryTest extends TestCase {
         Table table = new Table();
 
         // Specify the column types and names
-        table.addColumn(ColumnType.STRING, "firstName");
-        table.addColumn(ColumnType.STRING, "lastName");
-        table.addColumn(ColumnType.INTEGER, "salary");
+        table.addColumn(RealmFieldType.STRING, "firstName");
+        table.addColumn(RealmFieldType.STRING, "lastName");
+        table.addColumn(RealmFieldType.INTEGER, "salary");
 
         // Add data to the table
         table.add("John", "Lee", 10000);
@@ -681,9 +684,9 @@ public class JNIQueryTest extends TestCase {
         Table table = new Table();
 
         // Specify the column types and names
-        table.addColumn(ColumnType.STRING, "firstName");
-        table.addColumn(ColumnType.STRING, "lastName");
-        table.addColumn(ColumnType.INTEGER, "salary");
+        table.addColumn(RealmFieldType.STRING, "firstName");
+        table.addColumn(RealmFieldType.STRING, "lastName");
+        table.addColumn(RealmFieldType.INTEGER, "salary");
 
         // Add data to the table
         table.add("John", "Lee", 10000);
@@ -703,14 +706,14 @@ public class JNIQueryTest extends TestCase {
 
     public void testQueryWithSubtable() {
         Table table = new Table();
-        table.addColumn(ColumnType.STRING, "username");
-        table.addColumn(ColumnType.TABLE, "tasks");
-        table.addColumn(ColumnType.STRING, "username2");
+        table.addColumn(RealmFieldType.STRING, "username");
+        table.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "tasks");
+        table.addColumn(RealmFieldType.STRING, "username2");
 
         TableSchema tasks = table.getSubtableSchema(1);
-        tasks.addColumn(ColumnType.STRING, "name");
-        tasks.addColumn(ColumnType.INTEGER, "score");
-        tasks.addColumn(ColumnType.BOOLEAN, "completed");
+        tasks.addColumn(RealmFieldType.STRING, "name");
+        tasks.addColumn(RealmFieldType.INTEGER, "score");
+        tasks.addColumn(RealmFieldType.BOOLEAN, "completed");
 
         // Insert some values
         table.add("Arnold", new Object[][] {{"task1", 120, false},
@@ -729,10 +732,10 @@ public class JNIQueryTest extends TestCase {
 
     public void testQueryWithUnbalancedSubtable() {
         Table table = new Table();
-        table.addColumn(ColumnType.TABLE, "sub");
+        table.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "sub");
 
         TableSchema tasks = table.getSubtableSchema(0);
-        tasks.addColumn(ColumnType.STRING, "name");
+        tasks.addColumn(RealmFieldType.STRING, "name");
 
         try { table.where().subtable(0).count();               assert(false); } catch (UnsupportedOperationException e) {}
         try { table.where().endSubtable().count();             assert(false); } catch (UnsupportedOperationException e) {}
@@ -744,34 +747,32 @@ public class JNIQueryTest extends TestCase {
     public void testMaximumDate() {
 
         Table table = new Table();
-        table.addColumn(ColumnType.DATE, "date");
+        table.addColumn(RealmFieldType.DATE, "date");
 
         table.add(new Date(0));
         table.add(new Date(10000));
         table.add(new Date(1000));
 
         assertEquals(new Date(10000), table.where().maximumDate(0));
-
     }
 
 
     public void testMinimumDate() {
 
         Table table = new Table();
-        table.addColumn(ColumnType.DATE, "date");
+        table.addColumn(RealmFieldType.DATE, "date");
 
         table.add(new Date(10000));
         table.add(new Date(0));
         table.add(new Date(1000));
 
         assertEquals(new Date(0), table.where().minimumDate(0));
-
     }
 
     public void testDateQuery() throws Exception {
 
         Table table = new Table();
-        table.addColumn(ColumnType.DATE, "date");
+        table.addColumn(RealmFieldType.DATE, "date");
 
         final Date past = new Date(TimeUnit.SECONDS.toMillis(Integer.MIN_VALUE - 100L));
         final Date future = new Date(TimeUnit.SECONDS.toMillis(Integer.MAX_VALUE + 1L));

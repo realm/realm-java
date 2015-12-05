@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm.internal;
 
 import junit.framework.Test;
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import io.realm.RealmFieldType;
 import io.realm.internal.test.MixedData;
 
 public class JNIMixedTypeTest extends TestCase {
@@ -33,13 +35,13 @@ public class JNIMixedTypeTest extends TestCase {
 
     public static Collection<Object[]> parameters() {
         //Adding MixedData to the list
-        mixedDataList.add(0, new MixedData(ColumnType.INTEGER, 123L));
-        mixedDataList.add(1, new MixedData(ColumnType.FLOAT, 987.123f));
-        mixedDataList.add(2, new MixedData(ColumnType.DOUBLE, 1234567.898d));
-        mixedDataList.add(3, new MixedData(ColumnType.BOOLEAN, true));
-        mixedDataList.add(4, new MixedData(ColumnType.STRING, "abc"));
-        mixedDataList.add(5, new MixedData(ColumnType.BINARY, new byte[]{1, 2, 3, 4, 5}));
-        mixedDataList.add(6, new MixedData(ColumnType.DATE, new Date(645342)));
+        mixedDataList.add(0, new MixedData(RealmFieldType.INTEGER, 123L));
+        mixedDataList.add(1, new MixedData(RealmFieldType.FLOAT, 987.123f));
+        mixedDataList.add(2, new MixedData(RealmFieldType.DOUBLE, 1234567.898d));
+        mixedDataList.add(3, new MixedData(RealmFieldType.BOOLEAN, true));
+        mixedDataList.add(4, new MixedData(RealmFieldType.STRING, "abc"));
+        mixedDataList.add(5, new MixedData(RealmFieldType.BINARY, new byte[]{1, 2, 3, 4, 5}));
+        mixedDataList.add(6, new MixedData(RealmFieldType.DATE, new Date(645342)));
 
         return Arrays.asList(
                 new Object[]{mixedDataList},
@@ -70,7 +72,7 @@ public class JNIMixedTypeTest extends TestCase {
 
     public void testShouldFailOnWrongTypeRetrieval() {
         for (int i = 0; i < mixedDataList.size(); i++) {
-            Object value = mixedDataList.get(i).type != ColumnType.STRING ? "abc" : 123;
+            Object value = mixedDataList.get(i).type != RealmFieldType.STRING ? "abc" : 123;
             Mixed mixed = Mixed.mixedValue(value);
 
             switch (mixedDataList.get(i).type) {
@@ -136,7 +138,7 @@ public class JNIMixedTypeTest extends TestCase {
                 for (int k = 0; k < mixedDataList.size(); k++) {
 
                     Table table = new Table();
-                    table.addColumn(ColumnType.MIXED, "mix");
+                    table.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mix");
 
                     table.add(mixedDataList.get(i).value);
 
@@ -155,12 +157,12 @@ public class JNIMixedTypeTest extends TestCase {
         }
     }
 
-    private void checkMixedCell(Table table, long col, long row, ColumnType columnType, Object value) throws IllegalMixedTypeException {
-        ColumnType mixedType = table.getMixedType(col, row);
+    private void checkMixedCell(Table table, long col, long row, RealmFieldType columnType, Object value) throws IllegalMixedTypeException {
+        RealmFieldType mixedType = table.getMixedType(col, row);
         assertEquals(columnType, mixedType);
 
         Mixed mixed = table.getMixed(col, row);
-        if (columnType == ColumnType.BINARY) {
+        if (columnType == RealmFieldType.BINARY) {
             if (mixed.getBinaryType() == Mixed.BINARY_TYPE_BYTE_ARRAY) {
                 // NOTE: We never get here because we always "get" a ByteBuffer.
                 assertEquals(Mixed.mixedValue(value), mixed);

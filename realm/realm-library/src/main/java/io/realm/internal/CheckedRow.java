@@ -12,10 +12,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package io.realm.internal;
+
+import io.realm.RealmFieldType;
 
 /**
  * Checked wrapper for Row data in Realm Core. All methods called through this will check that input parameters are
@@ -51,7 +52,8 @@ public class CheckedRow extends UncheckedRow {
     public static CheckedRow get(Context context, Table table, long index) {
         long nativeRowPointer = table.nativeGetRowPtr(table.nativePtr, index);
         CheckedRow row = new CheckedRow(context, table, nativeRowPointer);
-        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), context.ROW_REFERENCES_VALUE);
+        context.rowReferences.put(new UncheckedRowNativeObjectReference(row, context.referenceQueue),
+                Context.NATIVE_REFERENCES_VALUE);
         return row;
     }
 
@@ -64,9 +66,11 @@ public class CheckedRow extends UncheckedRow {
      * @return a checked instance of {@link Row} for the {@link LinkView} and index specified.
      */
     public static CheckedRow get(Context context, LinkView linkView, long index) {
-        long nativeRowPointer = linkView.nativeGetRow(linkView.nativeLinkViewPtr, index);
-        CheckedRow row = new CheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent), nativeRowPointer);
-        context.rowReferences.put(new NativeObjectReference(row, context.referenceQueue), context.ROW_REFERENCES_VALUE);
+        long nativeRowPointer = linkView.nativeGetRow(linkView.nativePointer, index);
+        CheckedRow row = new CheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent),
+                nativeRowPointer);
+        context.rowReferences.put(new UncheckedRowNativeObjectReference(row, context.referenceQueue),
+                Context.NATIVE_REFERENCES_VALUE);
         return row;
     }
 
@@ -81,8 +85,8 @@ public class CheckedRow extends UncheckedRow {
 
     @Override
     public boolean isNullLink(long columnIndex) {
-        ColumnType columnType = getColumnType(columnIndex);
-        if (columnType == ColumnType.LINK || columnType == ColumnType.LINK_LIST) {
+        RealmFieldType columnType = getColumnType(columnIndex);
+        if (columnType == RealmFieldType.OBJECT || columnType == RealmFieldType.LIST) {
             return super.isNullLink(columnIndex);
         } else {
             return false; // Unsupported types always return false
@@ -91,17 +95,16 @@ public class CheckedRow extends UncheckedRow {
 
     @Override
     public boolean isNull(long columnIndex) {
-        ColumnType columnType = getColumnType(columnIndex);
         return super.isNull(columnIndex);
     }
 
     @Override
     public void setNull(long columnIndex) {
-        ColumnType columnType = getColumnType(columnIndex);
-        if (columnType == ColumnType.STRING) {
+        RealmFieldType columnType = getColumnType(columnIndex);
+        if (columnType == RealmFieldType.STRING) {
             super.setString(columnIndex, null);
         }
-        else if (columnType == ColumnType.BINARY) {
+        else if (columnType == RealmFieldType.BINARY) {
             super.setBinaryByteArray(columnIndex, null);
         }
         else {
@@ -138,5 +141,4 @@ public class CheckedRow extends UncheckedRow {
     protected native void nativeSetMixed(long nativeRowPtr, long columnIndex, Mixed data);
     protected native void nativeSetLink(long nativeRowPtr, long columnIndex, long value);
     protected native void nativeNullifyLink(long nativeRowPtr, long columnIndex);
-    protected native boolean nativeIsNull(long nativeRowPtr, long columnIndex);
 }

@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import junit.framework.TestCase;
 
+import io.realm.RealmFieldType;
 import io.realm.internal.TableOrView.PivotType;
 
 public class PivotTest extends TestCase {
@@ -29,9 +30,9 @@ public class PivotTest extends TestCase {
     
     @Override
     public void setUp(){
-        colIndexSex = t.addColumn(ColumnType.STRING, "sex");
-        colIndexAge = t.addColumn(ColumnType.INTEGER, "age");
-        colIndexHired = t.addColumn(ColumnType.BOOLEAN, "hired");
+        colIndexSex = t.addColumn(RealmFieldType.STRING, "sex");
+        colIndexAge = t.addColumn(RealmFieldType.INTEGER, "age");
+        colIndexHired = t.addColumn(RealmFieldType.BOOLEAN, "hired");
         
         for (long i=0;i<50000;i++){
             String sex = i % 2 == 0 ? "Male" : "Female";

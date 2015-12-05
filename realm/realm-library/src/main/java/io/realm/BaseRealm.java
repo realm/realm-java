@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package io.realm;
@@ -30,16 +29,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-import io.realm.exceptions.RealmEncryptionNotSupportedException;
 import io.realm.exceptions.RealmMigrationNeededException;
-import io.realm.internal.ColumnType;
-import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.SharedGroup;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
+import io.realm.internal.TableView;
+import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
@@ -56,6 +56,7 @@ abstract class BaseRealm implements Closeable {
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
     private static final String CLOSED_REALM_MESSAGE = "This Realm instance has already been closed, making it unusable.";
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
+    private static final String CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE = "Cannot refresh inside of a transaction.";
 
     // Map between all Realm file paths and all known configurations pointing to that file.
     protected static final Map<String, List<RealmConfiguration>> globalPathConfigurationCache =
@@ -67,16 +68,24 @@ abstract class BaseRealm implements Closeable {
     // Map between a Handler and the canonical path to a Realm file
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
-    // thread pool for all async operations (Query & transaction)
+    // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
 
-    protected final List<WeakReference<RealmChangeListener>> changeListeners =
+    // Keep a strong reference to the registered RealmChangeListener
+    // user should unregister those listeners
+    protected final CopyOnWriteArrayList<RealmChangeListener> changeListeners =
+            new CopyOnWriteArrayList<RealmChangeListener>();
+
+    // Keep a weak reference to the registered RealmChangeListener those are Weak since
+    // for some UC (ex: RealmBaseAdapter) we don't know when it's the best time to unregister the listener
+    protected final List<WeakReference<RealmChangeListener>> weakChangeListeners =
             new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
 
     protected long threadId;
     protected RealmConfiguration configuration;
     protected SharedGroupManager sharedGroupManager;
     protected boolean autoRefresh;
+    RealmSchema schema;
     Handler handler;
     HandlerController handlerController;
 
@@ -88,6 +97,7 @@ abstract class BaseRealm implements Closeable {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.sharedGroupManager = new SharedGroupManager(configuration);
+        this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
         setAutoRefresh(autoRefresh);
     }
 
@@ -141,24 +151,40 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * The listeners will be executed:
      * <ul>
-     *     <li>Immediately if a change was committed by the local thread</li>
-     *     <li>On every loop of a Handler thread if changes were committed by another thread</li>
-     *     <li>On every call to {@link io.realm.Realm#refresh()}</li>
+     * <li>Immediately if a change was committed by the local thread</li>
+     * <li>On every loop of a Handler thread if changes were committed by another thread</li>
+     * <li>On every call to {@link io.realm.Realm#refresh()}</li>
      * </ul>
+     *
+     * Listeners are stored as a strong reference, you need to remove the added listeners using {@link #removeChangeListener(RealmChangeListener)}
+     * or {@link #removeAllChangeListeners()} which removes all listeners including the ones added via anonymous classes.
      *
      * @param listener the change listener.
      * @see io.realm.RealmChangeListener
+     * @see #removeChangeListener(RealmChangeListener)
+     * @see #removeAllChangeListeners()
      */
     public void addChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        for (WeakReference<RealmChangeListener> ref : changeListeners) {
+        changeListeners.addIfAbsent(listener);
+    }
+
+    /**
+     * For internal use only.
+     * Sometimes we don't know when to unregister listeners (ex: {@link RealmBaseAdapter}). Using
+     * a WeakReference the listener doesn't need to be explicitly unregistered.
+     *
+     * @param listener the change listener.
+     */
+    void addChangeListenerAsWeakReference(RealmChangeListener listener) {
+        for (WeakReference<RealmChangeListener> ref : weakChangeListeners) {
             if (ref.get() == listener) {
                 // It has already been added before
                 return;
             }
         }
 
-        changeListeners.add(new WeakReference<RealmChangeListener>(listener));
+        weakChangeListeners.add(new WeakReference<RealmChangeListener>(listener));
     }
 
     /**
@@ -166,20 +192,22 @@ abstract class BaseRealm implements Closeable {
      *
      * @param listener the change listener to be removed.
      * @see io.realm.RealmChangeListener
+     * @see #addChangeListener(RealmChangeListener)
      */
     public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        WeakReference<RealmChangeListener> weakRefToRemove = null;
-        for (WeakReference<RealmChangeListener> weakRef : changeListeners) {
-            if (listener == weakRef.get()) {
-                weakRefToRemove = weakRef;
-                // There won't be duplicated entries, checking is done when adding
-                break;
-            }
-        }
-        if (weakRefToRemove != null) {
-            changeListeners.remove(weakRefToRemove);
-        }
+        changeListeners.remove(listener);
+    }
+
+    /**
+     * Removes all user-defined change listeners.
+     *
+     * @see io.realm.RealmChangeListener
+     * @see #addChangeListener(RealmChangeListener)
+     */
+    public void removeAllChangeListeners() {
+        checkIfValid();
+        changeListeners.clear();
     }
 
     void setHandler (Handler handler) {
@@ -187,16 +215,6 @@ abstract class BaseRealm implements Closeable {
         handlers.remove(this.handler);
         handlers.put(handler, configuration.getPath());
         this.handler = handler;
-    }
-
-    /**
-     * Removes all user-defined change listeners.
-     *
-     * @see io.realm.RealmChangeListener
-     */
-    public void removeAllChangeListeners() {
-        checkIfValid();
-        changeListeners.clear();
     }
 
     /**
@@ -210,14 +228,21 @@ abstract class BaseRealm implements Closeable {
     }
 
     protected void sendNotifications() {
-        Iterator<WeakReference<RealmChangeListener>> iterator = changeListeners.iterator();
+        // notify strong reference listener
+        Iterator<RealmChangeListener> iteratorStrongListeners = changeListeners.iterator();
+        while (iteratorStrongListeners.hasNext()) {
+            RealmChangeListener listener = iteratorStrongListeners.next();
+            listener.onChange();
+        }
+        // notify weak reference listener (internals)
+        Iterator<WeakReference<RealmChangeListener>> iteratorWeakListeners = weakChangeListeners.iterator();
         List<WeakReference<RealmChangeListener>> toRemoveList = null;
-        while (iterator.hasNext()) {
-            WeakReference<RealmChangeListener> weakRef = iterator.next();
+        while (iteratorWeakListeners.hasNext()) {
+            WeakReference<RealmChangeListener> weakRef = iteratorWeakListeners.next();
             RealmChangeListener listener = weakRef.get();
             if (listener == null) {
                 if (toRemoveList == null) {
-                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(changeListeners.size());
+                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(weakChangeListeners.size());
                 }
                 toRemoveList.add(weakRef);
             } else {
@@ -225,16 +250,8 @@ abstract class BaseRealm implements Closeable {
             }
         }
         if (toRemoveList != null) {
-            changeListeners.removeAll(toRemoveList);
+            weakChangeListeners.removeAll(toRemoveList);
         }
-    }
-
-    /**
-     * Checks if any open Realm instances are still referencing this file.
-     */
-    protected static boolean isFileOpen(RealmConfiguration configuration) {
-        Integer refCount = globalRealmFileReferenceCounter.get(configuration.getPath());
-        return refCount != null && refCount > 0;
     }
 
     /**
@@ -264,7 +281,6 @@ abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
      * @throws java.io.IOException if any write operation fails.
-     * @throws RealmEncryptionNotSupportedException if the device doesn't support Realm encryption.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
         if (destination == null) {
@@ -281,6 +297,9 @@ abstract class BaseRealm implements Closeable {
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
         checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
+        }
         sharedGroupManager.advanceRead();
         sendNotifications();
     }
@@ -391,10 +410,10 @@ abstract class BaseRealm implements Closeable {
      * @return the schema version for the Realm file backing this Realm.
      */
     public long getVersion() {
-        if (!sharedGroupManager.hasTable("metadata")) {
+        if (!sharedGroupManager.hasTable(Table.METADATA_TABLE_NAME)) {
             return UNVERSIONED;
         }
-        Table metadataTable = sharedGroupManager.getTable("metadata");
+        Table metadataTable = sharedGroupManager.getTable(Table.METADATA_TABLE_NAME);
         return metadataTable.getLong(0, 0);
     }
 
@@ -410,26 +429,18 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
         }
 
-        Map<RealmConfiguration, Integer> localRefCount = getLocalReferenceCount();
-        String canonicalPath = configuration.getPath();
-        Integer references = localRefCount.get(configuration);
-        if (references == null) {
-            references = 0;
-        }
-        if (sharedGroupManager != null && references == 1) {
-            lastLocalInstanceClosed();
+        RealmCache.release(this);
+    }
+
+    /**
+     * Closes the Realm instances and all its resources without checking the {@link RealmCache}.
+     */
+    void doClose() {
+        if (sharedGroupManager != null) {
             sharedGroupManager.close();
             sharedGroupManager = null;
-            releaseFileReference(configuration);
         }
-
-        int refCount = references - 1;
-        if (refCount < 0) {
-            RealmLog.w("Calling close() on a Realm that is already closed: " + canonicalPath);
-        }
-        localRefCount.put(configuration, Math.max(0, refCount));
-
-        if (handler != null && refCount <= 0) {
+        if (handler != null) {
             removeHandler();
         }
     }
@@ -457,174 +468,194 @@ abstract class BaseRealm implements Closeable {
         return sharedGroupManager.getTransaction().isObjectTablesEmpty();
     }
 
-    /**
-     * Returns the ThreadLocal reference counter for this Realm.
-     */
-    protected abstract Map<RealmConfiguration,Integer> getLocalReferenceCount();
-
-    /**
-     * Callback when the last ThreadLocal instance of this Realm type has been closed.
-     */
-    protected abstract void lastLocalInstanceClosed();
-
-    /**
-     * Acquires a reference to the given Realm file.
-     */
-    static synchronized void acquireFileReference(RealmConfiguration configuration) {
-        String path = configuration.getPath();
-        Integer refCount = globalRealmFileReferenceCounter.get(path);
-        if (refCount == null) {
-            refCount = 0;
-        }
-        globalRealmFileReferenceCounter.put(path, refCount + 1);
-    }
-
-    /**
-     * Releases a reference to the Realm file. If reference count reaches 0 any cached configurations will be removed.
-     */
-    static synchronized void releaseFileReference(RealmConfiguration configuration) {
-        String canonicalPath = configuration.getPath();
-        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(canonicalPath);
-        pathConfigurationCache.remove(configuration);
-        if (pathConfigurationCache.isEmpty()) {
-            globalPathConfigurationCache.remove(canonicalPath);
-        }
-
-        Integer refCount = globalRealmFileReferenceCounter.get(canonicalPath);
-        if (refCount == null || refCount == 0) {
-            throw new IllegalStateException("Trying to release a Realm file that is already closed");
-        }
-        globalRealmFileReferenceCounter.put(canonicalPath, refCount - 1);
+    boolean hasChanged() {
+        return sharedGroupManager.hasChanged();
     }
 
     // package protected so unit tests can access it
-    protected void setVersion(long version) {
-        Table metadataTable = sharedGroupManager.getTable("metadata");
+    void setVersion(long version) {
+        Table metadataTable = sharedGroupManager.getTable(Table.METADATA_TABLE_NAME);
         if (metadataTable.getColumnCount() == 0) {
-            metadataTable.addColumn(ColumnType.INTEGER, "version");
+            metadataTable.addColumn(RealmFieldType.INTEGER, "version");
             metadataTable.addEmptyRow();
         }
         metadataTable.setLong(0, 0, version);
     }
 
     /**
-     * Makes sure that the new configuration doesn't clash with any existing configurations for the Realm.
-     *
-     * @throws IllegalArgumentException if the new configuration isn't valid.
+     * Sort a table using the given field names and sorting directions. If a field name does not
+     * exist in the table an {@link IllegalArgumentException} will be thrown.
      */
-    protected static synchronized void validateAgainstExistingConfigurations(RealmConfiguration newConfiguration) {
-
-        String realmPath = newConfiguration.getPath();
-        List<RealmConfiguration> pathConfigurationCache = globalPathConfigurationCache.get(realmPath);
-
-        if (pathConfigurationCache != null && pathConfigurationCache.size() > 0) {
-
-            // For the current restrictions, it is enough to just check one of the existing configurations.
-            RealmConfiguration cachedConfiguration = pathConfigurationCache.get(0);
-
-            // Check that encryption keys aren't different
-            if (!Arrays.equals(cachedConfiguration.getEncryptionKey(), newConfiguration.getEncryptionKey())) {
-                throw new IllegalArgumentException(DIFFERENT_KEY_MESSAGE);
+    protected TableView doMultiFieldSort(String[] fieldNames, Sort sortOrders[], Table table) {
+        long columnIndices[] = new long[fieldNames.length];
+        for (int i = 0; i < fieldNames.length; i++) {
+            String fieldName = fieldNames[i];
+            long columnIndex = table.getColumnIndex(fieldName);
+            if (columnIndex == -1) {
+                throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
             }
-
-            // Check schema versions are the same
-            if (cachedConfiguration.getSchemaVersion() != newConfiguration.getSchemaVersion()) {
-                throw new IllegalArgumentException(String.format("Configurations cannot have different schema versions " +
-                                "if used to open the same file. %d vs. %d", cachedConfiguration.getSchemaVersion(),
-                        newConfiguration.getSchemaVersion()));
-            }
-
-            // Check that schema is the same
-            RealmProxyMediator cachedSchema = cachedConfiguration.getSchemaMediator();
-            RealmProxyMediator schema = newConfiguration.getSchemaMediator();
-            if (!cachedSchema.equals(schema)) {
-                throw new IllegalArgumentException("Two configurations with different schemas are trying to open " +
-                        "the same Realm file. Their schema must be the same: " + newConfiguration.getPath());
-            }
-
-            // Check if the durability is the same
-            SharedGroup.Durability cachedDurability = cachedConfiguration.getDurability();
-            SharedGroup.Durability newDurability = newConfiguration.getDurability();
-            if (!cachedDurability.equals(newDurability)) {
-                throw new IllegalArgumentException("A Realm cannot be both in-memory and persisted. Two conflicting " +
-                        "configurations pointing to " + newConfiguration.getPath() + " are being used.");
-            }
+            columnIndices[i] = columnIndex;
         }
+
+        return table.getSortedView(columnIndices, sortOrders);
+    }
+
+    protected void checkAllObjectsSortedParameters(String[] fieldNames, Sort[] sortOrders) {
+        if (fieldNames == null) {
+            throw new IllegalArgumentException("fieldNames must be provided.");
+        } else if (sortOrders == null) {
+            throw new IllegalArgumentException("sortOrders must be provided.");
+        }
+    }
+
+    protected void checkNotNullFieldName(String fieldName) {
+        if (fieldName == null) {
+            throw new IllegalArgumentException("fieldName must be provided.");
+        }
+    }
+
+    /**
+     * Returns the schema for this Realm.
+     *
+     * @return The {@link RealmSchema} for this Realm.
+     */
+    public RealmSchema getSchema() {
+        return schema;
+    }
+
+    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
+        Table table = schema.getTable(clazz);
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        E result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
+        result.row = row;
+        result.realm = this;
+        return result;
+    }
+
+    // Used by RealmList/RealmResults
+    // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
+    <E extends RealmObject> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
+        Table table;
+        E result;
+        if (dynamicClassName != null) {
+            table = schema.getTable(dynamicClassName);
+            @SuppressWarnings("unchecked")
+            E dynamicObj = (E) new DynamicRealmObject();
+            result = dynamicObj;
+        } else {
+            table = schema.getTable(clazz);
+            result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
+        }
+        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        result.row = row;
+        result.realm = this;
+        return result;
     }
 
     /**
      * Deletes the Realm file defined by the given configuration.
      */
-    protected static synchronized boolean deleteRealm(RealmConfiguration configuration) {
-        if (isFileOpen(configuration)) {
-            throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
-                    "Remember to close() all the instances of the Realm before deleting its file.");
-        }
+    protected static boolean deleteRealm(final RealmConfiguration configuration) {
+        final AtomicBoolean realmDeleted = new AtomicBoolean(true);
 
-        boolean realmDeleted = true;
-        String canonicalPath = configuration.getPath();
-        File realmFolder = configuration.getRealmFolder();
-        String realmFileName = configuration.getRealmFileName();
-        List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
-                new File(realmFolder, realmFileName + ".lock"),
-                new File(realmFolder, realmFileName + ".lock_a"),
-                new File(realmFolder, realmFileName + ".lock_b"),
-                new File(realmFolder, realmFileName + ".log"));
-        for (File fileToDelete : filesToDelete) {
-            if (fileToDelete.exists()) {
-                boolean deleteResult = fileToDelete.delete();
-                if (!deleteResult) {
-                    realmDeleted = false;
-                    RealmLog.w("Could not delete the file " + fileToDelete);
+        RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
+            @Override
+            public void onResult(int count) {
+                if (count != 0) {
+                    throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
+                            "Remember to close() all the instances of the Realm before deleting its file.");
+                }
+
+                String canonicalPath = configuration.getPath();
+                File realmFolder = configuration.getRealmFolder();
+                String realmFileName = configuration.getRealmFileName();
+                List<File> filesToDelete = Arrays.asList(new File(canonicalPath),
+                        new File(realmFolder, realmFileName + ".lock"),
+                        new File(realmFolder, realmFileName + ".lock_a"),
+                        new File(realmFolder, realmFileName + ".lock_b"),
+                        new File(realmFolder, realmFileName + ".log"));
+                for (File fileToDelete : filesToDelete) {
+                    if (fileToDelete.exists()) {
+                        boolean deleteResult = fileToDelete.delete();
+                        if (!deleteResult) {
+                            realmDeleted.set(false);
+                            RealmLog.w("Could not delete the file " + fileToDelete);
+                        }
+                    }
                 }
             }
-        }
+        });
 
-        return realmDeleted;
+        return realmDeleted.get();
     }
 
     /**
      * Compacts the Realm file defined by the given configuration.
      */
-    public static synchronized boolean compactRealm(RealmConfiguration configuration) {
+    public static boolean compactRealm(final RealmConfiguration configuration) {
         if (configuration.getEncryptionKey() != null) {
             throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
         }
 
-        if (isFileOpen(configuration)) {
-            throw new IllegalStateException("Cannot compact an open Realm");
-        }
+        final AtomicBoolean result = new AtomicBoolean(false);
 
-        return SharedGroupManager.compact(configuration);
+        RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
+            @Override
+            public void onResult(int count) {
+                if (count != 0) {
+                    throw new IllegalStateException("Cannot compact an open Realm");
+                }
+                result.set(SharedGroupManager.compact(configuration));
+            }
+        });
+
+        return result.get();
     }
 
     /**
      * Migrates the Realm file defined by the given configuration using the provided migration block.
+     *
+     * @param configuration configuration for the Realm that should be migrated
+     * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
+     * @param callback callback for specific Realm type behaviors.
      */
-    public static synchronized void migrateRealm(RealmConfiguration configuration, RealmMigration migration, MigrationCallback callback) {
+    protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
+                                       final MigrationCallback callback) {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
         }
-        if (isFileOpen(configuration)) {
-            throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
-        }
+        RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
+            @Override
+            public void onResult(int count) {
+                if (count != 0) {
+                    throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
+                }
 
-        RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
-        BaseRealm realm = null;
-        try {
-            realm = callback.getRealm(configuration);
-            realm.beginTransaction();
-            realm.setVersion(realmMigration.execute((Realm) realm, realm.getVersion())); // FIXME Remove cast with new migration API
-            realm.commitTransaction();
-        } finally {
-            if (realm != null) {
-                realm.close();
-                callback.migrationComplete();
+                RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
+                DynamicRealm realm = null;
+                try {
+                    realm = DynamicRealm.getInstance(configuration);
+                    realm.beginTransaction();
+                    long currentVersion = realm.getVersion();
+                    realmMigration.migrate(realm, currentVersion, configuration.getSchemaVersion());
+                    realm.setVersion(configuration.getSchemaVersion());
+                    realm.commitTransaction();
+                } catch (RuntimeException e) {
+                    if (realm != null) {
+                        realm.cancelTransaction();
+                    }
+                    throw e;
+                } finally {
+                    if (realm != null) {
+                        realm.close();
+                        callback.migrationComplete();
+                    }
+                }
             }
-        }
+        });
     }
 
     protected void addAsyncRealmResults (WeakReference<RealmResults<? extends RealmObject>> weakRealmResults,
@@ -643,7 +674,6 @@ abstract class BaseRealm implements Closeable {
 
     // Internal delegate for migrations
     protected interface MigrationCallback {
-        BaseRealm getRealm(RealmConfiguration configuration);
         void migrationComplete();
     }
 }

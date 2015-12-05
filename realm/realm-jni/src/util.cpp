@@ -18,7 +18,6 @@
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
-#include <realm/util/encryption_not_supported_exception.hpp>
 #include "utf8.hpp"
 
 #include "util.hpp"
@@ -42,13 +41,13 @@ void ConvertException(JNIEnv* env, const char *file, int line)
     try {
         throw;
     }
-    catch (realm::util::EncryptionNotSupportedOnThisDevice& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, EncryptionNotSupported, ss.str());
-    }
     catch (std::bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, OutOfMemory, ss.str());
+    }
+    catch (realm::CrossTableLinkTarget& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, CrossTableLink, ss.str());
     }
     catch (std::exception& e) {
         ss << e.what() << " in " << file << " line " << line;
@@ -140,9 +139,9 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             message = "Illegal State: " + classStr;
             break;
 
-        case EncryptionNotSupported:
-            jExceptionClass = env->FindClass("io/realm/exceptions/RealmEncryptionNotSupportedException");
-            message = classStr;
+        case CrossTableLink:
+            jExceptionClass = env->FindClass("java/lang/IllegalStateException");
+            message = "This class is referenced by other classes. Remove those fields first before removing this class.";
             break;
 
         case BadVersion:

@@ -23,7 +23,6 @@ core-*
 
 # JNI libs
 realm_version_check.timestamp
-/realm/src/main/jniLibs
 
 # Build artifacts
 *.so

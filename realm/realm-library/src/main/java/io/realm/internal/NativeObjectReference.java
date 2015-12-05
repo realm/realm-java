@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.realm.internal;
 
 import java.lang.ref.PhantomReference;
@@ -22,13 +23,25 @@ import java.lang.ref.ReferenceQueue;
  * This class is used for holding the reference to the native pointers present in NativeObjects.
  * This is required as phantom references cannot access the original objects for this value.
  */
-public class NativeObjectReference extends PhantomReference<NativeObject> {
+public abstract class NativeObjectReference extends PhantomReference<NativeObject> {
 
     // The pointer to the native object to be handled
-    final long nativePointer;
+    protected final long nativePointer;
 
     public NativeObjectReference(NativeObject referent, ReferenceQueue<? super NativeObject> referenceQueue) {
         super(referent, referenceQueue);
         nativePointer = referent.nativePointer;
+    }
+
+    /**
+     * This method is called when this reference gets cleared.
+     * Subclasses should implement this method to dealloc the native pointer.
+     */
+    protected abstract void cleanup();
+
+    @Override
+    public void clear() {
+        cleanup();
+        super.clear();
     }
 }
