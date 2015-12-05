@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
@@ -109,9 +107,6 @@ import io.realm.internal.log.RealmLog;
 public final class Realm extends BaseRealm {
 
     public static final String DEFAULT_REALM_NAME = RealmConfiguration.DEFAULT_REALM_NAME;
-
-    // Map between Realm file that has already been validated and Model class's column information
-    static final Map<String, ColumnIndices> validatedRealmFiles = new HashMap<String, ColumnIndices>();
 
     // Caches Class objects (both model classes and proxy classes) to Realm Tables
     private final Map<Class<? extends RealmObject>, Table> classToTable =
@@ -218,8 +213,8 @@ public final class Realm extends BaseRealm {
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
      * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param columnIndices if this is not  {@code null} value, the {@link BaseRealm#columnIndices} will be initialized
-     *                      to it. Otherwise, {@link BaseRealm#columnIndices} will be populated from the Realm file.
+     * @param columnIndices if this is not  {@code null} value, the {@link BaseRealm#schema#columnIndices} will be initialized
+     *                      to it. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated from the Realm file.
      * @return a {@link Realm} instance.
      */
     static Realm createInstance(RealmConfiguration configuration, ColumnIndices columnIndices) {
@@ -735,7 +730,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> List<E> copyToRealmOrUpdate(Iterable<E> objects) {
         if (objects == null) {
-            return new ArrayList<E>();
+            return new ArrayList<E>(0);
         }
 
         ArrayList<E> realmObjects = new ArrayList<E>();
@@ -744,6 +739,108 @@ public final class Realm extends BaseRealm {
         }
 
         return realmObjects;
+    }
+
+    /**
+     * Makes a standalone in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
+     * referenced objects.
+     *
+     * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
+     * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
+     *
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmObject)},
+     * but all fields will be overridden, not just those that were changed. This includes references to other objects,
+     * and can potentially override changes made by other threads.
+     *
+     * @param realmObjects RealmObjects to copy
+     * @param <E> type of object.
+     * @return an in-memory detached copy of managed RealmObjects.
+     * @throws IllegalArgumentException if the RealmObjects are not accessible.
+     * @see #copyToRealmOrUpdate(Iterable)
+     */
+    public <E extends RealmObject> List<E> copyFromRealm(Iterable<E> realmObjects) {
+        return copyFromRealm(realmObjects, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Makes a standalone in-memory copy of already persisted RealmObjects. This is a deep copy that will copy all
+     * referenced objects up to the defined depth.
+     *
+     * The copied objects are all detached from Realm so they will no longer be automatically updated. This means
+     * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
+     *
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(Iterable)},
+     * but all fields will be overridden, not just those that were changed. This includes references to other objects
+     * even though they might be {@code null} due to {@code maxDepth} being reached. This can also potentially override
+     * changes made by other threads.
+     *
+     * @param realmObjects RealmObjects to copy.
+     * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is {@code 0}.
+     * @param <E> type of object.
+     * @return an in-memory detached copy of the RealmObjects.
+     * @throws IllegalArgumentException if {@code maxDepth < 0} or the RealmObjects aren't accessible.
+     * @see #copyToRealmOrUpdate(Iterable)
+     */
+    public <E extends RealmObject> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
+        checkMaxDepth(maxDepth);
+        if (realmObjects == null) {
+            return new ArrayList<E>(0);
+        }
+
+        ArrayList<E> standaloneObjects = new ArrayList<E>();
+        Map<RealmObject, RealmObjectProxy.CacheData<RealmObject>> listCache = new HashMap<RealmObject, RealmObjectProxy.CacheData<RealmObject>>();
+        for (E object : realmObjects) {
+            checkValidObjectForDetach(object);
+            standaloneObjects.add(createDetachedCopy(object, maxDepth, listCache));
+        }
+
+        return standaloneObjects;
+    }
+
+    /**
+     * Makes a standalone in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
+     * all referenced objects.
+     *
+     * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
+     * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
+     *
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmObject)},
+     * but all fields will be overridden, not just those that were changed. This includes references to other objects,
+     * and can potentially override changes made by other threads.
+     *
+     * @param realmObject {@link RealmObject} to copy
+     * @param <E> type of object.
+     * @return an in-memory detached copy of the managed {@link RealmObject}.
+     * @throws IllegalArgumentException if the RealmObject is no longer accessible.
+     * @see #copyToRealmOrUpdate(RealmObject)
+     */
+    public <E extends RealmObject> E copyFromRealm(E realmObject) {
+        return copyFromRealm(realmObject, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Makes a standalone in-memory copy of an already persisted {@link RealmObject}. This is a deep copy that will copy
+     * all referenced objects up to the defined depth.
+     *
+     * The copied object(s) are all detached from Realm so they will no longer be automatically updated. This means
+     * that the copied objects might contain data that are no longer consistent with other managed Realm objects.
+     *
+     * *WARNING*: Any changes to copied objects can be merged back into Realm using {@link #copyToRealmOrUpdate(RealmObject)},
+     * but all fields will be overridden, not just those that were changed. This includes references to other objects
+     * even though they might be {@code null} due to {@code maxDepth} being reached. This can also potentially override
+     * changes made by other threads.
+     *
+     * @param realmObject {@link RealmObject} to copy
+     * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is {@code 0}.
+     * @param <E> type of object.
+     * @return an in-memory detached copy of the managed {@link RealmObject}.
+     * @throws IllegalArgumentException if {@code maxDepth < 0} or the RealmObject is no longer accessible.
+     * @see #copyToRealmOrUpdate(RealmObject)
+     */
+    public <E extends RealmObject> E copyFromRealm(E realmObject, int maxDepth) {
+        checkMaxDepth(maxDepth);
+        checkValidObjectForDetach(realmObject);
+        return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmObject, RealmObjectProxy.CacheData<RealmObject>>());
     }
 
     boolean contains(Class<? extends RealmObject> clazz) {
@@ -911,16 +1008,6 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Returns change listeners.
-     * For internal testing purpose only.
-     *
-     * @return changeListeners list of this Realm instance.
-     */
-    List<WeakReference<RealmChangeListener>> getChangeListeners() {
-        return weakChangeListeners;
-    }
-
-    /**
      * Executes a given transaction on the Realm. {@link #beginTransaction()} and {@link #commitTransaction()} will be
      * called automatically. If any exception is thrown during the transaction {@link #cancelTransaction()} will be
      * called instead of {@link #commitTransaction()}.
@@ -1041,6 +1128,11 @@ public final class Realm extends BaseRealm {
         return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
     }
 
+    private <E extends RealmObject> E createDetachedCopy(E object, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmObject>> cache) {
+        checkIfValid();
+        return configuration.getSchemaMediator().createDetachedCopy(object, maxDepth, cache);
+    }
+
     private <E extends RealmObject> void checkNotNullObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException("Null objects cannot be copied into Realm.");
@@ -1050,6 +1142,21 @@ public final class Realm extends BaseRealm {
     private void checkHasPrimaryKey(Class<? extends RealmObject> clazz) {
         if (!getTable(clazz).hasPrimaryKey()) {
             throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
+        }
+    }
+
+    private void checkMaxDepth(int maxDepth) {
+        if (maxDepth < 0) {
+            throw new IllegalArgumentException("maxDepth must be > 0. It was: " + maxDepth);
+        }
+    }
+
+    private <E extends RealmObject> void checkValidObjectForDetach(E realmObject) {
+        if (realmObject == null) {
+            throw new IllegalArgumentException("Null objects cannot be copied from Realm.");
+        }
+        if (!realmObject.isValid()) {
+            throw new IllegalArgumentException("RealmObject is not valid, so it cannot be copied.");
         }
     }
 
@@ -1094,12 +1201,14 @@ public final class Realm extends BaseRealm {
      * This method removes this free space and the file size is thereby reduced.
      * Objects within the Realm files are untouched.
      * <p>
-     * The file must be closed before this method is called.<br>
+     * The file must be closed before this method is called, otherwise {@code false} will be returned.<br>
      * The file system should have free space for at least a copy of the Realm file.<br>
      * The Realm file is left untouched if any file operation fails.<br>
      *
      * @param configuration a {@link RealmConfiguration} pointing to a Realm file.
      * @return {@code true} if successful, {@code false} if any file operation failed.
+     * @throws IllegalArgumentException if the realm file is encrypted. Compacting an encrypted Realm file is not
+     * supported yet.
      */
     public static boolean compactRealm(RealmConfiguration configuration) {
         return BaseRealm.compactRealm(configuration);

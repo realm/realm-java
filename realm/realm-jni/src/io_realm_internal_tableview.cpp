@@ -28,10 +28,10 @@ using namespace realm;
 #define VIEW_VALID_AND_IN_SYNC(env, ptr) view_valid_and_in_sync(env, ptr)
 
 inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
-    bool valid = (nativeViewPtr != 0);
+    bool valid = (TV(nativeViewPtr) != NULL);
     if (valid) {
         if (!TV(nativeViewPtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "Table is closed, and no longer valid to operate on.");
+            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
             return false;
         }
         TV(nativeViewPtr)->sync_if_needed();
@@ -1003,10 +1003,10 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {
-    bool valid = (nativeViewPtr != 0);
+    bool valid = (TV(nativeViewPtr) != NULL);
     if (valid) {
         if (!TV(nativeViewPtr)->is_attached()) {
-            ThrowException(env, TableInvalid, "Table is closed, and no longer valid to operate on.");
+            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
             return 0;
         }
     }

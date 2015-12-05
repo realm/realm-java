@@ -17,14 +17,18 @@
 package io.realm;
 
 
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.test.AndroidTestCase;
 
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.exceptions.RealmException;
+import io.realm.proxy.HandlerProxy;
 
 public class DynamicRealmTest extends AndroidTestCase {
 
@@ -412,6 +416,436 @@ public class DynamicRealmTest extends AndroidTestCase {
                 fail(field);
             } catch (UnsupportedOperationException ignored) {
             }
+        }
+    }
+
+    public void testFindFirstAsync() {
+        final DynamicRealmObject[] keepStrongReferences = new DynamicRealmObject[1];
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+
+        final HandlerThread handlerThread = new HandlerThread("LooperThread");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+                populateTestRealm(realm, 10);
+
+                final DynamicRealmObject allTypes = realm.where(AllTypes.CLASS_NAME)
+                        .between(AllTypes.FIELD_LONG, 4, 9)
+                        .findFirstAsync();
+                keepStrongReferences[0] = allTypes;
+                assertTrue(allTypes.load());
+
+                allTypes.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals("test data 4", allTypes.getString(AllTypes.FIELD_STRING));
+                        realm.close();
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                realm.handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                Realm bgRealm = Realm.getInstance(defaultConfig);
+                                bgRealm.beginTransaction();
+                                bgRealm.createObject(AllTypes.class);
+                                bgRealm.commitTransaction();
+                                bgRealm.close();
+                            }
+                        }.start();
+                    }
+                });
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    public void testFindAllAsync() {
+        final RealmResults[] keepStrongReferences = new RealmResults[1];
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+
+        final HandlerThread handlerThread = new HandlerThread("LooperThread");
+        handlerThread.start();
+        Handler handler = new Handler(handlerThread.getLooper());
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+                populateTestRealm(realm, 10);
+
+                final RealmResults<DynamicRealmObject> allTypes = realm.where("AllTypes")
+                        .between("columnLong", 4, 10)
+                        .findAllAsync();
+                keepStrongReferences[0] = allTypes;
+                assertTrue(allTypes.load());
+                assertEquals(6, allTypes.size());
+
+                allTypes.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(7, allTypes.size());
+                        for (int i = 0; i < allTypes.size(); i++) {
+                            assertEquals("test data " + (4 + i), allTypes.get(i).getString(AllTypes.FIELD_STRING));
+                        }
+                        realm.close();
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                realm.handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                Realm bgRealm = Realm.getInstance(defaultConfig);
+                                bgRealm.beginTransaction();
+                                AllTypes object = bgRealm.createObject(AllTypes.class);
+                                object.setColumnLong(10);
+                                object.setColumnString("test data 10");
+                                bgRealm.commitTransaction();
+                                bgRealm.close();
+                            }
+                        }.start();
+                    }
+                });
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    public void testFindAllSortedAsync() {
+        final RealmResults[] keepStrongReferences = new RealmResults[1];
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+
+        final HandlerThread handlerThread = new HandlerThread("LooperThread");
+        handlerThread.start();
+        Handler handler = new Handler(handlerThread.getLooper());
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+                populateTestRealm(realm, 10);
+
+                final RealmResults<DynamicRealmObject> allTypes = realm.where(AllTypes.CLASS_NAME)
+                        .between("columnLong", 0, 4)
+                        .findAllSortedAsync("columnString", Sort.DESCENDING);
+
+                keepStrongReferences[0] = allTypes;
+                assertTrue(allTypes.load());
+                assertEquals(5, allTypes.size());
+
+                allTypes.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(5, allTypes.size());
+                        for (int i = 0; i < 5; i++) {
+                            int iteration = (4 - i);
+                            assertEquals("test data " + iteration, allTypes.get(4 - iteration).getString(AllTypes.FIELD_STRING));
+                        }
+                        realm.close();
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                realm.handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                Realm bgRealm = Realm.getInstance(defaultConfig);
+                                bgRealm.beginTransaction();
+                                AllTypes object = bgRealm.createObject(AllTypes.class);
+                                object.setColumnLong(10);
+                                object.setColumnString("test data 10");
+                                bgRealm.commitTransaction();
+                                bgRealm.close();
+                            }
+                        }.start();
+                    }
+                });
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    public void testFindAllSortedMultiAsync() {
+        final RealmResults[] keepStrongReferences = new RealmResults[2];
+        final CountDownLatch callback1 = new CountDownLatch(1);
+        final CountDownLatch callback2 = new CountDownLatch(1);
+
+        final HandlerThread handlerThread = new HandlerThread("LooperThread");
+        handlerThread.start();
+        Handler handler = new Handler(handlerThread.getLooper());
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+
+                realm.beginTransaction();
+                for (int i = 0; i < 5; ) {
+                    DynamicRealmObject allTypes = realm.createObject(AllTypes.CLASS_NAME);
+                    allTypes.set(AllTypes.FIELD_LONG, i);
+                    allTypes.set(AllTypes.FIELD_STRING, "data " + i % 3);
+
+                    allTypes = realm.createObject(AllTypes.CLASS_NAME);
+                    allTypes.set(AllTypes.FIELD_LONG, i);
+                    allTypes.set(AllTypes.FIELD_STRING, "data " + (++i % 3));
+                }
+                realm.commitTransaction();
+
+                final RealmResults<DynamicRealmObject> realmResults1 = realm.where(AllTypes.CLASS_NAME)
+                        .findAllSortedAsync(new String[]{AllTypes.FIELD_STRING, AllTypes.FIELD_LONG},
+                                new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
+                final RealmResults<DynamicRealmObject> realmResults2 = realm.where(AllTypes.CLASS_NAME)
+                        .between(AllTypes.FIELD_LONG, 0, 5)
+                        .findAllSortedAsync(new String[]{AllTypes.FIELD_STRING, AllTypes.FIELD_LONG},
+                                new Sort[]{Sort.DESCENDING, Sort.ASCENDING});
+
+                realmResults1.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals("data 0", realmResults1.get(0).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(3), realmResults1.get(0).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 0", realmResults1.get(1).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(2), realmResults1.get(1).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 0", realmResults1.get(2).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(0), realmResults1.get(2).get(AllTypes.FIELD_LONG));
+
+                        assertEquals("data 1", realmResults1.get(3).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(4), realmResults1.get(3).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 1", realmResults1.get(4).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(3), realmResults1.get(4).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 1", realmResults1.get(5).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(1), realmResults1.get(5).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 1", realmResults1.get(6).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(0), realmResults1.get(6).get(AllTypes.FIELD_LONG));
+
+                        assertEquals("data 2", realmResults1.get(7).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(4), realmResults1.get(7).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 2", realmResults1.get(8).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(2), realmResults1.get(8).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 2", realmResults1.get(9).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(1), realmResults1.get(9).get(AllTypes.FIELD_LONG));
+
+                        if (callback2.getCount() == 0) {
+                            realm.close();
+                        }
+                        callback1.countDown();
+                    }
+                });
+
+                realmResults2.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals("data 2", realmResults2.get(0).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(1), realmResults2.get(0).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 2", realmResults2.get(1).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(2), realmResults2.get(1).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 2", realmResults2.get(2).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(4), realmResults2.get(2).get(AllTypes.FIELD_LONG));
+
+                        assertEquals("data 1", realmResults2.get(3).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(0), realmResults2.get(3).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 1", realmResults2.get(4).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(1), realmResults2.get(4).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 1", realmResults2.get(5).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(3), realmResults2.get(5).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 1", realmResults2.get(6).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(4), realmResults2.get(6).get(AllTypes.FIELD_LONG));
+
+                        assertEquals("data 0", realmResults2.get(7).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(0), realmResults2.get(7).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 0", realmResults2.get(8).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(2), realmResults2.get(8).get(AllTypes.FIELD_LONG));
+                        assertEquals("data 0", realmResults2.get(9).get(AllTypes.FIELD_STRING));
+                        assertEquals(Long.valueOf(3), realmResults2.get(9).get(AllTypes.FIELD_LONG));
+
+                        if (callback1.getCount() == 0) {
+                            realm.close();
+                        }
+                        callback2.countDown();
+                    }
+                });
+
+                keepStrongReferences[0] = realmResults1;
+                keepStrongReferences[1] = realmResults2;
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(callback1);
+            TestHelper.awaitOrFail(callback2);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    public void testDistinctAsync() {
+        final RealmResults[] keepStrongReferences = new RealmResults[4];
+        final CountDownLatch signalTestFinished = new CountDownLatch(4);
+
+        final HandlerThread handlerThread = new HandlerThread("LooperThread");
+        handlerThread.start();
+        Handler handler = new Handler(handlerThread.getLooper());
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+                populateTestRealm(realm, 10);
+
+                final long numberOfBlocks = 25;
+                final long numberOfObjects = 10; // must be greater than 1
+
+                populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+                final RealmResults<DynamicRealmObject> distinctBool = realm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, "indexBoolean");
+                final RealmResults<DynamicRealmObject> distinctLong = realm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, "indexLong");
+                final RealmResults<DynamicRealmObject> distinctDate = realm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, "indexDate");
+                final RealmResults<DynamicRealmObject> distinctString = realm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, "indexString");
+
+                distinctBool.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(2, distinctBool.size());
+                        if (signalTestFinished.getCount() == 01) {
+                            realm.close();
+                        }
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                distinctLong.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(numberOfBlocks, distinctLong.size());
+                        if (signalTestFinished.getCount() == 1) {
+                            realm.close();
+                        }
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                distinctDate.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(numberOfBlocks, distinctDate.size());
+                        if (signalTestFinished.getCount() == 1) {
+                            realm.close();
+                        }
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                distinctString.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(numberOfBlocks, distinctString.size());
+                        if (signalTestFinished.getCount() == 1) {
+                            realm.close();
+                        }
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                keepStrongReferences[0] = distinctBool;
+                keepStrongReferences[1] = distinctLong;
+                keepStrongReferences[2] = distinctDate;
+                keepStrongReferences[3] = distinctString;
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    public void testAccessingDynamicRealmObjectBeforeAsyncQueryCompleted() {
+        final DynamicRealmObject[] dynamicRealmObject = new DynamicRealmObject[1];
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+
+        final HandlerThread handlerThread = new HandlerThread("LooperThread");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+
+                // Intercept completion of the async DynamicRealmObject query
+                final Handler handler = new HandlerProxy(realm.handler) {
+                    @Override
+                    public boolean onInterceptMessage(int what) {
+                        switch (what) {
+                            case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
+                                post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        assertFalse(dynamicRealmObject[0].isLoaded());
+                                        assertFalse(dynamicRealmObject[0].isValid());
+                                        try {
+                                            dynamicRealmObject[0].getObject(AllTypes.FIELD_BINARY);
+                                            fail("trying to access a DynamicRealmObject property should throw");
+                                        } catch (IllegalStateException ignored) {
+
+                                        } finally {
+                                            realm.close();
+                                            signalTestFinished.countDown();
+                                        }
+                                    }
+                                });
+
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                };
+
+                realm.setHandler(handler);
+
+                populateTestRealm(realm, 10);
+
+                dynamicRealmObject[0] = realm.where(AllTypes.CLASS_NAME).
+                        between(AllTypes.FIELD_LONG, 4, 9).findFirstAsync();
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
         }
     }
 

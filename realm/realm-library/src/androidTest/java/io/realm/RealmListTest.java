@@ -521,11 +521,11 @@ public class RealmListTest extends AndroidTestCase {
 
     public void testAddAfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
-
         testRealm.beginTransaction();
         try {
             Dog dog = testRealm.createObject(Dog.class);
             dog.setName("Dog");
+
             try {
                 dogs.add(dog);
                 fail();

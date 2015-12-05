@@ -329,8 +329,7 @@ public class RealmObjectTest extends AndroidTestCase {
         testRealm.beginTransaction();
         CyclicType foo = createCyclicData();
         testRealm.commitTransaction();
-
-        String expected = "CyclicType = [{name:Foo},{object:CyclicType},{objects:RealmList<CyclicType>[0]}]";
+        String expected = "CyclicType = [{name:Foo},{object:CyclicType},{otherObject:null},{objects:RealmList<CyclicType>[0]}]";
         assertEquals(expected, foo.toString());
     }
 

@@ -172,7 +172,7 @@ public class RealmProcessor extends AbstractProcessor {
         if (moduleMetaData.shouldCreateDefaultModule()) {
             if (!createDefaultModule()) {
                 return false;
-            };
+            }
         }
 
         // Create RealmProxyMediators for all Realm modules

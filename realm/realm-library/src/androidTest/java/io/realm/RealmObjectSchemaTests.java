@@ -234,7 +234,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
 
     public void testAddField_illegalFieldNameThrows() {
         String[] fieldNames = new String[] { null, "", "foo.bar", TestHelper.getRandomString(65) };
-        for (SchemaFieldType schemaFieldType: SchemaFieldType.values()) {
+        for (SchemaFieldType schemaFieldType : SchemaFieldType.values()) {
             for (String fieldName : fieldNames) {
                 try {
                     switch(schemaFieldType) {
@@ -577,6 +577,30 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertTrue(fieldNames.contains("hasTail"));
         assertTrue(fieldNames.contains("birthday"));
         assertTrue(fieldNames.contains("owner"));
+    }
+
+    public void testGetFieldType() {
+        schema = realmSchema.getSchemaForClass("AllJavaTypes");
+        assertEquals(RealmFieldType.STRING, schema.getFieldType(AllJavaTypes.FIELD_STRING));
+        assertEquals(RealmFieldType.BINARY, schema.getFieldType(AllJavaTypes.FIELD_BINARY));
+        assertEquals(RealmFieldType.BOOLEAN, schema.getFieldType(AllJavaTypes.FIELD_BOOLEAN));
+        assertEquals(RealmFieldType.DATE, schema.getFieldType(AllJavaTypes.FIELD_DATE));
+        assertEquals(RealmFieldType.DOUBLE, schema.getFieldType(AllJavaTypes.FIELD_DOUBLE));
+        assertEquals(RealmFieldType.FLOAT, schema.getFieldType(AllJavaTypes.FIELD_FLOAT));
+        assertEquals(RealmFieldType.OBJECT, schema.getFieldType(AllJavaTypes.FIELD_OBJECT));
+        assertEquals(RealmFieldType.LIST, schema.getFieldType(AllJavaTypes.FIELD_LIST));
+        assertEquals(RealmFieldType.INTEGER, schema.getFieldType(AllJavaTypes.FIELD_BYTE));
+        assertEquals(RealmFieldType.INTEGER, schema.getFieldType(AllJavaTypes.FIELD_SHORT));
+        assertEquals(RealmFieldType.INTEGER, schema.getFieldType(AllJavaTypes.FIELD_INT));
+        assertEquals(RealmFieldType.INTEGER, schema.getFieldType(AllJavaTypes.FIELD_LONG));
+    }
+
+    public void testGetFieldTypeThrows() {
+        try {
+            schema.getFieldType("I don't exists");
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     private interface FieldRunnable {
