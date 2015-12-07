@@ -1726,3 +1726,15 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
         }
     } CATCH_STD()
 }
+
+// queryPtr would be owned and released by this function
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAcceptHandoverQuery
+        (JNIEnv *env, jobject, jlong receiverSharedGroupPtr, jlong receiverReplicationPtr, jlong queryPtr)
+{
+    TR_ENTER()
+    try {
+        std::unique_ptr<Query> query = getHandoverQuery(receiverSharedGroupPtr, receiverReplicationPtr, queryPtr);
+        return reinterpret_cast<jlong>(query.release());
+    } CATCH_STD()
+    return 0;
+}

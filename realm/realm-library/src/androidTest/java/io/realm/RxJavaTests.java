@@ -2,12 +2,16 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 public class RxJavaTests extends AndroidTestCase {
 
@@ -218,6 +222,31 @@ public class RxJavaTests extends AndroidTestCase {
 
         assertEquals(2, subscriberCalled.get());
         dynamicRealm.close();
+    }
+
+    public void testRealmQueryObservable() {
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        Subscription subscription = realm.where(AllTypes.class).asObservable()
+                .map(new Func1<RealmQuery<AllTypes>, List<AllTypes>>() {
+                    @Override
+                    public List<AllTypes> call(RealmQuery<AllTypes> query) {
+                        return query.findAll();
+                    }
+                })
+                .subscribeOn(Schedulers.computation())
+                .subscribe(new Action1<List<AllTypes>>() {
+                    @Override
+                    public void call(List<AllTypes> allTypes) {
+                        assertEquals(1, allTypes.size());
+                        subscribedNotified.set(true);
+                    }
+                });
+        subscription.unsubscribe();
+        assertTrue(subscribedNotified.get());
     }
 
     public void testUnsubscribe() {

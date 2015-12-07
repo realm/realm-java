@@ -836,8 +836,19 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
+    @SuppressWarnings("unchecked")
     public Observable<RealmResults<E>> asObservable() {
-        return realm.configuration.getRxFactory().from(this);
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().from((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
+            @SuppressWarnings("UnnecessaryLocalVariable")
+            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
+            return results;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+        }
     }
 
     /**

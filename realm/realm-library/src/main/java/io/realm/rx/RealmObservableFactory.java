@@ -22,6 +22,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import rx.Observable;
 import rx.Subscriber;
@@ -34,10 +35,11 @@ import rx.subscriptions.Subscriptions;
  * @see Realm#asObservable()
  * @see RealmObject#asObservable()
  * @see RealmResults#asObservable()
+ * @see RealmQuery#asObservable()
  * @see DynamicRealm#asObservable()
  * @see DynamicRealmObject#asObservable()
  */
-public final class RealmObservableFactory implements RxObservableFactory {
+public class RealmObservableFactory implements RxObservableFactory {
 
     private boolean rxJavaAvailble;
 
@@ -105,8 +107,18 @@ public final class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmObject> Observable<RealmResults<E>> from(final RealmResults<E> results) {
+    public <E extends RealmObject> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
         checkRxJavaAvailable();
+        return getRealmResultsObservable(results);
+    }
+
+    @Override
+    public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
+        checkRxJavaAvailable();
+        return getRealmResultsObservable(results);
+    }
+
+    private <E extends RealmObject> Observable<RealmResults<E>> getRealmResultsObservable(final RealmResults<E> results) {
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
             public void call(final Subscriber<? super RealmResults<E>> subscriber) {
@@ -132,14 +144,34 @@ public final class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmObject> Observable<RealmList<E>> from(RealmList<E> list) {
+    public <E extends RealmObject> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
         checkRxJavaAvailable();
+        return getRealmListObservable();
+    }
+
+    @Override
+    public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+        checkRxJavaAvailable();
+        return getRealmListObservable();
+    }
+
+    private <E extends RealmObject> Observable<RealmList<E>> getRealmListObservable() {
         throw new RuntimeException("RealmList does not support change listeners yet, so cannot create an Observable");
     }
 
     @Override
-    public <E extends RealmObject> Observable<E> from(final E object) {
+    public <E extends RealmObject> Observable<E> from(Realm realm, final E object) {
         checkRxJavaAvailable();
+        return getObjectObservable(object);
+    }
+
+    @Override
+    public Observable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
+        checkRxJavaAvailable();
+        return getObjectObservable(object);
+    }
+
+    private <E extends RealmObject> Observable<E> getObjectObservable(final E object) {
         return Observable.create(new Observable.OnSubscribe<E>() {
             @Override
             public void call(final Subscriber<? super E> subscriber) {
@@ -160,6 +192,51 @@ public final class RealmObservableFactory implements RxObservableFactory {
                 // Immediately call onNext with the current value as due to Realms auto-update it will be the latest
                 // value.
                 subscriber.onNext(object);
+            }
+        });
+    }
+
+    @Override
+    public <E extends RealmObject> Observable<RealmQuery<E>> from(final Realm realm, final RealmQuery<E> query) {
+        checkRxJavaAvailable();
+        // Create copy of the RealmQuery on the current thread and prepare it for handover
+        final RealmQuery<E> queryCopy = query.clone();
+
+        return Observable.create(new Observable.OnSubscribe<RealmQuery<E>>() {
+            @Override
+            public void call(final Subscriber<? super RealmQuery<E>> subscriber) {
+                // Create an Realm instance that is open for as long as the subscription is alive.
+                final Realm subscriberRealm = Realm.getInstance(realm.getConfiguration());
+                RealmQuery<E> queryClone = RealmQuery.copyQuery(subscriberRealm, query); // TODO Can I steal it?
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        subscriberRealm.close();
+                    }
+                }));
+                subscriber.onNext(queryClone);
+                subscriber.onCompleted();
+            }
+        });
+    }
+
+    @Override
+    public Observable<RealmQuery<DynamicRealmObject>> from(final DynamicRealm realm, final RealmQuery<DynamicRealmObject> query) {
+        checkRxJavaAvailable();
+        return Observable.create(new Observable.OnSubscribe<RealmQuery<DynamicRealmObject>>() {
+            @Override
+            public void call(final Subscriber<? super RealmQuery<DynamicRealmObject>> subscriber) {
+                // Create an Realm instance that is open for as long as the subscription is alive.
+                final DynamicRealm subscriberRealm = DynamicRealm.getInstance(realm.getConfiguration());
+                RealmQuery<DynamicRealmObject> queryClone = RealmQuery.copyDynamicQuery(subscriberRealm, query);
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        subscriberRealm.close();
+                    }
+                }));
+                subscriber.onNext(queryClone);
+                subscriber.onCompleted();
             }
         });
     }

@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -651,7 +652,9 @@ public final class Realm extends BaseRealm {
         checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        E object = get(clazz, rowIndex);
+        addToNotifiableRealmObjects(object);
+        return object;
     }
 
     /**
@@ -1238,6 +1241,7 @@ public final class Realm extends BaseRealm {
     }
 
     // Public because of migrations
+    @Deprecated
     public Table getTable(Class<? extends RealmObject> clazz) {
         Table table = classToTable.get(clazz);
         if (table == null) {
@@ -1246,6 +1250,13 @@ public final class Realm extends BaseRealm {
             classToTable.put(clazz, table);
         }
         return table;
+    }
+
+    // add to the list of RealmObject to be notified after a commit
+    private <E extends RealmObject> void addToNotifiableRealmObjects(E realmobject) {
+        if (handlerController != null) {
+            handlerController.realmObjects.put(new WeakReference<RealmObject>(realmobject), null);
+        }
     }
 
     /**

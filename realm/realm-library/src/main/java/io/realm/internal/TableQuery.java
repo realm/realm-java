@@ -59,6 +59,13 @@ public class TableQuery implements Closeable {
         this.origin = origin;
     }
 
+    public TableQuery(Context context, long recieverSharedGroupPtr, long receiverReplicationPtr, long handoverQueryPtr) {
+        this.context = context;
+        this.nativePtr = nativeAcceptHandoverQuery(recieverSharedGroupPtr, receiverReplicationPtr, handoverQueryPtr);
+        this.table = null;
+        this.origin = null;
+        validateQuery();
+    }
 
     public void close() {
         synchronized (context) {
@@ -797,6 +804,7 @@ public class TableQuery implements Closeable {
     private native long nativeRemove(long nativeQueryPtr, long start, long end, long limit);
     private native long nativeImportHandoverTableViewIntoSharedGroup(long handoverTableViewPtr, long callerSharedGroupPtr);
     private native long nativeHandoverQuery(long callerSharedGroupPtr, long nativeQueryPtr);
+    private native long nativeAcceptHandoverQuery(long receiverSharedGroupPtr, long reiceverNativeReplicationPtr, long nativeHandoverQueryPtr);
     public static native long nativeFindAllSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit, long columnIndex, boolean ascending);
     public static native long nativeFindAllWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit);
     public static native long nativeGetDistinctViewWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long columnIndex);
