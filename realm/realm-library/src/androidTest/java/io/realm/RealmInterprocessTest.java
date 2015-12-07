@@ -402,7 +402,6 @@ public class RealmInterprocessTest extends AndroidTestCase {
                 public void run() {
                     // Step 1
                     thiz.testRealm = Realm.getInstance(thiz.getContext());
-                    thiz.testRealm.setAutoRefresh(false);
                     assertEquals(thiz.testRealm.allObjects(AllTypes.class).size(), 0);
                     thiz.listener = new RealmChangeListener() {
                         @Override
@@ -412,6 +411,7 @@ public class RealmInterprocessTest extends AndroidTestCase {
                         }
                     };
                     thiz.testRealm.addChangeListener(thiz.listener);
+                    thiz.testRealm.setAutoRefresh(false);
 
                     // Step A
                     thiz.triggerServiceStep(RemoteProcessService.stepSetAutoRefresh_A);
@@ -434,8 +434,8 @@ public class RealmInterprocessTest extends AndroidTestCase {
                         done();
                     }
                 };
-                thiz.testRealm.addChangeListener(thiz.listener);
                 thiz.testRealm.setAutoRefresh(true);
+                thiz.testRealm.addChangeListener(thiz.listener);
 
                 // Step B
                 thiz.triggerServiceStep(RemoteProcessService.stepSetAutoRefresh_B);
