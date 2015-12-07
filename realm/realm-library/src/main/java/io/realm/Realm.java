@@ -1069,6 +1069,11 @@ public final class Realm extends BaseRealm {
                                     && handler != null
                                     && !Thread.currentThread().isInterrupted()
                                     && handler.getLooper().getThread().isAlive()) {
+                                // This is not the most beautiful code, but it is the simplest logic.
+                                // Normally we rely on wait_for_change to send the notification, but in this case,
+                                // REALM_CHANGED needs to be arrived first before onSuccess. So We just inject a
+                                // REALM_CHANGED message in the queue for this case.
+                                handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
