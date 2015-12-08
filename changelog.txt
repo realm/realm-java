@@ -2,6 +2,7 @@
  * Added Realm.copyFromRealm() for creating detached copies of Realm objects.
  * Added RealmObjectSchema.getFieldType()
  * Added unitTestExample to showcase unit and instrumentation tests. Examples include jUnit3, jUnit4, Espresso, Robolectric, and MPowermock usage with Realm (#1440).
+ * Fixed a bug where RealmQuery.findFirst() returned a wrong result if that RealmQuery had been created from RealmResults (#1905).
 
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
