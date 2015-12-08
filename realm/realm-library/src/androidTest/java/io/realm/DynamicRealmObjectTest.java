@@ -18,6 +18,7 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +28,7 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
+import io.realm.exceptions.RealmException;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -611,6 +613,12 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     }
                     fail(type + " failed");
                 } catch (IllegalArgumentException ignored) {
+                } catch (RealmException e) {
+                    if(!(e.getCause() instanceof ParseException)) {
+                        // providing "foo" to the date parser will blow up with a RealmException
+                        // and the cause will be a ParseException.
+                        fail(type + " failed");
+                    }
                 }
             }
         } finally {
