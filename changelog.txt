@@ -1,3 +1,6 @@
+0.86.1
+ * Fixed a bug where RealmQuery.findFirst() returned a wrong result if that RealmQuery had been created from RealmResults (#1905).
+
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
  * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants have been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
