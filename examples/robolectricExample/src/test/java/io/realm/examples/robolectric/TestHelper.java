@@ -20,13 +20,14 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.DynamicRealm;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.examples.robolectric.entities.AllTypes;
 import io.realm.examples.robolectric.entities.NullTypes;
 import io.realm.examples.robolectric.entities.StringOnly;
-import io.realm.internal.ColumnType;
+import io.realm.RealmFieldType;
 import io.realm.internal.Table;
 import io.realm.internal.log.Logger;
 
@@ -34,22 +35,22 @@ import static junit.framework.Assert.fail;
 
 public class TestHelper {
 
-    public static ColumnType getColumnType(Object o){
+    public static RealmFieldType getColumnType(Object o){
         if (o instanceof Boolean)
-            return ColumnType.BOOLEAN;
+            return RealmFieldType.BOOLEAN;
         if (o instanceof String)
-            return ColumnType.STRING;
+            return RealmFieldType.STRING;
         if (o instanceof Long)
-            return ColumnType.INTEGER;
+            return RealmFieldType.INTEGER;
         if (o instanceof Float)
-            return ColumnType.FLOAT;
+            return RealmFieldType.FLOAT;
         if (o instanceof Double)
-            return ColumnType.DOUBLE;
+            return RealmFieldType.DOUBLE;
         if (o instanceof Date)
-            return ColumnType.DATE;
+            return RealmFieldType.DATE;
         if (o instanceof byte[])
-            return ColumnType.BINARY;
-        return ColumnType.MIXED;
+            return RealmFieldType.BINARY;
+        return RealmFieldType.UNSUPPORTED_MIXED;
     }
 
     /**
@@ -59,15 +60,15 @@ public class TestHelper {
     public static Table getTableWithAllColumnTypes(){
         Table t = new Table();
 
-        t.addColumn(ColumnType.BINARY, "binary");
-        t.addColumn(ColumnType.BOOLEAN, "boolean");
-        t.addColumn(ColumnType.DATE, "date");
-        t.addColumn(ColumnType.DOUBLE, "double");
-        t.addColumn(ColumnType.FLOAT, "float");
-        t.addColumn(ColumnType.INTEGER, "long");
-        t.addColumn(ColumnType.MIXED, "mixed");
-        t.addColumn(ColumnType.STRING, "string");
-        t.addColumn(ColumnType.TABLE, "table");
+        t.addColumn(RealmFieldType.BINARY, "binary");
+        t.addColumn(RealmFieldType.BOOLEAN, "boolean");
+        t.addColumn(RealmFieldType.DATE, "date");
+        t.addColumn(RealmFieldType.DOUBLE, "double");
+        t.addColumn(RealmFieldType.FLOAT, "float");
+        t.addColumn(RealmFieldType.INTEGER, "long");
+        t.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mixed");
+        t.addColumn(RealmFieldType.STRING, "string");
+        t.addColumn(RealmFieldType.UNSUPPORTED_TABLE, "table");
 
         return t;
     }
@@ -125,22 +126,6 @@ public class TestHelper {
         outputStream.close();
         is.close();
     }
-
-    // Creates a simple migration step in order to support null
-    // FIXME: generate a new encrypted.testRealm will null support
-    public static RealmMigration prepareMigrationToNullSupportStep() {
-        RealmMigration realmMigration = new RealmMigration() {
-            @Override
-            public long execute(Realm realm, long version) {
-                Table stringOnly = realm.getTable(StringOnly.class);
-                stringOnly.convertColumnToNullable(stringOnly.getColumnIndex("chars"));
-
-                return 0;
-            }
-        };
-        return realmMigration;
-    }
-
 
     // Deletes the old database and copies a new one into its place
     public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
@@ -389,72 +374,69 @@ public class TestHelper {
     public static void initNullTypesTableExcludes(Realm realm, String excludingField) {
         Table table = realm.getTable(NullTypes.class);
         if (!excludingField.equals("id")) {
-            table.addColumn(ColumnType.INTEGER, "id", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "id", Table.NOT_NULLABLE);
             table.addSearchIndex(table.getColumnIndex("id"));
             table.setPrimaryKey("id");
         }
         if (!excludingField.equals("fieldStringNotNull")) {
-            table.addColumn(ColumnType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldStringNull")) {
-            table.addColumn(ColumnType.STRING, "fieldStringNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.STRING, "fieldStringNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldBytesNotNull")) {
-            table.addColumn(ColumnType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldBytesNull")) {
-            table.addColumn(ColumnType.BINARY, "fieldBytesNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.BINARY, "fieldBytesNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldBooleanNotNull")) {
-            table.addColumn(ColumnType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldBooleanNull")) {
-            table.addColumn(ColumnType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldByteNotNull")) {
-            table.addColumn(ColumnType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldByteNull")) {
-            table.addColumn(ColumnType.INTEGER, "fieldByteNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldByteNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldShortNotNull")) {
-            table.addColumn(ColumnType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldShortNull")) {
-            table.addColumn(ColumnType.INTEGER, "fieldShortNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldShortNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldIntegerNotNull")) {
-            table.addColumn(ColumnType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldIntegerNull")) {
-            table.addColumn(ColumnType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldLongNotNull")) {
-            table.addColumn(ColumnType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldLongNull")) {
-            table.addColumn(ColumnType.INTEGER, "fieldLongNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.INTEGER, "fieldLongNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldFloatNotNull")) {
-            table.addColumn(ColumnType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldFloatNull")) {
-            table.addColumn(ColumnType.FLOAT, "fieldFloatNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldDoubleNotNull")) {
-            table.addColumn(ColumnType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldDoubleNull")) {
-            table.addColumn(ColumnType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
+            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
         }
         if (!excludingField.equals("fieldDateNotNull")) {
-            table.addColumn(ColumnType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
+            table.addColumn(RealmFieldType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
         }
         if (!excludingField.equals("fieldDateNull")) {
-            table.addColumn(ColumnType.DATE, "fieldDateNull", Table.NULLABLE);
-        }
-        if (!excludingField.equals("fieldObjectNull")) {
-            table.addColumnLink(ColumnType.LINK, "fieldObjectNull", table);
+            table.addColumn(RealmFieldType.DATE, "fieldDateNull", Table.NULLABLE);
         }
     }
 
