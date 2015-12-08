@@ -98,6 +98,11 @@ task assembleRobolectric(type:GradleBuild) {
     tasks = ['assembleRobolectric']
 }
 
+task testRobolectric(type:GradleBuild) {
+    buildFile = file('examples/robolectricExample/build.gradle')
+    tasks = ['test']
+}
+
 task assembleExamples(type:GradleBuild) {
     dependsOn installGradlePlugin
     dependsOn installRealm
