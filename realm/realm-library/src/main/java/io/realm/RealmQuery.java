@@ -30,7 +30,7 @@ import io.realm.annotations.Required;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
-import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
@@ -61,7 +61,7 @@ public class RealmQuery<E extends RealmObject> implements {
     private BaseRealm realm;
     private Class<E> clazz;
     private String className;
-    private Table table;
+    private TableOrView table;
     private RealmObjectSchema schema;
     private LinkView view;
     private TableQuery query;
@@ -161,7 +161,7 @@ public class RealmQuery<E extends RealmObject> implements {
         this.realm = queryResults.realm;
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = schema.table;
+        this.table = queryResults.getTable();
         this.view = null;
         this.query = queryResults.getTable().where();
     }
@@ -214,7 +214,7 @@ public class RealmQuery<E extends RealmObject> implements {
         if (view != null) {
             return view.isAttached();
         }
-        return table != null && table.isValid();
+        return table != null && table.getTable().isValid();
     }
 
     /**
@@ -1772,9 +1772,9 @@ public class RealmQuery<E extends RealmObject> implements {
      */
     public E findFirst() {
         checkQueryIsNotReused();
-        long rowIndex = this.query.find();
-        if (rowIndex >= 0) {
-            E realmObject = realm.get(clazz, className, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
+        long sourceRowIndex = getSourceRowIndexForFirstObject();
+        if (sourceRowIndex >= 0) {
+            E realmObject = realm.get(clazz, className, sourceRowIndex);
             if (realm.handlerController != null) { // non Looper Thread doesn't have a handlerController
                 WeakReference<RealmObject> realmObjectWeakReference
                         = new WeakReference<RealmObject>(realmObject, realm.handlerController.referenceQueueRealmObject);
@@ -1913,6 +1913,20 @@ public class RealmQuery<E extends RealmObject> implements {
     private void handoverTo(RealmQuery<E> copiedQuery) {
         long handoverQuery = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
         copiedQuery.query.acceptHandoverQuery(handoverQuery);
+    }
+    
+    sprivate long getSourceRowIndexForFirstObject() {
+        long rowIndex = this.query.find();
+        if (rowIndex < 0) {
+            return rowIndex;
+        }
+        if (this.view != null) {
+            return view.getTargetRowIndex(rowIndex);
+        } else if (table instanceof TableView){
+            return ((TableView) table).getSourceRowIndex(rowIndex);
+        } else {
+            return rowIndex;
+        }
     }
 
     public ArgumentsHolder getArgument() {

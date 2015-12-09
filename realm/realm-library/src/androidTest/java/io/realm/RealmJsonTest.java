@@ -390,6 +390,25 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(new Date(1000), obj.getColumnDate());
     }
 
+    public void testCreateObjectFromJsonStream_dateAsISO8601String() throws IOException {
+        InputStream in = loadJsonFromAssets("date_as_iso8601_string.json");
+        testRealm.beginTransaction();
+        testRealm.createObjectFromJson(AllTypes.class, in);
+        testRealm.commitTransaction();
+        in.close();
+
+        Calendar cal = new GregorianCalendar(2007, 8 - 1, 13, 19, 51, 23);
+        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+        cal.set(Calendar.MILLISECOND, 789);
+        Date date = cal.getTime();
+        cal.set(Calendar.MILLISECOND, 0);
+        Date dateZeroMillis = cal.getTime();
+
+        // Check that all primitive types are imported correctly
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals(dateZeroMillis, obj.getColumnDate());
+    }
+
     public void testCreateObjectFromJsonStream_childObject() throws IOException {
         InputStream in = loadJsonFromAssets("single_child_object.json");
         testRealm.beginTransaction();
