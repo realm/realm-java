@@ -551,7 +551,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertTrue(realmSchema.contains(newClassName));
     }
 
-    public void testForEach() {
+    public void testTransform() {
         String className = DOG_SCHEMA.getClassName();
         DynamicRealmObject dog1 = realm.createObject(className);
         dog1.setInt("age", 1);
@@ -565,6 +565,22 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             }
         });
         assertEquals(5, realm.where("Dog").sum("age").intValue());
+    }
+
+    public void testTransformObjectReferences() {
+        String className = DOG_SCHEMA.getClassName();
+        DynamicRealmObject dog1 = realm.createObject(className);
+        dog1.setInt("age", 1);
+
+        DOG_SCHEMA.transform(new RealmObjectSchema.Function() {
+            @Override
+            public void apply(DynamicRealmObject dog) {
+                DynamicRealmObject owner = realm.createObject("Owner");
+                owner.setString("name", "John");
+                dog.setObject("owner", owner);
+            }
+        });
+        assertEquals("John", realm.where("Dog").findFirst().getObject("owner").getString("name"));
     }
 
     public void testGetFieldNames() {
