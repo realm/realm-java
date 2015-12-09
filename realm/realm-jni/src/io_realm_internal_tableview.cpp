@@ -470,7 +470,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeClear(
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return;
-        TV(nativeViewPtr)->clear();
+        TV(nativeViewPtr)->clear(RemoveMode::unordered);
     } CATCH_STD()
 }
 
@@ -481,7 +481,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeRemoveRow(
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) ||
             !ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
             return;
-        TV(nativeViewPtr)->remove( S(rowIndex));
+        TV(nativeViewPtr)->remove( S(rowIndex), RemoveMode::unordered);
     } CATCH_STD()
 }
 
