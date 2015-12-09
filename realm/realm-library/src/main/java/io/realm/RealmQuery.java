@@ -36,7 +36,6 @@ import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
-import rx.Observable;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder

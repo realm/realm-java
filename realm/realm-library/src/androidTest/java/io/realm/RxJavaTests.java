@@ -265,6 +265,4 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(1, realm.handlerController.changeListeners.size());
     }
 
-
-
 }

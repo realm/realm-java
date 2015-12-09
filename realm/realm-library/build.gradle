@@ -20,7 +20,7 @@ android {
 }
 
 dependencies {
-    provided 'io.reactivex:rxjava:1.0.16'
+    provided 'io.reactivex:rxjava:1.1.0'
     compile project(':realm-annotations')
 
     androidTestApt project(':realm-annotations-processor')
