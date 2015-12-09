@@ -1,5 +1,6 @@
 0.86.1
  * Fixed a bug where RealmQuery.findFirst() returned a wrong result if the RealmQuery had been created from a RealmResults.where() (#1905).
+ * Updated Realm Core to 0.95.5
 
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
