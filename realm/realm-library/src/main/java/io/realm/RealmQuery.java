@@ -56,7 +56,7 @@ import rx.Observable;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmObject> implements {
+public class RealmQuery<E extends RealmObject> {
 
     private BaseRealm realm;
     private Class<E> clazz;
@@ -125,27 +125,6 @@ public class RealmQuery<E extends RealmObject> implements {
         } else {
             return new RealmQuery(list.realm, list.view, list.className);
         }
-    }
-
-    /**
-     * Copies an existing query to another Realm instance.
-     * This method is threadsafe and can be used to copy a {@link RealmQuery} between threads.
-     *
-     * @param realm Realm to run the copied query on
-     * @param query query to copy
-     * @param <E> type of elements in the query
-     * @return the copied query instance.
-     */
-    public static <E extends RealmObject> RealmQuery<E> copyQuery(Realm realm, RealmQuery<E> query) {
-        RealmQuery<E> copiedQuery = new RealmQuery<E>(realm, query.clazz);
-        query.handoverTo(copiedQuery);
-        return copiedQuery;
-    }
-
-    public static RealmQuery<DynamicRealmObject> copyDynamicQuery(DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
-        RealmQuery<DynamicRealmObject> copiedQuery = new RealmQuery<DynamicRealmObject>(realm, query.className);
-        query.handoverTo(copiedQuery);
-        return copiedQuery;
     }
 
     private RealmQuery(Realm realm, Class<E> clazz) {
@@ -1907,15 +1886,7 @@ public class RealmQuery<E extends RealmObject> implements {
         }
     }
 
-    /**
-     * Move this query to another query object. That query object is allowed to be on another thread.
-     */
-    private void handoverTo(RealmQuery<E> copiedQuery) {
-        long handoverQuery = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
-        copiedQuery.query.acceptHandoverQuery(handoverQuery);
-    }
-    
-    sprivate long getSourceRowIndexForFirstObject() {
+    private long getSourceRowIndexForFirstObject() {
         long rowIndex = this.query.find();
         if (rowIndex < 0) {
             return rowIndex;
@@ -1940,31 +1911,5 @@ public class RealmQuery<E extends RealmObject> implements {
      */
     long handoverQueryPointer() {
         return query.handoverQuery(realm.sharedGroupManager.getNativePointer());
-    }
-
-    /**
-     * Returns an Rx Observable that emits the RealmQuery and then completes.
-     *
-     * @return RxJava Observable
-     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
-     */
-    @SuppressWarnings("unchecked")
-    public Observable<RealmQuery<E>> asObservable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().from((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
-            DynamicRealm dynamicRealm = (DynamicRealm) realm;
-            RealmQuery<DynamicRealmObject> dynamicQuery = (RealmQuery<DynamicRealmObject>) this;
-            @SuppressWarnings("UnnecessaryLocalVariable")
-            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicQuery);
-            return results;
-        } else {
-            throw new UnsupportedOperationException(realm.getClass() + " not supported");
-        }
-    }
-
-    public RealmQuery<E> clone() {
-        return new RealmQuery<E>(this);
     }
 }

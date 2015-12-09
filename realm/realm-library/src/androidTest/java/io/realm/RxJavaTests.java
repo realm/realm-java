@@ -3,6 +3,7 @@ package io.realm;
 import android.test.AndroidTestCase;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -224,31 +225,6 @@ public class RxJavaTests extends AndroidTestCase {
         dynamicRealm.close();
     }
 
-    public void testRealmQueryObservable() {
-        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();
-
-        Subscription subscription = realm.where(AllTypes.class).asObservable()
-                .map(new Func1<RealmQuery<AllTypes>, List<AllTypes>>() {
-                    @Override
-                    public List<AllTypes> call(RealmQuery<AllTypes> query) {
-                        return query.findAll();
-                    }
-                })
-                .subscribeOn(Schedulers.computation())
-                .subscribe(new Action1<List<AllTypes>>() {
-                    @Override
-                    public void call(List<AllTypes> allTypes) {
-                        assertEquals(1, allTypes.size());
-                        subscribedNotified.set(true);
-                    }
-                });
-        subscription.unsubscribe();
-        assertTrue(subscribedNotified.get());
-    }
-
     public void testUnsubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         Subscription subscription = realm.asObservable().subscribe(new Action1<Realm>() {
@@ -262,5 +238,33 @@ public class RxJavaTests extends AndroidTestCase {
         subscription.unsubscribe();
         assertEquals(0, realm.handlerController.changeListeners.size());
     }
+
+    public void testUnsubscribeFromOtherThreadFails() {
+        final CountDownLatch unsubscribeCompleted = new CountDownLatch(1);
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        final Subscription subscription = realm.asObservable().subscribe(new Action1<Realm>() {
+            @Override
+            public void call(Realm rxRealm) {
+                assertTrue(rxRealm == realm);
+                subscribedNotified.set(true);
+            }
+        });
+        assertEquals(1, realm.handlerController.changeListeners.size());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    subscription.unsubscribe();
+                    fail();
+                } catch (IllegalStateException ignored) {
+                }
+                unsubscribeCompleted.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(unsubscribeCompleted);
+        assertEquals(1, realm.handlerController.changeListeners.size());
+    }
+
+
 
 }
