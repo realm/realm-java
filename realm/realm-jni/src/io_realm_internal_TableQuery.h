@@ -591,6 +591,12 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandover
   (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeBatchUpdateQueries
+ */
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdateQueries
+        (JNIEnv *,jobject,jlong ,jlong ,jlongArray,jobjectArray,jobjectArray,jobjectArray);
 #ifdef __cplusplus
 }
 #endif

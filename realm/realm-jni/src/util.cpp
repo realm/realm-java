@@ -49,6 +49,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, CrossTableLink, ss.str());
     }
+    catch (SharedGroup::BadVersion& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, BadVersion, ss.str());
+    }
     catch (std::exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
