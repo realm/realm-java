@@ -74,10 +74,8 @@ public class AllTypesRealmProxy extends AllTypes
 
     private final AllTypesColumnInfo columnInfo;
     private RealmList<AllTypes> columnRealmListRealmList;
-    private static RealmList<AllTypes> EMPTY_REALM_LIST_COLUMNREALMLIST;
     private static final List<String> FIELD_NAMES;
     static {
-        EMPTY_REALM_LIST_COLUMNREALMLIST = new RealmList<AllTypes>();
         List<String> fieldNames = new ArrayList<String>();
         fieldNames.add("columnString");
         fieldNames.add("columnLong");
@@ -228,14 +226,8 @@ public class AllTypesRealmProxy extends AllTypes
             return columnRealmListRealmList;
         } else {
             LinkView linkView = row.getLinkList(columnInfo.columnRealmListIndex);
-            if (linkView == null) {
-                // return empty non managed RealmList if the LinkView is null
-                // useful for non-initialized RealmObject (async query returns empty Row while the query is still running)
-                return EMPTY_REALM_LIST_COLUMNREALMLIST;
-            } else {
-                columnRealmListRealmList = new RealmList<AllTypes>(AllTypes.class, linkView, realm);
-                return columnRealmListRealmList;
-            }
+            columnRealmListRealmList = new RealmList<AllTypes>(AllTypes.class, linkView, realm);
+            return columnRealmListRealmList;
         }
     }
 
@@ -666,6 +658,52 @@ public class AllTypesRealmProxy extends AllTypes
         }
 
         return realmObject;
+    }
+
+    public static AllTypes createDetachedCopy(AllTypes realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
+        if (currentDepth > maxDepth || realmObject == null) {
+            return null;
+        }
+        CacheData<AllTypes> cachedObject = (CacheData) cache.get(realmObject);
+        AllTypes standaloneObject;
+        if (cachedObject != null) {
+            // Reuse cached object or recreate it because it was encountered at a lower depth.
+            if (currentDepth >= cachedObject.minDepth) {
+                return cachedObject.object;
+            } else {
+                standaloneObject = cachedObject.object;
+                cachedObject.minDepth = currentDepth;
+            }
+        } else {
+            standaloneObject = new AllTypes();
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
+        }
+        standaloneObject.setColumnString(realmObject.getColumnString());
+        standaloneObject.setColumnLong(realmObject.getColumnLong());
+        standaloneObject.setColumnFloat(realmObject.getColumnFloat());
+        standaloneObject.setColumnDouble(realmObject.getColumnDouble());
+        standaloneObject.setColumnBoolean(realmObject.isColumnBoolean());
+        standaloneObject.setColumnDate(realmObject.getColumnDate());
+        standaloneObject.setColumnBinary(realmObject.getColumnBinary());
+
+        // Deep copy of columnObject
+        standaloneObject.setColumnObject(AllTypesRealmProxy.createDetachedCopy(realmObject.getColumnObject(), currentDepth + 1, maxDepth, cache));
+
+        // Deep copy of columnRealmList
+        if (currentDepth == maxDepth) {
+            standaloneObject.setColumnRealmList(null);
+        } else {
+            RealmList<AllTypes> managedcolumnRealmListList = realmObject.getColumnRealmList();
+            RealmList<AllTypes> standalonecolumnRealmListList = new RealmList<AllTypes>();
+            standaloneObject.setColumnRealmList(standalonecolumnRealmListList);
+            int nextDepth = currentDepth + 1;
+            int size = managedcolumnRealmListList.size();
+            for (int i = 0; i < size; i++) {
+                AllTypes item = AllTypesRealmProxy.createDetachedCopy(managedcolumnRealmListList.get(i), nextDepth, maxDepth, cache);
+                standalonecolumnRealmListList.add(item);
+            }
+        }
+        return standaloneObject;
     }
 
     static AllTypes update(Realm realm, AllTypes realmObject, AllTypes newObject, Map<RealmObject, RealmObjectProxy> cache) {

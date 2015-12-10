@@ -30,6 +30,7 @@ import io.realm.internal.android.JsonUtils;
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
 public final class DynamicRealmObject extends RealmObject {
+    private String className;
 
     /**
      * Creates a dynamic Realm object based on an existing object.
@@ -62,6 +63,10 @@ public final class DynamicRealmObject extends RealmObject {
     DynamicRealmObject(BaseRealm realm, Row row) {
         this.realm = realm;
         this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
+    }
+
+    DynamicRealmObject(String className) {
+        this.className = className;
     }
 
     /**
@@ -248,7 +253,7 @@ public final class DynamicRealmObject extends RealmObject {
             return null;
         } else {
             long linkRowIndex = row.getLink(columnIndex);
-            CheckedRow linkRow = row.getTable().getCheckedRow(linkRowIndex);
+            CheckedRow linkRow = row.getTable().getLinkTarget(columnIndex).getCheckedRow(linkRowIndex);
             return new DynamicRealmObject(realm, linkRow);
         }
     }
@@ -541,7 +546,7 @@ public final class DynamicRealmObject extends RealmObject {
             if (!realm.getConfiguration().equals(value.realm.getConfiguration())) {
                 throw new IllegalArgumentException("Cannot add an object from another Realm");
             }
-            Table table = row.getTable();
+            Table table = row.getTable().getLinkTarget(columnIndex);
             Table inputTable = value.row.getTable();
             if (!table.hasSameSchema(inputTable)) {
                 throw new IllegalArgumentException(String.format("Type of object is wrong. Was %s, expected %s",
@@ -710,5 +715,13 @@ public final class DynamicRealmObject extends RealmObject {
         sb.replace(sb.length() - 2, sb.length(), "");
         sb.append("]");
         return sb.toString();
+    }
+
+    @Override
+    protected Table getTable() {
+        if (className != null) {
+            return realm.schema.getTable(className);
+        }
+        return super.getTable();
     }
 }

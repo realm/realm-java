@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.test.AndroidTestCase;
+import android.os.Looper;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -35,6 +36,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
@@ -645,6 +647,35 @@ public class TestHelper {
             }
         } catch (InterruptedException e) {
             fail();
+        }
+    }
+
+    // clean resource, shutdown the executor service & throw any background exception
+    public static void exitOrThrow(final ExecutorService executorService,
+                     final CountDownLatch signalTestFinished,
+                     final CountDownLatch signalFinallyRun,
+                     final Looper[] looper,
+                     final Throwable[] throwable,
+                     int... timeout) throws Throwable {
+
+        // wait for the signal indicating the test's use case is done
+        TestHelper.awaitOrFail(signalTestFinished, (timeout.length == 1) ? timeout[0] : 7);
+
+        // close the executor
+        executorService.shutdownNow();
+
+        if (looper[0] != null) {
+            // failing to quit the looper will not execute the finally block responsible
+            // of closing the Realm
+            looper[0].quit();
+        }
+
+        // wait for the finally block to execute & close the Realm
+        TestHelper.awaitOrFail(signalFinallyRun, (timeout.length == 1) ? timeout[0] : 7);
+
+        if (throwable[0] != null) {
+            // throw any assertion errors happened in the background thread
+            throw throwable[0];
         }
     }
 }

@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
 
@@ -42,7 +43,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.entities.AllTypes;
@@ -1051,16 +1051,12 @@ public class RealmTest extends AndroidTestCase {
         final RealmConfiguration configuration = testRealm.getConfiguration();
         testRealm.close();
         testRealm = null;
-        Realm.compactRealm(configuration);
+        assertTrue(Realm.compactRealm(configuration));
         testRealm = Realm.getInstance(configuration);
     }
 
-    public void testCompactRealmFileThrowsIfOpen() throws IOException {
-        try {
-            Realm.compactRealm(TestHelper.createConfiguration(getContext()));
-            fail();
-        } catch (IllegalStateException expected) {
-        }
+    public void testCompactRealmFileFailsIfOpen() throws IOException {
+        assertFalse(Realm.compactRealm(TestHelper.createConfiguration(getContext())));
     }
 
     public void testCompactEncryptedEmptyRealmFile() {
@@ -1748,6 +1744,56 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(tmpFile.createNewFile());
     }
 
+    public void testDeleteRealmFile() throws InterruptedException {
+        File tempDir = new File(getContext().getFilesDir(), "delete_test_dir");
+        if (!tempDir.exists()) {
+            tempDir.mkdir();
+        }
+
+        assertTrue(tempDir.isDirectory());
+
+        // Delete all files in the directory
+        for (File file : tempDir.listFiles()) {
+            file.delete();
+        }
+
+        final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
+
+        final CountDownLatch readyToCloseLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+
+        Realm realm = Realm.getInstance(configuration);
+        // Create another Realm to ensure the log files are generated
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(configuration);
+                try {
+                    readyToCloseLatch.await();
+                } catch (InterruptedException ignored) {
+                }
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        readyToCloseLatch.countDown();
+        realm.close();
+        closedLatch.await();
+
+        // ATTENTION: log, log_a, log_b will be deleted when the other thread close the Realm peacefully. And we force
+        // user to close all Realm instances before deleting. It would be difficult to simulate a case that log files
+        // exist before deletion. Let's keep the case like this for now, we might allow user to delete Realm even there
+        // are instances opened in the future.
+        assertTrue(Realm.deleteRealm(configuration));
+
+        // Directory should be empty now
+        assertEquals(0, tempDir.listFiles().length);
+    }
+
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)
     public void testMutableMethodsOutsideTransactions() throws JSONException, IOException {
 
@@ -1970,6 +2016,7 @@ public class RealmTest extends AndroidTestCase {
     public void testProcessLocalListenersAfterRefresh() throws InterruptedException {
         // Used to validate the result
         final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
+        final AtomicBoolean typeListenerWasCalled = new AtomicBoolean(false);
 
         // Used by the background thread to wait for the main thread to do the write operation
         final CountDownLatch bgThreadLatch = new CountDownLatch(1);
@@ -1978,7 +2025,14 @@ public class RealmTest extends AndroidTestCase {
         Thread backgroundThread = new Thread() {
             @Override
             public void run() {
+                // this will allow to register a listener.
+                // we don't start looping to prevent the callback to be invoked via
+                // the handler mechanism, the purpose of this test is to make sure refresh calls
+                // the listeners.
+                Looper.prepare();
+
                 Realm bgRealm = Realm.getInstance(testConfig);
+                RealmResults<Dog> dogs = bgRealm.where(Dog.class).findAll();
                 try {
                     bgRealm.addChangeListener(new RealmChangeListener() {
                         @Override
@@ -1986,9 +2040,17 @@ public class RealmTest extends AndroidTestCase {
                             listenerWasCalled.set(true);
                         }
                         });
+                    dogs.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            typeListenerWasCalled.set(true);
+                        }
+                    });
+
                     bgThreadLatch.await(); // Wait for the main thread to do a write operation
                     bgRealm.refresh(); // This should call the listener
                     assertTrue(listenerWasCalled.get());
+                    assertTrue(typeListenerWasCalled.get());
                 } catch (InterruptedException e) {
                     fail();
                 } finally {
@@ -2258,5 +2320,174 @@ public class RealmTest extends AndroidTestCase {
         assertFalse(emptyRealm.isEmpty());
 
         emptyRealm.close();
+    }
+
+    public void testCopyInvalidObjectFromRealmThrows() {
+        testRealm.beginTransaction();
+        AllTypes obj = testRealm.createObject(AllTypes.class);
+        obj.removeFromRealm();
+        testRealm.commitTransaction();
+
+        try {
+            testRealm.copyFromRealm(obj);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            testRealm.copyFromRealm(new AllTypes());
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testCopyFromRealmWithInvalidDepth() {
+        testRealm.beginTransaction();
+        AllTypes obj = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+
+        try {
+            testRealm.copyFromRealm(obj, -1);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testCopyFromRealm() {
+        populateTestRealm();
+        AllTypes realmObject = testRealm.where(AllTypes.class).findAllSorted("columnLong").first();
+        AllTypes standaloneObject = testRealm.copyFromRealm(realmObject);
+        assertArrayEquals(realmObject.getColumnBinary(), standaloneObject.getColumnBinary());
+        assertEquals(realmObject.getColumnString(), standaloneObject.getColumnString());
+        assertEquals(realmObject.getColumnLong(), standaloneObject.getColumnLong());
+        assertEquals(realmObject.getColumnFloat(), standaloneObject.getColumnFloat());
+        assertEquals(realmObject.getColumnDouble(), standaloneObject.getColumnDouble());
+        assertEquals(realmObject.isColumnBoolean(), standaloneObject.isColumnBoolean());
+        assertEquals(realmObject.getColumnDate(), standaloneObject.getColumnDate());
+    }
+
+    public void testCopyFromRealmDifferentObjects() {
+        populateTestRealm();
+        AllTypes realmObject = testRealm.where(AllTypes.class).findAllSorted("columnLong").first();
+        AllTypes standaloneObject1 = testRealm.copyFromRealm(realmObject);
+        AllTypes standaloneObject2 = testRealm.copyFromRealm(realmObject);
+        assertFalse(standaloneObject1 == standaloneObject2);
+        assertNotSame(standaloneObject1, standaloneObject2);
+    }
+
+    // Test that the object graph is copied as it is and no extra copies are made
+    // 1) (A -> B/[B,C])
+    // 2) (C -> B/[B,A])
+    // A copy should result in only 3 distinct objects
+    public void testCopyFromRealmCyclicObjectGraph() {
+        testRealm.beginTransaction();
+        CyclicType objA = testRealm.createObject(CyclicType.class); objA.setName("A");
+        CyclicType objB = testRealm.createObject(CyclicType.class); objB.setName("B");
+        CyclicType objC = testRealm.createObject(CyclicType.class); objC.setName("C");
+        objA.setObject(objB);
+        objC.setObject(objB);
+        objA.getObjects().add(objB);
+        objA.getObjects().add(objC);
+        objC.getObjects().add(objB);
+        objC.getObjects().add(objA);
+        testRealm.commitTransaction();
+
+        CyclicType copyA = testRealm.copyFromRealm(objA);
+        CyclicType copyB = copyA.getObject();
+        CyclicType copyC = copyA.getObjects().get(1);
+
+        assertEquals("A", copyA.getName());
+        assertEquals("B", copyB.getName());
+        assertEquals("C", copyC.getName());
+
+        // Assert object equality on the object graph
+        assertTrue(copyA.getObject() == copyC.getObject());
+        assertTrue(copyA.getObjects().get(0) == copyC.getObjects().get(0));
+        assertTrue(copyA == copyC.getObjects().get(1));
+        assertTrue(copyC == copyA.getObjects().get(1));
+    }
+
+    // Test that for (A -> B -> C) for maxDepth = 1, result is (A -> B -> null)
+    public void testCopyFromRealmWithDepth() {
+        testRealm.beginTransaction();
+        CyclicType objA = testRealm.createObject(CyclicType.class); objA.setName("A");
+        CyclicType objB = testRealm.createObject(CyclicType.class); objB.setName("B");
+        CyclicType objC = testRealm.createObject(CyclicType.class); objC.setName("C");
+        objA.setObject(objB);
+        objC.setObject(objC);
+        objA.getObjects().add(objB);
+        objA.getObjects().add(objC);
+        testRealm.commitTransaction();
+
+        CyclicType copyA = testRealm.copyFromRealm(objA, 1);
+
+        assertNull(copyA.getObject().getObject());
+    }
+
+    // Test that depth restriction is calculated from the top-most encountered object, i.e. it is possible for some
+    // objects to exceed the depth limit.
+    // A -> B -> C -> D -> E
+    // A -> D -> E
+    // D is both at depth 1 and 3. For maxDepth = 3, E should still be copied.
+    public void testCopyFromRealmWithDifferentDepths() {
+        testRealm.beginTransaction();
+        CyclicType objA = testRealm.createObject(CyclicType.class); objA.setName("A");
+        CyclicType objB = testRealm.createObject(CyclicType.class); objB.setName("B");
+        CyclicType objC = testRealm.createObject(CyclicType.class); objC.setName("C");
+        CyclicType objD = testRealm.createObject(CyclicType.class); objD.setName("D");
+        CyclicType objE = testRealm.createObject(CyclicType.class); objE.setName("E");
+        objA.setObject(objB);
+        objB.setObject(objC);
+        objC.setObject(objD);
+        objD.setObject(objE);
+        objA.setOtherObject(objD);
+        testRealm.commitTransaction();
+
+        // object is filled before otherObject (because of field order - WARNING: Not guaranteed)
+        // this means that the object will be encountered first time at max depth, so E will not be copied.
+        // If the object cache does not handle this, otherObject will be wrong.
+        CyclicType copyA = testRealm.copyFromRealm(objA, 3);
+        assertEquals("E", copyA.getOtherObject().getObject().getName());
+    }
+
+    public void testCopyListInvalidObjectFromRealmThrows() {
+        testRealm.beginTransaction();
+        AllTypes object = testRealm.createObject(AllTypes.class);
+        List<AllTypes> list = new RealmList<AllTypes>(object);
+        object.removeFromRealm();
+        testRealm.commitTransaction();
+
+        try {
+            testRealm.copyFromRealm(list);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    public void testCopyListFromRealmWithInvalidDepth() {
+        RealmResults<AllTypes> results = testRealm.allObjects(AllTypes.class);
+        try {
+            testRealm.copyFromRealm(results, -1);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    // Test that the same Realm objects in a list result in the same Java in-memory copy.
+    // List: A -> [(B -> C), (B -> C)] should result in only 2 copied objects A and B and not A1, B1, A2, B2
+    public void testCopyListFromRealmSameElements() {
+        testRealm.beginTransaction();
+        CyclicType objA = testRealm.createObject(CyclicType.class); objA.setName("A");
+        CyclicType objB = testRealm.createObject(CyclicType.class); objB.setName("B");
+        CyclicType objC = testRealm.createObject(CyclicType.class); objC.setName("C");
+        objB.setObject(objC);
+        objA.getObjects().add(objB);
+        objA.getObjects().add(objB);
+        testRealm.commitTransaction();
+
+        List<CyclicType> results = testRealm.copyFromRealm(objA.getObjects());
+        assertEquals(2, results.size());
+        assertEquals("B", results.get(0).getName());
+        assertTrue(results.get(0) == results.get(1));
     }
 }

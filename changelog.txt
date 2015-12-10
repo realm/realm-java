@@ -1,3 +1,16 @@
+0.87.0
+ * Added Realm.copyFromRealm() for creating detached copies of Realm objects (#931).
+ * Added RealmObjectSchema.getFieldType() (#1883).
+ * Added unitTestExample to showcase unit and instrumentation tests. Examples include jUnit3, jUnit4, Espresso, Robolectric, and MPowermock usage with Realm (#1440).
+ * Adding support for ISO8601 based dates for JSON import. If JSON dates are invalid a RealmException will be thrown (#1213).
+
+0.86.1
+ * Fixed a bug where RealmQuery.findFirst() returned a wrong result if the RealmQuery had been created from a RealmResults.where() (#1905).
+ * Fixed a bug causing DynamicRealmObject.getObject()/setObject() to use the wrong class (#1912).
+ * Updated Realm Core to 0.95.5
+ * Improved the performance of removing objects (RealmResults.clear() and RealmResults.remove()).
+ * Updated ProGuard configuration (#1904).
+
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
  * BREAKING CHANGE: RealmResults.SORT_ORDER_ASCENDING and RealmResults.SORT_ORDER_DESCENDING constants have been replaced by Sort.ASCENDING and Sort.DESCENDING enums.
@@ -5,10 +18,15 @@
  * BREAKING CHANGE: Realm.addChangeListener, RealmObject.addChangeListener and RealmResults.addChangeListener hold a strong reference to the listener, you should unregister the listener to avoid memory leaks.
  * BREAKING CHANGE: Removed deprecated methods RealmQuery.minimum{Int,Float,Double}, RealmQuery.maximum{Int,Float,Double}, RealmQuery.sum{Int,Float,Double} and RealmQuery.average{Int,Float,Double}. Use RealmQuery.min(), RealmQuery.max(), RealmQuery.sum() and RealmQuery.average() instead.
  * BREAKING CHANGE: Removed RealmConfiguration.getSchemaMediator() which is public by mistake. And RealmConfiguration.getRealmObjectClasses() is added as an alternative in order to obtain the set of model classes (#1797).
+ * BREAKING CHANGE: Realm.addChangeListener, RealmObject.addChangeListener and RealmResults.addChangeListener will throw an IllegalStateException when invoked on a non-Looper thread. This is to prevent registering listeners that will not be invoked.
+ * BREAKING CHANGE: trying to access a property on an unloaded RealmObject obtained asynchronously will throw an IllegalStateException
  * Added new Dynamic API using DynamicRealm and DynamicRealmObject.
  * Added Realm.getSchema() and DynamicRealm.getSchema().
  * Realm.createOrUpdateObjectFromJson() now works correctly if the RealmObject class contains a primary key (#1777).
- * Updated Realm Core to 0.95.1
+ * Realm.compactRealm() doesn't throw an exception if the Realm file is opened. It just returns false instead.
+ * Updated Realm Core to 0.95.3
+   - Fixed a bug where RealmQuery.average(String) returned a wrong value for a nullable Long/Integer/Short/Byte field (#1803).
+   - Fixed a bug where RealmQuery.average(String) wrongly counted the null value for average calculation (#1854).
 
 0.85.1
  * Fixed a bug which could corrupt primary key information when updating from a Realm version <= 0.84.1 (#1775).

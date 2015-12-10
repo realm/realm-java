@@ -18,6 +18,7 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +28,8 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
+import io.realm.exceptions.RealmException;
+import io.realm.entities.Owner;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -72,7 +75,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     public void testIllegalInputObjectThrows() {
         try {
-            new DynamicRealmObject(null);
+            new DynamicRealmObject((RealmObject)null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -392,6 +395,17 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         }
     }
 
+    public void testSetObjectDifferentType() {
+        realm.beginTransaction();
+        DynamicRealmObject dog = new DynamicRealmObject(realm.createObject(Dog.class));
+        DynamicRealmObject owner = new DynamicRealmObject(realm.createObject(Owner.class));
+        owner.setString("name", "John");
+        dog.setObject("owner", owner);
+        realm.commitTransaction();
+
+        assertEquals("John", dog.getObject("owner").getString("name"));
+    }
+
     public void testSetObjectWrongTypeThrows() {
         realm.beginTransaction();
         AllJavaTypes obj = realm.createObject(AllJavaTypes.class);
@@ -611,6 +625,12 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     }
                     fail(type + " failed");
                 } catch (IllegalArgumentException ignored) {
+                } catch (RealmException e) {
+                    if(!(e.getCause() instanceof ParseException)) {
+                        // providing "foo" to the date parser will blow up with a RealmException
+                        // and the cause will be a ParseException.
+                        fail(type + " failed");
+                    }
                 }
             }
         } finally {

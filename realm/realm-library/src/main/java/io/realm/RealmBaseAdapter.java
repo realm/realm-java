@@ -53,7 +53,7 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         };
 
         if (listener != null && realmResults != null) {
-            realmResults.realm.addChangeListenerAsWeakReference(listener);
+            realmResults.realm.handlerController.addChangeListenerAsWeakReference(listener);
         }
     }
 

@@ -955,5 +955,5 @@ public class TableView implements TableOrView, Closeable {
         return nativeSync(nativePtr);
     }
 
-    protected native long nativeSync(long nativeTablePtr);
+    private native long nativeSync(long nativeTablePtr);
 }

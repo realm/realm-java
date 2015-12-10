@@ -47,7 +47,7 @@ public class IntroExampleActivity extends Activity {
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
 
-        // Open the default realm for the UI thread.
+        // Open the default Realm for the UI thread.
         realm = Realm.getInstance(this);
 
         basicCRUD(realm);
