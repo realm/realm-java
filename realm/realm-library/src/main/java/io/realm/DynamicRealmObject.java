@@ -253,7 +253,7 @@ public final class DynamicRealmObject extends RealmObject {
             return null;
         } else {
             long linkRowIndex = row.getLink(columnIndex);
-            CheckedRow linkRow = row.getTable().getCheckedRow(linkRowIndex);
+            CheckedRow linkRow = row.getTable().getLinkTarget(columnIndex).getCheckedRow(linkRowIndex);
             return new DynamicRealmObject(realm, linkRow);
         }
     }
@@ -546,7 +546,7 @@ public final class DynamicRealmObject extends RealmObject {
             if (!realm.getConfiguration().equals(value.realm.getConfiguration())) {
                 throw new IllegalArgumentException("Cannot add an object from another Realm");
             }
-            Table table = row.getTable();
+            Table table = row.getTable().getLinkTarget(columnIndex);
             Table inputTable = value.row.getTable();
             if (!table.hasSameSchema(inputTable)) {
                 throw new IllegalArgumentException(String.format("Type of object is wrong. Was %s, expected %s",

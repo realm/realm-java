@@ -168,7 +168,7 @@ task distributionPackage(type:Zip) {
     from('LICENSE')
     from('version.txt')
     from('realm/realm-annotations-processor/build/libs') {
-        include 'realm-android-${currentVersion}.jar'
+        include "realm-android-${currentVersion}.jar"
         into 'eclipse'
     }
     from('realm/realm-library/src/main/jniLibs/') {
@@ -189,7 +189,6 @@ task distributionPackage(type:Zip) {
     }
     from('examples') {
         exclude 'local.properties'
-        exclude '**/gradle'
         exclude '**/.gradle'
         exclude '**/build'
         into 'examples'
