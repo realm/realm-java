@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.os.MessageQueue;
 import android.os.SystemClock;
 import android.test.InstrumentationTestCase;
+import android.util.Log;
 
 import junit.framework.AssertionFailedError;
 
@@ -2494,6 +2495,42 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         });
 
         TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+    }
+
+    // Might freeze the CI, so just disable.
+    public void doTestCrash() {
+        final RealmConfiguration configuration = new RealmConfiguration.
+                Builder(getInstrumentation().getTargetContext()).build();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(configuration);
+                int count = 0;
+                while (true) {
+                    realm.beginTransaction();
+                    realm.commitTransaction();
+                }
+            }
+        }).start();
+
+        Realm realm = Realm.getInstance(configuration);
+        final RealmResults<AllTypes> results =
+                realm.where(AllTypes.class).greaterThanOrEqualTo("columnLong", 1).findAllAsync();
+        results.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                Log.d("TTT", "Results1");
+            }
+        });
+        final RealmResults<AllTypes> results2 =
+                realm.where(AllTypes.class).greaterThanOrEqualTo("columnLong", 1).findAllAsync();
+        results2.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                Log.d("TTT", "Results2");
+            }
+        });
+        Looper.loop();
     }
 
     // *** Helper methods ***
