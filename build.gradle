@@ -44,13 +44,6 @@ def getNdk() {
     return ndkDir
 }
 
-task assembleGradlePlugin(type:GradleBuild) {
-    group = 'Build'
-    description = 'Assemble the Realm Gradle plugin'
-    buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['assemble']
-}
-
 task assembleRealm(type:GradleBuild) {
     group = 'Build'
     description = 'Assemble the Realm project'
@@ -72,17 +65,25 @@ task connectedCheck(type:GradleBuild) {
     tasks = ['connectedCheck']
 }
 
-task installGradlePlugin(type:GradleBuild) {
-    description = 'Install the Realm Gradle plugin into mavenLocal()'
-    group = 'Install'
-    buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['install']
-}
-
 task installRealm(type:GradleBuild) {
     group = 'Install'
     description = 'Install the artifacts of Realm project into mavenLocal()'
     buildFile = file('realm/build.gradle')
+    tasks = ['install', 'uploadShadow']
+}
+
+task assembleGradlePlugin(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble the Realm Gradle plugin'
+    dependsOn installRealm
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['assemble']
+}
+
+task installGradlePlugin(type:GradleBuild) {
+    description = 'Install the Realm Gradle plugin into mavenLocal()'
+    group = 'Install'
+    buildFile = file('gradle-plugin/build.gradle')
     tasks = ['install']
 }
 
