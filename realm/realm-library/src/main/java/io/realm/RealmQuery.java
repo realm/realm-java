@@ -1273,7 +1273,7 @@ public class RealmQuery<E extends RealmObject> {
 
                         return handoverTableViewPointer;
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1371,7 +1371,7 @@ public class RealmQuery<E extends RealmObject> {
                         return handoverTableViewPointer;
 
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1483,7 +1483,7 @@ public class RealmQuery<E extends RealmObject> {
 
                         return handoverTableViewPointer;
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1649,7 +1649,7 @@ public class RealmQuery<E extends RealmObject> {
 
                             return handoverTableViewPointer;
                         } catch (Exception e) {
-                            RealmLog.e(e.getMessage());
+                            RealmLog.e(e.getMessage(), e);
                             sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                         } finally {
@@ -1827,7 +1827,7 @@ public class RealmQuery<E extends RealmObject> {
                         return handoverRowPointer;
 
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         // handler can't throw a checked exception need to wrap it into unchecked Exception
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 

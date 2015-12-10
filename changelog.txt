@@ -4,6 +4,7 @@
  * Updated Realm Core to 0.95.5
  * Improved the performance of removing objects (RealmResults.clear() and RealmResults.remove()).
  * Updated ProGuard configuration (#1904).
+ * Fix a crash occurring during update of multiple async queries #1895
 
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
