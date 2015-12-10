@@ -17,6 +17,8 @@
 package io.realm;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.test.AndroidTestCase;
@@ -2320,5 +2322,209 @@ public class RealmTest extends AndroidTestCase {
         assertFalse(emptyRealm.isEmpty());
 
         emptyRealm.close();
+    }
+
+    // Test if close can be called from Realm change listener when there is no other listeners
+    public void testCloseRealmInChangeListener() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final Realm realm = Realm.getInstance(testConfig);
+                final RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (realm.where(AllTypes.class).count() == 1) {
+                            realm.removeChangeListener(this);
+                            realm.close();
+                            signalTestFinished.countDown();
+                        }}
+                };
+
+                realm.addChangeListener(listener);
+
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.createObject(AllTypes.class);
+                    }
+                }, new Realm.Transaction.Callback());
+            }
+        });
+        TestHelper.awaitOrFail(signalTestFinished);
+    }
+
+    // Test if close can be called from Realm change listener when there is a listener on empty Realm Object
+    public void testCloseRealmInChangeListenerWhenThereIsListenerOnEmptyObject() {
+        //noinspection
+        final Object[] keepStrongReferences = new Object[1];
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+
+        final Handler handler = new Handler(handlerThread.getLooper());
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final Realm realm = Realm.getInstance(testConfig);
+                final RealmChangeListener dummyListener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                    }
+                };
+                final RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (realm.where(AllTypes.class).count() == 1) {
+                            realm.removeChangeListener(this);
+                            realm.close();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                };
+
+                realm.addChangeListener(listener);
+
+                // Change listener on Empty Object
+                final AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
+                allTypes.addChangeListener(dummyListener);
+
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.createObject(AllTypes.class);
+                    }
+                }, new Realm.Transaction.Callback());
+                keepStrongReferences[0] = allTypes;
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    // Test if close can be called from Realm change listener when there is an listener on non-empty Realm Object
+    public void testCloseRealmInChangeListenerWhenThereIsListenerOnObject() {
+        //noinspection
+        final Object[] keepStrongReferences = new Object[1];
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final Realm realm = Realm.getInstance(testConfig);
+                final RealmChangeListener dummyListener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                    }
+                };
+                final RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (realm.where(AllTypes.class).count() == 2) {
+                            realm.removeChangeListener(this);
+                            realm.close();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                };
+
+                realm.addChangeListener(listener);
+
+                realm.beginTransaction();
+                realm.createObject(AllTypes.class);
+                realm.commitTransaction();
+                // Step 1: Change listener on Realm Object
+                final AllTypes allTypes = realm.where(AllTypes.class).findFirst();
+                allTypes.addChangeListener(dummyListener);
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.createObject(AllTypes.class);
+                    }
+                }, new Realm.Transaction.Callback());
+                keepStrongReferences[0] = allTypes;
+            }
+        });
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    // Test if close can be called from Realm change listener when there is an listener on RealmResults
+    public void testCloseRealmInChangeListenerWhenThereIsListenerOnResults() {
+        //noinspection
+        final Object[] keepStrongReferences = new Object[1];
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final Realm realm = Realm.getInstance(testConfig);
+                final RealmChangeListener dummyListener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                    }
+                };
+                final RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (realm.where(AllTypes.class).count() == 1) {
+                            realm.removeChangeListener(this);
+                            realm.close();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                };
+
+                realm.addChangeListener(listener);
+
+                // Step 1: Change listener on Realm results
+                RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
+                results.addChangeListener(dummyListener);
+
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.createObject(AllTypes.class);
+                    }
+                }, new Realm.Transaction.Callback());
+                keepStrongReferences[0] = results;
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
     }
 }

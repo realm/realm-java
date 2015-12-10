@@ -970,6 +970,9 @@ public final class Realm extends BaseRealm {
                                     && handler != null
                                     && !Thread.currentThread().isInterrupted()
                                     && handler.getLooper().getThread().isAlive()) {
+                                // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency problem
+                                // eg.: User wants to delete Realm in the callbacks.
+                                bgRealm.close();
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
@@ -995,6 +998,7 @@ public final class Realm extends BaseRealm {
                                 && handler != null
                                 && !Thread.currentThread().isInterrupted()
                                 && handler.getLooper().getThread().isAlive()) {
+                            bgRealm.close();
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1003,7 +1007,9 @@ public final class Realm extends BaseRealm {
                             });
                         }
                     } finally {
-                        bgRealm.close();
+                        if (!bgRealm.isClosed()) {
+                            bgRealm.close();
+                        }
                     }
                 }
             }

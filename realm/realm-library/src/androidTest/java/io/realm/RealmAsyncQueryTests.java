@@ -190,6 +190,110 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
+    // Test if the background Realm is closed when transaction success returned.
+    public void testClosedBeforeAsyncTransactionSuccess() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final AtomicInteger counter = new AtomicInteger(100);
+                final Realm realm = openRealmInstance("testClosedBeforeAsyncTransactionSuccess");
+                final RealmCache.Callback cacheCallback = new RealmCache.Callback() {
+                    @Override
+                    public void onResult(int count) {
+                        assertEquals(1, count);
+                        if (counter.decrementAndGet() == 0) {
+                            realm.close();
+                            signalTestFinished.countDown();
+                        }
+                    }
+                };
+                final Realm.Transaction.Callback transactionCallback = new Realm.Transaction.Callback() {
+                    @Override
+                    public void onSuccess() {
+                        RealmCache.invokeWithGlobalRefCount(realm.getConfiguration(), cacheCallback);
+                        if (counter.get() == 0) {
+                            // Finish testing
+                            return;
+                        }
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                            }
+                        }, this);
+                    }
+                };
+
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                    }
+                }, transactionCallback);
+            }
+        });
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    // Test if the background Realm is closed when transaction error returned.
+    public void testClosedBeforeAsyncTransactionError() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final AtomicInteger counter = new AtomicInteger(100);
+                final Realm realm = openRealmInstance("testClosedBeforeAsyncTransactionSuccess");
+                final RealmCache.Callback cacheCallback = new RealmCache.Callback() {
+                    @Override
+                    public void onResult(int count) {
+                        assertEquals(1, count);
+                        if (counter.decrementAndGet() == 0) {
+                            realm.close();
+                            signalTestFinished.countDown();
+                        }
+                    }
+                };
+                final Realm.Transaction.Callback transactionCallback = new Realm.Transaction.Callback() {
+                    @Override
+                    public void onError(Exception e) {
+                        RealmCache.invokeWithGlobalRefCount(realm.getConfiguration(), cacheCallback);
+                        if (counter.get() == 0) {
+                            // Finish testing
+                            return;
+                        }
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                throw new RuntimeException("Dummy exception");
+                            }
+                        }, this);
+                    }
+                };
+
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        throw new RuntimeException("Dummy exception");
+                    }
+                }, transactionCallback);
+            }
+        });
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
     // ************************************
     // *** promises based async queries ***
     // ************************************
