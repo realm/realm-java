@@ -321,14 +321,19 @@ public class HandlerController implements Handler.Callback {
             realm.sharedGroupManager.advanceRead();
             notifyGlobalListeners();
             // notify RealmResults & RealmObject callbacks (type based notifications)
-            notifySyncRealmResultsCallbacks();
-            notifyRealmObjectCallbacks();
+            if (!realm.isClosed()) {
+                // Realm could be closed in the above listener.
+                notifySyncRealmResultsCallbacks();
+            }
+            if (!realm.isClosed()) {
+                notifyRealmObjectCallbacks();
+            }
 
             // empty async RealmObject shouldn't block the realm to advance
             // they're empty so no risk on running into a corrupt state
             // where the pointer (Row) is using one version of a Realm, whereas the
             // current Realm is advancing to a newer version (they're empty anyway)
-            if (threadContainsAsyncEmptyRealmObject()) {
+            if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
                 updateAsyncEmptyRealmObject();
             }
         }
