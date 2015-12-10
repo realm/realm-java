@@ -71,4 +71,26 @@ public class Constants {
         JAVA_TO_COLUMN_TYPES.put("java.util.Date", "RealmFieldType.DATE");
         JAVA_TO_COLUMN_TYPES.put("byte[]", "RealmFieldType.BINARY");
     }
+
+    static final Map<String, String> JAVA_TO_FIELD_SETTER;
+    static {
+        JAVA_TO_FIELD_SETTER = new HashMap<String, String>();
+        JAVA_TO_FIELD_SETTER.put("byte", "setByte");
+        JAVA_TO_FIELD_SETTER.put("short", "setShort");
+        JAVA_TO_FIELD_SETTER.put("int", "setInt");
+        JAVA_TO_FIELD_SETTER.put("long", "setLong");
+        JAVA_TO_FIELD_SETTER.put("float", "setFloat");
+        JAVA_TO_FIELD_SETTER.put("double", "setDouble");
+        JAVA_TO_FIELD_SETTER.put("boolean", "setBoolean");
+        JAVA_TO_FIELD_SETTER.put("java.lang.Byte", "set");
+        JAVA_TO_FIELD_SETTER.put("java.lang.Short", "set");
+        JAVA_TO_FIELD_SETTER.put("java.lang.Integer", "set");
+        JAVA_TO_FIELD_SETTER.put("java.lang.Long", "set");
+        JAVA_TO_FIELD_SETTER.put("java.lang.Float", "set");
+        JAVA_TO_FIELD_SETTER.put("java.lang.Double", "set");
+        JAVA_TO_FIELD_SETTER.put("java.lang.Boolean", "set");
+        JAVA_TO_FIELD_SETTER.put("java.lang.String", "set");
+        JAVA_TO_FIELD_SETTER.put("java.util.Date", "set");
+        JAVA_TO_FIELD_SETTER.put("byte[]", "set");
+    }
 }
