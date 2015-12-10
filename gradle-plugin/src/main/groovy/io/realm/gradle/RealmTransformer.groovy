@@ -72,10 +72,13 @@ class RealmTransformer extends Transform {
         // will use a cached object and all the classes will result frozen.
         ClassPool classPool = new ClassPool(null)
         classPool.appendSystemPath()
+        classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()))
 
         folders.each { File folder ->
             classPool.appendClassPath(folder.canonicalPath)
         }
+
+        println "Contains io.realm.RealmList: ${classPool.getOrNull('io.realm.RealmList')}"
 
         def proxyClasses = classFiles.findAll {key, value ->  key.name.endsWith('RealmProxy.class') }
         println "Proxy Classes: ${proxyClasses*.value}"
@@ -86,7 +89,9 @@ class RealmTransformer extends Transform {
         println "Model Classes: ${modelClasses*.name}"
 
         def managedFields = []
-        modelClasses.each { managedFields.addAll(it.declaredFields) }
+        modelClasses.each {
+            managedFields.addAll(it.declaredFields.findAll { it.getAnnotation(Ignore.class) == null })
+        }
         println "Managed Fields: ${managedFields*.name}"
 
         modelClasses.each { addRealmAccessors(it) }

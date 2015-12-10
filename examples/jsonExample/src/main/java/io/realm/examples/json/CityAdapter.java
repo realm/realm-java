@@ -77,8 +77,8 @@ public class CityAdapter extends BaseAdapter {
         City city = cities.get(position);
 
         if (city != null) {
-            ((TextView) currentView.findViewById(R.id.name)).setText(city.getName());
-            ((TextView) currentView.findViewById(R.id.votes)).setText(Long.toString(city.getVotes()));
+            ((TextView) currentView.findViewById(R.id.name)).setText(city.name);
+            ((TextView) currentView.findViewById(R.id.votes)).setText(Long.toString(city.votes));
         }
 
         return currentView;

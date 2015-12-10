@@ -211,7 +211,6 @@ public class RealmProxyClassGenerator {
                 String realmType = Constants.JAVA_TO_REALM_TYPES.get(fieldTypeCanonicalName);
 
                 // Getter
-                writer.emitAnnotation("Override");
                 writer.emitAnnotation("SuppressWarnings", "\"cast\"");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement("realm.checkIfValid()");
@@ -238,7 +237,6 @@ public class RealmProxyClassGenerator {
                 writer.emitEmptyLine();
 
                 // Setter
-                writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement("realm.checkIfValid()");
                 // Although setting null value for String and bytes[] can be handled by the JNI code, we still generate the same code here.
@@ -265,7 +263,6 @@ public class RealmProxyClassGenerator {
                  */
 
                 // Getter
-                writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement("realm.checkIfValid()");
                 writer.beginControlFlow("if (row.isNullLink(%s))", fieldIndexVariableReference(field));
@@ -277,7 +274,6 @@ public class RealmProxyClassGenerator {
                 writer.emitEmptyLine();
 
                 // Setter
-                writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement("realm.checkIfValid()");
                 writer.beginControlFlow("if (value == null)");
@@ -299,7 +295,6 @@ public class RealmProxyClassGenerator {
                 String genericType = Utils.getGenericType(field);
 
                 // Getter
-                writer.emitAnnotation("Override");
                 writer.beginMethod(fieldTypeCanonicalName, metadata.getGetter(fieldName), EnumSet.of(Modifier.PUBLIC));
                 writer.emitStatement("realm.checkIfValid()");
                 writer.emitSingleLineComment("use the cached value if available");
@@ -322,7 +317,6 @@ public class RealmProxyClassGenerator {
                 writer.emitEmptyLine();
 
                 // Setter
-                writer.emitAnnotation("Override");
                 writer.beginMethod("void", metadata.getSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value");
                 writer.emitStatement("realm.checkIfValid()");
                 writer.emitStatement("LinkView links = row.getLinkList(%s)", fieldIndexVariableReference(field));
@@ -641,9 +635,11 @@ public class RealmProxyClassGenerator {
                 "Realm", "realm", className, "newObject", "boolean", "update", "Map<RealmObject,RealmObjectProxy>", "cache"); // Argument type & argument name
 
         if (metadata.hasPrimaryKey()) {
-            writer.emitStatement("%s realmObject = realm.createObject(%s.class, newObject.%s())", className, className, metadata.getPrimaryKeyGetter());
+            writer.emitStatement("%sRealmProxy realmObject = (%sRealmProxy) realm.createObject(%s.class, newObject.%s())",
+                    className, className, className, metadata.getPrimaryKeyGetter());
         } else {
-            writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
+            writer.emitStatement("%sRealmProxy realmObject = (%sRealmProxy) realm.createObject(%s.class)",
+                    className, className, className);
         }
         writer.emitStatement("cache.put(newObject, (RealmObjectProxy) realmObject)");
         for (VariableElement field : metadata.getFields()) {
@@ -655,7 +651,8 @@ public class RealmProxyClassGenerator {
             if (Utils.isRealmObject(field)) {
                 writer
                     .emitEmptyLine()
-                    .emitStatement("%s %sObj = newObject.%s()", fieldType, fieldName, getter)
+                    .emitStatement("%s %sObj = ((%sRealmProxy) newObject).%s()",
+                            fieldType, fieldName, className, getter)
                     .beginControlFlow("if (%sObj != null)", fieldName)
                         .emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
@@ -673,7 +670,8 @@ public class RealmProxyClassGenerator {
             } else if (Utils.isRealmList(field)) {
                 writer
                     .emitEmptyLine()
-                    .emitStatement("RealmList<%s> %sList = newObject.%s()", Utils.getGenericType(field), fieldName, getter)
+                    .emitStatement("RealmList<%s> %sList = ((%sRealmProxy) newObject).%s()", Utils.getGenericType
+                            (field), fieldName, className, getter)
                     .beginControlFlow("if (%sList != null)", fieldName)
                         .emitStatement("RealmList<%s> %sRealmList = realmObject.%s()", Utils.getGenericType(field), fieldName, getter)
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
@@ -689,7 +687,8 @@ public class RealmProxyClassGenerator {
                     .emitEmptyLine();
 
             } else {
-                writer.emitStatement("realmObject.%s(newObject.%s())", metadata.getSetter(fieldName), getter);
+                writer.emitStatement("realmObject.%s(((%sRealmProxy) newObject).%s())", metadata.getSetter(fieldName)
+                        , className, getter);
             }
         }
 
@@ -860,7 +859,8 @@ public class RealmProxyClassGenerator {
                 Arrays.asList("JSONException"));
 
         if (!metadata.hasPrimaryKey()) {
-            writer.emitStatement("%s obj = realm.createObject(%s.class)", className, className);
+            writer.emitStatement("%sRealmProxy obj = (%sRealmProxy) realm.createObject(%s.class)", className,
+                    className, className);
         } else {
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
             writer
@@ -933,7 +933,8 @@ public class RealmProxyClassGenerator {
                 Arrays.asList("Realm", "realm", "JsonReader", "reader"),
                 Arrays.asList("IOException"));
 
-        writer.emitStatement("%s obj = realm.createObject(%s.class)",className, className);
+        writer.emitStatement("%sRealmProxy obj = (%sRealmProxy) realm.createObject(%s.class)",className, className,
+                className);
         writer.emitStatement("reader.beginObject()");
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
