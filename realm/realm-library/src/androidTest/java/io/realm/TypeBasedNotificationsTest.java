@@ -269,8 +269,8 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         assertEquals(1, typebasedCommitInvocations.get());
     }
 
-    //UC 0 using Realm.createObjectFromJson
-    public void test_callback_should_trigger_for_createObjectFromJson_inputStream() {
+    //UC 0 using Realm.copyToRealmOrUpdate
+    public void test_callback_should_trigger_for_createObjectFromJson() {
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -323,8 +323,8 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         assertEquals(1, typebasedCommitInvocations.get());
     }
 
-    //UC 0 using Realm.createObjectFromJson
-    public void test_callback_should_trigger_for_createObjectFromJson_JSONObject() {
+    //UC 0 using Realm.copyToRealmOrUpdate
+    public void test_callback_should_trigger_for_createObjectFromJson_from_JSONObject() {
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -384,7 +384,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
     }
 
     //UC 0 using Realm.createOrUpdateObjectFromJson
-    public void test_callback_should_trigger_for_createOrUpdateObjectFromJson_InputStream() {
+    public void test_callback_should_trigger_for_createOrUpdateObjectFromJson() {
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -453,7 +453,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         assertEquals(1, typebasedCommitInvocations.get());
     }
 
-    //UC 0 using Realm.createOrUpdateObjectFromJson
+    //UC 0 using Realm.copyToRealmOrUpdate
     public void test_callback_should_trigger_for_createOrUpdateObjectFromJson_from_JSONObject() {
         handler.post(new Runnable() {
             @Override
@@ -934,11 +934,11 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 });
 
                 realm.beginTransaction();
+                Dog akamaru = realm.createObject(Dog.class);
+                akamaru.setName("Akamaru");
                 realm.commitTransaction();
 
                 realm.beginTransaction();
-                Dog akamaru = realm.createObject(Dog.class);
-                akamaru.setName("Akamaru");
                 realm.commitTransaction();
 
                 realm.beginTransaction();
@@ -1043,11 +1043,12 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 }
 
                 realm.beginTransaction();
+                akamaru.setAge(17);
                 realm.commitTransaction();
 
                 realm.beginTransaction();
-                akamaru.setAge(17);
                 realm.commitTransaction();
+
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
@@ -1142,10 +1143,10 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 }
 
                 realm.beginTransaction();
+                akamaru.setAge(17);
                 realm.commitTransaction();
 
                 realm.beginTransaction();
-                akamaru.setAge(17);
                 realm.commitTransaction();
             }
         });
@@ -1281,7 +1282,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
-        assertEquals(1, typebasedCommitInvocations.get());
+        assertEquals(2, typebasedCommitInvocations.get());
     }
 
     // UC 3 Sync RealmResults
