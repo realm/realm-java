@@ -581,4 +581,36 @@ public class HandlerController implements Handler.Callback {
             realmObjects.remove(weakReferenceObject);
         }
     }
+
+    WeakReference<RealmResults<? extends RealmObject>> addToAsyncRealmResults(RealmResults<? extends RealmObject> realmResults, RealmQuery<? extends RealmObject> realmQuery) {
+        WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
+                referenceQueueAsyncRealmResults);
+        asyncRealmResults.put(weakRealmResults, realmQuery);
+        return weakRealmResults;
+    }
+
+    void addToRealmResults(RealmResults<? extends RealmObject> realmResults) {
+        WeakReference<RealmResults<? extends RealmObject>> realmResultsWeakReference
+                = new WeakReference<RealmResults<? extends RealmObject>>(realmResults, referenceQueueSyncRealmResults);
+        syncRealmResults.add(realmResultsWeakReference);
+    }
+
+    // add to the list of RealmObject to be notified after a commit
+    <E extends RealmObject> void addToRealmObjects(E realmobject) {
+        realmObjects.put(new WeakReference<RealmObject>(realmobject), null);
+    }
+
+    <E extends RealmObject> WeakReference<RealmObject> addToAsyncRealmObject(E realmObject, RealmQuery<? extends RealmObject> realmQuery) {
+        final WeakReference<RealmObject> realmObjectWeakReference = new WeakReference<RealmObject>(realmObject, referenceQueueRealmObject);
+        realmObjects.put(realmObjectWeakReference, realmQuery);
+        return realmObjectWeakReference;
+    }
+
+    void removeFromAsyncRealmObject(WeakReference<RealmObject> realmObjectWeakReference) {
+        realmObjects.remove(realmObjectWeakReference);
+    }
+
+    void addToEmptyAsyncRealmObject(WeakReference<RealmObject> realmObjectWeakReference, RealmQuery<? extends RealmObject> realmQuery) {
+        emptyAsyncRealmObject.put(realmObjectWeakReference, realmQuery);
+    }
 }

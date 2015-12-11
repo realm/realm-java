@@ -17,7 +17,6 @@
 package io.realm;
 
 
-import java.lang.ref.WeakReference;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -108,12 +107,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         this.pendingQuery = null;
         this.query = null;
         this.currentTableViewVersion = table.sync();
-
-        if (realm.handlerController != null) { // non Looper thread doesn't have a handlerController
-            WeakReference<RealmResults<? extends RealmObject>> realmResultsWeakReference
-                    = new WeakReference<RealmResults<? extends RealmObject>>(this, realm.handlerController.referenceQueueSyncRealmResults);
-            this.realm.handlerController.syncRealmResults.add(realmResultsWeakReference);
-        }
     }
 
     private RealmResults(BaseRealm realm, String className) {
