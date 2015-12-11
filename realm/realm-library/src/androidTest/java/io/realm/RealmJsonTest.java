@@ -384,7 +384,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateObjectFromJsonStream_dateAsISO8601String() throws IOException {
-        InputStream in = loadJsonFromAssets("date_as_iso8601_string.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "date_as_iso8601_string.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
