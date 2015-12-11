@@ -1244,9 +1244,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
-                realm.handlerController.referenceQueueAsyncRealmResults);
-        realm.handlerController.asyncRealmResults.put(weakRealmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1303,11 +1301,16 @@ public class RealmQuery<E extends RealmObject> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         checkQueryIsNotReused();
+        RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
+            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
         } else {
-            return RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
+            realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
         }
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -1342,9 +1345,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
-                realm.handlerController.referenceQueueAsyncRealmResults);
-        realm.handlerController.asyncRealmResults.put(weakRealmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1413,11 +1414,16 @@ public class RealmQuery<E extends RealmObject> {
         }
         tableView.sort(columnIndex, sortOrder);
 
+        RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
-            return RealmResults.createFromTableOrView(realm, tableView, clazz);
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
         }
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -1456,9 +1462,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
-                realm.handlerController.referenceQueueAsyncRealmResults);
-        realm.handlerController.asyncRealmResults.put(weakRealmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1561,11 +1565,16 @@ public class RealmQuery<E extends RealmObject> {
             }
             tableView.sort(columnIndices, sortOrders);
 
+            RealmResults<E> realmResults;
             if (isDynamicQuery()) {
-                return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+                realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
             } else {
-                return RealmResults.createFromTableOrView(realm, tableView, clazz);
+                realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
             }
+            if (realm.handlerController != null) {
+                realm.handlerController.addToRealmResults(realmResults);
+            }
+            return realmResults;
         }
     }
 
@@ -1622,9 +1631,7 @@ public class RealmQuery<E extends RealmObject> {
                 realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
             }
 
-            final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
-                    realm.handlerController.referenceQueueAsyncRealmResults);
-            realm.handlerController.asyncRealmResults.put(weakRealmResults, this);
+            final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
             final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
                 @Override
@@ -1795,8 +1802,7 @@ public class RealmQuery<E extends RealmObject> {
             result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.getSchema().getColumnInfo(clazz));
         }
 
-        final WeakReference<RealmObject> realmObjectWeakReference = new WeakReference<RealmObject>(result, realm.handlerController.referenceQueueRealmObject);
-        realm.handlerController.realmObjects.put(realmObjectWeakReference, this);
+        final WeakReference<RealmObject> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(result, this);
         result.realm = realm;
         result.row = Row.EMPTY_ROW;
 
@@ -1815,8 +1821,8 @@ public class RealmQuery<E extends RealmObject> {
                         long handoverRowPointer = query.findWithHandover(sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(), handoverQueryPointer);
                         if (handoverRowPointer == 0) { // empty row
-                            realm.handlerController.emptyAsyncRealmObject.put(realmObjectWeakReference, RealmQuery.this);
-                            realm.handlerController.realmObjects.remove(realmObjectWeakReference);
+                            realm.handlerController.addToEmptyAsyncRealmObject(realmObjectWeakReference, RealmQuery.this);
+                            realm.handlerController.removeFromAsyncRealmObject(realmObjectWeakReference);
                         }
 
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmObjectResponse();

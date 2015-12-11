@@ -216,8 +216,8 @@ public final class Realm extends BaseRealm {
      * Creates a {@link Realm} instance without checking the existence in the {@link RealmCache}.
      *
      * @param configuration {@link RealmConfiguration} used to create the Realm.
-     * @param columnIndices if this is not  {@code null} value, the {@link BaseRealm#columnIndices} will be initialized
-     *                      to it. Otherwise, {@link BaseRealm#columnIndices} will be populated from the Realm file.
+     * @param columnIndices if this is not  {@code null} value, the {@link BaseRealm#schema#columnIndices} will be initialized
+     *                      to it. Otherwise, {@link BaseRealm#schema#columnIndices} will be populated from the Realm file.
      * @return a {@link Realm} instance.
      */
     static Realm createInstance(RealmConfiguration configuration, ColumnIndices columnIndices) {
@@ -473,7 +473,8 @@ public final class Realm extends BaseRealm {
         }
 
         try {
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+            return realmObject;
         } catch (Exception e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -496,7 +497,11 @@ public final class Realm extends BaseRealm {
         }
         checkHasPrimaryKey(clazz);
         try {
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            if (handlerController != null) {
+                handlerController.addToRealmObjects(realmObject);
+            }
+            return realmObject;
         } catch (JSONException e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -570,6 +575,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || inputStream == null) {
             return null;
         }
+        E realmObject;
         Table table = getTable(clazz);
         if (table.hasPrimaryKey()) {
             // As we need the primary key value we have to first parse the entire input stream as in the general
@@ -578,7 +584,8 @@ public final class Realm extends BaseRealm {
             try {
                 scanner = getFullStringScanner(inputStream);
                 JSONObject json = new JSONObject(scanner.next());
-                return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+                realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+
             } catch (JSONException e) {
                 throw new RealmException("Failed to read JSON", e);
             } finally {
@@ -589,11 +596,12 @@ public final class Realm extends BaseRealm {
         } else {
             JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
             try {
-                return configuration.getSchemaMediator().createUsingJsonStream(clazz, this, reader);
+                realmObject = configuration.getSchemaMediator().createUsingJsonStream(clazz, this, reader);
             } finally {
                 reader.close();
             }
         }
+        return realmObject;
     }
 
     /**
@@ -620,7 +628,7 @@ public final class Realm extends BaseRealm {
         try {
             scanner = getFullStringScanner(in);
             JSONObject json = new JSONObject(scanner.next());
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            return createOrUpdateObjectFromJson(clazz, json);
         } catch (JSONException e) {
             throw new RealmException("Failed to read JSON", e);
         } finally {
@@ -645,7 +653,8 @@ public final class Realm extends BaseRealm {
         checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        E object = get(clazz, rowIndex);
+        return object;
     }
 
     /**
@@ -679,7 +688,8 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
-        return copyOrUpdate(object, false);
+        E realmObject = copyOrUpdate(object, false);
+        return realmObject;
     }
 
     /**
@@ -695,7 +705,8 @@ public final class Realm extends BaseRealm {
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
-        return copyOrUpdate(object, true);
+        E realmObject = copyOrUpdate(object, true);
+        return realmObject;
     }
 
     /**
@@ -792,7 +803,11 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
 
@@ -855,7 +870,11 @@ public final class Realm extends BaseRealm {
         Table table = this.getTable(clazz);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -877,7 +896,11 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**

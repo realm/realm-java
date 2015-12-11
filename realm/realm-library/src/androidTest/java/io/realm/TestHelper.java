@@ -677,4 +677,9 @@ public class TestHelper {
             throw throwable[0];
         }
     }
+
+    public static InputStream loadJsonFromAssets(Context context, String file) throws IOException {
+        AssetManager assetManager = context.getAssets();
+        return assetManager.open(file);
+    }
 }
