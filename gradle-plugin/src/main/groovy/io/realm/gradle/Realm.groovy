@@ -1,6 +1,9 @@
 package io.realm.gradle
 
+import com.android.build.gradle.AppPlugin
+import com.android.build.gradle.LibraryPlugin
 import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -8,6 +11,13 @@ class Realm implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        // Make sure the project is either an Android application or library
+        def isAndroidApp = project.plugins.withType(AppPlugin)
+        def isAndroidLib = project.plugins.withType(LibraryPlugin)
+        if (!isAndroidApp && !isAndroidLib) {
+            throw new GradleException("'android' or 'android-library' plugin required.")
+        }
+
         project.plugins.apply(AndroidAptPlugin)
         project.android.registerTransform(new RealmTransformer())
         project.repositories.add(project.getRepositories().jcenter());
