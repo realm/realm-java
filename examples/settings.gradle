@@ -10,6 +10,6 @@ include 'moduleExample:library'
 include 'realmModuleExample'
 include 'threadExample'
 include 'unitTestExample'
-//include 'robolectricExample'
+include 'robolectricExample'
 
 rootProject.name = 'examples'
