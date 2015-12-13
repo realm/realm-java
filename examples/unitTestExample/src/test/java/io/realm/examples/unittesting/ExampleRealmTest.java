@@ -29,9 +29,9 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import io.realm.Realm;
-import io.realm.examples.intro.model.Dog;
-import io.realm.examples.intro.repository.DogRepository;
-import io.realm.examples.intro.repository.DogRepositoryImpl;
+import io.realm.examples.unittesting.model.Dog;
+import io.realm.examples.unittesting.repository.DogRepository;
+import io.realm.examples.unittesting.repository.DogRepositoryImpl;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;

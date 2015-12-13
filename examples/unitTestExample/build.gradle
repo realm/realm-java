@@ -9,7 +9,7 @@ android {
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
-        applicationId 'io.realm.examples.intro'
+        applicationId 'io.realm.examples.unittesting'
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion 15
         versionCode 1
