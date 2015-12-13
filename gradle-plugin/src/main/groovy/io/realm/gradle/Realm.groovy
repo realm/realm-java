@@ -6,6 +6,7 @@ import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPlugin
 
 class Realm implements Plugin<Project> {
 
@@ -18,12 +19,22 @@ class Realm implements Plugin<Project> {
             throw new GradleException("'android' or 'android-library' plugin required.")
         }
 
-        project.plugins.apply(AndroidAptPlugin)
+        def isKotlinProject = project.plugins.withType(KotlinAndroidPlugin)
+
+        if (!isKotlinProject) {
+            project.plugins.apply(AndroidAptPlugin)
+        }
+
         project.android.registerTransform(new RealmTransformer())
         project.repositories.add(project.getRepositories().jcenter());
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}");
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}");
-        project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}");
-        project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}");
+        if (!isKotlinProject) {
+            project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}");
+            project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}");
+        } else {
+            project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}");
+            project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}");
+        }
     }
 }
