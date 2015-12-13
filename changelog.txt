@@ -15,7 +15,7 @@
  * Fixed a crash occurring during update of multiple async queries (#1895).
  * Fixed listeners not triggered for RealmObject & RealmResults created using copy or create methods (#1884).
  * Fixed RealmChangeListener never called inside RealmResults (#1894).
- * Fixed crash when calling clear on a LinkView (#1886).
+ * Fixed crash when calling clear on a RealmList (#1886).
 
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
