@@ -661,7 +661,6 @@ public final class Realm extends BaseRealm {
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
         E object = get(clazz, rowIndex);
-        addToNotifiableRealmObjects(object);
         return object;
     }
 
@@ -1269,7 +1268,6 @@ public final class Realm extends BaseRealm {
     }
 
     // Public because of migrations
-    @Deprecated
     public Table getTable(Class<? extends RealmObject> clazz) {
         Table table = classToTable.get(clazz);
         if (table == null) {
@@ -1278,13 +1276,6 @@ public final class Realm extends BaseRealm {
             classToTable.put(clazz, table);
         }
         return table;
-    }
-
-    // add to the list of RealmObject to be notified after a commit
-    private <E extends RealmObject> void addToNotifiableRealmObjects(E realmobject) {
-        if (handlerController != null) {
-            handlerController.realmObjects.put(new WeakReference<RealmObject>(realmobject), null);
-        }
     }
 
     /**
