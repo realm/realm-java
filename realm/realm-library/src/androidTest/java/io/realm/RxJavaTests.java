@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
+import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -37,7 +39,7 @@ public class RxJavaTests extends AndroidTestCase {
         realm.commitTransaction();
 
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        obj.asObservable().subscribe(new Action1<AllTypes>() {
+        obj.<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 assertTrue(rxObject == obj);
@@ -53,7 +55,7 @@ public class RxJavaTests extends AndroidTestCase {
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        obj.asObservable().subscribe(new Action1<AllTypes>() {
+        obj.<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 subscriberCalled.addAndGet(1);
@@ -74,7 +76,7 @@ public class RxJavaTests extends AndroidTestCase {
 
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final AllTypes asyncObj = realm.where(AllTypes.class).findFirst();
-        asyncObj.asObservable().subscribe(new Action1<AllTypes>() {
+        asyncObj.<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 assertTrue(rxObject == asyncObj);
@@ -89,7 +91,7 @@ public class RxJavaTests extends AndroidTestCase {
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
-        realm.where(AllTypes.class).findFirst().asObservable().subscribe(new Action1<AllTypes>() {
+        realm.where(AllTypes.class).findFirst().<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 subscriberCalled.addAndGet(1);
@@ -265,4 +267,22 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(1, realm.handlerController.changeListeners.size());
     }
 
+    public void testWrongGenericClassThrows() {
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        Observable<CyclicType> obs = obj.asObservable();
+        obs.subscribe(new Action1<CyclicType>() {
+            @Override
+            public void call(CyclicType cyclicType) {
+                fail();
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                // Ignore
+            }
+        });
+    }
 }
