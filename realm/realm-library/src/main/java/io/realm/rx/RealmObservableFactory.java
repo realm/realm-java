@@ -216,4 +216,10 @@ public class RealmObservableFactory implements RxObservableFactory {
                     "Remember to add it as a compile dependency. See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof RealmObservableFactory;
+    }
+
 }
