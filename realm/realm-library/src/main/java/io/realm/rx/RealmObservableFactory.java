@@ -30,7 +30,7 @@ import rx.functions.Action0;
 import rx.subscriptions.Subscriptions;
 
 /**
- * Factory class for creating Observables for RxJava (<=1.1.*).
+ * Factory class for creating Observables for RxJava (&lt;=1.1.*).
  *
  * @see Realm#asObservable()
  * @see RealmObject#asObservable()
