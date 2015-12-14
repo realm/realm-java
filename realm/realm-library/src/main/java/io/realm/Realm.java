@@ -480,7 +480,8 @@ public final class Realm extends BaseRealm {
         }
 
         try {
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+            return realmObject;
         } catch (Exception e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -503,7 +504,11 @@ public final class Realm extends BaseRealm {
         }
         checkHasPrimaryKey(clazz);
         try {
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            if (handlerController != null) {
+                handlerController.addToRealmObjects(realmObject);
+            }
+            return realmObject;
         } catch (JSONException e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -577,6 +582,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || inputStream == null) {
             return null;
         }
+        E realmObject;
         Table table = getTable(clazz);
         if (table.hasPrimaryKey()) {
             // As we need the primary key value we have to first parse the entire input stream as in the general
@@ -585,7 +591,8 @@ public final class Realm extends BaseRealm {
             try {
                 scanner = getFullStringScanner(inputStream);
                 JSONObject json = new JSONObject(scanner.next());
-                return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+                realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+
             } catch (JSONException e) {
                 throw new RealmException("Failed to read JSON", e);
             } finally {
@@ -596,11 +603,12 @@ public final class Realm extends BaseRealm {
         } else {
             JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
             try {
-                return configuration.getSchemaMediator().createUsingJsonStream(clazz, this, reader);
+                realmObject = configuration.getSchemaMediator().createUsingJsonStream(clazz, this, reader);
             } finally {
                 reader.close();
             }
         }
+        return realmObject;
     }
 
     /**
@@ -627,7 +635,7 @@ public final class Realm extends BaseRealm {
         try {
             scanner = getFullStringScanner(in);
             JSONObject json = new JSONObject(scanner.next());
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            return createOrUpdateObjectFromJson(clazz, json);
         } catch (JSONException e) {
             throw new RealmException("Failed to read JSON", e);
         } finally {
@@ -688,7 +696,8 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
-        return copyOrUpdate(object, false);
+        E realmObject = copyOrUpdate(object, false);
+        return realmObject;
     }
 
     /**
@@ -704,7 +713,8 @@ public final class Realm extends BaseRealm {
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
-        return copyOrUpdate(object, true);
+        E realmObject = copyOrUpdate(object, true);
+        return realmObject;
     }
 
     /**
@@ -903,7 +913,11 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
 
@@ -966,7 +980,11 @@ public final class Realm extends BaseRealm {
         Table table = this.getTable(clazz);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -988,7 +1006,11 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -1081,6 +1103,9 @@ public final class Realm extends BaseRealm {
                                     && handler != null
                                     && !Thread.currentThread().isInterrupted()
                                     && handler.getLooper().getThread().isAlive()) {
+                                // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency problem
+                                // eg.: User wants to delete Realm in the callbacks.
+                                bgRealm.close();
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
@@ -1106,6 +1131,7 @@ public final class Realm extends BaseRealm {
                                 && handler != null
                                 && !Thread.currentThread().isInterrupted()
                                 && handler.getLooper().getThread().isAlive()) {
+                            bgRealm.close();
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1114,7 +1140,9 @@ public final class Realm extends BaseRealm {
                             });
                         }
                     } finally {
-                        bgRealm.close();
+                        if (!bgRealm.isClosed()) {
+                            bgRealm.close();
+                        }
                     }
                 }
             }

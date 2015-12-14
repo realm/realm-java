@@ -4,15 +4,20 @@
  * Added Realm.copyFromRealm() for creating detached copies of Realm objects (#931).
  * Added RealmObjectSchema.getFieldType() (#1883).
  * Added unitTestExample to showcase unit and instrumentation tests. Examples include jUnit3, jUnit4, Espresso, Robolectric, and MPowermock usage with Realm (#1440).
- * Adding support for ISO8601 based dates for JSON import. If JSON dates are invalid a RealmException will be thrown (#1213).
- * Adding APK splits to gridViewExample (#1834).
+ * Added support for ISO8601 based dates for JSON import. If JSON dates are invalid a RealmException will be thrown (#1213).
+ * Added APK splits to gridViewExample (#1834).
 
 0.86.1
+ * Improved the performance of removing objects (RealmResults.clear() and RealmResults.remove()).
+ * Updated Realm Core to 0.95.5
+ * Updated ProGuard configuration (#1904).
  * Fixed a bug where RealmQuery.findFirst() returned a wrong result if the RealmQuery had been created from a RealmResults.where() (#1905).
  * Fixed a bug causing DynamicRealmObject.getObject()/setObject() to use the wrong class (#1912).
- * Updated Realm Core to 0.95.5
- * Improved the performance of removing objects (RealmResults.clear() and RealmResults.remove()).
- * Updated ProGuard configuration (#1904).
+ * Fixed a bug which could cause a crash when closing Realm instances in change listeners (#1900).
+ * Fixed a crash occurring during update of multiple async queries (#1895).
+ * Fixed listeners not triggered for RealmObject & RealmResults created using copy or create methods (#1884).
+ * Fixed RealmChangeListener never called inside RealmResults (#1894).
+ * Fixed crash when calling clear on a RealmList (#1886).
 
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.

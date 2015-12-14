@@ -87,7 +87,7 @@ public abstract class RealmObject<E extends RealmObject> {
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
-    protected long currentTableVersion = 0;
+    protected long currentTableVersion = -1;
 
     /**
      * Removes the object from the Realm it is currently associated to.
@@ -291,13 +291,15 @@ public abstract class RealmObject<E extends RealmObject> {
      * Notifies all registered listeners.
      */
     void notifyChangeListeners() {
-        if (row.getTable() == null) return;
+        if (listeners != null && !listeners.isEmpty()) {
+            if (row.getTable() == null) return;
 
-        long version = row.getTable().version();
-        if (currentTableVersion != version) {
-            currentTableVersion = version;
-            for (RealmChangeListener listener : listeners) {
-                listener.onChange();
+            long version = row.getTable().version();
+            if (currentTableVersion != version) {
+                currentTableVersion = version;
+                for (RealmChangeListener listener : listeners) {
+                    listener.onChange();
+                }
             }
         }
     }

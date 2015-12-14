@@ -21,6 +21,7 @@ import android.os.Looper;
 
 import java.io.Closeable;
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -488,6 +489,9 @@ abstract class BaseRealm implements Closeable {
         result.row = row;
         result.realm = this;
         result.setTableVersion();
+        if (handlerController != null) {
+            handlerController.addToRealmObjects(result);
+        }
         return result;
     }
 
@@ -508,6 +512,10 @@ abstract class BaseRealm implements Closeable {
         result.row = table.getUncheckedRow(rowIndex);
         result.realm = this;
         result.setTableVersion();
+
+        if (handlerController != null) {
+            handlerController.addToRealmObjects(result);
+        }
         return result;
     }
 
@@ -609,4 +617,5 @@ abstract class BaseRealm implements Closeable {
     protected interface MigrationCallback {
         void migrationComplete();
     }
+
 }

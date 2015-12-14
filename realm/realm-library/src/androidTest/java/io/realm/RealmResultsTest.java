@@ -1126,4 +1126,24 @@ public class RealmResultsTest extends AndroidTestCase {
         testRealm.close();
         assertFalse(results.isValid());
     }
+
+    // Triggered an ARM bug
+    public void testComparisons() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        long id = -1;
+        for (int i = 0; i < 10; i++) {
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnLong(id--);
+        }
+        testRealm.commitTransaction();
+
+        assertEquals(10, testRealm.where(AllTypes.class).between(AllTypes.FIELD_LONG, -10, -1).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_LONG, -11).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).greaterThanOrEqualTo(AllTypes.FIELD_LONG, -10).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 128).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 127).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_LONG, -1).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 0).findAll().size());
+    }
 }
