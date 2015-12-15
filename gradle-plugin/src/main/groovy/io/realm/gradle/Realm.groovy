@@ -21,18 +21,13 @@ class Realm implements Plugin<Project> {
 
         def isKotlinProject = project.plugins.withType(KotlinAndroidPlugin)
 
-        if (!isKotlinProject) {
-            project.plugins.apply(AndroidAptPlugin)
-        }
+        project.plugins.apply(AndroidAptPlugin)
 
         project.android.registerTransform(new RealmTransformer())
         project.repositories.add(project.getRepositories().jcenter());
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}");
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}");
-        if (!isKotlinProject) {
-            project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}");
-            project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}");
-        } else {
+        if (isKotlinProject) {
             project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}");
             project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}");
         }
