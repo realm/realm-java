@@ -32,18 +32,34 @@ public class FieldNames extends RealmObject {
     private Simple cache;
 
     public Simple getName() {
-        return name;
+        return realmGetter$name();
     }
 
     public void setName(Simple name) {
+        realmSetter$name(name);
+    }
+
+    public Simple realmGetter$name() {
+        return name;
+    }
+
+    public void realmSetter$name(Simple name) {
         this.name = name;
     }
 
     public Simple getCache() {
-        return cache;
+        return realmGetter$cache();
     }
 
     public void setCache(Simple cache) {
+        realmSetter$cache(cache);
+    }
+
+    public Simple realmGetter$cache() {
+        return cache;
+    }
+
+    public void realmSetter$cache(Simple cache) {
         this.cache = cache;
     }
 }

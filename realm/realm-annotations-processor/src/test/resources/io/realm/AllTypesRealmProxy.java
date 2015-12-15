@@ -4,6 +4,7 @@ package io.realm;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
+import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
@@ -13,6 +14,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -93,15 +95,13 @@ public class AllTypesRealmProxy extends AllTypes
         this.columnInfo = (AllTypesColumnInfo) columnInfo;
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public String getColumnString() {
+    public String realmGetter$columnString() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.columnStringIndex);
     }
 
-    @Override
-    public void setColumnString(String value) {
+    public void realmSetter$columnString(String value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field columnString to null.");
@@ -109,67 +109,57 @@ public class AllTypesRealmProxy extends AllTypes
         row.setString(columnInfo.columnStringIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public long getColumnLong() {
+    public long realmGetter$columnLong() {
         realm.checkIfValid();
         return (long) row.getLong(columnInfo.columnLongIndex);
     }
 
-    @Override
-    public void setColumnLong(long value) {
+    public void realmSetter$columnLong(long value) {
         realm.checkIfValid();
         row.setLong(columnInfo.columnLongIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public float getColumnFloat() {
+    public float realmGetter$columnFloat() {
         realm.checkIfValid();
         return (float) row.getFloat(columnInfo.columnFloatIndex);
     }
 
-    @Override
-    public void setColumnFloat(float value) {
+    public void realmSetter$columnFloat(float value) {
         realm.checkIfValid();
         row.setFloat(columnInfo.columnFloatIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public double getColumnDouble() {
+    public double realmGetter$columnDouble() {
         realm.checkIfValid();
         return (double) row.getDouble(columnInfo.columnDoubleIndex);
     }
 
-    @Override
-    public void setColumnDouble(double value) {
+    public void realmSetter$columnDouble(double value) {
         realm.checkIfValid();
         row.setDouble(columnInfo.columnDoubleIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public boolean isColumnBoolean() {
+    public boolean realmGetter$columnBoolean() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.columnBooleanIndex);
     }
 
-    @Override
-    public void setColumnBoolean(boolean value) {
+    public void realmSetter$columnBoolean(boolean value) {
         realm.checkIfValid();
         row.setBoolean(columnInfo.columnBooleanIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public Date getColumnDate() {
+    public Date realmGetter$columnDate() {
         realm.checkIfValid();
         return (java.util.Date) row.getDate(columnInfo.columnDateIndex);
     }
 
-    @Override
-    public void setColumnDate(Date value) {
+    public void realmSetter$columnDate(Date value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field columnDate to null.");
@@ -177,15 +167,13 @@ public class AllTypesRealmProxy extends AllTypes
         row.setDate(columnInfo.columnDateIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public byte[] getColumnBinary() {
+    public byte[] realmGetter$columnBinary() {
         realm.checkIfValid();
         return (byte[]) row.getBinaryByteArray(columnInfo.columnBinaryIndex);
     }
 
-    @Override
-    public void setColumnBinary(byte[] value) {
+    public void realmSetter$columnBinary(byte[] value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field columnBinary to null.");
@@ -193,8 +181,7 @@ public class AllTypesRealmProxy extends AllTypes
         row.setBinaryByteArray(columnInfo.columnBinaryIndex, value);
     }
 
-    @Override
-    public AllTypes getColumnObject() {
+    public AllTypes realmGetter$columnObject() {
         realm.checkIfValid();
         if (row.isNullLink(columnInfo.columnObjectIndex)) {
             return null;
@@ -202,8 +189,7 @@ public class AllTypesRealmProxy extends AllTypes
         return realm.get(some.test.AllTypes.class, row.getLink(columnInfo.columnObjectIndex));
     }
 
-    @Override
-    public void setColumnObject(AllTypes value) {
+    public void realmSetter$columnObject(AllTypes value) {
         realm.checkIfValid();
         if (value == null) {
             row.nullifyLink(columnInfo.columnObjectIndex);
@@ -218,8 +204,7 @@ public class AllTypesRealmProxy extends AllTypes
         row.setLink(columnInfo.columnObjectIndex, value.row.getIndex());
     }
 
-    @Override
-    public RealmList<AllTypes> getColumnRealmList() {
+    public RealmList<AllTypes> realmGetter$columnRealmList() {
         realm.checkIfValid();
         // use the cached value if available
         if (columnRealmListRealmList != null) {
@@ -231,8 +216,7 @@ public class AllTypesRealmProxy extends AllTypes
         }
     }
 
-    @Override
-    public void setColumnRealmList(RealmList<AllTypes> value) {
+    public void realmSetter$columnRealmList(RealmList<AllTypes> value) {
         realm.checkIfValid();
         LinkView links = row.getLinkList(columnInfo.columnRealmListIndex);
         links.clear();
@@ -426,75 +410,75 @@ public class AllTypesRealmProxy extends AllTypes
         }
         if (json.has("columnString")) {
             if (json.isNull("columnString")) {
-                obj.setColumnString(null);
+                obj.realmSetter$columnString(null);
             } else {
-                obj.setColumnString((String) json.getString("columnString"));
+                obj.realmSetter$columnString((String) json.getString("columnString"));
             }
         }
         if (json.has("columnLong")) {
             if (json.isNull("columnLong")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field columnLong to null.");
             } else {
-                obj.setColumnLong((long) json.getLong("columnLong"));
+                obj.realmSetter$columnLong((long) json.getLong("columnLong"));
             }
         }
         if (json.has("columnFloat")) {
             if (json.isNull("columnFloat")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field columnFloat to null.");
             } else {
-                obj.setColumnFloat((float) json.getDouble("columnFloat"));
+                obj.realmSetter$columnFloat((float) json.getDouble("columnFloat"));
             }
         }
         if (json.has("columnDouble")) {
             if (json.isNull("columnDouble")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field columnDouble to null.");
             } else {
-                obj.setColumnDouble((double) json.getDouble("columnDouble"));
+                obj.realmSetter$columnDouble((double) json.getDouble("columnDouble"));
             }
         }
         if (json.has("columnBoolean")) {
             if (json.isNull("columnBoolean")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field columnBoolean to null.");
             } else {
-                obj.setColumnBoolean((boolean) json.getBoolean("columnBoolean"));
+                obj.realmSetter$columnBoolean((boolean) json.getBoolean("columnBoolean"));
             }
         }
         if (json.has("columnDate")) {
             if (json.isNull("columnDate")) {
-                obj.setColumnDate(null);
+                obj.realmSetter$columnDate(null);
             } else {
                 Object timestamp = json.get("columnDate");
                 if (timestamp instanceof String) {
-                    obj.setColumnDate(JsonUtils.stringToDate((String) timestamp));
+                    obj.realmSetter$columnDate(JsonUtils.stringToDate((String) timestamp));
                 } else {
-                    obj.setColumnDate(new Date(json.getLong("columnDate")));
+                    obj.realmSetter$columnDate(new Date(json.getLong("columnDate")));
                 }
             }
         }
         if (json.has("columnBinary")) {
             if (json.isNull("columnBinary")) {
-                obj.setColumnBinary(null);
+                obj.realmSetter$columnBinary(null);
             } else {
-                obj.setColumnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
+                obj.realmSetter$columnBinary(JsonUtils.stringToBytes(json.getString("columnBinary")));
             }
         }
         if (json.has("columnObject")) {
             if (json.isNull("columnObject")) {
-                obj.setColumnObject(null);
+                obj.realmSetter$columnObject(null);
             } else {
                 some.test.AllTypes columnObjectObj = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("columnObject"), update);
-                obj.setColumnObject(columnObjectObj);
+                obj.realmSetter$columnObject(columnObjectObj);
             }
         }
         if (json.has("columnRealmList")) {
             if (json.isNull("columnRealmList")) {
-                obj.setColumnRealmList(null);
+                obj.realmSetter$columnRealmList(null);
             } else {
-                obj.getColumnRealmList().clear();
+                obj.realmGetter$columnRealmList().clear();
                 JSONArray array = json.getJSONArray("columnRealmList");
                 for (int i = 0; i < array.length(); i++) {
                     some.test.AllTypes item = AllTypesRealmProxy.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update);
-                    obj.getColumnRealmList().add(item);
+                    obj.realmGetter$columnRealmList().add(item);
                 }
             }
         }
@@ -504,81 +488,81 @@ public class AllTypesRealmProxy extends AllTypes
     @SuppressWarnings("cast")
     public static AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        AllTypes obj = realm.createObject(AllTypes.class);
+        AllTypesRealmProxy obj = (AllTypesRealmProxy) realm.createObject(AllTypes.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (name.equals("columnString")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.setColumnString(null);
+                    obj.realmSetter$columnString(null);
                 } else {
-                    obj.setColumnString((String) reader.nextString());
+                    obj.realmSetter$columnString((String) reader.nextString());
                 }
             } else if (name.equals("columnLong")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field columnLong to null.");
                 } else {
-                    obj.setColumnLong((long) reader.nextLong());
+                    obj.realmSetter$columnLong((long) reader.nextLong());
                 }
             } else if (name.equals("columnFloat")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field columnFloat to null.");
                 } else {
-                    obj.setColumnFloat((float) reader.nextDouble());
+                    obj.realmSetter$columnFloat((float) reader.nextDouble());
                 }
             } else if (name.equals("columnDouble")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field columnDouble to null.");
                 } else {
-                    obj.setColumnDouble((double) reader.nextDouble());
+                    obj.realmSetter$columnDouble((double) reader.nextDouble());
                 }
             } else if (name.equals("columnBoolean")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field columnBoolean to null.");
                 } else {
-                    obj.setColumnBoolean((boolean) reader.nextBoolean());
+                    obj.realmSetter$columnBoolean((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("columnDate")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.setColumnDate(null);
+                    obj.realmSetter$columnDate(null);
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
-                        obj.setColumnDate(new Date(timestamp));
+                        obj.realmSetter$columnDate(new Date(timestamp));
                     }
                 } else {
-                    obj.setColumnDate(JsonUtils.stringToDate(reader.nextString()));
+                    obj.realmSetter$columnDate(JsonUtils.stringToDate(reader.nextString()));
                 }
             } else if (name.equals("columnBinary")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.setColumnBinary(null);
+                    obj.realmSetter$columnBinary(null);
                 } else {
-                    obj.setColumnBinary(JsonUtils.stringToBytes(reader.nextString()));
+                    obj.realmSetter$columnBinary(JsonUtils.stringToBytes(reader.nextString()));
                 }
             } else if (name.equals("columnObject")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.setColumnObject(null);
+                    obj.realmSetter$columnObject(null);
                 } else {
                     some.test.AllTypes columnObjectObj = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
-                    obj.setColumnObject(columnObjectObj);
+                    obj.realmSetter$columnObject(columnObjectObj);
                 }
             } else if (name.equals("columnRealmList")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.setColumnRealmList(null);
+                    obj.realmSetter$columnRealmList(null);
                 } else {
                     reader.beginArray();
                     while (reader.hasNext()) {
                         some.test.AllTypes item = AllTypesRealmProxy.createUsingJsonStream(realm, reader);
-                        obj.getColumnRealmList().add(item);
+                        obj.realmGetter$columnRealmList().add(item);
                     }
                     reader.endArray();
                 }
@@ -599,10 +583,10 @@ public class AllTypesRealmProxy extends AllTypes
         if (canUpdate) {
             Table table = realm.getTable(AllTypes.class);
             long pkColumnIndex = table.getPrimaryKey();
-            if (object.getColumnString() == null) {
+            if (object.realmGetter$columnString() == null) {
                 throw new IllegalArgumentException("Primary key value must not be null.");
             }
-            long rowIndex = table.findFirstString(pkColumnIndex, object.getColumnString());
+            long rowIndex = table.findFirstString(pkColumnIndex, object.realmGetter$columnString());
             if (rowIndex != TableOrView.NO_MATCH) {
                 realmObject = new AllTypesRealmProxy(realm.schema.getColumnInfo(AllTypes.class));
                 realmObject.realm = realm;
@@ -620,44 +604,119 @@ public class AllTypesRealmProxy extends AllTypes
         }
     }
 
-    public static AllTypes copy(Realm realm, AllTypes newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        AllTypes realmObject = realm.createObject(AllTypes.class, newObject.getColumnString());
-        cache.put(newObject, (RealmObjectProxy) realmObject);
-        realmObject.setColumnString(newObject.getColumnString());
-        realmObject.setColumnLong(newObject.getColumnLong());
-        realmObject.setColumnFloat(newObject.getColumnFloat());
-        realmObject.setColumnDouble(newObject.getColumnDouble());
-        realmObject.setColumnBoolean(newObject.isColumnBoolean());
-        realmObject.setColumnDate(newObject.getColumnDate());
-        realmObject.setColumnBinary(newObject.getColumnBinary());
+    public static AllTypes copy(Realm realm, AllTypes from, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        AllTypesRealmProxy to = (AllTypesRealmProxy) realm.createObject(AllTypes.class, from.realmGetter$columnString());
+        cache.put(from, (RealmObjectProxy) to);
 
-        some.test.AllTypes columnObjectObj = newObject.getColumnObject();
-        if (columnObjectObj != null) {
-            some.test.AllTypes cachecolumnObject = (some.test.AllTypes) cache.get(columnObjectObj);
-            if (cachecolumnObject != null) {
-                realmObject.setColumnObject(cachecolumnObject);
-            } else {
-                realmObject.setColumnObject(AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, update, cache));
-            }
+        final boolean isStandalone = !(from instanceof AllTypesRealmProxy);
+        Class<? extends AllTypes> clazz;
+        if (isStandalone) {
+            clazz = from.getClass();
         } else {
-            realmObject.setColumnObject(null);
+            clazz = null;
         }
+        Field field = null;
 
-        RealmList<AllTypes> columnRealmListList = newObject.getColumnRealmList();
-        if (columnRealmListList != null) {
-            RealmList<AllTypes> columnRealmListRealmList = realmObject.getColumnRealmList();
-            for (int i = 0; i < columnRealmListList.size(); i++) {
-                AllTypes columnRealmListItem = columnRealmListList.get(i);
-                AllTypes cachecolumnRealmList = (AllTypes) cache.get(columnRealmListItem);
-                if (cachecolumnRealmList != null) {
-                    columnRealmListRealmList.add(cachecolumnRealmList);
+        try {
+            if (isStandalone) {
+                field = clazz.getDeclaredField("columnString");
+                field.setAccessible(true);
+                to.realmSetter$columnString((java.lang.String) field.get(from));
+            } else {
+                to.realmSetter$columnString(from.realmGetter$columnString());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("columnLong");
+                field.setAccessible(true);
+                to.realmSetter$columnLong((long) field.get(from));
+            } else {
+                to.realmSetter$columnLong(from.realmGetter$columnLong());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("columnFloat");
+                field.setAccessible(true);
+                to.realmSetter$columnFloat((float) field.get(from));
+            } else {
+                to.realmSetter$columnFloat(from.realmGetter$columnFloat());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("columnDouble");
+                field.setAccessible(true);
+                to.realmSetter$columnDouble((double) field.get(from));
+            } else {
+                to.realmSetter$columnDouble(from.realmGetter$columnDouble());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("columnBoolean");
+                field.setAccessible(true);
+                to.realmSetter$columnBoolean((boolean) field.get(from));
+            } else {
+                to.realmSetter$columnBoolean(from.realmGetter$columnBoolean());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("columnDate");
+                field.setAccessible(true);
+                to.realmSetter$columnDate((java.util.Date) field.get(from));
+            } else {
+                to.realmSetter$columnDate(from.realmGetter$columnDate());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("columnBinary");
+                field.setAccessible(true);
+                to.realmSetter$columnBinary((byte[]) field.get(from));
+            } else {
+                to.realmSetter$columnBinary(from.realmGetter$columnBinary());
+            }
+
+            {
+                some.test.AllTypes columnObjectObj;
+                if (isStandalone) {
+                    field = clazz.getDeclaredField("columnObject");
+                    field.setAccessible(true);
+                    columnObjectObj = (some.test.AllTypes) field.get(from);
                 } else {
-                    columnRealmListRealmList.add(AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListList.get(i), update, cache));
+                    columnObjectObj = from.realmGetter$columnObject();
+                }
+                if (columnObjectObj != null) {
+                    some.test.AllTypes cachecolumnObject = (some.test.AllTypes) cache.get(columnObjectObj);
+                    if (cachecolumnObject != null) {
+                        to.realmSetter$columnObject(cachecolumnObject);
+                    } else {
+                        to.realmSetter$columnObject(AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, update, cache));
+                    }
+                } else {
+                    to.realmSetter$columnObject(null);
                 }
             }
-        }
 
-        return realmObject;
+            {
+                RealmList<AllTypes> columnRealmListList;
+                if (isStandalone) {
+                    field = clazz.getDeclaredField("columnRealmList");
+                    field.setAccessible(true);
+                    columnRealmListList = (RealmList<AllTypes>) field.get(from);
+                } else {
+                    columnRealmListList = from.realmGetter$columnRealmList();
+                }
+                if (columnRealmListList != null) {
+                    RealmList<AllTypes> columnRealmListRealmList = to.realmGetter$columnRealmList();
+                    for (int i = 0; i < columnRealmListList.size(); i++) {
+                        AllTypes columnRealmListItem = columnRealmListList.get(i);
+                        AllTypes cachecolumnRealmList = (AllTypes) cache.get(columnRealmListItem);
+                        if (cachecolumnRealmList != null) {
+                            columnRealmListRealmList.add(cachecolumnRealmList);
+                        } else {
+                            columnRealmListRealmList.add(AllTypesRealmProxy.copyOrUpdate(realm, columnRealmListList.get(i), update, cache));
+                        }
+                    }
+                }
+            }
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        return to;
     }
 
     public static AllTypes createDetachedCopy(AllTypes realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
@@ -678,24 +737,120 @@ public class AllTypesRealmProxy extends AllTypes
             standaloneObject = new AllTypes();
             cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
         }
-        standaloneObject.setColumnString(realmObject.getColumnString());
-        standaloneObject.setColumnLong(realmObject.getColumnLong());
-        standaloneObject.setColumnFloat(realmObject.getColumnFloat());
-        standaloneObject.setColumnDouble(realmObject.getColumnDouble());
-        standaloneObject.setColumnBoolean(realmObject.isColumnBoolean());
-        standaloneObject.setColumnDate(realmObject.getColumnDate());
-        standaloneObject.setColumnBinary(realmObject.getColumnBinary());
+        Class<?> clazz = standaloneObject.getClass();
+        Field field = null;
+        try {
+            field = clazz.getDeclaredField("columnString");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.set(standaloneObject, ((AllTypesRealmProxy) realmObject).realmGetter$columnString());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("columnLong");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.setLong(standaloneObject, ((AllTypesRealmProxy) realmObject).realmGetter$columnLong());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("columnFloat");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.setFloat(standaloneObject, ((AllTypesRealmProxy) realmObject).realmGetter$columnFloat());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("columnDouble");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.setDouble(standaloneObject, ((AllTypesRealmProxy) realmObject).realmGetter$columnDouble());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("columnBoolean");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.setBoolean(standaloneObject, ((AllTypesRealmProxy) realmObject).realmGetter$columnBoolean());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("columnDate");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.set(standaloneObject, ((AllTypesRealmProxy) realmObject).realmGetter$columnDate());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("columnBinary");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.set(standaloneObject, ((AllTypesRealmProxy) realmObject).realmGetter$columnBinary());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("columnObject");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
 
         // Deep copy of columnObject
-        standaloneObject.setColumnObject(AllTypesRealmProxy.createDetachedCopy(realmObject.getColumnObject(), currentDepth + 1, maxDepth, cache));
+        try {
+            field.set(standaloneObject, AllTypesRealmProxy.createDetachedCopy( ((AllTypesRealmProxy) realmObject).realmGetter$columnObject(), currentDepth + 1, maxDepth, cache));
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("columnRealmList");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
 
         // Deep copy of columnRealmList
         if (currentDepth == maxDepth) {
-            standaloneObject.setColumnRealmList(null);
+            try {
+                field.set(standaloneObject, null);
+            } catch (IllegalAccessException e) {
+                throw new RealmException(e.getMessage());
+            }
         } else {
-            RealmList<AllTypes> managedcolumnRealmListList = realmObject.getColumnRealmList();
+            RealmList<AllTypes> managedcolumnRealmListList = ((AllTypesRealmProxy) realmObject).realmGetter$columnRealmList();
             RealmList<AllTypes> standalonecolumnRealmListList = new RealmList<AllTypes>();
-            standaloneObject.setColumnRealmList(standalonecolumnRealmListList);
+            try {
+                field.set(standaloneObject, standalonecolumnRealmListList);
+            } catch (IllegalAccessException e) {
+                throw new RealmException(e.getMessage());
+            }
             int nextDepth = currentDepth + 1;
             int size = managedcolumnRealmListList.size();
             for (int i = 0; i < size; i++) {
@@ -707,25 +862,25 @@ public class AllTypesRealmProxy extends AllTypes
     }
 
     static AllTypes update(Realm realm, AllTypes realmObject, AllTypes newObject, Map<RealmObject, RealmObjectProxy> cache) {
-        realmObject.setColumnLong(newObject.getColumnLong());
-        realmObject.setColumnFloat(newObject.getColumnFloat());
-        realmObject.setColumnDouble(newObject.getColumnDouble());
-        realmObject.setColumnBoolean(newObject.isColumnBoolean());
-        realmObject.setColumnDate(newObject.getColumnDate());
-        realmObject.setColumnBinary(newObject.getColumnBinary());
-        AllTypes columnObjectObj = newObject.getColumnObject();
+        realmObject.realmSetter$columnLong(newObject.realmGetter$columnLong());
+        realmObject.realmSetter$columnFloat(newObject.realmGetter$columnFloat());
+        realmObject.realmSetter$columnDouble(newObject.realmGetter$columnDouble());
+        realmObject.realmSetter$columnBoolean(newObject.realmGetter$columnBoolean());
+        realmObject.realmSetter$columnDate(newObject.realmGetter$columnDate());
+        realmObject.realmSetter$columnBinary(newObject.realmGetter$columnBinary());
+        AllTypes columnObjectObj = newObject.realmGetter$columnObject();
         if (columnObjectObj != null) {
             AllTypes cachecolumnObject = (AllTypes) cache.get(columnObjectObj);
             if (cachecolumnObject != null) {
-                realmObject.setColumnObject(cachecolumnObject);
+                realmObject.realmSetter$columnObject(cachecolumnObject);
             } else {
-                realmObject.setColumnObject(AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, true, cache));
+                realmObject.realmSetter$columnObject(AllTypesRealmProxy.copyOrUpdate(realm, columnObjectObj, true, cache));
             }
         } else {
-            realmObject.setColumnObject(null);
+            realmObject.realmSetter$columnObject(null);
         }
-        RealmList<AllTypes> columnRealmListList = newObject.getColumnRealmList();
-        RealmList<AllTypes> columnRealmListRealmList = realmObject.getColumnRealmList();
+        RealmList<AllTypes> columnRealmListList = newObject.realmGetter$columnRealmList();
+        RealmList<AllTypes> columnRealmListRealmList = realmObject.realmGetter$columnRealmList();
         columnRealmListRealmList.clear();
         if (columnRealmListList != null) {
             for (int i = 0; i < columnRealmListList.size(); i++) {
@@ -748,39 +903,39 @@ public class AllTypesRealmProxy extends AllTypes
         }
         StringBuilder stringBuilder = new StringBuilder("AllTypes = [");
         stringBuilder.append("{columnString:");
-        stringBuilder.append(getColumnString());
+        stringBuilder.append(realmGetter$columnString());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnLong:");
-        stringBuilder.append(getColumnLong());
+        stringBuilder.append(realmGetter$columnLong());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnFloat:");
-        stringBuilder.append(getColumnFloat());
+        stringBuilder.append(realmGetter$columnFloat());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnDouble:");
-        stringBuilder.append(getColumnDouble());
+        stringBuilder.append(realmGetter$columnDouble());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnBoolean:");
-        stringBuilder.append(isColumnBoolean());
+        stringBuilder.append(realmGetter$columnBoolean());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnDate:");
-        stringBuilder.append(getColumnDate());
+        stringBuilder.append(realmGetter$columnDate());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnBinary:");
-        stringBuilder.append(getColumnBinary());
+        stringBuilder.append(realmGetter$columnBinary());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnObject:");
-        stringBuilder.append(getColumnObject() != null ? "AllTypes" : "null");
+        stringBuilder.append(realmGetter$columnObject() != null ? "AllTypes" : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnRealmList:");
-        stringBuilder.append("RealmList<AllTypes>[").append(getColumnRealmList().size()).append("]");
+        stringBuilder.append("RealmList<AllTypes>[").append(realmGetter$columnRealmList().size()).append("]");
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();

@@ -25,34 +25,66 @@ public class Booleans extends RealmObject {
     private boolean anotherBoolean;
 
     public boolean isDone() {
-        return done;
+        return realmGetter$done();
     }
 
     public void setDone(boolean done) {
+        realmSetter$done(done);
+    }
+
+    public boolean realmGetter$done() {
+        return done;
+    }
+
+    public void realmSetter$done(boolean done) {
         this.done = done;
     }
 
     public boolean isReady() {
+        return realmGetter$isReady();
+    }
+
+    public void setIsReady(boolean isReady) {
+        realmSetter$isReady(isReady);
+    }
+
+    public boolean realmGetter$isReady() {
         return isReady;
     }
 
-    public void setReady(boolean isReady) {
+    public void realmSetter$isReady(boolean isReady) {
         this.isReady = isReady;
     }
 
     public boolean ismCompleted() {
+        return realmGetter$mCompleted();
+    }
+
+    public void setMCompleted(boolean mCompleted) {
+        realmSetter$mCompleted(mCompleted);
+    }
+
+    public boolean realmGetter$mCompleted() {
         return mCompleted;
     }
 
-    public void setmCompleted(boolean mCompleted) {
+    public void realmSetter$mCompleted(boolean mCompleted) {
         this.mCompleted = mCompleted;
     }
 
     public boolean getAnotherBoolean() {
-        return anotherBoolean;
+        return realmGetter$anotherBoolean();
     }
 
     public void setAnotherBoolean(boolean anotherBoolean) {
+        realmSetter$anotherBoolean(anotherBoolean);
+    }
+
+    public boolean realmGetter$anotherBoolean() {
+        return anotherBoolean;
+    }
+
+    public void realmSetter$anotherBoolean(boolean anotherBoolean) {
         this.anotherBoolean = anotherBoolean;
     }
 }

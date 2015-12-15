@@ -23,18 +23,34 @@ public class Simple extends RealmObject {
     private int age;
 
     public String getName() {
-        return name;
+        return realmGetter$name();
     }
 
     public void setName(String name) {
+        realmSetter$name(name);
+    }
+
+    public String realmGetter$name() {
+        return name;
+    }
+
+    public void realmSetter$name(String name) {
         this.name = name;
     }
 
     public int getAge() {
-        return age;
+        return realmGetter$age();
     }
 
     public void setAge(int age) {
+        realmSetter$age(age);
+    }
+
+    public int realmGetter$age() {
+        return age;
+    }
+
+    public void realmSetter$age(int age) {
         this.age = age;
     }
 }

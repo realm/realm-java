@@ -4,6 +4,7 @@ package io.realm;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
+import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
@@ -13,6 +14,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -67,54 +69,46 @@ public class BooleansRealmProxy extends Booleans
         this.columnInfo = (BooleansColumnInfo) columnInfo;
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public boolean isDone() {
+    public boolean realmGetter$done() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.doneIndex);
     }
 
-    @Override
-    public void setDone(boolean value) {
+    public void realmSetter$done(boolean value) {
         realm.checkIfValid();
         row.setBoolean(columnInfo.doneIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public boolean isReady() {
+    public boolean realmGetter$isReady() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.isReadyIndex);
     }
 
-    @Override
-    public void setReady(boolean value) {
+    public void realmSetter$isReady(boolean value) {
         realm.checkIfValid();
         row.setBoolean(columnInfo.isReadyIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public boolean ismCompleted() {
+    public boolean realmGetter$mCompleted() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.mCompletedIndex);
     }
 
-    @Override
-    public void setmCompleted(boolean value) {
+    public void realmSetter$mCompleted(boolean value) {
         realm.checkIfValid();
         row.setBoolean(columnInfo.mCompletedIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public boolean getAnotherBoolean() {
+    public boolean realmGetter$anotherBoolean() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.anotherBooleanIndex);
     }
 
-    @Override
-    public void setAnotherBoolean(boolean value) {
+    public void realmSetter$anotherBoolean(boolean value) {
         realm.checkIfValid();
         row.setBoolean(columnInfo.anotherBooleanIndex, value);
     }
@@ -198,33 +192,33 @@ public class BooleansRealmProxy extends Booleans
     @SuppressWarnings("cast")
     public static Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        Booleans obj = realm.createObject(Booleans.class);
+        BooleansRealmProxy obj = (BooleansRealmProxy) realm.createObject(Booleans.class);
         if (json.has("done")) {
             if (json.isNull("done")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field done to null.");
             } else {
-                obj.setDone((boolean) json.getBoolean("done"));
+                obj.realmSetter$done((boolean) json.getBoolean("done"));
             }
         }
         if (json.has("isReady")) {
             if (json.isNull("isReady")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field isReady to null.");
             } else {
-                obj.setReady((boolean) json.getBoolean("isReady"));
+                obj.realmSetter$isReady((boolean) json.getBoolean("isReady"));
             }
         }
         if (json.has("mCompleted")) {
             if (json.isNull("mCompleted")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field mCompleted to null.");
             } else {
-                obj.setmCompleted((boolean) json.getBoolean("mCompleted"));
+                obj.realmSetter$mCompleted((boolean) json.getBoolean("mCompleted"));
             }
         }
         if (json.has("anotherBoolean")) {
             if (json.isNull("anotherBoolean")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field anotherBoolean to null.");
             } else {
-                obj.setAnotherBoolean((boolean) json.getBoolean("anotherBoolean"));
+                obj.realmSetter$anotherBoolean((boolean) json.getBoolean("anotherBoolean"));
             }
         }
         return obj;
@@ -233,7 +227,7 @@ public class BooleansRealmProxy extends Booleans
     @SuppressWarnings("cast")
     public static Booleans createUsingJsonStream(Realm realm, JsonReader reader)
             throws IOException {
-        Booleans obj = realm.createObject(Booleans.class);
+        BooleansRealmProxy obj = (BooleansRealmProxy) realm.createObject(Booleans.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -242,28 +236,28 @@ public class BooleansRealmProxy extends Booleans
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field done to null.");
                 } else {
-                    obj.setDone((boolean) reader.nextBoolean());
+                    obj.realmSetter$done((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("isReady")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field isReady to null.");
                 } else {
-                    obj.setReady((boolean) reader.nextBoolean());
+                    obj.realmSetter$isReady((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("mCompleted")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field mCompleted to null.");
                 } else {
-                    obj.setmCompleted((boolean) reader.nextBoolean());
+                    obj.realmSetter$mCompleted((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("anotherBoolean")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field anotherBoolean to null.");
                 } else {
-                    obj.setAnotherBoolean((boolean) reader.nextBoolean());
+                    obj.realmSetter$anotherBoolean((boolean) reader.nextBoolean());
                 }
             } else {
                 reader.skipValue();
@@ -280,14 +274,54 @@ public class BooleansRealmProxy extends Booleans
         return copy(realm, object, update, cache);
     }
 
-    public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        Booleans realmObject = realm.createObject(Booleans.class);
-        cache.put(newObject, (RealmObjectProxy) realmObject);
-        realmObject.setDone(newObject.isDone());
-        realmObject.setReady(newObject.isReady());
-        realmObject.setmCompleted(newObject.ismCompleted());
-        realmObject.setAnotherBoolean(newObject.getAnotherBoolean());
-        return realmObject;
+    public static Booleans copy(Realm realm, Booleans from, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        BooleansRealmProxy to = (BooleansRealmProxy) realm.createObject(Booleans.class);
+        cache.put(from, (RealmObjectProxy) to);
+
+        final boolean isStandalone = !(from instanceof BooleansRealmProxy);
+        Class<? extends Booleans> clazz;
+        if (isStandalone) {
+            clazz = from.getClass();
+        } else {
+            clazz = null;
+        }
+        Field field = null;
+
+        try {
+            if (isStandalone) {
+                field = clazz.getDeclaredField("done");
+                field.setAccessible(true);
+                to.realmSetter$done((boolean) field.get(from));
+            } else {
+                to.realmSetter$done(from.realmGetter$done());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("isReady");
+                field.setAccessible(true);
+                to.realmSetter$isReady((boolean) field.get(from));
+            } else {
+                to.realmSetter$isReady(from.realmGetter$isReady());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("mCompleted");
+                field.setAccessible(true);
+                to.realmSetter$mCompleted((boolean) field.get(from));
+            } else {
+                to.realmSetter$mCompleted(from.realmGetter$mCompleted());
+            }
+            if (isStandalone) {
+                field = clazz.getDeclaredField("anotherBoolean");
+                field.setAccessible(true);
+                to.realmSetter$anotherBoolean((boolean) field.get(from));
+            } else {
+                to.realmSetter$anotherBoolean(from.realmGetter$anotherBoolean());
+            }
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        return to;
     }
 
     public static Booleans createDetachedCopy(Booleans realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
@@ -308,10 +342,52 @@ public class BooleansRealmProxy extends Booleans
             standaloneObject = new Booleans();
             cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
         }
-        standaloneObject.setDone(realmObject.isDone());
-        standaloneObject.setReady(realmObject.isReady());
-        standaloneObject.setmCompleted(realmObject.ismCompleted());
-        standaloneObject.setAnotherBoolean(realmObject.getAnotherBoolean());
+        Class<?> clazz = standaloneObject.getClass();
+        Field field = null;
+        try {
+            field = clazz.getDeclaredField("done");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.setBoolean(standaloneObject, ((BooleansRealmProxy) realmObject).realmGetter$done());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("isReady");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.setBoolean(standaloneObject, ((BooleansRealmProxy) realmObject).realmGetter$isReady());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("mCompleted");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.setBoolean(standaloneObject, ((BooleansRealmProxy) realmObject).realmGetter$mCompleted());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
+        try {
+            field = clazz.getDeclaredField("anotherBoolean");
+        } catch (NoSuchFieldException e) {
+            throw new RealmException(e.getMessage());
+        }
+        field.setAccessible(true);
+        try {
+            field.setBoolean(standaloneObject, ((BooleansRealmProxy) realmObject).realmGetter$anotherBoolean());
+        } catch (IllegalAccessException e) {
+            throw new RealmException(e.getMessage());
+        }
         return standaloneObject;
     }
 
@@ -322,19 +398,19 @@ public class BooleansRealmProxy extends Booleans
         }
         StringBuilder stringBuilder = new StringBuilder("Booleans = [");
         stringBuilder.append("{done:");
-        stringBuilder.append(isDone());
+        stringBuilder.append(realmGetter$done());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{isReady:");
-        stringBuilder.append(isReady());
+        stringBuilder.append(realmGetter$isReady());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{mCompleted:");
-        stringBuilder.append(ismCompleted());
+        stringBuilder.append(realmGetter$mCompleted());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{anotherBoolean:");
-        stringBuilder.append(getAnotherBoolean());
+        stringBuilder.append(realmGetter$anotherBoolean());
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();
