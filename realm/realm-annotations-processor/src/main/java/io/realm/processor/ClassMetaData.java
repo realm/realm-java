@@ -33,6 +33,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
+import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
@@ -133,6 +134,10 @@ public class ClassMetaData {
                 Set<Modifier> modifiers = variableElement.getModifiers();
                 if (modifiers.contains(Modifier.STATIC)) {
                     continue; // completely ignore any static fields
+                }
+
+                if (variableElement.getAnnotation(Ignore.class) != null) {
+                    continue;
                 }
 
                 if (variableElement.getAnnotation(Index.class) != null) {

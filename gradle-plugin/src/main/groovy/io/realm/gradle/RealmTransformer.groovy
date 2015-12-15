@@ -117,17 +117,15 @@ class RealmTransformer extends Transform {
     private static void addRealmAccessors(CtClass clazz) {
         println("  Realm: Adding accessors to ${clazz.simpleName}")
         clazz.declaredFields.each { CtField field ->
-            if (field.getAnnotation(Ignore.class) == null) {
-                try {
-                    clazz.getDeclaredMethod("realmGetter\$${field.name}")
-                } catch (NotFoundException ignored) {
-                    clazz.addMethod(CtNewMethod.getter("realmGetter\$${field.name}", field))
-                }
-                try {
-                    clazz.getDeclaredMethod("realmSetter\$${field.name}")
-                } catch (NotFoundException ignored) {
-                    clazz.addMethod(CtNewMethod.setter("realmSetter\$${field.name}", field))
-                }
+            try {
+                clazz.getDeclaredMethod("realmGetter\$${field.name}")
+            } catch (NotFoundException ignored) {
+                clazz.addMethod(CtNewMethod.getter("realmGetter\$${field.name}", field))
+            }
+            try {
+                clazz.getDeclaredMethod("realmSetter\$${field.name}")
+            } catch (NotFoundException ignored) {
+                clazz.addMethod(CtNewMethod.setter("realmSetter\$${field.name}", field))
             }
         }
     }
