@@ -51,6 +51,7 @@ import java.util.Set;
 // - What version of Realm is being used
 // - What OS you are running on
 // - An anonymized MAC address and bundle ID to aggregate the other information on.
+// - List of Realm UI components to see if we should make more
 public class RealmAnalytics {
     private static RealmAnalytics instance;
     private static final int READ_TIMEOUT = 2000;
@@ -71,7 +72,13 @@ public class RealmAnalytics {
             + "      \"Realm Version\": \"%REALM_VERSION%\",\n"
             + "      \"Host OS Type\": \"%OS_TYPE%\",\n"
             + "      \"Host OS Version\": \"%OS_VERSION%\",\n"
-            + "      \"Target OS Type\": \"android\"\n"
+            + "      \"Target OS Type\": \"android\",\n"
+
+            + "      \"Map View Used\": %MAP_USED%,\n"
+            + "      \"List View Used\": %LIST_USED%,\n"
+            + "      \"Grid View Used\": %GRID_USED%\n"
+            + "      \"Chart View Used\": %Chart_USED%\n"
+
             + "   }\n"
             + "}";
 
@@ -125,6 +132,15 @@ public class RealmAnalytics {
         return new URL(ADDRESS_PREFIX + Utils.base64Encode(generateJson()) + ADDRESS_SUFFIX);
     }
 
+    public String isClass(String className) {
+        try  {
+            Class.forName(className);
+            return "true";
+        }  catch (final ClassNotFoundException e) {
+            return "false";
+        }
+    }
+
     public String generateJson() throws SocketException, NoSuchAlgorithmException {
         return JSON_TEMPLATE
                 .replaceAll("%EVENT%", EVENT_NAME)
@@ -133,7 +149,14 @@ public class RealmAnalytics {
                 .replaceAll("%APP_ID%", getAnonymousAppId())
                 .replaceAll("%REALM_VERSION%", Version.VERSION)
                 .replaceAll("%OS_TYPE%", System.getProperty("os.name"))
-                .replaceAll("%OS_VERSION%", System.getProperty("os.version"));
+                .replaceAll("%OS_VERSION%", System.getProperty("os.version"))
+
+                //Realm View Classes
+                .replaceAll("%MAP_USED%", isClass("RealmClusterMapFragment"))
+                .replaceAll("%LIST_USED%", isClass("RealmSearchView"))
+                .replaceAll("%GRID_USED%", isClass("RealmRecyclerView"))
+                .replaceAll("%CHART_USED%", isClass("LineChart"))
+                ;
     }
 
     /**
