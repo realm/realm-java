@@ -1704,7 +1704,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRo
       return 0;
   }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativePrepareHandoverQuery
    (JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong nativeQueryPtr)
 {
     TR_ENTER_PTR(nativeQueryPtr)
@@ -1865,4 +1865,32 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
             }
         }
     } CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
+        (JNIEnv *env, jobject, jlong senderSharedGroupPtr, jlong receiverSharedGroupPtr, jlong senderQueryPtr)
+{
+    TR_ENTER()
+    try {
+        std::unique_ptr<SharedGroup::Handover<Query>> handover;
+        handover = SG(senderSharedGroupPtr)->export_for_handover(*Q(senderQueryPtr), ConstSourcePayload::Copy);
+        std::unique_ptr<Query> query = SG(receiverSharedGroupPtr)->import_from_handover(std::move(handover));
+        return reinterpret_cast<jlong>(query.release());
+    } CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCopy
+        (JNIEnv* env, jobject, jlong nativeQueryPtr)
+{
+    TR_ENTER_PTR(nativeQueryPtr)
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return 0;
+    try {
+        Query queryCopy = Query(*pQuery);
+        TableQuery* queryCopyPtr = new TableQuery(queryCopy);
+        return reinterpret_cast<jlong>(queryCopyPtr);
+    } CATCH_STD()
+    return 0;
 }

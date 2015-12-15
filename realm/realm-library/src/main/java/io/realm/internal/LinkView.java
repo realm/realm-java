@@ -142,6 +142,18 @@ public class LinkView extends NativeObject {
         return parent;
     }
 
+    /**
+     * Handover this LinkView from one SharedGroup to another.
+     *
+     * @param senderSharedGroupPtr pointer to the sending SharedGroup.
+     * @param receiverSharedGroupPtr pointer to the receiving SharedGroup.
+     * @return The LinkView in the receiving SharedGroup.
+     */
+    public LinkView handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
+        // TODO
+        return null;
+    }
+
     private void checkImmutable() {
         if (parent.isImmutable()) {
             throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");

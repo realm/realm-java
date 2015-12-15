@@ -1538,6 +1538,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
         throw new RuntimeException("Not supported for tables");
     }
 
+    @Override
+    public Table handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
+        r        // TODO
+        return null;
+    }
+
     private void throwImmutable() {
         throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
     }

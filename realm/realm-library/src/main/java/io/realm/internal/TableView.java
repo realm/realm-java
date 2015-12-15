@@ -955,5 +955,11 @@ public class TableView implements TableOrView, Closeable {
         return nativeSync(nativePtr);
     }
 
+    @Override
+    public TableOrView handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
+        // TODO
+        return null;
+    }
+
     private native long nativeSync(long nativeTablePtr);
 }

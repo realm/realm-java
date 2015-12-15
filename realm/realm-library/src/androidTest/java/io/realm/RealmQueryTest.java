@@ -34,7 +34,6 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmError;
 
 public class RealmQueryTest extends AndroidTestCase {
 
@@ -1683,5 +1682,46 @@ public class RealmQueryTest extends AndroidTestCase {
                     .equalTo("fieldList.fieldObject.fieldBoolean", true)
                     .findAll();
         }
+    }
+
+    public void testClone() {
+        populateTestRealm();
+        RealmQuery<AllTypes> query1 = testRealm.where(AllTypes.class);
+        RealmQuery<AllTypes> query2 = query1.clone();
+
+        query1.equalTo("columnLong", 1);
+        query2.equalTo("columnLong", 2).or().equalTo("columnLong", 3);
+
+        RealmResults<AllTypes> results1 = query1.findAll();
+        RealmResults<AllTypes> results2 = query2.findAllSorted("columnLong");
+
+        assertEquals(1, results1.size());
+        assertEquals(1, results1.get(0).getColumnLong());
+        assertEquals(2, results2.size());
+        assertEquals(2, results2.get(0).getColumnLong());
+    }
+
+    public void testCloneFromOtherThreadThrows() {
+        final CountDownLatch bgDone = new CountDownLatch(1);
+        final RealmQuery<AllTypes> query = testRealm.where(AllTypes.class);
+        final ExceptionHolder bgError = new ExceptionHolder();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    query.clone();
+                    bgError.setError("Clone should not be possible");
+                } catch (Exception e) {
+                    if (!(e instanceof IllegalStateException)) {
+                        bgError.setException(e);
+                    }
+                } finally {
+                    bgDone.countDown();
+                }
+            }
+        }).start();
+        TestHelper.awaitOrFail(bgDone);
+        bgError.checkFailure();
     }
 }

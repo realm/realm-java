@@ -427,6 +427,23 @@ abstract class BaseRealm implements Closeable {
         return sharedGroupManager.getTransaction().isObjectTablesEmpty();
     }
 
+    /**
+     * Copies a {@link RealmQuery} object from another thread to this thread.
+     *
+     * *WARNING* Copying objects between threads is an inherently dangerous operation that is susceptible to race
+     * conditions. Avoid closing the Realm as well as making further changes to the RealmQuery while a copy might be
+     * in progress.
+     *
+     * @param query query object to copy
+     * @param <E> type of RealmObject.
+     * @return a query object that is usable on this thread.
+     * @throws IllegalArgumentException if the query object belongs to a different Realm.
+     * @throws IllegalStateException if the realm on the original thread has been closed.
+     */
+    public <E extends RealmObject> RealmQuery<E> threadLocalCopy(RealmQuery<E> query) {
+        return RealmQuery.handoverQuery(this, query);
+    }
+
     boolean hasChanged() {
         return sharedGroupManager.hasChanged();
     }
