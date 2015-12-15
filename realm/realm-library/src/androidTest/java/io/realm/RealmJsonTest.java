@@ -41,7 +41,6 @@ import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 

@@ -22,10 +22,18 @@ public class Thread extends RealmObject {
     private String name;
 
     public String getName() {
-        return name;
+        return realmGetter$name();
     }
 
     public void setName(String name) {
+        realmSetter$name(name);
+    }
+
+    public String realmGetter$name() {
+        return name;
+    }
+
+    public void realmSetter$name(String name) {
         this.name = name;
     }
 }

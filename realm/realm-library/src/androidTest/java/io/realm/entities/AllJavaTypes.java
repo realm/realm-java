@@ -55,106 +55,210 @@ public class AllJavaTypes extends RealmObject{
     private RealmList<AllJavaTypes> fieldList;
 
     public String getFieldIgnored() {
-        return fieldIgnored;
+        return realmGetter$fieldIgnored();
     }
 
     public void setFieldIgnored(String fieldIgnored) {
+        realmSetter$fieldIgnored(fieldIgnored);
+    }
+
+    public String realmGetter$fieldIgnored() {
+        return fieldIgnored;
+    }
+
+    public void realmSetter$fieldIgnored(String fieldIgnored) {
         this.fieldIgnored = fieldIgnored;
     }
 
     public String getFieldString() {
-        return fieldString;
+        return realmGetter$fieldString();
     }
 
     public void setFieldString(String fieldString) {
+        realmSetter$fieldString(fieldString);
+    }
+
+    public String realmGetter$fieldString() {
+        return fieldString;
+    }
+
+    public void realmSetter$fieldString(String fieldString) {
         this.fieldString = fieldString;
     }
 
     public short getFieldShort() {
-        return fieldShort;
+        return realmGetter$fieldShort();
     }
 
     public void setFieldShort(short fieldShort) {
+        realmSetter$fieldShort(fieldShort);
+    }
+
+    public short realmGetter$fieldShort() {
+        return fieldShort;
+    }
+
+    public void realmSetter$fieldShort(short fieldShort) {
         this.fieldShort = fieldShort;
     }
 
     public int getFieldInt() {
-        return fieldInt;
+        return realmGetter$fieldInt();
     }
 
     public void setFieldInt(int fieldInt) {
+        realmSetter$fieldInt(fieldInt);
+    }
+
+    public int realmGetter$fieldInt() {
+        return fieldInt;
+    }
+
+    public void realmSetter$fieldInt(int fieldInt) {
         this.fieldInt = fieldInt;
     }
 
     public long getFieldLong() {
-        return fieldLong;
+        return realmGetter$fieldLong();
     }
 
     public void setFieldLong(long fieldLong) {
+        realmSetter$fieldLong(fieldLong);
+    }
+
+    public long realmGetter$fieldLong() {
+        return fieldLong;
+    }
+
+    public void realmSetter$fieldLong(long fieldLong) {
         this.fieldLong = fieldLong;
     }
 
     public byte getFieldByte() {
-        return fieldByte;
+        return realmGetter$fieldByte();
     }
 
     public void setFieldByte(byte fieldByte) {
+        realmSetter$fieldByte(fieldByte);
+    }
+
+    public byte realmGetter$fieldByte() {
+        return fieldByte;
+    }
+
+    public void realmSetter$fieldByte(byte fieldByte) {
         this.fieldByte = fieldByte;
     }
 
     public float getFieldFloat() {
-        return fieldFloat;
+        return realmGetter$fieldFloat();
     }
 
     public void setFieldFloat(float fieldFloat) {
+        realmSetter$fieldFloat(fieldFloat);
+    }
+
+    public float realmGetter$fieldFloat() {
+        return fieldFloat;
+    }
+
+    public void realmSetter$fieldFloat(float fieldFloat) {
         this.fieldFloat = fieldFloat;
     }
 
     public double getFieldDouble() {
-        return fieldDouble;
+        return realmGetter$fieldDouble();
     }
 
     public void setFieldDouble(double fieldDouble) {
+        realmSetter$fieldDouble(fieldDouble);
+    }
+
+    public double realmGetter$fieldDouble() {
+        return fieldDouble;
+    }
+
+    public void realmSetter$fieldDouble(double fieldDouble) {
         this.fieldDouble = fieldDouble;
     }
 
-    public boolean isFieldBoolean() {
-        return fieldBoolean;
+    public boolean getFieldBoolean() {
+        return realmGetter$fieldBoolean();
     }
 
     public void setFieldBoolean(boolean fieldBoolean) {
+        realmSetter$fieldBoolean(fieldBoolean);
+    }
+
+    public boolean realmGetter$fieldBoolean() {
+        return fieldBoolean;
+    }
+
+    public void realmSetter$fieldBoolean(boolean fieldBoolean) {
         this.fieldBoolean = fieldBoolean;
     }
 
     public Date getFieldDate() {
-        return fieldDate;
+        return realmGetter$fieldDate();
     }
 
     public void setFieldDate(Date fieldDate) {
+        realmSetter$fieldDate(fieldDate);
+    }
+
+    public Date realmGetter$fieldDate() {
+        return fieldDate;
+    }
+
+    public void realmSetter$fieldDate(Date fieldDate) {
         this.fieldDate = fieldDate;
     }
 
     public byte[] getFieldBinary() {
-        return fieldBinary;
+        return realmGetter$fieldBinary();
     }
 
     public void setFieldBinary(byte[] fieldBinary) {
+        realmSetter$fieldBinary(fieldBinary);
+    }
+
+    public byte[] realmGetter$fieldBinary() {
+        return fieldBinary;
+    }
+
+    public void realmSetter$fieldBinary(byte[] fieldBinary) {
         this.fieldBinary = fieldBinary;
     }
 
     public AllJavaTypes getFieldObject() {
+        return realmGetter$fieldObject();
+    }
+
+    public void setFieldObject(AllJavaTypes fieldObject) {
+        realmSetter$fieldObject(fieldObject);
+    }
+
+    public AllJavaTypes realmGetter$fieldObject() {
         return fieldObject;
     }
 
-    public void setFieldObject(AllJavaTypes columnRealmObject) {
-        this.fieldObject = columnRealmObject;
+    public void realmSetter$fieldObject(AllJavaTypes fieldObject) {
+        this.fieldObject = fieldObject;
     }
 
     public RealmList<AllJavaTypes> getFieldList() {
+        return realmGetter$fieldList();
+    }
+
+    public void setFieldList(RealmList<AllJavaTypes> fieldList) {
+        realmSetter$fieldList(fieldList);
+    }
+
+    public RealmList<AllJavaTypes> realmGetter$fieldList() {
         return fieldList;
     }
 
-    public void setFieldList(RealmList<AllJavaTypes> columnRealmList) {
-        this.fieldList = columnRealmList;
+    public void realmSetter$fieldList(RealmList<AllJavaTypes> fieldList) {
+        this.fieldList = fieldList;
     }
 }

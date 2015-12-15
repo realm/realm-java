@@ -24,27 +24,51 @@ public class Owner extends RealmObject {
     private RealmList<Dog> dogs;
     private Cat cat;
 
-    public Cat getCat() {
-        return cat;
-    }
-
-    public void setCat(Cat cat) {
-        this.cat = cat;
-    }
-
-    public RealmList<Dog> getDogs() {
-        return dogs;
-    }
-
-    public void setDogs(RealmList<Dog> dogs) {
-        this.dogs = dogs;
-    }
-
     public String getName() {
-        return name;
+        return realmGetter$name();
     }
 
     public void setName(String name) {
+        realmSetter$name(name);
+    }
+
+    public String realmGetter$name() {
+        return name;
+    }
+
+    public void realmSetter$name(String name) {
         this.name = name;
+    }
+
+    public RealmList<Dog> getDogs() {
+        return realmGetter$dogs();
+    }
+
+    public void setDogs(RealmList<Dog> dogs) {
+        realmSetter$dogs(dogs);
+    }
+
+    public RealmList<Dog> realmGetter$dogs() {
+        return dogs;
+    }
+
+    public void realmSetter$dogs(RealmList<Dog> dogs) {
+        this.dogs = dogs;
+    }
+
+    public Cat getCat() {
+        return realmGetter$cat();
+    }
+
+    public void setCat(Cat cat) {
+        realmSetter$cat(cat);
+    }
+
+    public Cat realmGetter$cat() {
+        return cat;
+    }
+
+    public void realmSetter$cat(Cat cat) {
+        this.cat = cat;
     }
 }

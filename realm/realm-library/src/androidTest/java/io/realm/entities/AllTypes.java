@@ -49,74 +49,146 @@ public class AllTypes extends RealmObject {
     private RealmList<Dog> columnRealmList;
 
     public String getColumnString() {
-        return columnString;
+        return realmGetter$columnString();
     }
 
     public void setColumnString(String columnString) {
+        realmSetter$columnString(columnString);
+    }
+
+    public String realmGetter$columnString() {
+        return columnString;
+    }
+
+    public void realmSetter$columnString(String columnString) {
         this.columnString = columnString;
     }
 
     public long getColumnLong() {
-        return columnLong;
+        return realmGetter$columnLong();
     }
 
     public void setColumnLong(long columnLong) {
+        realmSetter$columnLong(columnLong);
+    }
+
+    public long realmGetter$columnLong() {
+        return columnLong;
+    }
+
+    public void realmSetter$columnLong(long columnLong) {
         this.columnLong = columnLong;
     }
 
     public float getColumnFloat() {
-        return columnFloat;
+        return realmGetter$columnFloat();
     }
 
     public void setColumnFloat(float columnFloat) {
+        realmSetter$columnFloat(columnFloat);
+    }
+
+    public float realmGetter$columnFloat() {
+        return columnFloat;
+    }
+
+    public void realmSetter$columnFloat(float columnFloat) {
         this.columnFloat = columnFloat;
     }
 
     public double getColumnDouble() {
-        return columnDouble;
+        return realmGetter$columnDouble();
     }
 
     public void setColumnDouble(double columnDouble) {
+        realmSetter$columnDouble(columnDouble);
+    }
+
+    public double realmGetter$columnDouble() {
+        return columnDouble;
+    }
+
+    public void realmSetter$columnDouble(double columnDouble) {
         this.columnDouble = columnDouble;
     }
 
     public boolean isColumnBoolean() {
-        return columnBoolean;
+        return realmGetter$columnBoolean();
     }
 
     public void setColumnBoolean(boolean columnBoolean) {
+        realmSetter$columnBoolean(columnBoolean);
+    }
+
+    public boolean realmGetter$columnBoolean() {
+        return columnBoolean;
+    }
+
+    public void realmSetter$columnBoolean(boolean columnBoolean) {
         this.columnBoolean = columnBoolean;
     }
 
     public Date getColumnDate() {
-        return columnDate;
+        return realmGetter$columnDate();
     }
 
     public void setColumnDate(Date columnDate) {
+        realmSetter$columnDate(columnDate);
+    }
+
+    public Date realmGetter$columnDate() {
+        return columnDate;
+    }
+
+    public void realmSetter$columnDate(Date columnDate) {
         this.columnDate = columnDate;
     }
 
     public byte[] getColumnBinary() {
-        return columnBinary;
+        return realmGetter$columnBinary();
     }
 
     public void setColumnBinary(byte[] columnBinary) {
+        realmSetter$columnBinary(columnBinary);
+    }
+
+    public byte[] realmGetter$columnBinary() {
+        return columnBinary;
+    }
+
+    public void realmSetter$columnBinary(byte[] columnBinary) {
         this.columnBinary = columnBinary;
     }
 
     public Dog getColumnRealmObject() {
-        return columnRealmObject;
+        return realmGetter$columnRealmObject();
     }
 
     public void setColumnRealmObject(Dog columnRealmObject) {
+        realmSetter$columnRealmObject(columnRealmObject);
+    }
+
+    public Dog realmGetter$columnRealmObject() {
+        return columnRealmObject;
+    }
+
+    public void realmSetter$columnRealmObject(Dog columnRealmObject) {
         this.columnRealmObject = columnRealmObject;
     }
 
     public RealmList<Dog> getColumnRealmList() {
-        return columnRealmList;
+        return realmGetter$columnRealmList();
     }
 
     public void setColumnRealmList(RealmList<Dog> columnRealmList) {
+        realmSetter$columnRealmList(columnRealmList);
+    }
+
+    public RealmList<Dog> realmGetter$columnRealmList() {
+        return columnRealmList;
+    }
+
+    public void realmSetter$columnRealmList(RealmList<Dog> columnRealmList) {
         this.columnRealmList = columnRealmList;
     }
 }

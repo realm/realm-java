@@ -22,10 +22,18 @@ public class StringOnly extends RealmObject {
     private String chars;
 
     public String getChars() {
-        return chars;
+        return realmGetter$chars();
     }
 
     public void setChars(String chars) {
+        realmSetter$chars(chars);
+    }
+
+    public String realmGetter$chars() {
+        return chars;
+    }
+
+    public void realmSetter$chars(String chars) {
         this.chars = chars;
     }
 }

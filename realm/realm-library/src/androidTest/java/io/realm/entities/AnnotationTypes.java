@@ -34,36 +34,66 @@ public class AnnotationTypes extends RealmObject {
     private String ignoreString;
 
     public long getId() {
-        return id;
+        return realmGetter$id();
     }
 
     public void setId(long id) {
+        realmSetter$id(id);
+    }
+
+    public long realmGetter$id() {
+        return id;
+    }
+
+    public void realmSetter$id(long id) {
         this.id = id;
     }
 
     public String getIndexString() {
-        return indexString;
+        return realmGetter$indexString();
     }
 
     public void setIndexString(String indexString) {
+        realmSetter$indexString(indexString);
+    }
+
+    public String realmGetter$indexString() {
+        return indexString;
+    }
+
+    public void realmSetter$indexString(String indexString) {
         this.indexString = indexString;
     }
 
     public String getNotIndexString() {
-        return notIndexString;
+        return realmGetter$notIndexString();
     }
 
     public void setNotIndexString(String notIndexString) {
+        realmSetter$notIndexString(notIndexString);
+    }
+
+    public String realmGetter$notIndexString() {
+        return notIndexString;
+    }
+
+    public void realmSetter$notIndexString(String notIndexString) {
         this.notIndexString = notIndexString;
     }
 
     public String getIgnoreString() {
-        return ignoreString;
+        return realmGetter$ignoreString();
     }
 
     public void setIgnoreString(String ignoreString) {
-        this.ignoreString = ignoreString;
+        realmSetter$ignoreString(ignoreString);
     }
 
+    public String realmGetter$ignoreString() {
+        return ignoreString;
+    }
 
+    public void realmSetter$ignoreString(String ignoreString) {
+        this.ignoreString = ignoreString;
+    }
 }

@@ -41,34 +41,66 @@ public class CyclicTypePrimaryKey extends RealmObject {
     }
 
     public long getId() {
-        return id;
+        return realmGetter$id();
     }
 
     public void setId(long id) {
+        realmSetter$id(id);
+    }
+
+    public long realmGetter$id() {
+        return id;
+    }
+
+    public void realmSetter$id(long id) {
         this.id = id;
     }
 
     public String getName() {
-        return name;
+        return realmGetter$name();
     }
 
     public void setName(String name) {
+        realmSetter$name(name);
+    }
+
+    public String realmGetter$name() {
+        return name;
+    }
+
+    public void realmSetter$name(String name) {
         this.name = name;
     }
 
     public CyclicTypePrimaryKey getObject() {
-        return object;
+        return realmGetter$object();
     }
 
     public void setObject(CyclicTypePrimaryKey object) {
+        realmSetter$object(object);
+    }
+
+    public CyclicTypePrimaryKey realmGetter$object() {
+        return object;
+    }
+
+    public void realmSetter$object(CyclicTypePrimaryKey object) {
         this.object = object;
     }
 
     public RealmList<CyclicTypePrimaryKey> getObjects() {
-        return objects;
+        return realmGetter$objects();
     }
 
     public void setObjects(RealmList<CyclicTypePrimaryKey> objects) {
+        realmSetter$objects(objects);
+    }
+
+    public RealmList<CyclicTypePrimaryKey> realmGetter$objects() {
+        return objects;
+    }
+
+    public void realmSetter$objects(RealmList<CyclicTypePrimaryKey> objects) {
         this.objects = objects;
     }
 }

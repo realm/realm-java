@@ -34,18 +34,34 @@ public class PrimaryKeyAsString extends RealmObject {
     }
 
     public String getName() {
-        return name;
+        return realmGetter$name();
     }
 
     public void setName(String name) {
+        realmSetter$name(name);
+    }
+
+    public String realmGetter$name() {
+        return name;
+    }
+
+    public void realmSetter$name(String name) {
         this.name = name;
     }
 
     public long getId() {
-        return id;
+        return realmGetter$id();
     }
 
     public void setId(long id) {
+        realmSetter$id(id);
+    }
+
+    public long realmGetter$id() {
+        return id;
+    }
+
+    public void realmSetter$id(long id) {
         this.id = id;
     }
 }
