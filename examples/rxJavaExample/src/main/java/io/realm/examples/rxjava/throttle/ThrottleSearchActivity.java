@@ -31,6 +31,7 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.examples.rxjava.R;
 import io.realm.examples.rxjava.model.Person;
+import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -61,9 +62,9 @@ public class ThrottleSearchActivity extends Activity {
         subscription = RxTextView.textChangeEvents(searchInputView)
                 .debounce(200, TimeUnit.MILLISECONDS) // default Scheduler is Schedulers.computation()
                 .observeOn(AndroidSchedulers.mainThread()) // Needed to access Realm data
-                .flatMap(new Func1<TextViewTextChangeEvent, rx.Observable<RealmResults<Person>>>() {
+                .flatMap(new Func1<TextViewTextChangeEvent, Observable<RealmResults<Person>>>() {
                     @Override
-                    public rx.Observable<RealmResults<Person>> call(TextViewTextChangeEvent event) {
+                    public Observable<RealmResults<Person>> call(TextViewTextChangeEvent event) {
                         // Use Async API to move Realm queries off the main thread.
                         // Realm currently doesn't support the standard Schedulers.
                         return realm.where(Person.class)

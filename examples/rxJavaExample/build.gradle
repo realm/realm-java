@@ -21,9 +21,6 @@ android {
         }
     }
 
-    productFlavors {
-    }
-
     command {
         events 2000
     }
