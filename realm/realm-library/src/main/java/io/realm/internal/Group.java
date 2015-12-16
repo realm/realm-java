@@ -24,7 +24,7 @@ import java.nio.ByteBuffer;
 /**
  * This class is used to serialize tables to either disk or memory. It consists of a collection of tables.
  */
-public class Group implements Closeable {
+public class Group implements TableParent, Closeable {
 
     // Below values must match the values in realm::group::OpenMode in C++
     public static final int MODE_READONLY = 0; // Open in read-only mode. Fail if the file does not already exist.
@@ -242,7 +242,7 @@ public class Group implements Closeable {
         return nativeWriteToMem(nativePtr);
     }
 
-    /*
+    /**
      * Check if the Group contains any objects. It only checks for "class_" tables or non-metadata tables, e.g. this
      * return true if the "pk" table contained information.
      *
@@ -250,6 +250,16 @@ public class Group implements Closeable {
      */
     public boolean isObjectTablesEmpty() {
         return nativeIsEmpty(nativePtr);
+    }
+
+    @Override
+    public Group getTableGroup() {
+        return this;
+    }
+
+    @Override
+    public TableParent handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
+        return null;
     }
 
 /*

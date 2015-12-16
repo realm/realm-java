@@ -61,9 +61,9 @@ public class RealmQuery<E extends RealmObject> implements Cloneable {
     private BaseRealm realm;
     private Class<E> clazz;
     private String className;
-    private TableOrView table;
+//    private TableOrView table;
     private RealmObjectSchema schema;
-    private LinkView view;
+//    private LinkView view;
     private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
 

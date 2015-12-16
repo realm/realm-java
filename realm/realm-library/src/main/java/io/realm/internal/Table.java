@@ -31,7 +31,7 @@ import io.realm.exceptions.RealmPrimaryKeyConstraintException;
  * (define/insert/delete/update) a table has. All the native communications to the Realm C++ library are also handled by
  * this class.
  */
-public class Table implements TableOrView, TableSchema, Closeable {
+public class Table implements TableOrView, TableSchema, TableParent, Closeable {
 
     public static final int TABLE_MAX_LENGTH = 56; // Max length of class names without prefix
     public static final String TABLE_PREFIX = Util.getTablePrefix();
@@ -49,10 +49,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
 
+    // tableName can be used as key until https://github.com/realm/realm-core/issues/1410 is solved
+    // For the typed API that should be safe, but for the dynamicAPI/migration it can be potentially dangerous.
+    private final String tableName;
 
     protected long nativePtr;
 
-    protected final Object parent;
+    protected final TableParent parent;
     private final Context context;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
@@ -77,6 +80,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // have nothing to do with the native functions. Generated Java Table
         // classes will work as a wrapper on top of table.
         this.nativePtr = createNative();
+        this.tableName = getName();
         if (nativePtr == 0) {
             throw new java.lang.OutOfMemoryError("Out of native memory.");
         }
@@ -88,10 +92,24 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     protected native long createNative();
 
-    Table(Context context, Object parent, long nativePointer) {
+    Table(Context context, TableParent parent, long nativePointer) {
         this.context = context;
-        this.parent  = parent;
+        this.parent = parent;
         this.nativePtr = nativePointer;
+        this.tableName = getName();
+
+        if (DEBUG) {
+            tableNo = tableCount.incrementAndGet();
+            System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
+        }
+    }
+
+    // Handover constructor
+    public Table(Table table, long senderSharedGroupPtr, long receiverSharedGroupPtr) {
+        this.context = table.context;
+        this.parent = (table.parent != null) ? table.parent.handover(senderSharedGroupPtr, receiverSharedGroupPtr) : null;
+        this.nativePtr = nativeHandoverTable(senderSharedGroupPtr, receiverSharedGroupPtr, table.nativePtr);
+        this.tableName = getName();
 
         if (DEBUG) {
             tableNo = tableCount.incrementAndGet();
@@ -138,13 +156,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    /*
+    /**
      * Checks if the Table is valid.
      * Whenever a Table/subtable is changed/updated all it's subtables are invalidated.
      * You can no longer perform any actions on the table, and if done anyway, an exception is thrown.
      * The only method you can call is 'isValid()'.
      */
-
     public boolean isValid() {
         return nativePtr != 0 && nativeIsValid(nativePtr);
     }
@@ -797,7 +814,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long nativeTablePointer = nativeGetLinkTarget(nativePtr, columnIndex);
         try {
             // Copy context reference from parent
-            return new Table(context, this.parent, nativeTablePointer);
+            return new Table(context, parent, nativeTablePointer);
         }
         catch (RuntimeException e) {
             Table.nativeClose(nativeTablePointer);
@@ -1095,14 +1112,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private native void nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
 
     // Recursively look at parents until either a Group or null is found
-    Group getTableGroup() {
-        if (parent instanceof Group)  {
-            return (Group) parent;
-        } else if (parent instanceof Table) {
-            return ((Table) parent).getTableGroup();
-        } else {
-            return null; // Free table
-        }
+    public Group getTableGroup() {
+        return (parent != null) ? parent.getTableGroup() : null;
     }
 
     protected native void nativeAddSearchIndex(long nativePtr, long columnIndex);
@@ -1299,7 +1310,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long nativeQueryPtr = nativeWhere(nativePtr);
         try {
             // Copy context reference from parent
-            return new TableQuery(this.context, this, nativeQueryPtr);
+            return new TableQuery(context, this, nativeQueryPtr);
         } catch (RuntimeException e) {
             TableQuery.nativeClose(nativeQueryPtr);
             throw e;
@@ -1540,8 +1551,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public Table handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
-        r        // TODO
-        return null;
+        return new Table(this, senderSharedGroupPtr, receiverSharedGroupPtr);
     }
 
     private void throwImmutable() {
@@ -1582,4 +1592,5 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     private native long nativeVersion(long nativeTablePtr);
+    private native long nativeHandoverTable(long senderSharedGroupPtr, long receiverSharedGroupPtr, long tableNativePtr);
 }
