@@ -1095,6 +1095,32 @@ public class RealmTest extends AndroidTestCase {
         }
     }
 
+    public void testCompactNonExistingRealmFile() throws IOException {
+        final String OLD_REALM_NAME = "old.realm";
+        final String NEW_REALM_NAME = "cache.realm";
+        final long SCHEMA_VERSION = 1;
+
+        RealmConfiguration oldConfiguration = new RealmConfiguration.Builder(getContext())
+                .name(OLD_REALM_NAME)
+                .build();
+        Realm.deleteRealm(oldConfiguration);
+
+        RealmConfiguration newConfiguration = new RealmConfiguration.Builder(getContext())
+                .name(NEW_REALM_NAME)
+                .migration(new RealmMigration() {
+                    @Override
+                    public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {}
+                })
+                .schemaVersion(SCHEMA_VERSION)
+                .build();
+        Realm.setDefaultConfiguration(newConfiguration);
+        Realm.deleteRealm(newConfiguration);
+        assertTrue(Realm.compactRealm(newConfiguration));
+        Realm realm = Realm.getDefaultInstance();
+        assertFalse(realm.isClosed());
+        realm.close();
+    }
+
     public void testCompactEmptyRealmFile() throws IOException {
         final String REALM_NAME = "test.realm";
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), REALM_NAME);
