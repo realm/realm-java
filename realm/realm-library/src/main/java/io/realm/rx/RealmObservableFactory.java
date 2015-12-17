@@ -35,7 +35,6 @@ import rx.subscriptions.Subscriptions;
  * @see Realm#asObservable()
  * @see RealmObject#asObservable()
  * @see RealmResults#asObservable()
- * @see RealmQuery#asObservable()
  * @see DynamicRealm#asObservable()
  * @see DynamicRealmObject#asObservable()
  */
@@ -100,7 +99,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value as due to Realms auto-update it will be the latest
+                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
                 // value.
                 subscriber.onNext(realm);
             }
@@ -139,7 +138,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value as due to Realms auto-update it will be the latest
+                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
                 // value.
                 subscriber.onNext(results);
             }
@@ -194,7 +193,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value as due to Realms auto-update it will be the latest
+                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
                 // value.
                 subscriber.onNext(object);
             }

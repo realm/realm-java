@@ -75,7 +75,6 @@ public class TableQuery implements Closeable {
         this.origin = (query.origin != null) ? query.origin.handover(senderSharedGroupPtr, receiverSharedGroupPtr) : null;
         validateQuery();
     }
-
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {

@@ -267,7 +267,7 @@ public abstract class RealmObject {
      * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to.
      *
-     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to parse on
+     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      *
      * @param <E> RealmObject class that is being observed. Must be this class or its super types.
