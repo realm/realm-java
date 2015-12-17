@@ -80,7 +80,7 @@ public class Repository implements Closeable {
 
         // Return the data in Realm. The query result will be automatically updated when the network requests
         // save data in Realm
-        return realm.where(NYTimesStory.class).findAllSorted(NYTimesStory.PUBLISHED_DATE, Sort.DESCENDING).asObservable()
+        return realm.where(NYTimesStory.class).findAllSortedAsync(NYTimesStory.PUBLISHED_DATE, Sort.DESCENDING).asObservable()
                 .filter(new Func1<RealmResults<NYTimesStory>, Boolean>() {
                     @Override
                     public Boolean call(RealmResults<NYTimesStory> stories) {
@@ -118,7 +118,7 @@ public class Repository implements Closeable {
      */
     public Observable<NYTimesStory> loadStory(final String storyId) {
         return realm.where(NYTimesStory.class).equalTo(NYTimesStory.URL, storyId).findFirstAsync()
-                .asObservable()
+                .<NYTimesStory>asObservable()
                 .filter(new Func1<NYTimesStory, Boolean>() {
                     @Override
                     public Boolean call(NYTimesStory story) {

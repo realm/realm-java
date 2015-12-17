@@ -26,7 +26,7 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.examples.newsreader.model.network.RealmListNYTimesMultimediumDeserializer;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NYTimesStory extends RealmObject<NYTimesStory> {
+public class NYTimesStory extends RealmObject {
 
     public static final String PUBLISHED_DATE = "publishedDate";
     public static final String URL = "url";
