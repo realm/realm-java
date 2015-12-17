@@ -33,6 +33,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects are not copied from
@@ -818,6 +819,29 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public void removeChangeListeners() {
         realm.checkIfValid();
         listeners.clear();
+    }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
+     * subscribed to.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    @SuppressWarnings("unchecked")
+    public Observable<RealmResults<E>> asObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().from((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
+            @SuppressWarnings("UnnecessaryLocalVariable")
+            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
+            return results;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+        }
     }
 
     /**

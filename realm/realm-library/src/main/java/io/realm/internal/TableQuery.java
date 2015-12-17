@@ -59,7 +59,6 @@ public class TableQuery implements Closeable {
         this.origin = origin;
     }
 
-
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
