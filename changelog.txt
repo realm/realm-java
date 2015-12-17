@@ -1,4 +1,6 @@
 0.87.0
+ * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
+ * Added RealmConfiguration.Builder.rxFactory() and RxObservableFactory for custom RxJava observable factory classes.
  * Added Realm.copyFromRealm() for creating detached copies of Realm objects (#931).
  * Added RealmObjectSchema.getFieldType() (#1883).
  * Added unitTestExample to showcase unit and instrumentation tests. Examples include jUnit3, jUnit4, Espresso, Robolectric, and MPowermock usage with Realm (#1440).

@@ -2601,7 +2601,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
-    public void testBatchUpdateDifferentTypeOfQueries() {io.realm.internal.Util.setDebugLevel(5);
+    public void testBatchUpdateDifferentTypeOfQueries() {
         final RealmResults[] keepStrongReference = new RealmResults[4];
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
 
