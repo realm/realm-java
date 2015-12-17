@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.content.res.AssetManager;
 import android.test.AndroidTestCase;
 import android.util.Base64;
 
@@ -41,7 +40,6 @@ import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
@@ -59,11 +57,6 @@ public class RealmJsonTest extends AndroidTestCase {
     @Override
     protected void tearDown() throws Exception {
         testRealm.close();
-    }
-
-    private InputStream loadJsonFromAssets(String file) throws IOException {
-        AssetManager assetManager = getContext().getAssets();
-        return assetManager.open(file);
     }
 
     private InputStream convertJsonObjectToStream(JSONObject obj) {
@@ -350,7 +343,7 @@ public class RealmJsonTest extends AndroidTestCase {
    }
 
     public void testCreateObjectFromJsonStream_allSimpleTypes() throws IOException {
-        InputStream in = loadJsonFromAssets("all_simple_types.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "all_simple_types.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -367,7 +360,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateObjectFromJsonStream_dateAsLong() throws IOException {
-        InputStream in = loadJsonFromAssets("date_as_long.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "date_as_long.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -379,7 +372,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateObjectFromJsonStream_dateAsString() throws IOException {
-        InputStream in = loadJsonFromAssets("date_as_string.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "date_as_string.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -390,8 +383,27 @@ public class RealmJsonTest extends AndroidTestCase {
         assertEquals(new Date(1000), obj.getColumnDate());
     }
 
+    public void testCreateObjectFromJsonStream_dateAsISO8601String() throws IOException {
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "date_as_iso8601_string.json");
+        testRealm.beginTransaction();
+        testRealm.createObjectFromJson(AllTypes.class, in);
+        testRealm.commitTransaction();
+        in.close();
+
+        Calendar cal = new GregorianCalendar(2007, 8 - 1, 13, 19, 51, 23);
+        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+        cal.set(Calendar.MILLISECOND, 789);
+        Date date = cal.getTime();
+        cal.set(Calendar.MILLISECOND, 0);
+        Date dateZeroMillis = cal.getTime();
+
+        // Check that all primitive types are imported correctly
+        AllTypes obj = testRealm.allObjects(AllTypes.class).first();
+        assertEquals(dateZeroMillis, obj.getColumnDate());
+    }
+
     public void testCreateObjectFromJsonStream_childObject() throws IOException {
-        InputStream in = loadJsonFromAssets("single_child_object.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "single_child_object.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -402,7 +414,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateObjectFromJsonStream_emptyChildObjectList() throws IOException {
-        InputStream in = loadJsonFromAssets("realmlist_empty.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "realmlist_empty.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -413,7 +425,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateObjectFromJsonStream_childObjectList() throws IOException {
-        InputStream in = loadJsonFromAssets("realmlist.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "realmlist.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -424,7 +436,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateObjectFromJsonStream_array() throws IOException {
-        InputStream in = loadJsonFromAssets("array.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "array.json");
 
         testRealm.beginTransaction();
         testRealm.createAllFromJson(Dog.class, in);
@@ -437,7 +449,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
     // Test if Json object doesn't have the field, then the field should have default value. Stream version.
     public void testCreateObjectFromJsonStream_noValues() throws IOException {
-        InputStream in = loadJsonFromAssets("other_json_object.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "other_json_object.json");
         testRealm.beginTransaction();
         testRealm.createObjectFromJson(AllTypes.class, in);
         testRealm.commitTransaction();
@@ -473,7 +485,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.copyToRealm(obj);
         testRealm.commitTransaction();
 
-        InputStream in = loadJsonFromAssets("all_types_primary_key_field_only.json");
+        InputStream in = TestHelper.loadJsonFromAssets(getContext(), "all_types_primary_key_field_only.json");
         testRealm.beginTransaction();
         testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, in);
         testRealm.commitTransaction();
@@ -509,7 +521,7 @@ public class RealmJsonTest extends AndroidTestCase {
         testRealm.copyToRealm(obj);
         testRealm.commitTransaction();
 
-        String json = TestHelper.streamToString(loadJsonFromAssets("all_types_primary_key_field_only.json"));
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(getContext(), "all_types_primary_key_field_only.json"));
         testRealm.beginTransaction();
         testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
         testRealm.commitTransaction();
@@ -582,7 +594,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateOrUpdateJsonObject_ignoreUnsetProperties() throws IOException {
-        String json = TestHelper.streamToString(loadJsonFromAssets("list_alltypes_primarykey.json"));
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(getContext(), "list_alltypes_primarykey.json"));
         testRealm.beginTransaction();
         testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, json);
         testRealm.commitTransaction();
@@ -597,7 +609,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
     public void testCreateOrUpdateJsonStream_ignoreUnsetProperties() throws IOException {
         testRealm.beginTransaction();
-        testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, loadJsonFromAssets("list_alltypes_primarykey.json"));
+        testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, TestHelper.loadJsonFromAssets(getContext(), "list_alltypes_primarykey.json"));
         testRealm.commitTransaction();
 
         // No-op as no properties should be updated
@@ -675,7 +687,7 @@ public class RealmJsonTest extends AndroidTestCase {
     }
 
     public void testCreateOrUpdateAllJsonArray() throws JSONException, IOException {
-        String json = TestHelper.streamToString(loadJsonFromAssets("list_alltypes_primarykey.json"));
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(getContext(), "list_alltypes_primarykey.json"));
         JSONArray array = new JSONArray(json);
         testRealm.beginTransaction();
         testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, array);
@@ -686,14 +698,14 @@ public class RealmJsonTest extends AndroidTestCase {
 
     public void testCreateOrUpdateAllInputStream() throws IOException {
         testRealm.beginTransaction();
-        testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, loadJsonFromAssets("list_alltypes_primarykey.json"));
+        testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, TestHelper.loadJsonFromAssets(getContext(), "list_alltypes_primarykey.json"));
         testRealm.commitTransaction();
 
         assertAllTypesPrimaryKeyUpdated();
     }
 
     public void testCreateOrUpdateAllString() throws IOException {
-        String json = TestHelper.streamToString(loadJsonFromAssets("list_alltypes_primarykey.json"));
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(getContext(), "list_alltypes_primarykey.json"));
         testRealm.beginTransaction();
         testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, json);
         testRealm.commitTransaction();
@@ -790,7 +802,7 @@ public class RealmJsonTest extends AndroidTestCase {
 
     // Testing create objects from Json, all nullable fields with null values or non-null values
     public void testNullTypesJsonWithNulls() throws IOException, JSONException {
-        String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes.json"));
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(getContext(), "nulltypes.json"));
         JSONArray array = new JSONArray(json);
         testRealm.beginTransaction();
         testRealm.createAllFromJson(NullTypes.class, array);
@@ -809,7 +821,7 @@ public class RealmJsonTest extends AndroidTestCase {
     // Test creating objects form JSON stream, all nullable fields with null values or non-null values
     public void testNullTypesStreamJSONWithNulls() throws IOException {
         testRealm.beginTransaction();
-        testRealm.createAllFromJson(NullTypes.class, loadJsonFromAssets("nulltypes.json"));
+        testRealm.createAllFromJson(NullTypes.class, TestHelper.loadJsonFromAssets(getContext(), "nulltypes.json"));
         testRealm.commitTransaction();
 
         RealmResults<NullTypes> nullTypesRealmResults = testRealm.allObjects(NullTypes.class);
@@ -825,7 +837,7 @@ public class RealmJsonTest extends AndroidTestCase {
     // Test a nullable field already has a non-null value, update it through JSON with null value
     // of the corresponding field.
     public void testUpdateNullTypesJSONWithNulls() throws IOException, JSONException {
-        String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes.json"));
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(getContext(), "nulltypes.json"));
         JSONArray jsonArray = new JSONArray(json);
         // Nullable fields with values
         JSONObject jsonObject = jsonArray.getJSONObject(1);
@@ -855,7 +867,7 @@ public class RealmJsonTest extends AndroidTestCase {
     // If JSON has a field with value null, and corresponding object's field is not nullable,
     // an exception should be throw.
     public void testNullTypesJSONToNotNullFields() throws IOException, JSONException {
-        String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes_invalid.json"));
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(getContext(), "nulltypes_invalid.json"));
         JSONArray array = new JSONArray(json);
         testRealm.beginTransaction();
 
@@ -935,7 +947,7 @@ public class RealmJsonTest extends AndroidTestCase {
     // If JSON has a field with value null, and corresponding object's field is not nullable,
     // an exception should be throw. Stream version.
     public void testNullTypesJSONStreamToNotNullFields() throws IOException, JSONException {
-        String json = TestHelper.streamToString(loadJsonFromAssets("nulltypes_invalid.json"));
+        String json = TestHelper.streamToString(TestHelper.loadJsonFromAssets(getContext(), "nulltypes_invalid.json"));
         JSONArray array = new JSONArray(json);
 
         // 1 String

@@ -76,11 +76,11 @@ public abstract class RealmProxyMediator {
     public abstract String getTableName(Class<? extends RealmObject> clazz);
 
     /**
-     * Creates a new instance of an {@link RealmProxy} for the given RealmObject class.
+     * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
      *
-     * @param clazz the {@link RealmObject} to create {@link RealmProxy} for.
+     * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
      * @param columnInfo the {@link ColumnInfo} object for the RealmObject class of {@code E}.
-     * @return created {@link RealmProxy} object.
+     * @return created {@link RealmObjectProxy} object.
      */
     public abstract <E extends RealmObject> E newInstance(Class<E> clazz, ColumnInfo columnInfo);
 
@@ -92,13 +92,13 @@ public abstract class RealmProxyMediator {
     public abstract Set<Class<? extends RealmObject>> getModelClasses();
 
     /**
-     * Copy a non-manged {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied any
+     * Copy a non-managed {@link RealmObject} or a RealmObject from another Realm to this Realm. After being copied any
      * changes to the original object will not be persisted.
      *
      * @param object the object to copy properties from.
      * @param update {@code true} if object has a primary key and should try to update already existing data,
      * {@code false} otherwise.
-     * @param cache the cache for mapping between standalone objects and their {@link RealmProxy} representation.
+     * @param cache the cache for mapping between standalone objects and their {@link RealmObjectProxy} representation.
      * @return the managed Realm object.
      */
     public abstract <E extends RealmObject> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache);
@@ -123,9 +123,20 @@ public abstract class RealmProxyMediator {
      * @param realm the reference to Realm where to create the object.
      * @param reader the reference to the InputStream containing the JSON data.
      * @return the created {@link RealmObject}
-     * @throws IOException if an error occurs with the inputstream.
+     * @throws IOException if an error occurs with the input stream.
      */
     public abstract <E extends RealmObject> E createUsingJsonStream(Class<E> clazz, Realm realm, JsonReader reader) throws java.io.IOException;
+
+    /**
+     * Creates a deep standalone copy of a RealmObject. This is a deep copy so all links will be copied as well.
+     * The depth can be restricted to a maximum depth after which all links will be turned into null values instead.
+     *
+     * @param realmObject RealmObject to copy. It must be a valid object.
+     * @param maxDepth restrict the depth of the copy to this level. The root object is depth {@code 0}.
+     * @param cache cache used to make sure standalone objects are reused correctly.
+     * @return a standalone copy of the given object.
+     */
+    public abstract <E extends RealmObject> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmObject>> cache);
 
     @Override
     public boolean equals(Object o) {

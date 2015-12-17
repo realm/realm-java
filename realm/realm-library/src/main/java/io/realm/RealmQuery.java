@@ -21,11 +21,8 @@ import android.os.Handler;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -33,7 +30,7 @@ import io.realm.annotations.Required;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
-import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
@@ -63,7 +60,7 @@ public class RealmQuery<E extends RealmObject> {
     private BaseRealm realm;
     private Class<E> clazz;
     private String className;
-    private Table table;
+    private TableOrView table;
     private RealmObjectSchema schema;
     private LinkView view;
     private TableQuery query;
@@ -142,7 +139,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = queryResults.realm;
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = schema.table;
+        this.table = queryResults.getTable();
         this.view = null;
         this.query = queryResults.getTable().where();
     }
@@ -195,7 +192,7 @@ public class RealmQuery<E extends RealmObject> {
         if (view != null) {
             return view.isAttached();
         }
-        return table != null && table.isValid();
+        return table != null && table.getTable().isValid();
     }
 
     /**
@@ -1239,9 +1236,15 @@ public class RealmQuery<E extends RealmObject> {
 
         // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
         // then update it once the query completes in the background.
-        RealmResults<E> realmResults = new RealmResults<E>(realm, query, clazz);
-        final WeakReference<RealmResults<?>> weakRealmResults = new WeakReference<RealmResults<?>>(realmResults, realm.getReferenceQueue());
-        realm.addAsyncRealmResults(weakRealmResults, this);
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
+        } else {
+            realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
+        }
+
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1264,11 +1267,11 @@ public class RealmQuery<E extends RealmObject> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
-                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_QUERY, result);
+                        sendMessageToHandler(weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1298,11 +1301,16 @@ public class RealmQuery<E extends RealmObject> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         checkQueryIsNotReused();
+        RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
+            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
         } else {
-            return RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
+            realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
         }
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -1329,9 +1337,15 @@ public class RealmQuery<E extends RealmObject> {
 
         // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
         // then update it once the query completes in the background.
-        RealmResults<E> realmResults = new RealmResults<E>(realm, query, clazz);
-        final WeakReference<RealmResults<?>> weakRealmResults = new WeakReference<RealmResults<?>>(realmResults, realm.getReferenceQueue());
-        realm.addAsyncRealmResults(weakRealmResults, this);
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
+        } else {
+            realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
+        }
+
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1353,12 +1367,12 @@ public class RealmQuery<E extends RealmObject> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
-                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_QUERY, result);
+                        sendMessageToHandler(weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
 
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1400,11 +1414,16 @@ public class RealmQuery<E extends RealmObject> {
         }
         tableView.sort(columnIndex, sortOrder);
 
+        RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
-            return RealmResults.createFromTableOrView(realm, tableView, clazz);
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
         }
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -1435,9 +1454,15 @@ public class RealmQuery<E extends RealmObject> {
         // we need to use the same configuration to open a background SharedGroup to perform the query
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
 
-        RealmResults<E> realmResults = new RealmResults<E>(realm, query, clazz);
-        final WeakReference<RealmResults<?>> weakRealmResults = new WeakReference<RealmResults<?>>(realmResults, realm.getReferenceQueue());
-        realm.addAsyncRealmResults(weakRealmResults, this);
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
+        } else {
+            realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
+        }
+
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1458,11 +1483,11 @@ public class RealmQuery<E extends RealmObject> {
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                         result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                         result.versionID = sharedGroup.getVersion();
-                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_QUERY, result);
+                        sendMessageToHandler(weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1540,11 +1565,16 @@ public class RealmQuery<E extends RealmObject> {
             }
             tableView.sort(columnIndices, sortOrders);
 
+            RealmResults<E> realmResults;
             if (isDynamicQuery()) {
-                return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+                realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
             } else {
-                return RealmResults.createFromTableOrView(realm, tableView, clazz);
+                realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
             }
+            if (realm.handlerController != null) {
+                realm.handlerController.addToRealmResults(realmResults);
+            }
+            return realmResults;
         }
     }
 
@@ -1593,9 +1623,15 @@ public class RealmQuery<E extends RealmObject> {
             argumentsHolder.columnIndices = indices;
 
             // prepare the promise result
-            RealmResults<E> realmResults = new RealmResults<E>(realm, query, clazz);
-            final WeakReference<RealmResults<?>> weakRealmResults = new WeakReference<RealmResults<?>>(realmResults, realm.getReferenceQueue());
-            realm.addAsyncRealmResults(weakRealmResults, this);
+            RealmResults<E> realmResults;
+            if (isDynamicQuery()) {
+                //noinspection unchecked
+                realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
+            } else {
+                realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
+            }
+
+            final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
             final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
                 @Override
@@ -1616,11 +1652,11 @@ public class RealmQuery<E extends RealmObject> {
                             QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
                             result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
                             result.versionID = sharedGroup.getVersion();
-                            sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_QUERY, result);
+                            sendMessageToHandler(weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                             return handoverTableViewPointer;
                         } catch (Exception e) {
-                            RealmLog.e(e.getMessage());
+                            RealmLog.e(e.getMessage(), e);
                             sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                         } finally {
@@ -1721,80 +1757,17 @@ public class RealmQuery<E extends RealmObject> {
      */
     public E findFirst() {
         checkQueryIsNotReused();
-        long rowIndex = this.query.find();
-        if (rowIndex >= 0) {
-            return realm.get(clazz, className, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
+        long sourceRowIndex = getSourceRowIndexForFirstObject();
+        if (sourceRowIndex >= 0) {
+            E realmObject = realm.get(clazz, className, sourceRowIndex);
+            if (realm.handlerController != null) { // non Looper Thread doesn't have a handlerController
+                WeakReference<RealmObject> realmObjectWeakReference
+                        = new WeakReference<RealmObject>(realmObject, realm.handlerController.referenceQueueRealmObject);
+                realm.handlerController.realmObjects.put(realmObjectWeakReference, this);
+            }
+            return realmObject;
         } else {
             return null;
-        }
-    }
-
-    // FIXME Replace with Schema when it is available
-    private static class DynamicColumnMap implements Map<String, Long> {
-        private final Table table;
-
-        public DynamicColumnMap(Table table) {
-            this.table = table;
-        }
-
-        @Override
-        public Long get(Object key) {
-            return table.getColumnIndex((String) key);
-        }
-
-        @Override
-        public void clear() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean containsKey(Object key) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean containsValue(Object value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Set<Entry<String, Long>> entrySet() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Set<String> keySet() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Long put(String key, Long value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void putAll(Map<? extends String, ? extends Long> map) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Long remove(Object key) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public int size() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Collection<Long> values() {
-            throw new UnsupportedOperationException();
         }
     }
 
@@ -1802,8 +1775,10 @@ public class RealmQuery<E extends RealmObject> {
      * Similar to {@link #findFirst()} but runs asynchronously on a worker thread
      * This method is only available from a Looper thread.
      *
-     * @return immediately an empty {@link RealmObject}. Users need to register a listener
-     * {@link io.realm.RealmObject#addChangeListener} to be notified when the query completes.
+     * @return immediately an empty {@link RealmObject}. Trying to access any field on the returned object
+     * before it is loaded will throw an {@code IllegalStateException}. Use {@link RealmObject#isLoaded()} to check if
+     * the object is fully loaded or register a listener {@link io.realm.RealmObject#addChangeListener}
+     * to be notified when the query completes.
      */
     public E findFirstAsync() {
         checkQueryIsNotReused();
@@ -1819,9 +1794,15 @@ public class RealmQuery<E extends RealmObject> {
 
         // prepare an empty reference of the RealmObject, so we can return it immediately (promise)
         // then update it once the query complete in the background.
-        final E result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.schema.getColumnInfo(clazz));
-        final WeakReference<RealmObject> realmObjectWeakReference = new WeakReference<RealmObject>(result);
-        realm.addAsyncRealmObject(realmObjectWeakReference, this);
+        final E result;
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            result = (E) new DynamicRealmObject(className);
+        } else {
+            result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.getSchema().getColumnInfo(clazz));
+        }
+
+        final WeakReference<RealmObject> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(result, this);
         result.realm = realm;
         result.row = Row.EMPTY_ROW;
 
@@ -1837,20 +1818,24 @@ public class RealmQuery<E extends RealmObject> {
                                 realmConfiguration.getDurability(),
                                 realmConfiguration.getEncryptionKey());
 
-                        long handoverTableViewPointer = query.findWithHandover(sharedGroup.getNativePointer(),
+                        long handoverRowPointer = query.findWithHandover(sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(), handoverQueryPointer);
+                        if (handoverRowPointer == 0) { // empty row
+                            realm.handlerController.addToEmptyAsyncRealmObject(realmObjectWeakReference, RealmQuery.this);
+                            realm.handlerController.removeFromAsyncRealmObject(realmObjectWeakReference);
+                        }
 
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmObjectResponse();
-                        result.updatedRow.put(realmObjectWeakReference, handoverTableViewPointer);
+                        result.updatedRow.put(realmObjectWeakReference, handoverRowPointer);
                         result.versionID = sharedGroup.getVersion();
-                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_FIND_FIRST, result);
+                        sendMessageToHandler(weakHandler, HandlerController.COMPLETED_ASYNC_REALM_OBJECT, result);
 
-                        return handoverTableViewPointer;
+                        return handoverRowPointer;
 
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         // handler can't throw a checked exception need to wrap it into unchecked Exception
-                        sendMessageToHandler(weakHandler, HandlerController.REALM_COMPLETED_ASYNC_FIND_FIRST, new Error(e));
+                        sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
                         if (null != sharedGroup) {
@@ -1903,6 +1888,20 @@ public class RealmQuery<E extends RealmObject> {
     private void checkQueryIsNotReused() {
         if (argumentsHolder != null) {
             throw new IllegalStateException("This RealmQuery is already used by a find* query, please create a new query");
+        }
+    }
+
+    private long getSourceRowIndexForFirstObject() {
+        long rowIndex = this.query.find();
+        if (rowIndex < 0) {
+            return rowIndex;
+        }
+        if (this.view != null) {
+            return view.getTargetRowIndex(rowIndex);
+        } else if (table instanceof TableView){
+            return ((TableView) table).getSourceRowIndex(rowIndex);
+        } else {
+            return rowIndex;
         }
     }
 

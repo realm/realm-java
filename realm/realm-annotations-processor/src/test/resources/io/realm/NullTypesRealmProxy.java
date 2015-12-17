@@ -1167,6 +1167,50 @@ public class NullTypesRealmProxy extends NullTypes
         return realmObject;
     }
 
+    public static NullTypes createDetachedCopy(NullTypes realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
+        if (currentDepth > maxDepth || realmObject == null) {
+            return null;
+        }
+        CacheData<NullTypes> cachedObject = (CacheData) cache.get(realmObject);
+        NullTypes standaloneObject;
+        if (cachedObject != null) {
+            // Reuse cached object or recreate it because it was encountered at a lower depth.
+            if (currentDepth >= cachedObject.minDepth) {
+                return cachedObject.object;
+            } else {
+                standaloneObject = cachedObject.object;
+                cachedObject.minDepth = currentDepth;
+            }
+        } else {
+            standaloneObject = new NullTypes();
+            cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
+        }
+        standaloneObject.setFieldStringNotNull(realmObject.getFieldStringNotNull());
+        standaloneObject.setFieldStringNull(realmObject.getFieldStringNull());
+        standaloneObject.setFieldBooleanNotNull(realmObject.getFieldBooleanNotNull());
+        standaloneObject.setFieldBooleanNull(realmObject.getFieldBooleanNull());
+        standaloneObject.setFieldBytesNotNull(realmObject.getFieldBytesNotNull());
+        standaloneObject.setFieldBytesNull(realmObject.getFieldBytesNull());
+        standaloneObject.setFieldByteNotNull(realmObject.getFieldByteNotNull());
+        standaloneObject.setFieldByteNull(realmObject.getFieldByteNull());
+        standaloneObject.setFieldShortNotNull(realmObject.getFieldShortNotNull());
+        standaloneObject.setFieldShortNull(realmObject.getFieldShortNull());
+        standaloneObject.setFieldIntegerNotNull(realmObject.getFieldIntegerNotNull());
+        standaloneObject.setFieldIntegerNull(realmObject.getFieldIntegerNull());
+        standaloneObject.setFieldLongNotNull(realmObject.getFieldLongNotNull());
+        standaloneObject.setFieldLongNull(realmObject.getFieldLongNull());
+        standaloneObject.setFieldFloatNotNull(realmObject.getFieldFloatNotNull());
+        standaloneObject.setFieldFloatNull(realmObject.getFieldFloatNull());
+        standaloneObject.setFieldDoubleNotNull(realmObject.getFieldDoubleNotNull());
+        standaloneObject.setFieldDoubleNull(realmObject.getFieldDoubleNull());
+        standaloneObject.setFieldDateNotNull(realmObject.getFieldDateNotNull());
+        standaloneObject.setFieldDateNull(realmObject.getFieldDateNull());
+
+        // Deep copy of fieldObjectNull
+        standaloneObject.setFieldObjectNull(NullTypesRealmProxy.createDetachedCopy(realmObject.getFieldObjectNull(), currentDepth + 1, maxDepth, cache));
+        return standaloneObject;
+    }
+
     @Override
     public String toString() {
         if (!isValid()) {

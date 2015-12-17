@@ -23,6 +23,7 @@ public class CyclicType extends RealmObject {
 
     private String name;
     private CyclicType object;
+    private CyclicType otherObject;
     private RealmList<CyclicType> objects;
 
     public CyclicType() {
@@ -54,5 +55,13 @@ public class CyclicType extends RealmObject {
 
     public void setObjects(RealmList<CyclicType> objects) {
         this.objects = objects;
+    }
+
+    public CyclicType getOtherObject() {
+        return otherObject;
+    }
+
+    public void setOtherObject(CyclicType otherObject) {
+        this.otherObject = otherObject;
     }
 }

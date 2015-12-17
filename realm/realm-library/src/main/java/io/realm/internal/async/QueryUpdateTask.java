@@ -78,7 +78,15 @@ public class QueryUpdateTask implements Runnable {
             boolean updateSuccessful = false;
             if (updateMode == MODE_UPDATE_REALM_RESULTS) {
                 result = Result.newRealmResultsResponse();
-                updateSuccessful = updateRealmResultsQueries(sharedGroup, result);
+                AlignedQueriesParameters alignedParameters = prepareQueriesParameters();
+                long[] handoverTableViewPointer = TableQuery.nativeBatchUpdateQueries(sharedGroup.getNativePointer(),
+                        sharedGroup.getNativeReplicationPointer(),
+                        alignedParameters.handoverQueries,
+                        alignedParameters.queriesParameters,
+                        alignedParameters.multiSortColumnIndices,
+                        alignedParameters.multiSortOrder);
+                swapPointers(result, handoverTableViewPointer);
+                updateSuccessful = true;
                 result.versionID = sharedGroup.getVersion();
 
             } else {
@@ -93,8 +101,7 @@ public class QueryUpdateTask implements Runnable {
             }
 
         } catch (Exception e) {
-            RealmLog.e(e.getMessage());
-            e.fillInStackTrace();
+            RealmLog.e(e.getMessage(), e);
 
         } finally {
             if (sharedGroup != null) {
@@ -103,73 +110,68 @@ public class QueryUpdateTask implements Runnable {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private boolean updateRealmResultsQueries(SharedGroup sharedGroup, Result result) {
+    private AlignedQueriesParameters prepareQueriesParameters() {
+        long[] handoverQueries = new long[realmResultsEntries.size()];
+        long[][] queriesParameters = new long[realmResultsEntries.size()][6];
+        long[][] multiSortColumnIndices = new long[realmResultsEntries.size()][];
+        boolean[][] multiSortOrder = new boolean[realmResultsEntries.size()][];
+
+        int i = 0;
         for (Builder.QueryEntry  queryEntry : realmResultsEntries) {
-            if (!isTaskCancelled()) {
-                switch (queryEntry.queryArguments.type) {
-                    case ArgumentsHolder.TYPE_FIND_ALL: {
-                        long handoverTableViewPointer = TableQuery.nativeFindAllWithHandover
-                                (sharedGroup.getNativePointer(),
-                                        sharedGroup.getNativeReplicationPointer(),
-                                        queryEntry.handoverQueryPointer, 0, Table.INFINITE, Table.INFINITE);
-                        result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
-                        // invalidate the handover query pointer, in case this task is cancelled
-                        // we will not try to close/delete a consumed pointer
-                        queryEntry.handoverQueryPointer = 0L;
-                        break;
-                    }
-                    case ArgumentsHolder.TYPE_DISTINCT: {
-                        long handoverTableViewPointer = TableQuery.nativeGetDistinctViewWithHandover
-                                (sharedGroup.getNativePointer(),
-                                        sharedGroup.getNativeReplicationPointer(),
-                                        queryEntry.handoverQueryPointer,
-                                        queryEntry.queryArguments.columnIndex);
-                        result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
-                        // invalidate the handover query pointer, in case this task is cancelled
-                        // we will not try to close/delete a consumed pointer
-                        queryEntry.handoverQueryPointer = 0L;
-                        break;
-                    }
-                    case ArgumentsHolder.TYPE_FIND_ALL_SORTED: {
-                        long handoverTableViewPointer = TableQuery.nativeFindAllSortedWithHandover(
-                                sharedGroup.getNativePointer(),
-                                sharedGroup.getNativeReplicationPointer(),
-                                queryEntry.handoverQueryPointer,
-                                0, Table.INFINITE, Table.INFINITE,
-                                queryEntry.queryArguments.columnIndex,
-                                queryEntry.queryArguments.sortOrder.getValue());
-
-                        result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
-                        queryEntry.handoverQueryPointer = 0L;
-                        break;
-                    }
-                    case ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED:
-
-                        long handoverTableViewPointer = TableQuery.nativeFindAllMultiSortedWithHandover(
-                                sharedGroup.getNativePointer(),
-                                sharedGroup.getNativeReplicationPointer(),
-                                queryEntry.handoverQueryPointer,
-                                0, Table.INFINITE, Table.INFINITE,
-                                queryEntry.queryArguments.columnIndices,
-                                TableQuery.getNativeSortOrderValues(queryEntry.queryArguments.sortOrders));
-
-                        result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer);
-                        queryEntry.handoverQueryPointer = 0L;
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Query mode " + queryEntry.queryArguments.type + " not supported");
+            switch (queryEntry.queryArguments.type) {
+                case ArgumentsHolder.TYPE_FIND_ALL: {
+                    handoverQueries[i] = queryEntry.handoverQueryPointer;
+                    queriesParameters[i][0] = ArgumentsHolder.TYPE_FIND_ALL;
+                    queriesParameters[i][1] = 0;
+                    queriesParameters[i][2] = Table.INFINITE;
+                    queriesParameters[i][3] = Table.INFINITE;
+                    break;
                 }
-            } else {
-                for (Long handoverQueryPointer : result.updatedTableViews.values()) {
-                    if (handoverQueryPointer != 0) {
-                        TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
-                    }
+                case ArgumentsHolder.TYPE_DISTINCT: {
+                    handoverQueries[i] = queryEntry.handoverQueryPointer;
+                    queriesParameters[i][0] = ArgumentsHolder.TYPE_DISTINCT;
+                    queriesParameters[i][1] = queryEntry.queryArguments.columnIndex;
+                    break;
                 }
-                return false;
+                case ArgumentsHolder.TYPE_FIND_ALL_SORTED: {
+                    handoverQueries[i] = queryEntry.handoverQueryPointer;
+                    queriesParameters[i][0] = ArgumentsHolder.TYPE_FIND_ALL_SORTED;
+                    queriesParameters[i][1] = 0;
+                    queriesParameters[i][2] = Table.INFINITE;
+                    queriesParameters[i][3] = Table.INFINITE;
+                    queriesParameters[i][4] = queryEntry.queryArguments.columnIndex;
+                    queriesParameters[i][5] = (queryEntry.queryArguments.sortOrder.getValue()) ? 1 : 0;
+                    break;
+                }
+                case ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED:
+                    handoverQueries[i] = queryEntry.handoverQueryPointer;
+                    queriesParameters[i][0] = ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED;
+                    queriesParameters[i][1] = 0;
+                    queriesParameters[i][2] = Table.INFINITE;
+                    queriesParameters[i][3] = Table.INFINITE;
+                    multiSortColumnIndices[i] = queryEntry.queryArguments.columnIndices;
+                    multiSortOrder[i] = TableQuery.getNativeSortOrderValues(queryEntry.queryArguments.sortOrders);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Query mode " + queryEntry.queryArguments.type + " not supported");
             }
+            i++;
         }
-        return true;
+        AlignedQueriesParameters alignedParameters = new AlignedQueriesParameters();
+
+        alignedParameters.handoverQueries = handoverQueries;
+        alignedParameters.multiSortColumnIndices = multiSortColumnIndices;
+        alignedParameters.multiSortOrder = multiSortOrder;
+        alignedParameters.queriesParameters = queriesParameters;
+
+        return alignedParameters;
+    }
+
+    private void swapPointers(Result result, long[] handoverTableViewPointer) {
+        int i = 0;
+        for (Builder.QueryEntry  queryEntry : realmResultsEntries) {
+            result.updatedTableViews.put(queryEntry.element, handoverTableViewPointer[i++]);
+        }
     }
 
     private boolean updateRealmObjectQuery(SharedGroup sharedGroup, Result result) {
@@ -205,7 +207,7 @@ public class QueryUpdateTask implements Runnable {
     // result of the async query
     public static class Result {
         public IdentityHashMap<WeakReference<RealmResults<? extends RealmObject>>, Long> updatedTableViews;
-        public IdentityHashMap<WeakReference<? extends RealmObject>, Long> updatedRow;
+        public IdentityHashMap<WeakReference<RealmObject>, Long> updatedRow;
         public SharedGroup.VersionID versionID;
 
         public static Result newRealmResultsResponse() {
@@ -216,11 +218,16 @@ public class QueryUpdateTask implements Runnable {
 
         public static Result newRealmObjectResponse() {
             Result result = new Result();
-            result.updatedRow = new IdentityHashMap<WeakReference<? extends RealmObject>, Long>(1);
+            result.updatedRow = new IdentityHashMap<WeakReference<RealmObject>, Long>(1);
             return result;
         }
     }
-
+    private static class AlignedQueriesParameters {
+        long[] handoverQueries;
+        long[][] queriesParameters;
+        long[][] multiSortColumnIndices;
+        boolean[][] multiSortOrder;
+    }
     /*
       This uses the step builder pattern to guide the caller throughout the creation of the instance
       http://rdafbn.blogspot.ie/2012/07/step-builder-pattern_28.html

@@ -24,7 +24,6 @@ repositories {
 }
 
 dependencies {
-    compile 'com.intellij:annotations:+@jar'
     compile project(':realm-annotations')
 
     androidTestApt project(':realm-annotations-processor')

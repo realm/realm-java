@@ -21,7 +21,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.annotations.RealmClass;
-import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -87,6 +86,7 @@ public abstract class RealmObject {
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
+    protected long currentTableVersion = -1;
 
     /**
      * Removes the object from the Realm it is currently associated to.
@@ -117,6 +117,10 @@ public abstract class RealmObject {
      */
     public final boolean isValid() {
         return row != null && row.isAttached();
+    }
+
+    protected Table getTable () {
+        return realm.schema.getTable(getClass());
     }
 
     /**
@@ -176,11 +180,16 @@ public abstract class RealmObject {
     boolean onCompleted() {
         try {
             Long handoverResult = pendingQuery.get();// make the query blocking
-            // this may fail with BadVersionException if the caller and/or the worker thread
-            // are not in sync (same shared_group version).
-            // REALM_COMPLETED_ASYNC_FIND_FIRST will be fired by the worker thread
-            // this should handle more complex use cases like retry, ignore etc
-            onCompleted(handoverResult);
+            if (handoverResult != 0) {
+                // this may fail with BadVersionException if the caller and/or the worker thread
+                // are not in sync (same shared_group version).
+                // COMPLETED_ASYNC_REALM_OBJECT will be fired by the worker thread
+                // this should handle more complex use cases like retry, ignore etc
+                onCompleted(handoverResult);
+                notifyChangeListeners();
+            } else {
+                isCompleted = true;
+            }
         } catch (Exception e) {
             RealmLog.d(e.getMessage());
             return false;
@@ -189,12 +198,16 @@ public abstract class RealmObject {
     }
 
     void onCompleted(Long handoverRowPointer) {
-        if (!isCompleted) {
+        if (handoverRowPointer == 0) {
+            // we'll retry later to update the row pointer, but we consider
+            // the query done
+            isCompleted = true;
+
+        } else if (!isCompleted || row == Row.EMPTY_ROW) {
             isCompleted = true;
             long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());
-            Table table = realm.schema.getTable(getClass());
+            Table table = getTable();
             this.row = table.getUncheckedRowByPointer(nativeRowPointer);
-            notifyChangeListeners();
         }// else: already loaded query no need to import again the pointer
     }
 
@@ -211,6 +224,9 @@ public abstract class RealmObject {
             realm.checkIfValid();
         } else {
             throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");
+        }
+        if (realm.handler == null) {
+            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
         }
         if (!listeners.contains(listener)) {
             listeners.add(listener);
@@ -250,9 +266,22 @@ public abstract class RealmObject {
      * Notifies all registered listeners.
      */
     void notifyChangeListeners() {
-        realm.checkIfValid();
-        for (RealmChangeListener listener : listeners) {
-            listener.onChange();
+        if (listeners != null && !listeners.isEmpty()) {
+            if (row.getTable() == null) return;
+
+            long version = row.getTable().version();
+            if (currentTableVersion != version) {
+                currentTableVersion = version;
+                for (RealmChangeListener listener : listeners) {
+                    listener.onChange();
+                }
+            }
+        }
+    }
+
+    void setTableVersion() {
+        if (row.getTable() != null) {
+            currentTableVersion = row.getTable().version();
         }
     }
 }

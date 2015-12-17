@@ -1492,6 +1492,16 @@ public class RealmQueryTest extends AndroidTestCase {
         assertFalse(query.isValid());
     }
 
+    // test for https://github.com/realm/realm-java/issues/1905
+    public void testResultOfTableViewQuery() {
+        populateTestRealm();
+
+        final RealmResults<AllTypes> results = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 3L).findAll();
+        final RealmQuery<AllTypes> tableViewQuery = results.where();
+        assertEquals("test data 3", tableViewQuery.findAll().first().getColumnString());
+        assertEquals("test data 3", tableViewQuery.findFirst().getColumnString());
+    }
+
     public void testIsValidOfLinkViewQuery() {
         populateTestRealm(1);
         final RealmList<Dog> list = testRealm.where(AllTypes.class).findFirst().getColumnRealmList();
