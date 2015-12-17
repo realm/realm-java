@@ -24,6 +24,7 @@ import io.realm.RealmFieldType;
 import io.realm.Sort;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.internal.log.RealmLog;
 
 
 /**
@@ -49,22 +50,19 @@ public class Table implements TableOrView, TableSchema, Closeable {
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
 
-
     protected long nativePtr;
-
     protected final Object parent;
     private final Context context;
     private long cachedPrimaryKeyColumnIndex = NO_MATCH;
 
     // test:
     protected int tableNo;
-    protected boolean DEBUG = false;
+    private static final boolean DEBUG = false;
     static AtomicInteger tableCount = new AtomicInteger(0);
 
     static {
         RealmCore.loadLibrary();
     }
-
 
     /**
      * Constructs a Table base object. It can be used to register columns in this table. Registering into table is
@@ -82,20 +80,17 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
         if (DEBUG) {
             tableNo = tableCount.incrementAndGet();
-            System.err.println("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
+            RealmLog.d("====== New Tablebase " + tableNo + " : ptr = " + nativePtr);
         }
     }
-
-    protected native long createNative();
 
     Table(Context context, Object parent, long nativePointer) {
         this.context = context;
         this.parent  = parent;
         this.nativePtr = nativePointer;
-
         if (DEBUG) {
             tableNo = tableCount.incrementAndGet();
-            System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
+            RealmLog.d("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
     }
 
@@ -113,15 +108,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativeClose(nativePtr);
                 if (DEBUG) {
                     tableCount.decrementAndGet();
-                    System.err.println("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + tableCount.get());
+                    RealmLog.d("==== CLOSE " + tableNo + " ptr= " + nativePtr + " remaining " + tableCount.get());
                 }
-
                 nativePtr = 0;
             }
         }
     }
-
-    protected static native void nativeClose(long nativeTablePtr);
 
     @Override
     protected void finalize() {
@@ -132,9 +124,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
             }
         }
-
         if (DEBUG) {
-            System.err.println("==== FINALIZE " + tableNo + "...");
+            RealmLog.d("==== FINALIZE " + tableNo + "...");
         }
     }
 
@@ -148,8 +139,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public boolean isValid() {
         return nativePtr != 0 && nativeIsValid(nativePtr);
     }
-
-    protected native boolean nativeIsValid(long nativeTablePtr);
 
     private void verifyColumnName(String name) {
         if (name.length() > 63) {
@@ -167,8 +156,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         newPath[0] = columnIndex;
         return new SubtableSchema(nativePtr, newPath);
     }
-
-    protected native boolean nativeIsRootTable(long nativeTablePtr);
 
     /**
      * Adds a column to the table dynamically.
@@ -193,8 +180,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return addColumn(type, name, false);
     }
 
-    protected native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
-
     /**
      * Adds a link column to the table dynamically.
      *
@@ -205,8 +190,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeAddColumnLink(nativePtr, type.getNativeValue(), name, table.nativePtr);
     }
 
-    protected native long nativeAddColumnLink(long nativeTablePtr, int type, String name, long targetTablePtr);
-
     /**
      * Removes a column in the table dynamically.
      */
@@ -214,8 +197,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public void removeColumn(long columnIndex) {
         nativeRemoveColumn(nativePtr, columnIndex);
     }
-
-    protected native void nativeRemoveColumn(long nativeTablePtr, long columnIndex);
 
     /**
      * Renames a column in the table.
@@ -225,8 +206,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         verifyColumnName(newName);
         nativeRenameColumn(nativePtr, columnIndex, newName);
     }
-
-    protected native void nativeRenameColumn(long nativeTablePtr, long columnIndex, String name);
 
     /**
      * Checks whether the specific column is nullable?
@@ -238,8 +217,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeIsColumnNullable(nativePtr, columnIndex);
     }
 
-    protected native boolean nativeIsColumnNullable(long nativePtr, long columnIndex);
-
     /**
      * Converts a column to be nullable.
      *
@@ -248,8 +225,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public void convertColumnToNullable(long columnIndex) {
         nativeConvertColumnToNullable(nativePtr, columnIndex);
     }
-
-    protected native void nativeConvertColumnToNullable(long nativeTablePtr, long columnIndex);
 
     /**
      * Converts a column to be not nullable. null values will be converted to default values.
@@ -260,8 +235,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeConvertColumnToNotNullable(nativePtr, columnIndex);
     }
 
-    protected native void nativeConvertColumnToNotNullable(long nativePtr, long columnIndex);
-
     /**
      * Updates a table specification from a Table specification structure.
      */
@@ -269,8 +242,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         checkImmutable();
         nativeUpdateFromSpec(nativePtr, tableSpec);
     }
-
-    protected native void nativeUpdateFromSpec(long nativeTablePtr, TableSpec tableSpec);
 
     // Table Size and deletion. AutoGenerated subclasses are nothing to do with this
     // class.
@@ -283,8 +254,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public long size() {
         return nativeSize(nativePtr);
     }
-
-    protected native long nativeSize(long nativeTablePtr);
 
     /**
      * Checks whether this table is empty or not.
@@ -305,8 +274,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeClear(nativePtr);
     }
 
-    protected native void nativeClear(long nativeTablePtr);
-
     // Column Information.
     /**
      * Returns the number of columns in the table.
@@ -318,14 +285,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeGetColumnCount(nativePtr);
     }
 
-    protected native long nativeGetColumnCount(long nativeTablePtr);
-
-
     public TableSpec getTableSpec(){
         return nativeGetTableSpec(nativePtr);
     }
-
-    protected native TableSpec nativeGetTableSpec(long nativeTablePtr);
 
     /**
      * Returns the name of a column identified by columnIndex. Notice that the index is zero based.
@@ -337,8 +299,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public String getColumnName(long columnIndex) {
         return nativeGetColumnName(nativePtr, columnIndex);
     }
-
-    protected native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
 
     /**
      * Returns the 0-based index of a column based on the name.
@@ -354,9 +314,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeGetColumnIndex(nativePtr, columnName);
     }
 
-    protected native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
-
-
     /**
      * Gets the type of a column identified by the columnIndex.
      *
@@ -368,7 +325,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return RealmFieldType.fromNativeValue(nativeGetColumnType(nativePtr, columnIndex));
     }
 
-    protected native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
 
     /**
      * Removes a row from the specific index. As of now the entry is simply removed from the table.
@@ -382,22 +338,16 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeRemove(nativePtr, rowIndex);
     }
 
-    protected native void nativeRemove(long nativeTablePtr, long rowIndex);
-
     @Override
     public void removeLast() {
         checkImmutable();
         nativeRemoveLast(nativePtr);
     }
 
-    protected native void nativeRemoveLast(long nativeTablePtr);
-
     public void moveLastOver(long rowIndex) {
         checkImmutable();
         nativeMoveLastOver(nativePtr, rowIndex);
     }
-
-    protected native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
 
     public long addEmptyRow() {
         checkImmutable();
@@ -482,9 +432,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
         return nativeAddEmptyRow(nativePtr, rows);
     }
-
-    protected native long nativeAddEmptyRow(long nativeTablePtr, long rows);
-
 
     /**
      * Appends the specified row to the end of the table. For internal testing usage only.
@@ -580,7 +527,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * Returns a view sorted by the specified column and order.
      *
      * @param columnIndex the column index.
-     * @param order the {@link TableView.Order}.
+     * @param sortOrder the sort order.
      * @return a sorted view.
      */
     public TableView getSortedView(long columnIndex, Sort sortOrder){
@@ -608,9 +555,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return new TableView(this.context, this, nativeViewPtr);
     }
 
-    protected native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
-
-
     public TableView getSortedView(long columnIndices[], Sort sortOrders[]) {
         context.executeDelayedDisposal();
         boolean[] nativeSortOrder = new boolean[sortOrders.length];
@@ -620,8 +564,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         long nativeViewPtr = nativeGetSortedViewMulti(nativePtr, columnIndices, nativeSortOrder);
         return new TableView(this.context, this, nativeViewPtr);
     }
-
-    protected native long nativeGetSortedViewMulti(long nativeTableViewPtr, long[] columnIndices, boolean[] ascending);
 
     /**
      * Returns the column index for the primary key.
@@ -703,35 +645,25 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeGetLong(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native long nativeGetLong(long nativeTablePtr, long columnIndex, long rowIndex);
-
     @Override
     public boolean getBoolean(long columnIndex, long rowIndex) {
         return nativeGetBoolean(nativePtr, columnIndex, rowIndex);
     }
-
-    protected native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
 
     @Override
     public float getFloat(long columnIndex, long rowIndex) {
         return nativeGetFloat(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native float nativeGetFloat(long nativeTablePtr, long columnIndex, long rowIndex);
-
     @Override
     public double getDouble(long columnIndex, long rowIndex) {
         return nativeGetDouble(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native double nativeGetDouble(long nativeTablePtr, long columnIndex, long rowIndex);
-
     @Override
     public Date getDate(long columnIndex, long rowIndex) {
         return new Date(nativeGetDateTime(nativePtr, columnIndex, rowIndex)*1000);
     }
-
-    protected native long nativeGetDateTime(long nativeTablePtr, long columnIndex, long rowIndex);
 
     /**
      * Gets the value of a (string )cell.
@@ -744,8 +676,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public String getString(long columnIndex, long rowIndex) {
         return nativeGetString(nativePtr, columnIndex, rowIndex);
     }
-
-    protected native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
 
     /**
      * Gets the value of a (binary) cell.
@@ -768,8 +698,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeGetByteArray(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
-
     @Override
     public Mixed getMixed(long columnIndex, long rowIndex) {
         return nativeGetMixed(nativePtr, columnIndex, rowIndex);
@@ -780,16 +708,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return RealmFieldType.fromNativeValue(nativeGetMixedType(nativePtr, columnIndex, rowIndex));
     }
 
-    protected native int nativeGetMixedType(long nativePtr, long columnIndex, long rowIndex);
-
-    protected native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
-
     public long getLink(long columnIndex, long rowIndex) {
         return nativeGetLink(nativePtr, columnIndex, rowIndex);
     }
-
-    protected native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
-
 
     public Table getLinkTarget(long columnIndex) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
@@ -804,9 +725,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw e;
         }
     }
-
-    protected native long nativeGetLinkTarget(long nativePtr, long columnIndex);
-
 
     /**
      *
@@ -832,8 +750,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    protected native long nativeGetSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
-
     // Below version will allow to getSubtable when number of available rows are not updated yet -
     // which happens before an insertDone().
 
@@ -850,21 +766,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    private native long nativeGetSubtableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
-
-
     public long getSubtableSize(long columnIndex, long rowIndex) {
         return nativeGetSubtableSize(nativePtr, columnIndex, rowIndex);
     }
-
-    protected native long nativeGetSubtableSize(long nativeTablePtr, long columnIndex, long rowIndex);
 
     public void clearSubtable(long columnIndex, long rowIndex) {
         checkImmutable();
         nativeClearSubtable(nativePtr, columnIndex, rowIndex);
     }
-
-    protected native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
 
     /**
      * Returns a non-checking Row. Incorrect use of this Row will cause a hard core crash.
@@ -901,9 +810,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return CheckedRow.get(context, this, index);
     }
 
-    protected native long nativeGetRowPtr(long nativePtr, long index);
-
-
     //
     // Setters
     //
@@ -915,15 +821,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetLong(nativePtr, columnIndex, rowIndex, value);
     }
 
-    protected native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
-
     @Override
     public void setBoolean(long columnIndex, long rowIndex, boolean value) {
         checkImmutable();
         nativeSetBoolean(nativePtr, columnIndex, rowIndex, value);
     }
-
-    protected native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
 
     @Override
     public void setFloat(long columnIndex, long rowIndex, float value) {
@@ -931,15 +833,11 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetFloat(nativePtr, columnIndex, rowIndex, value);
     }
 
-    protected native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
-
     @Override
     public void setDouble(long columnIndex, long rowIndex, double value) {
         checkImmutable();
         nativeSetDouble(nativePtr, columnIndex, rowIndex, value);
     }
-
-    protected native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
 
     @Override
     public void setDate(long columnIndex, long rowIndex, Date date) {
@@ -949,16 +847,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetDate(nativePtr, columnIndex, rowIndex, date.getTime() / 1000);
     }
 
-    protected native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
-
     @Override
     public void setString(long columnIndex, long rowIndex, String value) {
         checkImmutable();
         checkStringValueIsLegal(columnIndex, rowIndex, value);
         nativeSetString(nativePtr, columnIndex, rowIndex, value);
     }
-
-    protected native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
 
     /**
      * Sets the value for a (binary) cell.
@@ -990,8 +884,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetByteArray(nativePtr, columnIndex, rowIndex, data);
     }
 
-    protected native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
-
     /**
      * Sets the value for a (mixed typed) cell.
      *
@@ -1007,14 +899,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeSetMixed(nativePtr, columnIndex, rowIndex, data);
     }
 
-    protected native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
-
     public void setLink(long columnIndex, long rowIndex, long value) {
         checkImmutable();
         nativeSetLink(nativePtr, columnIndex, rowIndex, value);
     }
-
-    protected native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
 
     //TODO: Clean up this function
     private void insertSubTable(long columnIndex, long rowIndex, Object value) {
@@ -1060,8 +948,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         setPrimaryKey(nativeGetColumnName(nativePtr, columnIndex));
     }
 
-    private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
-
     private Table getPrimaryKeyTable() {
         Group group = getTableGroup();
         if (group == null) {
@@ -1092,8 +978,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeMigratePrimaryKeyTableIfNeeded(group.nativePtr, pkTable.nativePtr);
     }
 
-    private native void nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
-
     // Recursively look at parents until either a Group or null is found
     Group getTableGroup() {
         if (parent instanceof Group)  {
@@ -1105,29 +989,17 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    protected native void nativeAddSearchIndex(long nativePtr, long columnIndex);
-
-    protected native void nativeRemoveSearchIndex(long nativePtr, long columnIndex);
-
     public boolean hasSearchIndex(long columnIndex) {
         return nativeHasSearchIndex(nativePtr, columnIndex);
     }
-
-    protected native boolean nativeHasSearchIndex(long nativePtr, long columnIndex);
-
 
     public boolean isNullLink(long columnIndex, long rowIndex) {
         return nativeIsNullLink(nativePtr, columnIndex, rowIndex);
     }
 
-    protected native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
-
     public void nullifyLink(long columnIndex, long rowIndex) {
         nativeNullifyLink(nativePtr, columnIndex, rowIndex);
     }
-
-    protected native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
-
 
     boolean isImmutable() {
         if (!(parent instanceof Table)) {
@@ -1159,28 +1031,20 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeSumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeSumInt(long nativePtr, long columnIndex);
-
     @Override
     public Long maximumLong(long columnIndex) {
         return nativeMaximumInt(nativePtr, columnIndex);
     }
-
-    protected native long nativeMaximumInt(long nativePtr, long columnIndex);
 
     @Override
     public Long minimumLong(long columnIndex) {
         return nativeMinimumInt(nativePtr, columnIndex);
     }
 
-    protected native long nativeMinimumInt(long nativePtr, long columnIndex);
-
     @Override
     public double averageLong(long columnIndex) {
         return nativeAverageInt(nativePtr, columnIndex);
     }
-
-    protected native double nativeAverageInt(long nativePtr, long columnIndex);
 
     // Floats
     @Override
@@ -1188,28 +1052,20 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeSumFloat(nativePtr, columnIndex);
     }
 
-    protected native double nativeSumFloat(long nativePtr, long columnIndex);
-
     @Override
     public Float maximumFloat(long columnIndex) {
         return nativeMaximumFloat(nativePtr, columnIndex);
     }
-
-    protected native float nativeMaximumFloat(long nativePtr, long columnIndex);
 
     @Override
     public Float minimumFloat(long columnIndex) {
         return nativeMinimumFloat(nativePtr, columnIndex);
     }
 
-    protected native float nativeMinimumFloat(long nativePtr, long columnIndex);
-
     @Override
     public double averageFloat(long columnIndex) {
         return nativeAverageFloat(nativePtr, columnIndex);
     }
-
-    protected native double nativeAverageFloat(long nativePtr, long columnIndex);
 
     // Doubles
     @Override
@@ -1217,28 +1073,20 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeSumDouble(nativePtr, columnIndex);
     }
 
-    protected native double nativeSumDouble(long nativePtr, long columnIndex);
-
     @Override
     public Double maximumDouble(long columnIndex) {
         return nativeMaximumDouble(nativePtr, columnIndex);
     }
-
-    protected native double nativeMaximumDouble(long nativePtr, long columnIndex);
 
     @Override
     public Double minimumDouble(long columnIndex) {
         return nativeMinimumDouble(nativePtr, columnIndex);
     }
 
-    protected native double nativeMinimumDouble(long nativePtr, long columnIndex);
-
     @Override
     public double averageDouble(long columnIndex) {
         return nativeAverageDouble(nativePtr, columnIndex);
     }
-
-    protected native double nativeAverageDouble(long nativePtr, long columnIndex);
 
     // Date aggregates
 
@@ -1247,15 +1095,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return new Date(nativeMaximumDate(nativePtr, columnIndex) * 1000);
     }
 
-    protected native long nativeMaximumDate(long nativePtr, long columnIndex);
-
     @Override
     public Date minimumDate(long columnIndex) {
         return new Date(nativeMinimumDate(nativePtr, columnIndex) * 1000);
     }
-
-    protected native long nativeMinimumDate(long nativePtr, long columnIndex);
-
 
     //
     // Count
@@ -1265,28 +1108,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeCountLong(nativePtr, columnIndex, value);
     }
 
-    protected native long nativeCountLong(long nativePtr, long columnIndex, long value);
-
-
     public long count(long columnIndex, float value) {
         return nativeCountFloat(nativePtr, columnIndex, value);
     }
-
-    protected native long nativeCountFloat(long nativePtr, long columnIndex, float value);
 
     public long count(long columnIndex, double value) {
         return nativeCountDouble(nativePtr, columnIndex, value);
     }
 
-    protected native long nativeCountDouble(long nativePtr, long columnIndex, double value);
-
     @Override
     public long count(long columnIndex, String value) {
         return nativeCountString(nativePtr, columnIndex, value);
     }
-
-    protected native long nativeCountString(long nativePtr, long columnIndex, String value);
-
 
     //
     // Searching methods.
@@ -1306,35 +1139,25 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    protected native long nativeWhere(long nativeTablePtr);
-
     @Override
     public long findFirstLong(long columnIndex, long value) {
         return nativeFindFirstInt(nativePtr, columnIndex, value);
     }
-
-    protected native long nativeFindFirstInt(long nativeTablePtr, long columnIndex, long value);
 
     @Override
     public long findFirstBoolean(long columnIndex, boolean value) {
         return nativeFindFirstBool(nativePtr, columnIndex, value);
     }
 
-    protected native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
-
     @Override
     public long findFirstFloat(long columnIndex, float value) {
         return nativeFindFirstFloat(nativePtr, columnIndex, value);
     }
 
-    protected native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
-
     @Override
     public long findFirstDouble(long columnIndex, double value) {
         return nativeFindFirstDouble(nativePtr, columnIndex, value);
     }
-
-    protected native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
 
     @Override
     public long findFirstDate(long columnIndex, Date date) {
@@ -1344,8 +1167,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeFindFirstDate(nativePtr, columnIndex, date.getTime() / 1000);
     }
 
-    protected native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
-
     @Override
     public long findFirstString(long columnIndex, String value) {
         if (value == null) {
@@ -1353,8 +1174,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
         return nativeFindFirstString(nativePtr, columnIndex, value);
     }
-
-    protected native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
 
     @Override
     public TableView findAllLong(long columnIndex, long value) {
@@ -1367,8 +1186,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw e;
         }
     }
-
-    protected native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
 
     @Override
     public TableView findAllBoolean(long columnIndex, boolean value) {
@@ -1383,8 +1200,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    protected native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
-
     @Override
     public TableView findAllFloat(long columnIndex, float value) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
@@ -1397,8 +1212,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw e;
         }
     }
-
-    protected native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
 
     @Override
     public TableView findAllDouble(long columnIndex, double value) {
@@ -1413,8 +1226,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    protected native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
-
     @Override
     public TableView findAllDate(long columnIndex, Date date) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
@@ -1427,8 +1238,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
             throw e;
         }
     }
-
-    protected native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
 
     @Override
     public TableView findAllString(long columnIndex, String value) {
@@ -1443,8 +1252,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    protected native long nativeFindAllString(long nativePtr, long columnIndex, String value);
-
     // Experimental feature
     @Override
     public long lowerBoundLong(long columnIndex, long value) {
@@ -1454,10 +1261,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public long upperBoundLong(long columnIndex, long value) {
         return nativeUpperBoundInt(nativePtr, columnIndex, value);
     }
-
-    protected native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
-    protected native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
-
 
     @Override
     public Table pivot(long stringCol, long intCol, PivotType pivotType) {
@@ -1469,8 +1272,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
         return result;
     }
-
-    protected native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long resultPtr);
 
     //
 
@@ -1486,8 +1287,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
-    protected native long nativeGetDistinctView(long nativePtr, long columnIndex);
-
     /**
      * Return the table name as it is in the associated group.
      *
@@ -1497,7 +1296,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeGetName(nativePtr);
     }
 
-    protected native String nativeGetName(long nativeTablePtr);
 
     // Optimize
     public void optimize() {
@@ -1505,14 +1303,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         nativeOptimize(nativePtr);
     }
 
-    protected native void nativeOptimize(long nativeTablePtr);
-
     @Override
     public String toJson() {
         return nativeToJson(nativePtr);
     }
-
-    protected native String nativeToJson(long nativeTablePtr);
 
     @Override
     public String toString() {
@@ -1524,14 +1318,10 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeToString(nativePtr, maxRows);
     }
 
-    protected native String nativeToString(long nativeTablePtr, long maxRows);
-
     @Override
     public String rowToString(long rowIndex) {
         return nativeRowToString(nativePtr, rowIndex);
     }
-
-    protected native String nativeRowToString(long nativeTablePtr, long rowIndex);
 
     @Override
     public long sync() {
@@ -1555,8 +1345,6 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeHasSameSchema(this.nativePtr, table.nativePtr);
     }
 
-    private native boolean nativeHasSameSchema(long thisTable, long otherTable);
-
     /**
      * Checks if a given table name is a meta-table, i.e. a table used by Realm to track its internal state.
      */
@@ -1575,5 +1363,103 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return nativeVersion(nativePtr);
     }
 
+    protected native long createNative();
+    static native void nativeClose(long nativeTablePtr);
+    private native boolean nativeIsValid(long nativeTablePtr);
+    private native boolean nativeIsRootTable(long nativeTablePtr);
+    private native long nativeAddColumn(long nativeTablePtr, int type, String name, boolean isNullable);
+    private native long nativeAddColumnLink(long nativeTablePtr, int type, String name, long targetTablePtr);
+    private native void nativeRenameColumn(long nativeTablePtr, long columnIndex, String name);
+    private native void nativeRemoveColumn(long nativeTablePtr, long columnIndex);
+    private native boolean nativeIsColumnNullable(long nativePtr, long columnIndex);
+    private native void nativeConvertColumnToNullable(long nativeTablePtr, long columnIndex);
+    private native void nativeConvertColumnToNotNullable(long nativePtr, long columnIndex);
+    private native void nativeUpdateFromSpec(long nativeTablePtr, TableSpec tableSpec);
+    private native long nativeSize(long nativeTablePtr);
+    private native void nativeClear(long nativeTablePtr);
+    private native long nativeGetColumnCount(long nativeTablePtr);
+    private native TableSpec nativeGetTableSpec(long nativeTablePtr);
+    private native String nativeGetColumnName(long nativeTablePtr, long columnIndex);
+    private native long nativeGetColumnIndex(long nativeTablePtr, String columnName);
+    private native int nativeGetColumnType(long nativeTablePtr, long columnIndex);
+    private native void nativeRemove(long nativeTablePtr, long rowIndex);
+    private native void nativeRemoveLast(long nativeTablePtr);
+    private native void nativeMoveLastOver(long nativeTablePtr, long rowIndex);
+    private native long nativeAddEmptyRow(long nativeTablePtr, long rows);
+    private native long nativeGetSortedView(long nativeTableViewPtr, long columnIndex, boolean ascending);
+    private native long nativeGetSortedViewMulti(long nativeTableViewPtr, long[] columnIndices, boolean[] ascending);
+    private native long nativeGetLong(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native boolean nativeGetBoolean(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native float nativeGetFloat(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native double nativeGetDouble(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native long nativeGetDateTime(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native String nativeGetString(long nativePtr, long columnIndex, long rowIndex);
+    private native byte[] nativeGetByteArray(long nativePtr, long columnIndex, long rowIndex);
+    private native int nativeGetMixedType(long nativePtr, long columnIndex, long rowIndex);
+    private native Mixed nativeGetMixed(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native long nativeGetLink(long nativePtr, long columnIndex, long rowIndex);
+    private native long nativeGetLinkTarget(long nativePtr, long columnIndex);
+    private native long nativeGetSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native long nativeGetSubtableDuringInsert(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native long nativeGetSubtableSize(long nativeTablePtr, long columnIndex, long rowIndex);
+    private native void nativeClearSubtable(long nativeTablePtr, long columnIndex, long rowIndex);
+    native long nativeGetRowPtr(long nativePtr, long index);
+    private native void nativeSetLong(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+    private native void nativeSetBoolean(long nativeTablePtr, long columnIndex, long rowIndex, boolean value);
+    private native void nativeSetFloat(long nativeTablePtr, long columnIndex, long rowIndex, float value);
+    private native void nativeSetDouble(long nativeTablePtr, long columnIndex, long rowIndex, double value);
+    private native void nativeSetDate(long nativeTablePtr, long columnIndex, long rowIndex, long dateTimeValue);
+    private native void nativeSetString(long nativeTablePtr, long columnIndex, long rowIndex, String value);
+    private native void nativeSetByteArray(long nativePtr, long columnIndex, long rowIndex, byte[] data);
+    private native void nativeSetMixed(long nativeTablePtr, long columnIndex, long rowIndex, Mixed data);
+    private native void nativeSetLink(long nativeTablePtr, long columnIndex, long rowIndex, long value);
+    private native long nativeSetPrimaryKey(long privateKeyTableNativePtr, long nativePtr, String columnName);
+    private native void nativeMigratePrimaryKeyTableIfNeeded(long groupNativePtr, long primaryKeyTableNativePtr);
+    private native void nativeAddSearchIndex(long nativePtr, long columnIndex);
+    private native void nativeRemoveSearchIndex(long nativePtr, long columnIndex);
+    private native boolean nativeHasSearchIndex(long nativePtr, long columnIndex);
+    private native boolean nativeIsNullLink(long nativePtr, long columnIndex, long rowIndex);
+    private native void nativeNullifyLink(long nativePtr, long columnIndex, long rowIndex);
+    private native long nativeSumInt(long nativePtr, long columnIndex);
+    private native long nativeMaximumInt(long nativePtr, long columnIndex);
+    private native long nativeMinimumInt(long nativePtr, long columnIndex);
+    private native double nativeAverageInt(long nativePtr, long columnIndex);
+    private native double nativeSumFloat(long nativePtr, long columnIndex);
+    private native float nativeMaximumFloat(long nativePtr, long columnIndex);
+    private native float nativeMinimumFloat(long nativePtr, long columnIndex);
+    private native double nativeAverageFloat(long nativePtr, long columnIndex);
+    private native double nativeSumDouble(long nativePtr, long columnIndex);
+    private native double nativeMaximumDouble(long nativePtr, long columnIndex);
+    private native double nativeMinimumDouble(long nativePtr, long columnIndex);
+    private native double nativeAverageDouble(long nativePtr, long columnIndex);
+    private native long nativeMaximumDate(long nativePtr, long columnIndex);
+    private native long nativeMinimumDate(long nativePtr, long columnIndex);
+    private native long nativeCountLong(long nativePtr, long columnIndex, long value);
+    private native long nativeCountFloat(long nativePtr, long columnIndex, float value);
+    private native long nativeCountDouble(long nativePtr, long columnIndex, double value);
+    private native long nativeCountString(long nativePtr, long columnIndex, String value);
+    private native long nativeWhere(long nativeTablePtr);
+    private native long nativeFindFirstInt(long nativeTablePtr, long columnIndex, long value);
+    private native long nativeFindFirstBool(long nativePtr, long columnIndex, boolean value);
+    private native long nativeFindFirstFloat(long nativePtr, long columnIndex, float value);
+    private native long nativeFindFirstDouble(long nativePtr, long columnIndex, double value);
+    private native long nativeFindFirstDate(long nativeTablePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindFirstString(long nativeTablePtr, long columnIndex, String value);
+    private native long nativeFindAllInt(long nativePtr, long columnIndex, long value);
+    private native long nativeFindAllBool(long nativePtr, long columnIndex, boolean value);
+    private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
+    private native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
+    private native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindAllString(long nativePtr, long columnIndex, String value);
+    private native long nativeLowerBoundInt(long nativePtr, long columnIndex, long value);
+    private native long nativeUpperBoundInt(long nativePtr, long columnIndex, long value);
+    private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long resultPtr);
+    private native long nativeGetDistinctView(long nativePtr, long columnIndex);
+    private native String nativeGetName(long nativeTablePtr);
+    private native void nativeOptimize(long nativeTablePtr);
+    private native String nativeToJson(long nativeTablePtr);
+    private native String nativeToString(long nativeTablePtr, long maxRows);
+    private native boolean nativeHasSameSchema(long thisTable, long otherTable);
     private native long nativeVersion(long nativeTablePtr);
+    private native String nativeRowToString(long nativeTablePtr, long rowIndex);
 }

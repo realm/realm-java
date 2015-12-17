@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm;
 
 import android.test.AndroidTestCase;
@@ -8,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.CyclicType;
+import rx.Observable;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -37,7 +55,7 @@ public class RxJavaTests extends AndroidTestCase {
         realm.commitTransaction();
 
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        obj.asObservable().subscribe(new Action1<AllTypes>() {
+        obj.<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 assertTrue(rxObject == obj);
@@ -53,10 +71,10 @@ public class RxJavaTests extends AndroidTestCase {
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        obj.asObservable().subscribe(new Action1<AllTypes>() {
+        obj.<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
-                subscriberCalled.addAndGet(1);
+                subscriberCalled.incrementAndGet();
             }
         });
 
@@ -73,8 +91,8 @@ public class RxJavaTests extends AndroidTestCase {
         realm.commitTransaction();
 
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
-        final AllTypes asyncObj = realm.where(AllTypes.class).findFirst();
-        asyncObj.asObservable().subscribe(new Action1<AllTypes>() {
+        final AllTypes asyncObj = realm.where(AllTypes.class).findFirstAsync();
+        asyncObj.<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
                 assertTrue(rxObject == asyncObj);
@@ -89,10 +107,10 @@ public class RxJavaTests extends AndroidTestCase {
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
-        realm.where(AllTypes.class).findFirst().asObservable().subscribe(new Action1<AllTypes>() {
+        realm.where(AllTypes.class).findFirstAsync().<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
-                subscriberCalled.addAndGet(1);
+                subscriberCalled.incrementAndGet();
             }
         });
 
@@ -100,7 +118,7 @@ public class RxJavaTests extends AndroidTestCase {
         obj.setColumnLong(1);
         realm.commitTransaction();
 
-        assertEquals(2, subscriberCalled.get());
+        assertEquals(1, subscriberCalled.get());
     }
 
     public void testRealmResultsEmittedOnSubscribe() {
@@ -125,7 +143,7 @@ public class RxJavaTests extends AndroidTestCase {
         results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
             public void call(RealmResults<AllTypes> allTypes) {
-                subscriberCalled.addAndGet(1);
+                subscriberCalled.incrementAndGet();
             }
         });
 
@@ -151,10 +169,10 @@ public class RxJavaTests extends AndroidTestCase {
 
     public void testAsyncResultsEmittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
-        realm.allObjects(AllTypes.class).asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
+        realm.where(AllTypes.class).findAllAsync().asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
             public void call(RealmResults<AllTypes> rxResults) {
-                subscriberCalled.addAndGet(1);
+                subscriberCalled.incrementAndGet();
             }
         });
 
@@ -162,7 +180,7 @@ public class RxJavaTests extends AndroidTestCase {
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
 
-        assertEquals(2, subscriberCalled.get());
+        assertEquals(1, subscriberCalled.get());
     }
 
     public void testRealmEmittedOnSubscribe() {
@@ -182,7 +200,7 @@ public class RxJavaTests extends AndroidTestCase {
         realm.asObservable().subscribe(new Action1<Realm>() {
             @Override
             public void call(Realm rxRealm) {
-                subscriberCalled.addAndGet(1);
+                subscriberCalled.incrementAndGet();
             }
         });
 
@@ -213,7 +231,7 @@ public class RxJavaTests extends AndroidTestCase {
         dynamicRealm.asObservable().subscribe(new Action1<DynamicRealm>() {
             @Override
             public void call(DynamicRealm rxRealm) {
-                subscriberCalled.addAndGet(1);
+                subscriberCalled.incrementAndGet();
             }
         });
 
@@ -257,12 +275,30 @@ public class RxJavaTests extends AndroidTestCase {
                     subscription.unsubscribe();
                     fail();
                 } catch (IllegalStateException ignored) {
+                } finally {
+                    unsubscribeCompleted.countDown();
                 }
-                unsubscribeCompleted.countDown();
             }
         }).start();
         TestHelper.awaitOrFail(unsubscribeCompleted);
         assertEquals(1, realm.handlerController.changeListeners.size());
     }
 
+    public void testWrongGenericClassThrows() {
+        realm.beginTransaction();
+        final AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        Observable<CyclicType> obs = obj.asObservable();
+        obs.subscribe(new Action1<CyclicType>() {
+            @Override
+            public void call(CyclicType cyclicType) {
+                fail();
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable ignored) {
+            }
+        });
+    }
 }

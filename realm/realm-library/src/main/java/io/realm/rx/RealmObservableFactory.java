@@ -30,7 +30,7 @@ import rx.functions.Action0;
 import rx.subscriptions.Subscriptions;
 
 /**
- * Factory class for creating Observables for RxJava (<=1.1.*).
+ * Factory class for creating Observables for RxJava (&lt;=1.1.*).
  *
  * @see Realm#asObservable()
  * @see RealmObject#asObservable()
@@ -99,7 +99,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value as due to Realms auto-update it will be the latest
+                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
                 // value.
                 subscriber.onNext(realm);
             }
@@ -138,7 +138,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value as due to Realms auto-update it will be the latest
+                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
                 // value.
                 subscriber.onNext(results);
             }
@@ -193,7 +193,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     }
                 }));
 
-                // Immediately call onNext with the current value as due to Realms auto-update it will be the latest
+                // Immediately call onNext with the current value, as due to Realms auto-update, it will be the latest
                 // value.
                 subscriber.onNext(object);
             }
@@ -216,4 +216,10 @@ public class RealmObservableFactory implements RxObservableFactory {
                     "Remember to add it as a compile dependency. See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof RealmObservableFactory;
+    }
+
 }

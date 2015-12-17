@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm.rx;
 
 import io.realm.DynamicRealm;
@@ -18,7 +34,7 @@ public interface RxObservableFactory {
      * Creates an Observable for a {@link Realm}. It should emit the initial state of the Realm when subscribed to and
      * on each subsequent update of the Realm.
      *
-     * Realm observables are hot observables as Realms automatically are kept up to date.
+     * Realm observables are hot observables as Realms are automatically kept up to date.
      *
      * @param realm {@link Realm} to listen to changes for.
      * @return Rx observable that emit all updates to the Realm.
@@ -29,7 +45,7 @@ public interface RxObservableFactory {
      * Creates an Observable for a {@link DynamicRealm}. It should emit the initial state of the Realm when subscribed
      * to and on each subsequent update of the Realm.
      *
-     * Realm observables are hot observables as Realms automatically are kept up to date.
+     * DynamicRealm observables are hot observables as DynamicRealms are automatically kept up to date.
      *
      * @param realm {@link DynamicRealm} to listen to changes for.
      * @return Rx observable that emit all updates to the DynamicRealm.
@@ -40,7 +56,7 @@ public interface RxObservableFactory {
      * Creates an Observable for a {@link RealmResults}. It should emit the initial RealmResult when subscribed to and
      * on each subsequent update of the RealmResults.
      *
-     * Realm observables are hot observables as RealmResults are automatically kept up to date.
+     * RealmResults observables are hot observables as RealmResults are automatically kept up to date.
      *
      * @param results {@link RealmResults} to listen to changes for.
      * @param realm {@link Realm} instance results are coming from.
@@ -65,7 +81,7 @@ public interface RxObservableFactory {
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
      * subsequent update of the RealmList.
      *
-     * Realm observables are hot observables as Realms automatically are kept up to date.
+     * RealmList observables are hot observables as RealmLists are automatically kept up to date.
      *
      * Note: {@link io.realm.RealmChangeListener} is currently not supported on RealmLists.
      *
@@ -79,7 +95,7 @@ public interface RxObservableFactory {
      * Creates an Observable for a {@link RealmList}. It should emit the initial list when subscribed to and on each
      * subsequent update of the RealmList.
      *
-     * Realm observables are hot observables as Realms automatically are kept up to date.
+     * RealmList observables are hot observables as RealmLists are automatically kept up to date.
      *
      * Note: {@link io.realm.RealmChangeListener} is currently not supported on RealmLists.
      *
@@ -92,7 +108,7 @@ public interface RxObservableFactory {
      * Creates an Observable for a {@link RealmObject}. It should emit the initial object when subscribed to and on each
      * subsequent update of the object.
      *
-     * Realm observables are hot observables as Realms automatically are kept up to date.
+     * RealmObject observables are hot observables as RealmObjects are automatically kept up to date.
      *
      * @param object RealmObject to listen to changes for.
      * @param realm {@link Realm} instance object is coming from.
@@ -104,7 +120,7 @@ public interface RxObservableFactory {
      * Creates an Observable for a {@link DynamicRealmObject}. It should emit the initial object when subscribed to and
      * on each subsequent update of the object.
      *
-     * Realm observables are hot observables as Realms automatically are kept up to date.
+     * DynamicRealmObject observables are hot observables as DynamicRealmObjects automatically are kept up to date.
      *
      * @param object DynamicRealmObject to listen to changes for.
      * @param realm {@link DynamicRealm} instance object is coming from.

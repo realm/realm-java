@@ -79,7 +79,7 @@ import rx.Observable;
  */
 
 @RealmClass
-public abstract class RealmObject<E extends RealmObject> {
+public abstract class RealmObject {
 
     protected Row row;
     protected BaseRealm realm;
@@ -87,7 +87,7 @@ public abstract class RealmObject<E extends RealmObject> {
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
-    protected long currentTableVersion = 0;
+    protected long currentTableVersion = -1;
 
     /**
      * Removes the object from the Realm it is currently associated to.
@@ -267,11 +267,15 @@ public abstract class RealmObject<E extends RealmObject> {
      * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current object when
      * subscribed to.
      *
-     * @return RxJava Observable
+     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * type information, otherwise the type of the following observables will be {@code RealmObject}.
+     *
+     * @param <E> RealmObject class that is being observed. Must be this class or its super types.
+     * @return RxJava Observable.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
-    public Observable<E> asObservable() {
+    public <E extends RealmObject> Observable<E> asObservable() {
         if (realm instanceof Realm) {
             @SuppressWarnings("unchecked")
             E obj = (E) this;
@@ -291,13 +295,15 @@ public abstract class RealmObject<E extends RealmObject> {
      * Notifies all registered listeners.
      */
     void notifyChangeListeners() {
-        if (row.getTable() == null) return;
+        if (listeners != null && !listeners.isEmpty()) {
+            if (row.getTable() == null) return;
 
-        long version = row.getTable().version();
-        if (currentTableVersion != version) {
-            currentTableVersion = version;
-            for (RealmChangeListener listener : listeners) {
-                listener.onChange();
+            long version = row.getTable().version();
+            if (currentTableVersion != version) {
+                currentTableVersion = version;
+                for (RealmChangeListener listener : listeners) {
+                    listener.onChange();
+                }
             }
         }
     }

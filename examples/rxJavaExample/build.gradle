@@ -1,0 +1,34 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.application'
+apply plugin: 'android-command'
+apply plugin: 'realm-android'
+
+android {
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
+
+    defaultConfig {
+        applicationId 'io.realm.examples.rxjava'
+        targetSdkVersion rootProject.sdkVersion
+        minSdkVersion 15
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    command {
+        events 2000
+    }
+}
+
+dependencies {
+    compile 'io.reactivex:rxandroid:1.1.0'
+    compile 'io.reactivex:rxjava:1.1.0'
+    compile 'com.jakewharton.rxbinding:rxbinding:0.3.0'
+    compile 'com.squareup.retrofit:retrofit:1.9.0'
+}
