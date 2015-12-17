@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-package io.realm.examples.kotlin.model
+package io.realm.examples.newsreader.model.network;
 
-import io.realm.RealmObject
-import io.realm.annotations.RealmClass
 
-public open class Dog : RealmObject<Dog>() {
-    public open var name: String? = null
+import java.util.List;
+
+import io.realm.examples.newsreader.model.entity.NYTimesStory;
+import retrofit.http.GET;
+import retrofit.http.Path;
+import retrofit.http.Query;
+import rx.Observable;
+
+/**
+ * Retrofit interface for the New York Times WebService
+ */
+public interface NYTimesService {
+    @GET("svc/topstories/v1/{section}.json")
+    Observable<NYTimesResponse<List<NYTimesStory>>> topStories(
+            @Path("section") String section,
+            @Query(value = "api-key", encoded = true) String apiKey);
 }

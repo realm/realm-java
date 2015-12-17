@@ -14,11 +14,27 @@
  * limitations under the License.
  */
 
-package io.realm.examples.kotlin.model
+package io.realm.examples.newsreader.model.network;
 
-import io.realm.RealmObject
-import io.realm.annotations.RealmClass
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public open class Dog : RealmObject<Dog>() {
-    public open var name: String? = null
+public class NYTimesResponse<T> {
+
+    @JsonProperty("status")
+    public String status;
+
+    @JsonProperty("copyright")
+    public String copyright;
+
+    @JsonProperty("section")
+    public String section;
+
+    @JsonProperty("last_updated")
+    public String lastUpdated;
+
+    @JsonProperty("num_results")
+    public Integer numResults;
+
+    @JsonProperty("results")
+    public T results;
 }

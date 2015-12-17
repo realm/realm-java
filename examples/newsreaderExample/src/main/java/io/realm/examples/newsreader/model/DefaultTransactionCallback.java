@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package io.realm.examples.kotlin.model
+package io.realm.examples.newsreader.model;
 
-import io.realm.RealmObject
-import io.realm.annotations.RealmClass
+import io.realm.Realm;
+import timber.log.Timber;
 
-public open class Dog : RealmObject<Dog>() {
-    public open var name: String? = null
+public class DefaultTransactionCallback extends Realm.Transaction.Callback {
+    @Override
+    public void onError(Exception e) {
+        Timber.e(e, "Failed to save data.");
+    }
 }

@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package io.realm.examples.kotlin.model
+package io.realm.examples.newsreader.ui;
 
-import io.realm.RealmObject
-import io.realm.annotations.RealmClass
-
-public open class Dog : RealmObject<Dog>() {
-    public open var name: String? = null
+/**
+ * Interface for all presenters. It should as a minimum be notified when important lifecycle events happen.
+ */
+public interface Presenter {
+    void onCreate();
+    void onPause();
+    void onResume();
+    void onDestroy();
 }
