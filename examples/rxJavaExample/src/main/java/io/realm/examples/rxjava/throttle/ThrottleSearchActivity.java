@@ -50,7 +50,6 @@ public class ThrottleSearchActivity extends Activity {
         setContentView(R.layout.activity_throttlesearch);
         searchInputView = (EditText) findViewById(R.id.search);
         searchResultsView = (ViewGroup) findViewById(R.id.search_results);
-        searchResultsView.removeAllViews();
         realm = Realm.getDefaultInstance();
     }
 

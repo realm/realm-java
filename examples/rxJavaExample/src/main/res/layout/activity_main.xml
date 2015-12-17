@@ -11,13 +11,5 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <Button
-            android:gravity="center_horizontal"
-            android:text="AsyncTask"
-            android:textStyle="bold"
-            android:textSize="18sp"
-            android:onClick="startAsyncTaskActivity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
     </LinearLayout>
 </ScrollView>

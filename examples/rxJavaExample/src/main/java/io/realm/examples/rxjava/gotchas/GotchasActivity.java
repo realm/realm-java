@@ -42,7 +42,8 @@ import rx.subscriptions.CompositeSubscription;
  * 1) Thread confinement: Realm objects are thread confined, so trying to access them from another thread will throw
  *    an exception.
  *
- * 2) Realm objects auto-refresh. This means that the same object will alter it's state automatically over time.
+ * 2) Realm objects are live objects. This means that the same object will alter it's state automatically over time to
+ *    automatically reflect the latest state in Realm.
  *
  * Both of these characteristics doesn't play well with RxJava's threading model which favor immutable thread-safe
  * objects.
@@ -52,7 +53,6 @@ import rx.subscriptions.CompositeSubscription;
  * - https://github.com/realm/realm-java/issues/931
  */
 public class GotchasActivity extends Activity {
-
 
     private Realm realm;
     private Subscription subscription;
@@ -93,15 +93,16 @@ public class GotchasActivity extends Activity {
      * Shows how to be careful with `subscribeOn()`
      */
     private Subscription testSubscribeOn() {
-        Subscription subscribeOn = realm.asObservable().map(new Func1<Realm, Person>() {
-            @Override
-            public Person call(Realm realm) {
-                // The Realm object was created on the UI thread. Accessing it on `Schedulers.io()` will crash.
+        Subscription subscribeOn = realm.asObservable()
+                .map(new Func1<Realm, Person>() {
+                    @Override
+                    public Person call(Realm realm) {
+                        return realm.where(Person.class).findAllSorted("name").get(0);
+                    }
+                })
+                // The Realm was created on the UI thread. Accessing it on `Schedulers.io()` will crash.
                 // Avoid using subscribeOn() and use Realms `findAllAsync*()` methods instead.
-                return realm.where(Person.class).findAllSorted("name").get(0);
-            }
-        })
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io()) //
                 .subscribe(new Action1<Person>() {
                     @Override
                     public void call(Person person) {
@@ -142,7 +143,7 @@ public class GotchasActivity extends Activity {
             }
         });
 
-        // buffer() caches objects until the the buffer is full. Due to Realms auto-update of all objects it means
+        // buffer() caches objects until the buffer is full. Due to Realms auto-update of all objects it means
         // that all objects in the cache will contain the same data.
         // Either avoid using buffer or copy data into an un-managed object.
         return personObserver
@@ -216,6 +217,5 @@ public class GotchasActivity extends Activity {
         super.onDestroy();
         realm.close();
     }
-
 
 }

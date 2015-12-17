@@ -48,7 +48,6 @@ public class RetrofitExample extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_network);
         container = (ViewGroup) findViewById(R.id.list);
-        container.removeAllViews();
         realm = Realm.getDefaultInstance();
         api = createGitHubApi();
     }
