@@ -37,11 +37,13 @@ import io.realm.internal.android.DebugAndroidLogger;
 import io.realm.internal.android.ReleaseAndroidLogger;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * Base class for all Realm instances.
  *
  * @see io.realm.Realm
+ * @see io.realm.DynamicRealm
  */
 abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
@@ -159,6 +161,16 @@ abstract class BaseRealm implements Closeable {
         checkIfValid();
         handlerController.removeChangeListener(listener);
     }
+
+    /**
+     * Returns an Rx Observable that monitors changes to this Realm. It will emit the current state when subscribed
+     * to.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public abstract Observable asObservable();
 
     /**
      * Removes all user-defined change listeners.
