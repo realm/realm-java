@@ -22,7 +22,7 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
 
-public class AllTypes extends RealmObject<AllTypes> {
+public class AllTypes extends RealmObject {
 
     public static final String CLASS_NAME = "AllTypes";
     public static final String FIELD_STRING = "columnString";

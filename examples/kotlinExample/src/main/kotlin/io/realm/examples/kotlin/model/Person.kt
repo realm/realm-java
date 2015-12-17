@@ -45,7 +45,7 @@ public open class Person(
         @Ignore public open var tempReference: Int = 0,
 
         public open var id: Long = 0
-) : RealmObject<Person>() {
+) : RealmObject() {
     // The Kotlin compiler generates standard getters and setters.
     // Realm will overload them and code inside them is ignored.
     // So if you prefer you can also just have empty abstract methods.
