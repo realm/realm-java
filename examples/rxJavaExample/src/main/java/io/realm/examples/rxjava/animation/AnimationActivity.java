@@ -45,7 +45,6 @@ public class AnimationActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_animations);
         container = (ViewGroup) findViewById(R.id.list);
-        container.removeAllViews();
         realm = Realm.getDefaultInstance();
     }
 

@@ -53,7 +53,6 @@ import rx.subscriptions.CompositeSubscription;
  * - https://github.com/realm/realm-java/issues/931
  */
 public class GotchasActivity extends Activity {
-
     private Realm realm;
     private Subscription subscription;
     private ViewGroup container;
