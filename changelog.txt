@@ -1,3 +1,6 @@
+0.88.0
+ * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
+
 0.87.0
  * Added Realm.copyFromRealm() for creating detached copies of Realm objects (#931).
  * Added RealmObjectSchema.getFieldType() (#1883).
@@ -29,7 +32,6 @@
  * Added new Dynamic API using DynamicRealm and DynamicRealmObject.
  * Added Realm.getSchema() and DynamicRealm.getSchema().
  * Realm.createOrUpdateObjectFromJson() now works correctly if the RealmObject class contains a primary key (#1777).
- * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
  * Realm.compactRealm() doesn't throw an exception if the Realm file is opened. It just returns false instead.
  * Updated Realm Core to 0.95.3
    - Fixed a bug where RealmQuery.average(String) returned a wrong value for a nullable Long/Integer/Short/Byte field (#1803).
@@ -271,7 +273,7 @@
     and dates after 2038-01-19 are not supported on 32 bit systems
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying
-  
+
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes

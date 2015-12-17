@@ -25,11 +25,10 @@ repositories {
 
 dependencies {
     compile project(':realm-annotations')
+    compile 'com.github.KeepSafe:ReLinker:1.1'
 
     androidTestApt project(':realm-annotations-processor')
     androidTestApt project(':realm-annotations')
-
-    compile 'com.github.KeepSafe:ReLinker:1.1'
 }
 
 task sourcesJar(type: Jar) {
