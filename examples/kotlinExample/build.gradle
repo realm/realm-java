@@ -51,5 +51,6 @@ dependencies {
     compile 'org.jetbrains.anko:anko-sdk15:0.7.2'
     compile "io.realm:realm-android-library:${version}@aar"
     compile "io.realm:realm-annotations:${version}"
+    kapt "io.realm:realm-annotations:${version}"
     kapt "io.realm:realm-annotations-processor:${version}"
 }
