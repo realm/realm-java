@@ -1,3 +1,8 @@
+0.87.1
+  * Upgraded to NDK R10e. Using gcc 4.9 for all architectures.
+  * Updated Realm Core to 0.95.6
+    - Fixed a bug where an async query can be copied incomplete in rare cases.
+
 0.87.0
  * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
  * Added RealmConfiguration.Builder.rxFactory() and RxObservableFactory for custom RxJava observable factory classes.
@@ -272,7 +277,7 @@
     and dates after 2038-01-19 are not supported on 32 bit systems
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying
-  
+
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes
