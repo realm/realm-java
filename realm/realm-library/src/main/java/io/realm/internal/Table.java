@@ -50,9 +50,6 @@ public class Table implements TableOrView, TableSchema, TableParent, Closeable {
     private static final long PRIMARY_KEY_FIELD_COLUMN_INDEX = 1;
     private static final long NO_PRIMARY_KEY = -2;
 
-    // tableName can be used as key until https://github.com/realm/realm-core/issues/1410 is solved
-    // For the typed API that should be safe, but for the dynamicAPI/migration it can be potentially dangerous.
-    private final String tableName;
     protected long nativePtr;
     protected final TableParent parent;
     private final Context context;
@@ -78,7 +75,6 @@ public class Table implements TableOrView, TableSchema, TableParent, Closeable {
         // have nothing to do with the native functions. Generated Java Table
         // classes will work as a wrapper on top of table.
         this.nativePtr = createNative();
-        this.tableName = getName();
         if (nativePtr == 0) {
             throw new java.lang.OutOfMemoryError("Out of native memory.");
         }
@@ -93,24 +89,9 @@ public class Table implements TableOrView, TableSchema, TableParent, Closeable {
         this.parent = parent;
         this.nativePtr = nativePointer;
 
-        this.tableName = getName();
-
         if (DEBUG) {
             tableNo = tableCount.incrementAndGet();
             RealmLog.d("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
-        }
-    }
-
-    // Handover constructor
-    public Table(Table table, long senderSharedGroupPtr, long receiverSharedGroupPtr) {
-        this.context = table.context;
-        this.parent = (table.parent != null) ? table.parent.handover(senderSharedGroupPtr, receiverSharedGroupPtr) : null;
-        this.nativePtr = nativeHandoverTable(senderSharedGroupPtr, receiverSharedGroupPtr, table.nativePtr);
-        this.tableName = getName();
-
-        if (DEBUG) {
-            tableNo = tableCount.incrementAndGet();
-            System.err.println("===== New Tablebase(ptr) " + tableNo + " : ptr = " + nativePtr);
         }
     }
 
@@ -1339,11 +1320,6 @@ public class Table implements TableOrView, TableSchema, TableParent, Closeable {
     @Override
     public long sync() {
         throw new RuntimeException("Not supported for tables");
-    }
-
-    @Override
-    public Table handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
-        return new Table(this, senderSharedGroupPtr, receiverSharedGroupPtr);
     }
 
     private void throwImmutable() {

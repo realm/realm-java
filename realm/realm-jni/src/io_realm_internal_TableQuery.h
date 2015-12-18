@@ -597,22 +597,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandove
  * Signature: (JJJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
-        (JNIEnv *, jlong, jlong , jlong);
-
-/*
- * Class:     io_realm_internal_TableQuery
- * Method:    nativeAcceptHandoverQuery
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAcceptHandoverQuery
-        (JNIEnv *, jlong, jlong , jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
  * Method:    nativeBatchUpdateQueries
  */
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdateQueries
-        (JNIEnv *,jobject,jlong ,jlong ,jlongArray,jobjectArray,jobjectArray,jobjectArray);
+  (JNIEnv *,jobject,jlong ,jlong ,jlongArray,jobjectArray,jobjectArray,jobjectArray);
 
 /*
  * Class:     io_realm_internal_TableQuery
@@ -620,7 +612,15 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCopy
-        (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeGetTable
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetTable
+  (JNIEnv *, jobject, jlong);
 
 
 #ifdef __cplusplus

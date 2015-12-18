@@ -1710,17 +1710,3 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
     } CATCH_STD()
     return 0;
 }
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
-        (JNIEnv *env, jobject, jlong senderSharedGroupPtr, jlong receiverSharedGroupPtr, jlong tablePtr)
-{
-    TR_ENTER()
-    try {
-        std::unique_ptr<SharedGroup::Handover<Table>> handover;
-        handover = SG(senderSharedGroupPtr)->export_for_handover(*TBL(tablePtr), ConstSourcePayload::Copy);
-        std::unique_ptr<Table> table = SG(receiverSharedGroupPtr)->import_from_handover(std::move(handover));
-        return reinterpret_cast<jlong>(table.release());
-    } CATCH_STD()
-    return 0;
-}
-

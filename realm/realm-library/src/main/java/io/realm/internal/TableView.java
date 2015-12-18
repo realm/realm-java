@@ -782,12 +782,6 @@ public class TableView implements TableOrView, Closeable {
         return nativeSync(nativePtr);
     }
 
-    @Override
-    public TableOrView handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
-        // TODO
-        return null;
-    }
-
     static native void nativeClose(long nativeViewPtr);
     private native long nativeSize(long nativeViewPtr);
     private native long nativeGetSourceRowIndex(long nativeViewPtr, long rowIndex);
@@ -836,7 +830,7 @@ public class TableView implements TableOrView, Closeable {
     private native long nativeFindAllString(long nativePtr, long columnIndex, String value);
     private native Long nativeMaximumInt(long nativeViewPtr, long columnIndex);
     private native Long nativeMinimumInt(long nativeViewPtr, long columnIndex);
-    private native double nativeAverageInt(losng nativePtr, long columnIndex);
+    private native double nativeAverageInt(long nativePtr, long columnIndex);
     private native double nativeSumFloat(long nativeViewPtr, long columnIndex);
     private native Float nativeMaximumFloat(long nativeViewPtr, long columnIndex);
     private native Float nativeMinimumFloat(long nativeViewPtr, long columnIndex);

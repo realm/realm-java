@@ -23,7 +23,6 @@ import io.realm.entities.AnnotationNameConventions;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
-import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.Table;
 

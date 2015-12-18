@@ -18,7 +18,6 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,11 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 public class RxJavaTests extends AndroidTestCase {
 

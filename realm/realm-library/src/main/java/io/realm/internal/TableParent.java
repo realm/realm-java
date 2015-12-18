@@ -24,13 +24,4 @@ public interface TableParent {
      * @return the tables group.
      */
     Group getTableGroup();
-
-    /**
-     * Handover this TableParent between two shared groups.
-     *
-     * @param senderSharedGroupPtr pointer to the SharedGroup sending the TableParent.
-     * @param receiverSharedGroupPtr pointer to the SharedGroup receiving the TableParent.
-     * @return the TableParent for the receiving SharedGroup.
-     */
-    TableParent handover(long senderSharedGroupPtr, long receiverSharedGroupPtr);
 }

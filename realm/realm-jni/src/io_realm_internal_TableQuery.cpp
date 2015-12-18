@@ -1688,7 +1688,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRo
   (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
       TR_ENTER_PTR(handoverPtr)
-      SharedGroup::Handover<Row> *handoverRowPtr = HO(Row, handoverPtr);
+      SharedGroup::Handover<Row> *handoverRowPtr = HO(Row,
+handoverPtr);
       std::unique_ptr<SharedGroup::Handover<Row>> handoverRow(handoverRowPtr);
 
       try {
@@ -1868,7 +1869,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
-        (JNIEnv *env, jobject, jlong senderSharedGroupPtr, jlong receiverSharedGroupPtr, jlong senderQueryPtr)
+    (JNIEnv *env, jobject, jlong senderSharedGroupPtr, jlong receiverSharedGroupPtr, jlong senderQueryPtr)
 {
     TR_ENTER()
     try {
@@ -1881,7 +1882,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeHandoverQuery
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCopy
-        (JNIEnv* env, jobject, jlong nativeQueryPtr)
+    (JNIEnv* env, jobject, jlong nativeQueryPtr)
 {
     TR_ENTER_PTR(nativeQueryPtr)
     Query* pQuery = Q(nativeQueryPtr);
@@ -1893,4 +1894,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeCopy
         return reinterpret_cast<jlong>(queryCopyPtr);
     } CATCH_STD()
     return 0;
+}
+
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetTable
+    (JNIEnv* env, jobject, jlong nativeQueryPtr)
+{
+    TR_ENTER_PTR(nativeQueryPtr)
+    Query* pQuery = Q(nativeQueryPtr);
+    if (!QUERY_VALID(env, pQuery))
+        return 0;
+
+    return (jlong) &pQuery->get_table();
 }

@@ -813,14 +813,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
         JNIEnv*, jobject, jlong);
 
-/*
- * Class:     io_realm_internal_Table
- * Method:    nativeHandover
- * Signature: (JJJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeHandoverTable(
-        JNIEnv*, jobject, jlong, jlong, jlong);
-
 #ifdef __cplusplus
 }
 #endif

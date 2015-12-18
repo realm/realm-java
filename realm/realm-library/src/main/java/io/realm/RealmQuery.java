@@ -61,9 +61,9 @@ public class RealmQuery<E extends RealmObject> implements Cloneable {
     private BaseRealm realm;
     private Class<E> clazz;
     private String className;
-//    private TableOrView table;
+    private TableOrView table;
     private RealmObjectSchema schema;
-//    private LinkView view;
+    private LinkView view;
     private TableQuery query;
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
 
@@ -218,16 +218,15 @@ public class RealmQuery<E extends RealmObject> implements Cloneable {
     }
 
     // Creates a copy of an existing query object using the handover mechanism
-    private RealmQuery(BaseRealm realm, RealmQuery query) {
-        long senderSharedGroupPtr = this.realm.sharedGroupManager.getNativePointer();
-        long receiverSharedGroupPtr = realm.sharedGroupManager.getNativePointer();
-        this.realm = realm;
+    private RealmQuery(BaseRealm receivingRealm, RealmQuery query) {
+        long senderSharedGroupPtr = query.realm.sharedGroupManager.getNativePointer();
+        this.realm = receivingRealm;
         this.clazz = query.clazz;
         this.className = query.className;
-        this.schema = (clazz != null) ? realm.schema.getSchemaForClass(clazz) : realm.schema.getSchemaForClass(className);
-        this.table = (query.table != null) ? query.table.handover(senderSharedGroupPtr, receiverSharedGroupPtr) : null;
-        this.view = (query.view != null) ? query.view.handover(senderSharedGroupPtr, receiverSharedGroupPtr) : null;
-        this.query = query.query.handover(senderSharedGroupPtr, receiverSharedGroupPtr);
+        this.schema = (clazz != null) ? receivingRealm.schema.getSchemaForClass(clazz) : receivingRealm.schema.getSchemaForClass(className);
+        this.table = schema.table;
+        this.view = null; // Any required LinkView/TableView would be managed by the Query after a handover
+        this.query = query.query.handover(senderSharedGroupPtr, receivingRealm.sharedGroupManager);
     }
 
     /**

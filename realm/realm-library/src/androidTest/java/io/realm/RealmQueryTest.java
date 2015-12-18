@@ -34,6 +34,7 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
+import io.realm.util.ExceptionHolder;
 
 public class RealmQueryTest extends AndroidTestCase {
 

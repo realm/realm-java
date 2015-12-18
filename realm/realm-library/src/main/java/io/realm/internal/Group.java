@@ -171,16 +171,12 @@ public class Group implements TableParent, Closeable {
         nativeRemoveTable(nativePtr, name);
     }
 
-    native void nativeRemoveTable(long nativeGroupPtr, String tableName);
-
     /**
      * Renames a table
      */
     public void renameTable(String oldName, String newName) {
         nativeRenameTable(nativePtr, oldName, newName);
     }
-
-    native void nativeRenameTable(long nativeGroupPtr, String oldName, String newName);
 
     /**
      * Returns a table with the specified name.
@@ -218,7 +214,7 @@ public class Group implements TableParent, Closeable {
      * @param file a File object representing the file.
      * @param key A 64 bytes long byte array containing the key to the encrypted Realm file. Can be null if encryption
      *            is not required.
-     * @throws IOException.
+     * @throws IOException
      */
     public void writeToFile(File file, byte[] key) throws IOException {
         verifyGroupIsValid();
@@ -255,11 +251,6 @@ public class Group implements TableParent, Closeable {
     @Override
     public Group getTableGroup() {
         return this;
-    }
-
-    @Override
-    public TableParent handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
-        return null;
     }
 
 /*
@@ -303,4 +294,6 @@ public class Group implements TableParent, Closeable {
     protected native void nativeCommit(long nativeGroupPtr);
     protected native String nativeToString(long nativeGroupPtr);
     protected native boolean nativeIsEmpty(long nativeGroupPtr);
+    native void nativeRemoveTable(long nativeGroupPtr, String tableName);
+    native void nativeRenameTable(long nativeGroupPtr, String oldName, String newName);
 }

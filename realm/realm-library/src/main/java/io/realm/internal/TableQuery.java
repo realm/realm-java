@@ -19,7 +19,9 @@ package io.realm.internal;
 import java.io.Closeable;
 import java.util.Date;
 
+import io.realm.BaseRealm;
 import io.realm.Case;
+import io.realm.Realm;
 import io.realm.Sort;
 
 public class TableQuery implements Closeable {
@@ -43,8 +45,8 @@ public class TableQuery implements Closeable {
             System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
         }
         this.context = context;
-        this.table = table;
         this.nativePtr = nativeQueryPtr;
+        this.table = table;
         this.origin = null;
     }
 
@@ -53,28 +55,29 @@ public class TableQuery implements Closeable {
             System.err.println("++++++ new TableQuery, ptr= " + nativeQueryPtr);
         }
         this.context = context;
-        this.table = table;
         this.nativePtr = nativeQueryPtr;
+        this.table = table;
         this.origin = origin;
     }
 
     // Thread local copy constructor
     private TableQuery(TableQuery query) {
         this.context = query.context;
-        this.table = query.table;
         this.nativePtr = nativeCopy(query.nativePtr);
+        this.table = query.table;
         this.origin = query.origin;
     }
 
     // Handover copy constructor
     // This will be called from the receiver thread
-    public TableQuery(TableQuery query, long senderSharedGroupPtr, long receiverSharedGroupPtr) {
-        this.context = query.context;
-        this.table = (query.table != null) ? query.table.handover(senderSharedGroupPtr, receiverSharedGroupPtr) : null;
-        this.nativePtr = nativeHandoverQuery(senderSharedGroupPtr, receiverSharedGroupPtr, query.nativePtr);
-        this.origin = (query.origin != null) ? query.origin.handover(senderSharedGroupPtr, receiverSharedGroupPtr) : null;
+    public TableQuery(TableQuery senderQuery, long senderSharedGroupPtr, SharedGroupManager receivingSharedGroup) {
+        this.context = senderQuery.context;
+        this.nativePtr = nativeHandoverQuery(senderSharedGroupPtr, receivingSharedGroup.getNativePointer(), senderQuery.nativePtr);
+        this.table = new Table(context, receivingSharedGroup.getTransaction(), nativeGetTable(nativePtr));
+        this.origin = null; // Maintained by the query after the handover
         validateQuery();
     }
+
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
@@ -759,8 +762,8 @@ public class TableQuery implements Closeable {
      * @param receiverSharedGroupPtr SharedGroup pointer for the the Realm receiving.
      * @return the new query object.
      */
-    public TableQuery handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
-        return new TableQuery(this, senderSharedGroupPtr, receiverSharedGroupPtr);
+    public TableQuery handover(long senderSharedGroupPtr, SharedGroupManager receivingRealm) {
+        return new TableQuery(this, senderSharedGroupPtr, receivingRealm);
     }
 
     private void throwImmutable() {
@@ -835,6 +838,7 @@ public class TableQuery implements Closeable {
     private native long nativePrepareHandoverQuery(long callerSharedGroupPtr, long nativeQueryPtr);
     private native long nativeHandoverQuery(long receiverSharedGroupPtr, long receiverNativeReplicationPtr, long originalQueryPtr);
     private native long nativeCopy(long nativeQueryPtr);
+    private native long nativeGetTable(long nativeQueryPtr);
     public static native long nativeFindAllSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit, long columnIndex, boolean ascending);
     public static native long nativeFindAllWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit);
     public static native long nativeGetDistinctViewWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long columnIndex);

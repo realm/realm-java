@@ -210,7 +210,7 @@ public class RealmObservableFactory implements RxObservableFactory {
             public void call(final Subscriber<? super RealmQuery<E>> subscriber) {
                 // Create an Realm instance that is open for as long as the subscription is alive.
                 final Realm subscriberRealm = Realm.getInstance(realm.getConfiguration());
-                RealmQuery<E> queryClone = subscriberRealm.threadLocalCopy(queryCopy);
+                RealmQuery<E> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
                 subscriber.add(Subscriptions.create(new Action0() {
                     @Override
                     public void call() {
@@ -233,7 +233,7 @@ public class RealmObservableFactory implements RxObservableFactory {
             public void call(final Subscriber<? super RealmQuery<DynamicRealmObject>> subscriber) {
                 // Create an Realm instance that is open for as long as the subscription is alive.
                 final DynamicRealm subscriberRealm = DynamicRealm.getInstance(realm.getConfiguration());
-                RealmQuery<DynamicRealmObject> queryClone = subscriberRealm.threadLocalCopy(queryCopy);
+                RealmQuery<DynamicRealmObject> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
                 subscriber.add(Subscriptions.create(new Action0() {
                     @Override
                     public void call() {

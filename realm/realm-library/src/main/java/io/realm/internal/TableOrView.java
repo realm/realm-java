@@ -368,14 +368,4 @@ public interface TableOrView {
      * @return the version number for the updated tableview.
      */
     long sync();
-
-    /**
-     * Handover this view from one shared group to another.
-     *
-     * @param senderSharedGroupPtr   pointer to the sending SharedGroup.
-     * @param receiverSharedGroupPtr pointer to the receiving SharedGroup.
-     * @return The TableOrView in the receiving SharedGroup.
-     */
-    TableOrView handover(long senderSharedGroupPtr, long receiverSharedGroupPtr);
-
 }

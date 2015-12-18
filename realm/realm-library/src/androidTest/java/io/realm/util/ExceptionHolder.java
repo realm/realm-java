@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm;
+package io.realm.util;
 
 import junit.framework.AssertionFailedError;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import static junit.framework.Assert.fail;
 
@@ -83,7 +86,9 @@ public class ExceptionHolder {
      */
     public void checkFailure() {
         if (exception != null) {
-            fail(exception.toString());
+            StringWriter stacktrace = new StringWriter();
+            exception.printStackTrace(new PrintWriter(stacktrace));
+            fail(stacktrace.toString());
         }
     }
 }
