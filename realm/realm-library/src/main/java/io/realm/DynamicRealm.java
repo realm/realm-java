@@ -21,6 +21,7 @@ import android.os.Looper;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import rx.Observable;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -74,7 +75,8 @@ public final class DynamicRealm extends BaseRealm {
         checkIfValid();
         Table table = schema.getTable(className);
         long rowIndex = table.addEmptyRow();
-        return get(DynamicRealmObject.class, className, rowIndex);
+        DynamicRealmObject dynamicRealmObject = get(DynamicRealmObject.class, className, rowIndex);
+        return dynamicRealmObject;
     }
 
     /**
@@ -89,7 +91,11 @@ public final class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return new DynamicRealmObject(this, table.getCheckedRow(index));
+        DynamicRealmObject dynamicRealmObject = new DynamicRealmObject(this, table.getCheckedRow(index));
+        if (handlerController != null) {
+            handlerController.addToRealmObjects(dynamicRealmObject);
+        }
+        return dynamicRealmObject;
     }
 
     /**
@@ -173,7 +179,11 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
 
@@ -216,7 +226,11 @@ public final class DynamicRealm extends BaseRealm {
         Table table = schema.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -248,7 +262,11 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -278,6 +296,14 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         return where(className).distinctAsync(columnIndex);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Observable<DynamicRealm> asObservable() {
+        return configuration.getRxFactory().from(this);
     }
 
     /**
