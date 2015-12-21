@@ -27,6 +27,7 @@ import io.realm.RealmResults;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action0;
+import rx.functions.Func0;
 import rx.subscriptions.Subscriptions;
 
 /**
@@ -206,18 +207,28 @@ public class RealmObservableFactory implements RxObservableFactory {
         // Create a copy of the RealmQuery to make sure it doesn't change.
         final RealmQuery<E> queryCopy = query.clone();
 
-        return Observable.create(new Observable.OnSubscribe<RealmQuery<E>>() {
+        return Observable.defer(new Func0<Observable<RealmQuery<E>>>() {
             @Override
-            public void call(final Subscriber<? super RealmQuery<E>> subscriber) {
-                // Create an Realm instance that is open for as long as the subscription is alive.
-                final Realm subscriberRealm = Realm.getInstance(realm.getConfiguration());
-                RealmQuery<E> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
-                subscriber.onNext(queryClone);
-                subscriber.onCompleted();
-
-                // TODO This is probably not safe, and should be part of any unsubscribe logic, but it seems impossible
-                // to guarantee that unsubscribe runs on the same thread as onSubscribe.
-                subscriberRealm.close();
+            public Observable<RealmQuery<E>> call() {
+                return Observable.create(new Observable.OnSubscribe<RealmQuery<E>>() {
+                    @Override
+                    public void call(final Subscriber<? super RealmQuery<E>> subscriber) {
+                        // Create an Realm instance that is open for as long as the subscription is alive.
+                        Realm subscriberRealm = null;
+                        try {
+                            subscriberRealm = Realm.getInstance(realm.getConfiguration());
+                            RealmQuery<E> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
+                            subscriber.onNext(queryClone);
+                            subscriberRealm.close();
+                            subscriber.onCompleted();
+                        } catch (Throwable t) {
+                            if (subscriberRealm != null && !subscriberRealm.isClosed()) {
+                                subscriberRealm.close();
+                            }
+                            subscriber.onError(t);
+                        }
+                    }
+                });
             }
         });
     }
@@ -227,19 +238,28 @@ public class RealmObservableFactory implements RxObservableFactory {
         checkRxJavaAvailable();
         final RealmQuery<DynamicRealmObject> queryCopy = query.clone(); // Create a copy of the RealmQuery to make sure it doesn't change.
 
-        return Observable.create(new Observable.OnSubscribe<RealmQuery<DynamicRealmObject>>() {
+        return Observable.defer(new Func0<Observable<RealmQuery<DynamicRealmObject>>>() {
             @Override
-            public void call(final Subscriber<? super RealmQuery<DynamicRealmObject>> subscriber) {
-                // Create an Realm instance that is open for as long as the subscription is alive.
-                final DynamicRealm subscriberRealm = DynamicRealm.getInstance(realm.getConfiguration());
-
-                RealmQuery<DynamicRealmObject> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
-                subscriber.onNext(queryClone);
-                subscriber.onCompleted();
-
-                // TODO This is probably not safe, and should be part of any unsubscribe logic, but it seems impossible
-                // to guarantee that unsubscribe runs on the same thread as onSubscribe.
-                subscriberRealm.close();
+            public Observable<RealmQuery<DynamicRealmObject>> call() {
+                return Observable.create(new Observable.OnSubscribe<RealmQuery<DynamicRealmObject>>() {
+                    @Override
+                    public void call(Subscriber<? super RealmQuery<DynamicRealmObject>> subscriber) {
+                        // Create an Realm instance that is open for as long as the subscription is alive.
+                        DynamicRealm subscriberRealm = null;
+                        try {
+                            subscriberRealm = DynamicRealm.getInstance(realm.getConfiguration());
+                            RealmQuery<DynamicRealmObject> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
+                            subscriber.onNext(queryClone);
+                            subscriberRealm.close();
+                            subscriber.onCompleted();
+                        } catch (Throwable t) {
+                            if (subscriberRealm != null && !subscriberRealm.isClosed()) {
+                                subscriberRealm.close();
+                            }
+                            subscriber.onError(t);
+                        }
+                    }
+                });
             }
         });
     }
