@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.95.5'
+ext.coreVersion = '0.95.6'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '96980368e87ca60195f552c8255846a9f1db2ff498304264b97caced0daf71e4'
+ext.coreSha256Hash = 'e040350420dda9e276ead1366f309e52f2dfa1551c9ed6e97639c7de2fee62d0'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -15,7 +15,7 @@ ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('st
 // core source code.
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
 
-def commonCflags = [ '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
+def commonCflags = [ '-Os', '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
 
 enum Compiler {
     GCC, CLANG
@@ -55,12 +55,12 @@ class Target {
     List<String> cflags
 }
 
-// We are using gcc 4.8 for 32 bits targets and 4.9 for 64 bits targets, as the NDK defaults.
+// We are using gcc 4.9 for all platforms.
 def toolchains = [
-    new Toolchain( name:'arm', fullName:'arm-linux-androideabi', commandPrefix:'arm-linux-androideabi', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:8 ),
+    new Toolchain( name:'arm', fullName:'arm-linux-androideabi', commandPrefix:'arm-linux-androideabi', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:8 ),
     new Toolchain( name:'arm64', fullName:'aarch64-linux-android', commandPrefix:'aarch64-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:21 ),
-    new Toolchain( name:'mips', fullName:'mipsel-linux-android', commandPrefix:'mipsel-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 ),
-    new Toolchain( name:'x86', fullName:'x86', commandPrefix:'i686-linux-android', version:[ (Compiler.GCC):'4.8', (Compiler.CLANG):'3.5' ], platform:9 ),
+    new Toolchain( name:'mips', fullName:'mipsel-linux-android', commandPrefix:'mipsel-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:9 ),
+    new Toolchain( name:'x86', fullName:'x86', commandPrefix:'i686-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:9 ),
     new Toolchain( name:'x86_64', fullName:'x86_64', commandPrefix:'x86_64-linux-android', version:[ (Compiler.GCC):'4.9', (Compiler.CLANG):'3.5' ], platform:21 )
 ]
 
@@ -283,7 +283,7 @@ targets.each { target ->
             "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -flto",
+            "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections",
             'LIB_SUFFIX_SHARED=.so',
             "librealm-jni-${target.name}${getDebugExt()}.so"
         ]
