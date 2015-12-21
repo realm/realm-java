@@ -2696,4 +2696,54 @@ public class RealmTest extends AndroidTestCase {
             handlerThread.quit();
         }
     }
+
+    public void testHandlerControllerThrowNullPointExceptionOnNonLooperThread() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(testConfig);
+                try {
+                    realm.handlerController.removeAllChangeListeners();
+                    fail("");
+                } catch (NullPointerException ignored) {
+                    signalTestFinished.countDown();
+                } finally {
+                    realm.close();
+                }
+            }
+        });
+        thread.start();
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            thread.interrupt();
+        }
+    }
+
+    public void testRemoveChangeListenerThrowExceptionOnNonLooperThread() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(testConfig);
+                try {
+                    realm.removeAllChangeListeners();
+                    fail("");
+                } catch (IllegalStateException ignored) {
+                    signalTestFinished.countDown();
+                } finally {
+                    realm.close();
+                }
+            }
+        });
+        thread.start();
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            thread.interrupt();
+        }
+    }
 }
