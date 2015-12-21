@@ -20,7 +20,9 @@ import android.test.AndroidTestCase;
 import android.util.Log;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Cat;
 import io.realm.entities.Dog;
+import io.realm.entities.Owner;
 import io.realm.util.RealmBackgroundTask;
 
 /**
@@ -50,21 +52,20 @@ public class HandoverTests extends AndroidTestCase {
     private void populateTestRealm(int dataSize) {
         realm.beginTransaction();
         for (int i = 0; i < dataSize; i++) {
-            AllTypes obj = realm.createObject(AllTypes.class);
-            obj.setColumnLong(i);
-            obj.setColumnString(Integer.toString(i));
-            obj.setColumnBoolean(i % 2 == 0);
+            Owner owner = realm.createObject(Owner.class);
+            owner.setName("Owner " + i);
 
-            Dog singleDog = realm.createObject(Dog.class);
-            singleDog.setName("Name " + i);
-            obj.setColumnRealmObject(singleDog);
+            Cat cat = realm.createObject(Cat.class);
+            cat.setName("Cat " + i);
+            owner.setCat(cat);
 
             // Add increasing number of dogs
             for (int j = 0; j < i; j++) {
                 Dog dog = realm.createObject(Dog.class);
                 dog.setName(String.format("Dog (%d, %d)", i, j));
                 dog.setAge(j);
-                obj.getColumnRealmList().add(dog);
+                dog.setOwner(owner);
+                owner.getDogs().add(dog);
             }
         }
         realm.commitTransaction();
@@ -73,30 +74,15 @@ public class HandoverTests extends AndroidTestCase {
     // Query on a regular table
     public void testThreadLocalVersion_realmQuery_tableView() {
         populateTestRealm(TEST_DATA_SIZE);
-        final RealmQuery<AllTypes> query = realm.where(AllTypes.class);
-        RealmBackgroundTask bgTask = new RealmBackgroundTask(config);
-        bgTask.run(new RealmBackgroundTask.Task() {
-            @Override
-            public void run(Realm realm) {
-                RealmQuery<AllTypes> bgQuery = realm.threadLocalVersion(query);
-                RealmResults<AllTypes> results = bgQuery.findAll();
-                assertEquals(TEST_DATA_SIZE, results.size());
-            }
-        });
-        bgTask.checkFailure();
-    }
 
-    // Link query on a regular table
-    public void testThreadLocalVersion_realmQuery_tableViewLinkQuery() {
-        populateTestRealm(10);
-        final RealmQuery<AllTypes> query = realm.where(AllTypes.class).equalTo("columnRealmObject.name", "Name 1");
+        final RealmQuery<Owner> query = realm.where(Owner.class);
         RealmBackgroundTask bgTask = new RealmBackgroundTask(config);
         bgTask.run(new RealmBackgroundTask.Task() {
             @Override
             public void run(Realm realm) {
-                RealmQuery<AllTypes> bgQuery = realm.threadLocalVersion(query);
-                RealmResults<AllTypes> results = bgQuery.findAll();
-                assertEquals(1, results.size());
+                RealmQuery<Owner> bgQuery = realm.threadLocalVersion(query);
+                RealmResults<Owner> results = bgQuery.findAll();
+                assertEquals(TEST_DATA_SIZE, results.size());
             }
         });
         bgTask.checkFailure();
@@ -105,33 +91,59 @@ public class HandoverTests extends AndroidTestCase {
     // Query on a table view (sub query)
     public void testThreadLocalVersion_realmQuery_tableViewSubQuery() {
         populateTestRealm(10);
-        RealmResults<AllTypes> results = realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 9).findAll();
-        final RealmQuery<AllTypes> subQuery = results.where();
+        RealmResults<Dog> results = realm.where(Dog.class).beginsWith("name", "Dog (9, ").findAll();
+        assertEquals(9, results.size());
+
+        final RealmQuery<Dog> subQuery = results.where().endsWith("name", "1)");
         RealmBackgroundTask bgTask = new RealmBackgroundTask(config);
         bgTask.run(new RealmBackgroundTask.Task() {
             @Override
             public void run(Realm realm) {
-                // FIXME: This fails. Running the same query on the same thread as the original query gives the correct result
-                RealmQuery<AllTypes> bgSubQuery = realm.threadLocalVersion(subQuery);
-                RealmResults<AllTypes> results = bgSubQuery.findAll();
+                RealmQuery<Dog> bgSubQuery = realm.threadLocalVersion(subQuery);
+                RealmResults<Dog> results = bgSubQuery.findAll();
                 assertEquals(1, results.size());
             }
         });
         bgTask.checkFailure();
     }
 
-    // Link query on a table view
-    public void testThreadLocalVersion_realmQuery_tableViewSubQueryLinkQuery() {
-        fail();
-    }
-
     // Query on a LinkView
     public void testThreadLocalVersion_realmQuery_linkView() {
-        fail();
+        populateTestRealm(10);
+        RealmList<Dog> list = realm.where(Owner.class).equalTo("name", "Owner 9").findFirst().getDogs();
+        assertEquals(9, list.size());
+
+        final RealmQuery<Dog> query = list.where().equalTo("age", 1);
+        RealmBackgroundTask bgTask = new RealmBackgroundTask(config);
+        bgTask.run(new RealmBackgroundTask.Task() {
+            @Override
+            public void run(Realm realm) {
+                RealmQuery<Dog> bgQuery = realm.threadLocalVersion(query);
+                RealmResults<Dog> results = bgQuery.findAll();
+                assertEquals(1, results.size());
+            }
+        });
+        bgTask.checkFailure();
     }
 
-    // Link query on a LinkView
-    public void testThreadLocalVersion_realmQuery_linkViewLinkQuery() {
-        fail();
+    // Sub query on a LinkView
+    public void testThreadLocalVersion_realmQuery_linkViewSubQuery() {
+        populateTestRealm(10);
+        RealmList<Dog> list = realm.where(Owner.class).equalTo("name", "Owner 9").findFirst().getDogs();
+        assertEquals(9, list.size());
+        final RealmResults<Dog> results = list.where().lessThan("age", 5).findAll();
+        assertEquals(5, results.size());
+
+        final RealmQuery<Dog> subQuery = results.where().greaterThan("age", 3);
+        RealmBackgroundTask bgTask = new RealmBackgroundTask(config);
+        bgTask.run(new RealmBackgroundTask.Task() {
+            @Override
+            public void run(Realm realm) {
+                RealmQuery<Dog> bgSubQuery = realm.threadLocalVersion(subQuery);
+                RealmResults<Dog> results = bgSubQuery.findAll();
+                assertEquals(1, results.size());
+            }
+        });
+        bgTask.checkFailure();
     }
 }
