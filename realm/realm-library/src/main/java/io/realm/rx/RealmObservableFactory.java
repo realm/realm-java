@@ -40,14 +40,14 @@ import rx.subscriptions.Subscriptions;
  */
 public class RealmObservableFactory implements RxObservableFactory {
 
-    private boolean rxJavaAvailble;
+    private boolean rxJavaAvailable;
 
     public RealmObservableFactory() {
         try {
             Class.forName("rx.Observable");
-            rxJavaAvailble = true;
+            rxJavaAvailable = true;
         } catch (ClassNotFoundException ignore) {
-            rxJavaAvailble = false;
+            rxJavaAvailable = false;
         }
     }
 
@@ -203,7 +203,8 @@ public class RealmObservableFactory implements RxObservableFactory {
     @Override
     public <E extends RealmObject> Observable<RealmQuery<E>> from(final Realm realm, RealmQuery<E> query) {
         checkRxJavaAvailable();
-        final RealmQuery<E> queryCopy = query.clone(); // Create a copy of the RealmQuery to make sure it doesn't change.
+        // Create a copy of the RealmQuery to make sure it doesn't change.
+        final RealmQuery<E> queryCopy = query.clone();
 
         return Observable.create(new Observable.OnSubscribe<RealmQuery<E>>() {
             @Override
@@ -211,14 +212,12 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Create an Realm instance that is open for as long as the subscription is alive.
                 final Realm subscriberRealm = Realm.getInstance(realm.getConfiguration());
                 RealmQuery<E> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
-                subscriber.add(Subscriptions.create(new Action0() {
-                    @Override
-                    public void call() {
-                        subscriberRealm.close();
-                    }
-                }));
                 subscriber.onNext(queryClone);
                 subscriber.onCompleted();
+
+                // TODO This is probably not safe, and should be part of any unsubscribe logic, but it seems impossible
+                // to guarantee that unsubscribe runs on the same thread as onSubscribe.
+                subscriberRealm.close();
             }
         });
     }
@@ -233,21 +232,20 @@ public class RealmObservableFactory implements RxObservableFactory {
             public void call(final Subscriber<? super RealmQuery<DynamicRealmObject>> subscriber) {
                 // Create an Realm instance that is open for as long as the subscription is alive.
                 final DynamicRealm subscriberRealm = DynamicRealm.getInstance(realm.getConfiguration());
+
                 RealmQuery<DynamicRealmObject> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
-                subscriber.add(Subscriptions.create(new Action0() {
-                    @Override
-                    public void call() {
-                        subscriberRealm.close();
-                    }
-                }));
                 subscriber.onNext(queryClone);
                 subscriber.onCompleted();
+
+                // TODO This is probably not safe, and should be part of any unsubscribe logic, but it seems impossible
+                // to guarantee that unsubscribe runs on the same thread as onSubscribe.
+                subscriberRealm.close();
             }
         });
     }
 
     private void checkRxJavaAvailable() {
-        if (!rxJavaAvailble) {
+        if (!rxJavaAvailable) {
             throw new IllegalStateException("RxJava seems to be missing from the classpath. " +
                     "Remember to add it as a compile dependency. See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
@@ -257,5 +255,4 @@ public class RealmObservableFactory implements RxObservableFactory {
     public boolean equals(Object o) {
         return o instanceof RealmObservableFactory;
     }
-
 }
