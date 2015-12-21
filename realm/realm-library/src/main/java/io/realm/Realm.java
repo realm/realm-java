@@ -1047,8 +1047,9 @@ public final class Realm extends BaseRealm {
      * @param transaction the {@link io.realm.Realm.Transaction} to execute.
      */
     public void executeTransaction(Transaction transaction) {
-        if (transaction == null)
+        if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
+        }
 
         beginTransaction();
         try {
