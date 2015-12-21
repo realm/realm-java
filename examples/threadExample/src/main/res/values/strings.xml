@@ -9,5 +9,10 @@
     <string name="add_dot">Add blue dot</string>
     <string name="clear_dots">Clear dots</string>
     <string name="translate">Translate Dots</string>
+    <string name="start_activity">Passing to Activity</string>
+    <string name="title_activity_receiving">Receiving Activity</string>
+    <string name="title_section4">Object Passing</string>
+    <string name="start_intent_service">Passing to Intent Service</string>
+    <string name="start_receiver">Passing To Receiver</string>
 
 </resources>
