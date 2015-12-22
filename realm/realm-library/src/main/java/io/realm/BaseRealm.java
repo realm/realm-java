@@ -186,7 +186,7 @@ abstract class BaseRealm implements Closeable {
     public void removeAllChangeListeners() {
         checkIfValid();
         if (handler == null) {
-            throw new IllegalStateException("You can't register listeners from a non-Looper thread ");
+            throw new IllegalStateException("You can't remove listeners from a non-Looper thread ");
         }
         handlerController.removeAllChangeListeners();
     }
