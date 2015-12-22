@@ -319,7 +319,7 @@ public class RxJavaTests extends AndroidTestCase {
                     }
                 }, new Action1<Throwable>() {
                     @Override
-                    public void call(Throwable ignore) {
+                    public void call(Throwable expected) {
                         subscriptionFailed.countDown();
                     }
                 });
