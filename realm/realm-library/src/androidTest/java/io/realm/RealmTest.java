@@ -46,6 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -736,6 +737,8 @@ public class RealmTest extends AndroidTestCase {
     }
 
     public void testExecuteTransactionCancel() {
+        final AtomicReference<RuntimeException> thrownException = new AtomicReference<>(null);
+
         assertEquals(0, testRealm.allObjects(Owner.class).size());
         try {
             testRealm.executeTransaction(new Realm.Transaction() {
@@ -743,10 +746,13 @@ public class RealmTest extends AndroidTestCase {
                 public void execute(Realm realm) {
                     Owner owner = realm.createObject(Owner.class);
                     owner.setName("Owner");
-                    throw new RuntimeException("Boom");
+                    thrownException.set(new RuntimeException("Boom"));
+                    throw thrownException.get();
                 }
             });
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException e) {
+            //noinspection ThrowableResultOfMethodCallIgnored
+            assertTrue(e == thrownException.get());
         }
         assertEquals(0, testRealm.allObjects(Owner.class).size());
     }
