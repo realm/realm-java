@@ -1,11 +1,14 @@
 package io.realm;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.internal.SharedGroup;
+import io.realm.internal.log.RealmLog;
 
 /**
  * Daemon thread sleeps until one ore more commits have been made to the corresponding Realm. When change happens, the
@@ -19,17 +22,23 @@ class RealmChangeDaemon {
         void onChanged(RealmConfiguration configuration);
     }
 
+    private final static int STOP_TIMEOUT_IN_SECONDS = 2;
+
     private final SharedGroup sharedGroup;
     private final Callback callback;
     private static final ThreadFactory threadFactory = new ThreadFactory() {
         AtomicInteger counter = new AtomicInteger(0);
         @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r, "RealmChangeDaemon_" + counter.getAndIncrement());
+        public Thread newThread(@SuppressWarnings("NullableProblems") Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setName("RealmChangeDaemon_" + counter.getAndIncrement());
+            thread.setDaemon(true);
             return thread;
         }
     };
     private static ExecutorService executorService = Executors.newCachedThreadPool(threadFactory);
+    private CountDownLatch stoppedLatch = new CountDownLatch(1);
+    private final RealmConfiguration configuration;
 
     /**
      * Creates and starts a new RealmChangeDaemon with given initial parameters.
@@ -38,6 +47,7 @@ class RealmChangeDaemon {
      * @param onChangedCallback the callback will be ran when the changes happen to the given Realm.
      */
     public RealmChangeDaemon(final RealmConfiguration configuration, Callback onChangedCallback) {
+        this.configuration = configuration;
         this.sharedGroup = new SharedGroup(
                 configuration.getPath(),
                 SharedGroup.IMPLICIT_TRANSACTION,
@@ -54,6 +64,7 @@ class RealmChangeDaemon {
                     sharedGroup.endRead();
                 }
                 sharedGroup.close();
+                stoppedLatch.countDown();
             }
         };
 
@@ -65,5 +76,15 @@ class RealmChangeDaemon {
      */
     public void stop() {
         sharedGroup.setWaitForChangeEnabled(false);
+        try {
+            // Two seconds should be more than enough to stop daemon. And timeout should never happen!
+            if(!stoppedLatch.await(STOP_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)) {
+                RealmLog.e("Timeout happened when stop RealmChangeDaemon for RealmConfiguration:\n"
+                        + configuration.toString());
+            }
+        } catch (InterruptedException e) {
+            RealmLog.e("An exception was thrown when stop RealmChangeDaemon for RealmConfiguration:\n"
+                    + configuration.toString() + "\n The exception is: " + e.getMessage());
+        }
     }
 }
