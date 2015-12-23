@@ -6,6 +6,8 @@
  * Upgraded to NDK R10e. Using gcc 4.9 for all architectures.
  * Updated Realm Core to 0.95.6
    - Fixed a bug where an async query can be copied incomplete in rare cases (#1717).
+ * Fixed potential memory leak when using async query.
+ * Add a check to prevent removing a RealmChangeListener from a non-Looper thread. (Thank you @hohnamkung)
 
 0.87.0
  * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
