@@ -98,9 +98,9 @@ task installRobolectric(type:GradleBuild) {
     tasks = ['installRobolectric']
 }
 
-task assembleRobolectric(type:GradleBuild) {
+task buildRobolectric(type:GradleBuild) {
     buildFile = file('realm/build.gradle')
-    tasks = ['assembleRobolectric']
+    tasks = ['buildRobolectric']
 }
 
 task testRobolectric(type:GradleBuild) {

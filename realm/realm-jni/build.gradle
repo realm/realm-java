@@ -248,24 +248,18 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
-task copyStaticLibraryForRobolectric(description: "Copy the static core library into realm-library") {
-    def staticLibPath = "/usr/local/lib/librealm.a"
-    if (file(staticLibPath).exists() == false) {
-        throw new StopExecutionException("The core library for OS X is not installed correctly.")
-    }
-
-    copy {
-        from staticLibPath
-        into "${projectDir}/../realm-library/src"
-    }
-}
-
-task assembleRobolectric(description: "Build the Robolectric shared library for Darwin") {
-    dependsOn {
-        copyStaticLibraryForRobolectric
-    }
-
+task buildRobolectric(description: "Build the Robolectric shared library for Darwin") {
     doFirst {
+        def staticLibPath = "/usr/local/lib/librealm.a"
+        if (file(staticLibPath).exists() == false) {
+            throw new StopExecutionException("The core library for OS X is not installed correctly.")
+        }
+
+        copy {
+            from staticLibPath
+            into "${projectDir}/../realm-library/src"
+        }
+
         exec {
             environment CC: "${clang?'clang':'gcc'}"
             environment STRIP: "/usr/bin/strip -o librealm-jni-darwin-stripped.dylib"
@@ -305,7 +299,7 @@ task assembleRobolectric(description: "Build the Robolectric shared library for 
 
 task installRobolectric(description: "Install native library to support Robolectric.") {
     dependsOn {
-        assembleRobolectric
+        buildRobolectric
     }
 
     copy {
