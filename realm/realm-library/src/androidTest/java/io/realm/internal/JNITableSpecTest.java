@@ -16,8 +16,9 @@
 
 package io.realm.internal;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,14 +27,18 @@ import java.util.Date;
 import io.realm.RealmFieldType;
 import io.realm.internal.test.ColumnTypeData;
 
-public class JNITableSpecTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+@RunWith(Parameterized.class)
+public class JNITableSpecTest {
 
     TableSpec spec, spec2 = new TableSpec();
     Table table = new Table();
     ColumnTypeData columnTypeData = new ColumnTypeData(null);
 
+    @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
-
         return Arrays.asList(
                 new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.INTEGER)},
                 new Object[]{new TableSpec(), new TableSpec(), new Table(), new ColumnTypeData(RealmFieldType.FLOAT)},
@@ -54,6 +59,7 @@ public class JNITableSpecTest extends TestCase {
         this.columnTypeData = columnTypeData;
     }
 
+    @Test
     public void testShouldDefineOneColumnTable() {
         spec.addColumn(columnTypeData.type, "foo");
         assertEquals(0, spec.getColumnIndex("foo"));
@@ -71,6 +77,7 @@ public class JNITableSpecTest extends TestCase {
         assertEquals(spec.hashCode(), spec2.hashCode());
     }
 
+    @Test
     public void testShouldDefineTwoColumnsTable() {
         TableSpec subSpec = spec.addSubtableColumn("bar");
         subSpec.addColumn(columnTypeData.type, "subbar");
@@ -87,6 +94,7 @@ public class JNITableSpecTest extends TestCase {
         table.updateFromSpec(spec);
     }
 
+    @Test
     public void testShouldHandleColumnsDynamically() {
         table.addColumn(RealmFieldType.INTEGER, "0");
         assertEquals(1, table.getColumnCount());
@@ -169,8 +177,8 @@ public class JNITableSpecTest extends TestCase {
         assertEquals("44", table.getString(0, 4));
     }
 
+    @Test
     public void testShouldThrowOnUpdateFromTableSpecOnSubtable() {
-
         // Table definition
         Table persons = new Table();
 
@@ -194,10 +202,6 @@ public class JNITableSpecTest extends TestCase {
             fail("Address is subtable. Not allowed to update from spec");
         } catch (UnsupportedOperationException e) {
         }
-    }
-
-    public static Test suite() {
-        return new JNITestSuite(JNITableSpecTest.class, parameters());
     }
 }
 

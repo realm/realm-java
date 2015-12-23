@@ -626,7 +626,7 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
                     fail(type + " failed");
                 } catch (IllegalArgumentException ignored) {
                 } catch (RealmException e) {
-                    if(!(e.getCause() instanceof ParseException)) {
+                    if (!(e.getCause() instanceof ParseException)) {
                         // providing "foo" to the date parser will blow up with a RealmException
                         // and the cause will be a ParseException.
                         fail(type + " failed");
