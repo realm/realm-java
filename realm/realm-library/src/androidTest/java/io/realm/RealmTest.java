@@ -2696,4 +2696,58 @@ public class RealmTest extends AndroidTestCase {
             handlerThread.quit();
         }
     }
+
+    public void testRemoveChangeListenerThrowExceptionOnNonLooperThread() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(testConfig);
+                try {
+                    realm.removeChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                        }
+                    });
+                    fail("Should not be able to invoke removeChangeListener");
+                } catch (IllegalStateException e) {
+                    signalTestFinished.countDown();
+                } finally {
+                    realm.close();
+                }
+            }
+        });
+        thread.start();
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            thread.interrupt();
+        }
+    }
+
+    public void testRemoveAllChangeListenersThrowExceptionOnNonLooperThread() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(testConfig);
+                try {
+                    realm.removeAllChangeListeners();
+                    fail("Should not be able to invoke removeChangeListener");
+                } catch (IllegalStateException e) {
+                    signalTestFinished.countDown();
+                } finally {
+                    realm.close();
+                }
+            }
+        });
+        thread.start();
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            thread.interrupt();
+        }
+    }
 }
