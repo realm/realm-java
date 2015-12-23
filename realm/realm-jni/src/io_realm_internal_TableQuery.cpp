@@ -1143,7 +1143,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
 
         const size_t number_of_queries = env->GetArrayLength(query_param_matrix);
 
-        jlong* exported_handover_tableview_array = new jlong[number_of_queries];
+        std::vector<jlong> exported_handover_tableview_array(number_of_queries);
 
         // Step1: Position the shared group at the handover query version so we can import all queries
 
@@ -1153,7 +1153,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
         // position this shared group at the specified version
         SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
 
-        std::unique_ptr<Query>* queries = new std::unique_ptr<Query>[number_of_queries];
+        std::vector<std::unique_ptr<Query>> queries(number_of_queries);
 
         // import the first query
         queries[0] = std::move(SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery)));
@@ -1227,14 +1227,13 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
             }
         }
 
-        delete[] queries;
-
         jlongArray exported_handover_tableview = env->NewLongArray(number_of_queries);
         if (exported_handover_tableview == NULL) {
             ThrowException(env, OutOfMemory, "Could not allocate memory to return updated queries.");
             return NULL;
         }
-        env->SetLongArrayRegion(exported_handover_tableview, 0, number_of_queries, exported_handover_tableview_array);
+        env->SetLongArrayRegion(exported_handover_tableview, 0, number_of_queries,
+                exported_handover_tableview_array.data());
         return exported_handover_tableview;
 
     } CATCH_STD()
