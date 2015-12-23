@@ -530,30 +530,12 @@ public class DynamicRealmTest extends AndroidTestCase {
                 allTypes.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        assertEquals(7, allTypes.size());
+                        assertEquals(6, allTypes.size());
                         for (int i = 0; i < allTypes.size(); i++) {
                             assertEquals("test data " + (4 + i), allTypes.get(i).getString(AllTypes.FIELD_STRING));
                         }
                         realm.close();
                         signalTestFinished.countDown();
-                    }
-                });
-
-                realm.handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                Realm bgRealm = Realm.getInstance(defaultConfig);
-                                bgRealm.beginTransaction();
-                                AllTypes object = bgRealm.createObject(AllTypes.class);
-                                object.setColumnLong(10);
-                                object.setColumnString("test data 10");
-                                bgRealm.commitTransaction();
-                                bgRealm.close();
-                            }
-                        }.start();
                     }
                 });
             }

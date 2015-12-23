@@ -2524,18 +2524,18 @@ public class RealmTest extends AndroidTestCase {
             }
         }).start();
 
-        openedLatch.await();
+        TestHelper.awaitOrFail(openedLatch);
         Thread.sleep(100);
         testRealm.beginTransaction();
         testRealm.commitTransaction();
-        changedLatch.await();
+        TestHelper.awaitOrFail(changedLatch);
         assertEquals(0, count1.get());
         Thread.sleep(500);
         testRealm.beginTransaction();
         testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
         assertTrue(result.get());
-        closedLatch.await();
+        TestHelper.awaitOrFail(closedLatch);
         assertEquals(1, count2.get());
     }
 
@@ -2559,10 +2559,12 @@ public class RealmTest extends AndroidTestCase {
             }
         }).start();
 
-        openedLatch.await();
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(200);
         otherRealm[0].stopWaitForChange();
+        TestHelper.awaitOrFail(canceledLatch);
         assertFalse(result.get());
-        closedLatch.await();
+        TestHelper.awaitOrFail(closedLatch);
     }
 
     // Test if waitForChange still blocks if stopWaitForChange has been called before.
@@ -2587,15 +2589,15 @@ public class RealmTest extends AndroidTestCase {
             }
         }).start();
 
-        openedLatch.await();
+        TestHelper.awaitOrFail(openedLatch);
         Thread.sleep(100);
         realm[0].stopWaitForChange();
-        changedLatch.await();
+        TestHelper.awaitOrFail(changedLatch);
         assertFalse(result1.get());
         Thread.sleep(500);
         testRealm.beginTransaction();
         testRealm.commitTransaction();
-        closedLatch.await();
+        TestHelper.awaitOrFail(closedLatch);
         assertTrue(result2.get());
     }
 
