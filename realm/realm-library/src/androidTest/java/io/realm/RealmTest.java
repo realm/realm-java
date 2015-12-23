@@ -32,7 +32,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -47,6 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
@@ -2500,11 +2500,14 @@ public class RealmTest extends AndroidTestCase {
         assertTrue(results.get(0) == results.get(1));
     }
 
+    // Test if waitForChange gets waked up by 1) empty transaction 2) transaction with some data changes.
     public void testWaitForChange() throws InterruptedException {
         final CountDownLatch openedLatch = new CountDownLatch(1);
         final CountDownLatch changedLatch = new CountDownLatch(1);
         final CountDownLatch closedLatch = new CountDownLatch(1);
         final AtomicBoolean result = new AtomicBoolean(false);
+        final AtomicLong count1 = new AtomicLong(0);
+        final AtomicLong count2 = new AtomicLong(0);
 
         new Thread(new Runnable() {
             @Override
@@ -2512,8 +2515,10 @@ public class RealmTest extends AndroidTestCase {
                 Realm realm = Realm.getInstance(testConfig);
                 openedLatch.countDown();
                 result.set(realm.waitForChange());
+                count1.set(realm.where(AllTypes.class).count());
                 changedLatch.countDown();
                 result.set(realm.waitForChange());
+                count2.set(realm.where(AllTypes.class).count());
                 realm.close();
                 closedLatch.countDown();
             }
@@ -2524,13 +2529,17 @@ public class RealmTest extends AndroidTestCase {
         testRealm.beginTransaction();
         testRealm.commitTransaction();
         changedLatch.await();
+        assertEquals(0, count1.get());
         Thread.sleep(500);
         testRealm.beginTransaction();
+        testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
         assertTrue(result.get());
         closedLatch.await();
+        assertEquals(1, count2.get());
     }
 
+    // Test if waitForChange gets waked up by stopWaitForChange called.
     public void testStopWaitForChange() throws InterruptedException {
         final CountDownLatch openedLatch = new CountDownLatch(1);
         final CountDownLatch canceledLatch = new CountDownLatch(1);
@@ -2554,6 +2563,40 @@ public class RealmTest extends AndroidTestCase {
         otherRealm[0].stopWaitForChange();
         assertFalse(result.get());
         closedLatch.await();
+    }
+
+    // Test if waitForChange still blocks if stopWaitForChange has been called before.
+    public void testWaitForChangeAgainAfterStop() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch changedLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result1 = new AtomicBoolean(true);
+        final AtomicBoolean result2 = new AtomicBoolean(false);
+        final Realm[] realm = new Realm[1];
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                realm[0] = Realm.getInstance(testConfig);
+                openedLatch.countDown();
+                result1.set(realm[0].waitForChange());
+                changedLatch.countDown();
+                result2.set(realm[0].waitForChange());
+                realm[0].close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        openedLatch.await();
+        Thread.sleep(100);
+        realm[0].stopWaitForChange();
+        changedLatch.await();
+        assertFalse(result1.get());
+        Thread.sleep(500);
+        testRealm.beginTransaction();
+        testRealm.commitTransaction();
+        closedLatch.await();
+        assertTrue(result2.get());
     }
 
     // Test if close can be called from Realm change listener when there is no other listeners

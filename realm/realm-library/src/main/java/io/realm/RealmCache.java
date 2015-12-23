@@ -67,7 +67,7 @@ class RealmCache {
     // Realm instances in other threads doesn't have to initialize the column indices again.
     private ColumnIndices typedColumnIndices;
 
-    private RealmChangeNotifier changeNotifier;
+    private RealmChangeDaemon changeDaemon;
 
     // Realm path will be used as the key to store different RealmCaches. Different Realm configurations with same path
     // are not allowed and an exception will be thrown when trying to add it to the cache map.
@@ -77,7 +77,7 @@ class RealmCache {
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
 
-    private static RealmChangeNotifier.Callback notifierCallback = new RealmChangeNotifier.Callback() {
+    private static RealmChangeDaemon.Callback daemonCallback = new RealmChangeDaemon.Callback() {
         @Override
         public void onChanged(RealmConfiguration configuration) {
              BaseRealm.notifyHandlers(configuration);
@@ -134,7 +134,7 @@ class RealmCache {
             if (!isCacheInMap) {
                 cachesMap.put(configuration.getPath(), cache);
                 // Start notifier thread
-                cache.changeNotifier = new RealmChangeNotifier(configuration, notifierCallback);
+                cache.changeDaemon = new RealmChangeDaemon(configuration, daemonCallback);
             }
             refAndCount.localRealm.set(realm);
             refAndCount.localCount.set(0);
@@ -210,7 +210,7 @@ class RealmCache {
             // No more instance of typed Realm and dynamic Realm. Remove the configuration from cache.
             if (totalRefCount == 0) {
                 cachesMap.remove(canonicalPath);
-                cache.changeNotifier.close();
+                cache.changeDaemon.stop();
             }
 
             // No more local reference to this Realm in current thread, close the instance.

@@ -21,7 +21,6 @@ import android.os.Looper;
 
 import java.io.Closeable;
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -295,7 +294,9 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    public boolean waitForChange() {
+    boolean waitForChange() {
+        checkIfValid();
+        sharedGroupManager.getSharedGroup().setWaitForChangeEnabled(true);
         if (sharedGroupManager.getSharedGroup().waitForChange()) {
             sharedGroupManager.getSharedGroup().advanceRead();
             return true;
@@ -303,7 +304,7 @@ abstract class BaseRealm implements Closeable {
         return false;
     }
 
-    public void stopWaitForChange() {
+    void stopWaitForChange() {
         sharedGroupManager.getSharedGroup().setWaitForChangeEnabled(false);
     }
 
