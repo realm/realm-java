@@ -26,8 +26,7 @@ public class LinkView extends NativeObject {
 
     private static class LinkViewReference extends NativeObjectReference {
 
-        public LinkViewReference(NativeObject referent,
-                                 ReferenceQueue<? super NativeObject> referenceQueue) {
+        public LinkViewReference(NativeObject referent, ReferenceQueue<? super NativeObject> referenceQueue) {
             super(referent, referenceQueue);
         }
 
@@ -48,8 +47,7 @@ public class LinkView extends NativeObject {
         this.nativePointer = nativeLinkViewPtr;
 
         context.cleanNativeReferences();
-        context.rowReferences.put(new LinkViewReference(this, context.referenceQueue),
-                Context.NATIVE_REFERENCES_VALUE);
+        context.rowReferences.put(new LinkViewReference(this, context.referenceQueue), Context.NATIVE_REFERENCES_VALUE);
     }
 
     /**

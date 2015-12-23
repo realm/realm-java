@@ -23,11 +23,12 @@ import android.test.AndroidTestCase;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.DogPrimaryKey;
-import io.realm.exceptions.RealmException;
+import io.realm.internal.log.RealmLog;
 import io.realm.proxy.HandlerProxy;
 
 public class DynamicRealmTest extends AndroidTestCase {
@@ -199,7 +200,11 @@ public class DynamicRealmTest extends AndroidTestCase {
     }
 
     public void testExecuteTransactionNull() {
-        realm.executeTransaction(null); // Nothing happens
+        try {
+            realm.executeTransaction(null);
+            fail("null transaction should throw");
+        } catch (IllegalArgumentException ignored) {
+        }
         assertFalse(realm.hasChanged());
     }
 
@@ -219,6 +224,8 @@ public class DynamicRealmTest extends AndroidTestCase {
     }
 
     public void testExecuteTransactionCancel() {
+        final AtomicReference<RuntimeException> thrownException = new AtomicReference<>(null);
+
         assertEquals(0, realm.allObjects(CLASS_OWNER).size());
         try {
             realm.executeTransaction(new DynamicRealm.Transaction() {
@@ -226,12 +233,38 @@ public class DynamicRealmTest extends AndroidTestCase {
                 public void execute(DynamicRealm realm) {
                     DynamicRealmObject owner = realm.createObject(CLASS_OWNER);
                     owner.setString("name", "Owner");
+                    thrownException.set(new RuntimeException("Boom"));
+                    throw thrownException.get();
+                }
+            });
+        } catch (RuntimeException e) {
+            //noinspection ThrowableResultOfMethodCallIgnored
+            assertTrue(e == thrownException.get());
+        }
+        assertEquals(0, realm.allObjects(CLASS_OWNER).size());
+    }
+
+    public void testExecuteTransactionCancelledInExecuteThrowsRuntimeException() {
+        assertEquals(0, realm.allObjects("Owner").size());
+        TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        try {
+            RealmLog.add(testLogger);
+            realm.executeTransaction(new DynamicRealm.Transaction() {
+                @Override
+                public void execute(DynamicRealm realm) {
+                    DynamicRealmObject owner = realm.createObject("Owner");
+                    owner.setString("name", "Owner");
+                    realm.cancelTransaction();
                     throw new RuntimeException("Boom");
                 }
             });
-        } catch (RealmException ignore) {
+        } catch (RuntimeException ignored) {
+            // Ensure that we pass a valuable error message to the logger for developers.
+            assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
+        } finally {
+            RealmLog.remove(testLogger);
         }
-        assertEquals(0, realm.allObjects(CLASS_OWNER).size());
+        assertEquals(0, realm.allObjects("Owner").size());
     }
 
     public void testAllObjectsSorted() {

@@ -18,8 +18,8 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.test.AndroidTestCase;
 import android.os.Looper;
+import android.test.AndroidTestCase;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -41,11 +41,11 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.NullTypes;
+import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.log.Logger;
-import static junit.framework.Assert.fail;
 
-import io.realm.entities.StringOnly;
+import static junit.framework.Assert.fail;
 
 public class TestHelper {
 
@@ -64,7 +64,6 @@ public class TestHelper {
             testCase.assertEquals(expectedCount, count);
         }
     }
-
 
     public static RealmFieldType getColumnType(Object o){
         if (o instanceof Boolean)
@@ -677,5 +676,10 @@ public class TestHelper {
             // throw any assertion errors happened in the background thread
             throw throwable[0];
         }
+    }
+
+    public static InputStream loadJsonFromAssets(Context context, String file) throws IOException {
+        AssetManager assetManager = context.getAssets();
+        return assetManager.open(file);
     }
 }

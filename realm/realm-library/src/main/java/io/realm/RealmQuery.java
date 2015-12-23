@@ -30,7 +30,7 @@ import io.realm.annotations.Required;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
-import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
@@ -60,7 +60,7 @@ public class RealmQuery<E extends RealmObject> {
     private BaseRealm realm;
     private Class<E> clazz;
     private String className;
-    private Table table;
+    private TableOrView table;
     private RealmObjectSchema schema;
     private LinkView view;
     private TableQuery query;
@@ -139,7 +139,7 @@ public class RealmQuery<E extends RealmObject> {
         this.realm = queryResults.realm;
         this.clazz = clazz;
         this.schema = realm.schema.getSchemaForClass(clazz);
-        this.table = schema.table;
+        this.table = queryResults.getTable();
         this.view = null;
         this.query = queryResults.getTable().where();
     }
@@ -192,7 +192,7 @@ public class RealmQuery<E extends RealmObject> {
         if (view != null) {
             return view.isAttached();
         }
-        return table != null && table.isValid();
+        return table != null && table.getTable().isValid();
     }
 
     /**
@@ -1244,9 +1244,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
-                realm.handlerController.referenceQueueAsyncRealmResults);
-        realm.handlerController.asyncRealmResults.put(weakRealmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1273,7 +1271,7 @@ public class RealmQuery<E extends RealmObject> {
 
                         return handoverTableViewPointer;
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1303,11 +1301,16 @@ public class RealmQuery<E extends RealmObject> {
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAll() {
         checkQueryIsNotReused();
+        RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
+            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
         } else {
-            return RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
+            realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
         }
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -1342,9 +1345,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
-                realm.handlerController.referenceQueueAsyncRealmResults);
-        realm.handlerController.asyncRealmResults.put(weakRealmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1371,7 +1372,7 @@ public class RealmQuery<E extends RealmObject> {
                         return handoverTableViewPointer;
 
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1413,11 +1414,16 @@ public class RealmQuery<E extends RealmObject> {
         }
         tableView.sort(columnIndex, sortOrder);
 
+        RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
-            return RealmResults.createFromTableOrView(realm, tableView, clazz);
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
         }
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -1456,9 +1462,7 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
-                realm.handlerController.referenceQueueAsyncRealmResults);
-        realm.handlerController.asyncRealmResults.put(weakRealmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1483,7 +1487,7 @@ public class RealmQuery<E extends RealmObject> {
 
                         return handoverTableViewPointer;
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                     } finally {
@@ -1561,11 +1565,16 @@ public class RealmQuery<E extends RealmObject> {
             }
             tableView.sort(columnIndices, sortOrders);
 
+            RealmResults<E> realmResults;
             if (isDynamicQuery()) {
-                return (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+                realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
             } else {
-                return RealmResults.createFromTableOrView(realm, tableView, clazz);
+                realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
             }
+            if (realm.handlerController != null) {
+                realm.handlerController.addToRealmResults(realmResults);
+            }
+            return realmResults;
         }
     }
 
@@ -1622,9 +1631,7 @@ public class RealmQuery<E extends RealmObject> {
                 realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
             }
 
-            final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
-                    realm.handlerController.referenceQueueAsyncRealmResults);
-            realm.handlerController.asyncRealmResults.put(weakRealmResults, this);
+            final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
             final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
                 @Override
@@ -1649,7 +1656,7 @@ public class RealmQuery<E extends RealmObject> {
 
                             return handoverTableViewPointer;
                         } catch (Exception e) {
-                            RealmLog.e(e.getMessage());
+                            RealmLog.e(e.getMessage(), e);
                             sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
                         } finally {
@@ -1750,9 +1757,9 @@ public class RealmQuery<E extends RealmObject> {
      */
     public E findFirst() {
         checkQueryIsNotReused();
-        long rowIndex = this.query.find();
-        if (rowIndex >= 0) {
-            E realmObject = realm.get(clazz, className, (view != null) ? view.getTargetRowIndex(rowIndex) : rowIndex);
+        long sourceRowIndex = getSourceRowIndexForFirstObject();
+        if (sourceRowIndex >= 0) {
+            E realmObject = realm.get(clazz, className, sourceRowIndex);
             if (realm.handlerController != null) { // non Looper Thread doesn't have a handlerController
                 WeakReference<RealmObject> realmObjectWeakReference
                         = new WeakReference<RealmObject>(realmObject, realm.handlerController.referenceQueueRealmObject);
@@ -1795,8 +1802,7 @@ public class RealmQuery<E extends RealmObject> {
             result = realm.getConfiguration().getSchemaMediator().newInstance(clazz, realm.getSchema().getColumnInfo(clazz));
         }
 
-        final WeakReference<RealmObject> realmObjectWeakReference = new WeakReference<RealmObject>(result, realm.handlerController.referenceQueueRealmObject);
-        realm.handlerController.realmObjects.put(realmObjectWeakReference, this);
+        final WeakReference<RealmObject> realmObjectWeakReference = realm.handlerController.addToAsyncRealmObject(result, this);
         result.realm = realm;
         result.row = Row.EMPTY_ROW;
 
@@ -1815,8 +1821,8 @@ public class RealmQuery<E extends RealmObject> {
                         long handoverRowPointer = query.findWithHandover(sharedGroup.getNativePointer(),
                                 sharedGroup.getNativeReplicationPointer(), handoverQueryPointer);
                         if (handoverRowPointer == 0) { // empty row
-                            realm.handlerController.emptyAsyncRealmObject.put(realmObjectWeakReference, RealmQuery.this);
-                            realm.handlerController.realmObjects.remove(realmObjectWeakReference);
+                            realm.handlerController.addToEmptyAsyncRealmObject(realmObjectWeakReference, RealmQuery.this);
+                            realm.handlerController.removeFromAsyncRealmObject(realmObjectWeakReference);
                         }
 
                         QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmObjectResponse();
@@ -1827,7 +1833,7 @@ public class RealmQuery<E extends RealmObject> {
                         return handoverRowPointer;
 
                     } catch (Exception e) {
-                        RealmLog.e(e.getMessage());
+                        RealmLog.e(e.getMessage(), e);
                         // handler can't throw a checked exception need to wrap it into unchecked Exception
                         sendMessageToHandler(weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
 
@@ -1882,6 +1888,20 @@ public class RealmQuery<E extends RealmObject> {
     private void checkQueryIsNotReused() {
         if (argumentsHolder != null) {
             throw new IllegalStateException("This RealmQuery is already used by a find* query, please create a new query");
+        }
+    }
+
+    private long getSourceRowIndexForFirstObject() {
+        long rowIndex = this.query.find();
+        if (rowIndex < 0) {
+            return rowIndex;
+        }
+        if (this.view != null) {
+            return view.getTargetRowIndex(rowIndex);
+        } else if (table instanceof TableView){
+            return ((TableView) table).getSourceRowIndex(rowIndex);
+        } else {
+            return rowIndex;
         }
     }
 
