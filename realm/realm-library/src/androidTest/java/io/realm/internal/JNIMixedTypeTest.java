@@ -16,25 +16,31 @@
 
 package io.realm.internal;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import io.realm.RealmFieldType;
 import io.realm.internal.test.MixedData;
 
-public class JNIMixedTypeTest extends TestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.fail;
 
-    static List<MixedData> mixedDataList = new ArrayList<MixedData>();
+@RunWith(Parameterized.class)
+public class JNIMixedTypeTest {
 
-    public static Collection<Object[]> parameters() {
+    List<MixedData> mixedDataList = new ArrayList<MixedData>();
+
+    @Parameterized.Parameters
+    public static List<Object[]> parameters() {
         //Adding MixedData to the list
+        List<MixedData> mixedDataList = new ArrayList<MixedData>();
         mixedDataList.add(0, new MixedData(RealmFieldType.INTEGER, 123L));
         mixedDataList.add(1, new MixedData(RealmFieldType.FLOAT, 987.123f));
         mixedDataList.add(2, new MixedData(RealmFieldType.DOUBLE, 1234567.898d));
@@ -51,11 +57,11 @@ public class JNIMixedTypeTest extends TestCase {
         );
     }
 
-    public JNIMixedTypeTest(ArrayList<MixedData> mixedDataList) {
-        JNIMixedTypeTest.mixedDataList = mixedDataList;
-
+    public JNIMixedTypeTest(List<MixedData> mixedDataList) {
+        this.mixedDataList = mixedDataList;
     }
 
+    @Test
     public void testShouldMatchMixedValues() {
         for (int i = 0; i < mixedDataList.size(); i++) {
             for (int j = 0; j < mixedDataList.size(); j++) {
@@ -70,6 +76,7 @@ public class JNIMixedTypeTest extends TestCase {
         }
     }
 
+    @Test
     public void testShouldFailOnWrongTypeRetrieval() {
         for (int i = 0; i < mixedDataList.size(); i++) {
             Object value = mixedDataList.get(i).type != RealmFieldType.STRING ? "abc" : 123;
@@ -130,59 +137,6 @@ public class JNIMixedTypeTest extends TestCase {
                     break;
             }
         }
-    }
-
-    public void testShouldStoreValuesOfMixedType() throws Throwable {
-        for (int i = 0; i < mixedDataList.size(); i++) {
-            for (int j = 0; j < mixedDataList.size(); j++) {
-                for (int k = 0; k < mixedDataList.size(); k++) {
-
-                    Table table = new Table();
-                    table.addColumn(RealmFieldType.UNSUPPORTED_MIXED, "mix");
-
-                    table.add(mixedDataList.get(i).value);
-
-                    checkMixedCell(table, 0, 0, mixedDataList.get(i).type, mixedDataList.get(i).value);
-
-                    table.setMixed(0, 0, Mixed.mixedValue(mixedDataList.get(j).value));
-
-                    checkMixedCell(table, 0, 0, mixedDataList.get(j).type, mixedDataList.get(j).value);
-
-                    table.setMixed(0, 0, Mixed.mixedValue(mixedDataList.get(k).value));
-
-                    checkMixedCell(table, 0, 0, mixedDataList.get(k).type, mixedDataList.get(k).value);
-                    table.close();
-                }
-            }
-        }
-    }
-
-    private void checkMixedCell(Table table, long col, long row, RealmFieldType columnType, Object value) throws IllegalMixedTypeException {
-        RealmFieldType mixedType = table.getMixedType(col, row);
-        assertEquals(columnType, mixedType);
-
-        Mixed mixed = table.getMixed(col, row);
-        if (columnType == RealmFieldType.BINARY) {
-            if (mixed.getBinaryType() == Mixed.BINARY_TYPE_BYTE_ARRAY) {
-                // NOTE: We never get here because we always "get" a ByteBuffer.
-                assertEquals(Mixed.mixedValue(value), mixed);
-            } else {
-                ByteBuffer binBuf = mixed.getBinaryValue();
-                // TODO: Below is sort of hack to compare the content of the
-                // buffers, since you always will get a ByteBuffer from a Mixed.
-                ByteBuffer valueBuf = ByteBuffer.wrap((byte[]) value);
-                if (!binBuf.equals(valueBuf))
-                    System.out.println("***failed");
-                assertEquals(Mixed.mixedValue(valueBuf), Mixed.mixedValue(binBuf));
-            }
-        } else {
-            assertEquals(value, mixed.getValue());
-        }
-    }
-
-    public static Test suite() {
-        return new JNITestSuite(JNIMixedTypeTest.class, parameters());
-
     }
 }
 
