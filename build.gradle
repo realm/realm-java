@@ -93,6 +93,11 @@ task installRealmJava(type:Task) {
     description = 'Install the Realm library and Gradle plugin into mavenLocal()'
 }
 
+task installRobolectric(type:GradleBuild) {
+    buildFile = file('realm/build.gradle')
+    tasks = ['installRobolectric']
+}
+
 task assembleRobolectric(type:GradleBuild) {
     buildFile = file('realm/build.gradle')
     tasks = ['assembleRobolectric']
