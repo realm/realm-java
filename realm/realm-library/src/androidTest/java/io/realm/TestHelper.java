@@ -19,7 +19,6 @@ package io.realm;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Looper;
-import android.test.AndroidTestCase;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -34,10 +33,12 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.NullTypes;
@@ -46,22 +47,21 @@ import io.realm.internal.Table;
 import io.realm.internal.log.Logger;
 
 import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertEquals;
 
 public class TestHelper {
 
     public static class ExpectedCountCallback implements RealmCache.Callback {
 
         private int expectedCount;
-        private AndroidTestCase testCase;
 
-        ExpectedCountCallback(AndroidTestCase testCase, int expectedCount) {
+        ExpectedCountCallback(int expectedCount) {
             this.expectedCount = expectedCount;
-            this.testCase = testCase;
         }
 
         @Override
         public void onResult(int count) {
-            testCase.assertEquals(expectedCount, count);
+            assertEquals(expectedCount, count);
         }
     }
 
@@ -642,17 +642,17 @@ public class TestHelper {
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
         try {
             if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
-                fail();
+                fail("Test took longer than " + numberOfSeconds + " seconds");
             }
         } catch (InterruptedException e) {
-            fail();
+            fail(e.getMessage());
         }
     }
 
     // clean resource, shutdown the executor service & throw any background exception
     public static void exitOrThrow(final ExecutorService executorService,
                      final CountDownLatch signalTestFinished,
-                     final CountDownLatch signalFinallyRun,
+                     final CountDownLatch signalClosedRealm,
                      final Looper[] looper,
                      final Throwable[] throwable,
                      int... timeout) throws Throwable {
@@ -670,7 +670,7 @@ public class TestHelper {
         }
 
         // wait for the finally block to execute & close the Realm
-        TestHelper.awaitOrFail(signalFinallyRun, (timeout.length == 1) ? timeout[0] : 7);
+        TestHelper.awaitOrFail(signalClosedRealm, (timeout.length == 1) ? timeout[0] : 7);
 
         if (throwable[0] != null) {
             // throw any assertion errors happened in the background thread

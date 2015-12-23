@@ -18,8 +18,9 @@ package io.realm.internal;
 
 import android.test.MoreAsserts;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,14 +31,19 @@ import java.util.List;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class JNITableInsertTest extends TestCase {
 
-    static List<Object> value = new ArrayList<Object>();
-    Object tv = new Object();
-    Object ct = new Object();
+@RunWith(Parameterized.class)
+public class JNITableInsertTest {
 
+    List<Object> value = new ArrayList<Object>();
+
+    @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
+        List<Object> value = new ArrayList<Object>();
         value.add(0, true);
         value.add(1, "abc");
         value.add(2, 123L);
@@ -51,7 +57,7 @@ public class JNITableInsertTest extends TestCase {
         );
     }
 
-    public JNITableInsertTest(ArrayList value) {
+    public JNITableInsertTest(List<Object> value) {
         this.value = value;
     }
 
@@ -77,6 +83,7 @@ public class JNITableInsertTest extends TestCase {
         assertTrue(tbl.isValid());
     }
 
+    @Test
     public void testShouldThrowExceptionWhenColumnNameIsTooLong() {
 
         Table table = new Table();
@@ -88,12 +95,14 @@ public class JNITableInsertTest extends TestCase {
         }
     }
 
+    @Test
     public void testWhenColumnNameIsExactly63CharLong() {
 
         Table table = new Table();
         table.addColumn(RealmFieldType.STRING, "THIS STRING HAS 63 CHARACTERS PERFECT FOR THE MAX 63 CHARACTERS");
     }
 
+    @Test
     public void testGenericAddOnTable() {
         for (int i = 0; i < value.size(); i++) {
             for (int j = 0; j < value.size(); j++) {
@@ -118,10 +127,5 @@ public class JNITableInsertTest extends TestCase {
         }
     }
 
-
-    public static Test suite() {
-        return new JNITestSuite(JNITableInsertTest.class, parameters());
-
-    }
 }
 
