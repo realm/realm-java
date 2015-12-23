@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.MessageQueue;
 import android.os.SystemClock;
@@ -187,6 +188,110 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         });
 
         TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+    }
+
+    // Test if the background Realm is closed when transaction success returned.
+    public void testClosedBeforeAsyncTransactionSuccess() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final AtomicInteger counter = new AtomicInteger(100);
+                final Realm realm = openRealmInstance("testClosedBeforeAsyncTransactionSuccess");
+                final RealmCache.Callback cacheCallback = new RealmCache.Callback() {
+                    @Override
+                    public void onResult(int count) {
+                        assertEquals(1, count);
+                        if (counter.decrementAndGet() == 0) {
+                            realm.close();
+                            signalTestFinished.countDown();
+                        }
+                    }
+                };
+                final Realm.Transaction.Callback transactionCallback = new Realm.Transaction.Callback() {
+                    @Override
+                    public void onSuccess() {
+                        RealmCache.invokeWithGlobalRefCount(realm.getConfiguration(), cacheCallback);
+                        if (counter.get() == 0) {
+                            // Finish testing
+                            return;
+                        }
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                            }
+                        }, this);
+                    }
+                };
+
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                    }
+                }, transactionCallback);
+            }
+        });
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    // Test if the background Realm is closed when transaction error returned.
+    public void testClosedBeforeAsyncTransactionError() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        HandlerThread handlerThread = new HandlerThread("background");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final AtomicInteger counter = new AtomicInteger(100);
+                final Realm realm = openRealmInstance("testClosedBeforeAsyncTransactionSuccess");
+                final RealmCache.Callback cacheCallback = new RealmCache.Callback() {
+                    @Override
+                    public void onResult(int count) {
+                        assertEquals(1, count);
+                        if (counter.decrementAndGet() == 0) {
+                            realm.close();
+                            signalTestFinished.countDown();
+                        }
+                    }
+                };
+                final Realm.Transaction.Callback transactionCallback = new Realm.Transaction.Callback() {
+                    @Override
+                    public void onError(Exception e) {
+                        RealmCache.invokeWithGlobalRefCount(realm.getConfiguration(), cacheCallback);
+                        if (counter.get() == 0) {
+                            // Finish testing
+                            return;
+                        }
+                        realm.executeTransaction(new Realm.Transaction() {
+                            @Override
+                            public void execute(Realm realm) {
+                                throw new RuntimeException("Dummy exception");
+                            }
+                        }, this);
+                    }
+                };
+
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        throw new RuntimeException("Dummy exception");
+                    }
+                }, transactionCallback);
+            }
+        });
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
     }
 
     // ************************************
@@ -2487,6 +2592,269 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
                     }
                     if (realm != null) {
                         realm.close();
+                    }
+                    signalClosedRealm.countDown();
+                }
+            }
+        });
+
+        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+    }
+
+    public void testBatchUpdateDifferentTypeOfQueries() {
+        final RealmResults[] keepStrongReference = new RealmResults[4];
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+
+        HandlerThread handlerThread = new HandlerThread("LooperThread");
+        handlerThread.start();
+        final Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                final Realm realm = openRealmInstance("testBatchUpdateDifferentTypeOfQueries");
+
+                realm.beginTransaction();
+                for (int i = 0; i < 5; ) {
+                    AllTypes allTypes = realm.createObject(AllTypes.class);
+                    allTypes.setColumnLong(i);
+                    allTypes.setColumnString("data " + i % 3);
+
+                    allTypes = realm.createObject(AllTypes.class);
+                    allTypes.setColumnLong(i);
+                    allTypes.setColumnString("data " + (++i % 3));
+                }
+                final long numberOfBlocks = 25;
+                final long numberOfObjects = 10; // must be greater than 1
+                realm.commitTransaction();
+                populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+                RealmResults<AllTypes> findAllAsync = realm.where(AllTypes.class).findAllAsync();
+                RealmResults<AllTypes> findAllSorted = realm.where(AllTypes.class).findAllSortedAsync("columnString", Sort.ASCENDING);
+                RealmResults<AllTypes> findAllSortedMulti = realm.where(AllTypes.class).findAllSortedAsync(new String[]{"columnString", "columnLong"},
+                        new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
+                RealmResults<AnnotationIndexTypes> findDistinct = realm.distinctAsync(AnnotationIndexTypes.class, "indexString");
+
+                keepStrongReference[0] = findAllAsync;
+                keepStrongReference[1] = findAllSorted;
+                keepStrongReference[2] = findAllSortedMulti;
+                keepStrongReference[3] = findDistinct;
+
+                final CountDownLatch queriesCompleted = new CountDownLatch(4);
+                final AtomicInteger batchUpdateCompleted = new AtomicInteger(0);
+                final AtomicInteger findAllAsyncInvocation = new AtomicInteger(0);
+                final AtomicInteger findAllSortedInvocation = new AtomicInteger(0);
+                final AtomicInteger findAllSortedMultiInvocation = new AtomicInteger(0);
+                final AtomicInteger findDistinctInvocation = new AtomicInteger(0);
+
+                findAllAsync.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        switch (findAllAsyncInvocation.incrementAndGet()) {
+                            case 1: {
+                                queriesCompleted.countDown();
+                                break;
+                            }
+                            case 2: {
+                                if (batchUpdateCompleted.incrementAndGet() == 4) {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            realm.close();
+                                            signalTestFinished.countDown();
+                                        }
+                                    });
+                                }
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                findAllSorted.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        switch (findAllSortedInvocation.incrementAndGet()) {
+                            case 1: {
+                                queriesCompleted.countDown();
+                                break;
+                            }
+                            case 2: {
+                                if (batchUpdateCompleted.incrementAndGet() == 4) {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            realm.close();
+                                            signalTestFinished.countDown();
+                                        }
+                                    });
+                                }
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                findAllSortedMulti.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        switch (findAllSortedMultiInvocation.incrementAndGet()) {
+                            case 1: {
+                                queriesCompleted.countDown();
+                                break;
+                            }
+                            case 2: {
+                                if (batchUpdateCompleted.incrementAndGet() == 4) {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            realm.close();
+                                            signalTestFinished.countDown();
+                                        }
+                                    });
+                                }
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                findDistinct.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        switch (findDistinctInvocation.incrementAndGet()) {
+                            case 1: {
+                                queriesCompleted.countDown();
+                                break;
+                            }
+                            case 2: {
+                                if (batchUpdateCompleted.incrementAndGet() == 4) {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            realm.close();
+                                            signalTestFinished.countDown();
+                                        }
+                                    });
+                                }
+                                break;
+                            }
+                        }
+                    }
+                });
+
+                // wait for the queries to completes then send a commit from
+                // another thread to trigger a batch update of the 4 queries
+                new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            queriesCompleted.await();
+                            Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+
+                            bgRealm.beginTransaction();
+                            bgRealm.createObject(AllTypes.class);
+                            bgRealm.createObject(AnnotationIndexTypes.class);
+                            bgRealm.commitTransaction();
+
+                            bgRealm.close();
+                        } catch (InterruptedException e) {
+                            fail(e.getMessage());
+                        }
+                    }
+                }.start();
+            }
+        });
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            handlerThread.quit();
+        }
+    }
+
+    // this test make sure that Async queries update when using link
+    public void testQueryingLinkHandover() throws Throwable {
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final AtomicInteger numberOfInvocations = new AtomicInteger(0);
+        final Realm[] realm = new Realm[1];
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                try {
+                    realm[0] = openRealmInstance("testQueryingLinkHandover");
+
+                    final RealmResults<Dog> allAsync = realm[0].where(Dog.class).equalTo("owner.name", "kiba").findAllAsync();
+                    allAsync.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            switch (numberOfInvocations.incrementAndGet()) {
+                                case 1: {
+                                    assertEquals(0, allAsync.size());
+                                    assertTrue(allAsync.isLoaded());
+                                    assertTrue(allAsync.isValid());
+                                    assertTrue(allAsync.isEmpty());
+                                    final CountDownLatch wait = new CountDownLatch(1);
+                                    final RealmConfiguration configuration = realm[0].getConfiguration();
+                                    new Thread() {
+                                        @Override
+                                        public void run() {
+                                            Realm instance = Realm.getInstance(configuration);
+                                            instance.beginTransaction();
+                                            Dog dog = instance.createObject(Dog.class);
+                                            dog.setAge(10);
+                                            dog.setName("Akamaru");
+                                            Owner kiba = instance.createObject(Owner.class);
+                                            kiba.setName("kiba");
+                                            dog.setOwner(kiba);
+                                            instance.commitTransaction();
+                                            wait.countDown();
+                                        }
+                                    }.start();
+                                    try {
+                                        wait.await();
+                                    } catch (InterruptedException e) {
+                                        fail(e.getMessage());
+                                    }
+                                    break;
+                                }
+                                case 2: {
+                                    assertEquals(1, realm[0].allObjects(Dog.class).size());
+                                    assertEquals(1, realm[0].allObjects(Owner.class).size());
+                                    assertEquals(1, allAsync.size());
+                                    assertTrue(allAsync.isLoaded());
+                                    assertTrue(allAsync.isValid());
+                                    assertFalse(allAsync.isEmpty());
+                                    assertEquals(1, allAsync.size());
+                                    assertEquals("Akamaru", allAsync.get(0).getName());
+                                    assertEquals("kiba", allAsync.get(0).getOwner().getName());
+                                    signalCallbackFinished.countDown();
+                                    break;
+                                }
+                                default:
+                                    throw new IllegalStateException("invalid number of invocation");
+                            }
+                        }
+                    });
+
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm.length > 0 && realm[0] != null) {
+                        realm[0].close();
                     }
                     signalClosedRealm.countDown();
                 }

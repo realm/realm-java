@@ -17,7 +17,6 @@
 package io.realm;
 
 
-import java.lang.ref.WeakReference;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +33,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * This class holds all the matches of a {@link io.realm.RealmQuery} for a given Realm. The objects are not copied from
@@ -65,7 +65,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private TableOrView table = null;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
-    private long currentTableViewVersion = 0;
+    private long currentTableViewVersion = -1;
 
     private final TableQuery query;
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
@@ -108,12 +108,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         this.pendingQuery = null;
         this.query = null;
         this.currentTableViewVersion = table.sync();
-
-        if (realm.handlerController != null) { // non Looper thread doesn't have a handlerController
-            WeakReference<RealmResults<? extends RealmObject>> realmResultsWeakReference
-                    = new WeakReference<RealmResults<? extends RealmObject>>(this, realm.handlerController.referenceQueueSyncRealmResults);
-            this.realm.handlerController.syncRealmResults.add(realmResultsWeakReference);
-        }
     }
 
     private RealmResults(BaseRealm realm, String className) {
@@ -828,18 +822,46 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
+     * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
+     * subscribed to.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    @SuppressWarnings("unchecked")
+    public Observable<RealmResults<E>> asObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().from((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
+            @SuppressWarnings("UnnecessaryLocalVariable")
+            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
+            return results;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+        }
+    }
+
+    /**
      * Notifies all registered listeners.
      */
     void notifyChangeListeners() {
-        // table might be null (if the async query didn't complete
-        // but we have already registered listeners for it)
-        if (pendingQuery != null && !isCompleted) return;
+        if (listeners != null && !listeners.isEmpty()) {
+            // table might be null (if the async query didn't complete
+            // but we have already registered listeners for it)
+            if (pendingQuery != null && !isCompleted) return;
 
-        long version = table.sync();
-        if (currentTableViewVersion != version) {
-            currentTableViewVersion = version;
-            for (RealmChangeListener listener : listeners) {
-                listener.onChange();
+            //FIXME: still waiting for Core to provide a fix
+            //       for crash when calling _sync_if_needed on a cleared View.
+            //       https://github.com/realm/realm-core/pull/1390
+            long version = table.sync();
+            if (currentTableViewVersion != version) {
+                currentTableViewVersion = version;
+                for (RealmChangeListener listener : listeners) {
+                    listener.onChange();
+                }
             }
         }
     }

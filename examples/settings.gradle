@@ -10,6 +10,7 @@ include 'moduleExample:library'
 include 'realmModuleExample'
 include 'threadExample'
 include 'unitTestExample'
+include 'rxJavaExample'
 include 'robolectricExample'
 
 rootProject.name = 'examples'

@@ -21,6 +21,8 @@ import android.os.Looper;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
+import rx.Observable;
+import io.realm.internal.log.RealmLog;
 
 /**
  * DynamicRealm is a dynamic variant of {@link io.realm.Realm}. This means that all access to data and/or queries are
@@ -74,7 +76,8 @@ public final class DynamicRealm extends BaseRealm {
         checkIfValid();
         Table table = schema.getTable(className);
         long rowIndex = table.addEmptyRow();
-        return get(DynamicRealmObject.class, className, rowIndex);
+        DynamicRealmObject dynamicRealmObject = get(DynamicRealmObject.class, className, rowIndex);
+        return dynamicRealmObject;
     }
 
     /**
@@ -89,7 +92,11 @@ public final class DynamicRealm extends BaseRealm {
     public DynamicRealmObject createObject(String className, Object primaryKeyValue) {
         Table table = schema.getTable(className);
         long index = table.addEmptyRowWithPrimaryKey(primaryKeyValue);
-        return new DynamicRealmObject(this, table.getCheckedRow(index));
+        DynamicRealmObject dynamicRealmObject = new DynamicRealmObject(this, table.getCheckedRow(index));
+        if (handlerController != null) {
+            handlerController.addToRealmObjects(dynamicRealmObject);
+        }
+        return dynamicRealmObject;
     }
 
     /**
@@ -124,20 +131,22 @@ public final class DynamicRealm extends BaseRealm {
      * during the transaction {@link #cancelTransaction()} will be called instead of {@link #commitTransaction()}.
      *
      * @param transaction {@link io.realm.DynamicRealm.Transaction} to execute.
-     * @throws RealmException if any error happened during the transaction.
      */
     public void executeTransaction(Transaction transaction) {
-        if (transaction == null)
-            return;
+        if (transaction == null) {
+            throw new IllegalArgumentException("Transaction should not be null");
+        }
+
         beginTransaction();
         try {
             transaction.execute(this);
             commitTransaction();
         } catch (RuntimeException e) {
-            cancelTransaction();
-            throw new RealmException("Error during transaction.", e);
-        } catch (Error e) {
-            cancelTransaction();
+            if (isInTransaction()) {
+                cancelTransaction();
+            } else {
+                RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+            }
             throw e;
         }
     }
@@ -173,7 +182,11 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
 
@@ -216,7 +229,11 @@ public final class DynamicRealm extends BaseRealm {
         Table table = schema.getTable(className);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -248,7 +265,11 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -278,6 +299,14 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         return where(className).distinctAsync(columnIndex);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Observable<DynamicRealm> asObservable() {
+        return configuration.getRxFactory().from(this);
     }
 
     /**

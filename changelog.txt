@@ -1,7 +1,33 @@
+0.88.0
+ * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
+ * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
+
+0.87.1
+ * Upgraded to NDK R10e. Using gcc 4.9 for all architectures.
+ * Updated Realm Core to 0.95.6
+   - Fixed a bug where an async query can be copied incomplete in rare cases (#1717).
+ * Fixed potential memory leak when using async query.
+
 0.87.0
- * Added Realm.copyFromRealm() for creating detached copies of Realm objects.
- * Added RealmObjectSchema.getFieldType()
+ * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
+ * Added RealmConfiguration.Builder.rxFactory() and RxObservableFactory for custom RxJava observable factory classes.
+ * Added Realm.copyFromRealm() for creating detached copies of Realm objects (#931).
+ * Added RealmObjectSchema.getFieldType() (#1883).
  * Added unitTestExample to showcase unit and instrumentation tests. Examples include jUnit3, jUnit4, Espresso, Robolectric, and MPowermock usage with Realm (#1440).
+ * Added support for ISO8601 based dates for JSON import. If JSON dates are invalid a RealmException will be thrown (#1213).
+ * Added APK splits to gridViewExample (#1834).
+
+0.86.1
+ * Improved the performance of removing objects (RealmResults.clear() and RealmResults.remove()).
+ * Updated Realm Core to 0.95.5
+ * Updated ProGuard configuration (#1904).
+ * Fixed a bug where RealmQuery.findFirst() returned a wrong result if the RealmQuery had been created from a RealmResults.where() (#1905).
+ * Fixed a bug causing DynamicRealmObject.getObject()/setObject() to use the wrong class (#1912).
+ * Fixed a bug which could cause a crash when closing Realm instances in change listeners (#1900).
+ * Fixed a crash occurring during update of multiple async queries (#1895).
+ * Fixed listeners not triggered for RealmObject & RealmResults created using copy or create methods (#1884).
+ * Fixed RealmChangeListener never called inside RealmResults (#1894).
+ * Fixed crash when calling clear on a RealmList (#1886).
 
 0.86.0
  * BREAKING CHANGE: The Migration API has been replaced with a new API.
@@ -256,7 +282,7 @@
     and dates after 2038-01-19 are not supported on 32 bit systems
   * Fixed bug so Realm no longer throws an Exception when removing the last object
   * Bug fixed in RealmResults which prevented subquerying
-  
+
 0.74.0 (19 Nov 2014)
   * Added support for more field/accessors naming conventions
   * Allow static methods in model classes
