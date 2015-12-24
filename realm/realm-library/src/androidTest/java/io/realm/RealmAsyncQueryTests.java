@@ -495,6 +495,7 @@ public class RealmAsyncQueryTests {
         assertEquals(0, realmResults.size());
 
         Realm.asyncQueryExecutor.resume();
+        workerThread.keepStrongReference.add(realmResults);
     }
 
     // transforming an async query into sync by calling load to force
@@ -1178,6 +1179,7 @@ public class RealmAsyncQueryTests {
         assertFalse(firstAsync.isValid());
 
         populateTestRealm(workerThread.realm, 10);
+        workerThread.keepStrongReference.add(firstAsync);
     }
 
     @Test
@@ -1239,6 +1241,7 @@ public class RealmAsyncQueryTests {
         }
 
         Realm.asyncQueryExecutor.resume();
+        workerThread.keepStrongReference.add(realmResults);
     }
 
     // similar UC as #testForceLoadAsync using 'findFirst'
@@ -1994,6 +1997,7 @@ public class RealmAsyncQueryTests {
             }
         });
         Realm.asyncQueryExecutor.resume();
+        workerThread.keepStrongReference.add(allTypesAsync);
     }
 
     // keep advancing the Realm by sending 1 commit for each frame (16ms)
