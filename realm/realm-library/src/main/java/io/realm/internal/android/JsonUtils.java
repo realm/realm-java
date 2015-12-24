@@ -52,7 +52,7 @@ public class JsonUtils {
         }
 
         // Check for millisecond based date
-        if(numericOnly.matcher(date).matches()) {
+        if (numericOnly.matcher(date).matches()) {
             try {
                 return new Date(Long.parseLong(date));
             } catch (NumberFormatException e) {
