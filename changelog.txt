@@ -1,3 +1,6 @@
+0.87.2
+ * Fixed a bug when RealmObjectSchema.addField called with PRIMARY_KEY modifier, the field was not set as a required field (#2001).
+
 0.87.1
  * Upgraded to NDK R10e. Using gcc 4.9 for all architectures.
  * Updated Realm Core to 0.95.6
