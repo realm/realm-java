@@ -2601,7 +2601,7 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
-    public void testBatchUpdateDifferentTypeOfQueries() {io.realm.internal.Util.setDebugLevel(5);
+    public void testBatchUpdateDifferentTypeOfQueries() {
         final RealmResults[] keepStrongReference = new RealmResults[4];
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
 
@@ -2770,6 +2770,98 @@ public class RealmAsyncQueryTests extends InstrumentationTestCase {
         } finally {
             handlerThread.quit();
         }
+    }
+
+    // this test make sure that Async queries update when using link
+    public void testQueryingLinkHandover() throws Throwable {
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final AtomicInteger numberOfInvocations = new AtomicInteger(0);
+        final Realm[] realm = new Realm[1];
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                try {
+                    realm[0] = openRealmInstance("testQueryingLinkHandover");
+
+                    final RealmResults<Dog> allAsync = realm[0].where(Dog.class).equalTo("owner.name", "kiba").findAllAsync();
+                    allAsync.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            switch (numberOfInvocations.incrementAndGet()) {
+                                case 1: {
+                                    assertEquals(0, allAsync.size());
+                                    assertTrue(allAsync.isLoaded());
+                                    assertTrue(allAsync.isValid());
+                                    assertTrue(allAsync.isEmpty());
+                                    final CountDownLatch wait = new CountDownLatch(1);
+                                    final RealmConfiguration configuration = realm[0].getConfiguration();
+                                    new Thread() {
+                                        @Override
+                                        public void run() {
+                                            Realm instance = Realm.getInstance(configuration);
+                                            instance.beginTransaction();
+                                            Dog dog = instance.createObject(Dog.class);
+                                            dog.setAge(10);
+                                            dog.setName("Akamaru");
+                                            Owner kiba = instance.createObject(Owner.class);
+                                            kiba.setName("kiba");
+                                            dog.setOwner(kiba);
+                                            instance.commitTransaction();
+                                            wait.countDown();
+                                        }
+                                    }.start();
+                                    try {
+                                        wait.await();
+                                    } catch (InterruptedException e) {
+                                        fail(e.getMessage());
+                                    }
+                                    break;
+                                }
+                                case 2: {
+                                    assertEquals(1, realm[0].allObjects(Dog.class).size());
+                                    assertEquals(1, realm[0].allObjects(Owner.class).size());
+                                    assertEquals(1, allAsync.size());
+                                    assertTrue(allAsync.isLoaded());
+                                    assertTrue(allAsync.isValid());
+                                    assertFalse(allAsync.isEmpty());
+                                    assertEquals(1, allAsync.size());
+                                    assertEquals("Akamaru", allAsync.get(0).getName());
+                                    assertEquals("kiba", allAsync.get(0).getOwner().getName());
+                                    signalCallbackFinished.countDown();
+                                    break;
+                                }
+                                default:
+                                    throw new IllegalStateException("invalid number of invocation");
+                            }
+                        }
+                    });
+
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm.length > 0 && realm[0] != null) {
+                        realm[0].close();
+                    }
+                    signalClosedRealm.countDown();
+                }
+            }
+        });
+
+        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // *** Helper methods ***

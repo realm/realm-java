@@ -593,6 +593,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandove
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeCloseQueryHandover
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAcceptHandoverQuery
+        (JNIEnv *, jlong, jlong , jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeBatchUpdateQueries
  */
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdateQueries

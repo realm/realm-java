@@ -52,6 +52,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableView;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -123,6 +124,14 @@ public final class Realm extends BaseRealm {
      */
     Realm(RealmConfiguration configuration, boolean autoRefresh) {
         super(configuration, autoRefresh);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Observable<Realm> asObservable() {
+        return configuration.getRxFactory().from(this);
     }
 
     @Override
@@ -1038,8 +1047,9 @@ public final class Realm extends BaseRealm {
      * @param transaction the {@link io.realm.Realm.Transaction} to execute.
      */
     public void executeTransaction(Transaction transaction) {
-        if (transaction == null)
+        if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
+        }
 
         beginTransaction();
         try {

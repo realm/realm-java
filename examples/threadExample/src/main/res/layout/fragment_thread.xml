@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/fragment_background"
+    android:background="@color/screen_background"
     tools:context=".MainActivity$PlaceholderFragment">
 
     <io.realm.examples.threads.widget.DotsView
