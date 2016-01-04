@@ -411,6 +411,12 @@ public class TableQuery implements Closeable {
         return this;
     }
 
+    public TableQuery isNonEmpty(long[] columnIndices) {
+        nativeIsNonEmpty(nativePtr, columnIndices);
+        queryValidated = false;
+        return this;
+    }
+
     // Searching methods.
 
     public long find(long fromTableRow) {
@@ -774,6 +780,7 @@ public class TableQuery implements Closeable {
     private native void nativeEndsWith(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
     private native void nativeContains(long nativeQueryPtr, long columnIndices[], String value, boolean caseSensitive);
     private native void nativeIsEmpty(long nativePtr, long[] columnIndices);
+    private native void nativeIsNonEmpty(long nativePtr, long[] columnIndices);
     private native long nativeFind(long nativeQueryPtr, long fromTableRow);
     private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
     private native long nativeSumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
