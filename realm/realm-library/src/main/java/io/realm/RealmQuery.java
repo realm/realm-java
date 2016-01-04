@@ -1079,16 +1079,16 @@ public class RealmQuery<E extends RealmObject> {
     }
 
     /**
-     * Condition that find values that are considered "Non-empty", i.e. a list, a string or a byte array with non-empty values.
+     * Condition that find values that are considered "Not-empty", i.e. a list, a string or a byte array with not-empty values.
      *
      * @param fieldName the field to compare.
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field name isn't valid or its type isn't either a RealmList,
      * String or byte array.
      */
-    public RealmQuery<E> isNonEmpty(String fieldName) {
+    public RealmQuery<E> isNotEmpty(String fieldName) {
         long columnIndices[] = schema.getColumnIndices(fieldName, RealmFieldType.STRING, RealmFieldType.BINARY, RealmFieldType.LIST);
-        this.query.isNonEmpty(columnIndices);
+        this.query.isNotEmpty(columnIndices);
         return this;
     }
 
