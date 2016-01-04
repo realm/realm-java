@@ -1,6 +1,7 @@
 0.88.0
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
+ * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
 
 0.87.1
  * Upgraded to NDK R10e. Using gcc 4.9 for all architectures.
