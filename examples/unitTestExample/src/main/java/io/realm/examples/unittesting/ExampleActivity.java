@@ -151,7 +151,7 @@ public class ExampleActivity extends Activity {
         Realm realm = Realm.getInstance(this);
         status += "\nNumber of people in the DB: " + realm.allObjects(Person.class).size();
 
-        // Find all persons where age between 7 and 9 and name begins with "Person".
+        // Find all persons where age between 1 and 99 and name begins with "Person".
         RealmResults<Person> results = realm.where(Person.class)
                 .between("age", 1, 99)       // Notice implicit "and" operation
                 .beginsWith("name", "J").findAll();
