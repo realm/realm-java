@@ -1865,3 +1865,64 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
         }
     } CATCH_STD()
 }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNonEmpty
+    (JNIEnv *env, jobject, jlong nativeQueryPtr, jlongArray columnIndexes) {
+
+    JniLongArray arr(env, columnIndexes);
+    jsize arr_len = arr.len();
+    Query* pQuery = Q(nativeQueryPtr);
+    try {
+        TableRef src_table_ref = getTableForLinkQuery(nativeQueryPtr, arr);
+        jlong column_idx = arr[arr_len - 1];
+        TableRef table_ref = getTableByArray(nativeQueryPtr, arr);
+
+        int col_type = table_ref->get_column_type(S(column_idx));
+        if (arr_len == 1) {
+            // Field queries
+            switch (col_type) {
+                case type_Binary:
+                    pQuery->not_equal(S(column_idx), BinaryData("", 0));
+                    break;
+                case type_LinkList:
+                    pQuery->and_query(table_ref->column<LinkList>(S(column_idx)).count() != 0);
+                    break;
+                case type_String:
+                    pQuery->not_equal(S(column_idx), "");
+                    break;
+                case type_Link:
+                case type_Bool:
+                case type_Int:
+                case type_Float:
+                case type_Double:
+                case type_DateTime:
+                default:
+                    ThrowException(env, IllegalArgument, "isNonEmpty() only works on String, byte[] and RealmList.");
+                    return;
+            }
+        }
+        else {
+            // Linked queries
+            switch (col_type) {
+                case type_Binary:
+                    pQuery->and_query(src_table_ref->column<Binary>(S(column_idx)) != BinaryData("", 0));
+                    break;
+                case type_LinkList:
+                    pQuery->and_query(src_table_ref->column<LinkList>(S(column_idx)).count() != 0);
+                    break;
+                case type_String:
+                    pQuery->and_query(src_table_ref->column<String>(S(column_idx)) != "");
+                    break;
+                case type_Link:
+                case type_Bool:
+                case type_Int:
+                case type_Float:
+                case type_Double:
+                case type_DateTime:
+                default:
+                    ThrowException(env, IllegalArgument, "isNonEmpty() only works on String, byte[] and RealmList across links.");
+                    return;
+            }
+        }
+    } CATCH_STD()
+}

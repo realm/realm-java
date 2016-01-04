@@ -1655,6 +1655,124 @@ public class RealmQueryTest extends AndroidTestCase {
         }
     }
 
+    // non-empty test harnesses
+    private static final List<RealmFieldType> SUPPORTED_IS_NONEMPTY_TYPES = Arrays.asList(
+            RealmFieldType.STRING,
+            RealmFieldType.BINARY,
+            RealmFieldType.LIST);
+
+    private static final List<RealmFieldType> NOT_SUPPORTED_IS_NONEMPTY_TYPES;
+    static {
+        final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
+        list.removeAll(SUPPORTED_IS_NONEMPTY_TYPES);
+        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
+        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
+        NOT_SUPPORTED_IS_NONEMPTY_TYPES = list;
+    }
+
+    private void createIsNonEmptyDataSet(Realm realm) {
+        realm.beginTransaction();
+
+        AllJavaTypes emptyValues = new AllJavaTypes();
+        emptyValues.setFieldLong(1);
+        emptyValues.setFieldString("");
+        emptyValues.setFieldBinary(new byte[0]);
+        emptyValues.setFieldObject(emptyValues);
+        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
+        realm.copyToRealm(emptyValues);
+
+        AllJavaTypes nonEmpty = new AllJavaTypes();
+        nonEmpty.setFieldLong(2);
+        nonEmpty.setFieldString("Foo");
+        nonEmpty.setFieldBinary(new byte[]{1, 2, 3});
+        nonEmpty.setFieldObject(nonEmpty);
+        nonEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
+        realm.copyToRealmOrUpdate(nonEmpty);
+
+        realm.commitTransaction();
+    }
+
+    public void testIsNonEmpty() {
+        createIsNonEmptyDataSet(testRealm);
+        for (RealmFieldType type : SUPPORTED_IS_NONEMPTY_TYPES) {
+            switch (type) {
+                case STRING:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_STRING).count());
+                    break;
+                case BINARY:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_BINARY).count());
+                    break;
+                case LIST:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_LIST).count());
+                    break;
+                default:
+                    fail("Unknown type: " + type);
+            }
+        }
+    }
+
+    public void testIsNonEmptyAcrossLink() {
+        createIsNonEmptyDataSet(testRealm);
+        for (RealmFieldType type : SUPPORTED_IS_NONEMPTY_TYPES) {
+            switch (type) {
+                case STRING:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING).count());
+                    break;
+                case BINARY:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).count());
+                    break;
+                case LIST:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    break;
+                default:
+                    fail("Unknown type: " + type);
+            }
+        }
+    }
+
+    public void testIsNonEmptyIllegalFieldTypeThrows() {
+        for (RealmFieldType type : NOT_SUPPORTED_IS_NONEMPTY_TYPES) {
+            try {
+                switch (type) {
+                    case INTEGER:
+                        testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_LONG).findAll();
+                        break;
+                    case FLOAT:
+                        testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_FLOAT).findAll();
+                        break;
+                    case DOUBLE:
+                        testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_DOUBLE).findAll();
+                        break;
+                    case BOOLEAN:
+                        testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_BOOLEAN).findAll();
+                        break;
+                    case OBJECT:
+                        testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_OBJECT).findAll();
+                        break;
+                    case DATE:
+                        testRealm.where(AllJavaTypes.class).isNonEmpty(AllJavaTypes.FIELD_DATE).findAll();
+                        break;
+                    default:
+                        fail("Unknown type: " + type);
+                }
+                fail(type + " should throw an exception");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    public void testIsNonEmptyInvalidFieldNameThrows() {
+        String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
+
+        for (String fieldName : fieldNames) {
+            try {
+                testRealm.where(AllJavaTypes.class).isNonEmpty(fieldName).findAll();
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
     // Test that deep queries work on a lot of data
     public void testDeepLinkListQuery() {
         testRealm.executeTransaction(new Realm.Transaction() {
