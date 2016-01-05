@@ -59,7 +59,6 @@ public class TableQuery implements Closeable {
         this.origin = origin;
     }
 
-
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
@@ -410,6 +409,10 @@ public class TableQuery implements Closeable {
         nativeIsEmpty(nativePtr, columnIndices);
         queryValidated = false;
         return this;
+    }
+
+    public TableQuery isNotEmpty(long[] columnIndices) {
+        return not().isEmpty(columnIndices);
     }
 
     // Searching methods.

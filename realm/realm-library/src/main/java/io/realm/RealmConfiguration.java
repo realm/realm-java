@@ -33,6 +33,8 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
+import io.realm.rx.RealmObservableFactory;
+import io.realm.rx.RxObservableFactory;
 
 /**
  * A RealmConfiguration is used to setup a specific Realm instance.
@@ -78,6 +80,7 @@ public class RealmConfiguration {
     private final boolean deleteRealmIfMigrationNeeded;
     private final SharedGroup.Durability durability;
     private final RealmProxyMediator schemaMediator;
+    private final RxObservableFactory rxObservableFactory;
 
     private RealmConfiguration(Builder builder) {
         this.realmFolder = builder.folder;
@@ -89,6 +92,7 @@ public class RealmConfiguration {
         this.migration = builder.migration;
         this.durability = builder.durability;
         this.schemaMediator = createSchemaMediator(builder);
+        this.rxObservableFactory = builder.rxFactory;
     }
 
     public File getRealmFolder() {
@@ -144,6 +148,15 @@ public class RealmConfiguration {
         return canonicalPath;
     }
 
+    /**
+     * Returns the {@link RxObservableFactory} that is used to create Rx Observables from Realm objects.
+     *
+     * @return the factory instance used to create Rx Observables.
+     */
+    public RxObservableFactory getRxFactory() {
+        return rxObservableFactory;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -159,6 +172,7 @@ public class RealmConfiguration {
         if (!Arrays.equals(key, that.key)) return false;
         if (!durability.equals(that.durability)) return false;
         if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
+        if (!rxObservableFactory.equals(that.rxObservableFactory)) return false;
         return schemaMediator.equals(that.schemaMediator);
     }
 
@@ -263,6 +277,7 @@ public class RealmConfiguration {
         private SharedGroup.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
+        private RxObservableFactory rxFactory = new RealmObservableFactory();
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -421,6 +436,17 @@ public class RealmConfiguration {
                     addModule(module);
                 }
             }
+            return this;
+        }
+
+        /**
+         * Sets the {@link RxObservableFactory} used to create Rx Observables from Realm objects.
+         * The default factory is {@link RealmObservableFactory}.
+         *
+         * @param factory factory to use.
+         */
+        public Builder rxFactory(RxObservableFactory factory) {
+            rxFactory = factory;
             return this;
         }
 

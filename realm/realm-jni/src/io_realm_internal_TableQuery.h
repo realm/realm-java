@@ -561,6 +561,14 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsEmpty
 
 /*
  * Class:     io_realm_internal_TableQuery
+ * Method:    nativeIsNonEmpty
+ * Signature: (J[J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeIsNonEmpty
+  (JNIEnv *, jobject, jlong, jlongArray);
+
+/*
+ * Class:     io_realm_internal_TableQuery
  * Method:    nativeIsNotNull
  * Signature: (J[J)V
  */
@@ -590,6 +598,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeRemove
  */
 JNIEXPORT void JNICALL Java_io_realm_internal_TableQuery_nativeCloseQueryHandover
   (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_TableQuery
+ * Method:    nativeCloseQueryHandover
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAcceptHandoverQuery
+        (JNIEnv *, jlong, jlong , jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery

@@ -598,7 +598,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      * Checks if a given column is a primary key column.
      *
-     * @param columnIndex the ndex of column in the table.
+     * @param columnIndex the index of column in the table.
      * @return {@code true} if column is a primary key, {@code false} otherwise.
      */
     public boolean isPrimaryKey(long columnIndex) {
