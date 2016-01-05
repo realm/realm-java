@@ -411,6 +411,10 @@ public class TableQuery implements Closeable {
         return this;
     }
 
+    public TableQuery isNotEmpty(long[] columnIndices) {
+        return not().isEmpty(columnIndices);
+    }
+
     // Searching methods.
 
     public long find(long fromTableRow) {

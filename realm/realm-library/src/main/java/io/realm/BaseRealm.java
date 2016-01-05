@@ -87,6 +87,7 @@ abstract class BaseRealm implements Closeable {
      * thread.
      *
      * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
+     * @throws IllegalStateException if called from a non-Looper thread.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
@@ -144,7 +145,7 @@ abstract class BaseRealm implements Closeable {
      */
     public void addChangeListener(RealmChangeListener listener) {
         checkIfValid();
-        if (handler == null) {
+        if (handlerController == null) {
             throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
         }
         handlerController.addChangeListener(listener);
@@ -154,11 +155,15 @@ abstract class BaseRealm implements Closeable {
      * Removes the specified change listener.
      *
      * @param listener the change listener to be removed.
+     * @throws IllegalStateException if you try to remove a listener from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      * @see #addChangeListener(RealmChangeListener)
      */
     public void removeChangeListener(RealmChangeListener listener) {
         checkIfValid();
+        if (handlerController == null) {
+            throw new IllegalStateException("You can't remove a listener from a non-Looper thread ");
+        }
         handlerController.removeChangeListener(listener);
     }
 
@@ -175,11 +180,15 @@ abstract class BaseRealm implements Closeable {
     /**
      * Removes all user-defined change listeners.
      *
+     * @throws IllegalStateException if you try to remove listeners from a non-Looper Thread.
      * @see io.realm.RealmChangeListener
      * @see #addChangeListener(RealmChangeListener)
      */
     public void removeAllChangeListeners() {
         checkIfValid();
+        if (handlerController == null) {
+            throw new IllegalStateException("You can't remove listeners from a non-Looper thread ");
+        }
         handlerController.removeAllChangeListeners();
     }
 
@@ -227,6 +236,7 @@ abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
      * @throws java.io.IOException if any write operation fails.
+     * @throws IllegalArgumentException if destination argument is null.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
         if (destination == null) {
@@ -239,6 +249,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
      * It also calls the listeners associated to the Realm instance.
+     *
+     * @throws IllegalStateException if attempting to refresh from within a transaction.
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
@@ -381,6 +393,8 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * It's important to always remember to close Realm instances when you're done with it in order not to leak memory,
      * file descriptors or grow the size of Realm file out of measure.
+     *
+     * @throws IllegalStateException if attempting to close from another thread.
      */
     @Override
     public void close() {
@@ -408,6 +422,7 @@ abstract class BaseRealm implements Closeable {
      * Checks if the {@link io.realm.Realm} instance has already been closed.
      *
      * @return {@code true} if closed, {@code false} otherwise.
+     * @throws IllegalStateException if attempting to close from another thread.
      */
     public boolean isClosed() {
         if (this.threadId != Thread.currentThread().getId()) {
