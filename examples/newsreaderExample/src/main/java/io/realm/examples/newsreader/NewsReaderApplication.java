@@ -25,7 +25,7 @@ import rx.plugins.RxJavaErrorHandler;
 import rx.plugins.RxJavaPlugins;
 import timber.log.Timber;
 
-public class NewsReaderApplication extends Application {
+public abstract class NewsReaderApplication extends Application {
 
     private static Context context;
 
@@ -34,8 +34,7 @@ public class NewsReaderApplication extends Application {
         super.onCreate();
         context = this;
 
-        // Logging and error handling from RxJava
-        Timber.plant(new Timber.DebugTree());
+        initializeTimber();
         RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler() {
             @Override
             public void handleError(Throwable e) {
@@ -48,6 +47,11 @@ public class NewsReaderApplication extends Application {
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
         Realm.setDefaultConfiguration(realmConfig);
     }
+
+    /**
+     * Initialize Timer logging
+     */
+    protected abstract void initializeTimber();
 
     public static Context getContext() {
         return context;
