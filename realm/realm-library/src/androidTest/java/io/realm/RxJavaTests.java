@@ -16,9 +16,17 @@
 
 package io.realm;
 
-import android.test.AndroidTestCase;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.UiThreadTestRule;
+import android.support.test.runner.AndroidJUnit4;
 
-import java.util.List;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,29 +34,37 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
-public class RxJavaTests extends AndroidTestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public class RxJavaTests {
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+    @Rule
+    public final TemporaryFolder tempDir = new TemporaryFolder();
 
     private RealmConfiguration realmConfig;
     private Realm realm;
 
-    @Override
-    protected void setUp() throws Exception {
-        realmConfig = new RealmConfiguration.Builder(getContext()).build();
+    @Before
+    public void setUp() throws Exception {
+        realmConfig = TestHelper.createConfiguration(tempDir.getRoot(), Realm.DEFAULT_REALM_NAME);
         Realm.deleteRealm(realmConfig);
         realm = Realm.getInstance(realmConfig);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         realm.close();
     }
 
+    @Test
+    @UiThreadTest
     public void testObjectEmittedOnSubscribe() {
         realm.beginTransaction();
         final AllTypes obj = realm.createObject(AllTypes.class);
@@ -65,6 +81,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertTrue(subscribedNotified.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testObjectEmittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         realm.beginTransaction();
@@ -85,6 +103,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(2, subscriberCalled.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testAsyncObjectEmittedOnSubscribe() {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
@@ -102,6 +122,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertTrue(subscribedNotified.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testAsyncObjectEmittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         realm.beginTransaction();
@@ -121,6 +143,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(1, subscriberCalled.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testRealmResultsEmittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final RealmResults<AllTypes> results = realm.allObjects(AllTypes.class);
@@ -134,6 +158,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertTrue(subscribedNotified.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testResultsEmittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         realm.beginTransaction();
@@ -154,6 +180,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(2, subscriberCalled.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testAsyncRealmResultsEmittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
@@ -167,6 +195,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertTrue(subscribedNotified.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testAsyncResultsEmittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         realm.where(AllTypes.class).findAllAsync().asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
@@ -183,6 +213,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(1, subscriberCalled.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testRealmEmittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         realm.asObservable().subscribe(new Action1<Realm>() {
@@ -195,6 +227,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertTrue(subscribedNotified.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testRealmEmittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         realm.asObservable().subscribe(new Action1<Realm>() {
@@ -211,6 +245,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(2, subscriberCalled.get());
     }
 
+    @Test
+    @UiThreadTest
     public void testDynamicRealmEmittedOnSubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.getConfiguration());
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
@@ -225,6 +261,8 @@ public class RxJavaTests extends AndroidTestCase {
         dynamicRealm.close();
     }
 
+    @Test
+    @UiThreadTest
     public void testDynamicRealmEmittedOnUpdate() {
         final DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.getConfiguration());
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
@@ -243,6 +281,8 @@ public class RxJavaTests extends AndroidTestCase {
         dynamicRealm.close();
     }
 
+    @Test
+    @UiThreadTest
     public void testUnsubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         Subscription subscription = realm.asObservable().subscribe(new Action1<Realm>() {
@@ -257,6 +297,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(0, realm.handlerController.changeListeners.size());
     }
 
+    @Test
+    @UiThreadTest
     public void testUnsubscribeFromOtherThreadFails() {
         final CountDownLatch unsubscribeCompleted = new CountDownLatch(1);
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
@@ -284,6 +326,8 @@ public class RxJavaTests extends AndroidTestCase {
         assertEquals(1, realm.handlerController.changeListeners.size());
     }
 
+    @Test
+    @UiThreadTest
     public void testWrongGenericClassThrows() {
         realm.beginTransaction();
         final AllTypes obj = realm.createObject(AllTypes.class);
