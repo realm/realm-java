@@ -1216,7 +1216,7 @@ public class RealmTest {
     }
 
     @Test
-    public void testCopManagedObjectToOtherRealm() {
+    public void testCopyManagedObjectToOtherRealm() {
         testRealm.beginTransaction();
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
         allTypes.setColumnString("Test");
@@ -2127,6 +2127,7 @@ public class RealmTest {
         // Used by the background thread to wait for the main thread to do the write operation
         final CountDownLatch bgThreadLatch = new CountDownLatch(1);
         final CountDownLatch bgClosedLatch = new CountDownLatch(1);
+        final CountDownLatch bgThreadReadyLatch = new CountDownLatch(1);
 
         Thread backgroundThread = new Thread() {
             @Override
@@ -2153,20 +2154,29 @@ public class RealmTest {
                         }
                     });
 
+                    bgThreadReadyLatch.countDown();
                     bgThreadLatch.await(); // Wait for the main thread to do a write operation
                     bgRealm.refresh(); // This should call the listener
                     assertTrue(listenerWasCalled.get());
                     assertTrue(typeListenerWasCalled.get());
-                } catch (InterruptedException e) {
-                    fail();
-                } finally {
                     bgRealm.close();
+                    bgRealm = null;
+                    // DON'T count down in the final block! The test will fail silently!!!
                     bgClosedLatch.countDown();
+                } catch (InterruptedException e) {
+                    fail(e.getMessage());
+                } finally {
+                    if (bgRealm != null) {
+                        bgRealm.close();
+                    }
                 }
             }
         };
         backgroundThread.start();
 
+        // Wait until bgThread finishes adding listener to the RealmResults. Otherwise same TableView version won't
+        // trigger the listener.
+        bgThreadReadyLatch.await();
         testRealm.beginTransaction();
         testRealm.createObject(Dog.class);
         testRealm.commitTransaction();
