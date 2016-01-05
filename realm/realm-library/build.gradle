@@ -28,6 +28,7 @@ dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
     compile project(':realm-annotations')
 
+    androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:23.1.1'
     androidTestCompile 'com.android.support.test:runner:0.4.1'
     androidTestCompile 'com.android.support.test:rules:0.4.1'
