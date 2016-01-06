@@ -128,7 +128,7 @@ public class Repository implements Closeable {
     }
 
     /**
-     * Close all underlying resources used byt the Repository.
+     * Close all underlying resources used by the Repository.
      */
     public void close() {
         realm.close();

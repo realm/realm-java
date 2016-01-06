@@ -16,6 +16,8 @@
 
 package io.realm.examples.newsreader.model;
 
+import android.text.TextUtils;
+
 import io.realm.RealmResults;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
 import rx.Observable;
@@ -77,6 +79,9 @@ public class Model {
         // Repository is only responsible for loading the data
         // Any validation is done by the model
         // See http://blog.danlew.net/2015/12/08/error-handling-in-rxjava/
+        if (TextUtils.isEmpty(storyId)) {
+            throw new IllegalArgumentException("Invalid storyId: " + storyId);
+        }
         return repository.loadStory(storyId)
                 .filter(new Func1<NYTimesStory, Boolean>() {
                     @Override
