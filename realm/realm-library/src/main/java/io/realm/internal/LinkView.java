@@ -164,5 +164,5 @@ public class LinkView extends NativeObject {
     private native boolean nativeIsEmpty(long nativeLinkViewPtr);
     protected native long nativeWhere(long nativeLinkViewPtr);
     private native boolean nativeIsAttached(long nativeLinkViewPtr);
-    private native long nativeFind(long nativeLinkViewPtr, long rowIndex);
+    private native long nativeFind(long nativeLinkViewPtr, long targetRowIndex);
 }

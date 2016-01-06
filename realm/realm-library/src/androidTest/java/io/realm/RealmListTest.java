@@ -141,7 +141,7 @@ public class RealmListTest extends AndroidTestCase {
     public void testAddManagedObject_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         testRealm.beginTransaction();
-        AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
         list.add(managedAllTypes);
 
@@ -751,7 +751,8 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     /**
-     * This test requires an additional Realm to test against.
+     * Test that the {@link Realm#contains(Class)} method of one Realm will not contain a
+     * {@link RealmObject} from another Realm.
      */
     public void testContainsDoesNotContainAnItem() {
         RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "contains_test.realm");
@@ -778,10 +779,20 @@ public class RealmListTest extends AndroidTestCase {
             assertFalse("Should not be able to find one object in another Realm via contains",
                     owner1.getDogs().contains(dog2));
         } finally {
-            if(testRealmTwo != null && !testRealmTwo.isClosed()) {
+            if (testRealmTwo != null && !testRealmTwo.isClosed()) {
                 testRealmTwo.close();
             }
         }
+    }
+
+    public void testRealmShouldNotContainDeletedRealmObject() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+        Dog dog1 = dogs.get(0);
+        testRealm.beginTransaction();
+        dog1.removeFromRealm();
+        testRealm.commitTransaction();
+        assertFalse("Should not contain a deleted RealmObject", dogs.contains(dog1));
     }
 
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)
@@ -837,7 +848,7 @@ public class RealmListTest extends AndroidTestCase {
                             break;
                         case METHOD_MOVE:
                             list.add(new Dog());
-                            list.move(0,1);
+                            list.move(0, 1);
                             break;
                         case METHOD_REMOVE:
                             list.remove(0);

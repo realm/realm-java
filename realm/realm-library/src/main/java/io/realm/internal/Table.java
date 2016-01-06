@@ -1144,7 +1144,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      * This interface method allows for contains() usage in the {@link TableView} class.
      * See {@link TableView#sourceRowIndex(long)} for more information.
      *
-     * @param rowIndex The index of the row.
+     * @param rowIndex the index of the row.
      * @return the row index.
      */
     @Override

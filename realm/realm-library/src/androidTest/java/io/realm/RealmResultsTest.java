@@ -91,7 +91,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
 
-    private void populatePartialNullRowsForNumericTesting () {
+    private void populatePartialNullRowsForNumericTesting() {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(1);
@@ -879,6 +879,15 @@ public class RealmResultsTest extends AndroidTestCase {
         assertFalse("Should not contain a null item.", query.findAll().contains(null));
     }
 
+    public void testShouldNotContainRemovedItem() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
+        AllTypes item = testRealm.where(AllTypes.class).findFirst();
+        testRealm.beginTransaction();
+        item.removeFromRealm();
+        testRealm.commitTransaction();
+        assertFalse("Should not contain a removed item.", query.findAll().contains(item));
+    }
+
     /**
      * Test to see if a particular item that does exist in the same Realm does not
      * exist in the result set of another query.
@@ -924,9 +933,9 @@ public class RealmResultsTest extends AndroidTestCase {
 
             assertFalse("Should not be able to find one object in another Realm via RealmResults#contains",
                     testRealm.where(AllTypes.class).findAll().contains(item));
-            
+
         } finally {
-            if(testRealmTwo != null && !testRealmTwo.isClosed()) {
+            if (testRealmTwo != null && !testRealmTwo.isClosed()) {
                 testRealmTwo.close();
             }
         }
