@@ -32,7 +32,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.Cat;
 import io.realm.entities.Dog;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.proxy.HandlerProxy;
 
@@ -1806,5 +1808,70 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         });
         TestHelper.awaitOrFail(listenerWasCalledOnRealmObject);
         TestHelper.awaitOrFail(listenerWasCalledOnRealmResults);
+    }
+
+    // Test modifying realmObjects in RealmObject's change listener
+    public void test_change_realm_objects_map_in_listener() throws InterruptedException {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+
+                realm.beginTransaction();
+                final Owner owner = realm.createObject(Owner.class);
+                owner.setCat(realm.createObject(Cat.class));
+                realm.commitTransaction();
+
+                owner.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        Cat cat = owner.getCat();
+                        // Keep calling addToRealmObjects just in case it won't be called in getCat in the future
+                        realm.handlerController.addToRealmObjects(cat);
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        realm.beginTransaction();
+                        realm.commitTransaction();
+                    }
+                });
+            }
+        });
+
+        signalTestFinished.await();
+    }
+
+    // Test modifying syncRealmResults in RealmResults's change listener
+    public void test_change_realm_results_map_in_listener() throws InterruptedException {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+
+                RealmResults<Owner> results = realm.allObjects(Owner.class);
+                results.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        realm.handlerController.addToRealmResults(realm.allObjects(Owner.class));
+                        signalTestFinished.countDown();
+                    }
+                });
+
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        realm.beginTransaction();
+                        realm.createObject(Owner.class);
+                        realm.commitTransaction();
+                    }
+                });
+            }
+        });
+
+        signalTestFinished.await();
     }
 }
