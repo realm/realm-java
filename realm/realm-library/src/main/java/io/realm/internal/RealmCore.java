@@ -133,7 +133,7 @@ public class RealmCore {
      * Loads the .so file. Typically, the .so file is installed and can be found by System.loadLibrary() but
      * can be damaged or missing. This happens for the Android installer, especially when apps are installed
      * through other means than the official Play store. In this case, the .so file can be found in the .apk.
-     * In other to access the .apk, a Context much be provided.
+     * In other to access the .apk, an {@link android.content.Context} must be provided.
      */
     public static synchronized void loadLibrary(Context context) {
         if (libraryIsLoaded) {
