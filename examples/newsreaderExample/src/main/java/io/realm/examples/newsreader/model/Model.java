@@ -78,14 +78,10 @@ public class Model {
         // Any validation is done by the model
         // See http://blog.danlew.net/2015/12/08/error-handling-in-rxjava/
         return repository.loadStory(storyId)
-                .flatMap(new Func1<NYTimesStory, Observable<NYTimesStory>>() {
+                .filter(new Func1<NYTimesStory, Boolean>() {
                     @Override
-                    public Observable<NYTimesStory> call(NYTimesStory story) {
-                        if (!story.isValid()) {
-                            throw new IllegalArgumentException("Invalid storyId: " + storyId);
-                        } else {
-                            return Observable.just(story);
-                        }
+                    public Boolean call(NYTimesStory story) {
+                        return story.isValid();
                     }
                 });
     }
