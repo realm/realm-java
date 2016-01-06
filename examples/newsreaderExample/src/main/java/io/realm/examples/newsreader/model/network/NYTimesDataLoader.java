@@ -20,6 +20,7 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import io.realm.Realm;
 import io.realm.examples.newsreader.model.DefaultTransactionCallback;
@@ -60,8 +61,8 @@ public class NYTimesDataLoader {
     };
 
     private NYTimesService nyTimesService;
-    private SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-d'T'HH:mm:ssZZZZZ");
-    private SimpleDateFormat outputDateFormat = new SimpleDateFormat("MM-dd-yyyy");
+    private SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-d'T'HH:mm:ssZZZZZ", Locale.US);
+    private SimpleDateFormat outputDateFormat = new SimpleDateFormat("MM-dd-yyyy", Locale.US);
     private String apiKey;
     private Realm realm;
     private BehaviorSubject<Boolean> networkInUse;
