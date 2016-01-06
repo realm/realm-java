@@ -10,7 +10,6 @@
    - Fixed a bug where an async query can be copied incomplete in rare cases (#1717).
  * Fixed potential memory leak when using async query.
  * Added a check to prevent removing a RealmChangeListener from a non-Looper thread (#1962). (Thank you @hohnamkung)
->>>>>>> e9c8c0fe4d500ec1988a1ff682084ae48c0cd8dc
 
 0.87.0
  * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().
