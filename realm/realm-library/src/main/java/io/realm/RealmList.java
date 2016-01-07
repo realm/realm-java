@@ -384,7 +384,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Returns true if the list contains the specified element when attached to a Realm. This
-     * method will query the native Realm core engine to quickly find the specified element.
+     * method will query the native Realm underlying storage engine to quickly find the specified element.
      *
      * If this list is not attached to a Realm the default {@link List#contains(Object)}
      * implementation will occur.
