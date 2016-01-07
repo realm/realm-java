@@ -40,7 +40,7 @@ import timber.log.Timber;
  */
 public class NYTimesDataLoader {
 
-    String[] nytSections = new String[]{
+    String[] nytSections = {
             "home",
             "world",
             "national",
@@ -62,7 +62,7 @@ public class NYTimesDataLoader {
 
     private NYTimesService nyTimesService;
     private SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-d'T'HH:mm:ssZZZZZ", Locale.US);
-    private SimpleDateFormat outputDateFormat = new SimpleDateFormat("MM-dd-yyyy", Locale.US);
+    private SimpleDateFormat outputDateFormat = new SimpleDateFormat("MM-dd-yyyy", Locale.US );
     private String apiKey;
     private Realm realm;
     private BehaviorSubject<Boolean> networkInUse;

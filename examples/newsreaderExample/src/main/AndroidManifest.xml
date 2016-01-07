@@ -9,7 +9,6 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:name=".NewsReaderApplication"
         android:theme="@style/AppTheme.NoActionBar">
         <activity
             android:name=".ui.main.MainActivity"

@@ -16,7 +16,13 @@
 
 package io.realm.examples.newsreader.model;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import io.realm.RealmResults;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
@@ -28,8 +34,34 @@ import rx.functions.Func1;
  */
 public class Model {
 
+    /**
+     * Map between section titles and their NYTimes API keys
+     */
+    private static final Map<String, String> sections;
+    static {
+        sections = new HashMap<>();
+        sections.put("Home", "home");
+        sections.put("World", "world");
+        sections.put("National", "national");
+        sections.put("Politics", "politics");
+        sections.put("NY Region", "nyregion");
+        sections.put("Business", "business");
+        sections.put("Opinion", "opinion");
+        sections.put("Technology", "technology");
+        sections.put("Science", "science");
+        sections.put("Health", "health");
+        sections.put("Sports", "sports");
+        sections.put("Arts", "arts");
+        sections.put("Fashion", "fashion");
+        sections.put("Dining", "dining");
+        sections.put("Travel", "travel");
+        sections.put("Magazine", "magazine");
+        sections.put("Real Estate", "realestate");
+    }
+
     private static Model instance = null;
     private final Repository repository;
+    private String selectedSection;
 
     // This could be replaced by Dependency Injection for easier testing
     public static synchronized Model getInstance() {
@@ -42,6 +74,7 @@ public class Model {
 
     private Model(Repository repository) {
         this.repository = repository;
+        this.selectedSection = "home";
     }
 
     /**
@@ -91,6 +124,17 @@ public class Model {
                 });
     }
 
+    /**
+     * Returns all sections available
+     */
+    public Map<String, String> getSections() {
+        return sections;
+    }
+
+    public void selectSection(@NonNull String key) {
+        selectedSection = key;
+        repository.loadNewsFeed(selectedSection);
+    }
 
     @Override
     protected void finalize() throws Throwable {

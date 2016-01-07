@@ -89,6 +89,10 @@ public class Repository implements Closeable {
                 });
     }
 
+    public void loadNewsFeed(String section) {
+
+    }
+
     private long timeSinceLastNetworkRequest() {
         return TimeUnit.SECONDS.convert(System.currentTimeMillis() - lastNetworkRequest, TimeUnit.MILLISECONDS);
     }
@@ -133,4 +137,5 @@ public class Repository implements Closeable {
     public void close() {
         realm.close();
     }
+
 }

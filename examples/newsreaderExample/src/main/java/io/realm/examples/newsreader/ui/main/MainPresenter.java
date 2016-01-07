@@ -17,8 +17,15 @@
 package io.realm.examples.newsreader.ui.main;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import io.realm.examples.newsreader.model.Model;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
@@ -37,6 +44,7 @@ public class MainPresenter implements Presenter {
     private final Model model;
     private List<NYTimesStory> storiesData;
     private CompositeSubscription subscriptions;
+    private Map<String, String> sections;
 
     public MainPresenter(MainActivity mainActivity, Model model) {
         this.view = mainActivity;
@@ -45,7 +53,20 @@ public class MainPresenter implements Presenter {
 
     @Override
     public void onCreate() {
-        // Do nothing
+        sections = model.getSections();
+
+        // Sort sections alphabetically, but always have Home at the top
+        List<String> sectionList = new ArrayList<>(sections.keySet());
+        Collections.sort(sectionList, new Comparator<String>() {
+            @Override
+            public int compare(String lhs, String rhs) {
+                if (lhs.equals("Home")) return -1;
+                if (rhs.equals("Home")) return 1;
+                return lhs.compareToIgnoreCase(rhs);
+            }
+        });
+        view.configureToolbar(sectionList);
+        categorySelected(sectionList.get(0));
     }
 
     @Override
@@ -88,5 +109,10 @@ public class MainPresenter implements Presenter {
     public void listItemSelected(int position) {
         Intent intent = DetailsActivity.getIntent(view, storiesData.get(position));
         view.startActivity(intent);
+    }
+
+    public void categorySelected(@NonNull String categoryLabel) {
+        String key = sections.get(categoryLabel);
+        model.selectSection(key);
     }
 }

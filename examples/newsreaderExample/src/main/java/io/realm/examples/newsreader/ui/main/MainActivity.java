@@ -27,7 +27,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.List;
@@ -44,8 +44,10 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.refresh_view) SwipeRefreshLayout refreshView;
     @Bind(R.id.list_view) ListView listView;
     @Bind(R.id.progressbar) MaterialProgressBar progressBar;
+    @Bind(R.id.spinner) Spinner spinner;
 
     MainPresenter presenter = new MainPresenter(this, Model.getInstance());
+    private Toolbar toolbar;
     private ArrayAdapter<NYTimesStory> adapter;
 
     @Override
@@ -54,10 +56,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup initial views
         setContentView(R.layout.activity_main);
-
         ButterKnife.bind(this);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         adapter = null;
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -78,6 +80,27 @@ public class MainActivity extends AppCompatActivity {
 
         // After setup, notify presenter
         presenter.onCreate();
+    }
+
+    /**
+     * Setup the toolbar spinner with the available sections
+     * @param sections
+     */
+    public void configureToolbar(List<String> sections) {
+        String[] sectionList = sections.toArray(new String[sections.size()]);
+        final ArrayAdapter adapter = new ArrayAdapter<CharSequence>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, sectionList);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                presenter.categorySelected((String) adapter.getItem(position));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
     @Override
