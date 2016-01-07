@@ -825,7 +825,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
      * subscribed to.
      *
-     * @return RxJava Observable
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
