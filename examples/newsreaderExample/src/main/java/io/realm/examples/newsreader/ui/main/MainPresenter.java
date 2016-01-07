@@ -20,20 +20,18 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.RealmResults;
 import io.realm.examples.newsreader.model.Model;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
 import io.realm.examples.newsreader.ui.Presenter;
 import io.realm.examples.newsreader.ui.details.DetailsActivity;
 import rx.Subscription;
 import rx.functions.Action1;
-import rx.subscriptions.CompositeSubscription;
 
 /**
  * Presenter class for controlling the Main Activity
@@ -43,8 +41,9 @@ public class MainPresenter implements Presenter {
     private final MainActivity view;
     private final Model model;
     private List<NYTimesStory> storiesData;
-    private CompositeSubscription subscriptions;
     private Map<String, String> sections;
+    private Subscription loaderSubscription;
+    private Subscription listDataSubscription;
 
     public MainPresenter(MainActivity mainActivity, Model model) {
         this.view = mainActivity;
@@ -54,9 +53,8 @@ public class MainPresenter implements Presenter {
     @Override
     public void onCreate() {
         sections = model.getSections();
-
         // Sort sections alphabetically, but always have Home at the top
-        List<String> sectionList = new ArrayList<>(sections.keySet());
+        ArrayList<String> sectionList = new ArrayList<>(sections.values());
         Collections.sort(sectionList, new Comparator<String>() {
             @Override
             public int compare(String lhs, String rhs) {
@@ -66,21 +64,11 @@ public class MainPresenter implements Presenter {
             }
         });
         view.configureToolbar(sectionList);
-        categorySelected(sectionList.get(0));
     }
 
     @Override
     public void onResume() {
-        Subscription newsSubscription = model.getNewsFeed()
-                .subscribe(new Action1<List<NYTimesStory>>() {
-                    @Override
-                    public void call(List<NYTimesStory> stories) {
-                        storiesData = stories;
-                        view.showList(stories);
-                    }
-                });
-
-        Subscription loaderSubscription = model.isNetworkUsed()
+        loaderSubscription = model.isNetworkUsed()
                 .subscribe(new Action1<Boolean>() {
                     @Override
                     public void call(Boolean networkInUse) {
@@ -88,12 +76,13 @@ public class MainPresenter implements Presenter {
                     }
                 });
 
-        subscriptions = new CompositeSubscription(newsSubscription, loaderSubscription);
+        sectionSelected(model.getCurrentSectionKey());
     }
 
     @Override
     public void onPause() {
-        subscriptions.unsubscribe();
+        loaderSubscription.unsubscribe();
+        listDataSubscription.unsubscribe();
     }
 
     @Override
@@ -111,8 +100,27 @@ public class MainPresenter implements Presenter {
         view.startActivity(intent);
     }
 
-    public void categorySelected(@NonNull String categoryLabel) {
-        String key = sections.get(categoryLabel);
-        model.selectSection(key);
+    public void titleSpinnerSectionSelected(@NonNull String sectionLabel) {
+        for (String key : sections.keySet()) {
+            if (sections.get(key).equals(sectionLabel)) {
+                sectionSelected(key);
+                break;
+            }
+        }
+    }
+
+    private void sectionSelected(@NonNull String sectionKey) {
+        model.selectSection(sectionKey);
+        if (listDataSubscription != null) {
+            listDataSubscription.unsubscribe();
+        }
+        listDataSubscription = model.getSelectedNewsFeed()
+                .subscribe(new Action1<RealmResults<NYTimesStory>>() {
+                    @Override
+                    public void call(RealmResults<NYTimesStory> stories) {
+                        storiesData = stories;
+                        view.showList(stories);
+                    }
+                });
     }
 }

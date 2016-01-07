@@ -30,6 +30,9 @@ public class NYTimesStory extends RealmObject {
 
     public static final String PUBLISHED_DATE = "publishedDate";
     public static final String URL = "url";
+    public static final String API_SECTION = "apiSection";
+
+    private String apiSection;
 
     @JsonProperty("section")
     private String section;
@@ -193,5 +196,13 @@ public class NYTimesStory extends RealmObject {
 
     public void setRead(boolean read) {
         this.read = read;
+    }
+
+    public String getApiSection() {
+        return apiSection;
+    }
+
+    public void setApiSection(String apiSection) {
+        this.apiSection = apiSection;
     }
 }

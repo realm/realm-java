@@ -16,10 +16,12 @@
 
 package io.realm.examples.newsreader.model;
 
-import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 
 import java.io.Closeable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
@@ -47,21 +49,21 @@ public class Repository implements Closeable {
 
     private final Realm realm;
     private final NYTimesDataLoader dataLoader;
-    private final Context context;
-    private long lastNetworkRequest;
+    private final String apiKey;
+    private Map<String, Long> lastNetworkRequest = new HashMap<>();
     private BehaviorSubject<Boolean> networkLoading = BehaviorSubject.create(false);
 
     @UiThread
     public Repository() {
         realm = Realm.getDefaultInstance();
-        context = NewsReaderApplication.getContext();
         dataLoader = new NYTimesDataLoader();
+        apiKey = NewsReaderApplication.getContext().getString(R.string.nyc_top_stories_api_key);
     }
 
     /**
      * Keep track of the current network state.
      *
-     * @returns {@code true} if the network is currently being used, {@code false} otherwise.
+     * @return {@code true} if the network is currently being used, {@code false} otherwise.
      */
     public Observable<Boolean> networkInUse() {
         return networkLoading.asObservable();
@@ -70,31 +72,28 @@ public class Repository implements Closeable {
     /**
      * Load the news feed as well as all future updates.
      */
-    public Observable<RealmResults<NYTimesStory>> loadNewsFeed(boolean forceReload) {
+    public Observable<RealmResults<NYTimesStory>> loadNewsFeed(@NonNull String sectionKey, boolean forceReload) {
         // Start loading data from the network if needed
         // It will put all data into Realm
-        if (forceReload || timeSinceLastNetworkRequest() > MINIMUM_NETWORK_WAIT_SEC) {
-            dataLoader.loadAllData(realm, context.getString(R.string.nyc_top_stories_api_key), networkLoading);
-            lastNetworkRequest = System.currentTimeMillis();
+        if (forceReload || timeSinceLastNetworkRequest(sectionKey) > MINIMUM_NETWORK_WAIT_SEC) {
+            dataLoader.loadData(sectionKey, apiKey, realm, networkLoading);
+            lastNetworkRequest.put(sectionKey, System.currentTimeMillis());
         }
 
         // Return the data in Realm. The query result will be automatically updated when the network requests
         // save data in Realm
-        return realm.where(NYTimesStory.class).findAllSortedAsync(NYTimesStory.PUBLISHED_DATE, Sort.DESCENDING).asObservable()
-                .filter(new Func1<RealmResults<NYTimesStory>, Boolean>() {
-                    @Override
-                    public Boolean call(RealmResults<NYTimesStory> stories) {
-                        return stories.isLoaded();
-                    }
-                });
+        return realm.where(NYTimesStory.class).equalTo(NYTimesStory.API_SECTION, sectionKey)
+                .findAllSortedAsync(NYTimesStory.PUBLISHED_DATE, Sort.DESCENDING)
+                .asObservable();
     }
 
-    public void loadNewsFeed(String section) {
-
-    }
-
-    private long timeSinceLastNetworkRequest() {
-        return TimeUnit.SECONDS.convert(System.currentTimeMillis() - lastNetworkRequest, TimeUnit.MILLISECONDS);
+    private long timeSinceLastNetworkRequest(@NonNull String sectionKey) {
+        Long lastRequest = lastNetworkRequest.get(sectionKey);
+        if (lastRequest != null) {
+            return TimeUnit.SECONDS.convert(System.currentTimeMillis() - lastRequest, TimeUnit.MILLISECONDS);
+        } else {
+            return Long.MAX_VALUE;
+        }
     }
 
     /**

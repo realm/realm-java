@@ -16,6 +16,8 @@
 
 package io.realm.examples.newsreader.model.network;
 
+import android.support.annotation.NonNull;
+
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,31 +36,10 @@ import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 import timber.log.Timber;
 
-
 /**
  * Class that handles network requests for the New York Times API
  */
 public class NYTimesDataLoader {
-
-    String[] nytSections = {
-            "home",
-            "world",
-            "national",
-            "politics",
-            "nyregion",
-            "business",
-            "opinion",
-            "technology",
-            "science",
-            "health",
-            "sports",
-            "arts",
-            "fashion",
-            "dining",
-            "travel",
-            "magazine",
-            "realestate"
-    };
 
     private NYTimesService nyTimesService;
     private SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-d'T'HH:mm:ssZZZZZ", Locale.US);
@@ -76,43 +57,37 @@ public class NYTimesDataLoader {
         nyTimesService = retrofit.create(NYTimesService.class);
     }
 
-    public void loadAllData(final Realm realm, String apiKey, BehaviorSubject<Boolean> networkUsage) {
+    public void loadData(String sectionKey, String apiKey, Realm realm, BehaviorSubject<Boolean> networkLoading) {
         this.apiKey = apiKey;
         this.realm = realm;
-        this.networkInUse = networkUsage;
-        loadNextSection(0);
+        this.networkInUse = networkLoading;
+        loadNextSection(sectionKey);
     }
 
     // Load all sections one by one.
-    private void loadNextSection(final int sectionIndex) {
+    private void loadNextSection(@NonNull final String sectionKey) {
         networkInUse.onNext(true);
-        nyTimesService.topStories(nytSections[sectionIndex], apiKey)
+        nyTimesService.topStories(sectionKey, apiKey)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<NYTimesResponse<List<NYTimesStory>>>() {
                     @Override
                     public void call(NYTimesResponse<List<NYTimesStory>> response) {
-                        Timber.d("Success - Data received: %s", nytSections[sectionIndex]);
-                        processAndAddData(realm, response.results);
-
-                        if (sectionIndex < nytSections.length - 1) {
-                            loadNextSection(sectionIndex + 1);
-                        } else {
-                            networkInUse.onNext(false);
-
-                        }
+                        Timber.d("Success - Data received: %s", sectionKey);
+                        processAndAddData(realm, response.section, response.results);
+                        networkInUse.onNext(false);
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
                         networkInUse.onNext(false);
-                        Timber.d("Failure: Data not loaded: %s - %s", nytSections[sectionIndex], throwable.toString());
+                        Timber.d("Failure: Data not loaded: %s - %s", sectionKey, throwable.toString());
                     }
                 });
     }
 
     // Converts data into a usable format and save it to Realm
-    private void processAndAddData(final Realm realm, final List<NYTimesStory> stories) {
+    private void processAndAddData(final Realm realm, final String sectionKey, final List<NYTimesStory> stories) {
         if (stories.isEmpty()) return;
 
         realm.executeTransaction(new Realm.Transaction() {
@@ -134,6 +109,7 @@ public class NYTimesDataLoader {
 
                     // Only create or update the local story if needed
                     if (persistedStory == null || !persistedStory.getUpdatedDate().equals(story.getUpdatedDate())) {
+                        story.setApiSection(sectionKey);
                         realm.copyToRealmOrUpdate(story);
                     }
                 }
