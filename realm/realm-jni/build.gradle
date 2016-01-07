@@ -15,7 +15,7 @@ ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('st
 // core source code.
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
 
-def commonCflags = [ '-Os', '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
+def commonCflags = [ '-Os', '-std=c++14', '-ffunction-sections', '-fdata-sections', '-flto' ]
 
 enum Compiler {
     GCC, CLANG
@@ -280,7 +280,7 @@ targets.each { target ->
             "-l${Runtime.getRuntime().availableProcessors()}",
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
-            "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
+            "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include -Iobject-store/impl/android -Iobject-store/impl",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
             "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections",
