@@ -755,8 +755,8 @@ public class TableView implements TableOrView, Closeable {
     /**
      * Finds a row in the parent table with the given {@code rowIndex}
      *
-     * @param rowIndex The index of the row.
-     * @return The row index or -1 for not found.
+     * @param rowIndex the index of the row.
+     * @return the row index or -1 for not found.
      */
     @Override
     public long sourceRowIndex(long rowIndex) {
