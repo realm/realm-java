@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.spinner) Spinner spinner;
 
     MainPresenter presenter = new MainPresenter(this, Model.getInstance());
-    private Toolbar toolbar;
     private ArrayAdapter<NYTimesStory> adapter;
 
     @Override
@@ -57,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         // Setup initial views
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
@@ -84,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Setup the toolbar spinner with the available sections
-     * @param sections
      */
     public void configureToolbar(List<String> sections) {
         String[] sectionList = sections.toArray(new String[sections.size()]);
