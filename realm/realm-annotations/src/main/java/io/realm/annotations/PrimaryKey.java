@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * should uniquely identify the object. Trying to insert an object with an existing primary key
  * will result in an {@link io.realm.exceptions.RealmException}.
  *
- * Primary keys on Strings also counts as having the {@link io.realm.annotations.Index} annotation.
+ * Primary keys also count as having the {@link Index} and {@link Required} annotations.
  *
  * Only one field pr. RealmObject class can have this annotation and it is only allowed on the following
  * types: String, short, int, long, byte
