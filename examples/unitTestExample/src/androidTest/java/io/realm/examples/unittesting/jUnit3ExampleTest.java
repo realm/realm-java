@@ -31,6 +31,6 @@ public class jUnit3ExampleTest extends ActivityInstrumentationTestCase2<ExampleA
 
     public void testShouldBeAbleToLaunchActivityAndSeeRealmResults() {
         getActivity();
-        onView(withText("Senior Person got older: 99")).check(matches(isDisplayed()));
+        onView(withText("John Senior got older: 89")).check(matches(isDisplayed()));
     }
 }
