@@ -199,7 +199,7 @@ public class SharedGroup implements Closeable {
         activeTransaction = false;
     }
 
-    boolean isClosed() {
+    public boolean isClosed() {
         return nativePtr == 0;
     }
 

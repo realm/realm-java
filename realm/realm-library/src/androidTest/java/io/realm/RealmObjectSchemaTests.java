@@ -294,6 +294,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
             assertTrue(schema.hasPrimaryKey());
+            assertFalse(schema.isNullable(fieldName));
             schema.removeField(fieldName);
         }
     }
