@@ -144,7 +144,7 @@ public class GridViewExampleActivity extends Activity implements AdapterView.OnI
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         City modifiedCity = (City)mAdapter.getItem(position);
 
-        // Acquire the list of realm cities matching the name of the clicked City.
+        // Acquire the RealmObject matching the name of the clicked City.
         City city = realm.where(City.class).equalTo("name", modifiedCity.getName()).findFirst();
 
         // Create a transaction to increment the vote count for the selected City in the realm

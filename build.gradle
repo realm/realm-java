@@ -269,14 +269,28 @@ task distribute {
     dependsOn uploadUpdateVersion
 }
 
-task bintrayAar(type: GradleBuild) {
+// This is a work-around for a bug in the publish plugin that prevents publishing the same artifact twice in two
+// different publications
+task duplicateSourcesAndJavadoc(type: Copy) {
+    description = 'Prepare source and javadoc jars for publishing.'
+    group = 'Publishing'
+    dependsOn sourcesJar
+    dependsOn javadoc
+    from("${rootDir}/realm/realm-library/build/libs/") {
+        include '*.jar'
+        rename 'realm-android-library-(.*?)', 'realm-android-$1'
+    }
+    into "${rootDir}/realm/realm-library/build/libs/"
+}
+
+task bintrayAar(dependsOn: duplicateSourcesAndJavadoc, type: GradleBuild) {
     description = 'Publish the Realm AAR to Bintray'
     group = 'Distribute'
     buildFile = file('bintrayAar.gradle')
     tasks = ['bintrayUpload']
 }
 
-task bintrayJar(type: GradleBuild) {
+task bintrayJar(dependsOn: duplicateSourcesAndJavadoc, type: GradleBuild) {
     description = 'Publish the Realm Jar to Bintray'
     group = 'Distribute'
     buildFile = file('bintrayJar.gradle')
@@ -314,6 +328,13 @@ task bintrayUpload {
     dependsOn bintrayGradlePlugin
 }
 
+task jfrogUpload {
+    description = 'Publish all the Realm SNAPSHOT artifacts to JFrog'
+    group = 'Publishing'
+    dependsOn duplicateSourcesAndJavadoc
+    dependsOn artifactoryPublish
+}
+
 // This is just a placeholder for the release plugin
 task build {}
 
@@ -342,8 +363,12 @@ publishing {
             groupId 'io.realm'
             artifactId = 'realm-android'
             artifact file("${buildDir}/outputs/gradle/realm-android-${currentVersion}.jar")
-            //artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")
-            //artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")
+            artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")) {
+                classifier = 'sources'
+            }
+            artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")) {
+                classifier = 'javadoc'
+            }
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-android')
@@ -355,9 +380,13 @@ publishing {
         aarLibrary(MavenPublication) {
             groupId 'io.realm'
             artifactId = 'realm-android-library'
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-library-release.aar")
-            //artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")
-            //artifact file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-library-release.aar")
+            artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-library-${currentVersion}-sources.jar")) {
+                classifier = 'sources'
+            }
+            artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-library-${currentVersion}-javadoc.jar")) {
+                classifier = 'javadoc'
+            }
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-android-library')
