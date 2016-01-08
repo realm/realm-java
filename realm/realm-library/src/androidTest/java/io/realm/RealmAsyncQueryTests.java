@@ -1948,7 +1948,7 @@ public class RealmAsyncQueryTests {
         // 3. The async query should now (hopefully) fail with a BadVersion
         result.load();
     }
-
+    
     // handlerController#emptyAsyncRealmObject is accessed from different threads
     // make sure that we iterate over it safely without any race condition (ConcurrentModification)
     @Test
@@ -2004,7 +2004,7 @@ public class RealmAsyncQueryTests {
     @Test
     @UiThreadTest
     public void concurrentModificationRealmObjects() {
-        RealmConfiguration config  = configFactory.createConfiguration();
+        RealmConfiguration config = configFactory.createConfiguration();
         final Realm realm = Realm.getInstance(config);
         Dog dog1 = new Dog();
         dog1.setName("Dog 1");
@@ -2017,8 +2017,8 @@ public class RealmAsyncQueryTests {
         dog2 = realm.copyToRealm(dog2);
         realm.commitTransaction();
 
-        final WeakReference<RealmObjectProxy> weakReference1 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog1);
-        final WeakReference<RealmObjectProxy> weakReference2 = new WeakReference<RealmObjectProxy>((RealmObjectProxy)dog2);
+        final WeakReference<RealmObjectProxy> weakReference1 = new WeakReference<RealmObjectProxy>((RealmObjectProxy) dog1);
+        final WeakReference<RealmObjectProxy> weakReference2 = new WeakReference<RealmObjectProxy>((RealmObjectProxy) dog2);
 
         realm.handlerController.realmObjects.put(weakReference1, Boolean.TRUE);
 
@@ -2043,6 +2043,37 @@ public class RealmAsyncQueryTests {
         }
 
         realm.close();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void testAsyncTransactionWorksWithAsyncQuery() {
+        RealmResults<AllTypes> results = looperThread.realm.where(AllTypes.class).findAllAsync();
+        results.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                //assertEquals(looperThread.realm.where(AllTypes.class).count(), 1);
+            }
+        });
+        looperThread.keepStrongReference.add(results);
+
+        looperThread.realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        }, new Realm.Transaction.Callback() {
+            @Override
+            public void onSuccess() {
+                assertEquals(looperThread.realm.where(AllTypes.class).count(), 1);
+                looperThread.testComplete();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                fail();
+            }
+        });
     }
 
     // *** Helper methods ***
