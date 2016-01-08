@@ -205,11 +205,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (managedMode) {
             checkValidView();
             object = copyToRealmIfNeeded(object);
+            E oldObject = get(location);
             view.set(location, object.row.getIndex());
+            return oldObject;
         } else {
-            nonManagedList.set(location, object);
+            return nonManagedList.set(location, object);
         }
-        return object;
     }
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
