@@ -2,6 +2,7 @@
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
  * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
+ * Fixed bug causing Java source files and Javadoc not being deployed together with the normal release artifact (#1971).
  * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
  * Improved performance of RealmList#contains() (#897).
 
