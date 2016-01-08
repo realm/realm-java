@@ -1164,6 +1164,9 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
     // ********************************************************************************* //
 
     // UC 3 for Sync RealmObject
+    // 1. Add listener to RealmObject which is queried synchronized.
+    // 2. Commit transaction in another non-looper thread
+    // 3. Listener on the RealmObject gets triggered.
     public void test_non_looper_thread_commit_realmobject_sync() {
         handler.post(new Runnable() {
             @Override
@@ -1172,7 +1175,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                        if (realm.where(Dog.class).count() == 2) {
                             realm.handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1208,15 +1211,6 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 thread.start();
                 try {
                     thread.join();
-                    // this will give the posted notification a chance to execute
-                    // keep this Runnable alive (waiting for the commit to arrive)
-                    final int MAX_RETRIES = 60;
-                    int numberOfSleep = 0;
-                    while (numberOfSleep++ < MAX_RETRIES
-                            && typebasedCommitInvocations.incrementAndGet() != 1) {
-                        Thread.sleep(16);
-                    }
-                    assertEquals(1, typebasedCommitInvocations.get());
                 } catch (InterruptedException e) {
                     fail(e.getMessage());
                 }
@@ -1227,6 +1221,9 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
     }
 
     // UC 3 Async RealmObject
+    // 1. Create RealmObject async query
+    // 2. Wait COMPLETED_ASYNC_REALM_OBJECT then commit transaction in another non-looper thread
+    // 3. Listener on the RealmObject gets triggered again.
     public void test_non_looper_thread_commit_realmobject_async() {
         handler.post(new Runnable() {
             @Override
@@ -1235,7 +1232,8 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                        // Check if the 2nd transaction is committed.
+                        if (realm.where(Dog.class).count() == 2) {
                             realm.handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1250,18 +1248,16 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.createObject(Dog.class);
                 realm.commitTransaction();
 
-                Dog dog = realm.where(Dog.class).findFirstAsync();
-                assertTrue(dog.load());
-                dog.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        typebasedCommitInvocations.incrementAndGet();
-                    }
-                });
-
-                Thread thread = new Thread() {
+                final Thread thread = new Thread() {
                     @Override
                     public void run() {
+                        if (typebasedCommitInvocations.get() != 1) {
+                            try {
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                fail(e.getMessage());
+                            }
+                        }
                         Realm bgRealm = Realm.getInstance(realm.getConfiguration());
                         bgRealm.beginTransaction();
                         bgRealm.createObject(Dog.class);
@@ -1269,20 +1265,24 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                         bgRealm.close();
                     }
                 };
-                thread.start();
-                try {
-                    thread.join();
 
-                    final int MAX_RETRIES = 60;
-                    int numberOfSleep = 0;
-                    while (numberOfSleep++ < MAX_RETRIES
-                            && typebasedCommitInvocations.incrementAndGet() != 1) {
-                        Thread.sleep(16);
+                Dog dog = realm.where(Dog.class).findFirstAsync();
+                dog.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        typebasedCommitInvocations.incrementAndGet();
+
+                        if (typebasedCommitInvocations.get() == 1) {
+                            try {
+                                thread.join();
+                            } catch (InterruptedException e) {
+                                fail(e.getMessage());
+                            }
+                        }
                     }
-                    assertEquals(1, typebasedCommitInvocations.get());
-                } catch (InterruptedException e) {
-                    fail(e.getMessage());
-                }
+                });
+
+                thread.start();
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
@@ -1290,6 +1290,9 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
     }
 
     // UC 3 Sync RealmResults
+    // 1. Add listener to RealmResults which is queried synchronized.
+    // 2. Commit transaction in another non-looper thread
+    // 3. Listener on the RealmResults gets triggered.
     public void test_non_looper_thread_commit_realmresults_sync() {
         handler.post(new Runnable() {
             @Override
@@ -1298,7 +1301,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                        if (realm.where(Dog.class).count() == 2) {
                             realm.handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1335,23 +1338,19 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 thread.start();
                 try {
                     thread.join();
-
-                    final int MAX_RETRIES = 60;
-                    int numberOfSleep = 0;
-                    while (numberOfSleep++ < MAX_RETRIES
-                            && typebasedCommitInvocations.incrementAndGet() != 1) {
-                        Thread.sleep(16);
-                    }
-                    assertEquals(1, typebasedCommitInvocations.get());
                 } catch (InterruptedException e) {
                     fail(e.getMessage());
                 }
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(typebasedCommitInvocations.get(), 1);
     }
 
     // UC 3 Async RealmResults
+    // 1. Create RealmResults async query
+    // 2. Wait COMPLETED_ASYNC_REALM_RESULTS then commit transaction in another non-looper thread
+    // 3. Listener on the RealmResults gets triggered again.
     public void test_non_looper_thread_commit_realmresults_async() {
         handler.post(new Runnable() {
             @Override
@@ -1360,7 +1359,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                        if (realm.where(Dog.class).count() == 2) {
                             realm.handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1375,17 +1374,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.createObject(Dog.class);
                 realm.commitTransaction();
 
-                final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
-                assertTrue(dogs.load());
-                dogs.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        typebasedCommitInvocations.incrementAndGet();
-                        assertEquals(2, dogs.size());
-                    }
-                });
-
-                Thread thread = new Thread() {
+                final Thread thread = new Thread() {
                     @Override
                     public void run() {
                         Realm bgRealm = Realm.getInstance(realm.getConfiguration());
@@ -1395,25 +1384,28 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                         bgRealm.close();
                     }
                 };
-                thread.start();
-                try {
-                    thread.join();
 
-                    final int MAX_RETRIES = 60;
-                    int numberOfSleep = 0;
-                    while (numberOfSleep++ < MAX_RETRIES
-                            && typebasedCommitInvocations.incrementAndGet() != 1) {
-                        Thread.sleep(16);
+                final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
+                dogs.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        typebasedCommitInvocations.incrementAndGet();
+                        if (typebasedCommitInvocations.get() == 1) {
+                            // COMPLETED_ASYNC_REALM_RESULTS arrived
+                            try {
+                                thread.join();
+                            } catch (InterruptedException e) {
+                                fail(e.getMessage());
+                            }
+                        }
                     }
-                    assertEquals(1, typebasedCommitInvocations.get());
-                } catch (InterruptedException e) {
-                    fail(e.getMessage());
-                }
+                });
 
+                thread.start();
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
-        assertEquals(1, typebasedCommitInvocations.get());
+        assertEquals(2, typebasedCommitInvocations.get());
     }
 
     // ****************************************************************************************** //
