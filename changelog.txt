@@ -1,5 +1,5 @@
 0.87.2
- * Fixed a bug when RealmObjectSchema.addField called with PRIMARY_KEY modifier, the field was not set as a required field (#2001).
+ * Fixed a bug when RealmObjectSchema.addField() was called with the PRIMARY_KEY modifier, the field was not set as a required field (#2001).
  * Removed explicit GC call when committing a transaction (#1925).
  * Fixed a bug which could throw a ConcurrentModificationException in RealmObject's or RealmResults' change listener (#1970).
  * Fixed RealmList.set() so it now correctly returns the old element instead of the new (#2044).
