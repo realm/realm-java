@@ -576,11 +576,6 @@ public class HandlerController implements Handler.Callback {
     }
 
     private void deleteWeakReferences() {
-        // From the AOSP FinalizationTest:
-        // https://android.googlesource.com/platform/libcore/+/master/support/src/test/java/libcore/
-        // java/lang/ref/FinalizationTester.java
-        // System.gc() does not garbage collect every time. Runtime.gc() is more likely to perform a gc.
-        Runtime.getRuntime().gc();
         Reference<? extends RealmResults<? extends RealmObject>> weakReferenceResults;
         Reference<? extends RealmObject> weakReferenceObject;
         while ((weakReferenceResults = referenceQueueAsyncRealmResults.poll()) != null ) { // Does not wait for a reference to become available.
