@@ -2441,6 +2441,37 @@ public class RealmAsyncQueryTests {
         TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void testAsyncTransactionWorksWithAsyncQuery() {
+        RealmResults<AllTypes> results = workerThread.realm.where(AllTypes.class).findAllAsync();
+        results.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                //assertEquals(workerThread.realm.where(AllTypes.class).count(), 1);
+            }
+        });
+        workerThread.keepStrongReference.add(results);
+
+        workerThread.realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class);
+            }
+        }, new Realm.Transaction.Callback() {
+            @Override
+            public void onSuccess() {
+                assertEquals(workerThread.realm.where(AllTypes.class).count(), 1);
+                workerThread.signalTestCompleted.countDown();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                fail();
+            }
+        });
+    }
+
     // *** Helper methods ***
 
     // This could be done from #setUp but then we can't control
