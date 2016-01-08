@@ -25,14 +25,18 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.Date;
+import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.Cat;
 import io.realm.entities.Dog;
+import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.proxy.HandlerProxy;
 
@@ -1806,5 +1810,92 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         });
         TestHelper.awaitOrFail(listenerWasCalledOnRealmObject);
         TestHelper.awaitOrFail(listenerWasCalledOnRealmResults);
+    }
+
+    // Test modifying realmObjects in RealmObject's change listener
+    public void test_change_realm_objects_map_in_listener() throws InterruptedException {
+        final CountDownLatch finishedLatch = new CountDownLatch(2);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+
+                realm.beginTransaction();
+                // At least two objects are needed to make sure list modification happen during iterating.
+                final Cat cat = realm.createObject(Cat.class);
+                final Owner owner = realm.createObject(Owner.class);
+                owner.setCat(cat);
+                realm.commitTransaction();
+
+                RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        Cat cat = owner.getCat();
+                        boolean foundKey = false;
+                        // Check if cat has been added to the realmObjects in case of the behaviour of getCat changes
+                        for (WeakReference<RealmObject> weakReference : realm.handlerController.realmObjects.keySet()) {
+                            if (weakReference.get() == cat) {
+                               foundKey = true;
+                               break;
+                            }
+                        }
+                        assertTrue(foundKey);
+                        finishedLatch.countDown();
+                    }
+                };
+
+                cat.addChangeListener(listener);
+                owner.addChangeListener(listener);
+
+                realm.beginTransaction();
+                // To make sure the shared group version changed
+                realm.createObject(Owner.class);
+                realm.commitTransaction();
+            }
+        });
+
+        finishedLatch.await();
+    }
+
+    // Test modifying syncRealmResults in RealmResults's change listener
+    public void test_change_realm_results_map_in_listener() throws InterruptedException {
+        final CountDownLatch finishedLatch = new CountDownLatch(2);
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+
+                // Two results needed to make sure list modification happen while iterating
+                RealmResults<Owner> results1 = realm.allObjects(Owner.class);
+                RealmResults<Cat> results2 = realm.allObjects(Cat.class);
+                RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        RealmResults<Owner> results = realm.allObjects(Owner.class);
+                        boolean foundKey = false;
+                        // Check if the results has been added to the syncRealmResults in case of the behaviour of
+                        // allObjects changes
+                        for (WeakReference<RealmResults<? extends RealmObject>> weakReference :
+                                realm.handlerController.syncRealmResults.keySet()) {
+                            if (weakReference.get() == results) {
+                                foundKey = true;
+                                break;
+                            }
+                        }
+                        assertTrue(foundKey);
+                        finishedLatch.countDown();
+                    }
+                };
+                results1.addChangeListener(listener);
+                results2.addChangeListener(listener);
+
+                realm.beginTransaction();
+                realm.createObject(Owner.class);
+                realm.commitTransaction();
+            }
+        });
+
+        finishedLatch.await();
     }
 }

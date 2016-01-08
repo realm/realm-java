@@ -4,6 +4,11 @@
  * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
  * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
  * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
+ * Improved performance of RealmList#contains() (#897).
+
+0.87.2
+ * Fixed a bug when RealmObjectSchema.addField called with PRIMARY_KEY modifier, the field was not set as a required field (#2001).
+ * Fixed a bug which could throw a ConcurrentModificationException in RealmObject's or RealmResults' change listener (#1970).
 
 0.87.1
  * Upgraded to NDK R10e. Using gcc 4.9 for all architectures.

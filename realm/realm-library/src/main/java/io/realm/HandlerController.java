@@ -236,19 +236,26 @@ public class HandlerController implements Handler.Callback {
     }
 
     private void notifyRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator) {
+        List<RealmResults<? extends RealmObject>> resultsToBeNotified =
+                new ArrayList<RealmResults<? extends RealmObject>>();
         while (iterator.hasNext()) {
             WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = iterator.next();
             RealmResults<? extends RealmObject> realmResults = weakRealmResults.get();
             if (realmResults == null) {
                 iterator.remove();
-
             } else {
-                realmResults.notifyChangeListeners();
+                // It should be legal to modify asyncRealmResults and syncRealmResults in the listener
+                resultsToBeNotified.add(realmResults);
             }
+        }
+
+        for (RealmResults<? extends RealmObject> realmResults : resultsToBeNotified) {
+            realmResults.notifyChangeListeners();
         }
     }
 
     private void notifyRealmObjectCallbacks() {
+        List<RealmObject> objectsToBeNotified = new ArrayList<RealmObject>();
         Iterator<WeakReference<RealmObject>> iterator = realmObjects.keySet().iterator();
         while (iterator.hasNext()) {
             WeakReference<? extends RealmObject> weakRealmObject = iterator.next();
@@ -258,11 +265,16 @@ public class HandlerController implements Handler.Callback {
 
             } else {
                 if (realmObject.row.isAttached()) {
-                    realmObject.notifyChangeListeners();
+                    // It should be legal to modify realmObjects in the listener
+                    objectsToBeNotified.add(realmObject);
                 } else if (realmObject.row != Row.EMPTY_ROW) {
                     iterator.remove();
                 }
             }
+        }
+
+        for (RealmObject realmObject : objectsToBeNotified) {
+            realmObject.notifyChangeListeners();
         }
     }
 

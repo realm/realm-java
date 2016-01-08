@@ -141,7 +141,7 @@ public class RealmListTest extends AndroidTestCase {
     public void testAddManagedObject_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         testRealm.beginTransaction();
-        AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
         list.add(managedAllTypes);
 
@@ -717,6 +717,84 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    public void testContains() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        Dog dog = owner.getDogs().get(0);
+        assertTrue("Should contain a particular dog.", owner.getDogs().contains(dog));
+    }
+
+    /**
+     * Test to see if a particular item that does exist in the same Realm does not
+     * exist in a query that excludes said item.
+     */
+    public void testContainsSameRealmNotContained() {
+        RealmResults<Dog> dogs = testRealm.where(Dog.class)
+                .equalTo("name", "Dog 1").or().equalTo("name", "Dog 2").findAll();
+        Dog thirdDog = testRealm.where(Dog.class)
+                .equalTo("name", "Dog 3").findFirst();
+        assertFalse("Should not contain a particular dog.", dogs.contains(thirdDog));
+    }
+
+    public void testContainsNotManaged() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> managedDogs = owner.getDogs();
+        // Create a unmanaged RealmList
+        RealmList<Dog> unmanagedDogs
+                = new RealmList<Dog>(managedDogs.toArray(new Dog[managedDogs.size()]));
+        Dog dog = managedDogs.get(0);
+        assertTrue("Should contain a particular dog", unmanagedDogs.contains(dog));
+    }
+
+    public void testContainsNull() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        assertFalse("Should not contain a null item.", owner.getDogs().contains(null));
+    }
+
+    /**
+     * Test that the {@link Realm#contains(Class)} method of one Realm will not contain a
+     * {@link RealmObject} from another Realm.
+     */
+    public void testContainsDoesNotContainAnItem() {
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "contains_test.realm");
+        Realm.deleteRealm(realmConfig);
+        Realm testRealmTwo = Realm.getInstance(realmConfig);
+        try {
+            // Set up the test realm
+            testRealmTwo.beginTransaction();
+            Owner owner2 = testRealmTwo.createObject(Owner.class);
+            owner2.setName("Owner");
+            for (int i = 0; i < TEST_OBJECTS; i++) {
+                Dog dog = testRealmTwo.createObject(Dog.class);
+                dog.setName("Dog " + i);
+                owner2.getDogs().add(dog);
+            }
+            testRealmTwo.commitTransaction();
+
+            // Get a dog from the test realm.
+            Dog dog2 = testRealmTwo.where(Owner.class).findFirst().getDogs().get(0);
+
+            // Access the original Realm. Then see if the above dog object is contained. (It shouldn't).
+            Owner owner1 = testRealm.where(Owner.class).findFirst();
+
+            assertFalse("Should not be able to find one object in another Realm via contains",
+                    owner1.getDogs().contains(dog2));
+        } finally {
+            if (testRealmTwo != null && !testRealmTwo.isClosed()) {
+                testRealmTwo.close();
+            }
+        }
+    }
+
+    public void testRealmShouldNotContainDeletedRealmObject() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+        Dog dog1 = dogs.get(0);
+        testRealm.beginTransaction();
+        dog1.removeFromRealm();
+        testRealm.commitTransaction();
+        assertFalse("Should not contain a deleted RealmObject", dogs.contains(dog1));
+    }
+
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)
     public void testMutableMethodsOutsideTransactions() {
         testRealm.beginTransaction();
@@ -770,7 +848,7 @@ public class RealmListTest extends AndroidTestCase {
                             break;
                         case METHOD_MOVE:
                             list.add(new Dog());
-                            list.move(0,1);
+                            list.move(0, 1);
                             break;
                         case METHOD_REMOVE:
                             list.remove(0);

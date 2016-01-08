@@ -29,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
+import io.realm.internal.InvalidRow;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
@@ -150,6 +151,27 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public RealmQuery<E> where() {
         realm.checkIfValid();
         return RealmQuery.createQueryFromResult(this);
+    }
+
+    /**
+     * Searches this {@link RealmResults} for the specified object.
+     *
+     * @param object the object to search for.
+     * @return {@code true} if {@code object} is an element of this {@code RealmResults},
+     *         {@code false} otherwise
+     */
+    @Override
+    public boolean contains(Object object) {
+        boolean contains = false;
+        if (isLoaded()) {
+            if (object instanceof RealmObject) {
+                RealmObject realmObject = (RealmObject) object;
+                if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
+                    contains = (table.sourceRowIndex(realmObject.row.getIndex()) != TableOrView.NO_MATCH);
+                }
+            }
+        }
+        return contains;
     }
 
     /**
