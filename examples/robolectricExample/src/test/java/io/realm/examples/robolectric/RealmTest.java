@@ -125,7 +125,7 @@ public class RealmTest {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty("java.library.path", "./libs");
+        System.setProperty("java.library.path", "./robolectricLibs");
         ShadowLog.stream = System.out;
 
         context = Robolectric.setupActivity(MainActivity.class);

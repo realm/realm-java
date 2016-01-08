@@ -249,52 +249,48 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
 }
 
 task buildRobolectric(description: "Build the Robolectric shared library for Darwin") {
-    doFirst {
-        def staticLibPath = "/usr/local/lib/librealm.a"
-        if (file(staticLibPath).exists() == false) {
-            throw new StopExecutionException("The core library for OS X is not installed correctly.")
-        }
-
-        copy {
-            from staticLibPath
-            into "${projectDir}/../realm-library/src"
-        }
-
-        exec {
-            environment CC: "${clang?'clang':'gcc'}"
-            environment STRIP: "/usr/bin/strip -o librealm-jni-darwin-stripped.dylib"
-            commandLine = [
-                'make',
-                "-j${Runtime.getRuntime().availableProcessors() * 2}",
-                "-l${Runtime.getRuntime().availableProcessors()}",
-                '-C', "${projectDir}/src",
-                "CC_IS=${clang?'clang':'gcc'}",
-                "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I/usr/local/include/realm/ -I/usr/local/include/ -I/System/Library/Frameworks/JavaVM.framework/Headers/",
-                "CFLAGS_ARCH=${commonCflags.join(' ')}",
-                "BASE_DENOM=darwin",
-                "REALM_LDFLAGS_COMMON=-lrealm -lstdc++ -L${projectDir}/../realm-library/src -L/usr/local/lib/ -Wl,-dead_strip -flto -Wl,-search_paths_first -framework CoreServices",
-                'LIB_SUFFIX_SHARED=.dylib',
-                "librealm-jni-darwin${getDebugExt()}.dylib"
-            ]
-        }
+    def staticLibPath = "/usr/local/lib/librealm.a"
+    if (file(staticLibPath).exists() == false) {
+        throw new StopExecutionException("The core library for OS X is not installed correctly.")
     }
 
-    doLast {
-        copy {
-            from "${projectDir}/src/librealm-jni-darwin${getDebugExt()}${getStrippedExt()}.dylib"
-            into "${projectDir}/../realm-library/src/main/robolectricLibs"
-            rename "librealm-jni-darwin${getDebugExt()}${getStrippedExt()}.dylib", 'librealm-jni-darwin.dylib'
-        }
-
-        // Store the unstripped version
-        copy {
-            from "${projectDir}/src/librealm-jni-darwin${getDebugExt()}.dylib"
-            into "${projectDir}/../build/output/jniLibs-unstripped/robolectric"
-            rename "librealm-jni-darwin${getDebugExt()}.dylib", 'librealm-jni-darwin.dylib'
-        }
-
-        delete fileTree(dir: "${projectDir}/../realm-library/src", include: '**/librealm.a')
+    copy {
+        from staticLibPath
+        into "${projectDir}/../realm-library/src"
     }
+
+    exec {
+        environment CC: "${clang?'clang':'gcc'}"
+        environment STRIP: "/usr/bin/strip -o librealm-jni-darwin-stripped.dylib"
+        commandLine = [
+            'make',
+            "-j${Runtime.getRuntime().availableProcessors() * 2}",
+            "-l${Runtime.getRuntime().availableProcessors()}",
+            '-C', "${projectDir}/src",
+            "CC_IS=${clang?'clang':'gcc'}",
+            "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I/usr/local/include/realm/ -I/usr/local/include/ -I/System/Library/Frameworks/JavaVM.framework/Headers/",
+            "CFLAGS_ARCH=${commonCflags.join(' ')}",
+            "BASE_DENOM=darwin",
+            "REALM_LDFLAGS_COMMON=-lrealm -lstdc++ -L${projectDir}/../realm-library/src -L/usr/local/lib/ -Wl,-dead_strip -flto -Wl,-search_paths_first -framework CoreServices",
+            'LIB_SUFFIX_SHARED=.dylib',
+            "librealm-jni-darwin${getDebugExt()}.dylib"
+        ]
+    }
+
+    copy {
+        from "${projectDir}/src/librealm-jni-darwin${getDebugExt()}${getStrippedExt()}.dylib"
+        into "${projectDir}/../realm-library/src/main/robolectricLibs"
+        rename "librealm-jni-darwin${getDebugExt()}${getStrippedExt()}.dylib", 'librealm-jni-darwin.dylib'
+    }
+
+    // Store the unstripped version
+    copy {
+        from "${projectDir}/src/librealm-jni-darwin${getDebugExt()}.dylib"
+        into "${projectDir}/../build/output/jniLibs-unstripped/robolectric"
+        rename "librealm-jni-darwin${getDebugExt()}.dylib", 'librealm-jni-darwin.dylib'
+    }
+
+    delete fileTree(dir: "${projectDir}/../realm-library/src", include: '**/librealm.a')
 }
 
 task installRobolectric(description: "Install native library to support Robolectric.") {
@@ -304,7 +300,7 @@ task installRobolectric(description: "Install native library to support Robolect
 
     copy {
         from "${projectDir}/../realm-library/src/main/robolectricLibs/librealm-jni-darwin.dylib"
-        into "${projectDir}/../../examples/robolectricExample/libs"
+        into "${projectDir}/../../examples/robolectricExample/robolectricLibs"
     }
 }
 
