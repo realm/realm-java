@@ -283,16 +283,18 @@ task duplicateSourcesAndJavadoc(type: Copy) {
     into "${rootDir}/realm/realm-library/build/libs/"
 }
 
-task bintrayAar(dependsOn: duplicateSourcesAndJavadoc, type: GradleBuild) {
+task bintrayAar(type: GradleBuild) {
     description = 'Publish the Realm AAR to Bintray'
     group = 'Distribute'
+    dependsOn duplicateSourcesAndJavadoc
     buildFile = file('bintrayAar.gradle')
     tasks = ['bintrayUpload']
 }
 
-task bintrayJar(dependsOn: duplicateSourcesAndJavadoc, type: GradleBuild) {
+task bintrayJar(type: GradleBuild) {
     description = 'Publish the Realm Jar to Bintray'
     group = 'Distribute'
+    dependsOn duplicateSourcesAndJavadoc
     buildFile = file('bintrayJar.gradle')
     tasks = ['bintrayUpload']
 }
@@ -328,11 +330,12 @@ task bintrayUpload {
     dependsOn bintrayGradlePlugin
 }
 
-task jfrogUpload {
-    description = 'Publish all the Realm SNAPSHOT artifacts to JFrog'
+task ojoUpload {
+    description = 'Publish all the Realm SNAPSHOT artifacts to OJO'
     group = 'Publishing'
     dependsOn duplicateSourcesAndJavadoc
     dependsOn artifactoryPublish
+    artifactoryPublish.dependsOn duplicateSourcesAndJavadoc
 }
 
 // This is just a placeholder for the release plugin
@@ -449,9 +452,9 @@ artifactory {
 }
 
 release {
-  push = false
-  versionSuffix = '-SNAPSHOT'
-  tagPrefix = 'v'
+    push = false
+    versionSuffix = '-SNAPSHOT'
+    tagPrefix = 'v'
 }
 
 task wrapper(type: Wrapper) {
