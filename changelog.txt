@@ -3,6 +3,7 @@
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
  * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
  * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
+ * Improved performance of RealmList#contains() (#897).
 
 0.87.2
  * Fixed a bug when RealmObjectSchema.addField called with PRIMARY_KEY modifier, the field was not set as a required field (#2001).

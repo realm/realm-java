@@ -111,6 +111,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsAttached
         (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     io_realm_internal_LinkView
+ * Method:    nativeFind
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeFind
+        (JNIEnv *, jobject, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif
