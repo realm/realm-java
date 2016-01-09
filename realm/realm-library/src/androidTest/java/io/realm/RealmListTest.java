@@ -846,7 +846,7 @@ public class RealmListTest {
      * {@link RealmObject} from another Realm.
      */
     public void testContainsDoesNotContainAnItem() {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "contains_test.realm");
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(context, "contains_test.realm");
         Realm.deleteRealm(realmConfig);
         Realm testRealmTwo = Realm.getInstance(realmConfig);
         try {
