@@ -383,7 +383,7 @@ publishing {
         aarLibrary(MavenPublication) {
             groupId 'io.realm'
             artifactId = 'realm-android-library'
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-library-release.aar")
+            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-library-release.aar")
             artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-library-${currentVersion}-sources.jar")) {
                 classifier = 'sources'
             }
