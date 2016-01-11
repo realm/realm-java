@@ -71,6 +71,8 @@ public class RealmConfiguration {
         }
     }
 
+    private long nativeConfigurationPointer;
+
     private final File realmFolder;
     private final String realmFileName;
     private final String canonicalPath;
@@ -93,14 +95,18 @@ public class RealmConfiguration {
         this.durability = builder.durability;
         this.schemaMediator = createSchemaMediator(builder);
         this.rxObservableFactory = builder.rxFactory;
+
+        nativeConfigurationPointer = createConfigurationPointer();
+        nativeSetFolder(nativeConfigurationPointer, builder.folder);
+        nativeSetFileName(nativeConfigurationPointer, builder.fileName);
     }
 
     public File getRealmFolder() {
-        return realmFolder;
+        return nativeGetFolder(nativeConfigurationPointer);
     }
 
     public String getRealmFileName() {
-        return realmFileName;
+        return nativeGetFileName();
     }
 
     public byte[] getEncryptionKey() {
@@ -492,4 +498,10 @@ public class RealmConfiguration {
             }
         }
     }
+
+    private native long createConfigurationPointer();
+    private native void nativeSetFolder(long nativeConfigurationPointer, String folder);
+    private native String nativeGetFolder(long nativeConfigurationPointer);
+    private native void nativeSetFileName(long nativeConfigurationPointer, String realmFileName);
+    private native void nativeGetFileName(long nativeConfigurationPointer);
 }
