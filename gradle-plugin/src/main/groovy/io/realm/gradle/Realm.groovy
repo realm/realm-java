@@ -13,6 +13,7 @@ class Realm implements Plugin<Project> {
         project.repositories.add(project.repositories.maven { url "https://jitpack.io" })
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
+        project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
         project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
     }
 }
