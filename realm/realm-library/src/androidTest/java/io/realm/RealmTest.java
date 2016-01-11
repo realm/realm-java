@@ -77,6 +77,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.Table;
 import io.realm.internal.log.RealmLog;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -91,6 +92,8 @@ import static org.junit.Assert.fail;
 public class RealmTest {
     @Rule
     public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     private Context context;
 
     protected final static int TEST_DATA_SIZE = 10;
@@ -115,8 +118,7 @@ public class RealmTest {
         // for your test to run with AndroidJUnitRunner.
         context = InstrumentationRegistry.getInstrumentation().getContext();
 
-        testConfig = TestHelper.createConfiguration(context);
-        Realm.deleteRealm(testConfig);
+        testConfig = configFactory.createConfiguration();
         testRealm = Realm.getInstance(testConfig);
     }
 
@@ -175,11 +177,9 @@ public class RealmTest {
     @Test
     public void testGetInstanceFileNoWritePermissionThrows() throws IOException {
         String REALM_FILE = "readonly.realm";
-        File folder = context.getFilesDir();
+        File folder = configFactory.getRoot();
         File realmFile = new File(folder, REALM_FILE);
-        if (realmFile.exists()) {
-            realmFile.delete(); // Reset old test data
-        }
+        assertFalse(realmFile.exists());
 
         assertTrue(realmFile.createNewFile());
         assertTrue(realmFile.setWritable(false));
@@ -211,7 +211,7 @@ public class RealmTest {
         testRealm.close(); // Clear handler created by testRealm in setUp()
         assertEquals(0, Realm.getHandlers().size());
         final String REALM_NAME = "test-internalhandlers";
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(context, REALM_NAME);
+        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
         Realm.deleteRealm(realmConfig);
 
         // Open and close first instance of a Realm
@@ -887,8 +887,7 @@ public class RealmTest {
     }
 
     private void createAndTestFilename(String language, String fileName) {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(context, fileName);
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration(fileName);
         Realm realm1 = Realm.getInstance(realmConfig);
         realm1.beginTransaction();
         Dog dog1 = realm1.createObject(Dog.class);
@@ -896,7 +895,7 @@ public class RealmTest {
         realm1.commitTransaction();
         realm1.close();
 
-        File file = new File(context.getFilesDir(), fileName);
+        File file = new File(realmConfig.getPath());
         assertTrue(language, file.exists());
 
         Realm realm2 = Realm.getInstance(realmConfig);
@@ -1015,14 +1014,14 @@ public class RealmTest {
         }
 
         // Make sure the reference counter is per realm file
-        RealmConfiguration anotherConfig = TestHelper.createConfiguration(context, "anotherRealm.realm");
+        RealmConfiguration anotherConfig = configFactory.createConfiguration("anotherRealm.realm");
         Realm.deleteRealm(anotherConfig);
         Realm otherRealm = Realm.getInstance(anotherConfig);
 
         // Raise the reference
         Realm realm = null;
         try {
-            realm = Realm.getInstance(context);
+            realm = Realm.getInstance(configFactory.createConfiguration());
         } finally {
             if (realm != null) realm.close();
         }
@@ -1062,7 +1061,7 @@ public class RealmTest {
     public void testReferenceCountingDoubleClose() {
         testRealm.close();
         testRealm.close(); // Count down once too many. Counter is now potentially negative
-        testRealm = Realm.getInstance(context);
+        testRealm = Realm.getInstance(configFactory.createConfiguration());
         testRealm.beginTransaction();
         AllTypes allTypes = testRealm.createObject(AllTypes.class);
         RealmResults<AllTypes> queryResult = testRealm.allObjects(AllTypes.class);
@@ -1078,8 +1077,8 @@ public class RealmTest {
 
     @Test
     public void testWriteCopyTo() throws IOException {
-        RealmConfiguration configA = TestHelper.createConfiguration(context, "file1.realm");
-        RealmConfiguration configB = TestHelper.createConfiguration(context, "file2.realm");
+        RealmConfiguration configA = configFactory.createConfiguration("file1.realm");
+        RealmConfiguration configB = configFactory.createConfiguration("file2.realm");
         Realm.deleteRealm(configA);
         Realm.deleteRealm(configB);
 
@@ -1091,7 +1090,7 @@ public class RealmTest {
             allTypes.setColumnString("Hello World");
             realm1.commitTransaction();
 
-            realm1.writeCopyTo(new File(context.getFilesDir(), "file2.realm"));
+            realm1.writeCopyTo(new File(configB.getPath()));
         } finally {
             if (realm1 != null) {
                 realm1.close();
@@ -1099,8 +1098,8 @@ public class RealmTest {
         }
 
         // Copy is compacted i.e. smaller than original
-        File file1 = new File(context.getFilesDir(), "file1.realm");
-        File file2 = new File(context.getFilesDir(), "file2.realm");
+        File file1 = new File(configA.getPath());
+        File file2 = new File(configB.getPath());
         assertTrue(file1.length() >= file2.length());
 
         Realm realm2 = null;
@@ -1129,16 +1128,12 @@ public class RealmTest {
 
     @Test
     public void testCompactRealmFileFailsIfOpen() throws IOException {
-        assertFalse(Realm.compactRealm(TestHelper.createConfiguration(context)));
+        assertFalse(Realm.compactRealm(testRealm.getConfiguration()));
     }
 
     @Test
     public void testCompactEncryptedEmptyRealmFile() {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(context)
-                .name("enc.realm")
-                .encryptionKey(TestHelper.getRandomKey())
-                .build();
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", TestHelper.getRandomKey());
         Realm realm = Realm.getInstance(realmConfig);
         realm.close();
         // TODO: remove try/catch block when compacting encrypted Realms is supported
@@ -1151,11 +1146,7 @@ public class RealmTest {
 
     @Test
     public void testCompactEncryptedPopulatedRealmFile() {
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(context)
-                .name("enc.realm")
-                .encryptionKey(TestHelper.getRandomKey())
-                .build();
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", TestHelper.getRandomKey());
         Realm realm = Realm.getInstance(realmConfig);
 
         populateTestRealm(realm, 100);
@@ -1171,27 +1162,25 @@ public class RealmTest {
     @Test
     public void testCompactEmptyRealmFile() throws IOException {
         final String REALM_NAME = "test.realm";
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(context, REALM_NAME);
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
         Realm realm = Realm.getInstance(realmConfig);
         realm.close();
-        long before = new File(context.getFilesDir(), REALM_NAME).length();
+        long before = new File(realmConfig.getPath()).length();
         assertTrue(Realm.compactRealm(realmConfig));
-        long after = new File(context.getFilesDir(), REALM_NAME).length();
+        long after = new File(realmConfig.getPath()).length();
         assertTrue(before >= after);
     }
 
     @Test
     public void testCompactPopulateRealmFile() throws IOException {
         final String REALM_NAME = "test.realm";
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(context, REALM_NAME);
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration(REALM_NAME);
         Realm realm = Realm.getInstance(realmConfig);
         populateTestRealm(realm, 100);
         realm.close();
-        long before = new File(context.getFilesDir(), REALM_NAME).length();
+        long before = new File(realmConfig.getPath()).length();
         assertTrue(Realm.compactRealm(realmConfig));
-        long after = new File(context.getFilesDir(), REALM_NAME).length();
+        long after = new File(realmConfig.getPath()).length();
         assertTrue(before >= after);
     }
 
@@ -1228,8 +1217,7 @@ public class RealmTest {
         allTypes.setColumnString("Test");
         testRealm.commitTransaction();
 
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(context, "other-realm");
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration("other-realm");
         Realm otherRealm = Realm.getInstance(realmConfig);
         otherRealm.beginTransaction();
         AllTypes copiedAllTypes = otherRealm.copyToRealm(allTypes);
@@ -1652,21 +1640,12 @@ public class RealmTest {
         assertTrue(key1 != key2);
 
         final String ENCRYPTED_REALM = "differentKeys.realm";
-        Realm.deleteRealm(TestHelper.createConfiguration(context, ENCRYPTED_REALM));
         Realm realm1 = null;
         Realm realm2 = null;
         try {
-            realm1 = Realm.getInstance(new RealmConfiguration.Builder(context)
-                            .name(ENCRYPTED_REALM)
-                            .encryptionKey(key1)
-                            .build()
-            );
+            realm1 = Realm.getInstance(configFactory.createConfiguration(ENCRYPTED_REALM, key1));
             try {
-                realm2 = Realm.getInstance(new RealmConfiguration.Builder(context)
-                                .name(ENCRYPTED_REALM)
-                                .encryptionKey(key2)
-                                .build()
-                );
+                realm2 = Realm.getInstance(configFactory.createConfiguration(ENCRYPTED_REALM, key2));
             } catch (Exception e) {
                 fail();
             } finally {
@@ -1692,29 +1671,16 @@ public class RealmTest {
         final String RE_ENCRYPTED_REALM_FILE_NAME = "reEncryptedTestRealm.realm";
         final String DECRYPTED_REALM_FILE_NAME = "decryptedTestRealm.realm";
 
-        RealmConfiguration encryptedRealmConfig = new RealmConfiguration.Builder(context)
-                .name(ENCRYPTED_REALM_FILE_NAME)
-                .encryptionKey(TestHelper.getRandomKey())
-                .build();
+        RealmConfiguration encryptedRealmConfig = configFactory.createConfiguration(ENCRYPTED_REALM_FILE_NAME,
+                TestHelper.getRandomKey());
 
-        RealmConfiguration reEncryptedRealmConfig = new RealmConfiguration.Builder(context)
-                .name(RE_ENCRYPTED_REALM_FILE_NAME)
-                .encryptionKey(TestHelper.getRandomKey())
-                .build();
+        RealmConfiguration reEncryptedRealmConfig = configFactory.createConfiguration(RE_ENCRYPTED_REALM_FILE_NAME,
+                TestHelper.getRandomKey());
 
-        RealmConfiguration decryptedRealmConfig = new RealmConfiguration.Builder(context)
-                .name(DECRYPTED_REALM_FILE_NAME)
-                .build();
-
-        // Delete old test Realms if present
-        for (RealmConfiguration realmConfig : Arrays.asList(encryptedRealmConfig, reEncryptedRealmConfig, decryptedRealmConfig)) {
-            if (!Realm.deleteRealm(realmConfig)) {
-                fail();
-            }
-        }
+        RealmConfiguration decryptedRealmConfig = configFactory.createConfiguration(DECRYPTED_REALM_FILE_NAME);
 
         // Write encrypted copy from a unencrypted Realm
-        File destination = new File(context.getFilesDir(), ENCRYPTED_REALM_FILE_NAME);
+        File destination = new File(encryptedRealmConfig.getPath());
         try {
             testRealm.writeEncryptedCopyTo(destination, encryptedRealmConfig.getEncryptionKey());
         } catch (Exception e) {
@@ -1784,8 +1750,8 @@ public class RealmTest {
     public void testOpenRealmFileDeletionShouldThrow() {
         final String OTHER_REALM_NAME = "yetAnotherRealm.realm";
 
-        RealmConfiguration configA = TestHelper.createConfiguration(context);
-        RealmConfiguration configB = TestHelper.createConfiguration(context, OTHER_REALM_NAME);
+        RealmConfiguration configA = configFactory.createConfiguration();
+        RealmConfiguration configB = configFactory.createConfiguration(OTHER_REALM_NAME);
 
         // This instance is already cached because of the setUp() method so this deletion should throw
         try {
@@ -2087,8 +2053,7 @@ public class RealmTest {
     // even if we skip initialization & validation
     @Test
     public void testColumnIndicesIsPopulatedWhenSkippingInitialization() throws Throwable {
-        final RealmConfiguration realmConfiguration = TestHelper.createConfiguration(context, "columnIndices");
-        Realm.deleteRealm(realmConfiguration);
+        final RealmConfiguration realmConfiguration = configFactory.createConfiguration("columnIndices");
         final Exception threadError[] = new Exception[1];
         final CountDownLatch bgRealmOpened = new CountDownLatch(1);
         final CountDownLatch mainThreadRealmDone = new CountDownLatch(1);
@@ -2426,8 +2391,7 @@ public class RealmTest {
 
     @Test
     public void testIsEmpty() {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(context, "empty_test.realm");
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration("empty_test.realm");
         Realm emptyRealm = Realm.getInstance(realmConfig);
 
         assertTrue(emptyRealm.isEmpty());

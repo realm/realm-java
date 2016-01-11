@@ -45,6 +45,7 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.log.Logger;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
@@ -355,22 +356,42 @@ public class TestHelper {
         }
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration()} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context) {
         return createConfiguration(context, Realm.DEFAULT_REALM_NAME);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String)} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context, String name) {
         return createConfiguration(context.getFilesDir(), name);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String)} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(File folder, String name) {
         return createConfiguration(folder, name, null);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String, byte[])} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context, String name, byte[] key) {
         return createConfiguration(context.getFilesDir(), name, key);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String, byte[])} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
         RealmConfiguration.Builder config = new RealmConfiguration.Builder(dir).name(name);
         if (key != null) {
