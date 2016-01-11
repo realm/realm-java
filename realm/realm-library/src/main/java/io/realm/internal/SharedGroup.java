@@ -277,6 +277,28 @@ public class SharedGroup implements Closeable {
                     ", index=" + index +
                     '}';
         }
+
+        @Override
+        public boolean equals(Object object) {
+            if (this == object) return true;
+            if (object == null || getClass() != object.getClass()) return false;
+            if (!super.equals(object)) return false;
+
+            VersionID versionID = (VersionID) object;
+
+            if (version != versionID.version) return false;
+            if (index != versionID.index) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + (int) (version ^ (version >>> 32));
+            result = 31 * result + (int) (index ^ (index >>> 32));
+            return result;
+        }
     }
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
