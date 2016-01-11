@@ -32,6 +32,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
+import io.realm.entities.Cat;
+import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.Owner;
 import io.realm.internal.log.RealmLog;
@@ -87,6 +89,8 @@ public class DynamicRealmTests {
             allTypes.setFloat(AllTypes.FIELD_FLOAT, 1.234567F + i);
             allTypes.setString(AllTypes.FIELD_STRING, "test data " + i);
             allTypes.setLong(AllTypes.FIELD_LONG, i);
+            allTypes.getList(AllTypes.FIELD_REALMLIST).add(realm.createObject(Dog.CLASS_NAME));
+            allTypes.getList(AllTypes.FIELD_REALMLIST).add(realm.createObject(Dog.CLASS_NAME));
         }
         realm.commitTransaction();
     }
@@ -747,5 +751,46 @@ public class DynamicRealmTests {
         dynamicRealmObject[0] = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findFirstAsync();
+    }
+
+    @Test
+    public void clear_all() {
+        realm.beginTransaction();
+        realm.createObject(AllTypes.CLASS_NAME);
+        DynamicRealmObject cat = realm.createObject(Cat.CLASS_NAME);
+        DynamicRealmObject owner =  realm.createObject(Owner.CLASS_NAME);
+        owner.setObject("cat", cat);
+        realm.getSchema().create("TestRemoveAll").addField("Field1", String.class);
+        realm.createObject("TestRemoveAll");
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(AllTypes.CLASS_NAME).count());
+        assertEquals(1, realm.where(Owner.CLASS_NAME).count());
+        assertEquals(1, realm.where(Cat.CLASS_NAME).count());
+        assertEquals(1, realm.where("TestRemoveAll").count());
+
+        realm.beginTransaction();
+        realm.clear();
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(AllTypes.CLASS_NAME).count());
+        assertEquals(0, realm.where(Owner.CLASS_NAME).count());
+        assertEquals(0, realm.where(Cat.CLASS_NAME).count());
+        assertEquals(0, realm.where("TestRemoveAll").count());
+        assertTrue(realm.isEmpty());
+    }
+
+    @Test
+    public void realmListRemoveAllFromRealm() {
+        populateTestRealm(realm, 1);
+        RealmList<DynamicRealmObject> list = realm.where(AllTypes.CLASS_NAME).findFirst().getList(AllTypes.FIELD_REALMLIST);
+        assertEquals(2, list.size());
+
+        realm.beginTransaction();
+        list.removeAllFromRealm();
+        realm.commitTransaction();
+
+        assertEquals(0, list.size());
+        assertEquals(0, realm.where(Dog.CLASS_NAME).count());
     }
 }

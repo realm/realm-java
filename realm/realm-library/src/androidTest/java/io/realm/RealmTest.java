@@ -2906,4 +2906,54 @@ public class RealmTest {
             thread.interrupt();
         }
     }
+
+    @Test
+    public void testClearAll() {
+        testRealm.beginTransaction();
+        testRealm.createObject(AllTypes.class);
+        testRealm.createObject(Owner.class).setCat(testRealm.createObject(Cat.class));
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.where(AllTypes.class).count());
+        assertEquals(1, testRealm.where(Owner.class).count());
+        assertEquals(1, testRealm.where(Cat.class).count());
+
+        testRealm.beginTransaction();
+        testRealm.clear();
+        testRealm.commitTransaction();
+
+        assertEquals(0, testRealm.where(AllTypes.class).count());
+        assertEquals(0, testRealm.where(Owner.class).count());
+        assertEquals(0, testRealm.where(Cat.class).count());
+        assertTrue(testRealm.isEmpty());
+    }
+
+    @Test
+    public void testClearAllInWrongThreadShouldThrow() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testRealm.clear();
+                    fail("testRealm cannot be used in another thread!");
+                } catch (IllegalStateException ignored) {
+                    signalTestFinished.countDown();
+                }
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(signalTestFinished);
+    }
+
+    @Test
+    public void testClearAllCalledOutsideTransaction() {
+        try {
+            testRealm.clear();
+            fail("clear can only be called in transaction block!");
+        } catch (IllegalStateException ignored) {
+        }
+    }
 }
