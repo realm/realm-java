@@ -2,6 +2,7 @@ buildscript {
     repositories {
         jcenter()
     }
+
     dependencies {
         classpath 'com.android.tools.build:gradle:1.5.0'
         classpath 'de.undercouch:gradle-download-task:2.0.0'

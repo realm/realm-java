@@ -27,7 +27,7 @@ import io.realm.TestHelper;
 
 public class JNITableTest extends AndroidTestCase {
 
-    Table t = new Table();
+    Table t;
 
     Table createTestTable() {
         Table t = new Table();
