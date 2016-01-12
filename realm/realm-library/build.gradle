@@ -6,6 +6,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven'
 apply plugin: 'findbugs'
 apply plugin: 'checkstyle'
+apply plugin: 'com.github.kt3k.coveralls'
 
 android {
     compileSdkVersion 23
@@ -29,6 +30,8 @@ android {
         abortOnError false
     }
 }
+
+coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 repositories {
     maven { url "https://jitpack.io" }
