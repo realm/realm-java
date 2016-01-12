@@ -260,6 +260,12 @@ task uploadDistributionPackage(type: Exec) {
     commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-java-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
 }
 
+task uploadRobolectricDistributionPackage(type: Exec) {
+    description = 'Upload the Robolectric distribution package to S3'
+    dependsOn robolectricDistributionPackage
+    commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-robolectric-darwin-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
+}
+
 task createEmptyFile(type: Exec) {
     group = 'Release'
     description = 'Create an empty file that will serve as a link on S3'
