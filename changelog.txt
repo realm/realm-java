@@ -1,13 +1,24 @@
 0.88.0
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
+ * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
+ * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
+ * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
+ * Improved performance of RealmList#contains() (#897).
+
+0.87.2
+ * Fixed a bug when RealmObjectSchema.addField() was called with the PRIMARY_KEY modifier, the field was not set as a required field (#2001).
+ * Removed explicit GC call when committing a transaction (#1925).
+ * Fixed a bug which could throw a ConcurrentModificationException in RealmObject's or RealmResults' change listener (#1970).
+ * Fixed RealmList.set() so it now correctly returns the old element instead of the new (#2044).
+ * Fixed the deployment of source and javadoc jars (#1971).
 
 0.87.1
  * Upgraded to NDK R10e. Using gcc 4.9 for all architectures.
  * Updated Realm Core to 0.95.6
    - Fixed a bug where an async query can be copied incomplete in rare cases (#1717).
  * Fixed potential memory leak when using async query.
- * Add a check to prevent removing a RealmChangeListener from a non-Looper thread. (Thank you @hohnamkung)
+ * Added a check to prevent removing a RealmChangeListener from a non-Looper thread (#1962). (Thank you @hohnamkung)
 
 0.87.0
  * Added Realm.asObservable(), RealmResults.asObservable(), RealmObject.asObservable(), DynamicRealm.asObservable() and DynamicRealmObject.asObservable().

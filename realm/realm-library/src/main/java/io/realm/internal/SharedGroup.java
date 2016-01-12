@@ -38,10 +38,6 @@ public class SharedGroup implements Closeable {
     private boolean activeTransaction;
     private final Context context;
 
-    static {
-        RealmCore.loadLibrary();
-    }
-
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);
@@ -199,7 +195,7 @@ public class SharedGroup implements Closeable {
         activeTransaction = false;
     }
 
-    boolean isClosed() {
+    public boolean isClosed() {
         return nativePtr == 0;
     }
 
@@ -249,7 +245,7 @@ public class SharedGroup implements Closeable {
         return new VersionID (versionId[0], versionId[1]);
 
     }
-    
+
     public static class VersionID implements Comparable<VersionID> {
         final long version;
         final long index;

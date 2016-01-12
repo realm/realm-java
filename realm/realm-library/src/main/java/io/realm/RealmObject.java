@@ -271,7 +271,7 @@ public abstract class RealmObject {
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      *
      * @param <E> RealmObject class that is being observed. Must be this class or its super types.
-     * @return RxJava Observable.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
