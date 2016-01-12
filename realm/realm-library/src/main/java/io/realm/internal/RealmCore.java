@@ -88,7 +88,12 @@ public class RealmCore {
         if (libraryIsLoaded) {
             return;
         }
-        ReLinker.loadLibrary(context, "realm-jni");
+        if (osIsDarwin()) {
+            resetLibraryPath();
+            loadLibrary("realm-jni-darwin", "realm-jni-darwin");
+        } else {
+            ReLinker.loadLibrary(context, "realm-jni");
+        }
         libraryIsLoaded = true;
     }
 
