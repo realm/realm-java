@@ -207,6 +207,16 @@ task distributionPackage(type:Zip) {
     }
 }
 
+task robolectricDistributionPackage(type:Zip) {
+    description = 'Generate the Robolectric distribution package'
+    dependsOn assembleRobolectric
+
+    archiveName = "realm-robolectric-${currentVersion}.zip"
+    destinationDir = file("${buildDir}/outputs/distribution")
+
+    from('realm/realm-library/src/main/robolectricLibs/librealm-jni-darwin.dylib')
+}
+
 task cleanRealm(type:GradleBuild) {
     description = 'Clean the Realm project'
     group = 'Clean'
