@@ -18,6 +18,8 @@ package io.realm.examples.newsreader.ui.main;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.ColorInt;
+import android.support.annotation.LayoutRes;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -136,9 +138,9 @@ public class MainActivity extends AppCompatActivity {
     public static class NewsListAdapter extends ArrayAdapter<NYTimesStory> {
 
         private final LayoutInflater inflater;
-        private final int layoutResource;
-        private final int readColor;
-        private final int unreadColor;
+        @LayoutRes private final int layoutResource;
+        @ColorInt private final int readColor;
+        @ColorInt private final int unreadColor;
 
         public NewsListAdapter(Context context, List<NYTimesStory> initialData) {
             super(context, android.R.layout.simple_list_item_1);

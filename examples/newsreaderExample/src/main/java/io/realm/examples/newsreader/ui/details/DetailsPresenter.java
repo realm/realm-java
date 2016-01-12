@@ -61,7 +61,7 @@ public class DetailsPresenter implements Presenter {
                 });
 
         // Mark story as read if screen is visible for 2 seconds
-        Subscription timerSubscription = Observable.timer(2000, TimeUnit.MILLISECONDS)
+        Subscription timerSubscription = Observable.timer(2, TimeUnit.SECONDS)
                 .subscribe(new Action1<Long>() {
                     @Override
                     public void call(Long aLong) {
