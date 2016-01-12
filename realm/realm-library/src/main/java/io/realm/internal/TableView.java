@@ -752,6 +752,18 @@ public class TableView implements TableOrView, Closeable {
         }
     }
 
+    /**
+     * Finds a row in the parent table with the given {@code rowIndex}
+     *
+     * @param rowIndex the index of the row.
+     * @return the row index or -1 for not found.
+     */
+    @Override
+    public long sourceRowIndex(long rowIndex) {
+        return nativeFindBySourceNdx(nativePtr, rowIndex);
+    }
+
+
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
@@ -826,6 +838,7 @@ public class TableView implements TableOrView, Closeable {
     private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
     private native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
     private native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindBySourceNdx(long nativePtr, long rowIndex);
     private native long nativeSumInt(long nativeViewPtr, long columnIndex);
     private native long nativeFindAllString(long nativePtr, long columnIndex, String value);
     private native Long nativeMaximumInt(long nativeViewPtr, long columnIndex);

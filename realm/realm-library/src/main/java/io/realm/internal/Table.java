@@ -1139,6 +1139,19 @@ public class Table implements TableOrView, TableSchema, Closeable {
         }
     }
 
+    /**
+     * Returns the same rowIndex that is passed in via the {@code rowIndex}.
+     * This interface method allows for contains() usage in the {@link TableView} class.
+     * See {@link TableView#sourceRowIndex(long)} for more information.
+     *
+     * @param rowIndex the index of the row.
+     * @return the row index.
+     */
+    @Override
+    public long sourceRowIndex(long rowIndex) {
+        return rowIndex;
+    }
+
     @Override
     public long findFirstLong(long columnIndex, long value) {
         return nativeFindFirstInt(nativePtr, columnIndex, value);
