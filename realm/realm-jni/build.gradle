@@ -248,7 +248,7 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
-task buildRobolectric(description: "Build the Robolectric shared library for Darwin") {
+task assembleRobolectric(description: "Build the Robolectric shared library for Darwin") {
     def staticLibPath = "/usr/local/lib/librealm.a"
 
     doFirst {
@@ -300,7 +300,7 @@ task buildRobolectric(description: "Build the Robolectric shared library for Dar
 
 task installRobolectric(description: "Install native library to support Robolectric.") {
     dependsOn {
-        buildRobolectric
+        assembleRobolectric
     }
 
     copy {

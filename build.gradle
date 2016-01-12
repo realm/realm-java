@@ -94,18 +94,15 @@ task installRealmJava(type:Task) {
 }
 
 task installRobolectric(type:GradleBuild) {
+    description = 'Install the Robolectric libary into example'
     buildFile = file('realm/build.gradle')
     tasks = ['installRobolectric']
 }
 
-task buildRobolectric(type:GradleBuild) {
+task assembleRobolectric(type:GradleBuild) {
+    description = 'Assemble the Robolectric support'
     buildFile = file('realm/build.gradle')
-    tasks = ['buildRobolectric']
-}
-
-task testRobolectric(type:GradleBuild) {
-    buildFile = file('examples/robolectricExample/build.gradle')
-    tasks = ['test']
+    tasks = ['assembleRobolectric']
 }
 
 task assembleExamples(type:GradleBuild) {
