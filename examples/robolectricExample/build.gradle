@@ -1,3 +1,13 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'de.undercouch:gradle-download-task:2.0.0'
+    }
+}
+
+apply plugin: 'de.undercouch.download'
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
@@ -38,4 +48,30 @@ dependencies {
     testCompile "org.robolectric:robolectric:3.0"
 
     testApt "io.realm:realm-annotations-processor:${currentVersion}"
+}
+
+task downloadRealmRobolectric {
+    doLast {
+        def targetZip = "${projectDir}/realm-robolectric-darwin-${currentVersion}.zip"
+        def targetLib = "${projectDir}/robolectricLibs/librealm-jni-darwin.dylib"
+
+        if (file(targetZip).exists() && file(targetLib).exists()) {
+            println "librealm-jni-darwin.dylib is already exsit. Skip download the Realm Robolectric."
+            return
+        }
+
+        download {
+            src "http://static.realm.io/downloads/java/realm-robolectric-darwin-${currentVersion}.zip"
+            dest "${projectDir}"
+        }
+
+        copy {
+            from zipTree(file(targetZip))
+            into "${projectDir}/robolectricLibs"
+        }
+    }
+}
+
+afterEvaluate {
+    test.dependsOn downloadRealmRobolectric
 }
