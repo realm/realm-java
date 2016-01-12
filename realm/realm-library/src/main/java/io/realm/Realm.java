@@ -775,7 +775,7 @@ public final class Realm extends BaseRealm {
      * @param realmObjects RealmObjects to copy
      * @param <E> type of object.
      * @return an in-memory detached copy of managed RealmObjects.
-     * @throws IllegalArgumentException if the RealmObjects are not accessible.
+     * @throws IllegalArgumentException if the RealmObject is no longer accessible or it is a {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public <E extends RealmObject> List<E> copyFromRealm(Iterable<E> realmObjects) {
@@ -798,7 +798,8 @@ public final class Realm extends BaseRealm {
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is {@code 0}.
      * @param <E> type of object.
      * @return an in-memory detached copy of the RealmObjects.
-     * @throws IllegalArgumentException if {@code maxDepth < 0} or the RealmObjects aren't accessible.
+     * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
+     *         {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public <E extends RealmObject> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
@@ -831,7 +832,7 @@ public final class Realm extends BaseRealm {
      * @param realmObject {@link RealmObject} to copy
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
-     * @throws IllegalArgumentException if the RealmObject is no longer accessible.
+     * @throws IllegalArgumentException if the RealmObject is no longer accessible or it is a {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(RealmObject)
      */
     public <E extends RealmObject> E copyFromRealm(E realmObject) {
@@ -854,7 +855,8 @@ public final class Realm extends BaseRealm {
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is {@code 0}.
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
-     * @throws IllegalArgumentException if {@code maxDepth < 0} or the RealmObject is no longer accessible.
+     * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
+     *         {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(RealmObject)
      */
     public <E extends RealmObject> E copyFromRealm(E realmObject, int maxDepth) {
@@ -1195,6 +1197,9 @@ public final class Realm extends BaseRealm {
         }
         if (!realmObject.isValid()) {
             throw new IllegalArgumentException("RealmObject is not valid, so it cannot be copied.");
+        }
+        if (realmObject instanceof DynamicRealmObject) {
+            throw new IllegalArgumentException("DynamicRealmObject cannot be copied from Realm.");
         }
     }
 
