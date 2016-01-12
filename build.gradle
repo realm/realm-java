@@ -211,7 +211,7 @@ task robolectricDistributionPackage(type:Zip) {
     description = 'Generate the Robolectric distribution package'
     dependsOn assembleRobolectric
 
-    archiveName = "realm-robolectric-${currentVersion}.zip"
+    archiveName = "realm-robolectric-darwin-${currentVersion}.zip"
     destinationDir = file("${buildDir}/outputs/distribution")
 
     from('realm/realm-library/src/main/robolectricLibs/librealm-jni-darwin.dylib')
