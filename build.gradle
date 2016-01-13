@@ -262,7 +262,7 @@ task uploadDistributionPackage(type: Exec) {
 
 task uploadRobolectricDistributionPackage(type: Exec) {
     description = 'Upload the Robolectric distribution package to S3'
-    dependsOn robolectricDistributionPackage
+    dependsOn createRobolectricDistributionPackages
     commandLine 's3cmd', 'put', "${buildDir}/outputs/distribution/realm-robolectric-darwin-${currentVersion}.zip", 's3://static.realm.io/downloads/java/'
 }
 
