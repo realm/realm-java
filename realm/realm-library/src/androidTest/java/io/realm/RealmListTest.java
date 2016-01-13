@@ -16,12 +16,11 @@
 
 package io.realm;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -38,6 +37,7 @@ import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmException;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -49,14 +49,15 @@ import static org.junit.Assert.fail;
 @RunWith(AndroidJUnit4.class)
 public class RealmListTest {
 
-    public static final int TEST_OBJECTS = 10;
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+
+    private static final int TEST_OBJECTS = 10;
     private Realm testRealm;
-    private Context context;
 
     @Before
     public void setUp() throws Exception {
-        context = InstrumentationRegistry.getInstrumentation().getContext();
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(context);
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
         testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
@@ -74,7 +75,6 @@ public class RealmListTest {
     public void tearDown() throws Exception {
         if (testRealm != null) {
             testRealm.close();
-            Realm.deleteRealm(testRealm.getConfiguration());
         }
     }
 
@@ -106,10 +106,10 @@ public class RealmListTest {
                     case 1: list.remove(0); break;
                     case 2: list.set(0, new Dog()); break;
                     case 3: list.move(0, 0); break;
+                    default: break;
                 }
                 fail();
-            } catch (IndexOutOfBoundsException ignored) {
-            } catch (RealmException ignored) {
+            } catch (IndexOutOfBoundsException | RealmException ignored) {
             }
         }
         realm.cancelTransaction();
@@ -158,6 +158,7 @@ public class RealmListTest {
             fail("Adding null should not be be allowed");
         } catch (IllegalArgumentException ignore) {
         }
+        assertEquals(0, list.size());
     }
 
     @Test
@@ -201,6 +202,7 @@ public class RealmListTest {
             fail("Adding null should not be be allowed");
         } catch (IllegalArgumentException ignore) {
         }
+        assertEquals(0, list.size());
     }
 
     @Test
@@ -239,6 +241,7 @@ public class RealmListTest {
             fail("Setting a null value should result in a exception");
         } catch (IllegalArgumentException ignore) {
         }
+        assertEquals(1, list.size());
     }
 
     @Test
@@ -426,7 +429,7 @@ public class RealmListTest {
 
     // Test that add correctly uses Realm.copyToRealm() on standalone objects.
     @Test
-    public void testAddUnmanagedObjectToManagedList() {
+    public void testAddNonManagedObjectToManagedList() {
         testRealm.beginTransaction();
         CyclicType parent = testRealm.createObject(CyclicType.class);
         RealmList<CyclicType> children = parent.getObjects();
@@ -437,7 +440,7 @@ public class RealmListTest {
 
     // Make sure that standalone objects with a primary key are added using copyToRealmOrUpdate
     @Test
-    public void testAddUnmanagedPrimaryKeyObjectToManagedList() {
+    public void testAddNonManagedPrimaryKeyObjectToManagedList() {
         testRealm.beginTransaction();
         testRealm.copyToRealm(new CyclicTypePrimaryKey(2, "original"));
         RealmList<CyclicTypePrimaryKey> children = testRealm.copyToRealm(new CyclicTypePrimaryKey(1)).getObjects();
@@ -450,7 +453,7 @@ public class RealmListTest {
 
     // Test that set correctly uses Realm.copyToRealm() on standalone objects.
     @Test
-    public void testSetUnmanagedObjectToManagedList() {
+    public void testSetNonManagedObjectToManagedList() {
         testRealm.beginTransaction();
         CyclicType parent = testRealm.copyToRealm(new CyclicType("Parent"));
         RealmList<CyclicType> children = parent.getObjects();
@@ -468,7 +471,7 @@ public class RealmListTest {
 
     // Test that set correctly uses Realm.copyToRealmOrUpdate() on standalone objects with a primary key.
     @Test
-    public void  testSetUnmanagedPrimaryKeyObjectToManagedList() {
+    public void  testSetNonManagedPrimaryKeyObjectToManagedList() {
         testRealm.beginTransaction();
         CyclicTypePrimaryKey parent = testRealm.copyToRealm(new CyclicTypePrimaryKey(1, "Parent"));
         RealmList<CyclicTypePrimaryKey> children = parent.getObjects();
@@ -810,6 +813,7 @@ public class RealmListTest {
         testRealm.commitTransaction();
     }
 
+    @Test
     public void testContains() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         Dog dog = owner.getDogs().get(0);
@@ -820,6 +824,7 @@ public class RealmListTest {
      * Test to see if a particular item that does exist in the same Realm does not
      * exist in a query that excludes said item.
      */
+    @Test
     public void testContainsSameRealmNotContained() {
         RealmResults<Dog> dogs = testRealm.where(Dog.class)
                 .equalTo("name", "Dog 1").or().equalTo("name", "Dog 2").findAll();
@@ -828,16 +833,18 @@ public class RealmListTest {
         assertFalse("Should not contain a particular dog.", dogs.contains(thirdDog));
     }
 
+    @Test
     public void testContainsNotManaged() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> managedDogs = owner.getDogs();
-        // Create a unmanaged RealmList
-        RealmList<Dog> unmanagedDogs
+        // Create a non-managed RealmList
+        RealmList<Dog> nonManagedDogs
                 = new RealmList<Dog>(managedDogs.toArray(new Dog[managedDogs.size()]));
         Dog dog = managedDogs.get(0);
-        assertTrue("Should contain a particular dog", unmanagedDogs.contains(dog));
+        assertTrue("Should contain a particular dog", nonManagedDogs.contains(dog));
     }
 
+    @Test
     public void testContainsNull() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         assertFalse("Should not contain a null item.", owner.getDogs().contains(null));
@@ -847,9 +854,9 @@ public class RealmListTest {
      * Test that the {@link Realm#contains(Class)} method of one Realm will not contain a
      * {@link RealmObject} from another Realm.
      */
+    @Test
     public void testContainsDoesNotContainAnItem() {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(context, "contains_test.realm");
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration("contains_test.realm");
         Realm testRealmTwo = Realm.getInstance(realmConfig);
         try {
             // Set up the test realm
@@ -878,6 +885,7 @@ public class RealmListTest {
         }
     }
 
+    @Test
     public void testRealmShouldNotContainDeletedRealmObject() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
