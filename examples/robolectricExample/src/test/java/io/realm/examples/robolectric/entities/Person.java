@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,13 @@
 
 package io.realm.examples.robolectric.entities;
 
-import io.realm.RealmList;
 import io.realm.RealmObject;
+//import io.realm.annotations.Index;
+//import io.realm.annotations.PrimaryKey;
 
-public class Owner extends RealmObject {
+public class Person extends RealmObject {
     private String name;
-    private RealmList<Dog> dogs;
-    private Cat cat;
-
-    public Cat getCat() {
-        return cat;
-    }
-
-    public void setCat(Cat cat) {
-        this.cat = cat;
-    }
-
-    public RealmList<Dog> getDogs() {
-        return dogs;
-    }
-
-    public void setDogs(RealmList<Dog> dogs) {
-        this.dogs = dogs;
-    }
+    private int age;
 
     public String getName() {
         return name;
@@ -46,5 +30,13 @@ public class Owner extends RealmObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 }
