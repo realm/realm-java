@@ -94,7 +94,7 @@ task installRealmJava(type:Task) {
 }
 
 task installRobolectric(type:GradleBuild) {
-    description = 'Install the Robolectric libary into example'
+    description = 'Install the Robolectric library into example'
     buildFile = file('realm/build.gradle')
     tasks = ['installRobolectric']
 }
