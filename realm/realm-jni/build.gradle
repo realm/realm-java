@@ -253,7 +253,7 @@ task assembleRobolectric(description: "Build the Robolectric shared library for 
 
     doFirst {
         if (file(staticLibPath).exists() == false) {
-            throw new GradleException("The core library for OS X is not installed correctly.")
+            throw new GradleException("The Realm Core library for OS X is not installed correctly. ")
         }
     }
 

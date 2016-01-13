@@ -126,8 +126,7 @@ public class RealmCore {
         String debug = System.getenv("REALM_JAVA_DEBUG");
         if (debug == null || debug.isEmpty()) {
             jnilib = releaseJniLib;
-        }
-        else {
+        } else {
             jnilib = debugJniLib;
         }
         try {

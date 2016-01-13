@@ -3,9 +3,9 @@
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
  * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
  * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
+ * Added support for Robolectric on Max OS X (#1867).
  * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
  * Improved performance of RealmList#contains() (#897).
- * Supported Robolectric libary (#1867).
 
 0.87.2
  * Fixed a bug when RealmObjectSchema.addField() was called with the PRIMARY_KEY modifier, the field was not set as a required field (#2001).

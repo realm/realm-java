@@ -207,8 +207,8 @@ task distributionPackage(type:Zip) {
     }
 }
 
-task robolectricDistributionPackage(type:Zip) {
-    description = 'Generate the Robolectric distribution package'
+task createRobolectricDistributionPackages(type:Zip) {
+    description = 'Create the Robolectric distribution package'
     dependsOn assembleRobolectric
 
     archiveName = "realm-robolectric-darwin-${currentVersion}.zip"
