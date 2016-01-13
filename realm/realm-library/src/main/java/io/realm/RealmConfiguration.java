@@ -97,20 +97,24 @@ public class RealmConfiguration {
         this.rxObservableFactory = builder.rxFactory;
 
         nativeConfigurationPointer = createConfigurationPointer();
-        nativeSetFolder(nativeConfigurationPointer, builder.folder);
-        nativeSetFileName(nativeConfigurationPointer, builder.fileName);
+        nativeSetFileName(nativeConfigurationPointer, builder.folder + "/" + builder.fileName);
+        nativeSetEncryptionKey(nativeConfigurationPointer, builder.key);
     }
 
     public File getRealmFolder() {
-        return nativeGetFolder(nativeConfigurationPointer);
+        String fullPath = nativeGetFileName(nativeConfigurationPointer);
+        int lastIndex = fullPath.lastIndexOf('/');
+        File folder = new File(fullPath.substring(0, lastIndex-1));
+        return folder;
     }
 
     public String getRealmFileName() {
-        return nativeGetFileName();
+        return nativeGetFileName(nativeConfigurationPointer);
     }
 
     public byte[] getEncryptionKey() {
-        return key == null ? null : Arrays.copyOf(key, key.length);
+        //return key == null ? null : Arrays.copyOf(key, key.length);
+        return nativeGetEncryptionKey(nativeConfigurationPointer);
     }
 
     public long getSchemaVersion() {
@@ -500,8 +504,8 @@ public class RealmConfiguration {
     }
 
     private native long createConfigurationPointer();
-    private native void nativeSetFolder(long nativeConfigurationPointer, String folder);
-    private native String nativeGetFolder(long nativeConfigurationPointer);
     private native void nativeSetFileName(long nativeConfigurationPointer, String realmFileName);
-    private native void nativeGetFileName(long nativeConfigurationPointer);
+    private native String nativeGetFileName(long nativeConfigurationPointer);
+    private native void nativeSetEncryptionKey(long nativeConfigurationPointer, byte[] encryptionKey);
+    private native byte[] nativeGetEncryptionKey(long nativeConfigurationPointer);
 }
