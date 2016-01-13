@@ -43,8 +43,7 @@ public class RealmCore {
         return (os.contains("win"));
     }
 
-    public static boolean osIsDarwin()
-    {
+    public static boolean osIsDarwin() {
         String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
         return (os.contains("mac"));
     }
