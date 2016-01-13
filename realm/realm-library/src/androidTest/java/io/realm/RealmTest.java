@@ -21,7 +21,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
@@ -94,7 +93,6 @@ public class RealmTest {
     public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    private Context context;
 
     protected final static int TEST_DATA_SIZE = 10;
     protected Realm testRealm;
@@ -114,10 +112,6 @@ public class RealmTest {
 
     @Before
     public void setUp() throws Exception {
-        // Injecting the Instrumentation instance is required
-        // for your test to run with AndroidJUnitRunner.
-        context = InstrumentationRegistry.getInstrumentation().getContext();
-
         testConfig = configFactory.createConfiguration();
         testRealm = Realm.getInstance(testConfig);
     }
@@ -160,7 +154,7 @@ public class RealmTest {
         try {
             Realm.getInstance(new RealmConfiguration.Builder((File) null).build());
             fail("Parsing null as folder should throw an error");
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -170,7 +164,7 @@ public class RealmTest {
         try {
             Realm.getInstance(new RealmConfiguration.Builder(folder).build());
             fail("Pointing to a folder with no write permission should throw an IllegalArgumentException");
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -187,7 +181,7 @@ public class RealmTest {
         try {
             Realm.getInstance(new RealmConfiguration.Builder(folder).name(REALM_FILE).build());
             fail("Trying to open a read-only file should fail");
-        } catch (RealmIOException expected) {
+        } catch (RealmIOException ignored) {
         }
     }
 
@@ -499,6 +493,7 @@ public class RealmTest {
         assertEquals("test data 0", reverseList.last().getColumnString());
 
         try {
+            @SuppressWarnings("unused")
             RealmResults<AllTypes> none = testRealm.allObjectsSorted(AllTypes.class, "invalid", Sort.ASCENDING);
             fail();
         } catch (IllegalArgumentException ignored) {
@@ -542,8 +537,6 @@ public class RealmTest {
 
     @Test
     public void testSortMultiFailures() {
-        RealmResults<AllTypes> allTypes = testRealm.allObjects(AllTypes.class);
-
         // zero fields specified
         try {
             testRealm.allObjectsSorted(AllTypes.class, new String[]{}, new Sort[]{});
@@ -978,11 +971,10 @@ public class RealmTest {
         long seed = 20;
         Random random = new Random(seed);
 
-        int random_value = 0;
+        int random_value;
 
         String test_char = "";
         String test_char_old = "";
-        String get_data = "";
 
         for (int i = 0; i < 1000; i++) {
             random_value = random.nextInt(25);
@@ -1071,7 +1063,7 @@ public class RealmTest {
         try {
             allTypes.getColumnString();
             fail("Realm should be closed");
-        } catch (IllegalStateException expected) {
+        } catch (IllegalStateException ignored) {
         }
     }
 
@@ -1140,7 +1132,7 @@ public class RealmTest {
         try {
             assertTrue(Realm.compactRealm(realmConfig));
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -1155,7 +1147,7 @@ public class RealmTest {
         try {
             assertTrue(Realm.compactRealm(realmConfig));
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -1289,8 +1281,8 @@ public class RealmTest {
         oneCyclicType.setName("One");
         CyclicType anotherCyclicType = new CyclicType();
         anotherCyclicType.setName("Two");
-        oneCyclicType.setObjects(new RealmList(anotherCyclicType));
-        anotherCyclicType.setObjects(new RealmList(oneCyclicType));
+        oneCyclicType.setObjects(new RealmList<CyclicType>(anotherCyclicType));
+        anotherCyclicType.setObjects(new RealmList<CyclicType>(oneCyclicType));
 
         testRealm.beginTransaction();
         CyclicType realmObject = testRealm.copyToRealm(oneCyclicType);
@@ -1329,7 +1321,7 @@ public class RealmTest {
         try {
             testRealm.copyToRealm(new PrimaryKeyAsString());
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         } finally {
             testRealm.cancelTransaction();
         }
@@ -1384,7 +1376,7 @@ public class RealmTest {
         try {
             testRealm.copyToRealmOrUpdate(new PrimaryKeyAsString());
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -1808,37 +1800,18 @@ public class RealmTest {
     }
 
     @Test
-    public void testDeleteNonRealmFile() throws IOException {
-        File tmpFile = new File(context.getFilesDir(), "tmp");
-        tmpFile.delete();
-        assertTrue(tmpFile.createNewFile());
-    }
-
-    @Test
     public void testDeleteRealmFile() throws InterruptedException {
-        File tempDir = new File(context.getFilesDir(), "delete_test_dir");
-        if (!tempDir.exists()) {
-            tempDir.mkdir();
-        }
-
-        assertTrue(tempDir.isDirectory());
-
-        // Delete all files in the directory
-        for (File file : tempDir.listFiles()) {
-            file.delete();
-        }
-
-        final RealmConfiguration configuration = new RealmConfiguration.Builder(tempDir).build();
-
         final CountDownLatch readyToCloseLatch = new CountDownLatch(1);
         final CountDownLatch closedLatch = new CountDownLatch(1);
 
-        Realm realm = Realm.getInstance(configuration);
         // Create another Realm to ensure the log files are generated
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Realm realm = Realm.getInstance(configuration);
+                Realm realm = Realm.getInstance(testConfig);
+                realm.beginTransaction();
+                realm.createObject(AllTypes.class);
+                realm.commitTransaction();
                 try {
                     readyToCloseLatch.await();
                 } catch (InterruptedException ignored) {
@@ -1848,21 +1821,21 @@ public class RealmTest {
             }
         }).start();
 
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();
+        testRealm.beginTransaction();
+        testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
         readyToCloseLatch.countDown();
-        realm.close();
+        testRealm.close();
         closedLatch.await();
 
         // ATTENTION: log, log_a, log_b will be deleted when the other thread close the Realm peacefully. And we force
         // user to close all Realm instances before deleting. It would be difficult to simulate a case that log files
         // exist before deletion. Let's keep the case like this for now, we might allow user to delete Realm even there
         // are instances opened in the future.
-        assertTrue(Realm.deleteRealm(configuration));
+        assertTrue(Realm.deleteRealm(testConfig));
 
         // Directory should be empty now
-        assertEquals(0, tempDir.listFiles().length);
+        assertEquals(0, configFactory.getRoot().listFiles().length);
     }
 
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)
@@ -1885,27 +1858,38 @@ public class RealmTest {
         InputStream jsonArrStream2 = TestHelper.stringToStream(jsonArrStr);
 
         // Test all methods that should require a transaction
-        try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createObject(AllTypes.class);   fail(); } catch (IllegalStateException ignored) {}
+        try { testRealm.copyToRealm(t);                 fail(); } catch (IllegalStateException ignored) {}
+        try { testRealm.copyToRealm(ts);                fail(); } catch (IllegalStateException ignored) {}
+        try { testRealm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException ignored) {}
+        try { testRealm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException ignored) {}
+        try { testRealm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException ignored) {}
+        try { testRealm.clear(AllTypes.class);          fail(); } catch (IllegalStateException ignored) {}
 
-        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (RealmException expected) {}
-        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (RealmException expected) {}
-        try { testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, jsonObjStream);          fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);        fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);     fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); } catch (IllegalStateException expected) {}
-
-        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);                   fail(); } catch (RealmException expected) {}
-        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);                fail(); } catch (RealmException expected) {}
-        try { testRealm.createAllFromJson(NoPrimaryKeyNullTypes.class, jsonArrStream);             fail(); } catch (IllegalStateException expected) {}
-        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); } catch (RealmException expected) {}
-        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); } catch (RealmException expected) {}
-        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); } catch (IllegalStateException expected) {}
+        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); }
+        catch (RealmException ignored) {}
+        try { testRealm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); }
+        catch (RealmException ignored) {}
+        try { testRealm.createObjectFromJson(NoPrimaryKeyNullTypes.class, jsonObjStream);          fail(); }
+        catch (IllegalStateException ignored) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObj);        fail(); }
+        catch (IllegalStateException ignored) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);     fail(); }
+        catch (IllegalStateException ignored) {}
+        try { testRealm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, jsonObjStream2); fail(); }
+        catch (IllegalStateException ignored) {}
+        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArr);                   fail(); }
+        catch (RealmException ignored) {}
+        try { testRealm.createAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);                fail(); }
+        catch (RealmException ignored) {}
+        try { testRealm.createAllFromJson(NoPrimaryKeyNullTypes.class, jsonArrStream);             fail(); }
+        catch (IllegalStateException ignored) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArr);           fail(); }
+        catch (RealmException ignored) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStr);        fail(); }
+        catch (RealmException ignored) {}
+        try { testRealm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, jsonArrStream2);    fail(); }
+        catch (IllegalStateException ignored) {}
     }
 
     // TODO: re-introduce this test mocking the ReferenceQueue instead of relying on the GC
@@ -2275,23 +2259,18 @@ public class RealmTest {
         final CountDownLatch startLatch = new CountDownLatch(1);
         final CountDownLatch endLatch = new CountDownLatch(1);
 
-        final List<Exception> exception = new ArrayList<Exception>();
-
         new Thread() {
             @Override
             public void run() {
                 try {
                     startLatch.await();
                 } catch (InterruptedException e) {
-                    exception.add(e);
-                    return;
+                    throw new RuntimeException(e);
                 }
 
                 final Realm realm = Realm.getInstance(testConfig);
                 try {
                     realm.where(AllTypes.class).equalTo("columnLong", 0L).findFirst();
-                } catch (Exception e) {
-                    exception.add(e);
                 } finally {
                     endLatch.countDown();
                     realm.close();
@@ -2311,10 +2290,6 @@ public class RealmTest {
         }
 
         endLatch.await();
-
-        if (!exception.isEmpty()) {
-            throw exception.get(0);
-        }
     }
 
     // Bug reported https://github.com/realm/realm-java/issues/1728.
