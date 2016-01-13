@@ -21,6 +21,7 @@ import android.content.Context;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -82,11 +83,14 @@ public class RealmTest {
         return context;
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void beforeClassSetUp() {
         System.setProperty("java.library.path", "./robolectricLibs");
         ShadowLog.stream = System.out;
+    }
 
+    @Before
+    public void setUp() throws Exception {
         context = Robolectric.setupActivity(MainActivity.class);
         testConfig = TestHelper.createConfiguration(getContext());
         Realm.deleteRealm(testConfig);
