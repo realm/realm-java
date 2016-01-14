@@ -38,7 +38,7 @@ endif
 #endif
 
 ifeq ($(REALM_ANDROID),)
-  ifneq ($(OS),Darwin)
+  ifneq ($(REALM_ROBOLECTRIC),true)
     REALM_LDFLAGS += -llog
   endif
   CFLAGS_INCLUDE += $(JAVA_CFLAGS)

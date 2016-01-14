@@ -284,6 +284,7 @@ task assembleRobolectric(description: "Build the Robolectric shared library for 
                 "BASE_DENOM=darwin",
                 "REALM_LDFLAGS_COMMON=-lrealm -lstdc++ -L${projectDir}/../realm-library/src -L/usr/local/lib/ -Wl,-dead_strip -flto -Wl,-search_paths_first -framework CoreServices",
                 'LIB_SUFFIX_SHARED=.dylib',
+                "REALM_ROBOLECTRIC=true",
                 "librealm-jni-darwin${getDebugExt()}.dylib"
             ]
         }
