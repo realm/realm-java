@@ -62,7 +62,7 @@ public final class DynamicRealmObject extends RealmObject {
 
     DynamicRealmObject(BaseRealm realm, Row row) {
         this.realm = realm;
-        this.row = (row instanceof CheckedRow) ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
+        this.row = row instanceof CheckedRow ? (CheckedRow) row : ((UncheckedRow) row).convertToChecked();
     }
 
     DynamicRealmObject(String className) {
@@ -342,7 +342,7 @@ public final class DynamicRealmObject extends RealmObject {
      */
     @SuppressWarnings("unchecked")
     public void set(String fieldName, Object value) {
-        boolean isString = (value instanceof String);
+        boolean isString = value instanceof String;
         String strValue = isString ? (String) value : null;
 
         // Do implicit conversion if needed
