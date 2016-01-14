@@ -27,10 +27,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowLog;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
@@ -43,20 +39,10 @@ import static org.junit.Assert.assertTrue;
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class RobolectricTest {
-    protected final static int TEST_DATA_SIZE = 10;
 
-    protected List<String> columnData = new ArrayList<String>();
-
-    private final static String FIELD_STRING = "columnString";
-    private final static String FIELD_LONG = "columnLong";
-    private final static String FIELD_FLOAT = "columnFloat";
-    private final static String FIELD_DOUBLE = "columnDouble";
-    private final static String FIELD_BOOLEAN = "columnBoolean";
-    private final static String FIELD_DATE = "columnDate";
-
-    private Realm testRealm;
+    private Realm realm;
     private Activity context;
-    private RealmConfiguration testConfig;
+    private RealmConfiguration config;
 
     private Context getContext() {
         return context;
@@ -65,34 +51,33 @@ public class RobolectricTest {
     @BeforeClass
     public static void beforeClassSetUp() {
         System.setProperty("java.library.path", "./robolectricLibs");
-        ShadowLog.stream = System.out;
     }
 
     @Before
     public void setUp() throws Exception {
         context = Robolectric.setupActivity(MainActivity.class);
-        testConfig = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(testConfig);
-        testRealm = Realm.getInstance(testConfig);
+        config = new RealmConfiguration.Builder(getContext().getFilesDir()).name(Realm.DEFAULT_REALM_NAME).build();
+        Realm.deleteRealm(config);
+        realm = Realm.getInstance(config);
     }
 
     @After
     public void tearDown() throws Exception {
-        if (testRealm != null) {
-            testRealm.close();
+        if (realm != null) {
+            realm.close();
         }
     }
 
     @Test
     public void testIsEmpty() {
-        assertTrue(testRealm.isEmpty());
+        assertTrue(realm.isEmpty());
         Person person = new Person();
         person.setName("Brad Pitt");
         person.setAge(52);
-        testRealm.beginTransaction();
-        testRealm.copyToRealm(person);
-        testRealm.commitTransaction();
-        assertFalse(testRealm.isEmpty());
+        realm.beginTransaction();
+        realm.copyToRealm(person);
+        realm.commitTransaction();
+        assertFalse(realm.isEmpty());
     }
 
     @Test
@@ -103,11 +88,11 @@ public class RobolectricTest {
         Person angelina = new Person();
         angelina.setName("Angelina Jolie");
         angelina.setAge(40);
-        testRealm.beginTransaction();
-        testRealm.copyToRealm(brad);
-        testRealm.copyToRealm(angelina);
-        testRealm.commitTransaction();
-        Person person = testRealm.where(Person.class).equalTo("name", "Angelina Jolie").findFirst();
+        realm.beginTransaction();
+        realm.copyToRealm(brad);
+        realm.copyToRealm(angelina);
+        realm.commitTransaction();
+        Person person = realm.where(Person.class).equalTo("name", "Angelina Jolie").findFirst();
         assertEquals("Angelina Jolie", person.getName());
         assertEquals(40, person.getAge());
     }
