@@ -94,6 +94,11 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
+    public boolean isNull(long columnIndex) {
+        return super.isNull(columnIndex);
+    }
+
+    @Override
     public void setNull(long columnIndex) {
         RealmFieldType columnType = getColumnType(columnIndex);
         if (columnType == RealmFieldType.STRING) {

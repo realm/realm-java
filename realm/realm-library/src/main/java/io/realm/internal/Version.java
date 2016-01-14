@@ -61,7 +61,7 @@ public class Version {
             return false;
         }
 
-        compatible = nativeGetAPIVersion() == REQUIRED_JNI_VERSION;
+        compatible = (nativeGetAPIVersion() == REQUIRED_JNI_VERSION);
         if (!compatible) {
             errTxt = "Native lib API is version " + nativeGetAPIVersion()
                      + " != " +  REQUIRED_JNI_VERSION + " which is expected by the jar.";

@@ -89,7 +89,7 @@ public class ISO8601Utils {
             // if the value has no time component (and no time zone), we are done
             boolean hasT = checkOffset(date, offset, 'T');
 
-            if (!hasT && date.length() <= offset) {
+            if (!hasT && (date.length() <= offset)) {
                 Calendar calendar = new GregorianCalendar(year, month - 1, day);
 
                 pos.setIndex(offset);
@@ -203,7 +203,7 @@ public class ISO8601Utils {
         } catch (IllegalArgumentException e) {
             fail = e;
         }
-        String input = date == null ? null : "'" + date + "'";
+        String input = (date == null) ? null : ('"' + date + "'");
         String msg = fail.getMessage();
         if (msg == null || msg.isEmpty()) {
             msg = "("+fail.getClass().getName()+")";
@@ -223,7 +223,7 @@ public class ISO8601Utils {
      * @return true if the expected character exist at the given offset
      */
     private static boolean checkOffset(String value, int offset, char expected) {
-        return offset < value.length() && value.charAt(offset) == expected;
+        return (offset < value.length()) && (value.charAt(offset) == expected);
     }
 
     /**

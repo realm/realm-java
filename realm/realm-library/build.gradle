@@ -5,7 +5,6 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven'
 apply plugin: 'findbugs'
-apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 
 android {
@@ -63,8 +62,8 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 preBuild.dependsOn ':realm-jni:buildAndroidJni'
 
 task findbugs(type: FindBugs) {
-    dependsOn assembleDebug
-    group = 'Verification'
+    dependsOn assemble
+    group = 'Test'
 
     ignoreFailures = false
     effort = "default"
@@ -85,23 +84,8 @@ task findbugs(type: FindBugs) {
     }
 }
 
-task pmd (type: Pmd) {
-    description 'Run pmd'
-    group 'verification'
-
-    dependsOn assembleDebug
-
-    ruleSets = ["java-basic"]
-    source = fileTree('src/main/java')
-
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}
-
 task checkstyle(type: Checkstyle) {
-    group = 'Verification'
+    group = 'Test'
 
     source 'src'
     include '**/*.java'
