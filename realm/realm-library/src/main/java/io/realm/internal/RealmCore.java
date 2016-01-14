@@ -48,7 +48,7 @@ public class RealmCore {
         return (os.contains("mac"));
     }
 
-   /**
+    /**
      * Loads the .so file. This method is useful for static blocks as it does not rely on access to a Context.
      *
      * Although loadLibrary is synchronized internally from AOSP 4.3, for compatibility reasons,
