@@ -16,33 +16,42 @@
 
 package io.realm;
 
+import android.support.test.runner.AndroidJUnit4;
 import android.test.AndroidTestCase;
-import android.util.Log;
 
-import io.realm.entities.AllTypes;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
+import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.RealmBackgroundTask;
 
 /**
  * Class for testing the public handover functionality
  */
+@RunWith(AndroidJUnit4.class)
 public class HandoverTests extends AndroidTestCase {
+
+    @Rule
+    public final TestRealmConfigurationFactory configurationFactory = new TestRealmConfigurationFactory();
 
     private static final int TEST_DATA_SIZE = 10;
     private RealmConfiguration config;
     private Realm realm;
 
-    @Override
-    protected void setUp() throws Exception {
-        config = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(config);
+    @Before
+    public void setUp() {
+        config = configurationFactory.createConfiguration();
         realm = Realm.getInstance(config);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() {
         if (realm != null) {
             realm.close();
         }
@@ -72,7 +81,8 @@ public class HandoverTests extends AndroidTestCase {
     }
 
     // Query on a regular table
-    public void testThreadLocalVersion_realmQuery_tableView() {
+    @Test
+    public void threadLocalVersion_realmQuery_tableView() {
         populateTestRealm(TEST_DATA_SIZE);
 
         final RealmQuery<Owner> query = realm.where(Owner.class);
@@ -89,8 +99,9 @@ public class HandoverTests extends AndroidTestCase {
     }
 
     // Query on a table view (sub query)
-    public void testThreadLocalVersion_realmQuery_tableViewSubQuery() {
-        populateTestRealm(10);
+    @Test
+    public void threadLocalVersion_realmQuery_tableViewSubQuery() {
+        populateTestRealm(TEST_DATA_SIZE);
         RealmResults<Dog> results = realm.where(Dog.class).beginsWith("name", "Dog (9, ").findAll();
         assertEquals(9, results.size());
 
@@ -108,7 +119,8 @@ public class HandoverTests extends AndroidTestCase {
     }
 
     // Query on a LinkView
-    public void testThreadLocalVersion_realmQuery_linkView() {
+    @Test
+    public void threadLocalVersion_realmQuery_linkView() {
         populateTestRealm(10);
         RealmList<Dog> list = realm.where(Owner.class).equalTo("name", "Owner 9").findFirst().getDogs();
         assertEquals(9, list.size());
@@ -127,7 +139,8 @@ public class HandoverTests extends AndroidTestCase {
     }
 
     // Sub query on a LinkView
-    public void testThreadLocalVersion_realmQuery_linkViewSubQuery() {
+    @Test
+    public void threadLocalVersion_realmQuery_linkViewSubQuery() {
         populateTestRealm(10);
         RealmList<Dog> list = realm.where(Owner.class).equalTo("name", "Owner 9").findFirst().getDogs();
         assertEquals(9, list.size());

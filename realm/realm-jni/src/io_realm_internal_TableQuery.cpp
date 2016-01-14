@@ -1687,8 +1687,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverRo
   (JNIEnv *env, jobject, jlong handoverPtr, jlong callerSharedGrpPtr)
   {
       TR_ENTER_PTR(handoverPtr)
-      SharedGroup::Handover<Row> *handoverRowPtr = HO(Row,
-handoverPtr);
+      SharedGroup::Handover<Row> *handoverRowPtr = HO(Row, handoverPtr);
       std::unique_ptr<SharedGroup::Handover<Row>> handoverRow(handoverRowPtr);
 
       try {
@@ -1904,5 +1903,5 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetTable
     if (!QUERY_VALID(env, pQuery))
         return 0;
 
-    return (jlong) &pQuery->get_table();
+    return reinterpret_cast<jlong>(&pQuery->get_table());
 }
