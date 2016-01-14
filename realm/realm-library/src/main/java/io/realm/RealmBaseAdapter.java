@@ -45,7 +45,7 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         this.context = context;
         this.realmResults = realmResults;
         this.inflater = LayoutInflater.from(context);
-        this.listener = (!automaticUpdate) ? null : new RealmChangeListener() {
+        this.listener = !automaticUpdate ? null : new RealmChangeListener() {
             @Override
             public void onChange() {
                 notifyDataSetChanged();
