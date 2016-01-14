@@ -21,8 +21,9 @@ import android.content.Context;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
@@ -49,10 +50,8 @@ public class RobolectricTest {
         return context;
     }
 
-    @BeforeClass
-    public static void beforeClassSetUp() {
-        RealmRobolectricRule.init();
-    }
+    @Rule
+    public ExternalResource realmRobolectricRule = new RealmRobolectricRule();
 
     @Before
     public void setUp() throws Exception {

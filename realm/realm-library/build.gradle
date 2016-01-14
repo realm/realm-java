@@ -37,6 +37,7 @@ repositories {
 
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
+    provided 'junit:junit:4.12'
     compile project(':realm-annotations')
     compile 'com.github.KeepSafe:ReLinker:1.1'
 

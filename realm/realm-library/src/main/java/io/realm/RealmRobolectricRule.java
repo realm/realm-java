@@ -16,15 +16,14 @@
 
 package io.realm;
 
-/**
- * Class for initializing support for Robolectric.
- */
-public class RealmRobolectricRule {
+import org.junit.rules.ExternalResource;
 
-    /**
-     * Initialize support for Robolectric.
-     */
-    public static void init() {
+/**
+ * JUnit Rule to initialize support for Robolectric.
+ */
+public class RealmRobolectricRule extends ExternalResource {
+    @Override
+    protected void before() throws Throwable {
         System.setProperty("java.library.path", "./src/test/libs");
     }
 }
