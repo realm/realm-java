@@ -79,21 +79,4 @@ public class RobolectricTest {
         realm.commitTransaction();
         assertFalse(realm.isEmpty());
     }
-
-    @Test
-    public void testCreateAndQuery() {
-        Person brad = new Person();
-        brad.setName("Brad Pitt");
-        brad.setAge(52);
-        Person angelina = new Person();
-        angelina.setName("Angelina Jolie");
-        angelina.setAge(40);
-        realm.beginTransaction();
-        realm.copyToRealm(brad);
-        realm.copyToRealm(angelina);
-        realm.commitTransaction();
-        Person person = realm.where(Person.class).equalTo("name", "Angelina Jolie").findFirst();
-        assertEquals("Angelina Jolie", person.getName());
-        assertEquals(40, person.getAge());
-    }
 }
