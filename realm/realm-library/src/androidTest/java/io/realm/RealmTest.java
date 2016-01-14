@@ -2611,6 +2611,37 @@ public class RealmTest {
         assertTrue(results.get(0) == results.get(1));
     }
 
+    @Test
+    public void testCopyFromRealmDynamicRealmObjectThrows() {
+        testRealm.beginTransaction();
+        AllTypes obj = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        DynamicRealmObject dObj = new DynamicRealmObject(obj);
+
+        try {
+            testRealm.copyFromRealm(dObj);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void testCopyFromRealmDynamicRealmListThrows() {
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(testRealm.getConfiguration());
+        dynamicRealm.beginTransaction();
+        RealmList<DynamicRealmObject> dynamicList = dynamicRealm.createObject(AllTypes.CLASS_NAME).getList(AllTypes.FIELD_REALMLIST);
+        DynamicRealmObject dObj = dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        dynamicList.add(dObj);
+        dynamicRealm.commitTransaction();
+        try {
+            testRealm.copyFromRealm(dynamicList);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            dynamicRealm.close();
+        }
+    }
+
     // Test if close can be called from Realm change listener when there is no other listeners
     @Test
     public void testCloseRealmInChangeListener() {
@@ -2820,6 +2851,7 @@ public class RealmTest {
         }
     }
 
+    @Test
     public void testRemoveChangeListenerThrowExceptionOnNonLooperThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         Thread thread = new Thread(new Runnable() {
@@ -2849,6 +2881,7 @@ public class RealmTest {
         }
     }
 
+    @Test
     public void testRemoveAllChangeListenersThrowExceptionOnNonLooperThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         Thread thread = new Thread(new Runnable() {

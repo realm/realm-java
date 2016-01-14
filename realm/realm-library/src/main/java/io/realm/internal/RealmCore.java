@@ -39,7 +39,7 @@ public class RealmCore {
 
     public static boolean osIsWindows() {
         String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
-        return (os.contains("win"));
+        return os.contains("win");
     }
 
     /**
@@ -97,6 +97,7 @@ public class RealmCore {
             resetLibraryPath();
         } catch (Throwable e) {
             // Above can't be used on Android.
+            System.out.println("Failed to add native library path\n");
         }
 
         // Load debug library first - if available
@@ -120,7 +121,8 @@ public class RealmCore {
             try {
                 System.loadLibrary(libraryCandidateName);
                 return libraryCandidateName;
-            } catch (Throwable ignored) {
+            } catch (Throwable e) {
+                System.out.println("Failed to load native library path\n");
             }
         }
         return null;
