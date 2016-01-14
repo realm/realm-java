@@ -30,6 +30,7 @@ import org.robolectric.annotation.Config;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmRobolectricRule;
 import io.realm.examples.robolectric.entities.Person;
 
 import static org.junit.Assert.assertEquals;
@@ -50,7 +51,7 @@ public class RobolectricTest {
 
     @BeforeClass
     public static void beforeClassSetUp() {
-        System.setProperty("java.library.path", "./src/test/libs");
+        RealmRobolectricRule.init();
     }
 
     @Before
