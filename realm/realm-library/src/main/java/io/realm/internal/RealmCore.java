@@ -120,6 +120,9 @@ public class RealmCore {
         return jnilib;
     }
 
+    /**
+     * Loads the release / debug .so file depends on REALM_JAVA_DEBUG.
+     */
     private static void loadLibrary(String releaseJniLib, String debugJniLib) {
         String jnilib;
         String debug = System.getenv("REALM_JAVA_DEBUG");
