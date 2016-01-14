@@ -50,7 +50,7 @@ public class RobolectricTest {
 
     @BeforeClass
     public static void beforeClassSetUp() {
-        System.setProperty("java.library.path", "./robolectricLibs");
+        System.setProperty("java.library.path", "./src/test/libs");
     }
 
     @Before

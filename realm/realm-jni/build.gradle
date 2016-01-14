@@ -312,7 +312,7 @@ task installRobolectric(description: "Install native library to support Robolect
 
     copy {
         from "${projectDir}/../realm-library/src/main/robolectricLibs/librealm-jni-darwin.dylib"
-        into "${projectDir}/../../examples/robolectricExample/robolectricLibs"
+        into "${projectDir}/../../examples/robolectricExample/src/test/libs"
     }
 }
 

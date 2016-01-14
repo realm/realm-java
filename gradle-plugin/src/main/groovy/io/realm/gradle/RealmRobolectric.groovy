@@ -10,7 +10,7 @@ class RealmRobolectric implements Plugin<Project> {
         project.task('downloadRealmRobolectric') {
             doLast {
                 def targetZip = "${project.projectDir}/realm-robolectric-darwin-${Version.VERSION}.zip"
-                def targetLib = "${project.projectDir}/robolectricLibs/librealm-jni-darwin.dylib"
+                def targetLib = "${project.projectDir}/src/test/libs/librealm-jni-darwin.dylib"
 
                 if (project.file(targetZip).exists() && project.file(targetLib).exists()) {
                     println "librealm-jni-darwin.dylib is already exsit. Skip download the Realm Robolectric."
@@ -24,7 +24,7 @@ class RealmRobolectric implements Plugin<Project> {
 
                 project.copy {
                     from project.zipTree(project.file(targetZip))
-                    into "${project.projectDir}/robolectricLibs"
+                    into "${project.projectDir}/src/test/libs"
                 }
             }
         }
