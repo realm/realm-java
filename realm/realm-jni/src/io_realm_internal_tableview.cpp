@@ -1015,3 +1015,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync(
     } CATCH_STD()
     return 0;
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindBySourceNdx
+        (JNIEnv *env, jobject, jlong nativeViewPtr, jlong sourceIndex)
+{
+    TR_ENTER_PTR(nativeViewPtr);
+    try {
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) || !ROW_INDEX_VALID(env, &(TV(nativeViewPtr)->get_parent()), sourceIndex))
+            return -1;
+
+        size_t ndx = TV(nativeViewPtr)->find_by_source_ndx(sourceIndex);
+        return to_jlong_or_not_found(ndx);
+    } CATCH_STD()
+    return -1;
+}

@@ -29,6 +29,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
+import io.realm.internal.InvalidRow;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
@@ -150,6 +151,27 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public RealmQuery<E> where() {
         realm.checkIfValid();
         return RealmQuery.createQueryFromResult(this);
+    }
+
+    /**
+     * Searches this {@link RealmResults} for the specified object.
+     *
+     * @param object the object to search for.
+     * @return {@code true} if {@code object} is an element of this {@code RealmResults},
+     *         {@code false} otherwise
+     */
+    @Override
+    public boolean contains(Object object) {
+        boolean contains = false;
+        if (isLoaded()) {
+            if (object instanceof RealmObject) {
+                RealmObject realmObject = (RealmObject) object;
+                if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
+                    contains = (table.sourceRowIndex(realmObject.row.getIndex()) != TableOrView.NO_MATCH);
+                }
+            }
+        }
+        return contains;
     }
 
     /**
@@ -825,7 +847,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
      * subscribed to.
      *
-     * @return RxJava Observable
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */

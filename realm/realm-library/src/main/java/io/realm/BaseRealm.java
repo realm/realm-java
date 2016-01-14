@@ -87,6 +87,7 @@ public abstract class BaseRealm implements Closeable {
      * thread.
      *
      * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
+     * @throws IllegalStateException if called from a non-Looper thread.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
@@ -170,7 +171,7 @@ public abstract class BaseRealm implements Closeable {
      * Returns an Rx Observable that monitors changes to this Realm. It will emit the current state when subscribed
      * to.
      *
-     * @return RxJava Observable
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
@@ -235,6 +236,7 @@ public abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
      * @throws java.io.IOException if any write operation fails.
+     * @throws IllegalArgumentException if destination argument is null.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
         if (destination == null) {
@@ -247,6 +249,8 @@ public abstract class BaseRealm implements Closeable {
     /**
      * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
      * It also calls the listeners associated to the Realm instance.
+     *
+     * @throws IllegalStateException if attempting to refresh from within a transaction.
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
@@ -389,6 +393,8 @@ public abstract class BaseRealm implements Closeable {
      * <p>
      * It's important to always remember to close Realm instances when you're done with it in order not to leak memory,
      * file descriptors or grow the size of Realm file out of measure.
+     *
+     * @throws IllegalStateException if attempting to close from another thread.
      */
     @Override
     public void close() {
@@ -416,6 +422,7 @@ public abstract class BaseRealm implements Closeable {
      * Checks if the {@link io.realm.Realm} instance has already been closed.
      *
      * @return {@code true} if closed, {@code false} otherwise.
+     * @throws IllegalStateException if attempting to close from another thread.
      */
     public boolean isClosed() {
         if (this.threadId != Thread.currentThread().getId()) {

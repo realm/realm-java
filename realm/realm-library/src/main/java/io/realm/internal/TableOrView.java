@@ -341,6 +341,14 @@ public interface TableOrView {
 
     TableQuery where();
 
+    /**
+     * Find a row with in the table or view with the given index.
+     *
+     * @param rowIndex the index of the row.
+     * @return the index if found, or -1 for not found.
+     */
+    long sourceRowIndex(long rowIndex);
+
     // Experimental:
 
     long count(long columnIndex, String value);

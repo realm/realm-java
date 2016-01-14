@@ -35,10 +35,6 @@ public class Group implements TableParent, Closeable {
     protected boolean immutable;
     private final Context context;
 
-    static {
-        RealmCore.loadLibrary();
-    }
-
     private void checkNativePtrNotZero() {
         if (this.nativePtr == 0)
             // FIXME: It is wrong to assume that a null pointer means 'out

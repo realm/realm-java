@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 import io.realm.exceptions.RealmException;
+import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 
 /**
@@ -205,11 +206,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         if (managedMode) {
             checkValidView();
             object = copyToRealmIfNeeded(object);
+            E oldObject = get(location);
             view.set(location, object.row.getIndex());
+            return oldObject;
         } else {
-            nonManagedList.set(location, object);
+            return nonManagedList.set(location, object);
         }
-        return object;
     }
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
@@ -379,6 +381,32 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         } else {
             throw new RealmException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
+    }
+
+    /**
+     * Returns true if the list contains the specified element when attached to a Realm. This
+     * method will query the native Realm underlying storage engine to quickly find the specified element.
+     *
+     * If this list is not attached to a Realm the default {@link List#contains(Object)}
+     * implementation will occur.
+     *
+     * @param object the element whose presence in this list is to be tested.
+     * @return {@code true} if this list contains the specified element otherwise {@code false}.
+     */
+    @Override
+    public boolean contains(Object object) {
+        boolean contains = false;
+        if (managedMode) {
+            if (object instanceof RealmObject) {
+                RealmObject realmObject = (RealmObject) object;
+                if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
+                    contains = view.contains(realmObject.row.getIndex());
+                }
+            }
+        } else {
+            contains = nonManagedList.contains(object);
+        }
+        return contains;
     }
 
     private void checkValidObject(E object) {

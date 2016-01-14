@@ -176,3 +176,18 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsAttached
     } CATCH_STD()
     return 0;
 }
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeFind
+  (JNIEnv *env, jobject, jlong nativeLinkViewPtr, jlong targetRowIndex)
+{
+    TR_ENTER_PTR(nativeLinkViewPtr)
+    try {
+        LinkView *lv = LV(nativeLinkViewPtr);
+        if (!ROW_INDEX_VALID(env, &lv->get_target_table(), targetRowIndex)) {
+            return -1;
+        }
+        size_t ndx = lv->find(targetRowIndex);
+        return to_jlong_or_not_found(ndx);
+    } CATCH_STD()
+    return -1;
+}
