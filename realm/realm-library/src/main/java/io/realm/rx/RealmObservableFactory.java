@@ -222,4 +222,9 @@ public class RealmObservableFactory implements RxObservableFactory {
         return o instanceof RealmObservableFactory;
     }
 
+    @Override
+    public int hashCode() {
+        return 37;
+    }
+
 }
