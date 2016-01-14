@@ -260,7 +260,27 @@ task assembleRobolectric(description: "Build the Robolectric shared library for 
 
     doFirst {
         if (file(staticLibPath).exists() == false) {
-            throw new GradleException("The Realm Core library for OS X is not installed correctly. If the static lib is not located in /usr/local/lib, please set the environment variable REALM_CORE_LIB")
+            if (!coreSourcePath) {
+                throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_LIB is needed.")
+            }
+            exec {
+                workingDir = coreSourcePath
+                environment 'REALM_ENABLE_ENCRYPTION', 'yes'
+                commandLine = [
+                        "bash",
+                        "build.sh",
+                        "config"
+                ]
+            }
+            exec {
+                workingDir = coreSourcePath
+                commandLine = [
+                        "bash",
+                        "build.sh",
+                        "build"
+                ]
+            }
+            staticLibPath = '$coreSourcePath/src/realm/librealm.a'
         }
     }
 
