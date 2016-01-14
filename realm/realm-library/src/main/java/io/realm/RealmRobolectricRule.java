@@ -28,3 +28,4 @@ public class RealmRobolectricRule {
         System.setProperty("java.library.path", "./src/test/libs");
     }
 }
+
