@@ -39,12 +39,12 @@ public class RealmCore {
     private static volatile boolean libraryIsLoaded = false;
 
     public static boolean osIsWindows() {
-        String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
+        String os = System.getProperty("os.name").toLowerCase(Locale.US);
         return (os.contains("win"));
     }
 
     public static boolean osIsDarwin() {
-        String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
+        String os = System.getProperty("os.name").toLowerCase(Locale.US);
         return (os.contains("mac"));
     }
 
