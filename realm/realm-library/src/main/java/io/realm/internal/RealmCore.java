@@ -65,7 +65,7 @@ public class RealmCore {
             loadLibraryWindows();
         } else if (osIsDarwin()) {
             resetLibraryPath();
-            loadLibrary("realm-jni-darwin", "realm-jni-darwin");
+            loadLibrary("realm-jni-darwin", "realm-jni-darwin-dbg");
         } else {
             loadLibrary("realm-jni", "realm-jni-dbg");
         }
