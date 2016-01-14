@@ -102,6 +102,7 @@ public class RealmCore {
             resetLibraryPath();
         } catch (Throwable e) {
             // Above can't be used on Android.
+            System.out.println("Failed to add native library path\n");
         }
 
         // Load debug library first - if available
@@ -145,7 +146,8 @@ public class RealmCore {
             try {
                 System.loadLibrary(libraryCandidateName);
                 return libraryCandidateName;
-            } catch (Throwable ignored) {
+            } catch (Throwable e) {
+                System.out.println("Failed to load native library path\n");
             }
         }
         return null;

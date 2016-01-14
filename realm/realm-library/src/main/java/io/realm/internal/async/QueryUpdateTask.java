@@ -140,7 +140,7 @@ public class QueryUpdateTask implements Runnable {
                     queriesParameters[i][2] = Table.INFINITE;
                     queriesParameters[i][3] = Table.INFINITE;
                     queriesParameters[i][4] = queryEntry.queryArguments.columnIndex;
-                    queriesParameters[i][5] = (queryEntry.queryArguments.sortOrder.getValue()) ? 1 : 0;
+                    queriesParameters[i][5] = queryEntry.queryArguments.sortOrder.getValue() ? 1 : 0;
                     break;
                 }
                 case ArgumentsHolder.TYPE_FIND_ALL_MULTI_SORTED:

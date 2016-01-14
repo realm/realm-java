@@ -54,22 +54,22 @@ public class Mixed {
     }
 
     public Mixed(Date value) {
-        assert (value != null);
+        assert value != null;
         this.value = value;
     }
 
     public Mixed(String value) {
-        assert (value != null);
+        assert value != null;
         this.value = value;
     }
 
     public Mixed(ByteBuffer value) {
-        assert (value != null);
+        assert value != null;
         this.value = value;
     }
 
     public Mixed(byte[] value) {
-        assert (value != null);
+        assert value != null;
         this.value = value;
     }
 
@@ -121,7 +121,7 @@ public class Mixed {
             return RealmFieldType.DATE;
         else if (value instanceof Boolean)
             return RealmFieldType.BOOLEAN;
-        else if (value instanceof ByteBuffer || (value instanceof byte[])) {
+        else if (value instanceof ByteBuffer || value instanceof byte[]) {
             return RealmFieldType.BINARY;
         }
 
@@ -246,9 +246,10 @@ public class Mixed {
             case UNSUPPORTED_TABLE:
                 return "Subtable";
             case UNSUPPORTED_MIXED:
-                break; // error
+                return "ERROR";
             }
         } catch (Exception e) {
+            return "ERROR";
         }
         return "ERROR";
     }

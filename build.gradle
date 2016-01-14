@@ -20,30 +20,6 @@ props.each { key, val ->
     project.set(key, val)
 }
 
-def getSdk() {
-    if (!System.env.ANDROID_HOME) {
-        throw new GradleException('The ANDROID_HOME environment variable is not set.')
-    }
-    def sdkDir = file(System.env.ANDROID_HOME)
-    if (!sdkDir.directory) {
-        throw new GradleException('The path provided in the ANDROID_HOME environment variable is not a folder.')
-    }
-    return sdkDir
-}
-
-def getNdk() {
-    if (!System.env.NDK_HOME) {
-        throw new GradleException('The NDK_HOME environment variable is not set.')
-    }
-    def ndkDir = file(System.env.NDK_HOME)
-    if (!ndkDir.directory) {
-        throw new GradleException('The path provided in the NDK_HOME environment variable is not a folder.')
-    } else if (!file("${sdndkDirkDir}/RELEASE.TXT").file) {
-        throw new GradleException('The path provided in the NDK_HOME environment variable does not seem to be an Android NDK.')
-    }
-    return ndkDir
-}
-
 task assembleGradlePlugin(type:GradleBuild) {
     group = 'Build'
     description = 'Assemble the Realm Gradle plugin'
