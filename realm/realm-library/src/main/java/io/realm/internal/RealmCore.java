@@ -122,7 +122,7 @@ public class RealmCore {
     }
 
     /**
-     * Loads the release / debug .so file depends on REALM_JAVA_DEBUG.
+     * Loads the release / debug .so file depending on REALM_JAVA_DEBUG.
      */
     private static void loadLibrary(String releaseJniLib, String debugJniLib) {
         String jnilib;
