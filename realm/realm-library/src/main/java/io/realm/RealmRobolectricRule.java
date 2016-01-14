@@ -16,7 +16,14 @@
 
 package io.realm;
 
+/**
+ * Class for initializing support for Robolectric.
+ */
 public class RealmRobolectricRule {
+
+    /**
+     * Initialize support for Robolectric.
+     */
     public static void init() {
         System.setProperty("java.library.path", "./src/test/libs");
     }
