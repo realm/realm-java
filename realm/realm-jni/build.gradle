@@ -248,64 +248,78 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
-task assembleRobolectric(group: 'build', description: "Build the Robolectric shared library for Darwin") {
-    def staticLibPath
+task compileCoreLibForHost(group: 'build setup', description: 'Compile the core library for host from source code') {
+    doLast {
+        if (!coreSourcePath) {
+            throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_LIB is needed.")
+        }
+        exec {
+            workingDir = coreSourcePath
+            environment 'REALM_ENABLE_ENCRYPTION', 'yes'
+            commandLine = [
+                    "bash",
+                    "build.sh",
+                    "config"
+            ]
+        }
+        exec {
+            workingDir = coreSourcePath
+            commandLine = [
+                    "bash",
+                    "build.sh",
+                    "build"
+            ]
+        }
 
-    if (System.env.REALM_CORE_LIB) {
-        def realmCoreLibDir = file(System.env.REALM_CORE_LIB)
-        staticLibPath = "$realmCoreLibDir/librealm.a"
-    } else {
-        staticLibPath = "/usr/local/lib/librealm.a"
+        copy {
+            from "$coreSourcePath/src/realm/librealm.a"
+            into "${projectDir}/../realm-library/src"
+        }
     }
+}
+
+task prepareCoreLibForHost(group: 'build setup', description: 'Prepare the core library for host') {
+    def staticLibHome = System.env.REALM_CORE_HOME ? System.env.REALM_CORE_HOME : '/usr/local'
 
     doFirst {
-        if (file(staticLibPath).exists() == false) {
+        if (file(staticLibHome).exists() == false) {
             if (!coreSourcePath) {
-                throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_LIB is needed.")
+                throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_HOME is needed.")
             }
-            exec {
-                workingDir = coreSourcePath
-                environment 'REALM_ENABLE_ENCRYPTION', 'yes'
-                commandLine = [
-                        "bash",
-                        "build.sh",
-                        "config"
-                ]
-            }
-            exec {
-                workingDir = coreSourcePath
-                commandLine = [
-                        "bash",
-                        "build.sh",
-                        "build"
-                ]
-            }
-            staticLibPath = '$coreSourcePath/src/realm/librealm.a'
         }
     }
 
     doLast {
         copy {
-            from staticLibPath
+            from "$staticLibHome/lib/librealm.a"
             into "${projectDir}/../realm-library/src"
         }
+    }
+}
 
+task assembleRobolectric(group: 'build', description: "Build the Robolectric shared library for Darwin") {
+    dependsOn coreSourcePath ? compileCoreLibForHost : prepareCoreLibForHost
+
+    def staticLibHome = System.env.REALM_CORE_HOME ? System.env.REALM_CORE_HOME : '/usr/local'
+    def staticLibInclude = coreSourcePath ? "-I$coreSourcePath/src/" : "-I$staticLibHome/include/realm/"
+
+    doLast {
         exec {
-            environment CC: "${clang?'clang':'gcc'}"
+            environment CC: "${clang ? 'clang' : 'gcc'}"
             environment STRIP: "/usr/bin/strip -o librealm-jni-darwin-stripped.dylib"
             commandLine = [
-                'make',
-                "-j${Runtime.getRuntime().availableProcessors() * 2}",
-                "-l${Runtime.getRuntime().availableProcessors()}",
-                '-C', "${projectDir}/src",
-                "CC_IS=${clang?'clang':'gcc'}",
-                "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I/usr/local/include/realm/ -I/usr/local/include/ -I/System/Library/Frameworks/JavaVM.framework/Headers/",
-                "CFLAGS_ARCH=${commonCflags.join(' ')}",
-                "BASE_DENOM=darwin",
-                "REALM_LDFLAGS_COMMON=-lrealm -lstdc++ -L${projectDir}/../realm-library/src -L/usr/local/lib/ -Wl,-dead_strip -flto -Wl,-search_paths_first -framework CoreServices",
-                'LIB_SUFFIX_SHARED=.dylib',
-                "REALM_ROBOLECTRIC=true",
-                "librealm-jni-darwin${getDebugExt()}.dylib"
+                    'make',
+                    "-j${Runtime.getRuntime().availableProcessors() * 2}",
+                    "-l${Runtime.getRuntime().availableProcessors()}",
+                    '-C', "${projectDir}/src",
+                    "CC_IS=${clang ? 'clang' : 'gcc'}",
+                    "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC $staticLibInclude -I/usr/local/include/ -I/System/Library/Frameworks/JavaVM.framework/Headers/",
+                    "CFLAGS_ARCH=${commonCflags.join(' ')}",
+                    "BASE_DENOM=darwin",
+                    "REALM_LDFLAGS_COMMON=-lrealm -lstdc++ -L${projectDir}/../realm-library/src -L/usr/local/lib/ -Wl,-dead_strip -flto -Wl,-search_paths_first -framework CoreServices",
+                    'LIB_SUFFIX_SHARED=.dylib',
+                    "REALM_ROBOLECTRIC=true",
+                    "librealm-jni-darwin${getDebugExt()}.dylib"
             ]
         }
 
