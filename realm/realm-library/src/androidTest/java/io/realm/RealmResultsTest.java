@@ -91,7 +91,7 @@ public class RealmResultsTest extends AndroidTestCase {
     }
 
 
-    private void populatePartialNullRowsForNumericTesting () {
+    private void populatePartialNullRowsForNumericTesting() {
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(1);
@@ -868,6 +868,79 @@ public class RealmResultsTest extends AndroidTestCase {
         assertNotNull(query);
     }
 
+    public void testContains() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
+        AllTypes item = query.findFirst();
+        assertTrue("Item should exist in results.", query.findAll().contains(item));
+    }
+
+    public void testContainsNull() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
+        assertFalse("Should not contain a null item.", query.findAll().contains(null));
+    }
+
+    public void testShouldNotContainRemovedItem() {
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).findAll().where();
+        AllTypes item = testRealm.where(AllTypes.class).findFirst();
+        testRealm.beginTransaction();
+        item.removeFromRealm();
+        testRealm.commitTransaction();
+        assertFalse("Should not contain a removed item.", query.findAll().contains(item));
+    }
+
+    /**
+     * Test to see if a particular item that does exist in the same Realm does not
+     * exist in the result set of another query.
+     */
+    public void testContainsSameRealmNotContained() {
+        RealmResults<AllTypes> items =
+                testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 1000).findAll();
+        AllTypes anotherType =
+                testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_LONG, 1000).findFirst();
+        assertFalse("Should not be able to find item in another result list.", items.contains(anotherType));
+    }
+
+    public void testContainsDoesNotContainAnItem() {
+        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "contains_test.realm");
+        Realm.deleteRealm(realmConfig);
+        Realm testRealmTwo = Realm.getInstance(realmConfig);
+        try {
+
+            testRealmTwo.beginTransaction();
+            testRealmTwo.allObjects(AllTypes.class).clear();
+            testRealmTwo.allObjects(NonLatinFieldNames.class).clear();
+
+            for (int i = 0; i < TEST_DATA_SIZE; ++i) {
+                AllTypes allTypes = testRealmTwo.createObject(AllTypes.class);
+                allTypes.setColumnBoolean((i % 2) == 0);
+                allTypes.setColumnBinary(new byte[]{1, 2, 3});
+                allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - TEST_DATA_SIZE / 2)));
+                allTypes.setColumnDouble(3.1415 + i);
+                allTypes.setColumnFloat(1.234567f + i);
+                allTypes.setColumnString("test data " + i);
+                allTypes.setColumnLong(i);
+                Dog d = testRealmTwo.createObject(Dog.class);
+                d.setName("Foo " + i);
+                allTypes.setColumnRealmObject(d);
+                allTypes.getColumnRealmList().add(d);
+                NonLatinFieldNames nonLatinFieldNames = testRealmTwo.createObject(NonLatinFieldNames.class);
+                nonLatinFieldNames.set델타(i);
+                nonLatinFieldNames.setΔέλτα(i);
+            }
+            testRealmTwo.commitTransaction();
+
+            final AllTypes item = testRealmTwo.where(AllTypes.class).findFirst();
+
+            assertFalse("Should not be able to find one object in another Realm via RealmResults#contains",
+                    testRealm.where(AllTypes.class).findAll().contains(item));
+
+        } finally {
+            if (testRealmTwo != null && !testRealmTwo.isClosed()) {
+                testRealmTwo.close();
+            }
+        }
+    }
+
     public void testQueryResult() {
         RealmResults<AllTypes> allTypes = testRealm.where(AllTypes.class).findAll();
         assertEquals(TEST_DATA_SIZE, allTypes.size());
@@ -1125,5 +1198,25 @@ public class RealmResultsTest extends AndroidTestCase {
 
         testRealm.close();
         assertFalse(results.isValid());
+    }
+
+    // Triggered an ARM bug
+    public void testComparisons() {
+        testRealm.beginTransaction();
+        testRealm.clear(AllTypes.class);
+        long id = -1;
+        for (int i = 0; i < 10; i++) {
+            AllTypes allTypes = testRealm.createObject(AllTypes.class);
+            allTypes.setColumnLong(id--);
+        }
+        testRealm.commitTransaction();
+
+        assertEquals(10, testRealm.where(AllTypes.class).between(AllTypes.FIELD_LONG, -10, -1).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_LONG, -11).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).greaterThanOrEqualTo(AllTypes.FIELD_LONG, -10).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 128).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 127).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_LONG, -1).findAll().size());
+        assertEquals(10, testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 0).findAll().size());
     }
 }

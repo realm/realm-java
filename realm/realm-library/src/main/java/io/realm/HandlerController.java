@@ -236,19 +236,26 @@ public class HandlerController implements Handler.Callback {
     }
 
     private void notifyRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator) {
+        List<RealmResults<? extends RealmObject>> resultsToBeNotified =
+                new ArrayList<RealmResults<? extends RealmObject>>();
         while (iterator.hasNext()) {
             WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = iterator.next();
             RealmResults<? extends RealmObject> realmResults = weakRealmResults.get();
             if (realmResults == null) {
                 iterator.remove();
-
             } else {
-                realmResults.notifyChangeListeners();
+                // It should be legal to modify asyncRealmResults and syncRealmResults in the listener
+                resultsToBeNotified.add(realmResults);
             }
+        }
+
+        for (RealmResults<? extends RealmObject> realmResults : resultsToBeNotified) {
+            realmResults.notifyChangeListeners();
         }
     }
 
     private void notifyRealmObjectCallbacks() {
+        List<RealmObject> objectsToBeNotified = new ArrayList<RealmObject>();
         Iterator<WeakReference<RealmObject>> iterator = realmObjects.keySet().iterator();
         while (iterator.hasNext()) {
             WeakReference<? extends RealmObject> weakRealmObject = iterator.next();
@@ -258,11 +265,16 @@ public class HandlerController implements Handler.Callback {
 
             } else {
                 if (realmObject.row.isAttached()) {
-                    realmObject.notifyChangeListeners();
+                    // It should be legal to modify realmObjects in the listener
+                    objectsToBeNotified.add(realmObject);
                 } else if (realmObject.row != Row.EMPTY_ROW) {
                     iterator.remove();
                 }
             }
+        }
+
+        for (RealmObject realmObject : objectsToBeNotified) {
+            realmObject.notifyChangeListeners();
         }
     }
 
@@ -321,14 +333,19 @@ public class HandlerController implements Handler.Callback {
             realm.sharedGroupManager.advanceRead();
             notifyGlobalListeners();
             // notify RealmResults & RealmObject callbacks (type based notifications)
-            notifySyncRealmResultsCallbacks();
-            notifyRealmObjectCallbacks();
+            if (!realm.isClosed()) {
+                // Realm could be closed in the above listener.
+                notifySyncRealmResultsCallbacks();
+            }
+            if (!realm.isClosed()) {
+                notifyRealmObjectCallbacks();
+            }
 
             // empty async RealmObject shouldn't block the realm to advance
             // they're empty so no risk on running into a corrupt state
             // where the pointer (Row) is using one version of a Realm, whereas the
             // current Realm is advancing to a newer version (they're empty anyway)
-            if (threadContainsAsyncEmptyRealmObject()) {
+            if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
                 updateAsyncEmptyRealmObject();
             }
         }
@@ -559,11 +576,6 @@ public class HandlerController implements Handler.Callback {
     }
 
     private void deleteWeakReferences() {
-        // From the AOSP FinalizationTest:
-        // https://android.googlesource.com/platform/libcore/+/master/support/src/test/java/libcore/
-        // java/lang/ref/FinalizationTester.java
-        // System.gc() does not garbage collect every time. Runtime.gc() is more likely to perform a gc.
-        Runtime.getRuntime().gc();
         Reference<? extends RealmResults<? extends RealmObject>> weakReferenceResults;
         Reference<? extends RealmObject> weakReferenceObject;
         while ((weakReferenceResults = referenceQueueAsyncRealmResults.poll()) != null ) { // Does not wait for a reference to become available.
@@ -575,5 +587,37 @@ public class HandlerController implements Handler.Callback {
         while ((weakReferenceObject = referenceQueueRealmObject.poll()) != null ) {
             realmObjects.remove(weakReferenceObject);
         }
+    }
+
+    WeakReference<RealmResults<? extends RealmObject>> addToAsyncRealmResults(RealmResults<? extends RealmObject> realmResults, RealmQuery<? extends RealmObject> realmQuery) {
+        WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = new WeakReference<RealmResults<? extends RealmObject>>(realmResults,
+                referenceQueueAsyncRealmResults);
+        asyncRealmResults.put(weakRealmResults, realmQuery);
+        return weakRealmResults;
+    }
+
+    void addToRealmResults(RealmResults<? extends RealmObject> realmResults) {
+        WeakReference<RealmResults<? extends RealmObject>> realmResultsWeakReference
+                = new WeakReference<RealmResults<? extends RealmObject>>(realmResults, referenceQueueSyncRealmResults);
+        syncRealmResults.add(realmResultsWeakReference);
+    }
+
+    // add to the list of RealmObject to be notified after a commit
+    <E extends RealmObject> void addToRealmObjects(E realmobject) {
+        realmObjects.put(new WeakReference<RealmObject>(realmobject), null);
+    }
+
+    <E extends RealmObject> WeakReference<RealmObject> addToAsyncRealmObject(E realmObject, RealmQuery<? extends RealmObject> realmQuery) {
+        final WeakReference<RealmObject> realmObjectWeakReference = new WeakReference<RealmObject>(realmObject, referenceQueueRealmObject);
+        realmObjects.put(realmObjectWeakReference, realmQuery);
+        return realmObjectWeakReference;
+    }
+
+    void removeFromAsyncRealmObject(WeakReference<RealmObject> realmObjectWeakReference) {
+        realmObjects.remove(realmObjectWeakReference);
+    }
+
+    void addToEmptyAsyncRealmObject(WeakReference<RealmObject> realmObjectWeakReference, RealmQuery<? extends RealmObject> realmQuery) {
+        emptyAsyncRealmObject.put(realmObjectWeakReference, realmQuery);
     }
 }

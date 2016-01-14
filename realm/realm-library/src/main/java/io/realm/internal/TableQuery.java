@@ -59,7 +59,6 @@ public class TableQuery implements Closeable {
         this.origin = origin;
     }
 
-
     public void close() {
         synchronized (context) {
             if (nativePtr != 0) {
@@ -410,6 +409,10 @@ public class TableQuery implements Closeable {
         nativeIsEmpty(nativePtr, columnIndices);
         queryValidated = false;
         return this;
+    }
+
+    public TableQuery isNotEmpty(long[] columnIndices) {
+        return not().isEmpty(columnIndices);
     }
 
     // Searching methods.
@@ -803,5 +806,6 @@ public class TableQuery implements Closeable {
     public static native long nativeFindWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long fromTableRow);
     public static native long nativeFindAllMultiSortedWithHandover(long bgSharedGroupPtr, long nativeReplicationPtr, long nativeQueryPtr, long start, long end, long limit, long[] columnIndices, boolean[] ascending);
     public static native long nativeImportHandoverRowIntoSharedGroup(long handoverRowPtr, long callerSharedGroupPtr);
-    public static native void nativeCloseQueryHandover (long nativePtr);
+    public static native void nativeCloseQueryHandover(long nativePtr);
+    public static native long[] nativeBatchUpdateQueries(long bgSharedGroupPtr, long nativeReplicationPtr, long[] handoverQueries, long[][] parameters, long[][] queriesParameters, boolean[][] multiSortOrder);
 }

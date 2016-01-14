@@ -18,13 +18,29 @@ package io.realm;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.test.AndroidTestCase;
+import android.util.Base64;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.util.Date;
+import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.entities.AllTypes;
+import io.realm.entities.AllTypesPrimaryKey;
+import io.realm.entities.Cat;
 import io.realm.entities.Dog;
+import io.realm.entities.Owner;
+import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.proxy.HandlerProxy;
+
+import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
 public class TypeBasedNotificationsTest extends AndroidTestCase {
     private HandlerThread handlerThread;
@@ -65,6 +81,442 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
             });
             TestHelper.awaitOrFail(cleanup);
         }
+    }
+
+    // ****************************************************************************************** //
+    // UC 0.
+    // Callback should be notified if we create a RealmObject without the async mechanism
+    // ex: using (createObject, copyOrUpdate, createObjectFromJson etc.)
+    // ***************************************************************************************** //
+
+    //UC 0 using Realm.createObject
+    public void test_callback_should_trigger_for_createObject() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                realm.beginTransaction();
+                final Dog dog = realm.createObject(Dog.class);
+                realm.commitTransaction();
+
+                dog.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals("Akamaru", dog.getName());
+                        typebasedCommitInvocations.incrementAndGet();
+                    }
+                });
+
+                realm.beginTransaction();
+                dog.setName("Akamaru");
+                realm.commitTransaction();
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
+    }
+
+    public void test_callback_should_trigger_for_createObject_dynamic_realm() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                // Initialize schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+                Realm.getInstance(configuration).close();
+                final DynamicRealm realm = DynamicRealm.getInstance(configuration);
+
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    realm.close();
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                realm.beginTransaction();
+                final DynamicRealmObject dog = realm.createObject("Dog");
+                realm.commitTransaction();
+
+                dog.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals("Akamaru", dog.getString("name"));
+                        typebasedCommitInvocations.incrementAndGet();
+                    }
+                });
+
+                realm.beginTransaction();
+                dog.setString("name", "Akamaru");
+                realm.commitTransaction();
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
+    }
+
+    //UC 0 using Realm.copyToRealm
+    public void test_callback_should_trigger_for_copyToRealm() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                realm.beginTransaction();
+                Dog akamaru = new Dog();
+                akamaru.setName("Akamaru");
+                final Dog dog = realm.copyToRealm(akamaru);
+                realm.commitTransaction();
+
+                dog.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(8, dog.getAge());
+                        typebasedCommitInvocations.incrementAndGet();
+                    }
+                });
+
+                realm.beginTransaction();
+                dog.setAge(8);
+                realm.commitTransaction();
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
+    }
+
+    //UC 0 using Realm.copyToRealmOrUpdate
+    public void test_callback_should_trigger_for_copyToRealmOrUpdate() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                PrimaryKeyAsLong obj = new PrimaryKeyAsLong();
+                obj.setId(1);
+                obj.setName("Foo");
+
+                realm.beginTransaction();
+                final PrimaryKeyAsLong primaryKeyAsLong = realm.copyToRealmOrUpdate(obj);
+                realm.commitTransaction();
+
+                primaryKeyAsLong.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(1, primaryKeyAsLong.getId());
+                        assertEquals("Bar", primaryKeyAsLong.getName());
+                        assertEquals(1, realm.allObjects(PrimaryKeyAsLong.class).size());
+                        typebasedCommitInvocations.incrementAndGet();
+                    }
+                });
+
+                PrimaryKeyAsLong obj2 = new PrimaryKeyAsLong();
+                obj2.setId(1);
+                obj2.setName("Bar");
+                realm.beginTransaction();
+                PrimaryKeyAsLong primaryKeyAsLong2 = realm.copyToRealmOrUpdate(obj2);
+                realm.commitTransaction();
+
+                assertEquals(primaryKeyAsLong, primaryKeyAsLong2);
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
+    }
+
+    //UC 0 using Realm.copyToRealmOrUpdate
+    public void test_callback_should_trigger_for_createObjectFromJson() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                try {
+                    InputStream in = TestHelper.loadJsonFromAssets(getContext(), "all_simple_types.json");
+                    realm.beginTransaction();
+                    final AllTypes objectFromJson = realm.createObjectFromJson(AllTypes.class, in);
+                    realm.commitTransaction();
+                    in.close();
+
+                    objectFromJson.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            assertEquals("ObjectFromJson", objectFromJson.getColumnString());
+                            assertEquals(1l, objectFromJson.getColumnLong());
+                            assertEquals(1.23f, objectFromJson.getColumnFloat());
+                            assertEquals(1.23d, objectFromJson.getColumnDouble());
+                            assertEquals(true, objectFromJson.isColumnBoolean());
+                            assertArrayEquals(new byte[]{1, 2, 3}, objectFromJson.getColumnBinary());
+                            typebasedCommitInvocations.incrementAndGet();
+                        }
+                    });
+
+                    realm.beginTransaction();
+                    objectFromJson.setColumnString("ObjectFromJson");
+                    realm.commitTransaction();
+
+                } catch (IOException e) {
+                    fail(e.getMessage());
+                }
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
+    }
+
+    //UC 0 using Realm.copyToRealmOrUpdate
+    public void test_callback_should_trigger_for_createObjectFromJson_from_JSONObject() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put("columnString", "String");
+                    json.put("columnLong", 1l);
+                    json.put("columnFloat", 1.23f);
+                    json.put("columnDouble", 1.23d);
+                    json.put("columnBoolean", true);
+                    json.put("columnBinary", new String(Base64.encode(new byte[]{1, 2, 3}, Base64.DEFAULT)));
+
+                    realm.beginTransaction();
+                    final AllTypes objectFromJson = realm.createObjectFromJson(AllTypes.class, json);
+                    realm.commitTransaction();
+
+                    objectFromJson.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            assertEquals("ObjectFromJson", objectFromJson.getColumnString());
+                            assertEquals(1l, objectFromJson.getColumnLong());
+                            assertEquals(1.23f, objectFromJson.getColumnFloat());
+                            assertEquals(1.23d, objectFromJson.getColumnDouble());
+                            assertEquals(true, objectFromJson.isColumnBoolean());
+                            assertArrayEquals(new byte[]{1, 2, 3}, objectFromJson.getColumnBinary());
+                            typebasedCommitInvocations.incrementAndGet();
+                        }
+                    });
+
+                    realm.beginTransaction();
+                    objectFromJson.setColumnString("ObjectFromJson");
+                    realm.commitTransaction();
+
+                } catch (JSONException e) {
+                    fail(e.getMessage());
+                }
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
+    }
+
+    //UC 0 using Realm.createOrUpdateObjectFromJson
+    public void test_callback_should_trigger_for_createOrUpdateObjectFromJson() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                try {
+                    AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+                    Date date = new Date(0);
+                    // ID
+                    obj.setColumnLong(1);
+                    obj.setColumnBinary(new byte[]{1});
+                    obj.setColumnBoolean(true);
+                    obj.setColumnDate(date);
+                    obj.setColumnDouble(1);
+                    obj.setColumnFloat(1);
+                    obj.setColumnString("1");
+                    realm.beginTransaction();
+                    realm.copyToRealm(obj);
+                    realm.commitTransaction();
+
+                    InputStream in = TestHelper.loadJsonFromAssets(getContext(), "all_types_primary_key_field_only.json");
+                    realm.beginTransaction();
+                    final AllTypesPrimaryKey objectFromJson = realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, in);
+                    realm.commitTransaction();
+                    in.close();
+
+                    objectFromJson.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            assertEquals("ObjectFromJson", objectFromJson.getColumnString());
+                            assertEquals(1L, objectFromJson.getColumnLong());
+                            assertEquals(1f, objectFromJson.getColumnFloat());
+                            assertEquals(1d, objectFromJson.getColumnDouble());
+                            assertEquals(true, objectFromJson.isColumnBoolean());
+                            assertArrayEquals(new byte[]{1}, objectFromJson.getColumnBinary());
+                            assertNull(objectFromJson.getColumnRealmObject());
+                            assertEquals(0, objectFromJson.getColumnRealmList().size());
+                            typebasedCommitInvocations.incrementAndGet();
+                        }
+                    });
+
+                    realm.beginTransaction();
+                    objectFromJson.setColumnString("ObjectFromJson");
+                    realm.commitTransaction();
+
+                } catch (IOException e) {
+                    fail(e.getMessage());
+                }
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
+    }
+
+    //UC 0 using Realm.copyToRealmOrUpdate
+    public void test_callback_should_trigger_for_createOrUpdateObjectFromJson_from_JSONObject() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (globalCommitInvocations.incrementAndGet() == 3) {
+                            realm.handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signalTestFinished.countDown();
+                                }
+                            });
+                        }
+                    }
+                });
+
+                try {
+                    AllTypesPrimaryKey obj = new AllTypesPrimaryKey();
+                    obj.setColumnLong(1);
+                    obj.setColumnString("Foo");
+
+                    realm.beginTransaction();
+                    realm.copyToRealm(obj);
+                    realm.commitTransaction();
+
+
+                    JSONObject json = new JSONObject();
+                    json.put("columnLong", 1);
+                    json.put("columnString", "bar");
+
+                    realm.beginTransaction();
+                    final AllTypesPrimaryKey newObj = realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, json);
+                    realm.commitTransaction();
+
+                    newObj.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            assertEquals(1, realm.allObjects(AllTypesPrimaryKey.class).size());
+                            assertEquals("bar", newObj.getColumnString());
+                            assertTrue(newObj.getColumnBoxedBoolean());
+                            typebasedCommitInvocations.incrementAndGet();
+                        }
+                    });
+
+                    realm.beginTransaction();
+                    newObj.setColumnBoxedBoolean(Boolean.TRUE);
+                    realm.commitTransaction();
+
+                } catch (JSONException e) {
+                    fail(e.getMessage());
+                }
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
     }
 
     // ********************************************************************************* //
@@ -486,11 +938,11 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 });
 
                 realm.beginTransaction();
+                Dog akamaru = realm.createObject(Dog.class);
+                akamaru.setName("Akamaru");
                 realm.commitTransaction();
 
                 realm.beginTransaction();
-                Dog akamaru = realm.createObject(Dog.class);
-                akamaru.setName("Akamaru");
                 realm.commitTransaction();
 
                 realm.beginTransaction();
@@ -595,11 +1047,12 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 }
 
                 realm.beginTransaction();
+                akamaru.setAge(17);
                 realm.commitTransaction();
 
                 realm.beginTransaction();
-                akamaru.setAge(17);
                 realm.commitTransaction();
+
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
@@ -694,10 +1147,10 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 }
 
                 realm.beginTransaction();
+                akamaru.setAge(17);
                 realm.commitTransaction();
 
                 realm.beginTransaction();
-                akamaru.setAge(17);
                 realm.commitTransaction();
             }
         });
@@ -711,6 +1164,9 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
     // ********************************************************************************* //
 
     // UC 3 for Sync RealmObject
+    // 1. Add listener to RealmObject which is queried synchronized.
+    // 2. Commit transaction in another non-looper thread
+    // 3. Listener on the RealmObject gets triggered.
     public void test_non_looper_thread_commit_realmobject_sync() {
         handler.post(new Runnable() {
             @Override
@@ -719,7 +1175,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                        if (realm.where(Dog.class).count() == 2) {
                             realm.handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -755,15 +1211,6 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 thread.start();
                 try {
                     thread.join();
-                    // this will give the posted notification a chance to execute
-                    // keep this Runnable alive (waiting for the commit to arrive)
-                    final int MAX_RETRIES = 60;
-                    int numberOfSleep = 0;
-                    while (numberOfSleep++ < MAX_RETRIES
-                            && typebasedCommitInvocations.incrementAndGet() != 1) {
-                        Thread.sleep(16);
-                    }
-                    assertEquals(1, typebasedCommitInvocations.get());
                 } catch (InterruptedException e) {
                     fail(e.getMessage());
                 }
@@ -774,6 +1221,9 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
     }
 
     // UC 3 Async RealmObject
+    // 1. Create RealmObject async query
+    // 2. Wait COMPLETED_ASYNC_REALM_OBJECT then commit transaction in another non-looper thread
+    // 3. Listener on the RealmObject gets triggered again.
     public void test_non_looper_thread_commit_realmobject_async() {
         handler.post(new Runnable() {
             @Override
@@ -782,7 +1232,8 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                        // Check if the 2nd transaction is committed.
+                        if (realm.where(Dog.class).count() == 2) {
                             realm.handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -797,18 +1248,16 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.createObject(Dog.class);
                 realm.commitTransaction();
 
-                Dog dog = realm.where(Dog.class).findFirstAsync();
-                assertTrue(dog.load());
-                dog.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        typebasedCommitInvocations.incrementAndGet();
-                    }
-                });
-
-                Thread thread = new Thread() {
+                final Thread thread = new Thread() {
                     @Override
                     public void run() {
+                        if (typebasedCommitInvocations.get() != 1) {
+                            try {
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                fail(e.getMessage());
+                            }
+                        }
                         Realm bgRealm = Realm.getInstance(realm.getConfiguration());
                         bgRealm.beginTransaction();
                         bgRealm.createObject(Dog.class);
@@ -816,27 +1265,34 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                         bgRealm.close();
                     }
                 };
-                thread.start();
-                try {
-                    thread.join();
 
-                    final int MAX_RETRIES = 60;
-                    int numberOfSleep = 0;
-                    while (numberOfSleep++ < MAX_RETRIES
-                            && typebasedCommitInvocations.incrementAndGet() != 1) {
-                        Thread.sleep(16);
+                Dog dog = realm.where(Dog.class).findFirstAsync();
+                dog.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        typebasedCommitInvocations.incrementAndGet();
+
+                        if (typebasedCommitInvocations.get() == 1) {
+                            try {
+                                thread.join();
+                            } catch (InterruptedException e) {
+                                fail(e.getMessage());
+                            }
+                        }
                     }
-                    assertEquals(1, typebasedCommitInvocations.get());
-                } catch (InterruptedException e) {
-                    fail(e.getMessage());
-                }
+                });
+
+                thread.start();
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
-        assertEquals(1, typebasedCommitInvocations.get());
+        assertEquals(2, typebasedCommitInvocations.get());
     }
 
     // UC 3 Sync RealmResults
+    // 1. Add listener to RealmResults which is queried synchronized.
+    // 2. Commit transaction in another non-looper thread
+    // 3. Listener on the RealmResults gets triggered.
     public void test_non_looper_thread_commit_realmresults_sync() {
         handler.post(new Runnable() {
             @Override
@@ -845,7 +1301,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                        if (realm.where(Dog.class).count() == 2) {
                             realm.handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -882,23 +1338,19 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 thread.start();
                 try {
                     thread.join();
-
-                    final int MAX_RETRIES = 60;
-                    int numberOfSleep = 0;
-                    while (numberOfSleep++ < MAX_RETRIES
-                            && typebasedCommitInvocations.incrementAndGet() != 1) {
-                        Thread.sleep(16);
-                    }
-                    assertEquals(1, typebasedCommitInvocations.get());
                 } catch (InterruptedException e) {
                     fail(e.getMessage());
                 }
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(typebasedCommitInvocations.get(), 1);
     }
 
     // UC 3 Async RealmResults
+    // 1. Create RealmResults async query
+    // 2. Wait COMPLETED_ASYNC_REALM_RESULTS then commit transaction in another non-looper thread
+    // 3. Listener on the RealmResults gets triggered again.
     public void test_non_looper_thread_commit_realmresults_async() {
         handler.post(new Runnable() {
             @Override
@@ -907,7 +1359,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        if (globalCommitInvocations.incrementAndGet() == 2) {
+                        if (realm.where(Dog.class).count() == 2) {
                             realm.handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -922,17 +1374,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.createObject(Dog.class);
                 realm.commitTransaction();
 
-                final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
-                assertTrue(dogs.load());
-                dogs.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        typebasedCommitInvocations.incrementAndGet();
-                        assertEquals(2, dogs.size());
-                    }
-                });
-
-                Thread thread = new Thread() {
+                final Thread thread = new Thread() {
                     @Override
                     public void run() {
                         Realm bgRealm = Realm.getInstance(realm.getConfiguration());
@@ -942,25 +1384,28 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                         bgRealm.close();
                     }
                 };
-                thread.start();
-                try {
-                    thread.join();
 
-                    final int MAX_RETRIES = 60;
-                    int numberOfSleep = 0;
-                    while (numberOfSleep++ < MAX_RETRIES
-                            && typebasedCommitInvocations.incrementAndGet() != 1) {
-                        Thread.sleep(16);
+                final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
+                dogs.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        typebasedCommitInvocations.incrementAndGet();
+                        if (typebasedCommitInvocations.get() == 1) {
+                            // COMPLETED_ASYNC_REALM_RESULTS arrived
+                            try {
+                                thread.join();
+                            } catch (InterruptedException e) {
+                                fail(e.getMessage());
+                            }
+                        }
                     }
-                    assertEquals(1, typebasedCommitInvocations.get());
-                } catch (InterruptedException e) {
-                    fail(e.getMessage());
-                }
+                });
 
+                thread.start();
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
-        assertEquals(1, typebasedCommitInvocations.get());
+        assertEquals(2, typebasedCommitInvocations.get());
     }
 
     // ****************************************************************************************** //
@@ -1357,5 +1802,92 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         });
         TestHelper.awaitOrFail(listenerWasCalledOnRealmObject);
         TestHelper.awaitOrFail(listenerWasCalledOnRealmResults);
+    }
+
+    // Test modifying realmObjects in RealmObject's change listener
+    public void test_change_realm_objects_map_in_listener() throws InterruptedException {
+        final CountDownLatch finishedLatch = new CountDownLatch(2);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+
+                realm.beginTransaction();
+                // At least two objects are needed to make sure list modification happen during iterating.
+                final Cat cat = realm.createObject(Cat.class);
+                final Owner owner = realm.createObject(Owner.class);
+                owner.setCat(cat);
+                realm.commitTransaction();
+
+                RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        Cat cat = owner.getCat();
+                        boolean foundKey = false;
+                        // Check if cat has been added to the realmObjects in case of the behaviour of getCat changes
+                        for (WeakReference<RealmObject> weakReference : realm.handlerController.realmObjects.keySet()) {
+                            if (weakReference.get() == cat) {
+                               foundKey = true;
+                               break;
+                            }
+                        }
+                        assertTrue(foundKey);
+                        finishedLatch.countDown();
+                    }
+                };
+
+                cat.addChangeListener(listener);
+                owner.addChangeListener(listener);
+
+                realm.beginTransaction();
+                // To make sure the shared group version changed
+                realm.createObject(Owner.class);
+                realm.commitTransaction();
+            }
+        });
+
+        finishedLatch.await();
+    }
+
+    // Test modifying syncRealmResults in RealmResults's change listener
+    public void test_change_realm_results_map_in_listener() throws InterruptedException {
+        final CountDownLatch finishedLatch = new CountDownLatch(2);
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+
+                // Two results needed to make sure list modification happen while iterating
+                RealmResults<Owner> results1 = realm.allObjects(Owner.class);
+                RealmResults<Cat> results2 = realm.allObjects(Cat.class);
+                RealmChangeListener listener = new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        RealmResults<Owner> results = realm.allObjects(Owner.class);
+                        boolean foundKey = false;
+                        // Check if the results has been added to the syncRealmResults in case of the behaviour of
+                        // allObjects changes
+                        for (WeakReference<RealmResults<? extends RealmObject>> weakReference :
+                                realm.handlerController.syncRealmResults.keySet()) {
+                            if (weakReference.get() == results) {
+                                foundKey = true;
+                                break;
+                            }
+                        }
+                        assertTrue(foundKey);
+                        finishedLatch.countDown();
+                    }
+                };
+                results1.addChangeListener(listener);
+                results2.addChangeListener(listener);
+
+                realm.beginTransaction();
+                realm.createObject(Owner.class);
+                realm.commitTransaction();
+            }
+        });
+
+        finishedLatch.await();
     }
 }

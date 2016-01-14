@@ -52,6 +52,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableView;
 import io.realm.internal.Util;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
@@ -125,6 +126,14 @@ public final class Realm extends BaseRealm {
         super(configuration, autoRefresh);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Observable<Realm> asObservable() {
+        return configuration.getRxFactory().from(this);
+    }
+
     @Override
     protected void finalize() throws Throwable {
         if (sharedGroupManager != null && sharedGroupManager.isOpen()) {
@@ -164,6 +173,7 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      * RealmObject classes or version has has changed so a migration is required.
+     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
@@ -179,6 +189,8 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the RealmObject
      * classes or version has has changed so a migration is required.
+     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
@@ -192,6 +204,7 @@ public final class Realm extends BaseRealm {
      * Sets the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}.
      *
      * @param configuration the {@link io.realm.RealmConfiguration} to use as the default configuration.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static void setDefaultConfiguration(RealmConfiguration configuration) {
@@ -324,6 +337,7 @@ public final class Realm extends BaseRealm {
      * @param json array with object data.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if unable to map JSON.
      * @see #createAllFromJson(Class, org.json.JSONArray)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
@@ -372,6 +386,7 @@ public final class Realm extends BaseRealm {
      * @param json string with an array of JSON objects.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if unable to create a JSON array from the json string.
      * @see #createAllFromJson(Class, String)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
@@ -426,6 +441,7 @@ public final class Realm extends BaseRealm {
      * @param in the InputStream with a list of object data in JSON format.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if unable to read JSON.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -470,7 +486,8 @@ public final class Realm extends BaseRealm {
         }
 
         try {
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+            return realmObject;
         } catch (Exception e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -485,6 +502,7 @@ public final class Realm extends BaseRealm {
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if JSON data cannot be mapped.
      * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
@@ -493,7 +511,11 @@ public final class Realm extends BaseRealm {
         }
         checkHasPrimaryKey(clazz);
         try {
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            if (handlerController != null) {
+                handlerController.addToRealmObjects(realmObject);
+            }
+            return realmObject;
         } catch (JSONException e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -533,6 +555,7 @@ public final class Realm extends BaseRealm {
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if JSON object cannot be mapped from the string parameter.
      * @see #createObjectFromJson(Class, String)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
@@ -567,6 +590,7 @@ public final class Realm extends BaseRealm {
         if (clazz == null || inputStream == null) {
             return null;
         }
+        E realmObject;
         Table table = getTable(clazz);
         if (table.hasPrimaryKey()) {
             // As we need the primary key value we have to first parse the entire input stream as in the general
@@ -575,7 +599,8 @@ public final class Realm extends BaseRealm {
             try {
                 scanner = getFullStringScanner(inputStream);
                 JSONObject json = new JSONObject(scanner.next());
-                return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+                realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
+
             } catch (JSONException e) {
                 throw new RealmException("Failed to read JSON", e);
             } finally {
@@ -586,11 +611,12 @@ public final class Realm extends BaseRealm {
         } else {
             JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "UTF-8"));
             try {
-                return configuration.getSchemaMediator().createUsingJsonStream(clazz, this, reader);
+                realmObject = configuration.getSchemaMediator().createUsingJsonStream(clazz, this, reader);
             } finally {
                 reader.close();
             }
         }
+        return realmObject;
     }
 
     /**
@@ -602,6 +628,7 @@ public final class Realm extends BaseRealm {
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if failure to read JSON.
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -617,7 +644,7 @@ public final class Realm extends BaseRealm {
         try {
             scanner = getFullStringScanner(in);
             JSONObject json = new JSONObject(scanner.next());
-            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, true);
+            return createOrUpdateObjectFromJson(clazz, json);
         } catch (JSONException e) {
             throw new RealmException("Failed to read JSON", e);
         } finally {
@@ -642,7 +669,8 @@ public final class Realm extends BaseRealm {
         checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
-        return get(clazz, rowIndex);
+        E object = get(clazz, rowIndex);
+        return object;
     }
 
     /**
@@ -676,7 +704,8 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
-        return copyOrUpdate(object, false);
+        E realmObject = copyOrUpdate(object, false);
+        return realmObject;
     }
 
     /**
@@ -692,7 +721,8 @@ public final class Realm extends BaseRealm {
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
-        return copyOrUpdate(object, true);
+        E realmObject = copyOrUpdate(object, true);
+        return realmObject;
     }
 
     /**
@@ -891,7 +921,11 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
 
@@ -954,7 +988,11 @@ public final class Realm extends BaseRealm {
         Table table = this.getTable(clazz);
         TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -976,7 +1014,11 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        return RealmResults.createFromTableOrView(this, tableView, clazz);
+        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
+        if (handlerController != null) {
+            handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     /**
@@ -1013,10 +1055,12 @@ public final class Realm extends BaseRealm {
      * called instead of {@link #commitTransaction()}.
      *
      * @param transaction the {@link io.realm.Realm.Transaction} to execute.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      */
     public void executeTransaction(Transaction transaction) {
-        if (transaction == null)
+        if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
+        }
 
         beginTransaction();
         try {
@@ -1038,6 +1082,7 @@ public final class Realm extends BaseRealm {
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @param callback optional, to receive the result of this query.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
      */
     public RealmAsyncTask executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
         if (transaction == null)
@@ -1069,6 +1114,9 @@ public final class Realm extends BaseRealm {
                                     && handler != null
                                     && !Thread.currentThread().isInterrupted()
                                     && handler.getLooper().getThread().isAlive()) {
+                                // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency problem
+                                // eg.: User wants to delete Realm in the callbacks.
+                                bgRealm.close();
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
@@ -1094,6 +1142,7 @@ public final class Realm extends BaseRealm {
                                 && handler != null
                                 && !Thread.currentThread().isInterrupted()
                                 && handler.getLooper().getThread().isAlive()) {
+                            bgRealm.close();
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -1102,7 +1151,9 @@ public final class Realm extends BaseRealm {
                             });
                         }
                     } finally {
-                        bgRealm.close();
+                        if (!bgRealm.isClosed()) {
+                            bgRealm.close();
+                        }
                     }
                 }
             }
@@ -1244,6 +1295,7 @@ public final class Realm extends BaseRealm {
      * from library or project dependencies. Realm classes in these should be exposed using their own module.
      *
      * @return the default Realm module or null if no default module exists.
+     * @throws RealmException if unable to create an instance of the module.
      * @see io.realm.RealmConfiguration.Builder#setModules(Object, Object...)
      */
     public static Object getDefaultModule() {

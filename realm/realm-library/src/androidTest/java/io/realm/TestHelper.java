@@ -18,7 +18,6 @@ package io.realm;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.test.AndroidTestCase;
 import android.os.Looper;
 import android.util.Log;
 
@@ -34,37 +33,38 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.NullTypes;
+import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.log.Logger;
-import static junit.framework.Assert.fail;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-import io.realm.entities.StringOnly;
+import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertEquals;
 
 public class TestHelper {
 
     public static class ExpectedCountCallback implements RealmCache.Callback {
 
         private int expectedCount;
-        private AndroidTestCase testCase;
 
-        ExpectedCountCallback(AndroidTestCase testCase, int expectedCount) {
+        ExpectedCountCallback(int expectedCount) {
             this.expectedCount = expectedCount;
-            this.testCase = testCase;
         }
 
         @Override
         public void onResult(int count) {
-            testCase.assertEquals(expectedCount, count);
+            assertEquals(expectedCount, count);
         }
     }
-
 
     public static RealmFieldType getColumnType(Object o){
         if (o instanceof Boolean)
@@ -356,22 +356,42 @@ public class TestHelper {
         }
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration()} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context) {
         return createConfiguration(context, Realm.DEFAULT_REALM_NAME);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String)} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context, String name) {
         return createConfiguration(context.getFilesDir(), name);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String)} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(File folder, String name) {
         return createConfiguration(folder, name, null);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String, byte[])} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context, String name, byte[] key) {
         return createConfiguration(context.getFilesDir(), name, key);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String, byte[])} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
         RealmConfiguration.Builder config = new RealmConfiguration.Builder(dir).name(name);
         if (key != null) {
@@ -643,17 +663,17 @@ public class TestHelper {
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
         try {
             if (!latch.await(numberOfSeconds, TimeUnit.SECONDS)) {
-                fail();
+                fail("Test took longer than " + numberOfSeconds + " seconds");
             }
         } catch (InterruptedException e) {
-            fail();
+            fail(e.getMessage());
         }
     }
 
     // clean resource, shutdown the executor service & throw any background exception
     public static void exitOrThrow(final ExecutorService executorService,
                      final CountDownLatch signalTestFinished,
-                     final CountDownLatch signalFinallyRun,
+                     final CountDownLatch signalClosedRealm,
                      final Looper[] looper,
                      final Throwable[] throwable,
                      int... timeout) throws Throwable {
@@ -671,11 +691,16 @@ public class TestHelper {
         }
 
         // wait for the finally block to execute & close the Realm
-        TestHelper.awaitOrFail(signalFinallyRun, (timeout.length == 1) ? timeout[0] : 7);
+        TestHelper.awaitOrFail(signalClosedRealm, (timeout.length == 1) ? timeout[0] : 7);
 
         if (throwable[0] != null) {
             // throw any assertion errors happened in the background thread
             throw throwable[0];
         }
+    }
+
+    public static InputStream loadJsonFromAssets(Context context, String file) throws IOException {
+        AssetManager assetManager = context.getAssets();
+        return assetManager.open(file);
     }
 }

@@ -1,7 +1,7 @@
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
-apply plugin: 'realm'
+apply plugin: 'realm-android'
 
 android {
     compileSdkVersion rootProject.sdkVersion
@@ -17,7 +17,6 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            //proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     command {

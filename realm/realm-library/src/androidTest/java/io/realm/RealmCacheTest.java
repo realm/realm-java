@@ -236,7 +236,7 @@ public class RealmCacheTest extends AndroidTestCase {
                 Realm realmB = Realm.getInstance(defaultConfig);
                 assertFalse(realmA == realmB);
                 RealmCache.invokeWithGlobalRefCount(defaultConfig,
-                        new TestHelper.ExpectedCountCallback(RealmCacheTest.this, 2));
+                        new TestHelper.ExpectedCountCallback(2));
                 realmB.close();
                 closeLatch.countDown();
             }
@@ -244,9 +244,9 @@ public class RealmCacheTest extends AndroidTestCase {
         thread.start();
 
         closeLatch.await();
-        RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(this, 1));
+        RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(1));
         realmA.close();
-        RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(this, 0));
+        RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(0));
     }
 
     public void testReleaseCacheInOneThread() {

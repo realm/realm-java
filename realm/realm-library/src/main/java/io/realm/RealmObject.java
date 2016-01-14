@@ -26,6 +26,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
@@ -86,7 +87,7 @@ public abstract class RealmObject {
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
-    protected long currentTableVersion = 0;
+    protected long currentTableVersion = -1;
 
     /**
      * Removes the object from the Realm it is currently associated to.
@@ -263,16 +264,46 @@ public abstract class RealmObject {
     }
 
     /**
+     * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current object when
+     * subscribed to.
+     *
+     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * type information, otherwise the type of the following observables will be {@code RealmObject}.
+     *
+     * @param <E> RealmObject class that is being observed. Must be this class or its super types.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public <E extends RealmObject> Observable<E> asObservable() {
+        if (realm instanceof Realm) {
+            @SuppressWarnings("unchecked")
+            E obj = (E) this;
+            return realm.configuration.getRxFactory().from((Realm) realm, obj);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            DynamicRealmObject dynamicObject = (DynamicRealmObject) this;
+            @SuppressWarnings("unchecked")
+            Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
+            return observable;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+        }
+    }
+
+    /**
      * Notifies all registered listeners.
      */
     void notifyChangeListeners() {
-        if (row.getTable() == null) return;
+        if (listeners != null && !listeners.isEmpty()) {
+            if (row.getTable() == null) return;
 
-        long version = row.getTable().version();
-        if (currentTableVersion != version) {
-            currentTableVersion = version;
-            for (RealmChangeListener listener : listeners) {
-                listener.onChange();
+            long version = row.getTable().version();
+            if (currentTableVersion != version) {
+                currentTableVersion = version;
+                for (RealmChangeListener listener : listeners) {
+                    listener.onChange();
+                }
             }
         }
     }

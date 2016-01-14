@@ -2,14 +2,14 @@ apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
 apply plugin: 'com.neenbedankt.android-apt'
-apply plugin: 'realm'
+apply plugin: 'realm-android'
 
 android {
     compileSdkVersion rootProject.sdkVersion
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
-        applicationId 'io.realm.examples.intro'
+        applicationId 'io.realm.examples.unittesting'
         targetSdkVersion rootProject.sdkVersion
         minSdkVersion 15
         versionCode 1
@@ -32,6 +32,8 @@ android {
 
 
 dependencies {
+    testCompile 'io.reactivex:rxjava:1.1.0'
+
     // Testing
     testCompile 'junit:junit:4.12'
     testCompile "org.robolectric:robolectric:3.0"

@@ -37,6 +37,6 @@ public class jUnit4ExampleTest {
 
     @Test
     public void testShouldBeAbleToLaunchActivityAndSeeRealmResults() {
-        onView(withText("Senior Person got older: 99")).check(matches(isDisplayed()));
+        onView(withText("John Senior got older: 89")).check(matches(isDisplayed()));
     }
 }
