@@ -248,7 +248,7 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
-task assembleRobolectric(description: "Build the Robolectric shared library for Darwin") {
+task assembleRobolectric(group: 'build', description: "Build the Robolectric shared library for Darwin") {
     def staticLibPath
 
     if (System.env.REALM_CORE_LIB) {
@@ -326,7 +326,7 @@ task assembleRobolectric(description: "Build the Robolectric shared library for 
     }
 }
 
-task installRobolectric(description: "Install native library to support Robolectric.") {
+task installRobolectric(group: 'Install', description: "Install native library to support Robolectric.") {
     dependsOn {
         assembleRobolectric
     }
