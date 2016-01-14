@@ -251,9 +251,14 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
 task assembleRobolectric(description: "Build the Robolectric shared library for Darwin") {
     def staticLibPath = "/usr/local/lib/librealm.a"
 
+    if (System.env.REALM_CORE_LIB) {
+        def realmCoreLibDir = file(System.env.REALM_CORE_LIB)
+        staticLibPath = "$realmCoreLibDir/librealm.a"
+    }
+
     doFirst {
         if (file(staticLibPath).exists() == false) {
-            throw new GradleException("The Realm Core library for OS X is not installed correctly. ")
+            throw new GradleException("The Realm Core library for OS X is not installed correctly. If the static lib is not located in /usr/local/lib, please set the environment variable REALM_CORE_LIB")
         }
     }
 
