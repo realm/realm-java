@@ -1,5 +1,6 @@
 package io.realm.gradle
 
+import de.undercouch.gradle.tasks.download.DownloadTaskPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -7,6 +8,8 @@ class RealmRobolectric implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        project.plugins.apply(DownloadTaskPlugin)
+
         project.task('downloadRealmRobolectric') {
             def targetZip = "${project.projectDir}/realm-robolectric-darwin-${Version.VERSION}.zip"
             def targetLib = "${project.projectDir}/src/test/libs/librealm-jni-darwin.dylib"

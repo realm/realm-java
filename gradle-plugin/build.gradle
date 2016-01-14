@@ -15,6 +15,7 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
     compile 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    compile 'de.undercouch:gradle-download-task:2.0.0'
 }
 
 sourceCompatibility = 1.6

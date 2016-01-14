@@ -1,12 +1,3 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'de.undercouch:gradle-download-task:2.0.0'
-    }
-}
-
 apply plugin: 'de.undercouch.download'
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
