@@ -2865,10 +2865,10 @@ public class RealmTest {
                         }
                     });
                     fail("Should not be able to invoke removeChangeListener");
-                } catch (IllegalStateException e) {
-                    signalTestFinished.countDown();
+                } catch (IllegalStateException ignored) {
                 } finally {
                     realm.close();
+                    signalTestFinished.countDown();
                 }
             }
         });
@@ -2891,10 +2891,10 @@ public class RealmTest {
                 try {
                     realm.removeAllChangeListeners();
                     fail("Should not be able to invoke removeChangeListener");
-                } catch (IllegalStateException e) {
-                    signalTestFinished.countDown();
+                } catch (IllegalStateException ignored) {
                 } finally {
                     realm.close();
+                    signalTestFinished.countDown();
                 }
             }
         });
