@@ -280,4 +280,9 @@ public class RealmObservableFactory implements RxObservableFactory {
     public boolean equals(Object o) {
         return o instanceof RealmObservableFactory;
     }
+    @Override
+    public int hashCode() {
+        return 37;
+    }
+
 }

@@ -9,6 +9,9 @@
  * RealmQuery now implements Cloneable.
  * Added Realm.threadLocalVersion(RealmQuery).
 
+0.87.3
+ * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).
+
 0.87.2
  * Fixed a bug when RealmObjectSchema.addField() was called with the PRIMARY_KEY modifier, the field was not set as a required field (#2001).
  * Removed explicit GC call when committing a transaction (#1925).
