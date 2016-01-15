@@ -123,7 +123,7 @@ public class JsonExampleActivity extends Activity {
     }
 
     private void loadJsonFromString() {
-        String json = "{ city: \"Aarhus\", votes: 99 }";
+        String json = "{ name: \"Aarhus\", votes: 99 }";
 
         realm.beginTransaction();
         realm.createObjectFromJson(City.class, json);
