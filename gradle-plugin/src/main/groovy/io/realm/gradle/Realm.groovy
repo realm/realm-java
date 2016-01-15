@@ -24,13 +24,13 @@ class Realm implements Plugin<Project> {
         project.plugins.apply(AndroidAptPlugin)
 
         project.android.registerTransform(new RealmTransformer())
-        project.repositories.add(project.getRepositories().jcenter());
+        project.repositories.add(project.getRepositories().jcenter())
         project.repositories.add(project.repositories.maven { url "https://jitpack.io" })
-        project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}");
-        project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}");
+        project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
+        project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
         if (isKotlinProject) {
-            project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}");
-            project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}");
+            project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+            project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
         }
     }
 }
