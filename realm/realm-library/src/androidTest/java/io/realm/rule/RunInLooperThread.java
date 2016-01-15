@@ -18,11 +18,11 @@ package io.realm.rule;
 
 import android.os.Looper;
 
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.util.LinkedList;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,15 +31,14 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
 
-
 /**
  * Rule that runs the test inside a worker looper thread. This Rule is responsible
  * of creating a temp directory containing a Realm instance then delete it, once the test finishes.
  */
-public class RunInLooperThread extends TemporaryFolder {
+public class RunInLooperThread extends TestRealmConfigurationFactory {
     public Realm realm;
     public RealmConfiguration realmConfiguration;
-    public CountDownLatch signalTestCompleted;
+    private CountDownLatch signalTestCompleted;
     // the variables created inside the test are local and eligible for GC.
     // but sometimes we need the variables to survive across different Looper
     // events (Callbacks happening in the future), so we add a strong reference
@@ -49,7 +48,7 @@ public class RunInLooperThread extends TemporaryFolder {
     @Override
     protected void before() throws Throwable {
         super.before();
-        realmConfiguration = TestHelper.createConfiguration(getRoot(), Realm.DEFAULT_REALM_NAME);
+        realmConfiguration = createConfiguration(UUID.randomUUID().toString());
         signalTestCompleted = new CountDownLatch(1);
         keepStrongReference = new LinkedList<Object>();
     }
@@ -83,13 +82,11 @@ public class RunInLooperThread extends TemporaryFolder {
                             backgroundLooper[0] = Looper.myLooper();
                             try {
                                 realm = Realm.getInstance(realmConfiguration);
-
                                 base.evaluate();
-
                                 Looper.loop();
                             } catch (Throwable e) {
                                 threadAssertionError[0] = e;
-
+                                unitTestFailed = true;
                             } finally {
                                 if (signalTestCompleted.getCount() > 0) {
                                     signalTestCompleted.countDown();
@@ -107,5 +104,12 @@ public class RunInLooperThread extends TemporaryFolder {
                 }
             }
         };
+    }
+
+    /**
+     * Signal that the test has completed.
+     */
+    public void testComplete() {
+        signalTestCompleted.countDown();
     }
 }

@@ -20,6 +20,9 @@ import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class Owner extends RealmObject {
+
+    public static String CLASS_NAME = "Owner";
+
     private String name;
     private RealmList<Dog> dogs;
     private Cat cat;

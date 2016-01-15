@@ -5,6 +5,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven'
 apply plugin: 'findbugs'
+apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 
 android {
@@ -79,13 +80,13 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 preBuild.dependsOn ':realm-jni:buildAndroidJni'
 
 task findbugs(type: FindBugs) {
-    dependsOn assemble
-    group = 'Test'
+    dependsOn assembleDebug
+    group = 'Verification'
 
     ignoreFailures = false
     effort = "default"
     reportLevel = "medium"
-    excludeFilter = file("${projectDir}/findbugs-filter.xml")
+    excludeFilter = file("${projectDir}/../config/findbugs/findbugs-filter.xml")
     classes = files("${projectDir}/build/intermediates/classes")
     source = fileTree('src/main/java/')
     classpath = files()
@@ -101,6 +102,19 @@ task findbugs(type: FindBugs) {
     }
 }
 
+task pmd(type: Pmd) {
+    group = 'Verification'
+
+    source = fileTree('src/main/java')
+    ruleSetFiles = files("${projectDir}/../config/pmd/ruleset.xml")
+    ruleSets = [] // This needs to be here to remove the default checks
+
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
 task checkstyle(type: Checkstyle) {
     group = 'Test'
 
@@ -112,6 +126,8 @@ task checkstyle(type: Checkstyle) {
 
     def configProps = ['proj.module.dir': projectDir.absolutePath]
     configProperties configProps
+
+    configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
 
     // empty classpath
     classpath = files()
