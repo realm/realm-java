@@ -56,7 +56,7 @@ import rx.Observable;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmObject> implements Cloneable {
+public final class RealmQuery<E extends RealmObject> implements Cloneable {
 
     private BaseRealm realm;
     private Class<E> clazz;
