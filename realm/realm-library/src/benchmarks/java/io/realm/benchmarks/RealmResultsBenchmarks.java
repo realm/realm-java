@@ -28,17 +28,20 @@ import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmResults;
 import io.realm.benchmarks.config.BenchmarkConfig;
 import io.realm.entities.AllTypes;
 
 @RunWith(SpannerRunner.class)
-public class RealmObjectWriteBenchmarks {
+public class RealmResultsBenchmarks {
+
+    private static final int DATA_SIZE = 1000;
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = BenchmarkConfig.getConfiguration(this.getClass().getCanonicalName());
 
     private Realm realm;
-    private AllTypes writeObject;
+    private RealmResults<AllTypes> results;
 
     @BeforeExperiment
     public void before() {
@@ -46,33 +49,61 @@ public class RealmObjectWriteBenchmarks {
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
         realm.beginTransaction();
-        writeObject = realm.createObject(AllTypes.class);
+        for (int i = 0; i < DATA_SIZE; i++) {
+            AllTypes obj = realm.createObject(AllTypes.class);
+            obj.setColumnLong(i);
+            obj.setColumnBoolean(i % 2 == 0);
+            obj.setColumnString("Foo " + i);
+            obj.setColumnDouble(i + 1.234D);
+        }
+        realm.commitTransaction();
+        results = realm.allObjects(AllTypes.class);
     }
 
     @AfterExperiment
     public void after() {
-        realm.cancelTransaction();
         realm.close();
     }
 
     @Benchmark
-    public void writeString(long reps) {
+    public void get(long reps) {
         for (long i = 0; i < reps; i++) {
-            writeObject.setColumnString("Foo");
+            AllTypes item = results.get(0);
         }
     }
 
     @Benchmark
-    public void writeLong(long reps) {
+    public void size(long reps) {
         for (long i = 0; i < reps; i++) {
-            writeObject.setColumnLong(42);
+            long size = results.size();
         }
     }
 
     @Benchmark
-    public void writeDouble(long reps) {
+    public void min(long reps) {
         for (long i = 0; i < reps; i++) {
-            writeObject.setColumnDouble(1.234D);
+            Number min = results.min(AllTypes.FIELD_LONG);
+        }
+    }
+
+    @Benchmark
+    public void max(long reps) {
+        for (long i = 0; i < reps; i++) {
+            Number max = results.max(AllTypes.FIELD_LONG);
+        }
+    }
+
+    @Benchmark
+    public void average(long reps) {
+        for (long i = 0; i < reps; i++) {
+            Number average = results.average(AllTypes.FIELD_LONG);
+        }
+    }
+
+    @Benchmark
+    public void sum(long reps) {
+        for (long i = 0; i < reps; i++) {
+            Number sum = results.sum(AllTypes.FIELD_LONG);
         }
     }
 }
