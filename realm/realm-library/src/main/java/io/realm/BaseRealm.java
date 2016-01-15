@@ -21,7 +21,6 @@ import android.os.Looper;
 
 import java.io.Closeable;
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -537,6 +536,18 @@ abstract class BaseRealm implements Closeable {
             handlerController.addToRealmObjects(result);
         }
         return result;
+    }
+
+    /**
+     * Removes all objects from this Realm.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or on an incorrect thread.
+     */
+    public void clear() {
+        checkIfValid();
+        for (RealmObjectSchema objectSchema : schema.getAll()) {
+            schema.getTable(objectSchema.getClassName()).clear();
+        }
     }
 
     /**
