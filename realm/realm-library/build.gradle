@@ -25,6 +25,17 @@ android {
         }
     }
 
+    sourceSets {
+        androidTest {
+            java.srcDirs += 'src/benchmarks/java'
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE.txt'
+    }
+
     lintOptions {
         abortOnError false
     }
@@ -32,6 +43,9 @@ android {
 
 repositories {
     maven { url "https://jitpack.io" }
+    maven {
+        url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+    }
 }
 
 dependencies {
@@ -43,6 +57,8 @@ dependencies {
     androidTestCompile 'com.android.support:support-annotations:23.1.1'
     androidTestCompile 'com.android.support.test:runner:0.4.1'
     androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile 'com.opencsv:opencsv:3.4'
+    androidTestCompile 'dk.ilios:spanner:0.6.0-SNAPSHOT'
 
     androidTestApt project(':realm-annotations-processor')
     androidTestApt project(':realm-annotations')
@@ -114,4 +130,22 @@ task checkstyle(type: Checkstyle) {
 
     // empty classpath
     classpath = files()
+}
+
+// Configuration options can be found here:
+// http://developer.android.com/reference/android/support/test/runner/AndroidJUnitRunner.html
+task connectedBenchmarks(type: GradleBuild) {
+    description =  'Run all benchmarks on connected devices'
+    group = 'Test'
+    buildFile = file("${projectDir}/build.gradle")
+    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.package', 'io.realm.benchmarks')
+    tasks = ['connectedCheck']
+}
+
+task connectedUnitTests(type: GradleBuild) {
+    description =  'Run all unit tests on connected devices'
+    group = 'Test'
+    buildFile = file("${projectDir}/build.gradle")
+    startParameter.getProjectProperties().put('android.testInstrumentationRunnerArguments.notPackage', 'io.realm.benchmarks')
+    tasks = ['connectedAndroidTest']
 }
