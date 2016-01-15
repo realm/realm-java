@@ -52,7 +52,7 @@ public class Group implements TableParent, Closeable {
     }
 
     public Group(String filepath, int mode) {
-        this.immutable = mode == MODE_READONLY;
+        this.immutable = (mode == MODE_READONLY);
         this.context = new Context();
         this.nativePtr = createNative(filepath, mode);
         checkNativePtrNotZero();
@@ -185,9 +185,11 @@ public class Group implements TableParent, Closeable {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Invalid name. Name must be a non-empty String.");
         }
-        if (immutable && !hasTable(name)) {
-            throw new IllegalStateException("Requested table is not in this Realm. " +
-                    "Creating it requires a transaction: " + name);
+        if (immutable) {
+            if (!hasTable(name)) {
+                throw new IllegalStateException("Requested table is not in this Realm. " +
+                        "Creating it requires a transaction: " + name);
+            }
         }
 
         // Execute the disposal of abandoned realm objects each time a new realm object is created

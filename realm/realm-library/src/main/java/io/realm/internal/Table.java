@@ -120,7 +120,7 @@ public class Table implements TableOrView, TableSchema, TableParent, Closeable {
     protected void finalize() {
         synchronized (context) {
             if (nativePtr != 0) {
-                boolean isRoot = parent == null;
+                boolean isRoot = (parent == null);
                 context.asyncDisposeTable(nativePtr, isRoot);
                 nativePtr = 0; // Set to 0 if finalize is called before close() for some reason
             }
@@ -1356,7 +1356,7 @@ public class Table implements TableOrView, TableSchema, TableParent, Closeable {
      * Checks if a given table name is a meta-table, i.e. a table used by Realm to track its internal state.
      */
     public static boolean isMetaTable(String tableName) {
-        return tableName.equals(METADATA_TABLE_NAME) || tableName.equals(PRIMARY_KEY_TABLE_NAME);
+        return (tableName.equals(METADATA_TABLE_NAME) || tableName.equals(PRIMARY_KEY_TABLE_NAME));
     }
 
     /**
