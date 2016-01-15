@@ -124,7 +124,10 @@ ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false
 
-task downloadCore(group: 'build setup', description: 'Download the latest version of realm core') {
+task downloadCore {
+    group = 'build setup'
+    description = 'Download the latest version of realm core'
+
     def isHashCheckingEnabled = {
         return project.hasProperty('coreSha256Hash') && !project.coreSha256Hash.empty
     }
@@ -182,7 +185,10 @@ task downloadCore(group: 'build setup', description: 'Download the latest versio
     }
 }
 
-task compileCore(group: 'build setup', description: 'Compile the core library from source code') {
+task compileCore {
+    group = 'build setup'
+    description = 'Compile the core library from source code'
+
     // Build the library from core source code
     doFirst {
         if (!coreSourcePath) {
@@ -208,7 +214,10 @@ task compileCore(group: 'build setup', description: 'Compile the core library fr
     }
 }
 
-task deployCore(group: 'build setup', description: 'Deploy the latest version of realm core') {
+task deployCore {
+    group = 'build setup'
+    description = 'Deploy the latest version of realm core'
+
     dependsOn {
         coreSourcePath ? compileCore : downloadCore
     }
@@ -248,7 +257,10 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
     }
 }
 
-task compileCoreLibForHost(group: 'build setup', description: 'Compile the core library for host from source code') {
+task compileCoreLibForHost {
+    group = 'build setup'
+    description = 'Compile the core library for host from source code'
+
     doLast {
         if (!coreSourcePath) {
             throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_HOME is needed.")
@@ -259,18 +271,11 @@ task compileCoreLibForHost(group: 'build setup', description: 'Compile the core 
             commandLine = [
                     "bash",
                     "build.sh",
-                    "config"
-            ]
-        }
-        exec {
-            workingDir = coreSourcePath
-            commandLine = [
-                    "bash",
-                    "build.sh",
+                    "clean",
+                    "config",
                     "build"
             ]
         }
-
         copy {
             from "$coreSourcePath/src/realm/librealm.a"
             into "${projectDir}/../realm-library/src"
@@ -278,7 +283,10 @@ task compileCoreLibForHost(group: 'build setup', description: 'Compile the core 
     }
 }
 
-task prepareCoreLibForHost(group: 'build setup', description: 'Prepare the core library for host') {
+task prepareCoreLibForHost {
+    group = 'build setup'
+    description = 'Prepare the core library for host'
+
     def staticLibHome = System.env.REALM_CORE_HOME ? System.env.REALM_CORE_HOME : '/usr/local'
 
     doFirst {
@@ -297,11 +305,13 @@ task prepareCoreLibForHost(group: 'build setup', description: 'Prepare the core 
     }
 }
 
-task assembleRobolectric(group: 'build', description: "Build the Robolectric shared library for Darwin") {
+task assembleRobolectric {
+    group = 'build'
+    description = "Build the Robolectric shared library for Darwin"
     dependsOn coreSourcePath ? compileCoreLibForHost : prepareCoreLibForHost
 
-    def staticLibHome = System.env.REALM_CORE_HOME ? System.env.REALM_CORE_HOME : '/usr/local'
-    def staticLibInclude = coreSourcePath ? "-I$coreSourcePath/src/" : "-I$staticLibHome/include/realm/"
+    def realmCoreHome = System.env.REALM_CORE_HOME ? System.env.REALM_CORE_HOME : '/usr/local'
+    def coreHeader = coreSourcePath ? "-I$coreSourcePath/src/" : "-I$realmCoreHome/include/realm/"
 
     doLast {
         exec {
@@ -313,7 +323,7 @@ task assembleRobolectric(group: 'build', description: "Build the Robolectric sha
                     "-l${Runtime.getRuntime().availableProcessors()}",
                     '-C', "${projectDir}/src",
                     "CC_IS=${clang ? 'clang' : 'gcc'}",
-                    "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC $staticLibInclude -I/usr/local/include/ -I/System/Library/Frameworks/JavaVM.framework/Headers/",
+                    "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC $coreHeader -I/usr/local/include/ -I/System/Library/Frameworks/JavaVM.framework/Headers/",
                     "CFLAGS_ARCH=${commonCflags.join(' ')}",
                     "BASE_DENOM=darwin",
                     "REALM_LDFLAGS_COMMON=-lrealm -lstdc++ -L${projectDir}/../realm-library/src -L/usr/local/lib/ -Wl,-dead_strip -flto -Wl,-search_paths_first -framework CoreServices",
@@ -340,7 +350,9 @@ task assembleRobolectric(group: 'build', description: "Build the Robolectric sha
     }
 }
 
-task installRobolectric(group: 'Install', description: "Install native library to support Robolectric.") {
+task installRobolectric {
+    group = 'Install'
+    description = "Install native library to support Robolectric."
     dependsOn {
         assembleRobolectric
     }
@@ -408,7 +420,10 @@ targets.each { target ->
     }
 }
 
-task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared library for all the supported platforms') {
+task buildAndroidJni {
+    group = 'build'
+    description = 'Build the Android JNI shared library for all the supported platforms'
+
     targets.each { target ->
         dependsOn "copyAndroidJni${target.name.capitalize()}"
     }

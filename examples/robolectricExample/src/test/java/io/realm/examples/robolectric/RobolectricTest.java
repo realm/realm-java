@@ -46,12 +46,12 @@ public class RobolectricTest {
     private Activity context;
     private RealmConfiguration config;
 
+    @Rule
+    public RealmRobolectricRule realmRobolectricRule = new RealmRobolectricRule();
+
     private Context getContext() {
         return context;
     }
-
-    @Rule
-    public ExternalResource realmRobolectricRule = new RealmRobolectricRule();
 
     @Before
     public void setUp() throws Exception {
