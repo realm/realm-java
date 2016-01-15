@@ -16,7 +16,11 @@
 
 package io.realm.rule;
 
+import android.util.Log;
+
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 import java.util.Collections;
 import java.util.Map;
@@ -35,6 +39,25 @@ import io.realm.RealmConfiguration;
 public class TestRealmConfigurationFactory extends TemporaryFolder {
     private Map<RealmConfiguration, Boolean> map = new ConcurrentHashMap<RealmConfiguration, Boolean>();
     private Set<RealmConfiguration> configurations = Collections.newSetFromMap(map);
+    protected boolean unitTestFailed = false;
+
+    @Override
+    public Statement apply(final Statement base, Description description) {
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                before();
+                try {
+                    base.evaluate();
+                } catch (Throwable throwable) {
+                    unitTestFailed = true;
+                    throw throwable;
+                } finally {
+                    after();
+                }
+            }
+        };
+    }
 
     @Override
     protected void before() throws Throwable {
@@ -46,6 +69,11 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
         try {
             for (RealmConfiguration configuration : configurations) {
                 Realm.deleteRealm(configuration);
+            }
+        } catch (IllegalStateException e) {
+            // Only throw the exception caused by deleting the opened Realm if the test case itself doesn't throw.
+            if (!unitTestFailed) {
+                throw e;
             }
         } finally {
             // This will delete the temp folder.

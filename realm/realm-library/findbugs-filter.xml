@@ -37,4 +37,17 @@
         <Field name="inflater" />
         <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
+        <Match>
+        <Class name="io.realm.internal.RealmObjectProxy$CacheData" />
+        <Field name="minDepth" />
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+
+    <!-- Unit tests -->
+    <Match>
+        <Class name="io.realm.DynamicRealmTests"/>
+        <Method name="allObjectsSorted_failures" />
+        <Bug pattern="NP_NULL_PARAM_DEREF_ALL_TARGETS_DANGEROUS"/>
+    </Match>
+
 </FindBugsFilter>
