@@ -487,6 +487,11 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    // Return all handlers registered for this Realm
+    static Map<Handler, String> getHandlers() {
+        return handlers;
+    }
+
     /**
      * Returns the schema for this Realm.
      *

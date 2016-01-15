@@ -1279,11 +1279,6 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    // Return all handlers registered for this Realm
-    static Map<Handler, String> getHandlers() {
-        return handlers;
-    }
-
     // Public because of migrations
     public Table getTable(Class<? extends RealmObject> clazz) {
         Table table = classToTable.get(clazz);
