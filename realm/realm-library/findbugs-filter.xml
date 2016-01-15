@@ -49,5 +49,36 @@
         <Method name="allObjectsSorted_failures" />
         <Bug pattern="NP_NULL_PARAM_DEREF_ALL_TARGETS_DANGEROUS"/>
     </Match>
+    <Match>
+        <Class name="io.realm.RealmTest"/>
+        <Method name="allObjectsSorted_sortMultiFailures" />
+        <Bug pattern="NP_NULL_PARAM_DEREF_ALL_TARGETS_DANGEROUS"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.RealmTest"/>
+        <Method name="copyToRealmOrUpdate_nullThrows" />
+        <Bug pattern="NP_NULL_PARAM_DEREF_ALL_TARGETS_DANGEROUS"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.RealmTest"/>
+        <Method name="getInstance_folderNoWritePermissionThrows" />
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.RealmTest"/>
+        <Method name="getInstance_folderNoWritePermissionThrows" />
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.RealmTest"/>
+        <Method name="getCharacterArray" />
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+    <Match>
+        <Class name="io.realm.RealmTest"/>
+        <Method name="utf8" />
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+
 
 </FindBugsFilter>
