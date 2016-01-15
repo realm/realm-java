@@ -74,7 +74,7 @@ task findbugs(type: FindBugs) {
     source = fileTree('src/main/java/')
     classpath = files()
     reports {
-        xml.enabled = true
+        xml.enabled = false
         html.enabled = true
         xml {
             destination "$project.buildDir/findbugs/findbugs-output.xml"
@@ -93,7 +93,7 @@ task pmd(type: Pmd) {
     ruleSets = [] // This needs to be here to remove the default checks
 
     reports {
-        xml.enabled = true
+        xml.enabled = false
         html.enabled = true
     }
 }
