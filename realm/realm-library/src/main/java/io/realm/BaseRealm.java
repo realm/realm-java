@@ -319,10 +319,11 @@ abstract class BaseRealm implements Closeable {
                     realmPath.equals(configuration.getPath())            // It's the right realm
                             && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
                             && handler.getLooper().getThread().isAlive() // The receiving thread is alive
-                            && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
-                RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                        "to prevent this.");
-
+                    ) {
+                if (!handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
+                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                            "to prevent this.");
+                }
             }
         }
     }
