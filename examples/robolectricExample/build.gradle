@@ -6,8 +6,6 @@ apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'realm-android'
 apply plugin: 'realm-robolectric'
 
-def currentVersion = file("${rootDir}/../version.txt").text.trim()
-
 android {
     compileSdkVersion rootProject.sdkVersion
     buildToolsVersion rootProject.buildTools

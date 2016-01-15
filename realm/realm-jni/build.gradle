@@ -251,7 +251,7 @@ task deployCore(group: 'build setup', description: 'Deploy the latest version of
 task compileCoreLibForHost(group: 'build setup', description: 'Compile the core library for host from source code') {
     doLast {
         if (!coreSourcePath) {
-            throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_LIB is needed.")
+            throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_HOME is needed.")
         }
         exec {
             workingDir = coreSourcePath

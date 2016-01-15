@@ -7,7 +7,7 @@ configurations.all {
 }
 
 allprojects {
-    def currentVersion = file("${rootDir}/../version.txt").text.trim()
+    ext.currentVersion = file("${rootDir}/../version.txt").text.trim()
 
     buildscript {
         repositories {
