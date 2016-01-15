@@ -16,6 +16,8 @@
 
 package io.realm.rule;
 
+import android.util.Log;
+
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -37,7 +39,7 @@ import io.realm.RealmConfiguration;
 public class TestRealmConfigurationFactory extends TemporaryFolder {
     private Map<RealmConfiguration, Boolean> map = new ConcurrentHashMap<RealmConfiguration, Boolean>();
     private Set<RealmConfiguration> configurations = Collections.newSetFromMap(map);
-    private boolean unitTestFailed = false;
+    protected boolean unitTestFailed = false;
 
     @Override
     public Statement apply(final Statement base, Description description) {
