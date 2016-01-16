@@ -44,9 +44,6 @@ android {
 
 repositories {
     maven { url "https://jitpack.io" }
-    maven {
-        url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
-    }
 }
 
 dependencies {
@@ -59,7 +56,7 @@ dependencies {
     androidTestCompile 'com.android.support.test:runner:0.4.1'
     androidTestCompile 'com.android.support.test:rules:0.4.1'
     androidTestCompile 'com.opencsv:opencsv:3.4'
-    androidTestCompile 'dk.ilios:spanner:0.6.0-SNAPSHOT'
+    androidTestCompile 'dk.ilios:spanner:0.6.0'
 
     androidTestApt project(':realm-annotations-processor')
     androidTestApt project(':realm-annotations')
