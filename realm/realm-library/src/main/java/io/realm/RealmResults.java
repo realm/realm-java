@@ -163,12 +163,10 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded()) {
-            if (object instanceof RealmObject) {
-                RealmObject realmObject = (RealmObject) object;
-                if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
-                    contains = (table.sourceRowIndex(realmObject.row.getIndex()) != TableOrView.NO_MATCH);
-                }
+        if (isLoaded() && object instanceof RealmObject) {
+            RealmObject realmObject = (RealmObject) object;
+            if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
+                contains = (table.sourceRowIndex(realmObject.row.getIndex()) != TableOrView.NO_MATCH);
             }
         }
         return contains;
