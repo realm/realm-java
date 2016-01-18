@@ -291,8 +291,23 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
+        commitTransaction(null);
+    }
+
+    /**
+     * Commits transaction, runs the given runnable and then sends notifications. The runnable is useful to meet some
+     * timing conditions like the async transaction. In async transaction, the background Realm has to be closed before
+     * other threads see the changes to majoyly avoid the flaky tests.
+     *
+     * @param runAfterCommit runnable will run after transaction committed but before notification sent.
+     */
+    void commitTransaction(Runnable runAfterCommit) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
+
+        if (runAfterCommit != null)  {
+            runAfterCommit.run();
+        }
 
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();
