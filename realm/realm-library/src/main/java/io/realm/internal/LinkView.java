@@ -157,6 +157,14 @@ public class LinkView extends NativeObject {
         return null;
     }
 
+    /**
+     * Remove all target rows pointed to by links in this link view, and clear this link view.
+     */
+    public void removeAllTargetRows() {
+        checkImmutable();
+        nativeRemoveAllTargetRows(nativePointer);
+    }
+
     private void checkImmutable() {
         if (parent.isImmutable()) {
             throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
@@ -177,4 +185,5 @@ public class LinkView extends NativeObject {
     protected native long nativeWhere(long nativeLinkViewPtr);
     private native boolean nativeIsAttached(long nativeLinkViewPtr);
     private native long nativeFind(long nativeLinkViewPtr, long targetRowIndex);
+    private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
 }

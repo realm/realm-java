@@ -263,11 +263,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Removes all elements from this list, leaving it empty.
+     * Removes all elements from this list, leaving it empty. This method doesn't remove the objects from the Realm.
      *
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see List#isEmpty
      * @see List#size
+     * @see #removeAllFromRealm()
      */
     @Override
     public void clear() {
@@ -296,6 +297,26 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
             return removedItem;
         } else {
             return nonManagedList.remove(location);
+        }
+    }
+
+    /**
+     * Removes all elements from this list and delete them from the corresponding Realm. This method can be called on a
+     * non-managed {@link RealmList} if all of the RealmObjects in the list are managed by Realm.
+     *
+     * @throws IllegalStateException if the Realm instance has been closed, the parent object has been removed, the
+     * method is called in a wrong thread or any RealmObject in the list is not managed by Realm.
+     * @see #clear()
+     */
+    public void removeAllFromRealm() {
+        if (managedMode) {
+            checkValidView();
+            view.removeAllTargetRows();
+        } else {
+            for (RealmObject object : nonManagedList) {
+                object.removeFromRealm();
+            }
+            nonManagedList.clear();
         }
     }
 

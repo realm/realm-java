@@ -21,7 +21,6 @@ import android.os.Looper;
 
 import java.io.Closeable;
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -292,8 +291,23 @@ public abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
+        commitTransaction(null);
+    }
+
+    /**
+     * Commits transaction, runs the given runnable and then sends notifications. The runnable is useful to meet some
+     * timing conditions like the async transaction. In async transaction, the background Realm has to be closed before
+     * other threads see the changes to majoyly avoid the flaky tests.
+     *
+     * @param runAfterCommit runnable will run after transaction committed but before notification sent.
+     */
+    void commitTransaction(Runnable runAfterCommit) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
+
+        if (runAfterCommit != null)  {
+            runAfterCommit.run();
+        }
 
         for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
             Handler handler = handlerIntegerEntry.getKey();
@@ -319,11 +333,9 @@ public abstract class BaseRealm implements Closeable {
                     realmPath.equals(configuration.getPath())            // It's the right realm
                             && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
                             && handler.getLooper().getThread().isAlive() // The receiving thread is alive
-                    ) {
-                if (!handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
-                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                            "to prevent this.");
-                }
+                            && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
+                RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                        "to prevent this.");
             }
         }
     }
@@ -554,6 +566,18 @@ public abstract class BaseRealm implements Closeable {
             handlerController.addToRealmObjects(result);
         }
         return result;
+    }
+
+    /**
+     * Removes all objects from this Realm.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or on an incorrect thread.
+     */
+    public void clear() {
+        checkIfValid();
+        for (RealmObjectSchema objectSchema : schema.getAll()) {
+            schema.getTable(objectSchema.getClassName()).clear();
+        }
     }
 
     /**
