@@ -92,12 +92,12 @@ public class RealmAsyncQueryTests {
             public void onSuccess() {
                 assertEquals(1, workerThread.realm.allObjects(Owner.class).size());
                 assertEquals("Owner", workerThread.realm.where(Owner.class).findFirst().getName());
-                workerThread.signalTestCompleted.countDown();
+                workerThread.testComplete();
             }
 
             @Override
             public void onError(Exception e) {
-                workerThread.signalTestCompleted.countDown();
+                workerThread.testComplete();;
                 fail(e.getMessage());
             }
         });
@@ -386,7 +386,7 @@ public class RealmAsyncQueryTests {
         }
 
         Realm.asyncQueryExecutor.resume();
-        workerThread.signalTestCompleted.countDown();
+        workerThread.testComplete();
         Looper.loop();
 
     }
@@ -465,7 +465,7 @@ public class RealmAsyncQueryTests {
             RealmResults<AllTypes> allAsyncSorted = query.findAllSorted("columnLong");
             fail("Should throw an exception, can not reuse RealmQuery");
         } catch (IllegalStateException ignored) {
-            workerThread.signalTestCompleted.countDown();
+            workerThread.testComplete();
         }
     }
 
@@ -487,7 +487,7 @@ public class RealmAsyncQueryTests {
                 assertTrue(realmResults.isLoaded());
                 assertEquals(5, realmResults.size());
                 assertTrue(realmResults.get(4).isValid());
-                workerThread.signalTestCompleted.countDown();
+                workerThread.testComplete();
             }
         });
 
@@ -516,7 +516,7 @@ public class RealmAsyncQueryTests {
             public void onChange() {
                 assertTrue(realmResults.isLoaded());
                 assertEquals(5, realmResults.size());
-                workerThread.signalTestCompleted.countDown();
+                workerThread.testComplete();
 
             }
         });
@@ -1171,7 +1171,7 @@ public class RealmAsyncQueryTests {
                 assertTrue(firstAsync.isLoaded());
                 assertTrue(firstAsync.isValid());
                 assertEquals(0, firstAsync.getColumnLong());
-                workerThread.signalTestCompleted.countDown();
+                workerThread.testComplete();
             }
         });
         assertTrue(firstAsync.load());
@@ -1201,7 +1201,7 @@ public class RealmAsyncQueryTests {
             @Override
             public void onChange() {
                 assertEquals("Galacticon", firstAsync.getColumnString());
-                workerThread.signalTestCompleted.countDown();
+                workerThread.testComplete();
             }
         });
 
@@ -1228,7 +1228,7 @@ public class RealmAsyncQueryTests {
                 assertTrue(realmResults.isLoaded());
                 assertTrue(realmResults.isValid());
                 assertEquals("test data 4", realmResults.getColumnString());
-                workerThread.signalTestCompleted.countDown();
+                workerThread.testComplete();
             }
         });
 
@@ -1263,7 +1263,7 @@ public class RealmAsyncQueryTests {
         assertTrue(realmResults.isLoaded());
         assertEquals("test data 4", realmResults.getColumnString());
 
-        workerThread.signalTestCompleted.countDown();
+        workerThread.testComplete();
     }
 
     // similar UC as #testFindAllAsyncRetry using 'findFirst'
@@ -1974,7 +1974,7 @@ public class RealmAsyncQueryTests {
 
         assertEquals(1, workerThread.realm.handlerController.asyncRealmResults.size());
         mockActivityManager.onStop();// to close the Realm
-        workerThread.signalTestCompleted.countDown();
+        workerThread.testComplete();
     }
 
     @Test
@@ -1993,7 +1993,7 @@ public class RealmAsyncQueryTests {
             public void onChange() {
                 assertEquals(4, allTypesAsync.size());
                 assertEquals(6, allTypesSync.size());
-                workerThread.signalTestCompleted.countDown();
+                workerThread.testComplete();
             }
         });
         Realm.asyncQueryExecutor.resume();
@@ -2006,6 +2006,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void testStressTestBackgroundCommits() throws Throwable {
         final int NUMBER_OF_COMMITS = 100;
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         final long[] latestLongValue = new long[1];
         final float[] latestFloatValue = new float[1];
         // start a background thread that pushes a commit every 16ms
@@ -2027,6 +2028,7 @@ public class RealmAsyncQueryTests {
                     SystemClock.sleep(16);
                 }
                 backgroundThreadRealm.close();
+                bgRealmClosed.countDown();
             }
         };
 
@@ -2036,14 +2038,13 @@ public class RealmAsyncQueryTests {
             public void onChange() {
                 assertTrue(allAsync.isLoaded());
                 if (allAsync.size() == NUMBER_OF_COMMITS) {
-
                     AllTypes lastInserted = workerThread.realm.where(AllTypes.class)
                             .equalTo("columnLong", latestLongValue[0])
                             .equalTo("columnFloat", latestFloatValue[0])
                             .findFirst();
-
                     assertNotNull(lastInserted);
-                    workerThread.signalTestCompleted.countDown();
+                    TestHelper.awaitOrFail(bgRealmClosed);
+                    workerThread.testComplete();
                 }
             }
         });
@@ -2215,7 +2216,7 @@ public class RealmAsyncQueryTests {
             workerThread.realm.distinctAsync(AnnotationIndexTypes.class, "doesNotExist");
             fail();
         } catch (IllegalArgumentException ignored) {
-            workerThread.signalTestCompleted.countDown();
+            workerThread.testComplete();
         }
     }
 
@@ -2265,7 +2266,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            workerThread.signalTestCompleted.countDown();
+                            workerThread.testComplete();
                         }
                         break;
                     }
@@ -2283,7 +2284,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            workerThread.signalTestCompleted.countDown();
+                            workerThread.testComplete();
                         }
                         break;
                     }
@@ -2301,7 +2302,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            workerThread.signalTestCompleted.countDown();
+                            workerThread.testComplete();
                         }
                         break;
                     }
@@ -2319,7 +2320,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            workerThread.signalTestCompleted.countDown();
+                            workerThread.testComplete();
                         }
                         break;
                     }

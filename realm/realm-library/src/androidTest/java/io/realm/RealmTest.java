@@ -2611,6 +2611,37 @@ public class RealmTest {
         assertTrue(results.get(0) == results.get(1));
     }
 
+    @Test
+    public void testCopyFromRealmDynamicRealmObjectThrows() {
+        testRealm.beginTransaction();
+        AllTypes obj = testRealm.createObject(AllTypes.class);
+        testRealm.commitTransaction();
+        DynamicRealmObject dObj = new DynamicRealmObject(obj);
+
+        try {
+            testRealm.copyFromRealm(dObj);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void testCopyFromRealmDynamicRealmListThrows() {
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(testRealm.getConfiguration());
+        dynamicRealm.beginTransaction();
+        RealmList<DynamicRealmObject> dynamicList = dynamicRealm.createObject(AllTypes.CLASS_NAME).getList(AllTypes.FIELD_REALMLIST);
+        DynamicRealmObject dObj = dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        dynamicList.add(dObj);
+        dynamicRealm.commitTransaction();
+        try {
+            testRealm.copyFromRealm(dynamicList);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            dynamicRealm.close();
+        }
+    }
+
     // Test if close can be called from Realm change listener when there is no other listeners
     @Test
     public void testCloseRealmInChangeListener() {
@@ -2820,6 +2851,7 @@ public class RealmTest {
         }
     }
 
+    @Test
     public void testRemoveChangeListenerThrowExceptionOnNonLooperThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         Thread thread = new Thread(new Runnable() {
@@ -2849,6 +2881,7 @@ public class RealmTest {
         }
     }
 
+    @Test
     public void testRemoveAllChangeListenersThrowExceptionOnNonLooperThread() {
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
         Thread thread = new Thread(new Runnable() {
@@ -2871,6 +2904,56 @@ public class RealmTest {
             TestHelper.awaitOrFail(signalTestFinished);
         } finally {
             thread.interrupt();
+        }
+    }
+
+    @Test
+    public void testClearAll() {
+        testRealm.beginTransaction();
+        testRealm.createObject(AllTypes.class);
+        testRealm.createObject(Owner.class).setCat(testRealm.createObject(Cat.class));
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.where(AllTypes.class).count());
+        assertEquals(1, testRealm.where(Owner.class).count());
+        assertEquals(1, testRealm.where(Cat.class).count());
+
+        testRealm.beginTransaction();
+        testRealm.clear();
+        testRealm.commitTransaction();
+
+        assertEquals(0, testRealm.where(AllTypes.class).count());
+        assertEquals(0, testRealm.where(Owner.class).count());
+        assertEquals(0, testRealm.where(Cat.class).count());
+        assertTrue(testRealm.isEmpty());
+    }
+
+    @Test
+    public void testClearAllInWrongThreadShouldThrow() {
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    testRealm.clear();
+                    fail("testRealm cannot be used in another thread!");
+                } catch (IllegalStateException ignored) {
+                    signalTestFinished.countDown();
+                }
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(signalTestFinished);
+    }
+
+    @Test
+    public void testClearAllCalledOutsideTransaction() {
+        try {
+            testRealm.clear();
+            fail("clear can only be called in transaction block!");
+        } catch (IllegalStateException ignored) {
         }
     }
 }
