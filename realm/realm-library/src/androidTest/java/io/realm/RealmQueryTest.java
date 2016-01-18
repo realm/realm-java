@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -51,6 +52,8 @@ import static org.junit.Assert.fail;
 public class RealmQueryTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     protected final static int TEST_DATA_SIZE = 10;
 
@@ -1877,8 +1880,45 @@ public class RealmQueryTest {
 
         for (int i = 0; i < 4; i++) {
             testRealm.where(AllJavaTypes.class).equalTo(
-                    AllJavaTypes.FIELD_LIST + "." + AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN,true)
+                    AllJavaTypes.FIELD_LIST + "." + AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN, true)
                     .findAll();
         }
+    }
+
+    @Test
+    public void findAllSorted_onSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        testRealm.where(AllTypes.class).findAllSorted(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    }
+
+    @Test
+    public void findAllSortedAsync_onSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        testRealm.where(AllTypes.class).findAllSortedAsync(
+                AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    }
+
+    @Test
+    public void findAllSorted_listOnSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        String[] fieldNames = new String[1];
+        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
+        Sort[] sorts = new Sort[1];
+        sorts[0] = Sort.ASCENDING;
+        testRealm.where(AllTypes.class).findAllSorted(fieldNames, sorts);
+    }
+
+    @Test
+    public void findAllSortedAsync_listOnSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        String[] fieldNames = new String[1];
+        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
+        Sort[] sorts = new Sort[1];
+        sorts[0] = Sort.ASCENDING;
+        testRealm.where(AllTypes.class).findAllSortedAsync(fieldNames, sorts);
     }
 }

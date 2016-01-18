@@ -1420,16 +1420,14 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortOrder how to sort the results.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         checkQueryIsNotReused();
         TableView tableView = query.findAll();
-        Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
+        long columnIndex = getColumnIndexForSort(fieldName);
         tableView.sort(columnIndex, sortOrder);
 
         RealmResults<E> realmResults;
@@ -1450,14 +1448,12 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
-    public RealmResults<E> findAllSortedAsync(String fieldName, final Sort sortOrder) {
+    public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
         checkQueryIsNotReused();
-        final Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
+        long columnIndex = getColumnIndexForSort(fieldName);
 
         // capture the query arguments for future retries & update
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
@@ -1480,7 +1476,8 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults =
+                realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1493,6 +1490,8 @@ public class RealmQuery<E extends RealmObject> {
                                 SharedGroup.IMPLICIT_TRANSACTION,
                                 realmConfiguration.getDurability(),
                                 realmConfiguration.getEncryptionKey());
+
+                        long columnIndex = getColumnIndexForSort(fieldName);
 
                         // run the query & handover the table view for the caller thread
                         long handoverTableViewPointer = query.findAllSortedWithHandover(sharedGroup.getNativePointer(),
@@ -1564,7 +1563,8 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortOrders how to sort the field names.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero 
      *         objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
@@ -1577,10 +1577,7 @@ public class RealmQuery<E extends RealmObject> {
             List<Long> columnIndices = new ArrayList<Long>();
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
-                Long columnIndex = schema.getFieldIndex(fieldName);
-                if (columnIndex == null || columnIndex < 0) {
-                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-                }
+                long columnIndex = getColumnIndexForSort(fieldName);
                 columnIndices.add(columnIndex);
             }
             tableView.sort(columnIndices, sortOrders);
@@ -1610,6 +1607,8 @@ public class RealmQuery<E extends RealmObject> {
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
+     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final Sort[] sortOrders) {
         checkQueryIsNotReused();
@@ -1630,10 +1629,7 @@ public class RealmQuery<E extends RealmObject> {
             final long indices[] = new long[fieldNames.length];
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
-                Long columnIndex = schema.getFieldIndex(fieldName);
-                if (columnIndex == null || columnIndex < 0) {
-                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-                }
+                long columnIndex = getColumnIndexForSort(fieldName);
                 indices[i] = columnIndex;
             }
 
@@ -1932,6 +1928,21 @@ public class RealmQuery<E extends RealmObject> {
         } else {
             return rowIndex;
         }
+    }
+
+    // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
+    // or it belongs to the child object.
+    private long getColumnIndexForSort(String fieldName) {
+        if (fieldName.contains(".")) {
+            throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
+        }
+
+        Long columnIndex = schema.getFieldIndex(fieldName);
+        if (columnIndex == null || columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        return columnIndex;
     }
 
     public ArgumentsHolder getArgument() {
