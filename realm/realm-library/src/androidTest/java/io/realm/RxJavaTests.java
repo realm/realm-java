@@ -373,7 +373,7 @@ public class RxJavaTests {
         TestHelper.awaitOrFail(subscriptionFailed);
     }
 
-    // Make sure that further changes to the Realm query doesn't effect the state when it it was observed on.
+    // Make sure that further changes to the Realm query don't effect the state it had when asObservable() was called.
     @Test
     @UiThreadTest
     public void realmQuery_asObservable_isACopy() {

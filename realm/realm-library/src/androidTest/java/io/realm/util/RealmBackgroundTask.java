@@ -26,6 +26,7 @@ public class RealmBackgroundTask  {
 
     /**
      * Runs the task on a background thread. Use `checkFailure` afterwards to check for errors.
+     * The background task is limited to 10 seconds after which it will fail.
      */
     public void run(final Task task) {
         final CountDownLatch jobDone = new CountDownLatch(1);

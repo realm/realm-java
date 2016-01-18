@@ -5,11 +5,11 @@
  * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
  * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
  * Added Realm.clear() and RealmList.removeAllFromRealm() (#1560).
+ * Added RealmQuery.asObservable().
+ * Added Realm.threadLocalVersion(RealmQuery).
  * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
  * Improved performance of RealmList#contains() (#897).
- * Added support for RealmQuery.asObservable().
  * RealmQuery now implements Cloneable.
- * Added Realm.threadLocalVersion(RealmQuery).
 
 0.87.3
  * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).

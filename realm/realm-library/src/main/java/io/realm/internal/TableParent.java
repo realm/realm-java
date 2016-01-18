@@ -21,7 +21,7 @@ public interface TableParent {
     /**
      * Returns the {@link Group} the table belongs to.
      *
-     * @return the tables group.
+     * @return the table's group.
      */
     Group getTableGroup();
 }

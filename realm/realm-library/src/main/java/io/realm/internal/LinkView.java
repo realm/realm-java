@@ -146,18 +146,6 @@ public class LinkView extends NativeObject {
     }
 
     /**
-     * Handover this LinkView from one SharedGroup to another.
-     *
-     * @param senderSharedGroupPtr pointer to the sending SharedGroup.
-     * @param receiverSharedGroupPtr pointer to the receiving SharedGroup.
-     * @return The LinkView in the receiving SharedGroup.
-     */
-    public LinkView handover(long senderSharedGroupPtr, long receiverSharedGroupPtr) {
-        // TODO
-        return null;
-    }
-
-    /**
      * Remove all target rows pointed to by links in this link view, and clear this link view.
      */
     public void removeAllTargetRows() {

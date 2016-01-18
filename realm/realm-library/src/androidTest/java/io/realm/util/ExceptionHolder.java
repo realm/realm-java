@@ -56,14 +56,14 @@ public class ExceptionHolder {
      */
     public void setException(Throwable throwable) {
         if (exceptionSet) {
-            throw new IllegalStateException("A exception has already been set.");
+            throw new IllegalStateException("An exception has already been set.");
         }
         this.exception = throwable;
         this.exceptionSet = true;
     }
 
     /**
-     * Set a custom error message that can be used instead of setting an exception.
+     * Sets a custom error message that can be used instead of setting an exception.
      * This will still trigger {@link #checkFailure()}.
      *
      * @param message error message
