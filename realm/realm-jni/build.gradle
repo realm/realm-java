@@ -335,7 +335,7 @@ task assembleRobolectric {
 
         copy {
             from "${projectDir}/src/librealm-jni-darwin${getDebugExt()}${getStrippedExt()}.dylib"
-            into "${projectDir}/../realm-library/src/main/robolectricLibs"
+            into "${projectDir}/build"
             rename "librealm-jni-darwin${getDebugExt()}${getStrippedExt()}.dylib", 'librealm-jni-darwin.dylib'
         }
 
@@ -358,7 +358,7 @@ task installRobolectric {
     }
 
     copy {
-        from "${projectDir}/../realm-library/src/main/robolectricLibs/librealm-jni-darwin.dylib"
+        from "${projectDir}/build/librealm-jni-darwin.dylib"
         into "${projectDir}/../../examples/robolectricExample/src/test/libs"
     }
 }
@@ -433,7 +433,7 @@ task clean(type: Delete) {
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
-    delete fileTree(dir: "${projectDir}/../realm-library/src/main/robolectricLibs/", include: '**/librealm-jni*.dylib')
+    delete fileTree(dir: "${projectDir}/build/", include: '**/librealm-jni*.dylib')
     delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
     delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/robolectric", include: '**/librealm-jni*.dylib')
     delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.so')

@@ -29,10 +29,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
+import io.realm.examples.robolectric.entities.Person;
+import io.realm.test.RealmRobolectricRule;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.RealmRobolectricRule;
-import io.realm.examples.robolectric.entities.Person;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
