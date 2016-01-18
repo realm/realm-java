@@ -40,7 +40,7 @@ public class RealmRobolectricRule extends ExternalResource {
 
         final String lineSeparator = System.getProperty("line.separator");
         final String libraryPath = new StringBuilder(robolectricLibPath).append(lineSeparator).append(previousLibraryPath).toString();
-        System.setProperty(libraryPathKey, "libraryPath");
+        System.setProperty(libraryPathKey, libraryPath);
     }
 }
 
