@@ -18,13 +18,29 @@ package io.realm.test;
 
 import org.junit.rules.ExternalResource;
 
+import java.io.File;
+import java.lang.StringBuilder;
+
 /**
  * JUnit Rule to initialize support for Robolectric.
  */
 public class RealmRobolectricRule extends ExternalResource {
     @Override
     protected void before() throws Throwable {
-        System.setProperty("java.library.path", "./src/test/libs");
+        final String libraryPathKey = "java.library.path";
+        final String previousLibraryPath = System.getProperty(libraryPathKey);
+        final String robolectricLibPath = new StringBuilder(".").append(File.separator)
+                .append("src").append(File.separator)
+                .append("test").append(File.separator)
+                .append("libs").toString();
+
+        if (previousLibraryPath.contains(robolectricLibPath)) {
+            return;
+        }
+
+        final String lineSeparator = System.getProperty("line.separator");
+        final String libraryPath = new StringBuilder(robolectricLibPath).append(lineSeparator).append(previousLibraryPath).toString();
+        System.setProperty(libraryPathKey, "libraryPath");
     }
 }
 
