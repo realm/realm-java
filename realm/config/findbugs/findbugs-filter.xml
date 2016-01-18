@@ -42,4 +42,14 @@
         <Field name="minDepth" />
         <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
+
+    <!-- Unit tests -->
+    <Match>
+        <Class name="~.*Tests?$"/>
+        <Bug pattern="NP_NULL_PARAM_DEREF_ALL_TARGETS_DANGEROUS"/>
+    </Match>
+    <Match>
+        <Class name="~.*Tests?$"/>
+        <Bug pattern="DM_GC"/>
+    </Match>
 </FindBugsFilter>
