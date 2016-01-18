@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Realm Inc.
+ * Copyright 2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class Repository implements Closeable {
     }
 
     /**
-     * Keep track of the current network state.
+     * Keeps track of the current network state.
      *
      * @return {@code true} if the network is currently being used, {@code false} otherwise.
      */
@@ -70,7 +70,7 @@ public class Repository implements Closeable {
     }
 
     /**
-     * Load the news feed as well as all future updates.
+     * Loads the news feed as well as all future updates.
      */
     public Observable<RealmResults<NYTimesStory>> loadNewsFeed(@NonNull String sectionKey, boolean forceReload) {
         // Start loading data from the network if needed
@@ -131,7 +131,7 @@ public class Repository implements Closeable {
     }
 
     /**
-     * Close all underlying resources used by the Repository.
+     * Closes all underlying resources used by the Repository.
      */
     public void close() {
         realm.close();
