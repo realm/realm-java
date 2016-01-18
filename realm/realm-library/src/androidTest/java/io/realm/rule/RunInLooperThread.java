@@ -16,6 +16,7 @@
 
 package io.realm.rule;
 
+import android.os.Handler;
 import android.os.Looper;
 
 import org.junit.runner.Description;
@@ -44,6 +45,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // events (Callbacks happening in the future), so we add a strong reference
     // to them for the duration of the test.
     public LinkedList<Object> keepStrongReference;
+    public Handler handler;
 
     @Override
     protected void before() throws Throwable {
@@ -80,6 +82,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                         public void run() {
                             Looper.prepare();
                             backgroundLooper[0] = Looper.myLooper();
+                            handler = new Handler(backgroundLooper[0]);
                             try {
                                 realm = Realm.getInstance(realmConfiguration);
                                 base.evaluate();
@@ -111,5 +114,17 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      */
     public void testComplete() {
         signalTestCompleted.countDown();
+    }
+
+    /**
+     * Post the signal that the test has completed to the next loop.
+     */
+    public void postTestComplete() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                testComplete();
+            }
+        });
     }
 }
