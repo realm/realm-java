@@ -44,7 +44,7 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
-abstract class BaseRealm implements Closeable {
+public abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -452,6 +452,23 @@ abstract class BaseRealm implements Closeable {
     public boolean isEmpty() {
         checkIfValid();
         return sharedGroupManager.getTransaction().isObjectTablesEmpty();
+    }
+
+    /**
+     * Copies a {@link RealmQuery} object from another thread to this thread.
+     *
+     * *WARNING* Copying objects between threads is an inherently dangerous operation that is susceptible to race
+     * conditions. Avoid closing the Realm as well as making further changes to the RealmQuery while a copy might be
+     * in progress.
+     *
+     * @param query query object to copy
+     * @param <E> type of RealmObject.
+     * @return a query object that is usable on this thread.
+     * @throws IllegalArgumentException if the query object belongs to a different Realm.
+     * @throws IllegalStateException if the realm on the original thread has been closed.
+     */
+    public <E extends RealmObject> RealmQuery<E> threadLocalVersion(RealmQuery<E> query) {
+        return RealmQuery.handoverQuery(this, query);
     }
 
     boolean hasChanged() {

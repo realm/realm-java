@@ -26,7 +26,9 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import rx.Observable;
 import rx.Subscriber;
+import rx.exceptions.Exceptions;
 import rx.functions.Action0;
+import rx.functions.Func0;
 import rx.subscriptions.Subscriptions;
 
 /**
@@ -40,14 +42,14 @@ import rx.subscriptions.Subscriptions;
  */
 public class RealmObservableFactory implements RxObservableFactory {
 
-    private boolean rxJavaAvailble;
+    private boolean rxJavaAvailable;
 
     public RealmObservableFactory() {
         try {
             Class.forName("rx.Observable");
-            rxJavaAvailble = true;
+            rxJavaAvailable = true;
         } catch (ClassNotFoundException ignore) {
-            rxJavaAvailble = false;
+            rxJavaAvailable = false;
         }
     }
 
@@ -201,17 +203,74 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmObject> Observable<RealmQuery<E>> from(final Realm realm, final RealmQuery<E> query) {
-        throw new RuntimeException("RealmQuery not supported yet.");
+    public <E extends RealmObject> Observable<RealmQuery<E>> from(final Realm realm, RealmQuery<E> query) {
+        checkRxJavaAvailable();
+        // Create a copy of the RealmQuery to make sure it doesn't change.
+        final RealmQuery<E> queryCopy = query.clone();
+
+        return Observable.create(new Observable.OnSubscribe<RealmQuery<E>>() {
+            @Override
+            public void call(final Subscriber<? super RealmQuery<E>> subscriber) {
+                // Create an Realm instance that is open for as long as the subscription is alive.
+                Realm subscriberRealm = null;
+                try {
+                    subscriberRealm = Realm.getInstance(realm.getConfiguration());
+                    RealmQuery<E> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onNext(queryClone);
+                    }
+                    subscriberRealm.close(); // Close all Realm resources before completing.
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onCompleted();
+                    }
+                } catch (Throwable t) {
+                    if (subscriberRealm != null && !subscriberRealm.isClosed()) {
+                        subscriberRealm.close();
+                    }
+                    Exceptions.throwIfFatal(t);
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onError(t);
+                    }
+                }
+            }
+        });
     }
 
     @Override
-    public Observable<RealmQuery<DynamicRealmObject>> from(final DynamicRealm realm, final RealmQuery<DynamicRealmObject> query) {
-        throw new RuntimeException("RealmQuery not supported yet.");
+    public Observable<RealmQuery<DynamicRealmObject>> from(final DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
+        checkRxJavaAvailable();
+        final RealmQuery<DynamicRealmObject> queryCopy = query.clone(); // Create a copy of the RealmQuery to make sure it doesn't change.
+
+        return Observable.create(new Observable.OnSubscribe<RealmQuery<DynamicRealmObject>>() {
+            @Override
+            public void call(Subscriber<? super RealmQuery<DynamicRealmObject>> subscriber) {
+                // Create an Realm instance that is open for as long as the subscription is alive.
+                DynamicRealm subscriberRealm = null;
+                try {
+                    subscriberRealm = DynamicRealm.getInstance(realm.getConfiguration());
+                    RealmQuery<DynamicRealmObject> queryClone = subscriberRealm.threadLocalVersion(queryCopy);
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onNext(queryClone);
+                    }
+                    subscriberRealm.close();  // Close all Realm resources before completing.
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onCompleted();
+                    }
+                } catch (Throwable t) {
+                    if (subscriberRealm != null && !subscriberRealm.isClosed()) {
+                        subscriberRealm.close();
+                    }
+                    Exceptions.throwIfFatal(t);
+                    if (!subscriber.isUnsubscribed()) {
+                        subscriber.onError(t);
+                    }
+                }
+            }
+        });
     }
 
     private void checkRxJavaAvailable() {
-        if (!rxJavaAvailble) {
+        if (!rxJavaAvailable) {
             throw new IllegalStateException("RxJava seems to be missing from the classpath. " +
                     "Remember to add it as a compile dependency. See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
@@ -221,7 +280,6 @@ public class RealmObservableFactory implements RxObservableFactory {
     public boolean equals(Object o) {
         return o instanceof RealmObservableFactory;
     }
-
     @Override
     public int hashCode() {
         return 37;

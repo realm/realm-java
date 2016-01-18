@@ -24,7 +24,7 @@ import java.nio.ByteBuffer;
 /**
  * This class is used to serialize tables to either disk or memory. It consists of a collection of tables.
  */
-public class Group implements Closeable {
+public class Group implements TableParent, Closeable {
 
     // Below values must match the values in realm::group::OpenMode in C++
     public static final int MODE_READONLY = 0; // Open in read-only mode. Fail if the file does not already exist.
@@ -167,16 +167,12 @@ public class Group implements Closeable {
         nativeRemoveTable(nativePtr, name);
     }
 
-    native void nativeRemoveTable(long nativeGroupPtr, String tableName);
-
     /**
      * Renames a table
      */
     public void renameTable(String oldName, String newName) {
         nativeRenameTable(nativePtr, oldName, newName);
     }
-
-    native void nativeRenameTable(long nativeGroupPtr, String oldName, String newName);
 
     /**
      * Returns a table with the specified name.
@@ -212,7 +208,7 @@ public class Group implements Closeable {
      * @param file a File object representing the file.
      * @param key A 64 bytes long byte array containing the key to the encrypted Realm file. Can be null if encryption
      *            is not required.
-     * @throws IOException.
+     * @throws IOException
      */
     public void writeToFile(File file, byte[] key) throws IOException {
         verifyGroupIsValid();
@@ -236,7 +232,7 @@ public class Group implements Closeable {
         return nativeWriteToMem(nativePtr);
     }
 
-    /*
+    /**
      * Check if the Group contains any objects. It only checks for "class_" tables or non-metadata tables, e.g. this
      * return true if the "pk" table contained information.
      *
@@ -244,6 +240,11 @@ public class Group implements Closeable {
      */
     public boolean isObjectTablesEmpty() {
         return nativeIsEmpty(nativePtr);
+    }
+
+    @Override
+    public Group getTableGroup() {
+        return this;
     }
 
 /*
@@ -287,4 +288,6 @@ public class Group implements Closeable {
     protected native void nativeCommit(long nativeGroupPtr);
     protected native String nativeToString(long nativeGroupPtr);
     protected native boolean nativeIsEmpty(long nativeGroupPtr);
+    native void nativeRemoveTable(long nativeGroupPtr, String tableName);
+    native void nativeRenameTable(long nativeGroupPtr, String oldName, String newName);
 }

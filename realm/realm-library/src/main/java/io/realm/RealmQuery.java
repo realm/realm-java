@@ -36,6 +36,7 @@ import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
+import rx.Observable;
 
 /**
  * A RealmQuery encapsulates a query on a {@link io.realm.Realm} or a {@link io.realm.RealmResults} using the Builder
@@ -55,7 +56,7 @@ import io.realm.internal.log.RealmLog;
  * @see Realm#where(Class)
  * @see RealmResults#where()
  */
-public class RealmQuery<E extends RealmObject> {
+public final class RealmQuery<E extends RealmObject> implements Cloneable {
 
     private BaseRealm realm;
     private Class<E> clazz;
@@ -126,9 +127,29 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    /**
+     * Handover an existing query to a Realm instance on another thread.
+     *
+     * @param realm Realm to handover to.
+     * @param query RealmQuery to handover.
+     * @param <E> type of RealmObject.
+     * @return RealmQuery object for the given realm instance.
+     */
+    static <E extends RealmObject> RealmQuery<E> handoverQuery(BaseRealm realm, RealmQuery<E> query) {
+        return new RealmQuery<E>(realm, query);
+    }
+
+    /**
+     * Copies an existing query.
+     */
+    private static <E extends RealmObject> RealmQuery<E> copyQuery(RealmQuery<E> query) {
+        return new RealmQuery<E>(query);
+    }
+
     private RealmQuery(Realm realm, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
+        this.className = null;
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = schema.table;
         this.view = null;
@@ -138,6 +159,7 @@ public class RealmQuery<E extends RealmObject> {
     private RealmQuery(RealmResults<E> queryResults, Class<E> clazz) {
         this.realm = queryResults.realm;
         this.clazz = clazz;
+        this.className = null;
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = queryResults.getTable();
         this.view = null;
@@ -147,35 +169,64 @@ public class RealmQuery<E extends RealmObject> {
     private RealmQuery(BaseRealm realm, LinkView view, Class<E> clazz) {
         this.realm = realm;
         this.clazz = clazz;
-        this.query = view.where();
-        this.view = view;
+        this.className = null;
         this.schema = realm.schema.getSchemaForClass(clazz);
         this.table = schema.table;
+        this.view = view;
+        this.query = view.where();
     }
 
     private RealmQuery(BaseRealm realm, String className) {
         this.realm = realm;
+        this.clazz = null;
         this.className = className;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.table;
+        this.view = null;
         this.query = table.where();
     }
 
     private RealmQuery(RealmResults<DynamicRealmObject> queryResults, String className) {
         this.realm = queryResults.realm;
+        this.clazz = null;
         this.className = className;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.table;
+        this.view = null;
         this.query = queryResults.getTable().where();
     }
 
     private RealmQuery(BaseRealm realm, LinkView view, String className) {
         this.realm = realm;
+        this.clazz = null;
         this.className = className;
-        this.query = view.where();
-        this.view = view;
         this.schema = realm.schema.getSchemaForClass(className);
         this.table = schema.table;
+        this.view = view;
+        this.query = view.where();
+    }
+
+    // Creates a copy of an existing thread local query object
+    private RealmQuery(RealmQuery threadLocalQuery) {
+        this.realm = threadLocalQuery.realm;
+        this.clazz = threadLocalQuery.clazz;
+        this.className = threadLocalQuery.className;
+        this.schema = threadLocalQuery.schema;
+        this.table = threadLocalQuery.table;
+        this.view = threadLocalQuery.view;
+        this.query = threadLocalQuery.query.copy();
+    }
+
+    // Creates a copy of an existing query object using the handover mechanism
+    private RealmQuery(BaseRealm receivingRealm, RealmQuery query) {
+        long senderSharedGroupPtr = query.realm.sharedGroupManager.getNativePointer();
+        this.realm = receivingRealm;
+        this.clazz = query.clazz;
+        this.className = query.className;
+        this.schema = (clazz != null) ? receivingRealm.schema.getSchemaForClass(clazz) : receivingRealm.schema.getSchemaForClass(className);
+        this.table = schema.table;
+        this.view = null; // Any required LinkView/TableView would be managed by the Query after a handover
+        this.query = query.query.handover(senderSharedGroupPtr, receivingRealm.sharedGroupManager);
     }
 
     /**
@@ -1238,7 +1289,7 @@ public class RealmQuery<E extends RealmObject> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        final long handoverQueryPointer = query.prepareHandover(realm.sharedGroupManager.getNativePointer());
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_DISTINCT);
@@ -1342,7 +1393,7 @@ public class RealmQuery<E extends RealmObject> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        final long handoverQueryPointer = query.prepareHandover(realm.sharedGroupManager.getNativePointer());
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL);
@@ -1467,7 +1518,7 @@ public class RealmQuery<E extends RealmObject> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        final long handoverQueryPointer = query.prepareHandover(realm.sharedGroupManager.getNativePointer());
 
         // we need to use the same configuration to open a background SharedGroup to perform the query
         final RealmConfiguration realmConfiguration = realm.getConfiguration();
@@ -1622,7 +1673,7 @@ public class RealmQuery<E extends RealmObject> {
             final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
             // Handover the query (to be used by a worker thread)
-            final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+            final long handoverQueryPointer = query.prepareHandover(realm.sharedGroupManager.getNativePointer());
 
             // We need to use the same configuration to open a background SharedGroup to perform the query
             final RealmConfiguration realmConfiguration = realm.getConfiguration();
@@ -1807,7 +1858,7 @@ public class RealmQuery<E extends RealmObject> {
         final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
 
         // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        final long handoverQueryPointer = query.prepareHandover(realm.sharedGroupManager.getNativePointer());
 
         // save query arguments (for future update)
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_FIRST);
@@ -1934,6 +1985,39 @@ public class RealmQuery<E extends RealmObject> {
         }
     }
 
+    /**
+     * Returns an Rx Observable that emits the RealmQuery and then completes.
+     *
+     * @return RxJava Observable
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    @SuppressWarnings("unchecked")
+    public Observable<RealmQuery<E>> asObservable() {
+        if (realm instanceof Realm) {
+            return realm.configuration.getRxFactory().from((Realm) realm, this);
+        } else if (realm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+            RealmQuery<DynamicRealmObject> dynamicQuery = (RealmQuery<DynamicRealmObject>) this;
+            @SuppressWarnings("UnnecessaryLocalVariable")
+            Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicQuery);
+            return results;
+        } else {
+            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+        }
+    }
+
+    /**
+     * Returns a deep clone on an existing RealmQuery.
+     *
+     * @return a clone of an existing RealmQuery.
+     */
+    @Override
+    public RealmQuery<E> clone() {
+        realm.checkIfValid();
+        return RealmQuery.copyQuery(this);
+    }
+
     public ArgumentsHolder getArgument() {
         return argumentsHolder;
     }
@@ -1944,6 +2028,6 @@ public class RealmQuery<E extends RealmObject> {
      * @return the exported handover pointer for this RealmQuery.
      */
     long handoverQueryPointer() {
-        return query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+        return query.prepareHandover(realm.sharedGroupManager.getNativePointer());
     }
 }

@@ -813,7 +813,6 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeHasSameSchema
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeVersion(
         JNIEnv*, jobject, jlong);
 
-
 #ifdef __cplusplus
 }
 #endif
