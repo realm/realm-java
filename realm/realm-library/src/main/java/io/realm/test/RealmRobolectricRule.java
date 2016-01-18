@@ -16,6 +16,8 @@
 
 package io.realm.test;
 
+import android.text.TextUtils;
+
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -38,8 +40,12 @@ public class RealmRobolectricRule extends ExternalResource {
             return;
         }
 
-        final String lineSeparator = System.getProperty("line.separator");
-        final String libraryPath = new StringBuilder(robolectricLibPath).append(lineSeparator).append(previousLibraryPath).toString();
+        final String libraryPath;
+        if (TextUtils.isEmpty(previousLibraryPath)) {
+            libraryPath = robolectricLibPath;
+        } else {
+            libraryPath = new StringBuilder(robolectricLibPath).append(File.pathSeparator).append(previousLibraryPath).toString();
+        }
         System.setProperty(libraryPathKey, libraryPath);
     }
 }
