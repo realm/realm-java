@@ -290,7 +290,7 @@ task prepareCoreLibForHost {
     def staticLibHome = System.env.REALM_CORE_HOME ? System.env.REALM_CORE_HOME : '/usr/local'
 
     doFirst {
-        if (file(staticLibHome).exists() == false) {
+        if (file("${staticLibHome}/librealm.a").exists() == false) {
             if (!coreSourcePath) {
                 throw new GradleException("The Realm Core library is needed to build support for Robolectric. coreSourcePath, /usr/local/lib/librealm.a or the environment REALM_CORE_HOME is needed.")
             }
