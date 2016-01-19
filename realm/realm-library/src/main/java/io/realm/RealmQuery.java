@@ -30,6 +30,7 @@ import io.realm.annotations.Required;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
@@ -1092,6 +1093,40 @@ public class RealmQuery<E extends RealmObject> {
         return this;
     }
 
+    /**
+     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
+     * object will be returend in case of multiple occurences, otherwise it is undefined which
+     * object is returned.
+     *
+     * @param fieldName the field name.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field name does not exist.
+     * @throws IllegalArgumentException if a field's type is not supported.
+     * @throws IllegalArgumentException if a field points linked properties.
+     * @throws UnsupportedOperationException if a field is not indexed.
+     */
+    public RealmResults<E> distinct(String fieldName) {
+        checkQueryIsNotReused();
+        if (fieldName.contains(".")) {
+            throw new IllegalArgumentException("Distinct operation on linked properties is not supported: " + fieldName);
+        }
+        Table table = this.table.getTable();
+        long columnIndex = table.getColumnIndex(fieldName);
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+        TableView tableView = this.query.findAll();
+        tableView.distinct(columnIndex);
+
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
+        }
+        return realmResults;
+    }
+
     // Aggregates
 
     // Sum
@@ -1323,9 +1358,6 @@ public class RealmQuery<E extends RealmObject> {
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
         }
-        if (realm.handlerController != null) {
-            realm.handlerController.addToRealmResults(realmResults);
-        }
         return realmResults;
     }
 
@@ -1435,9 +1467,6 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-        }
-        if (realm.handlerController != null) {
-            realm.handlerController.addToRealmResults(realmResults);
         }
         return realmResults;
     }
@@ -1587,9 +1616,6 @@ public class RealmQuery<E extends RealmObject> {
                 realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
             } else {
                 realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-            }
-            if (realm.handlerController != null) {
-                realm.handlerController.addToRealmResults(realmResults);
             }
             return realmResults;
         }
