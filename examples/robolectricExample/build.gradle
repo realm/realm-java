@@ -35,6 +35,4 @@ dependencies {
     testCompile 'io.reactivex:rxjava:1.1.0'
     testCompile 'junit:junit:4.12'
     testCompile "org.robolectric:robolectric:3.0"
-
-    testApt "io.realm:realm-annotations-processor:${currentVersion}"
 }

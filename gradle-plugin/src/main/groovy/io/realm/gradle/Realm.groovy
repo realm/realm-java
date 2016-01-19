@@ -15,5 +15,6 @@ class Realm implements Plugin<Project> {
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
         project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
         project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+        project.dependencies.add("testApt", "io.realm:realm-annotations-processor:${Version.VERSION}")
     }
 }
