@@ -278,7 +278,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // aux. method used by sort methods
     private long getColumnIndex(String fieldName) {
         if (fieldName.contains(".")) {
-            throw new IllegalArgumentException("Sorting using child object properties is not supported: " + fieldName);
+            throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
         }
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex < 0) {
