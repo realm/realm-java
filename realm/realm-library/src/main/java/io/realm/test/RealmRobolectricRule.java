@@ -31,10 +31,7 @@ public class RealmRobolectricRule extends ExternalResource {
     protected void before() throws Throwable {
         final String libraryPathKey = "java.library.path";
         final String previousLibraryPath = System.getProperty(libraryPathKey);
-        final String robolectricLibPath = new StringBuilder(".").append(File.separator)
-                .append("src").append(File.separator)
-                .append("test").append(File.separator)
-                .append("libs").toString();
+        final String robolectricLibPath = "." + File.separator + "src" + File.separator + "test" + File.separator + "libs";
 
         if (previousLibraryPath.contains(robolectricLibPath)) {
             return;
@@ -44,7 +41,7 @@ public class RealmRobolectricRule extends ExternalResource {
         if (TextUtils.isEmpty(previousLibraryPath)) {
             libraryPath = robolectricLibPath;
         } else {
-            libraryPath = new StringBuilder(robolectricLibPath).append(File.pathSeparator).append(previousLibraryPath).toString();
+            libraryPath = robolectricLibPath + File.pathSeparator + previousLibraryPath;
         }
         System.setProperty(libraryPathKey, libraryPath);
     }
