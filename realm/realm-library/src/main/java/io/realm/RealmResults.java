@@ -33,6 +33,7 @@ import io.realm.internal.InvalidRow;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
+import io.realm.internal.Table;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
@@ -78,7 +79,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     static <E extends RealmObject> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
-        return new RealmResults<E>(realm, table, clazz);
+        RealmResults<E> realmResults = new RealmResults<E>(realm, table, clazz);
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     static RealmResults<DynamicRealmObject> createFromDynamicClass(BaseRealm realm, TableQuery query, String className) {
@@ -86,7 +91,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     static RealmResults<DynamicRealmObject> createFromDynamicTableOrView(BaseRealm realm, TableOrView table, String className) {
-        return new RealmResults<DynamicRealmObject>(realm, table, className);
+        RealmResults<DynamicRealmObject> realmResults = new RealmResults<DynamicRealmObject>(realm, table, className);
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
@@ -378,7 +387,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2, String fieldName3, Sort sortOrder3) {
-        sort(new String[] {fieldName1, fieldName2, fieldName3}, new Sort[] {sortOrder1, sortOrder2, sortOrder3});
+        sort(new String[]{fieldName1, fieldName2, fieldName3}, new Sort[]{sortOrder1, sortOrder2, sortOrder3});
     }
 
     // Aggregates
@@ -536,6 +545,38 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    /**
+     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
+     * object will be returend in case of multiple occurences, otherwise it is undefined which
+     * object is returned.
+     *
+     * @param fieldName the field name.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field name does not exist.
+     * @throws IllegalArgumentException if a field's type is not supported.
+     * @throws IllegalArgumentException if a field points linked properties.
+     * @throws UnsupportedOperationException if a field is not indexed.
+     */
+    public RealmResults<E> distinct(String fieldName) {
+        realm.checkIfValid();
+        long columnIndex = getColumnIndex(fieldName);
+        TableOrView tableOrView = getTable();
+
+        TableView tableView;
+        if (tableOrView instanceof Table) {
+            tableView = ((Table) tableOrView).getDistinctView(columnIndex);
+        } else {
+            tableView = ((TableView) tableOrView).getTable().getDistinctView(columnIndex);
+        }
+
+        RealmResults<E> realmResults;
+        if (realm instanceof DynamicRealm) {
+            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, classSpec);
+        }
+        return realmResults;
+    }
 
     // Deleting
 
