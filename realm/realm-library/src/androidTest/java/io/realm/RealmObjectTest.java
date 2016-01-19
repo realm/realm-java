@@ -18,6 +18,11 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.runner.RunWith;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -39,6 +44,7 @@ import io.realm.entities.StringAndInt;
 import io.realm.entities.Thread;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
