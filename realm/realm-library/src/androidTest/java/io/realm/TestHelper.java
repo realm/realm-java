@@ -675,11 +675,10 @@ public class TestHelper {
                      final CountDownLatch signalTestFinished,
                      final CountDownLatch signalClosedRealm,
                      final Looper[] looper,
-                     final Throwable[] throwable,
-                     int... timeout) throws Throwable {
+                     final Throwable[] throwable) throws Throwable {
 
         // wait for the signal indicating the test's use case is done
-        TestHelper.awaitOrFail(signalTestFinished, (timeout.length == 1) ? timeout[0] : 7);
+        TestHelper.awaitOrFail(signalTestFinished);
 
         // close the executor
         executorService.shutdownNow();
@@ -691,7 +690,7 @@ public class TestHelper {
         }
 
         // wait for the finally block to execute & close the Realm
-        TestHelper.awaitOrFail(signalClosedRealm, (timeout.length == 1) ? timeout[0] : 7);
+        TestHelper.awaitOrFail(signalClosedRealm);
 
         if (throwable[0] != null) {
             // throw any assertion errors happened in the background thread
