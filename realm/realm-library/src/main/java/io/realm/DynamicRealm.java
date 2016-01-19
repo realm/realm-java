@@ -186,11 +186,7 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
 
@@ -231,13 +227,9 @@ public final class DynamicRealm extends BaseRealm {
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[], Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = schema.getTable(className);
-        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
     /**
@@ -269,11 +261,7 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
     /**

@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
@@ -51,6 +53,8 @@ import static org.junit.Assert.fail;
 public class RealmQueryTest {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     protected final static int TEST_DATA_SIZE = 10;
 
@@ -1877,8 +1881,181 @@ public class RealmQueryTest {
 
         for (int i = 0; i < 4; i++) {
             testRealm.where(AllJavaTypes.class).equalTo(
-                    AllJavaTypes.FIELD_LIST + "." + AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN,true)
+                    AllJavaTypes.FIELD_LIST + "." + AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN, true)
                     .findAll();
+        }
+    }
+
+    @Test
+    public void findAllSorted_onSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        testRealm.where(AllTypes.class).findAllSorted(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    }
+
+    @Test
+    public void findAllSortedAsync_onSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        testRealm.where(AllTypes.class).findAllSortedAsync(
+                AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    }
+
+    @Test
+    public void findAllSorted_listOnSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        String[] fieldNames = new String[1];
+        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
+        Sort[] sorts = new Sort[1];
+        sorts[0] = Sort.ASCENDING;
+        testRealm.where(AllTypes.class).findAllSorted(fieldNames, sorts);
+    }
+
+    @Test
+    public void findAllSortedAsync_listOnSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        String[] fieldNames = new String[1];
+        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
+        Sort[] sorts = new Sort[1];
+        sorts[0] = Sort.ASCENDING;
+        testRealm.where(AllTypes.class).findAllSortedAsync(fieldNames, sorts);
+    }
+
+    // RealmQuery.distinct(): requires indexing, and type = boolean, integer, date, string
+    private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
+            for (int j = 0; j < numberOfBlocks; j++) {
+                AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
+                obj.setIndexBoolean(j % 2 == 0);
+                obj.setIndexLong(j);
+                obj.setIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setIndexString(withNull ? null : "Test " + j);
+                obj.setNotIndexBoolean(j % 2 == 0);
+                obj.setNotIndexLong(j);
+                obj.setNotIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setNotIndexString(withNull ? null : "Test " + j);
+                obj.setFieldObject(obj);
+            }
+        }
+        realm.commitTransaction();
+    }
+
+    private void populateForDistinctInvalidTypesLinked(Realm realm) {
+        realm.beginTransaction();
+        AllJavaTypes notEmpty = new AllJavaTypes();
+        notEmpty.setFieldBinary(new byte[]{1, 2, 3});
+        realm.copyToRealm(notEmpty);
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void distinct() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        RealmResults<AnnotationIndexTypes> distinctBool = testRealm.where(AnnotationIndexTypes.class).distinct("indexBoolean");
+        assertEquals(2, distinctBool.size());
+        for (String fieldName : new String[]{"Long", "Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.where(AnnotationIndexTypes.class).distinct("index" + fieldName);
+            assertEquals("index" + fieldName, numberOfBlocks, distinct.size());
+        }
+    }
+
+    @Test
+    public void distinct_withNull() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, true);
+
+        for (String fieldName : new String[]{"Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.where(AnnotationIndexTypes.class).distinct("index" + fieldName);
+            assertEquals("index" + fieldName, 1, distinct.size());
+        }
+    }
+
+    @Test
+    public void distinct_notIndexedFieldsThrows() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.where(AnnotationIndexTypes.class).distinct("notIndex" + fieldName);
+                fail("notIndex" + fieldName);
+            } catch (UnsupportedOperationException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void distinct_doesNotExistThrows() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            testRealm.where(AnnotationIndexTypes.class).distinct("doesNotExist");
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinct_invalidTypesThrows() {
+        populateTestRealm();
+
+        for (String field : new String[]{"columnRealmObject", "columnRealmList", "columnDouble", "columnFloat"}) {
+            try {
+                testRealm.where(AllTypes.class).distinct(field);
+                fail(field);
+            } catch (UnsupportedOperationException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void distinct_indexedLinkedFieldsThrows(){
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, true);
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_OBJECT + ".index" + fieldName);
+                fail("Unsupported Index" + fieldName + " linked field");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void distinct_notIndexedLinkedFieldsThrows(){
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, true);
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_OBJECT + ".notIndex" + fieldName);
+                fail("Unsupported notIndex" + fieldName + " linked field");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void distinct_invalidTypesLinkedFieldsThrows() {
+        populateForDistinctInvalidTypesLinked(testRealm);
+
+        try {
+            testRealm.where(AllJavaTypes.class).distinct(AllJavaTypes.FIELD_OBJECT + ".columnBinary");
+            fail("Unsupported columnBinary linked field");
+        } catch (IllegalArgumentException ignored) {
         }
     }
 }
