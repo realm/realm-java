@@ -433,7 +433,6 @@ task clean(type: Delete) {
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
-    delete fileTree(dir: "${projectDir}/build/", include: '**/librealm-jni*.dylib')
     delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/", include: '**/librealm-jni*.so')
     delete fileTree(dir: "${projectDir}/../build/output/jniLibs-unstripped/robolectric", include: '**/librealm-jni*.dylib')
     delete fileTree(dir: "${projectDir}/src/", include: '**/librealm-jni*-stripped.so')
