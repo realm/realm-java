@@ -37,7 +37,7 @@
         <Field name="inflater" />
         <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
-        <Match>
+    <Match>
         <Class name="io.realm.internal.RealmObjectProxy$CacheData" />
         <Field name="minDepth" />
         <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
@@ -45,6 +45,12 @@
 
     <!-- Unit tests -->
     <Match>
+        <Class name="io.realm.RealmTests" />
+        <Method name="getInstance_writeProtectedDir" />
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME" />
+    </Match>
+    <Match>
+        <Class name="io.realm.RealmTests" />
         <Class name="~.*Tests?$"/>
         <Bug pattern="NP_NULL_PARAM_DEREF_ALL_TARGETS_DANGEROUS"/>
     </Match>
@@ -52,4 +58,5 @@
         <Class name="~.*Tests?$"/>
         <Bug pattern="DM_GC"/>
     </Match>
+
 </FindBugsFilter>

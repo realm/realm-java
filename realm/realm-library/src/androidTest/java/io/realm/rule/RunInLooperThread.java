@@ -16,6 +16,7 @@
 
 package io.realm.rule;
 
+import android.os.Handler;
 import android.os.Looper;
 
 import org.junit.runner.Description;
@@ -32,13 +33,20 @@ import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
 
 /**
- * Rule that runs the test inside a worker looper thread. This Rule is responsible
+ * Rule that runs the test inside a worker looper thread. This rule is responsible
  * of creating a temp directory containing a Realm instance then delete it, once the test finishes.
+ *
+ * All Realms used in a method method annotated with {@code @RunTestInLooperThread } should use
+ * {@link RunInLooperThread#createConfiguration()} and friends to create their configurations. Failing to do so can
+ * result in the test failing because the Realm could not be deleted (Reason is that {@link TestRealmConfigurationFactory}
+ * and this class does not agree in which order to delete all open Realms.
  */
 public class RunInLooperThread extends TestRealmConfigurationFactory {
     public Realm realm;
     public RealmConfiguration realmConfiguration;
     private CountDownLatch signalTestCompleted;
+    private Handler backgroundHandler;
+
     // the variables created inside the test are local and eligible for GC.
     // but sometimes we need the variables to survive across different Looper
     // events (Callbacks happening in the future), so we add a strong reference
@@ -80,6 +88,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                         public void run() {
                             Looper.prepare();
                             backgroundLooper[0] = Looper.myLooper();
+                            backgroundHandler = new Handler(backgroundLooper[0]);
                             try {
                                 realm = Realm.getInstance(realmConfiguration);
                                 base.evaluate();
@@ -111,5 +120,12 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      */
     public void testComplete() {
         signalTestCompleted.countDown();
+    }
+
+    /**
+     * Posts a runnable to this worker threads looper.
+     */
+    public void postRunnable(Runnable runnable) {
+        backgroundHandler.post(runnable);
     }
 }
