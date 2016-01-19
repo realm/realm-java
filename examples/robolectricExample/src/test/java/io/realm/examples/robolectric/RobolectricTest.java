@@ -56,7 +56,7 @@ public class RobolectricTest {
     @Before
     public void setUp() throws Exception {
         context = Robolectric.setupActivity(MainActivity.class);
-        config = new RealmConfiguration.Builder(getContext().getFilesDir()).name(Realm.DEFAULT_REALM_NAME).build();
+        config = new RealmConfiguration.Builder(getContext()).build();
         Realm.deleteRealm(config);
         realm = Realm.getInstance(config);
     }
