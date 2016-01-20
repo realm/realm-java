@@ -28,7 +28,6 @@ import org.junit.runner.RunWith;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.ListIterator;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
@@ -37,7 +36,6 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class IteratorTests {
@@ -97,12 +95,14 @@ public class IteratorTests {
     @Test
     public void iterator_remove_beforeNext() {
         Iterator<AllTypes> it = results.iterator();
+        realm.beginTransaction();
+
         thrown.expect(IllegalStateException.class);
         it.remove();
     }
 
     @Test
-    public void iterator_remove_deleteObject() {
+    public void iterator_remove_deletesObject() {
         Iterator<AllTypes> it = results.iterator();
         AllTypes obj = it.next();
         assertEquals(0, obj.getColumnLong());
@@ -117,6 +117,7 @@ public class IteratorTests {
         it.next();
         realm.beginTransaction();
         it.remove();
+
         thrown.expect(IllegalStateException.class);
         it.remove();
     }
@@ -152,37 +153,11 @@ public class IteratorTests {
     }
 
     @Test
-    public void iterator_forEach() {
-        int i = 0;
-        for (AllTypes item : results) {
-            assertEquals("Failed at index: " + i, i, item.getColumnLong());
-            i++;
-        }
-    }
-
-    public void iterator_simple_transactionBeforeNextItem() {
-        for (int i = 0; i < results.size(); i++) {
-            // Committing transactions while iterating should not effect the current iterator.
-            realm.beginTransaction();
-            realm.createObject(AllTypes.class).setColumnLong(i);
-            realm.commitTransaction();
-
-            assertEquals("Failed at index: " + i, i, results.get(i).getColumnLong());
-        }
-    }
-
-    @Test
-    public void iterator_simple() {
-        for (int i = 0; i < results.size(); i++) {
-            assertEquals("Failed at index: " + i, i, results.get(i).getColumnLong());
-        }
-    }
-
-    @Test
     public void iterator_closedRealm_next() {
         Iterator<AllTypes> it = results.iterator();
         assertEquals("test data 0", it.next().getColumnString());
         realm.close();
+
         thrown.expect(IllegalStateException.class);
         it.next();
     }
@@ -192,6 +167,7 @@ public class IteratorTests {
         Iterator<AllTypes> it = results.iterator();
         assertEquals("test data 0", it.next().getColumnString());
         realm.close();
+
         thrown.expect(IllegalStateException.class);
         it.remove();
     }
@@ -201,10 +177,12 @@ public class IteratorTests {
         Iterator<AllTypes> it = results.iterator();
         assertEquals("test data 0", it.next().getColumnString());
         realm.close();
+
         thrown.expect(IllegalStateException.class);
         it.hasNext();
     }
 
+    @Test
     public void iterator_removedObjectsStillAccessible() {
         realm.beginTransaction();
         results.where().equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
@@ -231,6 +209,33 @@ public class IteratorTests {
 
         assertTrue(types.isValid());
         assertEquals(1, types.getColumnLong());
+    }
+
+    @Test
+    public void iterator_forEach() {
+        int i = 0;
+        for (AllTypes item : results) {
+            assertEquals("Failed at index: " + i, i, item.getColumnLong());
+            i++;
+        }
+    }
+
+    @Test
+    public void simple_iterator() {
+        for (int i = 0; i < results.size(); i++) {
+            assertEquals("Failed at index: " + i, i, results.get(i).getColumnLong());
+        }
+    }
+
+    public void simple_iterator_transactionBeforeNextItem() {
+        for (int i = 0; i < results.size(); i++) {
+            // Committing transactions while iterating should not effect the current iterator.
+            realm.beginTransaction();
+            realm.createObject(AllTypes.class).setColumnLong(i);
+            realm.commitTransaction();
+
+            assertEquals("Failed at index: " + i, i, results.get(i).getColumnLong());
+        }
     }
 
 //    @Test
