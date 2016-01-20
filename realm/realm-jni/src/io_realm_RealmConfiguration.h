@@ -17,6 +17,54 @@ extern "C" {
 JNIEXPORT jlong JNICALL Java_io_realm_RealmConfiguration_createConfigurationPointer
   (JNIEnv *, jobject);
 
+/*
+ * Class:     io_realm_RealmConfiguration
+ * Method:    nativeSetPath
+ * Signature: (JLjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_RealmConfiguration_nativeSetPath
+  (JNIEnv *, jobject, jlong, jstring);
+
+/*
+ * Class:     io_realm_RealmConfiguration
+ * Method:    nativeGetPath
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_realm_RealmConfiguration_nativeGetPath
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_RealmConfiguration
+ * Method:    nativeSetEncryptionKey
+ * Signature: (J[B)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_RealmConfiguration_nativeSetEncryptionKey
+  (JNIEnv *, jobject, jlong, jbyteArray);
+
+/*
+ * Class:     io_realm_RealmConfiguration
+ * Method:    nativeGetEncryptionKey
+ * Signature: (J)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_io_realm_RealmConfiguration_nativeGetEncryptionKey
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_RealmConfiguration
+ * Method:    nativeGetSchemaVersion
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_RealmConfiguration_nativeGetSchemaVersion
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_RealmConfiguration
+ * Method:    nativeSetSchemaVersion
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_RealmConfiguration_nativeSetSchemaVersion
+  (JNIEnv *, jobject, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

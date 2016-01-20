@@ -34,6 +34,7 @@
 
 #include "io_realm_internal_Util.h"
 
+#include "shared_realm.hpp"
 
 #define TRACE               1       // disable for performance
 #define CHECK_PARAMETERS    1       // Check all parameters in API and throw exceptions in java if invalid
@@ -103,6 +104,7 @@ std::string num_to_string(T pNumber)
 #define SG(ptr) reinterpret_cast<realm::SharedGroup*>(ptr)
 #define CH(ptr) reinterpret_cast<realm::ClientHistory*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
+#define CONF(ptr) reinterpret_cast<realm::Realm::RealmConfiguration*>(ptr)
 
 // Exception handling
 enum ExceptionKind {
