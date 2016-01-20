@@ -1337,7 +1337,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     @Override
-    public long sync() {
+    public long refresh() {
         throw new RuntimeException("Not supported for tables");
     }
 
@@ -1365,14 +1365,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
         return (tableName.equals(METADATA_TABLE_NAME) || tableName.equals(PRIMARY_KEY_TABLE_NAME));
     }
 
-    /**
-     * Report the current versioning counter for the table. The versioning counter is guaranteed to
-     * change when the contents of the table changes after advance_read() or promote_to_write(), or
-     * immediately after calls to methods which change the table.
-     *
-     * @return version_counter for the table.
-     */
-    public long version() {
+    public long getVersion() {
         return nativeVersion(nativePtr);
     }
 

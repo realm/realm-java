@@ -18,6 +18,7 @@ package io.realm.internal;
 
 import java.util.Date;
 
+import io.realm.Realm;
 import io.realm.RealmFieldType;
 
 /**
@@ -353,6 +354,15 @@ public interface TableOrView {
 
     long count(long columnIndex, String value);
 
+    /**
+     * Report the current versioning counter for the table. The versioning counter is guaranteed to
+     * change when the contents of the table changes after advance_read() or promote_to_write(), or
+     * immediately after calls to methods which change the table.
+     *
+     * @return version_counter for the table.
+     */
+    long getVersion();
+
     enum PivotType {
         COUNT(0),
         SUM(1),
@@ -370,10 +380,13 @@ public interface TableOrView {
     Table pivot(long stringCol, long intCol, PivotType pivotType);
 
     /**
-     * Syncs the tableview with the underlying table data. It is not required to call this explicitly, all other API
-     * methods will automatically sync the view as well.
+     * Syncs the tableview with the underlying table data. This is effectively the same as rerunning the query, so it
+     * should not be called on TableViews created by an async query.
+     *
+     * This method gets automatically called when calling {@link Realm#refresh()} or when another threads updates
+     * the Realm, but it will _not_ be called the same thread commits a transaction.
      *
      * @return the version number for the updated tableview.
      */
-    long sync();
+    long refresh();
 }

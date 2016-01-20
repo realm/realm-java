@@ -34,7 +34,7 @@ inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
             ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
             return false;
         }
-        TV(nativeViewPtr)->sync_if_needed();
+//        TV(nativeViewPtr)->sync_if_needed();
     }
     return valid;
 }
@@ -1026,7 +1026,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeWhere(
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSyncIfNeeded(
     JNIEnv* env, jobject, jlong nativeViewPtr)
 {
     bool valid = (TV(nativeViewPtr) != NULL);

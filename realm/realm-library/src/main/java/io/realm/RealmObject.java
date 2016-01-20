@@ -298,7 +298,7 @@ public abstract class RealmObject {
         if (listeners != null && !listeners.isEmpty()) {
             if (row.getTable() == null) return;
 
-            long version = row.getTable().version();
+            long version = row.getTable().getVersion();
             if (currentTableVersion != version) {
                 currentTableVersion = version;
                 for (RealmChangeListener listener : listeners) {
@@ -310,7 +310,7 @@ public abstract class RealmObject {
 
     void setTableVersion() {
         if (row.getTable() != null) {
-            currentTableVersion = row.getTable().version();
+            currentTableVersion = row.getTable().getVersion();
         }
     }
 }

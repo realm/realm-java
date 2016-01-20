@@ -117,7 +117,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         this.pendingQuery = null;
         this.query = null;
-        this.currentTableViewVersion = table.sync();
+        this.currentTableViewVersion = table.getVersion();
     }
 
     private RealmResults(BaseRealm realm, String className) {
@@ -131,6 +131,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private RealmResults(BaseRealm realm, TableOrView table, String className) {
         this(realm, className);
         this.table = table;
+        this.currentTableViewVersion = table.getVersion();
     }
 
     TableOrView getTable() {
@@ -623,6 +624,10 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         table.clear();
     }
 
+    void refresh() {
+        currentTableViewVersion = table.refresh();
+    }
+
     // Adding objects
 
     @Override
@@ -636,35 +641,32 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     public void add(int index, E element) {
         throw new UnsupportedOperationException();
     }
-//
-//    /**
-//     * Replaces an object at the given index with a new object.
-//     *
-//     * @param index the array index of the object to be replaced.
-//     * @param element an object.
-//     */
-//    public void replace(int index, E element) {
-//        throw new NoSuchMethodError();
-//    }
-
-
 
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
     private class RealmResultsIterator implements Iterator<E> {
         long tableViewVersion = 0;
         int pos = -1;
+        private boolean removeUsed = false;
 
         RealmResultsIterator() {
-            tableViewVersion = table.sync();
+            tableViewVersion = currentTableViewVersion;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         public boolean hasNext() {
-            assertRealmIsStable();
+            realm.checkIfValid();
+            checkRealmIsStable();
             return pos + 1 < size();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         public E next() {
-            assertRealmIsStable();
+            realm.checkIfValid();
+            checkRealmIsStable();
             pos++;
             if (pos >= size()) {
                 throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
@@ -674,30 +676,32 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         /**
          * Removes the RealmObject at the current position from both the list and the underlying Realm.
+         * The object will not be removed the {@link RealmResults}, but {@link RealmObject#isValid()} will return false.
+         * The object will be removed from the list if {@link Realm#refresh()} is called or the Realm is updated due
+         * to
          *
-         * WARNING: This method is currently disabled and will always throw an
-         * {@link io.realm.exceptions.RealmException}
          */
         public void remove() {
-            throw new RealmException("Removing is not supported.");
-    /*        assertRealmIsStable();
+            realm.checkIfValid();
+            checkRealmIsStable();
             if (pos == -1) {
-                throw new IllegalStateException("Must call next() before calling remove()");
+                throw new IllegalStateException("Must call next() before calling remove().");
             }
             if (removeUsed) {
-                throw new IllegalStateException("Cannot call remove() twice. Must call next() in between");
+                throw new IllegalStateException("Cannot call remove() twice. Must call next() in between.");
             }
-
+            if (!realm.isInTransaction()) {
+                throw new IllegalStateException("Can only remove objects if inside a write transaction.");
+            }
             RealmResults.this.remove(pos);
             pos--;
             removeUsed = true;
-            currentTableViewVersion = getTable().sync();
-     */   }
+        }
 
-        protected void assertRealmIsStable() {
-            long version = table.sync();
+        protected void checkRealmIsStable() {
+            long version = table.getVersion();
             if (tableViewVersion > -1 && version != tableViewVersion) {
-                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Use iterators methods instead.");
+                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
             }
             tableViewVersion = version;
         }
@@ -721,19 +725,19 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         @Override
         public boolean hasPrevious() {
-            assertRealmIsStable();
+            checkRealmIsStable();
             return pos > 0;
         }
 
         @Override
         public int nextIndex() {
-            assertRealmIsStable();
+            checkRealmIsStable();
             return pos + 1;
         }
 
         @Override
         public E previous() {
-            assertRealmIsStable();
+            checkRealmIsStable();
             pos--;
             if (pos < 0) {
                 throw new IndexOutOfBoundsException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
@@ -743,7 +747,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         @Override
         public int previousIndex() {
-            assertRealmIsStable();
+            checkRealmIsStable();
             return pos;
         }
 
@@ -917,7 +921,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             //FIXME: still waiting for Core to provide a fix
             //       for crash when calling _sync_if_needed on a cleared View.
             //       https://github.com/realm/realm-core/pull/1390
-            long version = table.sync();
+            long version = table.refresh();
             if (currentTableViewVersion != version) {
                 currentTableViewVersion = version;
                 for (RealmChangeListener listener : listeners) {

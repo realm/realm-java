@@ -60,7 +60,6 @@ abstract class BaseRealm implements Closeable {
     protected long threadId;
     protected RealmConfiguration configuration;
     protected SharedGroupManager sharedGroupManager;
-    protected boolean autoRefresh;
     RealmSchema schema;
     Handler handler;
     HandlerController handlerController;
@@ -74,6 +73,7 @@ abstract class BaseRealm implements Closeable {
         this.configuration = configuration;
         this.sharedGroupManager = new SharedGroupManager(configuration);
         this.schema = new RealmSchema(this, sharedGroupManager.getTransaction());
+        this.handlerController = new HandlerController(this);
         setAutoRefresh(autoRefresh);
     }
 
@@ -94,14 +94,25 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException("Cannot set auto-refresh in a Thread without a Looper");
         }
 
-        if (autoRefresh && !this.autoRefresh) { // Switch it on
-            handlerController = new HandlerController(this);
+        if (autoRefresh && !handlerController.isAutoRefreshEnabled()) { // Switch it on
             handler = new Handler(handlerController);
             handlers.put(handler, configuration.getPath());
-        } else if (!autoRefresh && this.autoRefresh && handler != null) { // Switch it off
+        } else if (!autoRefresh && handlerController.isAutoRefreshEnabled() && handler != null) { // Switch it off
             removeHandler();
         }
-        this.autoRefresh = autoRefresh;
+        handlerController.setAutoRefresh(autoRefresh);
+    }
+
+    /**
+     * DEPRECATED: Use {@link #isAutoRefreshEnabled()} instead.
+     *
+     * Retrieves the auto-refresh status of the Realm instance.
+     *
+     * @return the auto-refresh status.
+     */
+    @Deprecated()
+    public boolean isAutoRefresh() {
+        return handlerController.isAutoRefreshEnabled();
     }
 
     /**
@@ -109,8 +120,8 @@ abstract class BaseRealm implements Closeable {
      *
      * @return the auto-refresh status.
      */
-    public boolean isAutoRefresh() {
-        return autoRefresh;
+    public boolean isAutoRefreshEnabled() {
+        return handlerController.isAutoRefreshEnabled();
     }
 
     /**
@@ -258,14 +269,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
         }
         sharedGroupManager.advanceRead();
-        if (handlerController != null) {
-            handlerController.notifyGlobalListeners();
-            handlerController.notifyTypeBasedListeners();
-            // if we have empty async RealmObject then rerun
-            if (handlerController.threadContainsAsyncEmptyRealmObject()) {
-                handlerController.updateAsyncEmptyRealmObject();
-            }
-        }
+        handlerController.notifyRealmUpdated();
     }
 
     /**

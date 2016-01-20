@@ -91,7 +91,7 @@ public class NotificationsTest {
             @Override
             public Boolean call() throws Exception {
                 Realm realm = Realm.getInstance(context);
-                boolean autoRefresh = realm.isAutoRefresh();
+                boolean autoRefresh = realm.isAutoRefreshEnabled();
                 assertFalse(autoRefresh);
                 try {
                     realm.setAutoRefresh(true);
@@ -117,11 +117,11 @@ public class NotificationsTest {
             public Boolean call() throws Exception {
                 Looper.prepare();
                 Realm realm = Realm.getInstance(context);
-                assertTrue(realm.isAutoRefresh());
+                assertTrue(realm.isAutoRefreshEnabled());
                 realm.setAutoRefresh(false);
-                assertFalse(realm.isAutoRefresh());
+                assertFalse(realm.isAutoRefreshEnabled());
                 realm.setAutoRefresh(true);
-                assertTrue(realm.isAutoRefresh());
+                assertTrue(realm.isAutoRefreshEnabled());
                 realm.close();
                 return true;
             }
