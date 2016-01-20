@@ -578,7 +578,7 @@ abstract class BaseRealm implements Closeable {
             public void onResult(int count) {
                 if (count != 0) {
                     throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
-                            "Remember to close() all the instances of the Realm before deleting its file.");
+                            "Remember to close() all the instances of the Realm before deleting its file: " + configuration.getPath());
                 }
 
                 String canonicalPath = configuration.getPath();
