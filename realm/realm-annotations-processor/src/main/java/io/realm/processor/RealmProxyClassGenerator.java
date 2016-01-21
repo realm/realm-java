@@ -120,9 +120,15 @@ public class RealmProxyClassGenerator {
         emitCopyMethod(writer);
         emitCreateDetachedCopyMethod(writer);
         emitUpdateMethod(writer);
-        emitToStringMethod(writer);
-        emitHashcodeMethod(writer);
-        emitEqualsMethod(writer);
+        if (!metadata.containsToString()) {
+            emitToStringMethod(writer);
+        }
+        if (!metadata.containsHashCode()) {
+            emitHashcodeMethod(writer);
+        }
+        if (!metadata.containsEquals()) {
+            emitEqualsMethod(writer);
+        }
 
         // End the class definition
         writer.endType();

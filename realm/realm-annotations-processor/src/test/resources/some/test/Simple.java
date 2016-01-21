@@ -53,4 +53,32 @@ public class Simple extends RealmObject {
     public void realmSetter$age(int age) {
         this.age = age;
     }
+
+    @Override
+    public String toString() {
+        return "Simple{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Simple simple = (Simple) o;
+
+        if (age != simple.age) return false;
+        if (name != null ? !name.equals(simple.name) : simple.name != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + age;
+        return result;
+    }
 }

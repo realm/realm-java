@@ -25,7 +25,9 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -51,6 +53,9 @@ public class ClassMetaData {
     private List<VariableElement> fields = new ArrayList<VariableElement>(); // List of all fields in the class except those @Ignored.
     private List<VariableElement> indexedFields = new ArrayList<VariableElement>(); // list of all fields marked @Index.
     private Set<VariableElement> nullableFields = new HashSet<VariableElement>(); // Set of fields which can be nullable
+    private boolean containsToString;
+    private boolean containsEquals;
+    private boolean containsHashCode;
 
     private final List<TypeMirror> validPrimaryKeyTypes;
     private final Types typeUtils;
@@ -67,6 +72,19 @@ public class ClassMetaData {
                 typeUtils.getPrimitiveType(TypeKind.LONG),
                 typeUtils.getPrimitiveType(TypeKind.BYTE)
         );
+
+        for (Element element : classType.getEnclosedElements()) {
+            if (element instanceof ExecutableElement) {
+                Name name = element.getSimpleName();
+                if (name.contentEquals("toString")) {
+                    this.containsToString = true;
+                } else if (name.contentEquals("equals")) {
+                    this.containsEquals = true;
+                } else if (name.contentEquals("hashCode")) {
+                    this.containsHashCode = true;
+                }
+            }
+        }
     }
 
     /**
@@ -292,6 +310,18 @@ public class ClassMetaData {
             }
         }
         return false;
+    }
+
+    public boolean containsToString() {
+        return containsToString;
+    }
+
+    public boolean containsEquals() {
+        return containsEquals;
+    }
+
+    public boolean containsHashCode() {
+        return containsHashCode;
     }
 }
 
