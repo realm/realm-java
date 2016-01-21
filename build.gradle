@@ -20,13 +20,6 @@ props.each { key, val ->
     project.set(key, val)
 }
 
-task assembleGradlePlugin(type:GradleBuild) {
-    group = 'Build'
-    description = 'Assemble the Realm Gradle plugin'
-    buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['assemble']
-}
-
 task assembleRealm(type:GradleBuild) {
     group = 'Build'
     description = 'Assemble the Realm project'
