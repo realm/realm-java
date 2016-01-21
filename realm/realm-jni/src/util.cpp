@@ -53,6 +53,10 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
     }
+    catch (realm::DeletedLinkView& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, DeletedLinkViewException, ss.str());
+    }
     catch (std::exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
@@ -150,6 +154,11 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
 
         case BadVersion:
             jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
+            message = classStr;
+            break;
+
+        case DeletedLinkViewException:
+            jExceptionClass = env->FindClass("io/realm/internal/DeletedRealmListException");
             message = classStr;
             break;
     }
@@ -315,7 +324,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
     if (str.is_null()) {
         return NULL;
     }
-    
+
     // For efficiency, if the incoming UTF-8 string is sufficiently
     // small, we will attempt to store the UTF-16 output into a stack
     // allocated buffer of static size. Otherwise we will have to
@@ -346,7 +355,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         const char* in_begin2 = in_begin;
         size_t error_code;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
-        if (in_begin2 != in_end) 
+        if (in_begin2 != in_end)
             throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr, out_end, size, error_code));
         if (int_add_with_overflow_detect(size, stack_buf_size))
             throw runtime_error("String size overflow");
@@ -355,7 +364,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         out_begin = dyn_buf.get();
         out_end   = dyn_buf.get() + size;
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
-        if (retcode != 0) 
+        if (retcode != 0)
             throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
         REALM_ASSERT(in_begin == in_end);
     }
