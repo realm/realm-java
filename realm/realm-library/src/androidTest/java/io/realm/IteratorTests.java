@@ -28,14 +28,17 @@ import org.junit.runner.RunWith;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.ListIterator;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
+import io.realm.exceptions.RealmException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class IteratorTests {
@@ -238,69 +241,45 @@ public class IteratorTests {
         }
     }
 
-//    @Test
-//    public void listIterator() {
-//        ListIterator<AllTypes> it = results.listIterator();
-//
-//        // Test beginning of the list
-//        assertFalse(it.hasPrevious());
-//        assertTrue(it.hasNext());
-//        assertEquals(0, it.nextIndex());
-//        assertEquals(0, it.next());
-//        assertTrue(it.hasPrevious());
-//
-//        // Move to second last element
-//        for (int i = 1; i < TEST_SIZE - 1; i++) {
-//            it.next();
-//
-//        }
-//
-//        // Test end of the list
-//        assertTrue(it.hasPrevious());
-//        assertTrue(it.hasNext());
-//        assertEquals(TEST_SIZE - 1, it.nextIndex());
-//        assertEquals(TEST_SIZE - 1, it.next().getColumnLong());
-//        assertFalse(it.hasNext());
-//        assertEquals(TEST_SIZE, it.nextIndex());
-//    }
+    @Test
+    public void listIterator() {
+        ListIterator<AllTypes> it = results.listIterator();
 
-//    @Test
-//    public void listIterator_set() {
-//        fail();
-//    }
-//
-//    @Test
-//    public void listIterator_set_invalidObject() {
-//        fail();
-//    }
-//
-//    @Test
-//    public void listIterator_set_objectFromOtherRealm() {
-//        fail();
-//    }
-//
-//    @Test
-//    public void listIterator_set_wrongDynamicRealmObjectType() {
-//        fail();
-//    }
-//
-//    @Test
-//    public void listIterator_add() {
-//        fail();
-//    }
-//
-//    @Test
-//    public void listIterator_add_invalidObject() {
-//        fail();
-//    }
-//
-//    @Test
-//    public void listIterator_add_objectFromOtherRealm() {
-//        fail();
-//    }
-//
-//    @Test
-//    public void listIterator_add_wrongDynamicRealmObjectType() {
-//        fail();
-//    }
+        // Test beginning of the list
+        assertFalse(it.hasPrevious());
+        assertTrue(it.hasNext());
+        assertEquals(0, it.nextIndex());
+        assertEquals(0, it.next());
+        assertTrue(it.hasPrevious());
+
+        // Move to second last element
+        for (int i = 1; i < TEST_SIZE - 1; i++) {
+            it.next();
+
+        }
+
+        // Test end of the list
+        assertTrue(it.hasPrevious());
+        assertTrue(it.hasNext());
+        assertEquals(TEST_SIZE - 1, it.nextIndex());
+        assertEquals(TEST_SIZE - 1, it.next().getColumnLong());
+        assertFalse(it.hasNext());
+        assertEquals(TEST_SIZE, it.nextIndex());
+    }
+
+    @Test
+    public void listIterator_closedRealm_methodsThrows() {
+        fail();
+    }
+
+
+    @Test(expected = RealmException.class)
+    public void listIterator_set_thows() {
+        results.listIterator().set(null);
+    }
+
+    @Test(expected = RealmException.class)
+    public void listIterator_add_thows() {
+        results.listIterator().set(null);
+    }
 }

@@ -642,7 +642,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         throw new UnsupportedOperationException();
     }
 
-    // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
+    // Custom RealmResults iterator.
     private class RealmResultsIterator implements Iterator<E> {
         long tableViewVersion = 0;
         int pos = -1;
@@ -678,8 +678,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
          * Removes the RealmObject at the current position from both the list and the underlying Realm.
          * The object will not be removed the {@link RealmResults}, but {@link RealmObject#isValid()} will return false.
          * The object will be removed from the list if {@link Realm#refresh()} is called or the Realm is updated due
-         * to
-         *
+         * to a change from another thread.
          */
         public void remove() {
             realm.checkIfValid();
@@ -707,7 +706,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
-    // Custom RealmResults list iterator. It ensures that we only iterate on a Realm that hasn't changed.
+    // Custom RealmResults list iterator.
     private class RealmResultsListIterator extends RealmResultsIterator implements ListIterator<E> {
 
         RealmResultsListIterator(int start) {
@@ -718,23 +717,38 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             }
         }
 
+        /**
+         * Adding a new object to a {@link RealmResults} is not supported and will always throws an {@link RealmException}.
+         * Use {@link Realm#createObject(Class)} instead.
+         *
+         * @throws RealmException, always.
+         */
         @Override
         public void add(E object) {
-            throw new RealmException("Adding elements not supported. Use Realm.createObject() instead.");
+            throw new RealmException("Adding elements is not supported. Use Realm.createObject() instead.");
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public boolean hasPrevious() {
             checkRealmIsStable();
             return pos > 0;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public int nextIndex() {
             checkRealmIsStable();
             return pos + 1;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public E previous() {
             checkRealmIsStable();
@@ -745,26 +759,22 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             return get(pos);
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public int previousIndex() {
             checkRealmIsStable();
             return pos;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void set(E object) {
             throw new RealmException("Replacing elements not supported.");
         }
-
-
-        /**
-         * Removes the RealmObject at the current position from both the list and the underlying Realm.
-         *
-         * WARNING: This method is currently disabled and will always throw an
-         * {@link io.realm.exceptions.RealmException}
-         */
-        @Override
-        public void remove() { throw new RealmException("Removing elements not supported."); }
     }
 
     /**
