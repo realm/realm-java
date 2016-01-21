@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.InvalidRow;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
@@ -269,7 +270,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
         }
         sharedGroupManager.advanceRead();
-        handlerController.notifyRealmUpdated();
+        handlerController.notifyRealmUpdated(true);
     }
 
     /**
@@ -319,13 +320,7 @@ abstract class BaseRealm implements Closeable {
 
             // Notify at once on thread doing the commit
             if (handler.equals(this.handler)) {
-                handlerController.notifyGlobalListeners();
-                // notify RealmResults & RealmObject callbacks
-                handlerController.notifyTypeBasedListeners();
-                // if we have empty async RealmObject then rerun
-                if (handlerController.threadContainsAsyncEmptyRealmObject()) {
-                    handlerController.updateAsyncEmptyRealmObject();
-                }
+                handlerController.notifyRealmUpdated(false);
                 continue;
             }
 
@@ -545,7 +540,7 @@ abstract class BaseRealm implements Closeable {
             table = schema.getTable(clazz);
             result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
         }
-        result.row = table.getUncheckedRow(rowIndex);
+        result.row = (rowIndex != Table.NO_MATCH) ? table.getUncheckedRow(rowIndex) : InvalidRow.INSTANCE;
         result.realm = this;
         result.setTableVersion();
 

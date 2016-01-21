@@ -156,36 +156,6 @@ public class IteratorTests {
     }
 
     @Test
-    public void iterator_closedRealm_next() {
-        Iterator<AllTypes> it = results.iterator();
-        assertEquals("test data 0", it.next().getColumnString());
-        realm.close();
-
-        thrown.expect(IllegalStateException.class);
-        it.next();
-    }
-
-    @Test
-    public void iterator_closedRealm_remove() {
-        Iterator<AllTypes> it = results.iterator();
-        assertEquals("test data 0", it.next().getColumnString());
-        realm.close();
-
-        thrown.expect(IllegalStateException.class);
-        it.remove();
-    }
-
-    @Test
-    public void iterator_closedRealm_hasNext() {
-        Iterator<AllTypes> it = results.iterator();
-        assertEquals("test data 0", it.next().getColumnString());
-        realm.close();
-
-        thrown.expect(IllegalStateException.class);
-        it.hasNext();
-    }
-
-    @Test
     public void iterator_removedObjectsStillAccessible() {
         realm.beginTransaction();
         results.where().equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
@@ -212,6 +182,30 @@ public class IteratorTests {
 
         assertTrue(types.isValid());
         assertEquals(1, types.getColumnLong());
+    }
+
+    @Test
+    public void iterator_closedRealm_methodsThrows() {
+        Iterator<AllTypes> it = results.iterator();
+        realm.close();
+
+        try {
+            it.hasNext();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.next();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.remove();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     @Test
@@ -249,8 +243,9 @@ public class IteratorTests {
         assertFalse(it.hasPrevious());
         assertTrue(it.hasNext());
         assertEquals(0, it.nextIndex());
-        assertEquals(0, it.next());
-        assertTrue(it.hasPrevious());
+        AllTypes firstObject = it.next();
+        assertEquals(0, firstObject.getColumnLong());
+        assertFalse(it.hasPrevious());
 
         // Move to second last element
         for (int i = 1; i < TEST_SIZE - 1; i++) {
@@ -262,16 +257,70 @@ public class IteratorTests {
         assertTrue(it.hasPrevious());
         assertTrue(it.hasNext());
         assertEquals(TEST_SIZE - 1, it.nextIndex());
-        assertEquals(TEST_SIZE - 1, it.next().getColumnLong());
+        AllTypes lastObject = it.next();
+        assertEquals(TEST_SIZE - 1, lastObject.getColumnLong());
         assertFalse(it.hasNext());
         assertEquals(TEST_SIZE, it.nextIndex());
     }
 
     @Test
-    public void listIterator_closedRealm_methodsThrows() {
-        fail();
+    public void listIterator_defaultStartIndex() {
+        ListIterator<AllTypes> it1 = results.listIterator(0);
+        ListIterator<AllTypes> it2 = results.listIterator();
+
+        assertEquals(it1.previousIndex(), it2.previousIndex());
+        assertEquals(it1.nextIndex(), it2.nextIndex());
     }
 
+    @Test
+    public void listIterator_startIndex() {
+        int i = TEST_SIZE/2;
+        ListIterator<AllTypes> it = results.listIterator(i);
+
+        assertTrue(it.hasPrevious());
+        assertTrue(it.hasNext());
+        assertEquals(i - 1, it.previousIndex());
+        assertEquals(i, it.nextIndex());
+        AllTypes nextObject = it.next();
+        assertEquals(i, nextObject.getColumnLong());
+    }
+
+    @Test
+    public void listIterator_closedRealm_methods() {
+        int location = TEST_SIZE / 2;
+        ListIterator<AllTypes> it = results.listIterator(location);
+        realm.close();
+
+        // These methods work even if the Realm is closed
+        assertEquals(location - 1, it.previousIndex());
+        assertEquals(location, it.nextIndex());
+
+        // These methods will throw exceptions
+        try {
+            it.hasNext();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.next();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.previous();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.remove();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+    }
 
     @Test(expected = RealmException.class)
     public void listIterator_set_thows() {
@@ -281,5 +330,94 @@ public class IteratorTests {
     @Test(expected = RealmException.class)
     public void listIterator_add_thows() {
         results.listIterator().set(null);
+    }
+
+    @Test
+    public void listIterator_remove_beforeNext() {
+        Iterator<AllTypes> it = results.listIterator();
+        realm.beginTransaction();
+
+        thrown.expect(IllegalStateException.class);
+        it.remove();
+    }
+
+    @Test
+    public void listIterator_remove_deletesObject() {
+        Iterator<AllTypes> it = results.listIterator();
+        AllTypes obj = it.next();
+        assertEquals(0, obj.getColumnLong());
+        realm.beginTransaction();
+        it.remove();
+        assertFalse(obj.isValid());
+    }
+
+    @Test
+    public void listIterator_remove_calledTwice() {
+        Iterator<AllTypes> it = results.listIterator();
+        it.next();
+        realm.beginTransaction();
+        it.remove();
+
+        thrown.expect(IllegalStateException.class);
+        it.remove();
+    }
+
+    @Test
+    public void listIterator_transactionBeforeNextItem() {
+        Iterator<AllTypes> it = results.listIterator();
+        int i = 0;
+        while(it.hasNext()) {
+            AllTypes item = it.next();
+            assertEquals("Failed at index: " + i, i, item.getColumnLong());
+            i++;
+
+            // Committing transactions while iterating should not effect the current iterator.
+            realm.beginTransaction();
+            realm.createObject(AllTypes.class).setColumnLong(i - 1);
+            realm.commitTransaction();
+        }
+    }
+
+    @Test
+    public void listIterator_refreshWhileIterating() {
+        Iterator<AllTypes> it = results.listIterator();
+        it.next();
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class).setColumnLong(TEST_SIZE);
+        realm.commitTransaction();
+        realm.refresh(); // This will trigger rerunning all queries
+
+        thrown.expect(ConcurrentModificationException.class);
+        it.next();
+    }
+
+    @Test
+    public void listIterator_removedObjectsStillAccessible() {
+        realm.beginTransaction();
+        results.where().equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        realm.commitTransaction();
+
+        assertEquals(TEST_SIZE, results.size()); // Size is same even if object is deleted
+        Iterator<AllTypes> it = results.listIterator();
+        AllTypes types = it.next(); // Iterator can still access the deleted object
+
+        assertFalse(types.isValid());
+    }
+
+    public void listIterator_refreshClearsRemovedObjects() {
+        realm.beginTransaction();
+        results.where().equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        realm.commitTransaction();
+
+        // TODO How does refresh work with async queries?
+        realm.refresh(); // Refresh forces a refresh of all RealmResults
+
+        assertEquals(TEST_SIZE - 1, results.size()); // Size is same even if object is deleted
+        Iterator<AllTypes> it = results.listIterator();
+        AllTypes types = it.next(); // Iterator can no longer access the deleted object
+
+        assertTrue(types.isValid());
+        assertEquals(1, types.getColumnLong());
     }
 }

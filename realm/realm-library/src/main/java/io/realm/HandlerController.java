@@ -180,7 +180,7 @@ public final class HandlerController implements Handler.Callback {
         changeListeners.clear();
     }
 
-    void notifyGlobalListeners() {
+    private void notifyGlobalListeners() {
         // notify strong reference listener
         Iterator<RealmChangeListener> iteratorStrongListeners = changeListeners.iterator();
         while (iteratorStrongListeners.hasNext()) {
@@ -207,13 +207,13 @@ public final class HandlerController implements Handler.Callback {
         }
     }
 
-    void notifyTypeBasedListeners() {
+    private void notifyTypeBasedListeners() {
         notifyAsyncRealmResultsCallbacks();
         notifySyncRealmResultsCallbacks();
         notifyRealmObjectCallbacks();
     }
 
-    void updateAsyncEmptyRealmObject() {
+    private void updateAsyncEmptyRealmObject() {
         Iterator<Map.Entry<WeakReference<RealmObject>, RealmQuery<?>>> iterator = emptyAsyncRealmObject.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<WeakReference<RealmObject>, RealmQuery<?>> next = iterator.next();
@@ -646,8 +646,10 @@ public final class HandlerController implements Handler.Callback {
         }
     }
 
-    public void notifyRealmUpdated() {
-        refreshTableViews();
+    public void notifyRealmUpdated(boolean updateTableViews) {
+        if (updateTableViews) {
+            refreshTableViews();
+        }
         if (isAutoRefreshEnabled()) {
             notifyGlobalListeners();
             notifyTypeBasedListeners();

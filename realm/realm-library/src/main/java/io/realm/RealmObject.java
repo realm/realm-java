@@ -309,7 +309,7 @@ public abstract class RealmObject {
     }
 
     void setTableVersion() {
-        if (row.getTable() != null) {
+        if (row != InvalidRow.INSTANCE && row.getTable() != null) {
             currentTableVersion = row.getTable().getVersion();
         }
     }

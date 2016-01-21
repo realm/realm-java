@@ -751,6 +751,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
          */
         @Override
         public E previous() {
+            realm.checkIfValid();
             checkRealmIsStable();
             pos--;
             if (pos < 0) {
