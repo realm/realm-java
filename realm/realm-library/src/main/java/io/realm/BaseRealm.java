@@ -105,7 +105,7 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * DEPRECATED: Use {@link #isAutoRefreshEnabled()} instead.
+     * DEPRECATED: Use {@link #getAutoRefresh()} instead.
      *
      * Retrieves the auto-refresh status of the Realm instance.
      *
@@ -121,7 +121,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return the auto-refresh status.
      */
-    public boolean isAutoRefreshEnabled() {
+    public boolean getAutoRefresh() {
         return handlerController.isAutoRefreshEnabled();
     }
 
@@ -318,20 +318,20 @@ abstract class BaseRealm implements Closeable {
             Handler handler = handlerIntegerEntry.getKey();
             String realmPath = handlerIntegerEntry.getValue();
 
-            // Notify at once on thread doing the commit
-            if (handler.equals(this.handler)) {
-                handlerController.notifyRealmUpdated(false);
-                continue;
-            }
+//            // Notify at once on thread doing the commit
+//            if (handler.equals(this.handler)) {
+//                handlerController.notifyRealmUpdated(false);
+//                continue;
+//            }
 
             // For all other threads, use the Handler
             // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
             // as the target thread consumes messages at the same time. In this case it is not a problem as worst
             // case we end up with two REALM_CHANGED messages in the queue.
             if (
-                    realmPath.equals(configuration.getPath())            // It's the right realm
-                            && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
-                            && handler.getLooper().getThread().isAlive() // The receiving thread is alive
+                    realmPath.equals(configuration.getPath())                           // It's the right realm
+                            && !handler.hasMessages(HandlerController.REALM_CHANGED)    // The right message
+                            && handler.getLooper().getThread().isAlive()                // The receiving thread is alive
                             && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
                 RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
                         "to prevent this.");
@@ -544,9 +544,7 @@ abstract class BaseRealm implements Closeable {
         result.realm = this;
         result.setTableVersion();
 
-        if (handlerController != null) {
-            handlerController.addToRealmObjects(result);
-        }
+        handlerController.addToRealmObjects(result);
         return result;
     }
 

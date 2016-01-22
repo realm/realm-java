@@ -80,9 +80,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     static <E extends RealmObject> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
         RealmResults<E> realmResults = new RealmResults<E>(realm, table, clazz);
-        if (realm.handlerController != null) {
-            realm.handlerController.addToRealmResults(realmResults);
-        }
+        realm.handlerController.addToRealmResults(realmResults);
         return realmResults;
     }
 
@@ -92,9 +90,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     static RealmResults<DynamicRealmObject> createFromDynamicTableOrView(BaseRealm realm, TableOrView table, String className) {
         RealmResults<DynamicRealmObject> realmResults = new RealmResults<DynamicRealmObject>(realm, table, className);
-        if (realm.handlerController != null) {
-            realm.handlerController.addToRealmResults(realmResults);
-        }
+        realm.handlerController.addToRealmResults(realmResults);
         return realmResults;
     }
 
@@ -932,6 +928,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             //FIXME: still waiting for Core to provide a fix
             //       for crash when calling _sync_if_needed on a cleared View.
             //       https://github.com/realm/realm-core/pull/1390
+            // FIXME Cleanup this mess of booleans / logic. Should all changelisteners be triggered on a looper event?
             long version = refreshBeforeNotification ? table.refresh() : table.getVersion();
             if (currentTableViewVersion != version) {
                 currentTableViewVersion = version;
