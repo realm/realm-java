@@ -62,8 +62,9 @@ When writing unit tests, use the following guide lines:
    if it fails, it should be clear why it failed. E.g. you can group related tests with the same setup like negative 
    tests. If you do so, make sure to separate each "subtest" with a comment stating what you test.
 
-8) Use only `@Test(expected = xxx.class)` or the `ExceptedException` rule to detect exceptions if it is the last
-   line of the test that is expected to throw. Otherwise use the following:
+8) Use only `@Test(expected = xxx.class)` if the test case contains one line. If the test contains multiple 
+   lines and it is the last line that is tested, use the `ExceptedException` rule instead. In all other cases, use 
+   the following pattern:
    
     try {
       somethingThatThrowsIllegalArgument();   

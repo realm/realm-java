@@ -923,11 +923,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
 
@@ -988,13 +984,9 @@ public final class Realm extends BaseRealm {
                                                                     Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(clazz);
-        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**
@@ -1016,11 +1008,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**
@@ -1104,57 +1092,61 @@ public final class Realm extends BaseRealm {
         final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                if (!Thread.currentThread().isInterrupted()) {
-                    Realm bgRealm = Realm.getInstance(realmConfiguration);
-                    bgRealm.beginTransaction();
-                    try {
-                        transaction.execute(bgRealm);
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
 
-                        if (!Thread.currentThread().isInterrupted()) {
-                            bgRealm.commitTransaction();
-                            if (callback != null
-                                    && handler != null
-                                    && !Thread.currentThread().isInterrupted()
-                                    && handler.getLooper().getThread().isAlive()) {
-                                // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency problem
-                                // eg.: User wants to delete Realm in the callbacks.
+                boolean transactionCommitted = false;
+                final Exception[] exception = new Exception[1];
+                final Realm bgRealm = Realm.getInstance(realmConfiguration);
+                bgRealm.beginTransaction();
+                try {
+                    transaction.execute(bgRealm);
+
+                    if (!Thread.currentThread().isInterrupted()) {
+                        bgRealm.commitTransaction(new Runnable() {
+                            @Override
+                            public void run() {
+                                // The bgRealm needs to be closed before post event to caller's handler to avoid
+                                // concurrency problem. eg.: User wants to delete Realm in the callbacks.
+                                // This will close Realm before sending REALM_CHANGED.
                                 bgRealm.close();
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        callback.onSuccess();
-                                    }
-                                });
                             }
-                        } else {
-                            if (bgRealm.isInTransaction()) {
-                                bgRealm.cancelTransaction();
-                            } else {
-                                RealmLog.w("Thread is interrupted. Could not cancel transaction, not currently in a transaction.");
-                            }
-                        }
-
-                    } catch (final Exception e) {
+                        });
+                        transactionCommitted = true;
+                    }
+                } catch (final Exception e) {
+                    exception[0] = e;
+                } finally {
+                    if (!bgRealm.isClosed()) {
                         if (bgRealm.isInTransaction()) {
                             bgRealm.cancelTransaction();
-                        } else {
+                        } else if (exception[0] != null) {
                             RealmLog.w("Could not cancel transaction, not currently in a transaction.");
                         }
-                        if (callback != null
-                                && handler != null
-                                && !Thread.currentThread().isInterrupted()
-                                && handler.getLooper().getThread().isAlive()) {
-                            bgRealm.close();
+                        bgRealm.close();
+                    }
+
+                    // Send response as the final step to ensure the bg thread quit before others get the response!
+                    if (callback != null
+                            && handler != null
+                            && !Thread.currentThread().isInterrupted()
+                            && handler.getLooper().getThread().isAlive()) {
+                        if (transactionCommitted) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    callback.onError(e);
+                                    callback.onSuccess();
                                 }
                             });
-                        }
-                    } finally {
-                        if (!bgRealm.isClosed()) {
-                            bgRealm.close();
+                        } else if (exception[0] != null) {
+                            // transaction has not been canceled by there is a exception during transaction.
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onError(exception[0]);
+                                }
+                            });
                         }
                     }
                 }

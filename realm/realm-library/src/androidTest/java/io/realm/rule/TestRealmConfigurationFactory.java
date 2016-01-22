@@ -16,8 +16,6 @@
 
 package io.realm.rule;
 
-import android.util.Log;
-
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -106,5 +104,9 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
         configurations.add(configuration);
         return configuration;
+    }
+
+    public RealmConfiguration.Builder createConfigurationBuilder() {
+        return new RealmConfiguration.Builder(getRoot());
     }
 }
