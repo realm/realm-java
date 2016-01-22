@@ -2,7 +2,7 @@ import java.security.MessageDigest
 
 ext.coreVersion = '0.95.7'
 // empty or comment out this to disable hash checking
-//ext.coreSha256Hash = '11c82f5da9b43b62fbf55fbd3aa61dc6956bc3483bbaa5f69262018144c8cc3c'
+ext.coreSha256Hash = '11c82f5da9b43b62fbf55fbd3aa61dc6956bc3483bbaa5f69262018144c8cc3c'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -18,7 +18,7 @@ ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty
 def commonCflags = [ '-Os', '-std=c++11' ]
 // LTO and debugging don't play well together
 if (!ext.debugBuild) {
-    commonCflags += [ '-ffunction-sections', '-fdata-sections', '-flto' ]
+    commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
 }
 
 enum Compiler {
