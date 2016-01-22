@@ -1,5 +1,8 @@
 0.87.3
  * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).
+ * Updated Realm Core to 0.95.8
+   - Fixed a bug where undetected deleted object might lead to seg. fault (#1945).
+   - Better performance when deleting objects (#2015).
 
 0.87.2
  * Fixed a bug when RealmObjectSchema.addField() was called with the PRIMARY_KEY modifier, the field was not set as a required field (#2001).
