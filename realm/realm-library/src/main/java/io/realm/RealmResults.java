@@ -850,7 +850,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             // this should handle more complex use cases like retry, ignore etc
             table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
             isCompleted = true;
-            notifyChangeListeners();
+            notifyChangeListeners(true);
         } catch (Exception e) {
             RealmLog.d(e.getMessage());
             return false;
@@ -923,7 +923,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Notifies all registered listeners.
      */
-    void notifyChangeListeners() {
+    void notifyChangeListeners(boolean refreshBeforeNotification) {
         if (listeners != null && !listeners.isEmpty()) {
             // table might be null (if the async query didn't complete
             // but we have already registered listeners for it)
@@ -932,7 +932,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             //FIXME: still waiting for Core to provide a fix
             //       for crash when calling _sync_if_needed on a cleared View.
             //       https://github.com/realm/realm-core/pull/1390
-            long version = table.getVersion();
+            long version = refreshBeforeNotification ? table.refresh() : table.getVersion();
             if (currentTableViewVersion != version) {
                 currentTableViewVersion = version;
                 for (RealmChangeListener listener : listeners) {

@@ -234,14 +234,14 @@ public final class HandlerController implements Handler.Callback {
     }
 
     private void notifyAsyncRealmResultsCallbacks() {
-        notifyRealmResultsCallbacks(asyncRealmResults.keySet().iterator());
+        notifyRealmResultsCallbacks(asyncRealmResults.keySet().iterator(), true);
     }
 
     private void notifySyncRealmResultsCallbacks() {
-        notifyRealmResultsCallbacks(syncRealmResults.keySet().iterator());
+        notifyRealmResultsCallbacks(syncRealmResults.keySet().iterator(), false);
     }
 
-    private void notifyRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator) {
+    private void notifyRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator, boolean refreshTableViews) {
         List<RealmResults<? extends RealmObject>> resultsToBeNotified =
                 new ArrayList<RealmResults<? extends RealmObject>>();
         while (iterator.hasNext()) {
@@ -256,7 +256,7 @@ public final class HandlerController implements Handler.Callback {
         }
 
         for (RealmResults<? extends RealmObject> realmResults : resultsToBeNotified) {
-            realmResults.notifyChangeListeners();
+            realmResults.notifyChangeListeners(refreshTableViews);
         }
     }
 
@@ -379,7 +379,7 @@ public final class HandlerController implements Handler.Callback {
                         // swap pointer
                         realmResults.swapTableViewPointer(result.updatedTableViews.get(weakRealmResults));
                         // notify callbacks
-                        realmResults.notifyChangeListeners();
+                        realmResults.notifyChangeListeners(true);
                     } else {
                         RealmLog.d("[COMPLETED_ASYNC_REALM_RESULTS "+ weakRealmResults + "] , realm:"+ HandlerController.this + " ignoring result the RealmResults (is already loaded)");
                     }
@@ -473,7 +473,7 @@ public final class HandlerController implements Handler.Callback {
             }
 
             for (RealmResults<? extends RealmObject> query : callbacksToNotify) {
-                query.notifyChangeListeners();
+                query.notifyChangeListeners(true);
             }
 
             // notify listeners only when we advanced
@@ -646,6 +646,12 @@ public final class HandlerController implements Handler.Callback {
         }
     }
 
+    /**
+     * The Realm has advanced to a new version. Notify all listeners.
+     *
+     * @param updateTableViews {@code true} if RealmResults should be updated before notifying them. Not updating
+     *                                     can cause deleted objects to remain.
+     */
     public void notifyRealmUpdated(boolean updateTableViews) {
         if (updateTableViews) {
             refreshTableViews();

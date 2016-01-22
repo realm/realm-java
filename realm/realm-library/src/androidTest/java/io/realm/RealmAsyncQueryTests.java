@@ -24,6 +24,7 @@ import android.os.MessageQueue;
 import android.os.SystemClock;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import junit.framework.AssertionFailedError;
 
@@ -1983,6 +1984,7 @@ public class RealmAsyncQueryTests {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         final long[] latestLongValue = new long[1];
         final float[] latestFloatValue = new float[1];
+
         // start a background thread that pushes a commit every 16ms
         final Thread backgroundThread = new Thread() {
             @Override
