@@ -45,8 +45,8 @@ class PluginTest {
 
         assertTrue(containsUrl(project.repositories, 'https://jitpack.io'))
 
-        assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-android-library'))
-        assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations'))
+        assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-android-library', currentVersion))
+        assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations', currentVersion))
     }
 
     @Test
@@ -81,7 +81,8 @@ class PluginTest {
         return false
     }
 
-    private static boolean containsDependency(DependencyHandler dependencies, String group, String name) {
+    private static boolean containsDependency(DependencyHandler dependencies,
+                                              String group, String name, String version) {
         def configurationContainerField = DefaultDependencyHandler.class.getDeclaredField("configurationContainer")
         configurationContainerField.setAccessible(true)
         def configurationContainer = configurationContainerField.get(dependencies)
@@ -89,7 +90,9 @@ class PluginTest {
 
         def DependencySet dependencySet = compileConfiguration.getDependencies()
         for (Dependency dependency in dependencySet) {
-            if (dependency.properties.group == group && dependency.properties.name == name) {
+            if (dependency.properties.group == group
+                    && dependency.properties.name == name
+                    && dependency.properties.version == version) {
                 return true
             }
         }
