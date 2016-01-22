@@ -932,7 +932,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             //FIXME: still waiting for Core to provide a fix
             //       for crash when calling _sync_if_needed on a cleared View.
             //       https://github.com/realm/realm-core/pull/1390
-            long version = table.refresh();
+            long version = table.getVersion();
             if (currentTableViewVersion != version) {
                 currentTableViewVersion = version;
                 for (RealmChangeListener listener : listeners) {

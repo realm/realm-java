@@ -26,15 +26,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.runner.RunWith;
-
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -215,48 +208,31 @@ public class RealmObjectTests {
     }
 
     private void removeOneByOne(boolean atFirst) {
-        Set<Long> ages = new HashSet<Long>();
+        // Create test data
         realm.beginTransaction();
         realm.clear(Dog.class);
         for (int i = 0; i < TEST_SIZE; i++) {
-            Dog dog = realm.createObject(Dog.class);
-            dog.setAge(i);
-            ages.add((long) i);
+            realm.createObject(Dog.class);
         }
         realm.commitTransaction();
 
-        assertEquals(TEST_SIZE, realm.allObjects(Dog.class).size());
-
+        // Check initial size
         RealmResults<Dog> dogs = realm.allObjects(Dog.class);
+        assertEquals(TEST_SIZE, dogs.size());
+
+        // Check that calling removeFromRealm doesn't remove the object from the RealmResult
+        realm.beginTransaction();
         for (int i = 0; i < TEST_SIZE; i++) {
-            realm.beginTransaction();
-            Dog dogToRemove;
             if (atFirst) {
-                dogToRemove = dogs.first();
-            } else {
-                dogToRemove = dogs.last();
-            }
-            ages.remove(dogToRemove.getAge());
-            dogToRemove.removeFromRealm();
-
-            // object is no longer valid
-            try {
-                dogToRemove.getAge();
-                fail();
-            }
-            catch (IllegalStateException ignored) {}
-
-            realm.commitTransaction();
-
-            // and removed from realm and remaining objects are place correctly
-            RealmResults<Dog> remainingDogs = realm.allObjects(Dog.class);
-            assertEquals(TEST_SIZE - i - 1, remainingDogs.size());
-            for (Dog dog : remainingDogs) {
-                assertTrue(ages.contains(dog.getAge()));
+                dogs.get(i).removeFromRealm();
+                assertFalse("Dog " + i + " should be deleted", dogs.get(i).isValid());
+                assertEquals("Size() failed at Dog " + i, TEST_SIZE, dogs.size());
             }
         }
+        realm.commitTransaction();
     }
 
+    // Tests calling removeFromRealm on a RealmResults instead of RealmResults.remove()
     @Test
     public void removeFromRealm_atPosition() {
         removeOneByOne(REMOVE_FIRST);
@@ -294,8 +270,7 @@ public class RealmObjectTests {
             }
         });
 
-        Boolean result = future.get();
-        return result;
+        return future.get();
     }
 
     @Test
@@ -391,6 +366,7 @@ public class RealmObjectTests {
         // Don't use the configFactory as we need absolute control over the path to be able to calculate the hashCode
         realm.close();
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).build();
+        Realm.deleteRealm(realmConfig);
         realm = Realm.getInstance(realmConfig);
 
         realm.beginTransaction();

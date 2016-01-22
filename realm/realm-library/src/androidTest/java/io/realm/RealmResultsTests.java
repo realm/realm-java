@@ -42,6 +42,8 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -63,6 +65,8 @@ public class RealmResultsTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public final RunInLooperThread looperThread = new RunInLooperThread();
 
     private  Realm realm;
 
@@ -80,7 +84,7 @@ public class RealmResultsTests {
         }
     }
 
-    private void populateTestRealm(int objects) {
+    private void populateTestRealm(Realm realm, int objects) {
         realm.beginTransaction();
         realm.allObjects(AllTypes.class).clear();
         realm.allObjects(NonLatinFieldNames.class).clear();
@@ -106,7 +110,7 @@ public class RealmResultsTests {
     }
 
     private void populateTestRealm() {
-        populateTestRealm(TEST_DATA_SIZE);
+        populateTestRealm(realm, TEST_DATA_SIZE);
     }
 
     private void populatePartialNullRowsForNumericTesting() {
@@ -1240,7 +1244,7 @@ public class RealmResultsTests {
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
 
         assertTrue(results.isValid());
-        populateTestRealm(1);
+        populateTestRealm(realm, 1);
         // still valid if result changed
         assertTrue(results.isValid());
 
@@ -1402,5 +1406,56 @@ public class RealmResultsTests {
             fail("Unsupported columnBinary linked field");
         } catch (IllegalArgumentException ignored) {
         }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changeListener_syncIfNeeded_disabledForLocalCommit() {
+        final Realm realm = Realm.getInstance(looperThread.createConfiguration());
+        populateTestRealm(realm, 10);
+
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 10).findAll();
+        assertEquals(10, results.size());
+        results.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                // 2. RealmResults are NOT refreshed before onChange is called
+                assertEquals(10, results.size());
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
+
+        // 1. Delete first object from the same thread
+        realm.beginTransaction();
+        AllTypes obj = results.get(0);
+        obj.removeFromRealm();
+        realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void changeListener_syncIfNeeded_updatedFromOtherThread() {
+        final Realm realm = Realm.getInstance(looperThread.createConfiguration("Foo"));
+        populateTestRealm(realm, 10);
+
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 10).findAll();
+        assertEquals(10, results.size());
+
+        // 1. Delete first object from another thread.
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+               realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+            }
+        }, new Realm.Transaction.Callback() {
+            @Override
+            public void onSuccess() {
+                // 2. RealmResults are refreshed before onSuccess is called
+                assertEquals(9, results.size());
+                realm.close();
+                looperThread.testComplete();
+            }
+        });
     }
 }
