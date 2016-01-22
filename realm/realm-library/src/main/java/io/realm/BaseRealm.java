@@ -86,6 +86,7 @@ abstract class BaseRealm implements Closeable {
      * thread.
      *
      * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
+     * @throws IllegalStateException if called from a non-Looper thread.
      */
     public void setAutoRefresh(boolean autoRefresh) {
         checkIfValid();
@@ -169,7 +170,7 @@ abstract class BaseRealm implements Closeable {
      * Returns an Rx Observable that monitors changes to this Realm. It will emit the current state when subscribed
      * to.
      *
-     * @return RxJava Observable
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
@@ -234,6 +235,7 @@ abstract class BaseRealm implements Closeable {
      * @param destination file to save the Realm to.
      * @param key a 64-byte encryption key.
      * @throws java.io.IOException if any write operation fails.
+     * @throws IllegalArgumentException if destination argument is null.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) throws java.io.IOException {
         if (destination == null) {
@@ -246,6 +248,8 @@ abstract class BaseRealm implements Closeable {
     /**
      * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
      * It also calls the listeners associated to the Realm instance.
+     *
+     * @throws IllegalStateException if attempting to refresh from within a transaction.
      */
     @SuppressWarnings("UnusedDeclaration")
     public void refresh() {
@@ -287,8 +291,23 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
+        commitTransaction(null);
+    }
+
+    /**
+     * Commits transaction, runs the given runnable and then sends notifications. The runnable is useful to meet some
+     * timing conditions like the async transaction. In async transaction, the background Realm has to be closed before
+     * other threads see the changes to majoyly avoid the flaky tests.
+     *
+     * @param runAfterCommit runnable will run after transaction committed but before notification sent.
+     */
+    void commitTransaction(Runnable runAfterCommit) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
+
+        if (runAfterCommit != null)  {
+            runAfterCommit.run();
+        }
 
         if (handlerController != null) {
             // Notify at once on thread doing the commit
@@ -298,6 +317,25 @@ abstract class BaseRealm implements Closeable {
             // if we have empty async RealmObject then rerun
             if (handlerController.threadContainsAsyncEmptyRealmObject()) {
                 handlerController.updateAsyncEmptyRealmObject();
+            }
+        }
+    }
+
+    static void notifyHandlers(RealmConfiguration configuration) {
+        for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
+            Handler handler = handlerIntegerEntry.getKey();
+            String realmPath = handlerIntegerEntry.getValue();
+
+            // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
+            // as the target thread consumes messages at the same time. In this case it is not a problem as worst
+            // case we end up with two REALM_CHANGED messages in the queue.
+            if (
+                    realmPath.equals(configuration.getPath())            // It's the right realm
+                            && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
+                            && handler.getLooper().getThread().isAlive() // The receiving thread is alive
+                            && !handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
+                RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
+                        "to prevent this.");
             }
         }
     }
@@ -314,27 +352,6 @@ abstract class BaseRealm implements Closeable {
 
     void stopWaitForChange() {
         sharedGroupManager.getSharedGroup().setWaitForChangeEnabled(false);
-    }
-
-    static void notifyHandlers(RealmConfiguration configuration) {
-        for (Map.Entry<Handler, String> handlerIntegerEntry : handlers.entrySet()) {
-            Handler handler = handlerIntegerEntry.getKey();
-            String realmPath = handlerIntegerEntry.getValue();
-
-            // Note there is a race condition with handler.hasMessages() and handler.sendEmptyMessage()
-            // as the target thread consumes messages at the same time. In this case it is not a problem as worst
-            // case we end up with two REALM_CHANGED messages in the queue.
-            if (
-                    realmPath.equals(configuration.getPath())            // It's the right realm
-                            && !handler.hasMessages(HandlerController.REALM_CHANGED)       // The right message
-                            && handler.getLooper().getThread().isAlive() // The receiving thread is alive
-                    ) {
-                if (!handler.sendEmptyMessage(HandlerController.REALM_CHANGED)) {
-                    RealmLog.w("Cannot update Looper threads when the Looper has quit. Use realm.setAutoRefresh(false) " +
-                            "to prevent this.");
-                }
-            }
-        }
     }
 
     /**
@@ -402,6 +419,8 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * It's important to always remember to close Realm instances when you're done with it in order not to leak memory,
      * file descriptors or grow the size of Realm file out of measure.
+     *
+     * @throws IllegalStateException if attempting to close from another thread.
      */
     @Override
     public void close() {
@@ -429,6 +448,7 @@ abstract class BaseRealm implements Closeable {
      * Checks if the {@link io.realm.Realm} instance has already been closed.
      *
      * @return {@code true} if closed, {@code false} otherwise.
+     * @throws IllegalStateException if attempting to close from another thread.
      */
     public boolean isClosed() {
         if (this.threadId != Thread.currentThread().getId()) {
@@ -494,6 +514,11 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
+    // Return all handlers registered for this Realm
+    static Map<Handler, String> getHandlers() {
+        return handlers;
+    }
+
     /**
      * Returns the schema for this Realm.
      *
@@ -541,6 +566,18 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Removes all objects from this Realm.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or on an incorrect thread.
+     */
+    public void clear() {
+        checkIfValid();
+        for (RealmObjectSchema objectSchema : schema.getAll()) {
+            schema.getTable(objectSchema.getClassName()).clear();
+        }
+    }
+
+    /**
      * Deletes the Realm file defined by the given configuration.
      */
     static boolean deleteRealm(final RealmConfiguration configuration) {
@@ -551,7 +588,7 @@ abstract class BaseRealm implements Closeable {
             public void onResult(int count) {
                 if (count != 0) {
                     throw new IllegalStateException("It's not allowed to delete the file associated with an open Realm. " +
-                            "Remember to close() all the instances of the Realm before deleting its file.");
+                            "Remember to close() all the instances of the Realm before deleting its file: " + configuration.getPath());
                 }
 
                 String canonicalPath = configuration.getPath();

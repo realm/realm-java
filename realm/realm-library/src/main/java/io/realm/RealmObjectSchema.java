@@ -140,7 +140,11 @@ public final class RealmObjectSchema {
         }
 
         checkNewFieldName(fieldName);
-        boolean nullable = metadata.defaultNullable && !containsAttribute(attributes, FieldAttribute.REQUIRED);
+        boolean nullable = metadata.defaultNullable;
+        if (containsAttribute(attributes, FieldAttribute.REQUIRED) ||
+                containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
+            nullable = false;
+        }
         long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
 
         try {

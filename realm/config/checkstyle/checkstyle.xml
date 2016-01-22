@@ -8,7 +8,7 @@
     <property name="charset" value="UTF-8"/>
     <!-- Files to ignore -->
     <module name="SuppressionFilter">
-        <property name="file" value="${proj.module.dir}/config/checkstyle/checkstyle-suppressions.xml"/>
+        <property name="file" value="${proj.module.dir}/../config/checkstyle/checkstyle-suppressions.xml"/>
     </module>
 
     <module name="NewlineAtEndOfFile">

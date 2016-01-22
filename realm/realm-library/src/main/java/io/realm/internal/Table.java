@@ -598,7 +598,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     /**
      * Checks if a given column is a primary key column.
      *
-     * @param columnIndex the ndex of column in the table.
+     * @param columnIndex the index of column in the table.
      * @return {@code true} if column is a primary key, {@code false} otherwise.
      */
     public boolean isPrimaryKey(long columnIndex) {
@@ -1137,6 +1137,19 @@ public class Table implements TableOrView, TableSchema, Closeable {
             TableQuery.nativeClose(nativeQueryPtr);
             throw e;
         }
+    }
+
+    /**
+     * Returns the same rowIndex that is passed in via the {@code rowIndex}.
+     * This interface method allows for contains() usage in the {@link TableView} class.
+     * See {@link TableView#sourceRowIndex(long)} for more information.
+     *
+     * @param rowIndex the index of the row.
+     * @return the row index.
+     */
+    @Override
+    public long sourceRowIndex(long rowIndex) {
+        return rowIndex;
     }
 
     @Override

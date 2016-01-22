@@ -49,6 +49,32 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_createNativeTableView(
     return 0;
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
+    JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
+{
+    if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
+        return;
+    if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
+        return;
+    if (!TV(nativeViewPtr)->get_parent().has_search_index(S(columnIndex))) {
+        ThrowException(env, UnsupportedOperation, "The field must be indexed before distinct() can be used.");
+        return;
+    }
+    try {
+        switch (TV(nativeViewPtr)->get_column_type(S(columnIndex))) {
+            case type_Bool:
+            case type_Int:
+            case type_DateTime:
+            case type_String:
+                TV(nativeViewPtr)->distinct(S(columnIndex));
+                break;
+            default:
+                ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
+                break;
+        }
+    } CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
     JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
 {
@@ -1014,4 +1040,18 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeSync(
         return (jlong) TV(nativeViewPtr)->sync_if_needed();
     } CATCH_STD()
     return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeFindBySourceNdx
+        (JNIEnv *env, jobject, jlong nativeViewPtr, jlong sourceIndex)
+{
+    TR_ENTER_PTR(nativeViewPtr);
+    try {
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) || !ROW_INDEX_VALID(env, &(TV(nativeViewPtr)->get_parent()), sourceIndex))
+            return -1;
+
+        size_t ndx = TV(nativeViewPtr)->find_by_source_ndx(sourceIndex);
+        return to_jlong_or_not_found(ndx);
+    } CATCH_STD()
+    return -1;
 }

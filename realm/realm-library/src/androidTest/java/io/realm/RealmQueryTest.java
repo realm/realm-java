@@ -16,7 +16,14 @@
 
 package io.realm;
 
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
@@ -34,36 +42,37 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.StringOnly;
-import io.realm.exceptions.RealmError;
+import io.realm.rule.TestRealmConfigurationFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class RealmQueryTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class RealmQueryTest {
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     protected final static int TEST_DATA_SIZE = 10;
 
     protected Realm testRealm;
 
-    private final static String FIELD_STRING = "columnString";
-    private final static String FIELD_LONG = "columnLong";
-    private final static String FIELD_FLOAT = "columnFloat";
-    private final static String FIELD_DATE = "columnDate";
-    private final static String FIELD_LONG_KOREAN_CHAR = "델타";
-    private final static String FIELD_LONG_GREEK_CHAR = "Δέλτα";
-    private final static String FIELD_FLOAT_KOREAN_CHAR = "베타";
-    private final static String FIELD_FLOAT_GREEK_CHAR = "βήτα";
-
     private final static long DECADE_MILLIS = 10 * TimeUnit.DAYS.toMillis(365);
 
-    @Override
-    protected void setUp() throws Exception {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(realmConfig);
+    @Before
+    public void setUp() throws Exception {
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
         testRealm = Realm.getInstance(realmConfig);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        if (testRealm != null)
+    @After
+    public void tearDown() throws Exception {
+        if (testRealm != null) {
             testRealm.close();
+        }
     }
 
     private void populateTestRealm(int objects) {
@@ -92,126 +101,133 @@ public class RealmQueryTest extends AndroidTestCase {
         populateTestRealm(TEST_DATA_SIZE);
     }
 
-    public void testRealmQueryBetween() {
+    @Test
+    public void between() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .between(FIELD_LONG, 0, 9).findAll();
+                .between(AllTypes.FIELD_LONG, 0, 9).findAll();
         assertEquals(10, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data ").findAll();
+        resultList = testRealm.where(AllTypes.class).beginsWith(AllTypes.FIELD_STRING, "test data ").findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1")
-                .between(FIELD_LONG, 2, 20).findAll();
+        resultList = testRealm.where(AllTypes.class).beginsWith(AllTypes.FIELD_STRING, "test data 1")
+                .between(AllTypes.FIELD_LONG, 2, 20).findAll();
         assertEquals(10, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).between(FIELD_LONG, 2, 20)
-                .beginsWith(FIELD_STRING, "test data 1").findAll();
+        resultList = testRealm.where(AllTypes.class).between(AllTypes.FIELD_LONG, 2, 20)
+                .beginsWith(AllTypes.FIELD_STRING, "test data 1").findAll();
         assertEquals(10, resultList.size());
 
-        assertEquals(51, testRealm.where(AllTypes.class).between(FIELD_DATE,
+        assertEquals(51, testRealm.where(AllTypes.class).between(AllTypes.FIELD_DATE,
                 new Date(0),
                 new Date(DECADE_MILLIS * 50)).count());
     }
 
-    public void testRealmQueryGreaterThan() {
+    @Test
+    public void greaterThan() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .greaterThan(FIELD_FLOAT, 10.234567f).findAll();
+                .greaterThan(AllTypes.FIELD_FLOAT, 10.234567f).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 10, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1")
-                .greaterThan(FIELD_FLOAT, 50.234567f).findAll();
+        resultList = testRealm.where(AllTypes.class).beginsWith(AllTypes.FIELD_STRING, "test data 1")
+                .greaterThan(AllTypes.FIELD_FLOAT, 50.234567f).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 100, resultList.size());
 
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.234567f);
-        resultList = query.between(FIELD_LONG, 1, 20).findAll();
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 11.234567f);
+        resultList = query.between(AllTypes.FIELD_LONG, 1, 20).findAll();
         assertEquals(10, resultList.size());
     }
 
-    public void testGreaterThanDate() {
+    @Test
+    public void greaterThan_date() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList;
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
         assertEquals(179, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(0)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_DATE, new Date(0)).findAll();
         assertEquals(TEST_OBJECTS_COUNT / 2 - 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
         assertEquals(19, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
         assertEquals(0, resultList.size());
     }
 
 
-    public void testRealmQueryGreaterThanOrEqualTo() {
+    @Test
+    public void greaterThanOrEqualTo() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .greaterThanOrEqualTo(FIELD_FLOAT, 10.234567f).findAll();
+                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 10.234567f).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 9, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).beginsWith(FIELD_STRING, "test data 1")
-                .greaterThanOrEqualTo(FIELD_FLOAT, 50.234567f).findAll();
+        resultList = testRealm.where(AllTypes.class).beginsWith(AllTypes.FIELD_STRING, "test data 1")
+                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 50.234567f).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 100, resultList.size());
 
         RealmQuery<AllTypes> query = testRealm.where(AllTypes.class)
-                .greaterThanOrEqualTo(FIELD_FLOAT, 11.234567f);
-        query = query.between(FIELD_LONG, 1, 20);
+                .greaterThanOrEqualTo(AllTypes.FIELD_FLOAT, 11.234567f);
+        query = query.between(AllTypes.FIELD_LONG, 1, 20);
 
-        resultList = query.beginsWith(FIELD_STRING, "test data 15").findAll();
+        resultList = query.beginsWith(AllTypes.FIELD_STRING, "test data 15").findAll();
         assertEquals(1, resultList.size());
     }
 
-    public void testGreaterThanOrEqualToDate() {
+    @Test
+    public void greaterThanOrEqualTo_date() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList;
-        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(AllTypes.FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
         assertEquals(180, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(0)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(AllTypes.FIELD_DATE, new Date(0)).findAll();
         assertEquals(TEST_OBJECTS_COUNT / 2, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
         assertEquals(20, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThanOrEqualTo(AllTypes.FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
         assertEquals(0, resultList.size());
     }
 
-    public void testRealmQueryOr() {
+    @Test
+    public void or() {
         populateTestRealm(200);
 
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f);
-        RealmResults<AllTypes> resultList = query.or().between(FIELD_LONG, 1, 20).findAll();
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 31.234567f);
+        RealmResults<AllTypes> resultList = query.or().between(AllTypes.FIELD_LONG, 1, 20).findAll();
         assertEquals(21, resultList.size());
 
-        resultList = query.or().equalTo(FIELD_STRING, "test data 15").findAll();
+        resultList = query.or().equalTo(AllTypes.FIELD_STRING, "test data 15").findAll();
         assertEquals(21, resultList.size());
 
-        resultList = query.or().equalTo(FIELD_STRING, "test data 117").findAll();
+        resultList = query.or().equalTo(AllTypes.FIELD_STRING, "test data 117").findAll();
         assertEquals(22, resultList.size());
     }
 
-    public void testRealmQueryNot() {
+    @Test
+    public void not() {
         populateTestRealm(); // create TEST_DATA_SIZE objects
 
         // only one object with value 5 -> TEST_DATA_SIZE-1 object with value "not 5"
-        RealmResults<AllTypes> list1 = testRealm.where(AllTypes.class).not().equalTo(FIELD_LONG, 5).findAll();
+        RealmResults<AllTypes> list1 = testRealm.where(AllTypes.class).not().equalTo(AllTypes.FIELD_LONG, 5).findAll();
         assertEquals(TEST_DATA_SIZE - 1, list1.size());
 
         // not().greater() and lessThenOrEqual() must be the same
-        RealmResults<AllTypes> list2 = testRealm.where(AllTypes.class).not().greaterThan(FIELD_LONG, 5).findAll();
-        RealmResults<AllTypes> list3 = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_LONG, 5).findAll();
+        RealmResults<AllTypes> list2 = testRealm.where(AllTypes.class).not().greaterThan(AllTypes.FIELD_LONG, 5).findAll();
+        RealmResults<AllTypes> list3 = testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_LONG, 5).findAll();
         assertEquals(list2.size(), list3.size());
         for (int i = 0; i < list2.size(); i++) {
             assertEquals(list2.get(i).getColumnLong(), list3.get(i).getColumnLong());
@@ -220,10 +236,10 @@ public class RealmQueryTest extends AndroidTestCase {
         // excepted result: 0, 1, 2, 5
         long expected[] = {0, 1, 2, 5};
         RealmResults<AllTypes> list4 = testRealm.where(AllTypes.class)
-                .equalTo(FIELD_LONG, 5)
+                .equalTo(AllTypes.FIELD_LONG, 5)
                 .or()
                 .not().beginGroup()
-                .greaterThan(FIELD_LONG, 2)
+                .greaterThan(AllTypes.FIELD_LONG, 2)
                 .endGroup()
                 .findAll();
         assertEquals(4, list4.size());
@@ -232,179 +248,187 @@ public class RealmQueryTest extends AndroidTestCase {
         }
     }
 
-    public void testRealmQueryNotFailure() {
+    @Test (expected = UnsupportedOperationException.class)
+    public void not_aloneThrows() {
         // a not() alone must fail
-        try {
-            testRealm.where(AllTypes.class).not().findAll();
-            fail();
-        } catch (RuntimeException ignored) {
-        }
+        testRealm.where(AllTypes.class).not().findAll();
     }
 
-    public void testRealmQueryImplicitAnd() {
+    @Test
+    public void and_implicit() {
         populateTestRealm(200);
 
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 31.234567f);
-        RealmResults<AllTypes> resultList = query.between(FIELD_LONG, 1, 10).findAll();
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 31.234567f);
+        RealmResults<AllTypes> resultList = query.between(AllTypes.FIELD_LONG, 1, 10).findAll();
         assertEquals(0, resultList.size());
 
-        query = testRealm.where(AllTypes.class).equalTo(FIELD_FLOAT, 81.234567f);
-        resultList = query.between(FIELD_LONG, 1, 100).findAll();
+        query = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 81.234567f);
+        resultList = query.between(AllTypes.FIELD_LONG, 1, 100).findAll();
         assertEquals(1, resultList.size());
     }
 
-    public void testRealmQueryLessThan() {
+    @Test
+    public void lessThan() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class).
-                lessThan(FIELD_FLOAT, 31.234567f).findAll();
+                lessThan(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
         assertEquals(30, resultList.size());
-        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).lessThan(FIELD_FLOAT, 31.234567f);
-        resultList = query.between(FIELD_LONG, 1, 10).findAll();
+        RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_FLOAT, 31.234567f);
+        resultList = query.between(AllTypes.FIELD_LONG, 1, 10).findAll();
         assertEquals(10, resultList.size());
     }
 
-    public void testLessThanDate() {
+    @Test
+    public void lessThan_Date() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList;
-        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
         assertEquals(0, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
         assertEquals(20, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(0)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_DATE, new Date(0)).findAll();
         assertEquals(TEST_OBJECTS_COUNT / 2, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
         assertEquals(180, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThan(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThan(AllTypes.FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
-    public void testRealmQueryLessThanOrEqualTo() {
+    @Test
+    public void lessThanOrEqualTo() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .lessThanOrEqualTo(FIELD_FLOAT, 31.234567f).findAll();
+                .lessThanOrEqualTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
         assertEquals(31, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_FLOAT, 31.234567f)
-                .between(FIELD_LONG, 11, 20).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_FLOAT, 31.234567f)
+                .between(AllTypes.FIELD_LONG, 11, 20).findAll();
         assertEquals(10, resultList.size());
     }
 
-    public void testLessThanOrEqualToDate() {
+    @Test
+    public void lessThanOrEqualTo_date() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList;
-        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
         assertEquals(0, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
         assertEquals(21, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(0)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_DATE, new Date(0)).findAll();
         assertEquals(TEST_OBJECTS_COUNT / 2 + 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
         assertEquals(181, resultList.size());
-        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).lessThanOrEqualTo(AllTypes.FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
-    public void testRealmQueryEqualTo() {
+    @Test
+    public void equalTo() {
         populateTestRealm(200);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .equalTo(FIELD_FLOAT, 31.234567f).findAll();
+                .equalTo(AllTypes.FIELD_FLOAT, 31.234567f).findAll();
         assertEquals(1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f)
-                .equalTo(FIELD_LONG, 10).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 11.0f)
+                .equalTo(AllTypes.FIELD_LONG, 10).findAll();
         assertEquals(1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 11.0f)
-                .equalTo(FIELD_LONG, 1).findAll();
+        resultList = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 11.0f)
+                .equalTo(AllTypes.FIELD_LONG, 1).findAll();
         assertEquals(0, resultList.size());
     }
 
-    public void testEqualToDate() {
+    @Test
+    public void equalTo_date() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList;
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
         assertEquals(0, resultList.size());
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
         assertEquals(1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(0)).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_DATE, new Date(0)).findAll();
         assertEquals(1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
         assertEquals(1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).equalTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
         assertEquals(0, resultList.size());
     }
 
-    public void testRealmQueryEqualToNonLatinCharacters() {
+    @Test
+    public void equalTo_nonLatinCharacters() {
         populateTestRealm(200);
 
         RealmResults<NonLatinFieldNames> resultList = testRealm.where(NonLatinFieldNames.class)
-                .equalTo(FIELD_LONG_KOREAN_CHAR, 13).findAll();
+                .equalTo(NonLatinFieldNames.FIELD_LONG_KOREAN_CHAR, 13).findAll();
         assertEquals(1, resultList.size());
         resultList = testRealm.where(NonLatinFieldNames.class)
-                .greaterThan(FIELD_FLOAT_KOREAN_CHAR, 11.0f)
-                .equalTo(FIELD_LONG_KOREAN_CHAR, 10).findAll();
+                .greaterThan(NonLatinFieldNames.FIELD_FLOAT_KOREAN_CHAR, 11.0f)
+                .equalTo(NonLatinFieldNames.FIELD_LONG_KOREAN_CHAR, 10).findAll();
         assertEquals(1, resultList.size());
         resultList = testRealm.where(NonLatinFieldNames.class)
-                .greaterThan(FIELD_FLOAT_KOREAN_CHAR, 11.0f)
-                .equalTo(FIELD_LONG_KOREAN_CHAR, 1).findAll();
+                .greaterThan(NonLatinFieldNames.FIELD_FLOAT_KOREAN_CHAR, 11.0f)
+                .equalTo(NonLatinFieldNames.FIELD_LONG_KOREAN_CHAR, 1).findAll();
         assertEquals(0, resultList.size());
 
         resultList = testRealm.where(NonLatinFieldNames.class)
-                .equalTo(FIELD_LONG_GREEK_CHAR, 13).findAll();
+                .equalTo(NonLatinFieldNames.FIELD_LONG_GREEK_CHAR, 13).findAll();
         assertEquals(1, resultList.size());
         resultList = testRealm.where(NonLatinFieldNames.class)
-                .greaterThan(FIELD_FLOAT_GREEK_CHAR, 11.0f)
-                .equalTo(FIELD_LONG_GREEK_CHAR, 10).findAll();
+                .greaterThan(NonLatinFieldNames.FIELD_FLOAT_GREEK_CHAR, 11.0f)
+                .equalTo(NonLatinFieldNames.FIELD_LONG_GREEK_CHAR, 10).findAll();
         assertEquals(1, resultList.size());
         resultList = testRealm.where(NonLatinFieldNames.class)
-                .greaterThan(FIELD_FLOAT_GREEK_CHAR, 11.0f)
-                .equalTo(FIELD_LONG_GREEK_CHAR, 1).findAll();
+                .greaterThan(NonLatinFieldNames.FIELD_FLOAT_GREEK_CHAR, 11.0f)
+                .equalTo(NonLatinFieldNames.FIELD_LONG_GREEK_CHAR, 1).findAll();
         assertEquals(0, resultList.size());
     }
 
-    public void testRealmQueryNotEqualTo() {
+    @Test
+    public void notEqualTo() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList = testRealm.where(AllTypes.class)
-                .notEqualTo(FIELD_LONG, 31).findAll();
+                .notEqualTo(AllTypes.FIELD_LONG, 31).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_FLOAT, 11.234567f)
-                .equalTo(FIELD_LONG, 10).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_FLOAT, 11.234567f)
+                .equalTo(AllTypes.FIELD_LONG, 10).findAll();
         assertEquals(0, resultList.size());
 
-        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_FLOAT, 11.234567f)
-                .equalTo(FIELD_LONG, 1).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_FLOAT, 11.234567f)
+                .equalTo(AllTypes.FIELD_LONG, 1).findAll();
         assertEquals(1, resultList.size());
     }
 
-    public void testNotEqualToDate() {
+    @Test
+    public void notEqualTo_date() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
         RealmResults<AllTypes> resultList;
-        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_DATE, new Date(Long.MIN_VALUE)).findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
-        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * -80)).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(0)).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_DATE, new Date(0)).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_DATE, new Date(DECADE_MILLIS * 80)).findAll();
         assertEquals(TEST_OBJECTS_COUNT - 1, resultList.size());
-        resultList = testRealm.where(AllTypes.class).notEqualTo(FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
+        resultList = testRealm.where(AllTypes.class).notEqualTo(AllTypes.FIELD_DATE, new Date(Long.MAX_VALUE)).findAll();
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
-    public void testRealmQueryContainsAndCaseSensitive() {
+    @Test
+    public void contains_caseSensitive() {
         final int TEST_OBJECTS_COUNT = 200;
         populateTestRealm(TEST_OBJECTS_COUNT);
 
@@ -422,7 +446,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertEquals(TEST_OBJECTS_COUNT, resultList.size());
     }
 
-    public void testRealmQueryContainsAndCaseSensitiveWithNonLatinCharacters() {
+    @Test
+    public void contains_caseSensitiveWithNonLatinCharacters() {
         populateTestRealm();
 
         testRealm.beginTransaction();
@@ -456,7 +481,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertEquals(0, resultList.size());
     }
 
-    public void testQueryWithNonExistingField() {
+    @Test
+    public void equalTo_withNonExistingField() {
         try {
             testRealm.where(AllTypes.class).equalTo("NotAField", 13).findAll();
             fail("Should throw exception");
@@ -464,7 +490,8 @@ public class RealmQueryTest extends AndroidTestCase {
         }
     }
 
-    public void testRealmQueryLink() {
+    @Test
+    public void queryLink() {
         testRealm.beginTransaction();
         Owner owner = testRealm.createObject(Owner.class);
         Dog dog1 = testRealm.createObject(Dog.class);
@@ -478,7 +505,7 @@ public class RealmQueryTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         // Dog.weight has index 4 which is more than the total number of columns in Owner
-        // This tests exposes a subtle error where the Owner tablespec is used instead of Dog tablespec.
+        // This tests exposes a subtle error where the Owner table spec is used instead of Dog table spec.
         RealmResults<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs().where()
                 .findAllSorted("name", Sort.ASCENDING);
         Dog dog = dogs.where().equalTo("weight", 1d).findFirst();
@@ -486,20 +513,19 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
 
-    public void testSortMultiFailures() {
+    @Test
+    public void findAllSorted_multiFailures() {
         // zero fields specified
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
-                    .findAllSorted(new String[]{}, new Sort[]{});
+            testRealm.where(AllTypes.class).findAllSorted(new String[]{}, new Sort[]{});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
 
         // number of fields and sorting orders don't match
         try {
-            RealmResults<AllTypes> results = testRealm.where(AllTypes.class)
-                    .findAllSorted(new String[]{FIELD_STRING},
-                            new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
+            testRealm.where(AllTypes.class).findAllSorted(new String[]{AllTypes.FIELD_STRING},
+                    new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -511,7 +537,7 @@ public class RealmQueryTest extends AndroidTestCase {
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            testRealm.where(AllTypes.class).findAllSorted(new String[]{FIELD_STRING}, null);
+            testRealm.where(AllTypes.class).findAllSorted(new String[]{AllTypes.FIELD_STRING}, null);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -519,13 +545,15 @@ public class RealmQueryTest extends AndroidTestCase {
         // non-existing field name
         try {
             testRealm.where(AllTypes.class)
-                    .findAllSorted(new String[]{FIELD_STRING, "dont-exist"}, new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
+                    .findAllSorted(new String[]{AllTypes.FIELD_STRING, "do-not-exist"},
+                            new Sort[]{Sort.ASCENDING, Sort.ASCENDING});
             fail();
         } catch (IllegalArgumentException ignored) {
         }
     }
 
-    public void testSortSingleField() {
+    @Test
+    public void findAllSorted_singleField() {
         testRealm.beginTransaction();
         for (int i = 0; i < TEST_DATA_SIZE; i++) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
@@ -534,20 +562,22 @@ public class RealmQueryTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         RealmResults<AllTypes> sortedList = testRealm.where(AllTypes.class)
-                .findAllSorted(new String[]{FIELD_LONG}, new Sort[]{Sort.DESCENDING});
+                .findAllSorted(new String[]{AllTypes.FIELD_LONG}, new Sort[]{Sort.DESCENDING});
         assertEquals(TEST_DATA_SIZE, sortedList.size());
         assertEquals(TEST_DATA_SIZE - 1, sortedList.first().getColumnLong());
         assertEquals(0, sortedList.last().getColumnLong());
     }
 
-    public void testSubqueryScope() {
+    @Test
+    public void subQueryScope() {
         populateTestRealm();
         RealmResults<AllTypes> result = testRealm.where(AllTypes.class).lessThan("columnLong", 5).findAll();
         RealmResults<AllTypes> subQueryResult = result.where().greaterThan("columnLong", 3).findAll();
         assertEquals(1, subQueryResult.size());
     }
 
-    public void testFindFirst() {
+    @Test
+    public void findFirst() {
         testRealm.beginTransaction();
         Owner owner1 = testRealm.createObject(Owner.class);
         owner1.setName("Owner 1");
@@ -577,7 +607,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertEquals(dog4, dog);
     }
 
-    public void testGeorgian() {
+    @Test
+    public void georgian() {
         String words[] = {"მონაცემთა ბაზა", "მიწისქვეშა გადასასვლელი", "რუსთაველის გამზირი",
                 "მთავარი ქუჩა", "სადგურის მოედანი", "ველოცირაპტორების ჯოგი"};
         String sorted[] = {"ველოცირაპტორების ჯოგი", "მთავარი ქუჩა", "მიწისქვეშა გადასასვლელი",
@@ -602,7 +633,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying a non-nullable field with null is an error
-    public void testQueryNullFieldNotNullableField() {
+    @Test
+    public void equalTo_notNullableFields() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 1 String
@@ -664,7 +696,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying a non-nullable field with null is an error
-    public void testQueryNullFieldsNotNullableFieldIsNull() {
+    @Test
+    public void isNull_notNullableFields() {
         // 1 String
         try {
             testRealm.where(NullTypes.class).isNull(NullTypes.FIELD_STRING_NOT_NULL).findAll();
@@ -728,7 +761,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying nullable fields, querying with equalTo null
-    public void testQueryNullFieldsEqual() {
+    @Test
+    public void equalTo_nullableFields() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 1 String
@@ -776,7 +810,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying nullable field for null
-    public void testQueryNullFieldIsNull() {
+    @Test
+    public void isNull_nullableFields() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 1 String
@@ -804,7 +839,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying nullable field for not null
-    public void testQueryNullFieldsNotEqual() {
+    @Test
+    public void notEqualTo_nullableFields() {
         TestHelper.populateTestRealmForNullTests(testRealm);
         // 1 String
         assertEquals(2, testRealm.where(NullTypes.class).notEqualTo(NullTypes.FIELD_STRING_NULL, "Horse").findAll().size());
@@ -838,7 +874,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying nullable field for not null
-    public void testQueryNullFieldsIsNotNull() {
+    @Test
+    public void isNotNull_nullableFields() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 1 String
@@ -866,28 +903,32 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying nullable field with beginsWith - all strings begin with null
-    public void testQueryNullStringsBeginsWith() {
+    @Test
+    public void beginWith_nullForNullableStrings() {
         TestHelper.populateTestRealmForNullTests(testRealm);
         assertEquals("Fish", testRealm.where(NullTypes.class).beginsWith(NullTypes.FIELD_STRING_NULL,
                 null).findFirst().getFieldStringNotNull());
     }
 
     // Querying nullable field with endsWith - all strings contain with null
-    public void testQueryNullStringsContains() {
+    @Test
+    public void contains_nullForNullableStrings() {
         TestHelper.populateTestRealmForNullTests(testRealm);
         assertEquals("Fish", testRealm.where(NullTypes.class).contains(NullTypes.FIELD_STRING_NULL,
                 null).findFirst().getFieldStringNotNull());
     }
 
     // Querying nullable field with endsWith - all strings end with null
-    public void testQueryNullStringsEndsWith() {
+    @Test
+    public void endsWith_nullForNullableStrings() {
         TestHelper.populateTestRealmForNullTests(testRealm);
         assertEquals("Fish", testRealm.where(NullTypes.class).endsWith(NullTypes.FIELD_STRING_NULL,
                 null).findFirst().getFieldStringNotNull());
     }
 
     // Querying with between and table has null values in row.
-    public void testRealmQueryBetweenWithNullValuesInRow() {
+    @Test
+    public void between_nullValuesInRow() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 6 Integer
@@ -904,7 +945,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying with greaterThan and table has null values in row.
-    public void testRealmQueryGreaterThanWithNullValuesInRow() {
+    @Test
+    public void greaterThan_nullValuesInRow() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 6 Integer
@@ -921,7 +963,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying with greaterThanOrEqualTo and table has null values in row.
-    public void testRealmQueryGreaterThanOrEqualToWithNullValuesInRow() {
+    @Test
+    public void greaterThanOrEqualTo_nullValuesInRow() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 6 Integer
@@ -938,7 +981,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying with lessThan and table has null values in row.
-    public void testRealmQueryLessThanWithNullValuesInRow() {
+    @Test
+    public void lessThan_nullValuesInRow() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 6 Integer
@@ -956,7 +1000,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Querying with lessThanOrEqualTo and table has null values in row.
-    public void testRealmQueryLessThanOrEqualWithNullValuesInRow() {
+    @Test
+    public void lessThanOrEqual_nullValuesInRow() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 6 Integer
@@ -974,7 +1019,8 @@ public class RealmQueryTest extends AndroidTestCase {
 
     // If the RealmQuery is built on a TableView, it should not crash when used after GC.
     // See issue #1161 for more details.
-    public void testBuildQueryFromResultsGC() {
+    @Test
+    public void buildQueryFromResultsGC() {
         // According to the testing, setting this to 10 can almost certainly trigger the GC.
         // Use 30 here can ensure GC happen. (Tested with 4.3 1G Ram and 5.0 3G Ram)
         final int count = 30;
@@ -989,7 +1035,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test min on empty columns
-    public void testMinValueForEmptyColumns() {
+    @Test
+    public void min_emptyColumns() {
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
         assertNull(query.min(NullTypes.FIELD_INTEGER_NOT_NULL));
         assertNull(query.min(NullTypes.FIELD_FLOAT_NOT_NULL));
@@ -998,7 +1045,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test min on columns with all null rows
-    public void testMinValueForAllNullColumns() {
+    @Test
+    public void min_allNullColumns() {
         TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
@@ -1009,7 +1057,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test min on columns with all non-null rows
-    public void testMinForAllNonNullRows() {
+    @Test
+    public void min_allNonNullRows() {
         TestHelper.populateAllNonNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1020,17 +1069,19 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test min on columns with partial null rows
-    public void testMinForPartialNullRows() {
+    @Test
+    public void min_partialNullRows() {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
         assertEquals(3, query.min(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(4f, query.min(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(5d, query.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(4f, query.min(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(5d, query.min(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
     // Test max on empty columns
-    public void testMaxValueForEmptyColumns() {
+    @Test
+    public void max_emptyColumns() {
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
         assertNull(query.max(NullTypes.FIELD_INTEGER_NOT_NULL));
         assertNull(query.max(NullTypes.FIELD_FLOAT_NOT_NULL));
@@ -1039,7 +1090,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test max on columns with all null rows
-    public void testMaxValueForAllNullColumns() {
+    @Test
+    public void max_allNullColumns() {
         TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
@@ -1050,7 +1102,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test max on columns with all non-null rows
-    public void testMaxForAllNonNullRows() {
+    @Test
+    public void max_allNonNullRows() {
         TestHelper.populateAllNonNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1061,18 +1114,20 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test max on columns with partial null rows
-    public void testMaxForPartialNullRows() {
+    @Test
+    public void max_partialNullRows() {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
         assertEquals(4, query.max(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(5f, query.max(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(6d, query.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(5f, query.max(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(6d, query.max(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
         assertEquals(12000, query.maximumDate(NullTypes.FIELD_DATE_NULL).getTime());
     }
 
     // Test average on empty columns
-    public void testAverageValueForEmptyColumns() {
+    @Test
+    public void average_emptyColumns() {
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
         assertEquals(0d, query.average(NullTypes.FIELD_INTEGER_NULL), 0d);
         assertEquals(0d, query.average(NullTypes.FIELD_FLOAT_NULL), 0d);
@@ -1080,7 +1135,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test average on columns with all null rows
-    public void testAverageValueForAllNullColumns() {
+    @Test
+    public void average_allNullColumns() {
         TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
@@ -1090,7 +1146,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test average on columns with all non-null rows
-    public void testAvgForAllNonNullRows() {
+    @Test
+    public void average_allNonNullRows() {
         TestHelper.populateAllNonNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1100,7 +1157,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test average on columns with partial null rows
-    public void testAvgForPartialNullRows() {
+    @Test
+    public void average_partialNullRows() {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
@@ -1110,7 +1168,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test sum on empty columns
-    public void testSumValueForEmptyColumns() {
+    @Test
+    public void sum_emptyColumns() {
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
         assertEquals(0, query.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
         assertEquals(0f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
@@ -1118,7 +1177,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test sum on columns with all null rows
-    public void testSumValueForAllNullColumns() {
+    @Test
+    public void sum_allNullColumns() {
         TestHelper.populateAllNullRowsForNumericTesting(testRealm);
 
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
@@ -1128,27 +1188,30 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test sum on columns with all non-null rows
-    public void testSumForAllNonNullRows() {
+    @Test
+    public void sum_allNonNullRows() {
         TestHelper.populateAllNonNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
         assertEquals(6, query.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(7f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(8d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(7f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(8d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
     // Test sum on columns with partial null rows
-    public void testSumForPartialNullRows() {
+    @Test
+    public void sum_partialNullRows() {
         TestHelper.populatePartialNullRowsForNumericTesting(testRealm);
         RealmQuery<NullTypes> query = testRealm.where(NullTypes.class);
 
         assertEquals(7, query.sum(NullTypes.FIELD_INTEGER_NULL).intValue());
-        assertEquals(9f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue());
-        assertEquals(11d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue());
+        assertEquals(9f, query.sum(NullTypes.FIELD_FLOAT_NULL).floatValue(), 0f);
+        assertEquals(11d, query.sum(NullTypes.FIELD_DOUBLE_NULL).doubleValue(), 0d);
     }
 
     // Test isNull on link's nullable field.
-    public void testIsNullOnLinkField() {
+    @Test
+    public void isNull_linkField() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // For the link with null value, query isNull on its fields should return true.
@@ -1195,7 +1258,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test isNull on link's not-nullable field. should throw
-    public void testIsNullOnLinkFieldNotNullable() {
+    @Test
+    public void isNull_linkFieldNotNullable() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 1 String
@@ -1272,7 +1336,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test isNotNull on link's nullable field.
-    public void testIsNotNullOnLinkField() {
+    @Test
+    public void isNotNull_linkField() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 1 String
@@ -1318,7 +1383,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Test isNotNull on link's not-nullable field. should throw
-    public void testIsNotNullOnLinkFieldNotNullable() {
+    @Test
+    public void isNotNull_linkFieldNotNullable() {
         TestHelper.populateTestRealmForNullTests(testRealm);
 
         // 1 String
@@ -1395,7 +1461,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Calling isNull on fields with the RealmList type will trigger an exception
-    public void testIsNullOnRealmListFieldThrows() {
+    @Test
+    public void isNull_listFieldThrows() {
         try {
             testRealm.where(Owner.class).isNull("dogs");
             fail();
@@ -1412,7 +1479,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // Calling isNotNull on fields with the RealmList type will trigger an exception
-    public void testIsNotNullOnRealmListFieldThrows() {
+    @Test
+    public void isNotNull_listFieldThrows() {
         try {
             testRealm.where(Owner.class).isNotNull("dogs");
             fail();
@@ -1428,7 +1496,8 @@ public class RealmQueryTest extends AndroidTestCase {
         }
     }
 
-    public void NOtestLargeRealmMultipleThreads() throws InterruptedException {
+    // @Test Disabled because of time consuming.
+    public void largeRealmMultipleThreads() throws InterruptedException {
         final int nObjects = 500000;
         final int nThreads = 3;
         final CountDownLatch latch = new CountDownLatch(nThreads);
@@ -1447,11 +1516,11 @@ public class RealmQueryTest extends AndroidTestCase {
                     new Runnable() {
                         @Override
                         public void run() {
-                            RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
+                            RealmConfiguration realmConfig = configFactory.createConfiguration();
                             Realm realm = Realm.getInstance(realmConfig);
                             RealmResults<StringOnly> realmResults = realm.allObjects(StringOnly.class);
                             int n = 0;
-                            for (StringOnly stringOnly : realmResults) {
+                            for (StringOnly ignored : realmResults) {
                                 n = n + 1;
                             }
                             assertEquals(nObjects, n);
@@ -1466,7 +1535,8 @@ public class RealmQueryTest extends AndroidTestCase {
         latch.await();
     }
 
-    public void testIsValidOfTableQuery() {
+    @Test
+    public void isValid_tableQuery() {
         final RealmQuery<AllTypes> query = testRealm.where(AllTypes.class);
 
         assertTrue(query.isValid());
@@ -1478,9 +1548,10 @@ public class RealmQueryTest extends AndroidTestCase {
         assertFalse(query.isValid());
     }
 
-    public void testIsValidOfTableViewQuery() {
+    @Test
+    public void isValid_tableViewQuery() {
         populateTestRealm();
-        final RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(FIELD_FLOAT, 5f)
+        final RealmQuery<AllTypes> query = testRealm.where(AllTypes.class).greaterThan(AllTypes.FIELD_FLOAT, 5f)
                 .findAll().where();
         assertTrue(query.isValid());
 
@@ -1493,7 +1564,8 @@ public class RealmQueryTest extends AndroidTestCase {
     }
 
     // test for https://github.com/realm/realm-java/issues/1905
-    public void testResultOfTableViewQuery() {
+    @Test
+    public void resultOfTableViewQuery() {
         populateTestRealm();
 
         final RealmResults<AllTypes> results = testRealm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 3L).findAll();
@@ -1502,7 +1574,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertEquals("test data 3", tableViewQuery.findFirst().getColumnString());
     }
 
-    public void testIsValidOfLinkViewQuery() {
+    @Test
+    public void isValid_linkViewQuery() {
         populateTestRealm(1);
         final RealmList<Dog> list = testRealm.where(AllTypes.class).findFirst().getColumnRealmList();
         final RealmQuery<Dog> query = list.where();
@@ -1523,7 +1596,8 @@ public class RealmQueryTest extends AndroidTestCase {
         assertFalse(query.isValid());
     }
 
-    public void testIsValidOfRemovedParent() {
+    @Test
+    public void isValid_removedParent() {
         populateTestRealm(1);
         final AllTypes obj = testRealm.where(AllTypes.class).findFirst();
         final RealmQuery<Dog> query = obj.getColumnRealmList().where();
@@ -1574,7 +1648,8 @@ public class RealmQueryTest extends AndroidTestCase {
         realm.commitTransaction();
     }
 
-    public void testIsEmpty() {
+    @Test
+    public void isEmpty() {
         createIsEmptyDataSet(testRealm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
@@ -1593,7 +1668,8 @@ public class RealmQueryTest extends AndroidTestCase {
         }
     }
 
-    public void testIsEmptyAcrossLink() {
+    @Test
+    public void isEmpty_acrossLink() {
         createIsEmptyDataSet(testRealm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
@@ -1612,7 +1688,8 @@ public class RealmQueryTest extends AndroidTestCase {
         }
     }
 
-    public void testIsEmptyIllegalFieldTypeThrows() {
+    @Test
+    public void isEmpty_illegalFieldTypeThrows() {
         for (RealmFieldType type : NOT_SUPPORTED_IS_EMPTY_TYPES) {
             try {
                 switch (type) {
@@ -1643,7 +1720,8 @@ public class RealmQueryTest extends AndroidTestCase {
         }
     }
 
-    public void testIsEmptyInvalidFieldNameThrows() {
+    @Test
+    public void isEmpty_invalidFieldNameThrows() {
         String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
 
         for (String fieldName : fieldNames) {
@@ -1655,8 +1733,131 @@ public class RealmQueryTest extends AndroidTestCase {
         }
     }
 
+    // not-empty test harnesses
+    private static final List<RealmFieldType> SUPPORTED_IS_NOT_EMPTY_TYPES = Arrays.asList(
+            RealmFieldType.STRING,
+            RealmFieldType.BINARY,
+            RealmFieldType.LIST);
+
+    private static final List<RealmFieldType> NOT_SUPPORTED_IS_NOT_EMPTY_TYPES;
+    static {
+        final ArrayList<RealmFieldType> list = new ArrayList<RealmFieldType>(Arrays.asList(RealmFieldType.values()));
+        list.removeAll(SUPPORTED_IS_NOT_EMPTY_TYPES);
+        list.remove(RealmFieldType.UNSUPPORTED_MIXED);
+        list.remove(RealmFieldType.UNSUPPORTED_TABLE);
+        NOT_SUPPORTED_IS_NOT_EMPTY_TYPES = list;
+    }
+
+    private void createIsNotEmptyDataSet(Realm realm) {
+        realm.beginTransaction();
+
+        AllJavaTypes emptyValues = new AllJavaTypes();
+        emptyValues.setFieldLong(1);
+        emptyValues.setFieldString("");
+        emptyValues.setFieldBinary(new byte[0]);
+        emptyValues.setFieldObject(emptyValues);
+        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
+        realm.copyToRealm(emptyValues);
+
+        AllJavaTypes notEmpty = new AllJavaTypes();
+        notEmpty.setFieldLong(2);
+        notEmpty.setFieldString("Foo");
+        notEmpty.setFieldBinary(new byte[]{1, 2, 3});
+        notEmpty.setFieldObject(notEmpty);
+        notEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
+        realm.copyToRealmOrUpdate(notEmpty);
+
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void isNotEmpty() {
+        createIsNotEmptyDataSet(testRealm);
+        for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
+            switch (type) {
+                case STRING:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_STRING).count());
+                    break;
+                case BINARY:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_BINARY).count());
+                    break;
+                case LIST:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LIST).count());
+                    break;
+                default:
+                    fail("Unknown type: " + type);
+            }
+        }
+    }
+
+    @Test
+    public void isNotEmpty_acrossLink() {
+        createIsNotEmptyDataSet(testRealm);
+        for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
+            switch (type) {
+                case STRING:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING).count());
+                    break;
+                case BINARY:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).count());
+                    break;
+                case LIST:
+                    assertEquals(1, testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    break;
+                default:
+                    fail("Unknown type: " + type);
+            }
+        }
+    }
+
+    @Test
+    public void isNotEmpty_illegalFieldTypeThrows() {
+        for (RealmFieldType type : NOT_SUPPORTED_IS_NOT_EMPTY_TYPES) {
+            try {
+                switch (type) {
+                    case INTEGER:
+                        testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LONG).findAll();
+                        break;
+                    case FLOAT:
+                        testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_FLOAT).findAll();
+                        break;
+                    case DOUBLE:
+                        testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DOUBLE).findAll();
+                        break;
+                    case BOOLEAN:
+                        testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_BOOLEAN).findAll();
+                        break;
+                    case OBJECT:
+                        testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT).findAll();
+                        break;
+                    case DATE:
+                        testRealm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DATE).findAll();
+                        break;
+                    default:
+                        fail("Unknown type: " + type);
+                }
+                fail(type + " should throw an exception");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void isNotEmpty_invalidFieldNameThrows() {
+        String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
+
+        for (String fieldName : fieldNames) {
+            try {
+                testRealm.where(AllJavaTypes.class).isNotEmpty(fieldName).findAll();
+                fail();
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
     // Test that deep queries work on a lot of data
-    public void testDeepLinkListQuery() {
+    @Test
+    public void deepLinkListQuery() {
         testRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
@@ -1679,9 +1880,182 @@ public class RealmQueryTest extends AndroidTestCase {
         });
 
         for (int i = 0; i < 4; i++) {
-            RealmResults<AllJavaTypes> result = testRealm.where(AllJavaTypes.class)
-                    .equalTo("fieldList.fieldObject.fieldBoolean", true)
+            testRealm.where(AllJavaTypes.class).equalTo(
+                    AllJavaTypes.FIELD_LIST + "." + AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN, true)
                     .findAll();
+        }
+    }
+
+    @Test
+    public void findAllSorted_onSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        testRealm.where(AllTypes.class).findAllSorted(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    }
+
+    @Test
+    public void findAllSortedAsync_onSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        testRealm.where(AllTypes.class).findAllSortedAsync(
+                AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN);
+    }
+
+    @Test
+    public void findAllSorted_listOnSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        String[] fieldNames = new String[1];
+        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
+        Sort[] sorts = new Sort[1];
+        sorts[0] = Sort.ASCENDING;
+        testRealm.where(AllTypes.class).findAllSorted(fieldNames, sorts);
+    }
+
+    @Test
+    public void findAllSortedAsync_listOnSubObjectFieldThrows() {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Sorting using child object fields is not supported: ");
+        String[] fieldNames = new String[1];
+        fieldNames[0] = AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN;
+        Sort[] sorts = new Sort[1];
+        sorts[0] = Sort.ASCENDING;
+        testRealm.where(AllTypes.class).findAllSortedAsync(fieldNames, sorts);
+    }
+
+    // RealmQuery.distinct(): requires indexing, and type = boolean, integer, date, string
+    private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
+            for (int j = 0; j < numberOfBlocks; j++) {
+                AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
+                obj.setIndexBoolean(j % 2 == 0);
+                obj.setIndexLong(j);
+                obj.setIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setIndexString(withNull ? null : "Test " + j);
+                obj.setNotIndexBoolean(j % 2 == 0);
+                obj.setNotIndexLong(j);
+                obj.setNotIndexDate(withNull ? null : new Date(1000 * j));
+                obj.setNotIndexString(withNull ? null : "Test " + j);
+                obj.setFieldObject(obj);
+            }
+        }
+        realm.commitTransaction();
+    }
+
+    private void populateForDistinctInvalidTypesLinked(Realm realm) {
+        realm.beginTransaction();
+        AllJavaTypes notEmpty = new AllJavaTypes();
+        notEmpty.setFieldBinary(new byte[]{1, 2, 3});
+        realm.copyToRealm(notEmpty);
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void distinct() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        RealmResults<AnnotationIndexTypes> distinctBool = testRealm.where(AnnotationIndexTypes.class).distinct("indexBoolean");
+        assertEquals(2, distinctBool.size());
+        for (String fieldName : new String[]{"Long", "Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.where(AnnotationIndexTypes.class).distinct("index" + fieldName);
+            assertEquals("index" + fieldName, numberOfBlocks, distinct.size());
+        }
+    }
+
+    @Test
+    public void distinct_withNull() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, true);
+
+        for (String fieldName : new String[]{"Date", "String"}) {
+            RealmResults<AnnotationIndexTypes> distinct = testRealm.where(AnnotationIndexTypes.class).distinct("index" + fieldName);
+            assertEquals("index" + fieldName, 1, distinct.size());
+        }
+    }
+
+    @Test
+    public void distinct_notIndexedFieldsThrows() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.where(AnnotationIndexTypes.class).distinct("notIndex" + fieldName);
+                fail("notIndex" + fieldName);
+            } catch (UnsupportedOperationException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void distinct_doesNotExistThrows() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            testRealm.where(AnnotationIndexTypes.class).distinct("doesNotExist");
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinct_invalidTypesThrows() {
+        populateTestRealm();
+
+        for (String field : new String[]{"columnRealmObject", "columnRealmList", "columnDouble", "columnFloat"}) {
+            try {
+                testRealm.where(AllTypes.class).distinct(field);
+                fail(field);
+            } catch (UnsupportedOperationException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void distinct_indexedLinkedFieldsThrows(){
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, true);
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_OBJECT + ".index" + fieldName);
+                fail("Unsupported Index" + fieldName + " linked field");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void distinct_notIndexedLinkedFieldsThrows(){
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(testRealm, numberOfBlocks, numberOfObjects, true);
+
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                testRealm.where(AnnotationIndexTypes.class).distinct(AnnotationIndexTypes.FIELD_OBJECT + ".notIndex" + fieldName);
+                fail("Unsupported notIndex" + fieldName + " linked field");
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    @Test
+    public void distinct_invalidTypesLinkedFieldsThrows() {
+        populateForDistinctInvalidTypesLinked(testRealm);
+
+        try {
+            testRealm.where(AllJavaTypes.class).distinct(AllJavaTypes.FIELD_OBJECT + ".columnBinary");
+            fail("Unsupported columnBinary linked field");
+        } catch (IllegalArgumentException ignored) {
         }
     }
 }

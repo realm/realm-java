@@ -752,6 +752,18 @@ public class TableView implements TableOrView, Closeable {
         }
     }
 
+    /**
+     * Finds a row in the parent table with the given {@code rowIndex}
+     *
+     * @param rowIndex the index of the row.
+     * @return the row index or -1 for not found.
+     */
+    @Override
+    public long sourceRowIndex(long rowIndex) {
+        return nativeFindBySourceNdx(nativePtr, rowIndex);
+    }
+
+
     private void throwImmutable() {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
@@ -776,6 +788,21 @@ public class TableView implements TableOrView, Closeable {
         nativePivot(nativePtr, stringCol, intCol, pivotType.value, result.nativePtr);
         return result;
    }
+
+    /**
+     * Removes rows that are duplicated with respect to the column set passed as argument.
+     * If two rows are indentical (for the given set of distinct-columns), then the last row is
+     * removed unless sorted, in which case the first object is returned.
+     *
+     * @param columnIndex the column index.
+     * @throws IllegalArgumentException if the type of the column is unsupported.
+     * @throws UnsupportedOperationException if a column is not indexed.
+     */
+    public void distinct(long columnIndex) {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        this.context.executeDelayedDisposal();
+        nativeDistinct(nativePtr, columnIndex);
+    }
 
     @Override
     public long sync() {
@@ -826,6 +853,7 @@ public class TableView implements TableOrView, Closeable {
     private native long nativeFindAllFloat(long nativePtr, long columnIndex, float value);
     private native long nativeFindAllDouble(long nativePtr, long columnIndex, double value);
     private native long nativeFindAllDate(long nativePtr, long columnIndex, long dateTimeValue);
+    private native long nativeFindBySourceNdx(long nativePtr, long rowIndex);
     private native long nativeSumInt(long nativeViewPtr, long columnIndex);
     private native long nativeFindAllString(long nativePtr, long columnIndex, String value);
     private native Long nativeMaximumInt(long nativeViewPtr, long columnIndex);
@@ -849,5 +877,6 @@ public class TableView implements TableOrView, Closeable {
     private native String nativeRowToString(long nativeTablePtr, long rowIndex);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
+    private native long nativeDistinct(long nativeViewPtr, long columnIndex);
     private native long nativeSync(long nativeTablePtr);
 }

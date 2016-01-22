@@ -16,7 +16,14 @@
 
 package io.realm;
 
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -26,22 +33,34 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
-import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.exceptions.RealmException;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class RealmListTest extends AndroidTestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-    public static final int TEST_OBJECTS = 10;
+@RunWith(AndroidJUnit4.class)
+public class RealmListTests {
+
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    private static final int TEST_OBJECTS = 10;
     private Realm testRealm;
 
-    @Override
-    protected void setUp() throws Exception {
-        RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(realmConfig);
+    @Before
+    public void setUp() throws Exception {
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
         testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
@@ -53,6 +72,13 @@ public class RealmListTest extends AndroidTestCase {
             owner.getDogs().add(dog);
         }
         testRealm.commitTransaction();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        if (testRealm != null) {
+            testRealm.close();
+        }
     }
 
     private RealmList<Dog> createNonManagedDogList() {
@@ -78,11 +104,12 @@ public class RealmListTest extends AndroidTestCase {
         realm.beginTransaction();
         for (int i = 0; i < 4; i++) {
             try {
-                switch(i) {
+                switch (i) {
                     case 0: list.get(0); break;
                     case 1: list.remove(0); break;
                     case 2: list.set(0, new Dog()); break;
-                    case 3: list.move(0,0); break;
+                    case 3: list.move(0, 0); break;
+                    default: break;
                 }
                 fail();
             } catch (IndexOutOfBoundsException ignored) {
@@ -96,31 +123,24 @@ public class RealmListTest extends AndroidTestCase {
         assertNull(list.last());
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        testRealm.close();
-    }
-
     /*********************************************************
      * Non-Managed mode tests                                *
      *********************************************************/
 
-    public void testIsValid_nonManagedMode() {
+    @Test
+    public void isValid_nonManagedMode() {
         //noinspection MismatchedQueryAndUpdateOfCollection
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         assertFalse(list.isValid());
     }
 
-    public void testUnavailableMethods_nonManagedMode() {
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
-        try {
-            list.where();
-            fail("where() should fail in non-managed mode.");
-        } catch (RealmException ignore) {
-        }
+    @Test (expected = RealmException.class)
+    public void where_nonManagedMode() {
+        new RealmList<AllTypes>().where();
     }
 
-    public void testAdd_nonManagedMode() {
+    @Test
+    public void add_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object = new AllTypes();
         object.setColumnString("String");
@@ -129,26 +149,24 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(object, list.get(0));
     }
 
-    public void testAddNull_nonManagedMode() {
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
-        try {
-            list.add(null);
-            fail("Adding null should not be be allowed");
-        } catch (IllegalArgumentException ignore) {
-        }
+    @Test (expected = IllegalArgumentException.class)
+    public void add_nullInNonManagedMode() {
+        new RealmList<AllTypes>().add(null);
     }
 
-    public void testAddManagedObject_nonManagedMode() {
+    @Test
+    public void add_managedObjectInNonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         testRealm.beginTransaction();
-        AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
         list.add(managedAllTypes);
 
         assertEquals(managedAllTypes, list.get(0));
     }
 
-    public void testAddAtIndex_nonManagedMode() {
+    @Test
+    public void add_standaloneObjectAtIndexInNonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object = new AllTypes();
         object.setColumnString("String");
@@ -157,7 +175,8 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(object, list.get(0));
     }
 
-    public void testAddManagedObjectAtIndex_nonManagedMode() {
+    @Test
+    public void add_ManagedObjectAtIndexInNonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         testRealm.beginTransaction();
@@ -168,33 +187,49 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(managedAllTypes, list.get(0));
     }
 
-    public void testAddNullAtIndex_nonManagedMode() {
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
-        try {
-            list.add(null);
-            fail("Adding null should not be be allowed");
-        } catch (IllegalArgumentException ignore) {
-        }
+    @Test (expected = IllegalArgumentException.class)
+    public void add_nullAtIndexInNonManagedMode() {
+        new RealmList<AllTypes>().add(0, null);
     }
 
-    public void testSet_nonManagedMode() {
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
-        list.add(new AllTypes());
-        list.set(0, new AllTypes());
+    @Test
+    public void set_nonManagedMode() {
+        RealmList<Dog> list = new RealmList<Dog>();
+        Dog dog1 = new Dog("dog1");
+        Dog dog2 = new Dog("dog2");
+        list.add(dog1);
+        assertEquals(dog1, list.set(0, dog2));
         assertEquals(1, list.size());
     }
 
-    public void testSetNull_nonManagedMode() {
-        RealmList<AllTypes> list = new RealmList<AllTypes>();
-        list.add(new AllTypes());
+    @Test
+    public void set_managedMode() {
+        testRealm.beginTransaction();
         try {
-            list.set(0, null);
-            fail("Setting a null value should result in a exception");
-        } catch (IllegalArgumentException ignore) {
+            RealmList<Dog> list = testRealm.createObject(Owner.class).getDogs();
+            Dog dog1 = testRealm.createObject(Dog.class);
+            dog1.setName("dog1");
+            Dog dog2 = testRealm.createObject(Dog.class);
+            dog2.setName("dog2");
+            list.add(dog1);
+            assertEquals(dog1, list.set(0, dog2));
+            assertEquals(1, list.size());
+        } finally {
+            testRealm.cancelTransaction();
         }
     }
 
-    public void testSetManagedObject_nonManagedMode() {
+    @Test
+    public void set_nullInNonManagedMode() {
+        @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        list.add(new AllTypes());
+        thrown.expect(IllegalArgumentException.class);
+        list.set(0, null);
+    }
+
+    @Test
+    public void set_managedObjectInNonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         testRealm.beginTransaction();
@@ -205,7 +240,8 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(managedAllTypes, list.get(0));
     }
 
-    public void testClear_nonManagedMode() {
+    @Test
+    public void clear_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         assertEquals(1, list.size());
@@ -213,7 +249,8 @@ public class RealmListTest extends AndroidTestCase {
         assertTrue(list.isEmpty());
     }
 
-    public void testRemove_nonManagedMode() {
+    @Test
+    public void remove_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object1 = new AllTypes();
         list.add(object1);
@@ -221,7 +258,8 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(object1, object2);
     }
 
-    public void testGet_nonManagedMode() {
+    @Test
+    public void get_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object1 = new AllTypes();
         list.add(object1);
@@ -229,14 +267,16 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(object1, object2);
     }
 
-    public void testSize_nonManagedMode() {
+    @Test
+    public void size_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         list.add(new AllTypes());
         assertEquals(1, list.size());
     }
 
     // Test move where oldPosition > newPosition
-    public void testMoveDown() {
+    @Test
+    public void move_down() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         Dog dog1 = owner.getDogs().get(1);
         testRealm.beginTransaction();
@@ -247,7 +287,8 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test move where oldPosition < newPosition
-    public void testMoveUp() {
+    @Test
+    public void move_up() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         int oldIndex = TEST_OBJECTS / 2;
         int newIndex = oldIndex + 1;
@@ -260,7 +301,8 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(newIndex, owner.getDogs().indexOf(dog));
     }
 
-    public void testFirstAndLast_nonManagedMode() {
+    @Test
+    public void first_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         AllTypes object1 = new AllTypes();
         AllTypes object2 = new AllTypes();
@@ -268,16 +310,28 @@ public class RealmListTest extends AndroidTestCase {
         list.add(object2);
 
         assertEquals(object1, list.first());
+    }
+
+    @Test
+    public void last_nonManagedMode() {
+        RealmList<AllTypes> list = new RealmList<AllTypes>();
+        AllTypes object1 = new AllTypes();
+        AllTypes object2 = new AllTypes();
+        list.add(object1);
+        list.add(object2);
+
         assertEquals(object2, list.last());
     }
 
-    public void testEmptyList_nonManagedMode() {
+    @Test
+    public void allMethods_emptyListInNonManagedMode() {
         RealmList<Dog> list = new RealmList<Dog>();
         checkMethodsOnEmptyList(testRealm, list);
     }
 
     // Test move where oldPosition > newPosition
-    public void testMoveDown_nonManagedMode() {
+    @Test
+    public void move_downInNonManagedMode() {
         RealmList<Dog> dogs = createNonManagedDogList();
         Dog dog1 = dogs.get(1);
         dogs.move(1, 0);
@@ -286,7 +340,8 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test move where oldPosition < newPosition
-    public void testMoveUp_nonManagedMode() {
+    @Test
+    public void move_upInNonManagedMode() {
         RealmList<Dog> dogs = createNonManagedDogList();
         int oldIndex = TEST_OBJECTS / 2;
         int newIndex = oldIndex + 1;
@@ -301,7 +356,8 @@ public class RealmListTest extends AndroidTestCase {
      * Managed mode tests                                    *
      *********************************************************/
 
-    public void testIsValid() {
+    @Test
+    public void isValid() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
 
@@ -311,7 +367,8 @@ public class RealmListTest extends AndroidTestCase {
         assertFalse(dogs.isValid());
     }
 
-    public void testIsValidWhenParentRemoved() {
+    @Test
+    public void isValid_whenParentRemoved() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
 
@@ -323,7 +380,8 @@ public class RealmListTest extends AndroidTestCase {
         assertFalse(dogs.isValid());
     }
 
-    public void testMoveOutOfBoundsLowerThrows() {
+    @Test
+    public void move_outOfBoundsLowerThrows() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         testRealm.beginTransaction();
         try {
@@ -335,7 +393,8 @@ public class RealmListTest extends AndroidTestCase {
         }
     }
 
-    public void testMoveOutOfBoundsHigherThrows() {
+    @Test
+    public void move_outOfBoundsHigherThrows() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         testRealm.beginTransaction();
         try {
@@ -350,7 +409,8 @@ public class RealmListTest extends AndroidTestCase {
         }
     }
 
-    public void testAddObject() {
+    @Test
+    public void add_managedObjectToManagedList() {
         testRealm.beginTransaction();
         testRealm.clear(Owner.class);
         Owner owner = testRealm.createObject(Owner.class);
@@ -362,7 +422,8 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test that add correctly uses Realm.copyToRealm() on standalone objects.
-    public void testAddUnmanagedObjectToManagedList() {
+    @Test
+    public void add_nonManagedObjectToManagedList() {
         testRealm.beginTransaction();
         CyclicType parent = testRealm.createObject(CyclicType.class);
         RealmList<CyclicType> children = parent.getObjects();
@@ -372,7 +433,8 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Make sure that standalone objects with a primary key are added using copyToRealmOrUpdate
-    public void testAddUnmanagedPrimaryKeyObjectToManagedList() {
+    @Test
+    public void add_nonManagedPrimaryKeyObjectToManagedList() {
         testRealm.beginTransaction();
         testRealm.copyToRealm(new CyclicTypePrimaryKey(2, "original"));
         RealmList<CyclicTypePrimaryKey> children = testRealm.copyToRealm(new CyclicTypePrimaryKey(1)).getObjects();
@@ -384,7 +446,8 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test that set correctly uses Realm.copyToRealm() on standalone objects.
-    public void testSetUnmanagedObjectToManagedList() {
+    @Test
+    public void set_nonManagedObjectToManagedList() {
         testRealm.beginTransaction();
         CyclicType parent = testRealm.copyToRealm(new CyclicType("Parent"));
         RealmList<CyclicType> children = parent.getObjects();
@@ -401,7 +464,8 @@ public class RealmListTest extends AndroidTestCase {
     }
 
     // Test that set correctly uses Realm.copyToRealmOrUpdate() on standalone objects with a primary key.
-    public void testSetUnmanagedPrimaryKeyObjectToManagedList() {
+    @Test
+    public void  set_nonManagedPrimaryKeyObjectToManagedList() {
         testRealm.beginTransaction();
         CyclicTypePrimaryKey parent = testRealm.copyToRealm(new CyclicTypePrimaryKey(1, "Parent"));
         RealmList<CyclicTypePrimaryKey> children = parent.getObjects();
@@ -416,24 +480,22 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals("updated", list.get(1).getName());
     }
 
-    public void testAddObjectNullThrows() {
+    @Test
+    public void add_nullToManagedListThrows() {
         testRealm.beginTransaction();
         Owner owner = testRealm.createObject(Owner.class);
-        try {
-            owner.getDogs().add(null);
-            fail("Adding null values is not supported");
-        } catch (IllegalArgumentException ignored) {
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        thrown.expect(IllegalArgumentException.class);
+        owner.getDogs().add(null);
     }
 
-    public void testSize() {
+    @Test
+    public void size() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         assertEquals(TEST_OBJECTS, owner.getDogs().size());
     }
 
-    public void testGetObjects() {
+    @Test
+    public void getObjects() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
 
@@ -441,15 +503,24 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals("Dog 1", dogs.get(1).getName());
     }
 
-    public void testFirstLast() {
+    @Test
+    public void first() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
 
         assertEquals("Dog 0", dogs.first().getName());
+    }
+
+    @Test
+    public void last() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+
         assertEquals("Dog " + (TEST_OBJECTS - 1), dogs.last().getName());
     }
 
-    public void testRemoveByIndex() {
+    @Test
+    public void remove_byIndex() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
         Dog dog5 = dogs.get(5);
@@ -462,7 +533,8 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(TEST_OBJECTS - 1, dogs.size());
     }
 
-    public void testRemoveLast() {
+    @Test
+    public void remove_last() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
 
@@ -473,23 +545,19 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(TEST_OBJECTS - 1, dogs.size());
     }
 
-    public void testRemoveFromEmptyListThrows() {
+    @Test
+    public void remove_fromEmptyListThrows() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
 
         testRealm.beginTransaction();
         dogs.clear();
-        try {
-            dogs.remove(0);
-        } catch (IndexOutOfBoundsException expected) {
-            return;
-        } finally {
-            testRealm.cancelTransaction();
-        }
-        fail("Calling remove() should fail on an empty list.");
+        thrown.expect(IndexOutOfBoundsException.class);
+        dogs.remove(0);
     }
 
-    public void testRemoveByObject() {
+    @Test
+    public void remove_byObject() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
         Dog dog = dogs.get(0);
@@ -502,187 +570,136 @@ public class RealmListTest extends AndroidTestCase {
         assertEquals(TEST_OBJECTS - 1, dogs.size());
     }
 
-    public void testAddAtAfterContainerObjectRemoved() {
+    @Test
+    public void add_atAfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         testRealm.beginTransaction();
-        try {
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Dog");
-            try {
-                dogs.add(0, dog);
-                fail();
-            } catch (IllegalStateException ignore) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Dog");
+        thrown.expect(IllegalStateException.class);
+        dogs.add(0, dog);
     }
 
-    public void testAddAfterContainerObjectRemoved() {
-        RealmList<Dog> dogs = createDeletedRealmList();
-        testRealm.beginTransaction();
-        try {
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Dog");
-
-            try {
-                dogs.add(dog);
-                fail();
-            } catch (IllegalStateException ignore) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
-    }
-
-    public void testSetAfterContainerObjectRemoved() {
+    @Test
+    public void add_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         testRealm.beginTransaction();
-        try {
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Dog");
-            try {
-                dogs.set(0, dog);
-                fail();
-            } catch (IllegalStateException ignore) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Dog");
+        thrown.expect(IllegalStateException.class);
+        dogs.add(dog);
     }
 
-    public void testMoveAfterContainerObjectRemoved() {
+    @Test
+    public void set_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         testRealm.beginTransaction();
-        try {
-            dogs.move(0, 1);
-            fail();
-        } catch (IllegalStateException ignore) {
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Dog");
+        thrown.expect(IllegalStateException.class);
+        dogs.set(0, dog);
     }
 
-    public void testClearAfterContainerObjectRemoved() {
+    @Test
+    public void move_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         testRealm.beginTransaction();
-        try {
-            dogs.clear();
-            fail();
-        } catch (IllegalStateException ignore) {
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        thrown.expect(IllegalStateException.class);
+        dogs.move(0, 1);
     }
 
-    public void testRemoveAtAfterContainerObjectRemoved() {
+    @Test
+    public void clear_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         testRealm.beginTransaction();
-        try {
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Dog");
-            try {
-                dogs.remove(0);
-                fail();
-            } catch (IllegalStateException ignore) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        thrown.expect(IllegalStateException.class);
+        dogs.clear();
     }
 
-    public void testRemoveObjectAfterContainerObjectRemoved() {
+    @Test
+    public void remove_atAfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         testRealm.beginTransaction();
-        try {
-            Dog dog = testRealm.createObject(Dog.class);
-            dog.setName("Dog");
-            try {
-                dogs.remove(dog);
-                fail();
-            } catch (IllegalStateException ignore) {
-            }
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Dog");
+        thrown.expect(IllegalStateException.class);
+        dogs.remove(0);
     }
 
-    public void testRemoveAllAfterContainerObjectRemoved() {
+    @Test
+    public void remove_bbjectAfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         testRealm.beginTransaction();
-        try {
-            dogs.removeAll(Collections.<Dog>emptyList());
-            fail();
-        } catch (IllegalStateException ignore) {
-        } finally {
-            testRealm.cancelTransaction();
-        }
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("Dog");
+        thrown.expect(IllegalStateException.class);
+        dogs.remove(dog);
     }
 
-    public void testGetAfterContainerObjectRemoved() {
+    @Test
+    public void remove_allAfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
-        try {
-            dogs.get(0);
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
+        testRealm.beginTransaction();
+        thrown.expect(IllegalStateException.class);
+        dogs.removeAll(Collections.<Dog>emptyList());
     }
 
-    public void testFirstAfterContainerObjectRemoved() {
+    @Test
+    public void get_afterContainerObjectRemoved() {
+        RealmList<Dog> dogs = createDeletedRealmList();
+        thrown.expect(IllegalStateException.class);
+        dogs.get(0);
+    }
+
+    @Test
+    public void first_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
-        try {
-            dogs.first();
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
+        thrown.expect(IllegalStateException.class);
+        dogs.first();
     }
 
-    public void testLastAfterContainerObjectRemoved() {
+    @Test
+    public void last_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
-        try {
-            dogs.last();
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
+        thrown.expect(IllegalStateException.class);
+        dogs.last();
     }
 
-    public void testSizeAfterContainerObjectRemoved() {
+    @Test
+    public void size_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
-        try {
-            dogs.size();
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
+        thrown.expect(IllegalStateException.class);
+        dogs.size();
     }
 
-    public void testWhereAfterContainerObjectRemoved() {
+    @Test
+    public void where_afterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
-        try {
-            dogs.where();
-            fail();
-        } catch (IllegalStateException ignore) {
-        }
+        thrown.expect(IllegalStateException.class);
+        dogs.where();
     }
 
-    public void testToStringAfterContainerObjectRemoved() {
+    @Test
+    public void toString_AfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         assertEquals("Dog@[invalid]", dogs.toString());
     }
 
-    public void testQuery() {
+    @Test
+    public void query() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
         Dog firstDog = dogs.where().equalTo("name", "Dog 0").findFirst();
@@ -690,7 +707,8 @@ public class RealmListTest extends AndroidTestCase {
         assertNotNull(firstDog);
     }
 
-    public void testEmptyListMethods() {
+    @Test
+    public void allMethods_emptyListInManagedMode() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         testRealm.beginTransaction();
         owner.getDogs().clear();
@@ -699,7 +717,8 @@ public class RealmListTest extends AndroidTestCase {
         checkMethodsOnEmptyList(testRealm, owner.getDogs());
     }
 
-    public void testClear() {
+    @Test
+    public void clear() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         testRealm.beginTransaction();
         assertEquals(TEST_OBJECTS, owner.getDogs().size());
@@ -708,7 +727,8 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
-    public void testClearNotDeleting() {
+    @Test
+    public void clear_NotDeleting() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         testRealm.beginTransaction();
         assertEquals(TEST_OBJECTS, testRealm.allObjects(Dog.class).size());
@@ -717,8 +737,92 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
     }
 
+    @Test
+    public void contains() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        Dog dog = owner.getDogs().get(0);
+        assertTrue("Should contain a particular dog.", owner.getDogs().contains(dog));
+    }
+
+    /**
+     * Test to see if a particular item that does exist in the same Realm does not
+     * exist in a query that excludes said item.
+     */
+    @Test
+    public void contains_sameRealmNotContained() {
+        RealmResults<Dog> dogs = testRealm.where(Dog.class)
+                .equalTo("name", "Dog 1").or().equalTo("name", "Dog 2").findAll();
+        Dog thirdDog = testRealm.where(Dog.class)
+                .equalTo("name", "Dog 3").findFirst();
+        assertFalse("Should not contain a particular dog.", dogs.contains(thirdDog));
+    }
+
+    @Test
+    public void contains_inNonManagedList() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> managedDogs = owner.getDogs();
+        // Create a non-managed RealmList
+        RealmList<Dog> nonManagedDogs
+                = new RealmList<Dog>(managedDogs.toArray(new Dog[managedDogs.size()]));
+        Dog dog = managedDogs.get(0);
+        assertTrue("Should contain a particular dog", nonManagedDogs.contains(dog));
+    }
+
+    @Test
+    public void contains_null() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        assertFalse("Should not contain a null item.", owner.getDogs().contains(null));
+    }
+
+    /**
+     * Test that the {@link Realm#contains(Class)} method of one Realm will not contain a
+     * {@link RealmObject} from another Realm.
+     */
+    @Test
+    public void contains_doesNotContainAnItem() {
+        RealmConfiguration realmConfig = configFactory.createConfiguration("contains_test.realm");
+        Realm testRealmTwo = Realm.getInstance(realmConfig);
+        try {
+            // Set up the test realm
+            testRealmTwo.beginTransaction();
+            Owner owner2 = testRealmTwo.createObject(Owner.class);
+            owner2.setName("Owner");
+            for (int i = 0; i < TEST_OBJECTS; i++) {
+                Dog dog = testRealmTwo.createObject(Dog.class);
+                dog.setName("Dog " + i);
+                owner2.getDogs().add(dog);
+            }
+            testRealmTwo.commitTransaction();
+
+            // Get a dog from the test realm.
+            Dog dog2 = testRealmTwo.where(Owner.class).findFirst().getDogs().get(0);
+
+            // Access the original Realm. Then see if the above dog object is contained. (It shouldn't).
+            Owner owner1 = testRealm.where(Owner.class).findFirst();
+
+            assertFalse("Should not be able to find one object in another Realm via contains",
+                    owner1.getDogs().contains(dog2));
+        } finally {
+            if (testRealmTwo != null && !testRealmTwo.isClosed()) {
+                testRealmTwo.close();
+            }
+        }
+    }
+
+    @Test
+    public void contains_shouldNotContainDeletedRealmObject() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+        Dog dog1 = dogs.get(0);
+        testRealm.beginTransaction();
+        dog1.removeFromRealm();
+        testRealm.commitTransaction();
+        assertFalse("Should not contain a deleted RealmObject", dogs.contains(dog1));
+    }
+
     // Test that all methods that require a transaction (ie. any function that mutates Realm data)
-    public void testMutableMethodsOutsideTransactions() {
+    @Test
+    public void mutableMethods_OutsideTransactions() {
         testRealm.beginTransaction();
         RealmList<Dog> list = testRealm.createObject(AllTypes.class).getColumnRealmList();
         Dog dog = testRealm.createObject(Dog.class);
@@ -770,7 +874,7 @@ public class RealmListTest extends AndroidTestCase {
                             break;
                         case METHOD_MOVE:
                             list.add(new Dog());
-                            list.move(0,1);
+                            list.move(0, 1);
                             break;
                         case METHOD_REMOVE:
                             list.remove(0);
@@ -791,13 +895,15 @@ public class RealmListTest extends AndroidTestCase {
         return result;
     }
 
-    public void testMethodsThrowOnWrongThread() throws ExecutionException, InterruptedException {
+    @Test
+    public void methods_ThrowOnWrongThread() throws ExecutionException, InterruptedException {
         for (Method method : Method.values()) {
             assertTrue(method.toString(), methodWrongThread(method));
         }
     }
 
-    public void testSettingListClearsOldItems() {
+    @Test
+    public void setList_ClearsOldItems() {
         testRealm.beginTransaction();
         CyclicType one = testRealm.copyToRealm(new CyclicType());
         CyclicType two = testRealm.copyToRealm(new CyclicType());
@@ -806,5 +912,111 @@ public class RealmListTest extends AndroidTestCase {
         testRealm.commitTransaction();
 
         assertEquals(1, two.getObjects().size());
+    }
+
+    @Test
+    public void testRemoveAllFromRealm() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+        assertEquals(TEST_OBJECTS, dogs.size());
+
+        testRealm.beginTransaction();
+        dogs.removeAllFromRealm();
+        testRealm.commitTransaction();
+        assertEquals(0, dogs.size());
+        assertEquals(0, testRealm.where(Dog.class).count());
+    }
+
+    @Test
+    public void testRealmRemoveAllNotManagedList() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+        assertEquals(TEST_OBJECTS, dogs.size());
+
+        RealmList<Dog> notManagedDogs = new RealmList<Dog>();
+        for (Dog dog : dogs) {
+            notManagedDogs.add(dog);
+        }
+
+        testRealm.beginTransaction();
+        notManagedDogs.removeAllFromRealm();
+        testRealm.commitTransaction();
+        assertEquals(0, dogs.size());
+        assertEquals(0, notManagedDogs.size());
+        assertEquals(0, testRealm.where(Dog.class).count());
+    }
+
+    @Test
+    public void testRealmRemoveAllOutsideTransaction() {
+        Owner owner = testRealm.where(Owner.class).findFirst();
+        RealmList<Dog> dogs = owner.getDogs();
+        try {
+            dogs.removeAllFromRealm();
+            fail("removeAllFromRealm should be called in a transaction.");
+        } catch (IllegalStateException e) {
+            assertEquals("Changing Realm data can only be done from inside a transaction.", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testRemoveAllFromListStandaloneObjectShouldThrow() {
+        final RealmList<Dog> list = new RealmList<Dog>();
+
+        testRealm.beginTransaction();
+        Dog dog1 = testRealm.where(Dog.class).findFirst();
+        testRealm.commitTransaction();
+        Dog dog2 = new Dog();
+
+        list.add(dog1);
+        list.add(dog2);
+
+        testRealm.beginTransaction();
+        try {
+            list.removeAllFromRealm();
+            fail("Cannot remove a list with a standalone object in it!");
+        } catch (IllegalStateException e) {
+            assertEquals("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with" +
+                    " Realm.createObject()", e.getMessage());
+        } finally {
+            testRealm.cancelTransaction();
+        }
+
+        assertEquals(TEST_OBJECTS, testRealm.where(Dog.class).count());
+        assertEquals(2, list.size());
+    }
+
+    @Test
+    public void testRemoveAllFromRealmEmptyList() {
+        RealmList<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs();
+        assertEquals(TEST_OBJECTS, dogs.size());
+
+        testRealm.beginTransaction();
+        dogs.removeAllFromRealm();
+        testRealm.commitTransaction();
+        assertEquals(0, dogs.size());
+        assertEquals(0, testRealm.where(Dog.class).count());
+
+        // The dogs is empty now.
+        testRealm.beginTransaction();
+        dogs.removeAllFromRealm();
+        testRealm.commitTransaction();
+        assertEquals(0, dogs.size());
+        assertEquals(0, testRealm.where(Dog.class).count());
+
+    }
+
+    @Test
+    public void testRemoveAllFromRealmInvalidListShouldThrow() {
+        RealmList<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs();
+        assertEquals(TEST_OBJECTS, dogs.size());
+        testRealm.close();
+        testRealm = null;
+
+        try {
+            dogs.removeAllFromRealm();
+            fail("dogs is invalid and it should throw an exception");
+        } catch (IllegalStateException e) {
+            assertEquals("This Realm instance has already been closed, making it unusable.", e.getMessage());
+        }
     }
 }

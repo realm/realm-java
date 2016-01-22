@@ -173,6 +173,7 @@ public final class Realm extends BaseRealm {
      * @throws java.lang.NullPointerException if no default configuration has been defined.
      * @throws RealmMigrationNeededException if no migration has been provided by the default configuration and the
      * RealmObject classes or version has has changed so a migration is required.
+     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
      */
     public static Realm getDefaultInstance() {
         if (defaultConfiguration == null) {
@@ -188,6 +189,8 @@ public final class Realm extends BaseRealm {
      * @return an instance of the Realm class
      * @throws RealmMigrationNeededException if no migration has been provided by the configuration and the RealmObject
      * classes or version has has changed so a migration is required.
+     * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static Realm getInstance(RealmConfiguration configuration) {
@@ -201,6 +204,7 @@ public final class Realm extends BaseRealm {
      * Sets the {@link io.realm.RealmConfiguration} used when calling {@link #getDefaultInstance()}.
      *
      * @param configuration the {@link io.realm.RealmConfiguration} to use as the default configuration.
+     * @throws IllegalArgumentException if a null {@link RealmConfiguration} is provided.
      * @see RealmConfiguration for details on how to configure a Realm.
      */
     public static void setDefaultConfiguration(RealmConfiguration configuration) {
@@ -333,6 +337,7 @@ public final class Realm extends BaseRealm {
      * @param json array with object data.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if unable to map JSON.
      * @see #createAllFromJson(Class, org.json.JSONArray)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
@@ -381,6 +386,7 @@ public final class Realm extends BaseRealm {
      * @param json string with an array of JSON objects.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if unable to create a JSON array from the json string.
      * @see #createAllFromJson(Class, String)
      */
     public <E extends RealmObject> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
@@ -435,6 +441,7 @@ public final class Realm extends BaseRealm {
      * @param in the InputStream with a list of object data in JSON format.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if unable to read JSON.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -495,6 +502,7 @@ public final class Realm extends BaseRealm {
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if JSON data cannot be mapped.
      * @see #createObjectFromJson(Class, org.json.JSONObject)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
@@ -547,6 +555,7 @@ public final class Realm extends BaseRealm {
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if JSON object cannot be mapped from the string parameter.
      * @see #createObjectFromJson(Class, String)
      */
     public <E extends RealmObject> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
@@ -619,6 +628,7 @@ public final class Realm extends BaseRealm {
      * @return created or updated {@link io.realm.RealmObject}.
      * @throws java.lang.IllegalArgumentException if trying to update a class without a
      * {@link io.realm.annotations.PrimaryKey}.
+     * @throws RealmException if failure to read JSON.
      * @see #createObjectFromJson(Class, java.io.InputStream)
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -775,7 +785,7 @@ public final class Realm extends BaseRealm {
      * @param realmObjects RealmObjects to copy
      * @param <E> type of object.
      * @return an in-memory detached copy of managed RealmObjects.
-     * @throws IllegalArgumentException if the RealmObjects are not accessible.
+     * @throws IllegalArgumentException if the RealmObject is no longer accessible or it is a {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public <E extends RealmObject> List<E> copyFromRealm(Iterable<E> realmObjects) {
@@ -798,7 +808,8 @@ public final class Realm extends BaseRealm {
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is {@code 0}.
      * @param <E> type of object.
      * @return an in-memory detached copy of the RealmObjects.
-     * @throws IllegalArgumentException if {@code maxDepth < 0} or the RealmObjects aren't accessible.
+     * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
+     *         {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(Iterable)
      */
     public <E extends RealmObject> List<E> copyFromRealm(Iterable<E> realmObjects, int maxDepth) {
@@ -831,7 +842,7 @@ public final class Realm extends BaseRealm {
      * @param realmObject {@link RealmObject} to copy
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
-     * @throws IllegalArgumentException if the RealmObject is no longer accessible.
+     * @throws IllegalArgumentException if the RealmObject is no longer accessible or it is a {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(RealmObject)
      */
     public <E extends RealmObject> E copyFromRealm(E realmObject) {
@@ -854,7 +865,8 @@ public final class Realm extends BaseRealm {
      * @param maxDepth limit of the deep copy. All references after this depth will be {@code null}. Starting depth is {@code 0}.
      * @param <E> type of object.
      * @return an in-memory detached copy of the managed {@link RealmObject}.
-     * @throws IllegalArgumentException if {@code maxDepth < 0} or the RealmObject is no longer accessible.
+     * @throws IllegalArgumentException if {@code maxDepth < 0}, the RealmObject is no longer accessible or it is a
+     *         {@link DynamicRealmObject}.
      * @see #copyToRealmOrUpdate(RealmObject)
      */
     public <E extends RealmObject> E copyFromRealm(E realmObject, int maxDepth) {
@@ -911,11 +923,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
 
@@ -976,13 +984,9 @@ public final class Realm extends BaseRealm {
                                                                     Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(clazz);
-        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**
@@ -1004,11 +1008,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**
@@ -1045,6 +1045,7 @@ public final class Realm extends BaseRealm {
      * called instead of {@link #commitTransaction()}.
      *
      * @param transaction the {@link io.realm.Realm.Transaction} to execute.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}.
      */
     public void executeTransaction(Transaction transaction) {
         if (transaction == null) {
@@ -1071,6 +1072,7 @@ public final class Realm extends BaseRealm {
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @param callback optional, to receive the result of this query.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
      */
     public RealmAsyncTask executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
         if (transaction == null)
@@ -1090,62 +1092,61 @@ public final class Realm extends BaseRealm {
         final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                if (!Thread.currentThread().isInterrupted()) {
-                    Realm bgRealm = Realm.getInstance(realmConfiguration);
-                    bgRealm.beginTransaction();
-                    try {
-                        transaction.execute(bgRealm);
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
 
-                        if (!Thread.currentThread().isInterrupted()) {
-                            bgRealm.commitTransaction();
-                            if (callback != null
-                                    && handler != null
-                                    && !Thread.currentThread().isInterrupted()
-                                    && handler.getLooper().getThread().isAlive()) {
-                                // This is not the most beautiful code, but it is the simplest logic.
-                                // Normally we rely on wait_for_change to send the notification, but in this case,
-                                // REALM_CHANGED needs to be arrived first before onSuccess. So We just inject a
-                                // REALM_CHANGED message in the queue for this case.
-                                handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
-                                // The bgRealm needs to be closed before post event to caller's handler to avoid concurrency problem
-                                // eg.: User wants to delete Realm in the callbacks.
+                boolean transactionCommitted = false;
+                final Exception[] exception = new Exception[1];
+                final Realm bgRealm = Realm.getInstance(realmConfiguration);
+                bgRealm.beginTransaction();
+                try {
+                    transaction.execute(bgRealm);
+
+                    if (!Thread.currentThread().isInterrupted()) {
+                        bgRealm.commitTransaction(new Runnable() {
+                            @Override
+                            public void run() {
+                                // The bgRealm needs to be closed before post event to caller's handler to avoid
+                                // concurrency problem. eg.: User wants to delete Realm in the callbacks.
+                                // This will close Realm before sending REALM_CHANGED.
                                 bgRealm.close();
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        callback.onSuccess();
-                                    }
-                                });
                             }
-                        } else {
-                            if (bgRealm.isInTransaction()) {
-                                bgRealm.cancelTransaction();
-                            } else {
-                                RealmLog.w("Thread is interrupted. Could not cancel transaction, not currently in a transaction.");
-                            }
-                        }
-
-                    } catch (final Exception e) {
+                        });
+                        transactionCommitted = true;
+                    }
+                } catch (final Exception e) {
+                    exception[0] = e;
+                } finally {
+                    if (!bgRealm.isClosed()) {
                         if (bgRealm.isInTransaction()) {
                             bgRealm.cancelTransaction();
-                        } else {
+                        } else if (exception[0] != null) {
                             RealmLog.w("Could not cancel transaction, not currently in a transaction.");
                         }
-                        if (callback != null
-                                && handler != null
-                                && !Thread.currentThread().isInterrupted()
-                                && handler.getLooper().getThread().isAlive()) {
-                            bgRealm.close();
+                        bgRealm.close();
+                    }
+
+                    // Send response as the final step to ensure the bg thread quit before others get the response!
+                    if (callback != null
+                            && handler != null
+                            && !Thread.currentThread().isInterrupted()
+                            && handler.getLooper().getThread().isAlive()) {
+                        if (transactionCommitted) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    callback.onError(e);
+                                    callback.onSuccess();
                                 }
                             });
-                        }
-                    } finally {
-                        if (!bgRealm.isClosed()) {
-                            bgRealm.close();
+                        } else if (exception[0] != null) {
+                            // transaction has not been canceled by there is a exception during transaction.
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callback.onError(exception[0]);
+                                }
+                            });
                         }
                     }
                 }
@@ -1201,6 +1202,9 @@ public final class Realm extends BaseRealm {
         }
         if (!realmObject.isValid()) {
             throw new IllegalArgumentException("RealmObject is not valid, so it cannot be copied.");
+        }
+        if (realmObject instanceof DynamicRealmObject) {
+            throw new IllegalArgumentException("DynamicRealmObject cannot be copied from Realm.");
         }
     }
 
@@ -1286,11 +1290,6 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    // Return all handlers registered for this Realm
-    static Map<Handler, String> getHandlers() {
-        return handlers;
-    }
-
     // Public because of migrations
     public Table getTable(Class<? extends RealmObject> clazz) {
         Table table = classToTable.get(clazz);
@@ -1307,6 +1306,7 @@ public final class Realm extends BaseRealm {
      * from library or project dependencies. Realm classes in these should be exposed using their own module.
      *
      * @return the default Realm module or null if no default module exists.
+     * @throws RealmException if unable to create an instance of the module.
      * @see io.realm.RealmConfiguration.Builder#setModules(Object, Object...)
      */
     public static Object getDefaultModule() {

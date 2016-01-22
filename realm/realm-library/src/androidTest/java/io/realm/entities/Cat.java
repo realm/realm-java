@@ -21,6 +21,9 @@ import java.util.Date;
 import io.realm.RealmObject;
 
 public class Cat extends RealmObject {
+
+    public static final String CLASS_NAME = "Cat";
+
     private String name;
     private long age;
     private float height;
