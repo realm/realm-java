@@ -22,6 +22,8 @@ import android.os.Looper;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -31,6 +33,8 @@ import java.util.concurrent.Executors;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
+
+import static org.junit.Assert.fail;
 
 /**
  * Rule that runs the test inside a worker looper thread. This rule is responsible
@@ -75,6 +79,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             return base;
         }
         return new Statement() {
+            public Throwable testError;
+
             @Override
             public void evaluate() throws Throwable {
                 before();
@@ -108,8 +114,32 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                         }
                     });
                     TestHelper.exitOrThrow(executorService, signalTestCompleted, signalClosedRealm, backgroundLooper, threadAssertionError);
+                } catch (Throwable error) {
+                    testError = error;
                 } finally {
-                    after();
+                    try {
+                        after();
+                    } catch (Throwable e) {
+                        if (testError != null) {
+                            // after() threw an error that will mask an original error from the test case
+                            // Make sure that user is aware of that fact, but printing both errors.
+                            StringWriter testStackTrace = new StringWriter();
+                            testError.printStackTrace(new PrintWriter(testStackTrace));
+
+                            StringWriter aftertStackTrace = new StringWriter();
+                            e.printStackTrace(new PrintWriter(aftertStackTrace));
+
+                            StringBuilder errorMessage = new StringBuilder();
+                            errorMessage.append("after() threw an error that shadows a test case error");
+                            errorMessage.append('\n');
+                            errorMessage.append("== Test case exception ==\n");
+                            errorMessage.append(testStackTrace.toString());
+                            errorMessage.append('\n');
+                            errorMessage.append("== after() exception ==\n");
+                            errorMessage.append(aftertStackTrace.toString());
+                            fail(errorMessage.toString());
+                        }
+                    }
                 }
             }
         };
