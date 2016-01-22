@@ -16,7 +16,7 @@ class Realm implements Plugin<Project> {
         def isAndroidApp = project.plugins.withType(AppPlugin)
         def isAndroidLib = project.plugins.withType(LibraryPlugin)
         if (!isAndroidApp && !isAndroidLib) {
-            throw new GradleException("'android' or 'android-library' plugin required.")
+            throw new GradleException("'com.android.application' or 'com.android.library' plugin required.")
         }
 
         def isKotlinProject = project.plugins.withType(KotlinAndroidPlugin)
