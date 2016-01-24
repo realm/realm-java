@@ -162,7 +162,7 @@ public class RealmListTest {
     public void testAddManagedObject_nonManagedMode() {
         RealmList<AllTypes> list = new RealmList<AllTypes>();
         testRealm.beginTransaction();
-        AllTypes managedAllTypes =  testRealm.createObject(AllTypes.class);
+        AllTypes managedAllTypes = testRealm.createObject(AllTypes.class);
         testRealm.commitTransaction();
         list.add(managedAllTypes);
 
@@ -466,7 +466,7 @@ public class RealmListTest {
 
     // Test that set correctly uses Realm.copyToRealmOrUpdate() on standalone objects with a primary key.
     @Test
-    public void  testSetUnmanagedPrimaryKeyObjectToManagedList() {
+    public void testSetUnmanagedPrimaryKeyObjectToManagedList() {
         testRealm.beginTransaction();
         CyclicTypePrimaryKey parent = testRealm.copyToRealm(new CyclicTypePrimaryKey(1, "Parent"));
         RealmList<CyclicTypePrimaryKey> children = parent.getObjects();
@@ -862,7 +862,7 @@ public class RealmListTest {
                             break;
                         case METHOD_MOVE:
                             list.add(new Dog());
-                            list.move(0,1);
+                            list.move(0, 1);
                             break;
                         case METHOD_REMOVE:
                             list.remove(0);

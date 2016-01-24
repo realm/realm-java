@@ -24,6 +24,9 @@ import io.realm.annotations.Index;
 
 public class Dog extends RealmObject {
 
+    public static final String CLASS_NAME = "Dog";
+    public static final String FIELD_NAME = "name";
+
     @Index
     private String name;
     private long age;
