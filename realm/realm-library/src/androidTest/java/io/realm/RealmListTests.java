@@ -1019,4 +1019,22 @@ public class RealmListTests {
             assertEquals("This Realm instance has already been closed, making it unusable.", e.getMessage());
         }
     }
+
+    @Test
+    public void dynamicRealmObject_readFloat() {
+        testRealm.beginTransaction();
+        AllTypes obj = testRealm.createObject(AllTypes.class);
+        RealmList<Dog> dogs = obj.getColumnRealmList();
+        for (int i = 0; i < 10; i++) {
+            Dog dog = testRealm.createObject(Dog.class);
+            dog.setHeight((float) i);
+            dogs.add(dog);
+        }
+        testRealm.commitTransaction();
+
+        DynamicRealmObject o = new DynamicRealmObject(obj);
+        RealmList<DynamicRealmObject> list = o.getList(AllTypes.FIELD_REALMLIST);
+
+        assertEquals(0F, list.get(0).getFloat(Dog.FIELD_HEIGHT), 0F);
+    }
 }
