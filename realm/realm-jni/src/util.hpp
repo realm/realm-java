@@ -104,7 +104,7 @@ std::string num_to_string(T pNumber)
 #define SG(ptr) reinterpret_cast<realm::SharedGroup*>(ptr)
 #define CH(ptr) reinterpret_cast<realm::ClientHistory*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
-#define CONF(ptr) reinterpret_cast<realm::Realm::RealmConfiguration*>(ptr)
+#define CONF(ptr) reinterpret_cast<realm::Realm::Config*>(ptr)
 
 // Exception handling
 enum ExceptionKind {
