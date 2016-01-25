@@ -717,4 +717,19 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
         assertTrue(str.startsWith("class_AllJavaTypes = ["));
         assertTrue(str.endsWith("}]"));
     }
+
+    public void testExceptionMessage() {
+        // test for https://github.com/realm/realm-java/issues/2141
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        DynamicRealmObject o = new DynamicRealmObject(obj);
+        try {
+            o.getFloat("nonExisting"); // Note that "o" does not have "nonExisting" field.
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("Illegal Argument: Field not found: nonExisting", e.getMessage());
+        }
+    }
 }
