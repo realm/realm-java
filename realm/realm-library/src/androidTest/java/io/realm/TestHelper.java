@@ -672,29 +672,33 @@ public class TestHelper {
 
     // clean resource, shutdown the executor service & throw any background exception
     public static void exitOrThrow(final ExecutorService executorService,
-                     final CountDownLatch signalTestFinished,
-                     final CountDownLatch signalClosedRealm,
-                     final Looper[] looper,
-                     final Throwable[] throwable) throws Throwable {
+                                   final CountDownLatch signalTestFinished,
+                                   final CountDownLatch signalClosedRealm,
+                                   final Looper[] looper,
+                                   final Throwable[] throwable) throws Throwable {
 
         // wait for the signal indicating the test's use case is done
-        TestHelper.awaitOrFail(signalTestFinished);
+        try {
+            // Even if this fails we want to try as hard as possible to cleanup. If we fail to close all resources
+            // properly, the `after()` method will most likely throw as well because it tries do delete any Realms
+            // used. Any exception in the `after()` code will mask the original error.
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            // close the executor
+            executorService.shutdownNow();
+            if (looper[0] != null) {
+                // failing to quit the looper will not execute the finally block responsible
+                // of closing the Realm
+                looper[0].quit();
+            }
 
-        // close the executor
-        executorService.shutdownNow();
+            // wait for the finally block to execute & close the Realm
+            TestHelper.awaitOrFail(signalClosedRealm);
 
-        if (looper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            looper[0].quit();
-        }
-
-        // wait for the finally block to execute & close the Realm
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (throwable[0] != null) {
-            // throw any assertion errors happened in the background thread
-            throw throwable[0];
+            if (throwable[0] != null) {
+                // throw any assertion errors happened in the background thread
+                throw throwable[0];
+            }
         }
     }
 
