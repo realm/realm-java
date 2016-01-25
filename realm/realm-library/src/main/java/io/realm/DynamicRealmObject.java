@@ -268,7 +268,7 @@ public final class DynamicRealmObject extends RealmObject {
     public RealmList<DynamicRealmObject> getList(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         LinkView linkView = row.getLinkList(columnIndex);
-        String className = linkView.getTable().getName().substring(Table.TABLE_PREFIX.length());
+        String className = linkView.getTable().getLinkTarget(columnIndex).getName().substring(Table.TABLE_PREFIX.length());
         return new RealmList<DynamicRealmObject>(className, linkView, realm);
     }
 

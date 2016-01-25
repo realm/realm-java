@@ -18,6 +18,8 @@ package io.realm;
 
 import android.test.AndroidTestCase;
 
+import org.junit.Test;
+
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
@@ -459,9 +461,20 @@ public class DynamicRealmObjectTest extends AndroidTestCase {
 
     // List is not a simple getter, test separately.
     public void testGetList() {
-        RealmList<DynamicRealmObject> list = dObj.getList(AllJavaTypes.FIELD_LIST);
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("fido");
+        obj.getColumnRealmList().add(dog);
+        realm.commitTransaction();
+
+        DynamicRealmObject dynamicAllTypes = new DynamicRealmObject(obj);
+        RealmList<DynamicRealmObject> list = dynamicAllTypes.getList(AllTypes.FIELD_REALMLIST);
+        DynamicRealmObject listObject = list.get(0);
+
         assertEquals(1, list.size());
-        assertEquals(dObj, list.get(0));
+        assertEquals(Dog.CLASS_NAME, listObject.getType());
+        assertEquals("fido", listObject.getString(Dog.FIELD_NAME));
     }
 
     public void testUntypedGetterSetter() {
