@@ -1551,7 +1551,7 @@ bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column
                     int64_t next_val = results.get_int(column_index, i);
                     if (val == next_val) {
                         std::ostringstream error_msg;
-                        error_msg << "Field \"" << table->get_column_name(column_index).data() << "\" cannot be a primary key, ";
+                        error_msg << "Field \"" << column_name << "\" cannot be a primary key, ";
                         error_msg << "it already contains duplicate values: " << val;
                         ThrowException(env, IllegalArgument, error_msg.str());
                         return false;
@@ -1570,7 +1570,7 @@ bool check_valid_primary_key_column(JNIEnv* env, Table* table, StringData column
                     string next_str = results.get_string(column_index, i);
                     if (str.compare(next_str) == 0) {
                         std::ostringstream error_msg;
-                        error_msg << "Field \"" << table->get_column_name(column_index).data() << "\" cannot be a primary key, ";
+                        error_msg << "Field \"" << column_name << "\" cannot be a primary key, ";
                         error_msg << "it already contains duplicate values: " << str;
                         ThrowException(env, IllegalArgument, error_msg.str());
                         return false;
