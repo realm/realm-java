@@ -939,15 +939,15 @@ public class RealmResultsTests {
     @Test
     public void contains_realmObjectFromOtherRealm() {
         RealmConfiguration realmConfig = configFactory.createConfiguration("contains_test.realm");
-        Realm testRealmTwo = Realm.getInstance(realmConfig);
+        Realm realmTwo = Realm.getInstance(realmConfig);
         try {
 
-            testRealmTwo.beginTransaction();
-            testRealmTwo.allObjects(AllTypes.class).clear();
-            testRealmTwo.allObjects(NonLatinFieldNames.class).clear();
+            realmTwo.beginTransaction();
+            realmTwo.allObjects(AllTypes.class).clear();
+            realmTwo.allObjects(NonLatinFieldNames.class).clear();
 
             for (int i = 0; i < TEST_DATA_SIZE; ++i) {
-                AllTypes allTypes = testRealmTwo.createObject(AllTypes.class);
+                AllTypes allTypes = realmTwo.createObject(AllTypes.class);
                 allTypes.setColumnBoolean((i % 2) == 0);
                 allTypes.setColumnBinary(new byte[]{1, 2, 3});
                 allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - TEST_DATA_SIZE / 2)));
@@ -955,24 +955,24 @@ public class RealmResultsTests {
                 allTypes.setColumnFloat(1.234567f + i);
                 allTypes.setColumnString("test data " + i);
                 allTypes.setColumnLong(i);
-                Dog d = testRealmTwo.createObject(Dog.class);
+                Dog d = realmTwo.createObject(Dog.class);
                 d.setName("Foo " + i);
                 allTypes.setColumnRealmObject(d);
                 allTypes.getColumnRealmList().add(d);
-                NonLatinFieldNames nonLatinFieldNames = testRealmTwo.createObject(NonLatinFieldNames.class);
+                NonLatinFieldNames nonLatinFieldNames = realmTwo.createObject(NonLatinFieldNames.class);
                 nonLatinFieldNames.set델타(i);
                 nonLatinFieldNames.setΔέλτα(i);
             }
-            testRealmTwo.commitTransaction();
+            realmTwo.commitTransaction();
 
-            final AllTypes item = testRealmTwo.where(AllTypes.class).findFirst();
+            final AllTypes item = realmTwo.where(AllTypes.class).findFirst();
 
             assertFalse("Should not be able to find one object in another Realm via RealmResults#contains",
                     realm.where(AllTypes.class).findAll().contains(item));
 
         } finally {
-            if (testRealmTwo != null && !testRealmTwo.isClosed()) {
-                testRealmTwo.close();
+            if (realmTwo != null && !realmTwo.isClosed()) {
+                realmTwo.close();
             }
         }
     }
@@ -1401,6 +1401,114 @@ public class RealmResultsTests {
             realm.where(AllJavaTypes.class).findAll().distinct(AllJavaTypes.FIELD_OBJECT + ".columnBinary");
             fail("Unsupported columnBinary linked field");
         } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    private RealmResults<Dog> populateRealmResultsOnDeletedLinkView() {
+        realm.beginTransaction();
+        Owner owner = realm.createObject(Owner.class);
+        for (int i = 0; i < 10; i++) {
+            Dog dog = new Dog();
+            dog.setName("name_" + i);
+            dog.setOwner(owner);
+            owner.getDogs().add(dog);
+        }
+        realm.commitTransaction();
+
+
+        RealmResults<Dog> dogs = owner.getDogs().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
+        //dogs = dogs.where().findFirst().getOwner().getDogs().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
+
+        realm.beginTransaction();
+        owner.removeFromRealm();
+        realm.commitTransaction();
+        return dogs;
+    }
+
+    @Test
+    public void isValid_resultsBuiltOnDeletedLinkView() {
+        assertEquals(false, populateRealmResultsOnDeletedLinkView().isValid());
+    }
+
+    @Test
+    public void size_resultsBuiltOnDeletedLinkView() {
+        assertEquals(0, populateRealmResultsOnDeletedLinkView().size());
+    }
+
+    @Test
+    public void first_resultsBuiltOnDeletedLinkView() {
+        try {
+            populateRealmResultsOnDeletedLinkView().first();
+        } catch (ArrayIndexOutOfBoundsException ignored) {
+        }
+    }
+
+    @Test
+    public void last_resultsBuiltOnDeletedLinkView() {
+        try {
+            populateRealmResultsOnDeletedLinkView().last();
+        } catch (ArrayIndexOutOfBoundsException ignored) {
+        }
+    }
+
+    @Test
+    public void sum_resultsBuiltOnDeletedLinkView() {
+        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
+        assertEquals(0, dogs.sum(Dog.FIELD_AGE).intValue());
+        assertEquals(0f, dogs.sum(Dog.FIELD_HEIGHT).floatValue(), 0f);
+        assertEquals(0d, dogs.sum(Dog.FIELD_WEIGHT).doubleValue(), 0d);
+    }
+
+    @Test
+    public void average_resultsBuiltOnDeletedLinkView() {
+        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
+        assertEquals(0d, dogs.average(Dog.FIELD_AGE), 0d);
+        assertEquals(0d, dogs.average(Dog.FIELD_HEIGHT), 0d);
+        assertEquals(0d, dogs.average(Dog.FIELD_WEIGHT), 0d);
+    }
+
+    @Test
+    public void clear_resultsBuiltOnDeletedLinkView() {
+        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
+        realm.beginTransaction();
+        dogs.clear();
+        assertEquals(0, dogs.size());
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void max_resultsBuiltOnDeletedLinkView() {
+        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
+        assertNull(dogs.max(Dog.FIELD_AGE));
+        assertNull(dogs.max(Dog.FIELD_HEIGHT));
+        assertNull(dogs.max(Dog.FIELD_WEIGHT));
+    }
+
+    @Test
+    public void max_dateResultsBuiltOnDeletedLinkView() {
+        assertEquals(null, populateRealmResultsOnDeletedLinkView().maxDate(Dog.FIELD_BIRTHDAY));
+    }
+
+    @Test
+    public void min_resultsBuiltOnDeletedLinkView() {
+        RealmResults<Dog> dogs = populateRealmResultsOnDeletedLinkView();
+        assertNull(dogs.min(Dog.FIELD_AGE));
+        assertNull(dogs.min(Dog.FIELD_HEIGHT));
+        assertNull(dogs.min(Dog.FIELD_WEIGHT));
+    }
+
+    @Test
+    public void minDateResultsBuiltOnDeletedLinkView() {
+        assertEquals(null, populateRealmResultsOnDeletedLinkView().minDate(Dog.FIELD_BIRTHDAY));
+    }
+
+    @Test
+    public void whereResultsBuiltOnDeletedLinkView() {
+        try {
+            populateRealmResultsOnDeletedLinkView().where();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals("The RealmList which this RealmResults is created on has been deleted.", e.getMessage());
         }
     }
 }
