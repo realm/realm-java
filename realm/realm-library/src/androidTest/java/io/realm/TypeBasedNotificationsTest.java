@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.Date;
-import java.util.WeakHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1827,8 +1826,8 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                         // Check if cat has been added to the realmObjects in case of the behaviour of getCat changes
                         for (WeakReference<RealmObject> weakReference : realm.handlerController.realmObjects.keySet()) {
                             if (weakReference.get() == cat) {
-                               foundKey = true;
-                               break;
+                                foundKey = true;
+                                break;
                             }
                         }
                         assertTrue(foundKey);
@@ -1889,5 +1888,59 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         });
 
         finishedLatch.await();
+    }
+
+    // Build a RealmResults from a RealmList, and delete the RealmList. Test the behavior of ChangeListener on the
+    // "invalid" RealmResults.
+    public void test_changeListener_onResultsBuiltOnDeletedLinkView() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                realm = Realm.getInstance(configuration);
+                realm.beginTransaction();
+                AllTypes allTypes = realm.createObject(AllTypes.class);
+                for (int i = 0; i < 10; i++) {
+                    Dog dog = new Dog();
+                    dog.setName("name_" + i);
+                    allTypes.getColumnRealmList().add(dog);
+                }
+                realm.commitTransaction();
+
+                final RealmResults<Dog> dogs =
+                        allTypes.getColumnRealmList().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
+                dogs.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        if (typebasedCommitInvocations.getAndIncrement() == 0) {
+                            assertFalse(dogs.isValid());
+                            assertEquals(0, dogs.size());
+                        } else {
+                            fail("This listener should only be called once.");
+                        }
+                    }
+                });
+
+                // Trigger the listener at the first time.
+                realm.beginTransaction();
+                allTypes.removeFromRealm();
+                realm.commitTransaction();
+
+                // Try to trigger the listener second time.
+                realm.beginTransaction();
+                realm.commitTransaction();
+
+                // Close the realm and finish the test. This needs to follow the REALM_CHANGED in the queue.
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        realm.close();
+                        signalTestFinished.countDown();
+                    }
+                });
+            }
+        });
+
+        TestHelper.awaitOrFail(signalTestFinished);
+        assertEquals(1, typebasedCommitInvocations.get());
     }
 }

@@ -342,6 +342,26 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
+    public void testAddPrimaryKeyFieldModifier_duplicateValues() {
+        for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
+            final String fieldName = "foo";
+            schema.addField(fieldName, fieldType.getType());
+
+            // create multiple objects those have same value.
+            realm.createObject(schema.getClassName());
+            realm.createObject(schema.getClassName());
+
+            try {
+                schema.addPrimaryKey(fieldName);
+                fail();
+            } catch (IllegalArgumentException e) {
+                // check if message reports correct field name.
+                assertTrue(e.getMessage().contains("\"" + fieldName + "\""));
+            }
+            schema.removeField(fieldName);
+        }
+    }
+
     public void testAddIndexFieldModifier_illegalFieldTypeThrows() {
         String fieldName = "foo";
         for (InvalidIndexFieldType fieldType : InvalidIndexFieldType.values()) {
