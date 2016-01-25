@@ -304,7 +304,10 @@ string string_to_hex(const string& message, const jchar *str, size_t size, size_
 
 string concat_stringdata(const char *message, StringData strData)
 {
-    return std::string(message) + (strData != NULL ? strData.data() : "");
+    if (strData.is_null()) {
+        return std::string(message);
+    }
+    return std::string(message) + std::string(strData.data(), strData.size());
 }
 
 jstring to_jstring(JNIEnv* env, StringData str)
