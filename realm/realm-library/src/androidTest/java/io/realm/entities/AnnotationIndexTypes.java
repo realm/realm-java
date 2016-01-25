@@ -25,6 +25,7 @@ import io.realm.annotations.Index;
 public class AnnotationIndexTypes extends RealmObject {
 
     public static final String CLASS_NAME = "AnnotationIndexTypes";
+    public static final String FIELD_OBJECT = "fieldObject";
 
     @Index
     private String indexString;
@@ -53,6 +54,8 @@ public class AnnotationIndexTypes extends RealmObject {
     @Index
     private Date indexDate;
     private Date notIndexDate;
+
+    private AnnotationIndexTypes fieldObject;
 
     public String getIndexString() {
         return indexString;
@@ -165,4 +168,10 @@ public class AnnotationIndexTypes extends RealmObject {
     public void setNotIndexDate(Date notIndexDate) {
         this.notIndexDate = notIndexDate;
     }
+
+    public void setFieldObject(AnnotationIndexTypes object) {
+        this.fieldObject = object;
+    }
+
+    public AnnotationIndexTypes getFieldObject() { return this.fieldObject; }
 }

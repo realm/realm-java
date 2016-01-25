@@ -789,6 +789,21 @@ public class TableView implements TableOrView, Closeable {
         return result;
    }
 
+    /**
+     * Removes rows that are duplicated with respect to the column set passed as argument.
+     * If two rows are indentical (for the given set of distinct-columns), then the last row is
+     * removed unless sorted, in which case the first object is returned.
+     *
+     * @param columnIndex the column index.
+     * @throws IllegalArgumentException if the type of the column is unsupported.
+     * @throws UnsupportedOperationException if a column is not indexed.
+     */
+    public void distinct(long columnIndex) {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        this.context.executeDelayedDisposal();
+        nativeDistinct(nativePtr, columnIndex);
+    }
+
     @Override
     public long sync() {
         return nativeSync(nativePtr);
@@ -862,5 +877,6 @@ public class TableView implements TableOrView, Closeable {
     private native String nativeRowToString(long nativeTablePtr, long rowIndex);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
+    private native long nativeDistinct(long nativeViewPtr, long columnIndex);
     private native long nativeSync(long nativeTablePtr);
 }

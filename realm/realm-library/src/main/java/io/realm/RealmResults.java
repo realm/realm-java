@@ -30,9 +30,11 @@ import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.DeletedRealmListException;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
+import io.realm.internal.Table;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
@@ -52,6 +54,10 @@ import rx.Observable;
  * <p>
  * Notice that a RealmResults is never {@code null} not even in the case where it contains no objects. You should always
  * use the size() method to check if a RealmResults is empty or not.
+ * <p>
+ * If a RealmResults is built on RealmList through {@link RealmList#where()}, it will become invalid when the source
+ * RealmList gets deleted. When that happens, the RealmResults will behave like a empty RealmResults, but calling
+ * {@link #where()} will throw an {@link IllegalStateException}. Use {@link #isValid} to detect this situation.
  *
  * @param <E> The class of objects in this list.
  * @see RealmQuery#findAll()
@@ -66,7 +72,9 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private TableOrView table = null;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
-    private long currentTableViewVersion = -1;
+    private static final long TABLE_VIEW_VERSION_NONE = -1;
+    private static final long TABLE_VIEW_VERSION_REALM_LIST_DELETED = -2;
+    private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
 
     private final TableQuery query;
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
@@ -78,7 +86,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     static <E extends RealmObject> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
-        return new RealmResults<E>(realm, table, clazz);
+        RealmResults<E> realmResults = new RealmResults<E>(realm, table, clazz);
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     static RealmResults<DynamicRealmObject> createFromDynamicClass(BaseRealm realm, TableQuery query, String className) {
@@ -86,7 +98,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     static RealmResults<DynamicRealmObject> createFromDynamicTableOrView(BaseRealm realm, TableOrView table, String className) {
-        return new RealmResults<DynamicRealmObject>(realm, table, className);
+        RealmResults<DynamicRealmObject> realmResults = new RealmResults<DynamicRealmObject>(realm, table, className);
+        if (realm.handlerController != null) {
+            realm.handlerController.addToRealmResults(realmResults);
+        }
+        return realmResults;
     }
 
     private RealmResults(BaseRealm realm, TableQuery query, Class<E> clazz) {
@@ -139,7 +155,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @return {@code true} if still valid to use, {@code false} otherwise.
      */
     public boolean isValid() {
-        return realm != null && !realm.isClosed();
+        if (realm == null || realm.isClosed()) {
+            return false;
+        }
+
+        return syncToCheckIfValid("Calling isValid on RealmResults whose parent RealmList has been deleted already.");
     }
 
     /**
@@ -147,9 +167,14 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @return a typed RealmQuery.
      * @see io.realm.RealmQuery
+     * @throws IllegalStateException if the RealmList which this RealmResults is created on has been deleted.
      */
     public RealmQuery<E> where() {
         realm.checkIfValid();
+
+        if (!syncToCheckIfValid("Calling where on RealmResults whose parent RealmList has been deleted already.")) {
+            throw new IllegalStateException("The RealmList which this RealmResults is created on has been deleted.");
+        }
         return RealmQuery.createQueryFromResult(this);
     }
 
@@ -278,7 +303,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // aux. method used by sort methods
     private long getColumnIndex(String fieldName) {
         if (fieldName.contains(".")) {
-            throw new IllegalArgumentException("Sorting using child object properties is not supported: " + fieldName);
+            throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
         }
         long columnIndex = table.getColumnIndex(fieldName);
         if (columnIndex < 0) {
@@ -378,7 +403,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2, String fieldName3, Sort sortOrder3) {
-        sort(new String[] {fieldName1, fieldName2, fieldName3}, new Sort[] {sortOrder1, sortOrder2, sortOrder3});
+        sort(new String[]{fieldName1, fieldName2, fieldName3}, new Sort[]{sortOrder1, sortOrder2, sortOrder3});
     }
 
     // Aggregates
@@ -536,6 +561,38 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
+    /**
+     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
+     * object will be returend in case of multiple occurences, otherwise it is undefined which
+     * object is returned.
+     *
+     * @param fieldName the field name.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field name does not exist.
+     * @throws IllegalArgumentException if a field's type is not supported.
+     * @throws IllegalArgumentException if a field points linked properties.
+     * @throws UnsupportedOperationException if a field is not indexed.
+     */
+    public RealmResults<E> distinct(String fieldName) {
+        realm.checkIfValid();
+        long columnIndex = getColumnIndex(fieldName);
+        TableOrView tableOrView = getTable();
+
+        TableView tableView;
+        if (tableOrView instanceof Table) {
+            tableView = ((Table) tableOrView).getDistinctView(columnIndex);
+        } else {
+            tableView = ((TableView) tableOrView).getTable().getDistinctView(columnIndex);
+        }
+
+        RealmResults<E> realmResults;
+        if (realm instanceof DynamicRealm) {
+            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, classSpec);
+        }
+        return realmResults;
+    }
 
     // Deleting
 
@@ -876,13 +933,45 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             //FIXME: still waiting for Core to provide a fix
             //       for crash when calling _sync_if_needed on a cleared View.
             //       https://github.com/realm/realm-core/pull/1390
-            long version = table.sync();
+            long version;
+            try {
+                version = table.sync();
+            } catch (DeletedRealmListException e) {
+                // Although this RealmResults won't be updated anymore, it is good to give user a chance to do update.
+                // When the onChange called this time, user can use isValid to check if the RealmList has been deleted.
+                version = TABLE_VIEW_VERSION_REALM_LIST_DELETED;
+                RealmLog.d("The parent RealmList has been deleted already.");
+            }
             if (currentTableViewVersion != version) {
                 currentTableViewVersion = version;
                 for (RealmChangeListener listener : listeners) {
                     listener.onChange();
                 }
             }
+
+            // Since the parent RealmList has been removed, this RealmResults won't be updated anymore.
+            // We just remove the change listeners from this to avoid unnecessary callings in the future.
+            if (version == TABLE_VIEW_VERSION_REALM_LIST_DELETED) {
+                listeners.clear();
+            }
         }
+    }
+
+    // FIXME: This is a temp fix, see https://github.com/realm/realm-core/pull/1434
+    private boolean syncToCheckIfValid(String warningMessage) {
+        if (currentTableViewVersion == TABLE_VIEW_VERSION_REALM_LIST_DELETED) {
+            RealmLog.d(warningMessage);
+            return false;
+        }
+        TableOrView tableOrView = getTable();
+        if (tableOrView instanceof TableView) {
+            try {
+                tableOrView.sync();
+            } catch (DeletedRealmListException e) {
+                RealmLog.d(warningMessage);
+                return false;
+            }
+        }
+        return true;
     }
 }

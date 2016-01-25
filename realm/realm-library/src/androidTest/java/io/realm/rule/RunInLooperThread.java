@@ -16,11 +16,14 @@
 
 package io.realm.rule;
 
+import android.os.Handler;
 import android.os.Looper;
 
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -31,14 +34,23 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
 
+import static org.junit.Assert.fail;
+
 /**
- * Rule that runs the test inside a worker looper thread. This Rule is responsible
+ * Rule that runs the test inside a worker looper thread. This rule is responsible
  * of creating a temp directory containing a Realm instance then delete it, once the test finishes.
+ *
+ * All Realms used in a method method annotated with {@code @RunTestInLooperThread } should use
+ * {@link RunInLooperThread#createConfiguration()} and friends to create their configurations. Failing to do so can
+ * result in the test failing because the Realm could not be deleted (Reason is that {@link TestRealmConfigurationFactory}
+ * and this class does not agree in which order to delete all open Realms.
  */
 public class RunInLooperThread extends TestRealmConfigurationFactory {
     public Realm realm;
     public RealmConfiguration realmConfiguration;
     private CountDownLatch signalTestCompleted;
+    private Handler backgroundHandler;
+
     // the variables created inside the test are local and eligible for GC.
     // but sometimes we need the variables to survive across different Looper
     // events (Callbacks happening in the future), so we add a strong reference
@@ -67,6 +79,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             return base;
         }
         return new Statement() {
+            private Throwable testException;
+
             @Override
             public void evaluate() throws Throwable {
                 before();
@@ -80,6 +94,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                         public void run() {
                             Looper.prepare();
                             backgroundLooper[0] = Looper.myLooper();
+                            backgroundHandler = new Handler(backgroundLooper[0]);
                             try {
                                 realm = Realm.getInstance(realmConfiguration);
                                 base.evaluate();
@@ -99,8 +114,43 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                         }
                     });
                     TestHelper.exitOrThrow(executorService, signalTestCompleted, signalClosedRealm, backgroundLooper, threadAssertionError);
+                } catch (Throwable error) {
+                    // These exceptions should only come from TestHelper.awaitOrFail()
+                    testException = error;
                 } finally {
-                    after();
+                    // Try as hard as possible to close down gracefully, while still keeping all exceptions intact.
+                    try {
+                        after();
+                    } catch (Throwable e) {
+                        if (testException != null) {
+                            // Both TestHelper.awaitOrFail() and after() threw an exception. Make sure we are aware of
+                            // that fact by printing both exceptions.
+                            StringWriter testStackTrace = new StringWriter();
+                            testException.printStackTrace(new PrintWriter(testStackTrace));
+
+                            StringWriter aftertStackTrace = new StringWriter();
+                            e.printStackTrace(new PrintWriter(aftertStackTrace));
+
+                            StringBuilder errorMessage = new StringBuilder()
+                                    .append("after() threw an error that shadows a test case error")
+                                    .append('\n')
+                                    .append("== Test case exception ==\n")
+                                    .append(testStackTrace.toString())
+                                    .append('\n')
+                                    .append("== after() exception ==\n")
+                                    .append(aftertStackTrace.toString());
+                            fail(errorMessage.toString());
+                        } else {
+                            // Only after() threw an exception
+                            throw e;
+                        }
+                    }
+
+                    // Only TestHelper.awaitOrFail() threw an exception
+                    if (testException != null) {
+                        //noinspection ThrowFromFinallyBlock
+                        throw testException;
+                    }
                 }
             }
         };
@@ -111,5 +161,12 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      */
     public void testComplete() {
         signalTestCompleted.countDown();
+    }
+
+    /**
+     * Posts a runnable to this worker threads looper.
+     */
+    public void postRunnable(Runnable runnable) {
+        backgroundHandler.post(runnable);
     }
 }

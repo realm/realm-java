@@ -923,11 +923,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
 
@@ -988,13 +984,9 @@ public final class Realm extends BaseRealm {
                                                                     Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = this.getTable(clazz);
-        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**
@@ -1016,11 +1008,7 @@ public final class Realm extends BaseRealm {
         }
 
         TableView tableView = table.getDistinctView(columnIndex);
-        RealmResults<E> realmResults = RealmResults.createFromTableOrView(this, tableView, clazz);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromTableOrView(this, tableView, clazz);
     }
 
     /**

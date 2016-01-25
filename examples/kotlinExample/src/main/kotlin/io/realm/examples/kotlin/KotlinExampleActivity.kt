@@ -70,7 +70,7 @@ public class KotlinExampleActivity : Activity() {
 
         // More complex operations can be executed on another thread, for example using
         // Anko's async extension method.
-        async {
+        async() {
             var info: String
             info = complexReadWrite()
             info += complexQuery()
