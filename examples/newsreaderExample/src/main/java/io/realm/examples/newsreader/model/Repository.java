@@ -65,6 +65,7 @@ public class Repository implements Closeable {
      *
      * @return {@code true} if the network is currently being used, {@code false} otherwise.
      */
+    @UiThread
     public Observable<Boolean> networkInUse() {
         return networkLoading.asObservable();
     }
@@ -72,6 +73,7 @@ public class Repository implements Closeable {
     /**
      * Loads the news feed as well as all future updates.
      */
+    @UiThread
     public Observable<RealmResults<NYTimesStory>> loadNewsFeed(@NonNull String sectionKey, boolean forceReload) {
         // Start loading data from the network if needed
         // It will put all data into Realm
@@ -102,6 +104,7 @@ public class Repository implements Closeable {
      * @param storyId story to update
      * @param read {@code true} if the story has been read, {@code false} otherwise.
      */
+    @UiThread
     public void updateStoryReadState(final String storyId, final boolean read) {
         realm.executeTransaction(new Realm.Transaction() {
             @Override
@@ -119,6 +122,7 @@ public class Repository implements Closeable {
     /**
      * Returns story details
      */
+    @UiThread
     public Observable<NYTimesStory> loadStory(final String storyId) {
         return realm.where(NYTimesStory.class).equalTo(NYTimesStory.URL, storyId).findFirstAsync()
                 .<NYTimesStory>asObservable()
@@ -133,6 +137,7 @@ public class Repository implements Closeable {
     /**
      * Closes all underlying resources used by the Repository.
      */
+    @UiThread
     public void close() {
         realm.close();
     }
