@@ -15,7 +15,11 @@ ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('st
 // core source code.
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
 
-def commonCflags = [ '-Os', '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
+def commonCflags = [ '-Os', '-std=c++11' ]
+// LTO and debugging don't play well together
+if (!ext.debugBuild) {
+    commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
+}
 
 enum Compiler {
     GCC, CLANG
