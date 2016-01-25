@@ -289,7 +289,7 @@ string string_to_hex(const string& message, StringData& str, const char* in_begi
     ret << "error_code = " << error_code << "; ";
     ret << "retcode = " << retcode << "; ";
     ret << "StringData.size = " << str.size() << "; ";
-    ret << "StringData.data = " << str.data() << "; ";
+    ret << "StringData.data = " << str << "; ";
     ret << "StringData as hex = ";
     for (string::size_type i = 0; i < str.size(); ++i)
         ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
