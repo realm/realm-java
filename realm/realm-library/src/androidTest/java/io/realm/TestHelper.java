@@ -21,6 +21,8 @@ import android.content.res.AssetManager;
 import android.os.Looper;
 import android.util.Log;
 
+import org.junit.Assert;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -705,5 +707,14 @@ public class TestHelper {
     public static InputStream loadJsonFromAssets(Context context, String file) throws IOException {
         AssetManager assetManager = context.getAssets();
         return assetManager.open(file);
+    }
+
+    public static void quitLooperOrFail() {
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            looper.quit();
+        } else {
+            Assert.fail();
+        }
     }
 }
