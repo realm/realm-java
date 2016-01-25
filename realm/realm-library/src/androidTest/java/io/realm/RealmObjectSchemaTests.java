@@ -347,7 +347,7 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
             final String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
 
-            // create multiple objects those have same value.
+            // create multiple objects with same values.
             realm.createObject(schema.getClassName());
             realm.createObject(schema.getClassName());
 
