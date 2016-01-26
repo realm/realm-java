@@ -281,9 +281,18 @@ public class AnnotationIndexTypes extends RealmObject {
         this.notIndexDate = notIndexDate;
     }
 
-    public void setFieldObject(AnnotationIndexTypes object) {
-        this.fieldObject = object;
+    public void setFieldObject(AnnotationIndexTypes fieldObject) {
+        realmSetter$fieldObject(fieldObject);
     }
 
-    public AnnotationIndexTypes getFieldObject() { return this.fieldObject; }
+    public AnnotationIndexTypes getFieldObject() {
+        return realmGetter$fieldObject();
+    }
+
+    public void realmSetter$fieldObject(AnnotationIndexTypes fieldObject) {
+        this.fieldObject = fieldObject;
+    }
+
+    public AnnotationIndexTypes realmGetter$fieldObject() { return this.fieldObject; }
+
 }
