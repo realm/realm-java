@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.Keep;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
@@ -79,6 +80,7 @@ import rx.Observable;
  */
 
 @RealmClass
+@Keep
 public abstract class RealmObject {
 
     protected Row row;
