@@ -13,6 +13,7 @@
  * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).
  * Fixed a message in IllegalArgumentException thrown by the accessors of DynamicRealmObject (#2141).
  * Fixed RealmList not returning DynamicRealmObjects of the correct underlying type (#2143).
+ * Fixed potential crash when rolling back removal of classes that reference each other (#1829).
  * Updated Realm Core to 0.95.8
    - Fixed a bug where undetected deleted object might lead to seg. fault (#1945).
    - Better performance when deleting objects (#2015).
