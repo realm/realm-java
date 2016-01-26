@@ -16,6 +16,7 @@
 
 package io.realm.gradle
 
+import com.android.build.api.transform.Transform
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
@@ -64,6 +65,8 @@ class PluginTest {
 
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-android-library', currentVersion))
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations', currentVersion))
+
+        assertTrue(containsTransform(project.android.transforms, RealmTransformer.class));
     }
 
     @Test
@@ -114,5 +117,14 @@ class PluginTest {
             }
         }
         return false
+    }
+
+    private static boolean containsTransform(List<Transform> transformList, Class<? extends Transform> targetClass) {
+        for (Transform t : transformList) {
+            if (t.getClass() == targetClass) {
+                return true;
+            }
+        }
+        return false;
     }
 }
