@@ -26,6 +26,7 @@ import io.realm.annotations.PrimaryKey;
 
 public class AllJavaTypes extends RealmObject{
 
+    public static final String CLASS_NAME = "AllJavaTypes";
     public static String FIELD_IGNORED = "fieldIgnored";
     public static String FIELD_STRING = "fieldString";
     public static String FIELD_SHORT = "fieldShort";
