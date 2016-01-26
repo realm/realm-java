@@ -2,15 +2,20 @@
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
  * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
+ * Fixed bug in jsonExample (#2092).
  * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
  * Added Realm.clear() and RealmList.removeAllFromRealm() (#1560).
  * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
  * Improved performance of RealmList#contains() (#897).
- * Added RealmQuery.distinct() and RealmResults.distinct() (#1568). 
+ * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 
 0.87.3
  * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).
- * Fixed bug in jsonExample (#2092).
+ * Fixed a message in IllegalArgumentException thrown by the accessors of DynamicRealmObject (#2141).
+ * Fixed RealmList not returning DynamicRealmObjects of the correct underlying type (#2143).
+ * Updated Realm Core to 0.95.8
+   - Fixed a bug where undetected deleted object might lead to seg. fault (#1945).
+   - Better performance when deleting objects (#2015).
 
 0.87.2
  * Fixed a bug when RealmObjectSchema.addField() was called with the PRIMARY_KEY modifier, the field was not set as a required field (#2001).

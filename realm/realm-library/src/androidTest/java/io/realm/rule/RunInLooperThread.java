@@ -22,6 +22,8 @@ import android.os.Looper;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -31,6 +33,8 @@ import java.util.concurrent.Executors;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
+
+import static org.junit.Assert.fail;
 
 /**
  * Rule that runs the test inside a worker looper thread. This rule is responsible
@@ -75,6 +79,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             return base;
         }
         return new Statement() {
+            private Throwable testException;
+
             @Override
             public void evaluate() throws Throwable {
                 before();
@@ -108,8 +114,43 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                         }
                     });
                     TestHelper.exitOrThrow(executorService, signalTestCompleted, signalClosedRealm, backgroundLooper, threadAssertionError);
+                } catch (Throwable error) {
+                    // These exceptions should only come from TestHelper.awaitOrFail()
+                    testException = error;
                 } finally {
-                    after();
+                    // Try as hard as possible to close down gracefully, while still keeping all exceptions intact.
+                    try {
+                        after();
+                    } catch (Throwable e) {
+                        if (testException != null) {
+                            // Both TestHelper.awaitOrFail() and after() threw an exception. Make sure we are aware of
+                            // that fact by printing both exceptions.
+                            StringWriter testStackTrace = new StringWriter();
+                            testException.printStackTrace(new PrintWriter(testStackTrace));
+
+                            StringWriter aftertStackTrace = new StringWriter();
+                            e.printStackTrace(new PrintWriter(aftertStackTrace));
+
+                            StringBuilder errorMessage = new StringBuilder()
+                                    .append("after() threw an error that shadows a test case error")
+                                    .append('\n')
+                                    .append("== Test case exception ==\n")
+                                    .append(testStackTrace.toString())
+                                    .append('\n')
+                                    .append("== after() exception ==\n")
+                                    .append(aftertStackTrace.toString());
+                            fail(errorMessage.toString());
+                        } else {
+                            // Only after() threw an exception
+                            throw e;
+                        }
+                    }
+
+                    // Only TestHelper.awaitOrFail() threw an exception
+                    if (testException != null) {
+                        //noinspection ThrowFromFinallyBlock
+                        throw testException;
+                    }
                 }
             }
         };
