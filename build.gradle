@@ -176,6 +176,9 @@ task cleanRealm(type:GradleBuild) {
     group = 'Clean'
     buildFile = file('realm/build.gradle')
     tasks = ['clean']
+    if (project.hasProperty('dontCleanJniFiles')) {
+        startParameter.projectProperties = [dontCleanJniFiles: ""]
+    }
 }
 
 task cleanGradlePlugin(type:GradleBuild) {

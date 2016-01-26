@@ -316,6 +316,10 @@ task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared 
 }
 
 task clean(type: Delete) {
+    outputs.upToDateWhen {
+        project.hasProperty('dontCleanJniFiles')
+    }
+
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')
