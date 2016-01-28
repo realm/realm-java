@@ -80,7 +80,6 @@ import rx.Observable;
  */
 
 @RealmClass
-@Keep
 public abstract class RealmObject {
 
     protected Row row;
