@@ -2801,25 +2801,4 @@ public class RealmTests {
         assertEquals(0, realm.where(Cat.class).count());
         assertTrue(realm.isEmpty());
     }
-
-    // When there is a transaction holding by a typed Realm in one thread, getInstance from the
-    // other thread should not be blocked since we have cached the schemas already.
-    @Test
-    public void getInstance_shouldNotBeBlockedByTransactionInAnotherThread()
-            throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
-        realm.beginTransaction();
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-                realm.close();
-                latch.countDown();
-            }
-        });
-        thread.start();
-        TestHelper.awaitOrFail(latch);
-        realm.cancelTransaction();
-    }
 }

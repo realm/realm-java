@@ -16,10 +16,17 @@
 
 package io.realm.rule;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -108,5 +115,21 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     public RealmConfiguration.Builder createConfigurationBuilder() {
         return new RealmConfiguration.Builder(getRoot());
+    }
+
+    // Copies a Realm file from assets to temp dir
+    public void copyRealmFromAssets(Context context, String realmPath, String newName)
+            throws IOException {
+        AssetManager assetManager = context.getAssets();
+        InputStream is = assetManager.open(realmPath);
+        File file = new File(getRoot(), newName);
+        FileOutputStream outputStream = new FileOutputStream(file);
+        byte[] buf = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = is.read(buf)) > -1) {
+            outputStream.write(buf, 0, bytesRead);
+        }
+        outputStream.close();
+        is.close();
     }
 }
