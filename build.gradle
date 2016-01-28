@@ -244,7 +244,7 @@ task uploadUpdateVersion(type: Exec) {
 
 task distribute {
     group = 'Release'
-    description = 'Distribute release artifacts to Bintray and S3'
+    description = 'Distribute release artifacts to S3'
     dependsOn uploadUpdateVersion
 }
 

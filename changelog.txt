@@ -9,6 +9,10 @@
  * Improved performance of RealmList#contains() (#897).
  * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 
+0.87.4
+ * Updated Realm Core to 0.96.0
+   - Fixed bug causing BadVersionException or crashing core when running async queries.
+
 0.87.3
  * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).
  * Fixed a message in IllegalArgumentException thrown by the accessors of DynamicRealmObject (#2141).
