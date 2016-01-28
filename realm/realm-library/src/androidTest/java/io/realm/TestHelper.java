@@ -128,21 +128,6 @@ public class TestHelper {
         return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
     }
 
-    // Copies a Realm file from assets to app files dir
-    public static void copyRealmFromAssets(Context context, String realmPath, String newName) throws IOException {
-        AssetManager assetManager = context.getAssets();
-        InputStream is = assetManager.open(realmPath);
-        File file = new File(context.getFilesDir(), newName);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        byte[] buf = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = is.read(buf)) > -1) {
-            outputStream.write(buf, 0, bytesRead);
-        }
-        outputStream.close();
-        is.close();
-    }
-
     // Creates a simple migration step in order to support null
     // FIXME: generate a new encrypted.realm will null support
     public static RealmMigration prepareMigrationToNullSupportStep() {
@@ -154,13 +139,6 @@ public class TestHelper {
             }
         };
         return realmMigration;
-    }
-
-
-    // Deletes the old database and copies a new one into its place
-    public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
-        Realm.deleteRealm(createConfiguration(context, newName));
-        TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
 
     // Returns a random key used by encrypted Realms.
