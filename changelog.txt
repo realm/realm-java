@@ -8,6 +8,7 @@
  * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
  * Improved performance of RealmList#contains() (#897).
  * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
+ * Adding Realm.compact() for encrypted Realms (#1033).
 
 0.87.3
  * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).

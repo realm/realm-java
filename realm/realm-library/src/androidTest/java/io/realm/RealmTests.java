@@ -1097,12 +1097,10 @@ public class RealmTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration("enc.realm", TestHelper.getRandomKey());
         Realm realm = Realm.getInstance(realmConfig);
         realm.close();
-        // TODO: remove try/catch block when compacting encrypted Realms is supported
-        try {
-            assertTrue(Realm.compactRealm(realmConfig));
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        assertTrue(Realm.compactRealm(realmConfig));
+        realm = Realm.getInstance(realmConfig);
+        assertFalse(realm.isClosed());
+        realm.close();
     }
 
     @Test
@@ -1112,12 +1110,12 @@ public class RealmTests {
 
         populateTestRealm(realm, 100);
         realm.close();
-        // TODO: remove try/catch block when compacting encrypted Realms is supported
-        try {
-            assertTrue(Realm.compactRealm(realmConfig));
-            fail();
-        } catch (IllegalArgumentException expected) {
-        }
+        assertTrue(Realm.compactRealm(realmConfig));
+
+        realm = Realm.getInstance(realmConfig);
+        assertFalse(realm.isClosed());
+        assertEquals(100, realm.allObjects(AllTypes.class).size());
+        realm.close();
     }
 
     @Test
