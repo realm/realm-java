@@ -24,10 +24,13 @@ import javassist.CtNewMethod
 import javassist.NotFoundException
 import javassist.expr.ExprEditor
 import javassist.expr.FieldAccess
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class BytecodeModifier {
     public static void addRealmAccessors(CtClass clazz) {
-        println("  Realm: Adding accessors to ${clazz.simpleName}")
+        Logger logger = LoggerFactory.getLogger('realm-logger')
+        logger.info "  Realm: Adding accessors to ${clazz.simpleName}"
         clazz.declaredFields.each { CtField field ->
             try {
                 clazz.getDeclaredMethod("realmGetter\$${field.name}")
@@ -43,8 +46,9 @@ class BytecodeModifier {
     }
 
     public static void useRealmAccessors(CtClass clazz, List<CtField> managedFields) {
+        Logger logger = LoggerFactory.getLogger('realm-logger')
         clazz.getDeclaredBehaviors().each { behavior ->
-            println "    Behavior: ${behavior.name}"
+            logger.info "    Behavior: ${behavior.name}"
             if (!behavior.name.startsWith('realmGetter$') && !behavior.name.startsWith('realmSetter$')) {
                 behavior.instrument(new ExpressionEditor(managedFields, clazz, behavior))
             }
@@ -64,8 +68,9 @@ class BytecodeModifier {
 
         @Override
         void edit(FieldAccess fieldAccess) throws CannotCompileException {
+            Logger logger = LoggerFactory.getLogger('realm-logger')
             try {
-                println "      Field being accessed: ${fieldAccess.className}.${fieldAccess.fieldName}"
+                logger.info "      Field being accessed: ${fieldAccess.className}.${fieldAccess.fieldName}"
                 def flag = false
                 managedFields.each {
                     if (fieldAccess.className.equals(it.declaringClass.name) && fieldAccess.fieldName.equals(it.name)) {
@@ -73,8 +78,8 @@ class BytecodeModifier {
                     }
                 }
                 if (flag) {
-                    println("        Realm: Manipulating ${ctClass.simpleName}.${behavior.name}(): ${fieldAccess.fieldName}")
-                    println("        Methods: ${ctClass.declaredMethods}")
+                    logger.info "        Realm: Manipulating ${ctClass.simpleName}.${behavior.name}(): ${fieldAccess.fieldName}"
+                    logger.info "        Methods: ${ctClass.declaredMethods}"
                     def fieldName = fieldAccess.fieldName
                     if (fieldAccess.isReader()) {
                         fieldAccess.replace('$_ = $0.realmGetter$' + fieldName + '();')

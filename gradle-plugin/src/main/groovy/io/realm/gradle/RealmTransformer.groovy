@@ -25,10 +25,14 @@ import groovy.io.FileType
 import io.realm.annotations.Ignore
 import javassist.ClassPool
 import javassist.LoaderClassPath
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import static com.android.build.api.transform.QualifiedContent.*
 
 class RealmTransformer extends Transform {
+
+    private Logger logger = LoggerFactory.getLogger('realm-logger')
 
     @Override
     String getName() {
@@ -58,7 +62,7 @@ class RealmTransformer extends Transform {
 
         final ArrayList<File> folders = []
         inputs.each { TransformInput input ->
-            println "Directory inputs: ${input.directoryInputs*.file}"
+            logger.info "Directory inputs: ${input.directoryInputs*.file}"
             folders.addAll(input.directoryInputs*.file)
         }
 
@@ -94,15 +98,15 @@ class RealmTransformer extends Transform {
             classPool.appendClassPath(folder.canonicalPath)
         }
 
-        println "Contains io.realm.RealmList: ${classPool.getOrNull('io.realm.RealmList')}"
+        logger.info "Contains io.realm.RealmList: ${classPool.getOrNull('io.realm.RealmList')}"
 
         def proxyClasses = classFiles.findAll { key, value -> key.name.endsWith('RealmProxy.class') }
-        println "Proxy Classes: ${proxyClasses*.value}"
+        logger.info "Proxy Classes: ${proxyClasses*.value}"
 
         def modelClasses = proxyClasses.collect { key, value ->
             classPool.getCtClass(classFiles.get(key)).superclass
         }
-        println "Model Classes: ${modelClasses*.name}"
+        logger.info "Model Classes: ${modelClasses*.name}"
 
         def managedFields = []
         modelClasses.each {
@@ -110,12 +114,12 @@ class RealmTransformer extends Transform {
                 it.getAnnotation(Ignore.class) == null
             })
         }
-        println "Managed Fields: ${managedFields*.name}"
+        logger.info "Managed Fields: ${managedFields*.name}"
 
         modelClasses.each { BytecodeModifier.addRealmAccessors(it) }
 
         classFiles.each { key, value ->
-            println "  Modifying class ${value}"
+            logger.info "  Modifying class ${value}"
             def ctClass = classPool.getCtClass(value)
             BytecodeModifier.useRealmAccessors(ctClass, managedFields)
             ctClass.writeFile(outputProvider.getContentLocation(
