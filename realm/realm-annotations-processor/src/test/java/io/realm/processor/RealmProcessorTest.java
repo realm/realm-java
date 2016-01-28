@@ -235,14 +235,6 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileNoAccessorsFile() {
-        ASSERT.about(javaSource())
-                .that(noAccessorsModel)
-                .processedWith(new RealmProcessor())
-                .failsToCompile();
-    }
-
-    @Test
     public void compileMissingGenericType() {
         ASSERT.about(javaSource())
                 .that(missingGenericTypeModel)

@@ -27,7 +27,7 @@ import org.json.JSONObject;
 import some.test.Booleans;
 
 public class BooleansRealmProxy extends Booleans
-        implements RealmObjectProxy {
+    implements RealmObjectProxy {
 
     static final class BooleansColumnInfo extends ColumnInfo {
 
@@ -191,7 +191,7 @@ public class BooleansRealmProxy extends Booleans
 
     @SuppressWarnings("cast")
     public static Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-            throws JSONException {
+        throws JSONException {
         BooleansRealmProxy obj = (BooleansRealmProxy) realm.createObject(Booleans.class);
         if (json.has("done")) {
             if (json.isNull("done")) {
@@ -226,7 +226,7 @@ public class BooleansRealmProxy extends Booleans
 
     @SuppressWarnings("cast")
     public static Booleans createUsingJsonStream(Realm realm, JsonReader reader)
-            throws IOException {
+        throws IOException {
         BooleansRealmProxy obj = (BooleansRealmProxy) realm.createObject(Booleans.class);
         reader.beginObject();
         while (reader.hasNext()) {
@@ -275,17 +275,18 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static Booleans copy(Realm realm, Booleans from, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        BooleansRealmProxy to = (BooleansRealmProxy) realm.createObject(Booleans.class);
-        cache.put(from, (RealmObjectProxy) to);
-
         final boolean isStandalone = !(from instanceof BooleansRealmProxy);
         Class<? extends Booleans> clazz;
+        Field field = null;
         if (isStandalone) {
             clazz = from.getClass();
         } else {
             clazz = null;
         }
-        Field field = null;
+        BooleansRealmProxy to;
+
+        to = (BooleansRealmProxy) realm.createObject(Booleans.class);
+        cache.put(from, (RealmObjectProxy) to);
 
         try {
             if (isStandalone) {
@@ -293,28 +294,28 @@ public class BooleansRealmProxy extends Booleans
                 field.setAccessible(true);
                 to.realmSetter$done((boolean) field.get(from));
             } else {
-                to.realmSetter$done(from.realmGetter$done());
+                to.realmSetter$done(((BooleansRealmProxy) from).realmGetter$done());
             }
             if (isStandalone) {
                 field = clazz.getDeclaredField("isReady");
                 field.setAccessible(true);
                 to.realmSetter$isReady((boolean) field.get(from));
             } else {
-                to.realmSetter$isReady(from.realmGetter$isReady());
+                to.realmSetter$isReady(((BooleansRealmProxy) from).realmGetter$isReady());
             }
             if (isStandalone) {
                 field = clazz.getDeclaredField("mCompleted");
                 field.setAccessible(true);
                 to.realmSetter$mCompleted((boolean) field.get(from));
             } else {
-                to.realmSetter$mCompleted(from.realmGetter$mCompleted());
+                to.realmSetter$mCompleted(((BooleansRealmProxy) from).realmGetter$mCompleted());
             }
             if (isStandalone) {
                 field = clazz.getDeclaredField("anotherBoolean");
                 field.setAccessible(true);
                 to.realmSetter$anotherBoolean((boolean) field.get(from));
             } else {
-                to.realmSetter$anotherBoolean(from.realmGetter$anotherBoolean());
+                to.realmSetter$anotherBoolean(((BooleansRealmProxy) from).realmGetter$anotherBoolean());
             }
         } catch (NoSuchFieldException e) {
             throw new RealmException(e.getMessage());

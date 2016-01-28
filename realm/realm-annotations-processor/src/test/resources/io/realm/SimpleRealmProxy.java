@@ -27,7 +27,7 @@ import org.json.JSONObject;
 import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple
-        implements RealmObjectProxy {
+    implements RealmObjectProxy {
 
     static final class SimpleColumnInfo extends ColumnInfo {
 
@@ -143,7 +143,7 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-            throws JSONException {
+        throws JSONException {
         SimpleRealmProxy obj = (SimpleRealmProxy) realm.createObject(Simple.class);
         if (json.has("name")) {
             if (json.isNull("name")) {
@@ -164,7 +164,7 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
-            throws IOException {
+        throws IOException {
         SimpleRealmProxy obj = (SimpleRealmProxy) realm.createObject(Simple.class);
         reader.beginObject();
         while (reader.hasNext()) {
@@ -199,17 +199,18 @@ public class SimpleRealmProxy extends Simple
     }
 
     public static Simple copy(Realm realm, Simple from, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        SimpleRealmProxy to = (SimpleRealmProxy) realm.createObject(Simple.class);
-        cache.put(from, (RealmObjectProxy) to);
-
         final boolean isStandalone = !(from instanceof SimpleRealmProxy);
         Class<? extends Simple> clazz;
+        Field field = null;
         if (isStandalone) {
             clazz = from.getClass();
         } else {
             clazz = null;
         }
-        Field field = null;
+        SimpleRealmProxy to;
+
+        to = (SimpleRealmProxy) realm.createObject(Simple.class);
+        cache.put(from, (RealmObjectProxy) to);
 
         try {
             if (isStandalone) {
@@ -217,14 +218,14 @@ public class SimpleRealmProxy extends Simple
                 field.setAccessible(true);
                 to.realmSetter$name((java.lang.String) field.get(from));
             } else {
-                to.realmSetter$name(from.realmGetter$name());
+                to.realmSetter$name(((SimpleRealmProxy) from).realmGetter$name());
             }
             if (isStandalone) {
                 field = clazz.getDeclaredField("age");
                 field.setAccessible(true);
                 to.realmSetter$age((int) field.get(from));
             } else {
-                to.realmSetter$age(from.realmGetter$age());
+                to.realmSetter$age(((SimpleRealmProxy) from).realmGetter$age());
             }
         } catch (NoSuchFieldException e) {
             throw new RealmException(e.getMessage());
