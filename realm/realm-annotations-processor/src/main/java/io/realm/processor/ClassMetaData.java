@@ -114,8 +114,20 @@ public class ClassMetaData {
         if (!categorizeClassElements()) return false;
         if (!checkListTypes()) return  false;
         if (!checkDefaultConstructor()) return false;
+        if (!checkForFinalFields()) return false;
 
         return true; // Meta data was successfully generated
+    }
+
+    private boolean checkForFinalFields() {
+        for (VariableElement field : fields) {
+            if (field.getModifiers().contains(Modifier.FINAL)) {
+                Utils.error("Final fields are not allowed. Class: " + className + ", Field: " + field.getSimpleName()
+                        .toString());
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean checkListTypes() {

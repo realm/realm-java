@@ -40,7 +40,7 @@ public class RealmProcessorTest {
     private JavaFileObject booleansModel = JavaFileObjects.forResource("some/test/Booleans.java");
     private JavaFileObject booleansProxy = JavaFileObjects.forResource("io/realm/BooleansRealmProxy.java");
     private JavaFileObject emptyModel = JavaFileObjects.forResource("some/test/Empty.java");
-    private JavaFileObject noAccessorsModel = JavaFileObjects.forResource("some/test/NoAccessors.java");
+    private JavaFileObject finalModel = JavaFileObjects.forResource("some/test/Final.java");
     private JavaFileObject fieldNamesModel = JavaFileObjects.forResource("some/test/FieldNames.java");
     private JavaFileObject customAccessorModel = JavaFileObjects.forResource("some/test/CustomAccessor.java");
     private JavaFileObject nullTypesModel = JavaFileObjects.forResource("some/test/NullTypes.java");
@@ -350,5 +350,13 @@ public class RealmProcessorTest {
                     .processedWith(new RealmProcessor())
                     .failsToCompile();
         }
+    }
+
+    @Test
+    public void failOnFinalFields() throws Exception {
+        ASSERT.about(javaSource())
+                .that(finalModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 }
