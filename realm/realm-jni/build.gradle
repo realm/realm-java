@@ -1,5 +1,3 @@
-import org.omg.CORBA.DynAnyPackage.Invalid
-
 import java.security.MessageDigest
 
 ext.coreVersion = '0.96.0'
