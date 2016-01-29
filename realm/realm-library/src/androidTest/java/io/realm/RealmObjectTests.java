@@ -119,6 +119,34 @@ public class RealmObjectTests {
         }
     }
 
+    // invalid surrogate pairs:
+    // both high and low should lead to an IllegalArgumentException
+    @Test
+    public void invalidSurrogates() {
+        String high = "Invalid high surrogate \uD83C\uD83C\uDF51";
+        String low  = "Invalid low surrogate \uD83C\uDF51\uDF51";
+
+        realm.beginTransaction();
+        realm.clear(AllTypes.class);
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        try {
+            AllTypes highSurrogate = realm.createObject(AllTypes.class);
+            highSurrogate.setColumnString(high);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+        realm.cancelTransaction();
+
+        realm.beginTransaction();
+        try {
+            AllTypes lowSurrogate = realm.createObject(AllTypes.class);
+            lowSurrogate.setColumnString(low);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+        realm.cancelTransaction();
+    }
+
     // removing original object and see if has been removed
     @Test
     public void removeFromRealm() {
