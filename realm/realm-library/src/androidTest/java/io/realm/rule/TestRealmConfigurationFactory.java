@@ -120,6 +120,12 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
     // Copies a Realm file from assets to temp dir
     public void copyRealmFromAssets(Context context, String realmPath, String newName)
             throws IOException {
+        // Delete the existing file before copy
+        RealmConfiguration configToDelete = new RealmConfiguration.Builder(getRoot())
+                .name(newName)
+                .build();
+        Realm.deleteRealm(configToDelete);
+
         AssetManager assetManager = context.getAssets();
         InputStream is = assetManager.open(realmPath);
         File file = new File(getRoot(), newName);
