@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 0.88.0
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
@@ -9,6 +10,8 @@
  * Improved performance of RealmList#contains() (#897).
  * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 
+=======
+>>>>>>> origin/release/0.87
 0.87.4
  * Updated Realm Core to 0.96.0
    - Fixed bug causing BadVersionException or crashing core when running async queries.
