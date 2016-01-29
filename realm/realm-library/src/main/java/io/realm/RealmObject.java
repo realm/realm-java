@@ -264,11 +264,24 @@ public abstract class RealmObject {
     }
 
     /**
-     * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current object when
-     * subscribed to.
+     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
+     * {@code onComplete} will never be called.
      *
      * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
+     *
+     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * only emit only the first item by using the {@code first()} operator:
+     *
+     * <pre>
+     * {@code
+     * obj.asObservable()
+     *      .filter(obj -> obj.isLoaded())
+     *      .first()
+     *      .subscribe( ... ) // You only get the object once
+     * }
+     * </pre>
      *
      * @param <E> RealmObject class that is being observed. Must be this class or its super types.
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
