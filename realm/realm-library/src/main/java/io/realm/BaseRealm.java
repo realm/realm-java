@@ -614,10 +614,6 @@ abstract class BaseRealm implements Closeable {
      * Compacts the Realm file defined by the given configuration.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
-        if (configuration.getEncryptionKey() != null) {
-            throw new IllegalArgumentException("Cannot currently compact an encrypted Realm.");
-        }
-
         return SharedGroupManager.compact(configuration);
     }
 
