@@ -900,7 +900,20 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
-     * subscribed to.
+     * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
+     * {@code onComplete} will never be called.
+     *
+     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * only emit only the first item by using the {@code first()} operator:
+     *
+     *<pre>
+     * {@code
+     * realm.where(Foo.class).findAllAsync().asObservable()
+     *      .filter(results -> results.isLoaded())
+     *      .first()
+     *      .subscribe( ... ) // You only get the results once
+     * }
+     * </pre>
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
