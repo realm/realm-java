@@ -9,6 +9,7 @@
  * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
  * Improved performance of RealmList#contains() (#897).
  * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
+ * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 
 0.87.4
  * Updated Realm Core to 0.96.0
