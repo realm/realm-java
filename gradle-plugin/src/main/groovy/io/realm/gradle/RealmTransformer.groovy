@@ -15,7 +15,6 @@
  */
 
 package io.realm.gradle
-
 import com.android.build.api.transform.*
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
@@ -28,8 +27,12 @@ import javassist.LoaderClassPath
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import static com.android.build.api.transform.QualifiedContent.*
+import java.lang.reflect.Modifier
 
+import static com.android.build.api.transform.QualifiedContent.*
+/**
+ * This class implements the Transform API provided by the Android Gradle plugin
+ */
 class RealmTransformer extends Transform {
 
     private Logger logger = LoggerFactory.getLogger('realm-logger')
@@ -46,8 +49,7 @@ class RealmTransformer extends Transform {
 
     @Override
     Set<Scope> getScopes() {
-        return Sets.immutableEnumSet(
-                Scope.PROJECT)
+        return Sets.immutableEnumSet(Scope.PROJECT)
     }
 
     @Override
@@ -60,6 +62,7 @@ class RealmTransformer extends Transform {
                    TransformOutputProvider outputProvider, boolean isIncremental)
             throws IOException, TransformException, InterruptedException {
 
+        // Find all the possible sources of relevant class files
         final ArrayList<File> folders = []
         inputs.each { TransformInput input ->
             logger.info "Directory inputs: ${input.directoryInputs*.file}"
@@ -71,7 +74,7 @@ class RealmTransformer extends Transform {
             folders.addAll(input.jarInputs*.file)
         }
 
-
+        // Find all the class files in the sources found
         BiMap<File, String> classFiles = HashBiMap.create()
 
         folders.each { File folder ->
@@ -88,7 +91,9 @@ class RealmTransformer extends Transform {
             }
         }
 
-        // Don't use ClassPool.getDefault(). Doing so consecutive builds in the same run (e.g. debug+release)
+        // Create and populate the Javassist class pool
+
+        // Don't use ClassPool.getDefault(). Doing consecutive builds in the same run (e.g. debug+release)
         // will use a cached object and all the classes will result frozen.
         ClassPool classPool = new ClassPool(null)
         classPool.appendSystemPath()
@@ -98,26 +103,29 @@ class RealmTransformer extends Transform {
             classPool.appendClassPath(folder.canonicalPath)
         }
 
-        logger.info "Contains io.realm.RealmList: ${classPool.getOrNull('io.realm.RealmList')}"
-
+        // Find the proxy classes
         def proxyClasses = classFiles.findAll { key, value -> key.name.endsWith('RealmProxy.class') }
         logger.info "Proxy Classes: ${proxyClasses*.value}"
 
+        // Find the model classes
         def modelClasses = proxyClasses.collect { key, value ->
             classPool.getCtClass(classFiles.get(key)).superclass
         }
         logger.info "Model Classes: ${modelClasses*.name}"
 
+        // Populate a list of the fields that need to be managed with bytecode manipulation
         def managedFields = []
         modelClasses.each {
             managedFields.addAll(it.declaredFields.findAll {
-                it.getAnnotation(Ignore.class) == null
+                it.getAnnotation(Ignore.class) == null && !Modifier.isStatic(it.getModifiers())
             })
         }
         logger.info "Managed Fields: ${managedFields*.name}"
 
+        // Add accessors to the model classes
         modelClasses.each { BytecodeModifier.addRealmAccessors(it) }
 
+        // Use accessors instead of direct field access
         classFiles.each { key, value ->
             logger.info "  Modifying class ${value}"
             def ctClass = classPool.getCtClass(value)

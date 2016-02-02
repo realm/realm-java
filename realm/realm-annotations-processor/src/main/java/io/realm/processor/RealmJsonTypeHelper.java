@@ -270,13 +270,13 @@ public class RealmJsonTypeHelper {
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                     .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                        .emitStatement("obj = (%sRealmProxy) realm.createObject(%s.class, null)", qualifiedRealmObjectClass, qualifiedRealmObjectClass)
+                        .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class, null)", qualifiedRealmObjectClass)
                     .nextControlFlow("else")
-                        .emitStatement("obj = (%sRealmProxy) realm.createObject(%s.class, json.get%s(\"%s\"))",
-                                qualifiedRealmObjectClass, qualifiedRealmObjectClass, jsonType, fieldName)
+                        .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class, json.get%2$s(\"%3$s\"))",
+                                qualifiedRealmObjectClass, jsonType, fieldName)
                     .endControlFlow()
                 .nextControlFlow("else")
-                    .emitStatement("obj = (%sRealmProxy) realm.createObject(%s.class)", qualifiedRealmObjectClass, qualifiedRealmObjectClass)
+                    .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class)", qualifiedRealmObjectClass)
                 .endControlFlow();
         }
     }

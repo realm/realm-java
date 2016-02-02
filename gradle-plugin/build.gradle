@@ -25,7 +25,7 @@ dependencies {
     compile 'com.android.tools.build:transform-api:1.5.0'
     compile 'com.android.tools.build:gradle:1.5.0'
     compile 'org.javassist:javassist:3.20.0-GA'
-    compile 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0-beta-3595'
+    compile 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0-beta-4589'
     compile "io.realm:realm-annotations:${version}"
     compile "io.realm:realm-android:${version}@jar"
 

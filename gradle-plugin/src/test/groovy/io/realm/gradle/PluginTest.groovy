@@ -45,7 +45,7 @@ class PluginTest {
     }
 
     @Test
-    public void testPlugin() {
+    public void pluginAddsRightDependencies() {
         project.buildscript {
             repositories {
                 mavenLocal()
@@ -66,11 +66,11 @@ class PluginTest {
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-android-library', currentVersion))
         assertTrue(containsDependency(project.dependencies, 'io.realm', 'realm-annotations', currentVersion))
 
-        assertTrue(containsTransform(project.android.transforms, RealmTransformer.class));
+        assertTrue(containsTransform(project.android.transforms, RealmTransformer.class))
     }
 
     @Test
-    public void testWithoutAndroidPlugin() {
+    public void pluginFailsWithoutAndroidPlugin() {
         project.buildscript {
             repositories {
                 mavenLocal()
@@ -122,9 +122,9 @@ class PluginTest {
     private static boolean containsTransform(List<Transform> transformList, Class<? extends Transform> targetClass) {
         for (Transform t : transformList) {
             if (t.getClass() == targetClass) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 }

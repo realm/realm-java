@@ -666,7 +666,8 @@ public class RealmProxyClassGenerator {
                 className, // Return type
                 "copy", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "Realm", "realm", className, "from", "boolean", "update", "Map<RealmObject,RealmObjectProxy>", "cache"); // Argument type & argument name
+                "Realm", "realm", className, "from", "boolean", "update", "Map<RealmObject, RealmObjectProxy>",
+                "cache"); // Argument type & argument name
 
         writer.emitStatement("final boolean isStandalone = !(from instanceof %sRealmProxy)", className);
         writer.emitStatement("Class<? extends %s> clazz", className);
