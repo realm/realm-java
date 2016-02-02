@@ -280,21 +280,14 @@ public class RealmAsyncQueryTests {
                 backgroundLooper[0] = Looper.myLooper();
 
                 // register IdleHandler to quit the Looper once all messages have proceeded
-                // Let the first queueIdle invocation pass, because it occurs before the first message is received.
+                // Wait until the results loaded. REALM_CHANGED and COMPLETED_ASYNC_REALM_RESULTS would be received.
                 // WARNING: when debugging the 'queueIdle' will be called more often (because of the break points)
                 //          making the countdown latch to be invoked earlier.
-                final boolean[] isFirstIdle = {true};
                 Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
                     @Override
                     public boolean queueIdle() {
-                        if (isFirstIdle[0]) {
-                            isFirstIdle[0] = false;
-                            return true;
-
-                        } else {
-                            // Last message (i.e COMPLETED_ASYNC_REALM_RESULTS was processed)
+                        if (results[0].isLoaded()) {
                             try {
-                                assertTrue(results[0].isLoaded());
                                 assertEquals(5, results[0].size());
                                 assertTrue(results[0].get(0).isValid());
                             } catch (AssertionFailedError e) {
@@ -302,8 +295,9 @@ public class RealmAsyncQueryTests {
                             } finally {
                                 signalCallbackFinished.countDown();
                             }
-                            return false; // unregister from the future IdleHandler events
+                            return false;
                         }
+                        return true;
                     }
                 });
                 Realm realm = null;
@@ -1082,26 +1076,16 @@ public class RealmAsyncQueryTests {
                 Looper.prepare();
                 backgroundLooper[0] = Looper.myLooper();
 
-                final boolean[] isFirstIdle = {true};
                 Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
                     @Override
                     public boolean queueIdle() {
-                        if (isFirstIdle[0]) {
-                            isFirstIdle[0] = false;
-                            return true;
-
-                        } else {
-                            // Last message (i.e COMPLETED_ASYNC_REALM_RESULTS was processed)
-                            try {
-                                assertTrue(result[0].isLoaded());
-                                //TODO assert value are correct for empty & populated object + test RealmList & RealmObject
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                            return false; // unregister from the future IdleHandler events
+                        // We might have processed two messages here, REALM_CHANGED and COMPLETED_ASYNC_REALM_RESULTS
+                        // Last message (i.e COMPLETED_ASYNC_REALM_RESULTS was processed)
+                        if (result[0].isLoaded()) {
+                            signalCallbackFinished.countDown();
+                            return false;
                         }
+                        return true;
                     }
                 });
 
@@ -1357,18 +1341,11 @@ public class RealmAsyncQueryTests {
                 Looper.prepare();
                 backgroundLooper[0] = Looper.myLooper();
 
-                final boolean[] isFirstIdle = {true};
                 Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
                     @Override
                     public boolean queueIdle() {
-                        if (isFirstIdle[0]) {
-                            isFirstIdle[0] = false;
-                            return true;
-
-                        } else {
-                            // Last message (i.e COMPLETED_ASYNC_REALM_RESULTS was processed)
+                        if (result[0].isLoaded()) {
                             try {
-                                assertTrue(result[0].isLoaded());
                                 assertEquals(5, result[0].size());
                                 RealmResults<AllTypes> allTypes = (RealmResults<AllTypes>) result[0];
                                 for (int i = 0; i < 5; i++) {
@@ -1382,6 +1359,7 @@ public class RealmAsyncQueryTests {
                             }
                             return false; // unregister from the future IdleHandler events
                         }
+                        return true;
                     }
                 });
 

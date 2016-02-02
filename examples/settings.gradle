@@ -1,3 +1,5 @@
+include ':multiProcessServiceOnlyExample'
+include 'multiProcessAExample'
 include 'adapterExample'
 include 'encryptionExample'
 include 'gridViewExample'

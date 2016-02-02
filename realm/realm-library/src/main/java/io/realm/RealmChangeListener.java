@@ -32,6 +32,9 @@ package io.realm;
  * the {@link #onChange()} method is called. Normally this means that it isn't necessary to query again for those
  * objects, but just invalidate any UI elements that are using them. If there is a chance that a object has been been
  * deleted, it can be verified by using {@link RealmObject#isValid()}.
+ * <p>
+ * It is not guaranteed that every committed Realm transaction will trigger the registered listener once. Instead, it is
+ * guaranteed that the latest committed Realm transaction will always trigger the registered listener.
  *
  * @see Realm#addChangeListener(RealmChangeListener)
  * @see Realm#removeAllChangeListeners()

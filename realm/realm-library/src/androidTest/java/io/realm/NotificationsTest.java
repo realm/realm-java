@@ -866,7 +866,7 @@ public class NotificationsTest {
         final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
         final AtomicInteger numberOfAsyncRealmObjectCallbackInvocation = new AtomicInteger(0);
         final CountDownLatch signalTestFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(2);
         final Realm[] realm = new Realm[1];
         final Throwable[] threadAssertionError = new Throwable[1];// to catch both Exception & AssertionError
         final Looper[] backgroundLooper = new Looper[1];
@@ -903,6 +903,7 @@ public class NotificationsTest {
                                             realm.createObject(Dog.class);
                                             realm.commitTransaction();
                                             realm.close();
+                                            signalClosedRealm.countDown();
                                         }
                                     }.start();
                                     break;

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="io.realm.examples.realmmultiprocessserviceonlyexample"
+          xmlns:android="http://schemas.android.com/apk/res/android"
+          android:sharedUserId="io.realm.examples">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <service
+            android:name=".AnotherAPKService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+        
+    </application>
+
+    <permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+</manifest>

@@ -329,8 +329,16 @@ public class HandlerController implements Handler.Callback {
             updateAsyncQueries();
 
         } else {
-            RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " no async queries, advance_read");
+            SharedGroup.VersionID oldVersion = realm.sharedGroupManager.getVersion();
             realm.sharedGroupManager.advanceRead();
+            SharedGroup.VersionID newVersion = realm.sharedGroupManager.getVersion();
+            RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " no async queries, advance_read." +
+                    " Old version: " + oldVersion + ". New version: " + newVersion);
+            if (oldVersion.compareTo(newVersion) == 0) {
+                // At the latest version already
+                return;
+            }
+
             notifyGlobalListeners();
             // notify RealmResults & RealmObject callbacks (type based notifications)
             if (!realm.isClosed()) {

@@ -13,5 +13,10 @@
             android:process=":remote" >
         </service>
     </application>
+    
+    <permission android:name="io.realm.test.PERMISSION.REALM_NOTIFICATION"
+        android:protectionLevel="signature">
+    </permission>
 
+    <uses-permission android:name="io.realm.test.PERMISSION.REALM_NOTIFICATION"/>
 </manifest>

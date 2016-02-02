@@ -1262,6 +1262,25 @@ public final class Realm extends BaseRealm {
         return BaseRealm.compactRealm(configuration);
     }
 
+    /**
+     * Blocks the current thread util transactions are committed by other threads or processes to this Realm or
+     * {@link #stopWaitForChange()} gets called.
+     *
+     * @return {@code true} if transactions are committed to this Realm, {@code false} if
+     * {@link #stopWaitForChange()} gets called.
+     */
+    public boolean waitForChange() {
+        return super.waitForChange();
+    }
+
+    /**
+     * Makes {@link #waitForChange()} return {@code false} immediately.
+     * This method is supposed to be called by another thread different from the one created the Realm.
+     */
+    public void stopWaitForChange() {
+        super.stopWaitForChange();
+    }
+
     // Get the canonical path for a given file
     static String getCanonicalPath(File realmFile) {
         try {

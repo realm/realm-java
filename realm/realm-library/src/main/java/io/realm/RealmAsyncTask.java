@@ -60,4 +60,16 @@ public class RealmAsyncTask {
     public boolean isCancelled() {
         return isCancelled;
     }
+
+    /**
+     * Returns {@code true} if this task completed.
+     *
+     * Completion may be due to normal termination, an exception, or cancellation -- in all of these cases, this method
+     * will return {@code true}.
+     *
+     * @return {@code true} if this task completed
+     */
+    public boolean isDone() {
+        return pendingQuery.isDone();
+    }
 }

@@ -29,6 +29,7 @@ import java.lang.ref.WeakReference;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
@@ -47,6 +48,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
     private CountDownLatch signalTestFinished;
     private AtomicInteger globalCommitInvocations;
     private AtomicInteger typebasedCommitInvocations;
+    private AtomicBoolean globalCommitInvacationDone = new AtomicBoolean(false);
     private RealmConfiguration configuration;
     private Realm realm;
 
@@ -667,7 +669,12 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        globalCommitInvocations.incrementAndGet();
+                        Dog dog = realm.where(Dog.class).findFirst();
+                        // We only check if the global listener gets all latest changes, since the wait_for_change
+                        // won't guarantee all changes will be notified
+                        if (dog.getName().equals("Akamaru") && dog.getAge() == 17) {
+                            globalCommitInvacationDone.set(true);
+                        }
                     }
                 });
 
@@ -742,7 +749,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
         });
         try {
             TestHelper.awaitOrFail(signalTestFinished);
-            assertEquals(3, globalCommitInvocations.get());
+            assertTrue(globalCommitInvacationDone.get());
             assertEquals(2, typebasedCommitInvocations.get());
         } finally {
             looperThread1.quit();
@@ -764,7 +771,12 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                 realm.addChangeListener(new RealmChangeListener() {
                     @Override
                     public void onChange() {
-                        globalCommitInvocations.incrementAndGet();
+                        Dog dog = realm.where(Dog.class).findFirst();
+                        // We only check if the global listener gets all latest changes, since the wait_for_change
+                        // won't guarantee all changes will be notified
+                        if (dog != null && dog.getName().equals("Akamaru") && dog.getAge() == 17) {
+                            globalCommitInvacationDone.set(true);
+                        }
                     }
                 });
 
@@ -848,7 +860,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
 
         try {
             TestHelper.awaitOrFail(signalTestFinished);
-            assertEquals(3, globalCommitInvocations.get());
+            assertTrue(globalCommitInvacationDone.get());
             assertEquals(2, typebasedCommitInvocations.get());
         } finally {
             if (backgroundException[0] != null) {
