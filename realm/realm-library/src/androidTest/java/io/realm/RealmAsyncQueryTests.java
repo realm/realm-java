@@ -1184,6 +1184,26 @@ public class RealmAsyncQueryTests {
 
     @Test
     @RunTestInLooperThread
+    public void findFirstAsync_noResult() throws Throwable {
+        final AllTypes firstAsync = workerThread.realm.where(AllTypes.class)
+                .equalTo(AllTypes.FIELD_STRING, "foo")
+                .findFirstAsync();
+
+        firstAsync.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertTrue(firstAsync.isLoaded());
+                assertFalse(firstAsync.isValid());
+                workerThread.signalTestCompleted.countDown();
+            }
+        });
+
+        assertFalse(firstAsync.isLoaded());
+        assertFalse(firstAsync.isValid());
+    }
+
+    @Test
+    @RunTestInLooperThread
     public void testFindFirstAsyncUpdatedIfSyncRealmObjectIsUpdated() throws Throwable {
         populateTestRealm(workerThread.realm, 1);
         AllTypes firstSync = workerThread.realm.where(AllTypes.class).findFirst();
