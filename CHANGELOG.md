@@ -1,6 +1,7 @@
 0.88.0
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
  * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
+ * BREAKING CHANGE: String setters now throws IllegalArgumentException instead of RealmError for invalid surrogates. 
  * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
  * Fixed bug in jsonExample (#2092).
  * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
@@ -8,6 +9,11 @@
  * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
  * Improved performance of RealmList#contains() (#897).
  * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
+ * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
+
+0.87.4
+ * Updated Realm Core to 0.96.0
+   - Fixed bug causing BadVersionException or crashing core when running async queries.
 
 0.87.3
  * IllegalArgumentException is now properly thrown when calling Realm.copyFromRealm() with a DynamicRealmObject (#2058).

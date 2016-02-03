@@ -1311,6 +1311,27 @@ public class RealmResultsTests {
     }
 
     @Test
+    public void distinct_restrictedByPreviousDistinct() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        // all objects
+        RealmResults<AnnotationIndexTypes> allResults = realm.where(AnnotationIndexTypes.class).findAll();
+        assertEquals("All Objects Count", numberOfBlocks * numberOfBlocks * numberOfObjects, allResults.size());
+        // distinctive dates
+        RealmResults<AnnotationIndexTypes> distinctDates = allResults.distinct("indexDate");
+        assertEquals("Distinctive Dates", numberOfBlocks, distinctDates.size());
+        // distinctive Booleans
+        RealmResults<AnnotationIndexTypes> distinctBooleans = distinctDates.distinct("indexBoolean");
+        assertEquals("Distinctive Booleans", 2, distinctBooleans.size());
+        // all three results are the same object
+        assertTrue(allResults == distinctDates);
+        assertTrue(allResults == distinctBooleans);
+        assertTrue(distinctDates == distinctBooleans);
+    }
+
+    @Test
     public void distinct_withNull() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
