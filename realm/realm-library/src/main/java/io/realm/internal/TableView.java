@@ -510,8 +510,9 @@ public class TableView implements TableOrView, Closeable {
     public TableView findAllLong(long columnIndex, long value){
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
+        long nativeViewPtr = 0;
         try {
-            long nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
+            nativeViewPtr = nativeFindAllInt(nativePtr, columnIndex, value);
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
@@ -523,8 +524,9 @@ public class TableView implements TableOrView, Closeable {
     public TableView findAllBoolean(long columnIndex, boolean value) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
+        long nativeViewPtr = 0;
         try {
-            long nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
+            nativeViewPtr = nativeFindAllBool(nativePtr, columnIndex, value);
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
@@ -536,8 +538,9 @@ public class TableView implements TableOrView, Closeable {
     public TableView findAllFloat(long columnIndex, float value) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
+        long nativeViewPtr = 0;
         try {
-            long nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
+            nativeViewPtr = nativeFindAllFloat(nativePtr, columnIndex, value);
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
@@ -549,8 +552,9 @@ public class TableView implements TableOrView, Closeable {
     public TableView findAllDouble(long columnIndex, double value) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
+        long nativeViewPtr = 0;
         try {
-            long nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
+            nativeViewPtr = nativeFindAllDouble(nativePtr, columnIndex, value);
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
@@ -562,8 +566,9 @@ public class TableView implements TableOrView, Closeable {
     public TableView findAllDate(long columnIndex, Date date) {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
+        long nativeViewPtr = 0;
         try {
-            long nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000);
+            nativeViewPtr = nativeFindAllDate(nativePtr, columnIndex, date.getTime()/1000);
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
@@ -575,8 +580,9 @@ public class TableView implements TableOrView, Closeable {
     public TableView findAllString(long columnIndex, String value){
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         context.executeDelayedDisposal();
+        long nativeViewPtr = 0;
         try {
-            long nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
+            nativeViewPtr = nativeFindAllString(nativePtr, columnIndex, value);
             return new TableView(this.context, this.parent, nativeViewPtr);
         } catch (RuntimeException e) {
             TableView.nativeClose(nativeViewPtr);
@@ -743,8 +749,9 @@ public class TableView implements TableOrView, Closeable {
     public TableQuery where() {
         // Execute the disposal of abandoned realm objects each time a new realm object is created
         this.context.executeDelayedDisposal();
+        long nativeQueryPtr = 0;
         try {
-            long nativeQueryPtr = nativeWhere(nativePtr);
+            nativeQueryPtr = nativeWhere(nativePtr);
             return new TableQuery(this.context, this.parent, nativeQueryPtr, this);
         } catch (RuntimeException e) {
             TableQuery.nativeClose(nativeQueryPtr);
