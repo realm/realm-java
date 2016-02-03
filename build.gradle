@@ -45,7 +45,7 @@ task installRealm(type:GradleBuild) {
     group = 'Install'
     description = 'Install the artifacts of Realm libraries into mavenLocal()'
     buildFile = file('realm/build.gradle')
-    tasks = ['install', 'uploadShadow']
+    tasks = ['install']
 }
 
 task assembleGradlePlugin(type:GradleBuild) {
