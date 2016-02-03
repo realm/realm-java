@@ -10,6 +10,7 @@
  * Improved performance of RealmList#contains() (#897).
  * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
  * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
+ * Fixed bug in catching RuntimeException during native resource allocation as a result of a query execution (#2225).
 
 0.87.4
  * Updated Realm Core to 0.96.0
