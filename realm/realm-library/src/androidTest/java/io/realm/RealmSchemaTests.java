@@ -16,15 +16,8 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import android.test.AndroidTestCase;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -32,47 +25,38 @@ import java.util.Set;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.Owner;
 import io.realm.internal.Util;
-import io.realm.rule.TestRealmConfigurationFactory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+public class RealmSchemaTests extends AndroidTestCase {
 
-@RunWith(AndroidJUnit4.class)
-public class RealmSchemaTests {
-
-    @Rule
-    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-
+    public static final String CLASS_ALL_JAVA_TYPES = "AllJavaTypes";
     private DynamicRealm realm;
     private RealmSchema realmSchema;
 
-    @Before
-    public void setUp() {
-        RealmConfiguration realmConfig = configFactory.createConfigurationBuilder()
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext())
                 .schema(AllJavaTypes.class, Owner.class)
                 .build();
+        Realm.deleteRealm(realmConfig);
         Realm.getInstance(realmConfig).close(); // create Schema
-        realm = DynamicRealm.getInstance(realmConfig);
+        this.realm = DynamicRealm.getInstance(realmConfig);
         realmSchema = this.realm.getSchema();
-        realm.beginTransaction();
+        this.realm.beginTransaction();
     }
 
-    @After
-    public void tearDown() {
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
         realm.cancelTransaction();
         realm.close();
     }
 
-    @Test
-    public void getAll() {
+    public void testGetAllClasses() {
         Set<RealmObjectSchema> objectSchemas = realmSchema.getAll();
         assertEquals(5, objectSchemas.size());
 
-        List<String> expectedTables = Arrays.asList(AllJavaTypes.CLASS_NAME, "Owner", "Cat", "Dog", "DogPrimaryKey");
+        List<String> expectedTables = Arrays.asList(CLASS_ALL_JAVA_TYPES, "Owner", "Cat", "Dog", "DogPrimaryKey");
         for (RealmObjectSchema objectSchema : objectSchemas) {
             if (!expectedTables.contains(objectSchema.getClassName())) {
                 fail(objectSchema.getClassName() + " was not found");
@@ -80,14 +64,12 @@ public class RealmSchemaTests {
         }
     }
 
-    @Test
-    public void create() {
+    public void testCreateClass() {
         realmSchema.create("Foo");
         assertTrue(realmSchema.contains("Foo"));
     }
 
-    @Test
-    public void create_invalidNameThrows() {
+    public void testCreateClassInvalidNameThrows() {
         String[] names = { null, "", TestHelper.getRandomString(57) };
 
         for (String name : names) {
@@ -99,56 +81,50 @@ public class RealmSchemaTests {
         }
     }
 
-    @Test
-    public void get() {
-        RealmObjectSchema objectSchema = realmSchema.get(AllJavaTypes.CLASS_NAME);
+    public void testGetClass() {
+        RealmObjectSchema objectSchema = realmSchema.get(CLASS_ALL_JAVA_TYPES);
         assertNotNull(objectSchema);
-        assertEquals(AllJavaTypes.CLASS_NAME, objectSchema.getClassName());
+        assertEquals(CLASS_ALL_JAVA_TYPES, objectSchema.getClassName());
     }
 
-    @Test
-    public void get_unknownClass() {
+    public void testGetClassNotInSchema() {
         assertNull(realmSchema.get("Foo"));
     }
 
-    @Test
-    public void rename() {
+    public void testRenameClass() {
         realmSchema.rename("Owner", "Owner2");
         assertFalse(realmSchema.contains("Owner"));
         assertTrue(realmSchema.contains("Owner2"));
     }
 
-    @Test
-    public void rename_invalidArgumentThrows() {
+    public void testRenameClassInvalidArgumentsThrows() {
         String[] illegalNames = new String[] { null, "" };
 
-        // Test as first parameter
+        // Test as first parameters
         for (String illegalName : illegalNames) {
             try {
-                realmSchema.rename(illegalName, AllJavaTypes.CLASS_NAME);
+                realmSchema.rename(CLASS_ALL_JAVA_TYPES, illegalName);
                 fail(illegalName + " should throw an exception");
             } catch (IllegalArgumentException ignored) {
             }
         }
 
-        // Test as last parameters
+        // Test as last parameter
         for (String illegalName : illegalNames) {
             try {
-                realmSchema.rename(AllJavaTypes.CLASS_NAME, illegalName);
+                realmSchema.rename(illegalName, CLASS_ALL_JAVA_TYPES);
                 fail(illegalName + " should throw an exception");
             } catch (IllegalArgumentException ignored) {
             }
         }
     }
 
-    @Test
-    public void remove() {
-        realmSchema.remove(AllJavaTypes.CLASS_NAME);
-        assertFalse(realmSchema.contains(AllJavaTypes.CLASS_NAME));
+    public void testRemoveClass() {
+        realmSchema.remove(CLASS_ALL_JAVA_TYPES);
+        assertFalse(realmSchema.contains(CLASS_ALL_JAVA_TYPES));
     }
 
-    @Test
-    public void remove_invalidArgumentThrows() {
+    public void testRemoveClassInvalidClassNameThrows() {
         try {
             realmSchema.remove("Foo");
             fail();
@@ -163,9 +139,10 @@ public class RealmSchemaTests {
     }
 
     // Test that it if { A -> B  && B -> A } you should remove the individual fields first before removing the entire
-    // class. This also include transitive dependencies.
-    @Test
-    public void remove_classWithReferencesThrows() {
+    // class. This also include transitive dependencies :/
+    // Re-enable when this if fixed: https://github.com/realm/realm-core/pull/1267
+    public void FIMXEtestRemoveClassWithReferencesThrows() {
+        Util.setDebugLevel(2);
         try {
             realmSchema.remove("Cat");
             fail();

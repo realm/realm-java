@@ -31,13 +31,17 @@ android {
     }
 }
 
+import io.realm.transformer.RealmTransformer
+
+android.registerTransform(new RealmTransformer())
+
 repositories {
     maven { url "https://jitpack.io" }
 }
 
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
-    compile project(':realm-annotations')
+    compile "io.realm:realm-annotations:${version}"
     compile 'com.github.KeepSafe:ReLinker:1.1'
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
@@ -46,7 +50,6 @@ dependencies {
     androidTestCompile 'com.android.support.test:rules:0.4.1'
 
     androidTestApt project(':realm-annotations-processor')
-    androidTestApt project(':realm-annotations')
 }
 
 task sourcesJar(type: Jar) {
@@ -56,7 +59,7 @@ task sourcesJar(type: Jar) {
 
 task javadoc(type: Javadoc) {
     source android.sourceSets.main.java.srcDirs
-    source "../realm-annotations/src/main/java"
+    source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     options {
         title = "Realm ${project.version}"

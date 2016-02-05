@@ -631,7 +631,7 @@ public class RealmProxyClassGenerator {
                             .emitStatement("throw new RealmException(e.getMessage())")
                         .endControlFlow()
                     .endControlFlow()
-                    .emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, object.%s())", metadata.getPrimaryKeyGetter());
+                    .emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, primaryKey)");
             }
 
             writer

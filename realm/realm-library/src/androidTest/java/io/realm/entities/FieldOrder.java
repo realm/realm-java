@@ -23,35 +23,19 @@ public class FieldOrder extends RealmObject {
     private boolean field1;
     private int field2;
 
-    public boolean getField1() {
-        return realmGetter$field1();
-    }
-
-    public void setField1(boolean field1) {
-        realmSetter$field1(field1);
-    }
-
-    public boolean realmGetter$field1() {
+    public boolean isField1() {
         return field1;
     }
 
-    public void realmSetter$field1(boolean field1) {
+    public void setField1(boolean field1) {
         this.field1 = field1;
     }
 
     public int getField2() {
-        return realmGetter$field2();
-    }
-
-    public void setField2(int field2) {
-        realmSetter$field2(field2);
-    }
-
-    public int realmGetter$field2() {
         return field2;
     }
 
-    public void realmSetter$field2(int field2) {
+    public void setField2(int field2) {
         this.field2 = field2;
     }
 }

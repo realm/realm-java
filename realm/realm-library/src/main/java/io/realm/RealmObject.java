@@ -22,7 +22,6 @@ import java.util.concurrent.Future;
 
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.Keep;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
@@ -314,4 +313,12 @@ public abstract class RealmObject {
             currentTableVersion = row.getTable().version();
         }
     }
+
+    @SuppressWarnings("UnusedParameters")
+    static Object get(RealmObject obj, String fieldName) {
+        return null;
+    }
+
+    @SuppressWarnings("UnusedParameters")
+    static void set(RealmObject obj, String fieldName, Object value) {}
 }

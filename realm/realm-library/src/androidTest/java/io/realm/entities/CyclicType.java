@@ -34,66 +34,34 @@ public class CyclicType extends RealmObject {
     }
 
     public String getName() {
-        return realmGetter$name();
-    }
-
-    public void setName(String name) {
-        realmSetter$name(name);
-    }
-
-    public String realmGetter$name() {
         return name;
     }
 
-    public void realmSetter$name(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
     public CyclicType getObject() {
-        return realmGetter$object();
-    }
-
-    public void setObject(CyclicType object) {
-        realmSetter$object(object);
-    }
-
-    public CyclicType realmGetter$object() {
         return object;
     }
 
-    public void realmSetter$object(CyclicType object) {
+    public void setObject(CyclicType object) {
         this.object = object;
     }
 
-    public CyclicType getOtherObject() {
-        return realmGetter$otherObject();
-    }
-
-    public void setOtherObject(CyclicType otherObject) {
-        realmSetter$otherObject(otherObject);
-    }
-
-    public CyclicType realmGetter$otherObject() {
-        return otherObject;
-    }
-
-    public void realmSetter$otherObject(CyclicType otherObject) {
-        this.otherObject = otherObject;
-    }
-
     public RealmList<CyclicType> getObjects() {
-        return realmGetter$objects();
-    }
-
-    public void setObjects(RealmList<CyclicType> objects) {
-        realmSetter$objects(objects);
-    }
-
-    public RealmList<CyclicType> realmGetter$objects() {
         return objects;
     }
 
-    public void realmSetter$objects(RealmList<CyclicType> objects) {
+    public void setObjects(RealmList<CyclicType> objects) {
         this.objects = objects;
+    }
+
+    public CyclicType getOtherObject() {
+        return otherObject;
+    }
+
+    public void setOtherObject(CyclicType otherObject) {
+        this.otherObject = otherObject;
     }
 }

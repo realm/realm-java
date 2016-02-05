@@ -25,11 +25,6 @@ import io.realm.annotations.Index;
 public class Dog extends RealmObject {
 
     public static final String CLASS_NAME = "Dog";
-    public static final String FIELD_NAME = "name";
-    public static final String FIELD_AGE = "age";
-    public static final String FIELD_HEIGHT = "height";
-    public static final String FIELD_WEIGHT = "weight";
-    public static final String FIELD_BIRTHDAY = "birthday";
 
     @Index
     private String name;
@@ -47,115 +42,59 @@ public class Dog extends RealmObject {
         this.name = name;
     }
 
-    public String getName() {
-        return realmGetter$name();
-    }
-
-    public void setName(String name) {
-        realmSetter$name(name);
-    }
-
-    public String realmGetter$name() {
-        return name;
-    }
-
-    public void realmSetter$name(String name) {
-        this.name = name;
-    }
-
-    public long getAge() {
-        return realmGetter$age();
-    }
-
-    public void setAge(long age) {
-        realmSetter$age(age);
-    }
-
-    public long realmGetter$age() {
-        return age;
-    }
-
-    public void realmSetter$age(long age) {
-        this.age = age;
-    }
-
-    public float getHeight() {
-        return realmGetter$height();
-    }
-
-    public void setHeight(float height) {
-        realmSetter$height(height);
-    }
-
-    public float realmGetter$height() {
-        return height;
-    }
-
-    public void realmSetter$height(float height) {
-        this.height = height;
-    }
-
-    public double getWeight() {
-        return realmGetter$weight();
-    }
-
-    public void setWeight(double weight) {
-        realmSetter$weight(weight);
-    }
-
-    public double realmGetter$weight() {
-        return weight;
-    }
-
-    public void realmSetter$weight(double weight) {
-        this.weight = weight;
-    }
-
-    public boolean getHasTail() {
-        return realmGetter$hasTail();
-    }
-
-    public void setHasTail(boolean hasTail) {
-        realmSetter$hasTail(hasTail);
-    }
-
-    public boolean realmGetter$hasTail() {
-        return hasTail;
-    }
-
-    public void realmSetter$hasTail(boolean hasTail) {
-        this.hasTail = hasTail;
-    }
-
-    public Date getBirthday() {
-        return realmGetter$birthday();
-    }
-
-    public void setBirthday(Date birthday) {
-        realmSetter$birthday(birthday);
-    }
-
-    public Date realmGetter$birthday() {
-        return birthday;
-    }
-
-    public void realmSetter$birthday(Date birthday) {
-        this.birthday = birthday;
-    }
-
     public Owner getOwner() {
-        return realmGetter$owner();
-    }
-
-    public void setOwner(Owner owner) {
-        realmSetter$owner(owner);
-    }
-
-    public Owner realmGetter$owner() {
         return owner;
     }
 
-    public void realmSetter$owner(Owner owner) {
+    public void setOwner(Owner owner) {
         this.owner = owner;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    public boolean isHasTail() {
+        return hasTail;
+    }
+
+    public void setHasTail(boolean hasTail) {
+        this.hasTail = hasTail;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+    }
+
+    public long getAge() {
+        return age;
+    }
+
+    public void setAge(long age) {
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

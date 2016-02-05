@@ -24,18 +24,10 @@ public class IOSChild extends RealmObject {
     private String name;
 
     public String getName() {
-        return realmGetter$name();
-    }
-
-    public void setName(String name) {
-        realmSetter$name(name);
-    }
-
-    public String realmGetter$name() {
         return name;
     }
 
-    public void realmSetter$name(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 }

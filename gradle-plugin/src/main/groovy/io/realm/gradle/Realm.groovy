@@ -19,6 +19,7 @@ package io.realm.gradle
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
 import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
+import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project

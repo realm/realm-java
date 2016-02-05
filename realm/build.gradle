@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        mavenLocal()
         jcenter()
     }
 
@@ -14,6 +15,7 @@ buildscript {
         classpath 'com.github.rholder:gradle-one-jar:1.0.4'
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
         classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:3.0.3'
+        classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
     }
 }
 
@@ -27,6 +29,7 @@ allprojects {
     group = 'io.realm'
     version = file("${rootDir}/../version.txt").text.trim();
     repositories {
+        mavenLocal()
         jcenter()
     }
 }

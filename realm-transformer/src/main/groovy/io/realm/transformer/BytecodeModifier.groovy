@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package io.realm.gradle
+package io.realm.transformer
 
-import javassist.CannotCompileException
-import javassist.CtBehavior
-import javassist.CtClass
-import javassist.CtField
-import javassist.CtNewMethod
-import javassist.NotFoundException
+import javassist.*
 import javassist.expr.ExprEditor
 import javassist.expr.FieldAccess
+import javassist.expr.MethodCall
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -45,11 +41,13 @@ class BytecodeModifier {
         logger.info "  Realm: Adding accessors to ${clazz.simpleName}"
         def methods = clazz.getDeclaredMethods()*.name
         clazz.declaredFields.each { CtField field ->
-            if (!methods.contains("realmGetter\$${field.name}")) {
-                clazz.addMethod(CtNewMethod.getter("realmGetter\$${field.name}", field))
-            }
-            if (!methods.contains("realmSetter\$${field.name}")) {
-                clazz.addMethod(CtNewMethod.setter("realmSetter\$${field.name}", field))
+            if (!Modifier.isStatic(field.getModifiers())) {
+                if (!methods.contains("realmGet__${field.name}")) {
+                    clazz.addMethod(CtNewMethod.getter("realmGet__${field.name}", field))
+                }
+                if (!methods.contains("realmSet__${field.name}")) {
+                    clazz.addMethod(CtNewMethod.setter("realmSet__${field.name}", field))
+                }
             }
         }
     }
@@ -63,22 +61,26 @@ class BytecodeModifier {
     public static void useRealmAccessors(CtClass clazz, List<CtField> managedFields) {
         clazz.getDeclaredBehaviors().each { behavior ->
             logger.info "    Behavior: ${behavior.name}"
-            if (!behavior.name.startsWith('realmGetter$') && !behavior.name.startsWith('realmSetter$')) {
-                behavior.instrument(new ExpressionEditor(managedFields, clazz, behavior))
+            if (!behavior.name.startsWith('realmGet__') && !behavior.name.startsWith('realmSet__')) {
+                behavior.instrument(new FieldAccessToAccessorConverter(managedFields, clazz, behavior))
             }
         }
     }
 
+    public static void replaceStaticAccessors(CtClass clazz) {
+        clazz.getDeclaredBehaviors().each { it.instrument(new StaticToInstanceAccessorConverter()) }
+    }
+
     /**
-     * This class goes through all the behaviours of a class and replaces field accesses with
+     * This class goes through all the field access behaviours of a class and replaces field accesses with
      * the appropriate accessor.
      */
-    private static class ExpressionEditor extends ExprEditor {
+    private static class FieldAccessToAccessorConverter extends ExprEditor {
         final List<CtField> managedFields
         final CtClass ctClass
         final CtBehavior behavior
 
-        ExpressionEditor(List<CtField> managedFields, CtClass ctClass, CtBehavior behavior) {
+        FieldAccessToAccessorConverter(List<CtField> managedFields, CtClass ctClass, CtBehavior behavior) {
             this.managedFields = managedFields
             this.ctClass = ctClass
             this.behavior = behavior
@@ -96,12 +98,31 @@ class BytecodeModifier {
                     logger.info "        Methods: ${ctClass.declaredMethods}"
                     def fieldName = fieldAccess.fieldName
                     if (fieldAccess.isReader()) {
-                        fieldAccess.replace('$_ = $0.realmGetter$' + fieldName + '();')
+                        fieldAccess.replace('$_ = $0.realmGet__' + fieldName + '();')
                     } else if (fieldAccess.isWriter()) {
-                        fieldAccess.replace('$0.realmSetter$' + fieldName + '($1);')
+                        fieldAccess.replace('$0.realmSet__' + fieldName + '($1);')
                     }
                 }
             } catch (NotFoundException ignored) {
+            }
+        }
+    }
+
+    /**
+     * This class goes through all the method call behaviors of a proxy class and replaces static accessor with
+     * instance ones.
+     */
+    private static class StaticToInstanceAccessorConverter extends ExprEditor {
+        @Override
+        void edit(MethodCall methodCall) throws CannotCompileException {
+            logger.info "      Method being called: ${methodCall.className}.${methodCall.methodName}"
+            if (methodCall.className.equals('io.realm.RealmObject') && Modifier.isStatic(methodCall.method.getModifiers())) {
+                logger.info "      Replacing method"
+                if (methodCall.methodName.equals('get')) {
+                    methodCall.replace('{ $_ = $1.realmGet__$2(); }')
+                } else if (methodCall.methodName.equals('set')) {
+                    methodCall.replace('{ $1.realmSet__$2($3); }')
+                }
             }
         }
     }

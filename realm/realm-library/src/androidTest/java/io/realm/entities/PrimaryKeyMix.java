@@ -36,50 +36,26 @@ public class PrimaryKeyMix extends RealmObject {
     }
 
     public long getId() {
-        return realmGetter$id();
-    }
-
-    public void setId(long id) {
-        realmSetter$id(id);
-    }
-
-    public long realmGetter$id() {
         return id;
     }
 
-    public void realmSetter$id(long id) {
+    public void setId(long id) {
         this.id = id;
     }
 
     public OwnerPrimaryKey getDogOwner() {
-        return realmGetter$dogOwner();
-    }
-
-    public void setDogOwner(OwnerPrimaryKey dogOwner) {
-        realmSetter$dogOwner(dogOwner);
-    }
-
-    public OwnerPrimaryKey realmGetter$dogOwner() {
         return dogOwner;
     }
 
-    public void realmSetter$dogOwner(OwnerPrimaryKey dogOwner) {
+    public void setDogOwner(OwnerPrimaryKey dogOwner) {
         this.dogOwner = dogOwner;
     }
 
     public Cat getCat() {
-        return realmGetter$cat();
-    }
-
-    public void setCat(Cat cat) {
-        realmSetter$cat(cat);
-    }
-
-    public Cat realmGetter$cat() {
         return cat;
     }
 
-    public void realmSetter$cat(Cat cat) {
+    public void setCat(Cat cat) {
         this.cat = cat;
     }
 }

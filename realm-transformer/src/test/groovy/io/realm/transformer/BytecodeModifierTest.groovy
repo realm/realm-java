@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.realm.gradle
+package io.realm.transformer
 
 import javassist.ClassPool
 import javassist.CtClass

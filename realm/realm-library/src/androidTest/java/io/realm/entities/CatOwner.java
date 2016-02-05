@@ -25,35 +25,20 @@ public class CatOwner extends RealmObject {
     private String name;
     private RealmList<Cat> cats;
 
+
     public String getName() {
-        return realmGetter$name();
-    }
-
-    public void setName(String name) {
-        realmSetter$name(name);
-    }
-
-    public String realmGetter$name() {
         return name;
     }
 
-    public void realmSetter$name(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
     public RealmList<Cat> getCats() {
-        return realmGetter$cats();
-    }
-
-    public void setCats(RealmList<Cat> cats) {
-        realmSetter$cats(cats);
-    }
-
-    public RealmList<Cat> realmGetter$cats() {
         return cats;
     }
 
-    public void realmSetter$cats(RealmList<Cat> cats) {
+    public void setCats(RealmList<Cat> cats) {
         this.cats = cats;
     }
 }

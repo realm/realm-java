@@ -27,82 +27,42 @@ public class AnnotationNameConventions extends RealmObject {
     private long mObject;
 
     public long getId_object() {
-        return realmGetter$id_object();
-    }
-
-    public void setId_object(long id_object) {
-        realmSetter$id_object(id_object);
-    }
-
-    public long realmGetter$id_object() {
         return id_object;
     }
 
-    public void realmSetter$id_object(long id_object) {
+    public void setId_object(long id_object) {
         this.id_object = id_object;
     }
 
     public long getObject_id() {
-        return realmGetter$object_id();
-    }
-
-    public void setObject_id(long object_id) {
-        realmSetter$object_id(object_id);
-    }
-
-    public long realmGetter$object_id() {
         return object_id;
     }
 
-    public void realmSetter$object_id(long object_id) {
+    public void setObject_id(long object_id) {
         this.object_id = object_id;
     }
 
     public boolean isObject() {
-        return realmGetter$isObject();
-    }
-
-    public void setObject(boolean isObject) {
-        realmSetter$isObject(isObject);
-    }
-
-    public boolean realmGetter$isObject() {
         return isObject;
     }
 
-    public void realmSetter$isObject(boolean isObject) {
+    public void setObject(boolean isObject) {
         this.isObject = isObject;
     }
 
     public boolean isHasObject() {
-        return realmGetter$hasObject();
-    }
-
-    public void setHasObject(boolean hasObject) {
-        realmSetter$hasObject(hasObject);
-    }
-
-    public boolean realmGetter$hasObject() {
         return hasObject;
     }
 
-    public void realmSetter$hasObject(boolean hasObject) {
+    public void setHasObject(boolean hasObject) {
         this.hasObject = hasObject;
     }
 
     public long getmObject() {
-        return realmGetter$mObject();
-    }
-
-    public void setmObject(long mObject) {
-        realmSetter$mObject(mObject);
-    }
-
-    public long realmGetter$mObject() {
         return mObject;
     }
 
-    public void realmSetter$mObject(long mObject) {
+    public void setmObject(long mObject) {
         this.mObject = mObject;
     }
 }

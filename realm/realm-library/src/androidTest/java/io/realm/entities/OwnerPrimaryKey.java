@@ -38,66 +38,34 @@ public class OwnerPrimaryKey extends RealmObject {
     }
 
     public long getId() {
-        return realmGetter$id();
-    }
-
-    public void setId(long id) {
-        realmSetter$id(id);
-    }
-
-    public long realmGetter$id() {
         return id;
     }
 
-    public void realmSetter$id(long id) {
+    public void setId(long id) {
         this.id = id;
     }
 
     public String getName() {
-        return realmGetter$name();
-    }
-
-    public void setName(String name) {
-        realmSetter$name(name);
-    }
-
-    public String realmGetter$name() {
         return name;
     }
 
-    public void realmSetter$name(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
     public DogPrimaryKey getDog() {
-        return realmGetter$dog();
-    }
-
-    public void setDog(DogPrimaryKey dog) {
-        realmSetter$dog(dog);
-    }
-
-    public DogPrimaryKey realmGetter$dog() {
         return dog;
     }
 
-    public void realmSetter$dog(DogPrimaryKey dog) {
+    public void setDog(DogPrimaryKey dog) {
         this.dog = dog;
     }
 
     public RealmList<Dog> getDogs() {
-        return realmGetter$dogs();
-    }
-
-    public void setDogs(RealmList<Dog> dogs) {
-        realmSetter$dogs(dogs);
-    }
-
-    public RealmList<Dog> realmGetter$dogs() {
         return dogs;
     }
 
-    public void realmSetter$dogs(RealmList<Dog> dogs) {
+    public void setDogs(RealmList<Dog> dogs) {
         this.dogs = dogs;
     }
 }

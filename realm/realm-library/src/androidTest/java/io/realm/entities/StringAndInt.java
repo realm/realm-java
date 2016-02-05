@@ -23,34 +23,18 @@ public class StringAndInt extends RealmObject {
     private int number;
 
     public String getStr() {
-        return realmGetter$str();
-    }
-
-    public void setStr(String str) {
-        realmSetter$str(str);
-    }
-
-    public String realmGetter$str() {
         return str;
     }
 
-    public void realmSetter$str(String str) {
+    public void setStr(String str) {
         this.str = str;
     }
 
     public int getNumber() {
-        return realmGetter$number();
-    }
-
-    public void setNumber(int number) {
-        realmSetter$number(number);
-    }
-
-    public int realmGetter$number() {
         return number;
     }
 
-    public void realmSetter$number(int number) {
+    public void setNumber(int number) {
         this.number = number;
     }
 }
