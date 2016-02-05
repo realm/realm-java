@@ -61,10 +61,9 @@ Prerequisites:
  * Download the [**JDK 7**](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html) or [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * Download & install the Android SDK, **Android 4.4.2 (API 19)**, **Android 4.4W (API 20)** and **Android 5.0 (API 21)** (for example through Android Studio’s **Android SDK Manager**)
  * Download the **Android NDK (= r10e)** for [OS X](http://dl.google.com/android/ndk/android-ndk-r10e-darwin-x86_64.bin) or [Linux](http://dl.google.com/android/ndk/android-ndk-r10e-linux-x86_64.bin).
- * Or you can use [Hombrew-versions](https://github.com/Homebrew/homebrew-versions) to install Android NDK for Mac:
+ * Or you can use [Hombrew](https://github.com/Homebrew/homebrew) to install Android NDK for Mac:
 
     ```
-    brew tap homebrew/versions
     brew install android-ndk
     ```
 
@@ -101,6 +100,7 @@ That command will generate:
  * `./gradlew javadoc` will generate the Javadocs
  * `./gradlew monkeyExamples` will run the monkey tests on all the examples
  * `./gradlew installRealmJava` will install the Realm library and plugin to mavenLocal()
+ * `./gradlew clean -PdontCleanJniFiles` will remove all generated files except for JNI related files. This saves recompilation time a lot.
 
 Generating the Javadoc using the command above will report a large number of warnings. The Javadoc is generated, and we will fix the issue in the near future.
 

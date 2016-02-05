@@ -28,6 +28,7 @@ import java.util.Set;
 
 import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.SharedGroup;
 import io.realm.internal.modules.CompositeMediator;
@@ -286,6 +287,7 @@ public class RealmConfiguration {
          * @throws IllegalArgumentException if folder doesn't exists or isn't writable.
          */
         public Builder(File folder) {
+            RealmCore.loadLibrary();
             initializeBuilder(folder);
         }
 
@@ -302,6 +304,7 @@ public class RealmConfiguration {
             if (context == null) {
                 throw new IllegalArgumentException("A non-null Context must be provided");
             }
+            RealmCore.loadLibrary(context);
             initializeBuilder(context.getFilesDir());
         }
 

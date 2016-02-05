@@ -264,14 +264,27 @@ public abstract class RealmObject {
     }
 
     /**
-     * Returns an Rx Observable that monitors changes to this RealmObject. It will emit the current object when
-     * subscribed to.
+     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
+     * {@code onComplete} will never be called.
      *
      * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      *
+     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * only emit only the first item by using the {@code first()} operator:
+     *
+     * <pre>
+     * {@code
+     * obj.asObservable()
+     *      .filter(obj -> obj.isLoaded())
+     *      .first()
+     *      .subscribe( ... ) // You only get the object once
+     * }
+     * </pre>
+     *
      * @param <E> RealmObject class that is being observed. Must be this class or its super types.
-     * @return RxJava Observable.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
@@ -296,11 +309,24 @@ public abstract class RealmObject {
      */
     void notifyChangeListeners() {
         if (listeners != null && !listeners.isEmpty()) {
-            if (row.getTable() == null) return;
+            boolean notify = false;
 
-            long version = row.getTable().version();
-            if (currentTableVersion != version) {
-                currentTableVersion = version;
+            Table table = row.getTable();
+            if (table == null) {
+                // Completed async queries might result in `table == null`, `isCompleted == true` and `row == Row.EMPTY_ROW`
+                // We still want to trigger change notifications for these cases.
+                // isLoaded / isValid should be considered properties on RealmObjects as well so any change to these
+                // should trigger a RealmChangeListener.
+                notify = true;
+            } else {
+                long version = table.version();
+                if (currentTableVersion != version) {
+                    currentTableVersion = version;
+                    notify = true;
+                }
+            }
+
+            if (notify) {
                 for (RealmChangeListener listener : listeners) {
                     listener.onChange();
                 }

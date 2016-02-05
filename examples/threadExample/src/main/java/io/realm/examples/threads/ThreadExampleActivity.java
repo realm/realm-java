@@ -87,13 +87,14 @@ public class ThreadExampleActivity extends ActionBarActivity implements android.
                 case 0: return new ThreadFragment();
                 case 1: return new AsyncTaskFragment();
                 case 2: return new AsyncQueryFragment();
+                case 3: return new PassingObjectsFragment();
                 default: return null;
             }
         }
 
         @Override
         public int getCount() {
-            return 3;
+            return 4;
         }
 
         @Override
@@ -103,6 +104,7 @@ public class ThreadExampleActivity extends ActionBarActivity implements android.
                 case 0: return getString(R.string.title_section1).toUpperCase(l);
                 case 1: return getString(R.string.title_section2).toUpperCase(l);
                 case 2: return getString(R.string.title_section3).toUpperCase(l);
+                case 3: return getString(R.string.title_section4).toUpperCase(l);
                 default: return null;
             }
         }

@@ -15,7 +15,11 @@ ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('st
 // core source code.
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
 
-def commonCflags = [ '-Os', '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
+def commonCflags = [ '-Os', '-std=c++11' ]
+// LTO and debugging don't play well together
+if (!ext.debugBuild) {
+    commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
+}
 
 enum Compiler {
     GCC, CLANG
@@ -312,6 +316,10 @@ task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared 
 }
 
 task clean(type: Delete) {
+    outputs.upToDateWhen {
+        project.hasProperty('dontCleanJniFiles')
+    }
+
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')

@@ -16,14 +16,13 @@
 
 package io.realm.internal;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import android.content.Context;
+import android.util.Log;
+
+import com.getkeepsafe.relinker.ReLinker;
+
 import java.io.File;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 
 /**
@@ -31,70 +30,24 @@ import java.util.Locale;
  */
 public class RealmCore {
 
-///*
     private static final String FILE_SEP = File.separator;
     private static final String PATH_SEP = File.pathSeparator;          // On Windows ";"
     private static final String BINARIES_PATH = "lib" + PATH_SEP + ".." + FILE_SEP + "lib";
     private static final String JAVA_LIBRARY_PATH = "java.library.path";
-//*/
 
     private static volatile boolean libraryIsLoaded = false;
 
-/*
-    private static String getJniFileName()
-    {
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.indexOf("win") >= 0)
-            return "realm_jni32.dll or realm_jni64.dll";
-        if (os.indexOf("mac") >= 0)
-            return "librealm-jni.jnilib";
-        if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 || os.indexOf("sunos") >= 0)
-            return "librealm-jni.so";
-        return "realm-jni";
-    }
-*/
-
-    public static boolean osIsWindows()
-    {
+    public static boolean osIsWindows() {
         String os = System.getProperty("os.name").toLowerCase(Locale.getDefault());
         return (os.contains("win"));
     }
 
-    public static byte[] serialize(Serializable value) {
-        try {
-            ByteArrayOutputStream mem = new ByteArrayOutputStream();
-            ObjectOutputStream output = new ObjectOutputStream(mem);
-            output.writeObject(value);
-            output.close();
-            return mem.toByteArray();
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot serialize the object!", e);
-        }
-    }
-
-    public static Serializable deserialize(ByteBuffer buf) {
-        return deserialize(buf.array());
-    }
-
-    public static Serializable deserialize(byte[] value) {
-        try {
-            ByteArrayInputStream mem = new ByteArrayInputStream(value);
-            ObjectInputStream output = new ObjectInputStream(mem);
-            Object obj = output.readObject();
-            output.close();
-            return (Serializable) obj;
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot deserialize the object!", e);
-        }
-    }
-/*
-    public static void print(String caption, AbstractCursor<?> cursor) {
-        System.out.println(caption + ": " + cursor);
-    }
-*/
-
-    // Although loadLibrary is synchronized internally from AOSP 4.3, for the compatibility reason,
-    // KEEP synchronized here for the old devices!
+    /**
+     * Loads the .so file. This method is useful for static blocks as it does not rely on access to a Context.
+     *
+     * Although loadLibrary is synchronized internally from AOSP 4.3, for compatibility reasons,
+     * KEEP synchronized here for old devices!
+     */
     public static synchronized void loadLibrary() {
         if (libraryIsLoaded) {
             // The java native should ensure only load the lib once, but we met some problems before.
@@ -121,6 +74,23 @@ public class RealmCore {
         Version.coreLibVersionCompatible(true);
     }
 
+    /**
+     * Loads the .so file. Typically, the .so file is installed and can be found by System.loadLibrary() but
+     * can be damaged or missing. This happens for the Android installer, especially when apps are installed
+     * through other means than the official Play store. In this case, the .so file can be found in the .apk.
+     * In other to access the .apk, an {@link android.content.Context} must be provided.
+     *
+     * Although loadLibrary is synchronized internally from AOSP 4.3, for compatibility reasons,
+     * KEEP synchronized here for old devices!
+     */
+    public static synchronized void loadLibrary(Context context) {
+        if (libraryIsLoaded) {
+            return;
+        }
+        ReLinker.loadLibrary(context, "realm-jni");
+        libraryIsLoaded = true;
+    }
+
     private static String loadLibraryWindows() {
 ///*
         try {
@@ -136,8 +106,7 @@ public class RealmCore {
         jnilib = loadCorrectLibrary("realm_jni32d", "realm_jni64d");
         if (jnilib != null) {
             System.out.println("!!! Realm debug version loaded. !!!\n");
-        }
-        else {
+        } else {
             jnilib = loadCorrectLibrary("realm_jni32", "realm_jni64");
             if (jnilib == null) {
                 System.err.println("Searched java.library.path=" + System.getProperty("java.library.path"));
@@ -159,7 +128,6 @@ public class RealmCore {
         return null;
     }
 
-// /*
     public static void addNativeLibraryPath(String path) {
         try {
             String libraryPath = System.getProperty(JAVA_LIBRARY_PATH) + PATH_SEP + path + PATH_SEP;
@@ -174,7 +142,6 @@ public class RealmCore {
     // If that field is set to null, it is initialized automatically.
     // Therefore forcing that field to null will result into the reevaluation of the library path
     // as soon as loadLibrary() is called
-
     private static void resetLibraryPath() {
         try {
             // reset the library path (a hack)
@@ -185,5 +152,4 @@ public class RealmCore {
             throw new RuntimeException("Cannot reset the library path!", e);
         }
     }
-// */
 }
