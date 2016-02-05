@@ -21,6 +21,8 @@ import android.content.res.AssetManager;
 import android.os.Looper;
 import android.util.Log;
 
+import org.junit.Assert;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -45,6 +47,7 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.log.Logger;
+import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
@@ -125,21 +128,6 @@ public class TestHelper {
         return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
     }
 
-    // Copies a Realm file from assets to app files dir
-    public static void copyRealmFromAssets(Context context, String realmPath, String newName) throws IOException {
-        AssetManager assetManager = context.getAssets();
-        InputStream is = assetManager.open(realmPath);
-        File file = new File(context.getFilesDir(), newName);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        byte[] buf = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = is.read(buf)) > -1) {
-            outputStream.write(buf, 0, bytesRead);
-        }
-        outputStream.close();
-        is.close();
-    }
-
     // Creates a simple migration step in order to support null
     // FIXME: generate a new encrypted.realm will null support
     public static RealmMigration prepareMigrationToNullSupportStep() {
@@ -151,13 +139,6 @@ public class TestHelper {
             }
         };
         return realmMigration;
-    }
-
-
-    // Deletes the old database and copies a new one into its place
-    public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
-        Realm.deleteRealm(createConfiguration(context, newName));
-        TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
 
     // Returns a random key used by encrypted Realms.
@@ -355,22 +336,42 @@ public class TestHelper {
         }
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration()} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context) {
         return createConfiguration(context, Realm.DEFAULT_REALM_NAME);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String)} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context, String name) {
         return createConfiguration(context.getFilesDir(), name);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String)} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(File folder, String name) {
         return createConfiguration(folder, name, null);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String, byte[])} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(Context context, String name, byte[] key) {
         return createConfiguration(context.getFilesDir(), name, key);
     }
 
+    /**
+     * @deprecated Use {@link TestRealmConfigurationFactory#createConfiguration(String, byte[])} instead.
+     */
+    @Deprecated
     public static RealmConfiguration createConfiguration(File dir, String name, byte[] key) {
         RealmConfiguration.Builder config = new RealmConfiguration.Builder(dir).name(name);
         if (key != null) {
@@ -651,35 +652,47 @@ public class TestHelper {
 
     // clean resource, shutdown the executor service & throw any background exception
     public static void exitOrThrow(final ExecutorService executorService,
-                     final CountDownLatch signalTestFinished,
-                     final CountDownLatch signalClosedRealm,
-                     final Looper[] looper,
-                     final Throwable[] throwable,
-                     int... timeout) throws Throwable {
+                                   final CountDownLatch signalTestFinished,
+                                   final CountDownLatch signalClosedRealm,
+                                   final Looper[] looper,
+                                   final Throwable[] throwable) throws Throwable {
 
         // wait for the signal indicating the test's use case is done
-        TestHelper.awaitOrFail(signalTestFinished, (timeout.length == 1) ? timeout[0] : 7);
+        try {
+            // Even if this fails we want to try as hard as possible to cleanup. If we fail to close all resources
+            // properly, the `after()` method will most likely throw as well because it tries do delete any Realms
+            // used. Any exception in the `after()` code will mask the original error.
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            // close the executor
+            executorService.shutdownNow();
+            if (looper[0] != null) {
+                // failing to quit the looper will not execute the finally block responsible
+                // of closing the Realm
+                looper[0].quit();
+            }
 
-        // close the executor
-        executorService.shutdownNow();
+            // wait for the finally block to execute & close the Realm
+            TestHelper.awaitOrFail(signalClosedRealm);
 
-        if (looper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            looper[0].quit();
-        }
-
-        // wait for the finally block to execute & close the Realm
-        TestHelper.awaitOrFail(signalClosedRealm, (timeout.length == 1) ? timeout[0] : 7);
-
-        if (throwable[0] != null) {
-            // throw any assertion errors happened in the background thread
-            throw throwable[0];
+            if (throwable[0] != null) {
+                // throw any assertion errors happened in the background thread
+                throw throwable[0];
+            }
         }
     }
 
     public static InputStream loadJsonFromAssets(Context context, String file) throws IOException {
         AssetManager assetManager = context.getAssets();
         return assetManager.open(file);
+    }
+
+    public static void quitLooperOrFail() {
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            looper.quit();
+        } else {
+            Assert.fail();
+        }
     }
 }

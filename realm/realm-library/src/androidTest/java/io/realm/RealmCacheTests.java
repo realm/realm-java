@@ -16,35 +16,48 @@
 
 package io.realm;
 
-import android.test.AndroidTestCase;
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.StringOnly;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class RealmCacheTest extends AndroidTestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public class RealmCacheTests {
+
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
     private RealmConfiguration defaultConfig;
+    private Context context;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        defaultConfig = TestHelper.createConfiguration(getContext());
-        Realm.deleteRealm(defaultConfig);
+    @Before
+    public void setUp() {
+        defaultConfig = configFactory.createConfiguration();
+        context = InstrumentationRegistry.getInstrumentation().getContext();
     }
 
     // Test that the closed Realm isn't kept in the Realm instance cache
-    public void testRealmCacheIsCleared() {
+    @Test
+    public void typedRealmCacheIsCleared() {
         Realm typedRealm = Realm.getInstance(defaultConfig);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
 
@@ -62,7 +75,8 @@ public class RealmCacheTest extends AndroidTestCase {
     }
 
     // Test that the closed DynamicRealms isn't kept in the DynamicRealm instance cache
-    public void testDynamicRealmCacheIsCleared() {
+    @Test
+    public void dynamicRealmCacheIsCleared() {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
         Realm typedRealm = Realm.getInstance(defaultConfig);
 
@@ -79,12 +93,14 @@ public class RealmCacheTest extends AndroidTestCase {
         }
     }
 
-    public void testGetInstanceClearsCacheWhenFailed() {
+    @Test
+    public void getInstanceClearsCacheWhenFailed() {
         String REALM_NAME = "invalid_cache.realm";
-        RealmConfiguration configA = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(42));
-        RealmConfiguration configB = TestHelper.createConfiguration(getContext(), REALM_NAME, TestHelper.getRandomKey(43));
+        RealmConfiguration configA = configFactory.createConfiguration(REALM_NAME,
+                TestHelper.getRandomKey(42));
+        RealmConfiguration configB = configFactory.createConfiguration(REALM_NAME,
+                TestHelper.getRandomKey(43));
 
-        Realm.deleteRealm(configA);
         Realm realm = Realm.getInstance(configA); // Create starting Realm with key1
         realm.close();
         try {
@@ -98,7 +114,8 @@ public class RealmCacheTest extends AndroidTestCase {
         }
     }
 
-    public void testRealmCache() {
+    @Test
+    public void realmCache() {
         Realm realm = Realm.getInstance(defaultConfig);
         Realm newRealm = Realm.getInstance(defaultConfig);
         try {
@@ -110,20 +127,21 @@ public class RealmCacheTest extends AndroidTestCase {
     }
 
     // We should not cache wrong configurations
-    public void testDontCacheWrongConfigurations() throws IOException {
+    @Test
+    public void dontCacheWrongConfigurations() throws IOException {
         Realm testRealm;
         String REALM_NAME = "encrypted.realm";
-        TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        configFactory.copyRealmFromAssets(context, REALM_NAME, REALM_NAME);
         RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
-        RealmConfiguration wrongConfig = new RealmConfiguration.Builder(getContext())
+        RealmConfiguration wrongConfig = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("foo"))
                 .migration(realmMigration)
                 .schema(StringOnly.class)
                 .build();
 
-        RealmConfiguration rightConfig = new RealmConfiguration.Builder(getContext())
+        RealmConfiguration rightConfig = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .encryptionKey(TestHelper.SHA512("realm"))
                 .migration(realmMigration)
@@ -143,15 +161,16 @@ public class RealmCacheTest extends AndroidTestCase {
         testRealm.close();
     }
 
-    public void testDeletingRealmAlsoClearsConfigurationCache() throws IOException {
+    @Test
+    public void deletingRealmAlsoClearsConfigurationCache() throws IOException {
         String REALM_NAME = "encrypted.realm";
         byte[] oldPassword = TestHelper.SHA512("realm");
         byte[] newPassword = TestHelper.SHA512("realm-copy");
 
-        TestHelper.copyRealmFromAssets(getContext(), REALM_NAME, REALM_NAME);
+        configFactory.copyRealmFromAssets(context, REALM_NAME, REALM_NAME);
         RealmMigration realmMigration = TestHelper.prepareMigrationToNullSupportStep();
 
-        RealmConfiguration config = new RealmConfiguration.Builder(getContext())
+        RealmConfiguration config = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .encryptionKey(oldPassword)
                 .migration(realmMigration)
@@ -176,7 +195,7 @@ public class RealmCacheTest extends AndroidTestCase {
         // 4. Try to open the file again with the new password
         // If the configuration cache wasn't cleared this would fail as we would detect two
         // configurations with 2 different passwords pointing to the same file.
-        RealmConfiguration newConfig = new RealmConfiguration.Builder(getContext())
+        RealmConfiguration newConfig = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .encryptionKey(newPassword)
                 .migration(realmMigration)
@@ -188,44 +207,33 @@ public class RealmCacheTest extends AndroidTestCase {
         testRealm.close();
     }
 
-    // Tests that if the same Realm file is opened on multiple threads, we only need to validate the schema on the first thread.
-    public void testValidateSchemasOverThreads() throws InterruptedException, TimeoutException, ExecutionException {
-        final RealmConfiguration config = TestHelper.createConfiguration(getContext(), "foo");
-        Realm.deleteRealm(config);
+    // Tests that if the same Realm file is opened on multiple threads, we only need to validate the
+    // schema on the first thread
+    // When there is a transaction holding by a typed Realm in one thread, getInstance from the
+    // other thread should not be blocked since we have cached the schemas already.
+    @Test
+    public void getInstance_shouldNotBeBlockedByTransactionInAnotherThread()
+            throws InterruptedException {
+        Realm realm = Realm.getInstance(defaultConfig);
+        final CountDownLatch latch = new CountDownLatch(1);
+        realm.beginTransaction();
 
-        final CountDownLatch bgThreadLocked = new CountDownLatch(1);
-        final CountDownLatch mainThreadDone = new CountDownLatch(1);
-
-        new Thread(new Runnable() {
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Realm realm = Realm.getInstance(config);
-                realm.beginTransaction();
-                bgThreadLocked.countDown();
-                try {
-                    mainThreadDone.await(5, TimeUnit.SECONDS);
-                } catch (InterruptedException ignored) {
-                }
+                Realm realm = Realm.getInstance(defaultConfig);
                 realm.close();
-            }
-        }).start();
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                Realm realm = Realm.getInstance(config);
-                realm.close();
-                mainThreadDone.countDown();
-                return true;
+                latch.countDown();
             }
         });
-
-        bgThreadLocked.await(2, TimeUnit.SECONDS);
-        assertTrue(future.get(10, TimeUnit.SECONDS));
+        thread.start();
+        TestHelper.awaitOrFail(latch);
+        realm.cancelTransaction();
+        realm.close();
     }
 
-    public void testDifferentThreadsDifferentInstance() throws InterruptedException {
+    @Test
+    public void differentThreadsDifferentInstance() throws InterruptedException {
         final CountDownLatch closeLatch = new CountDownLatch(1);
 
         final Realm realmA = Realm.getInstance(defaultConfig);
@@ -249,7 +257,8 @@ public class RealmCacheTest extends AndroidTestCase {
         RealmCache.invokeWithGlobalRefCount(defaultConfig, new TestHelper.ExpectedCountCallback(0));
     }
 
-    public void testReleaseCacheInOneThread() {
+    @Test
+    public void releaseCacheInOneThread() {
         // Test release typed Realm instance
         Realm realmA = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);
         Realm realmB = RealmCache.createRealmOrGetFromCache(defaultConfig, Realm.class);

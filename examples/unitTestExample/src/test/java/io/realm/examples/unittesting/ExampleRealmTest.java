@@ -29,9 +29,9 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import io.realm.Realm;
-import io.realm.examples.intro.model.Dog;
-import io.realm.examples.intro.repository.DogRepository;
-import io.realm.examples.intro.repository.DogRepositoryImpl;
+import io.realm.examples.unittesting.model.Dog;
+import io.realm.examples.unittesting.repository.DogRepository;
+import io.realm.examples.unittesting.repository.DogRepositoryImpl;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -42,7 +42,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 21)
+@Config(constants = BuildConfig.class, sdk = 19)
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
 @PrepareForTest({Realm.class})
 public class ExampleRealmTest {

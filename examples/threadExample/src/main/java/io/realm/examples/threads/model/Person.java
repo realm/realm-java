@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2015 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,25 @@
  * limitations under the License.
  */
 
-package io.realm.entities;
+package io.realm.examples.threads.model;
 
-import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
-public class Owner extends RealmObject {
+public class Person extends RealmObject {
 
-    public static String CLASS_NAME = "Owner";
-
+    @PrimaryKey
+    private String id;
     private String name;
-    private RealmList<Dog> dogs;
-    private Cat cat;
+    private int age;
 
-    public Cat getCat() {
-        return cat;
+
+    public String getId() {
+        return id;
     }
 
-    public void setCat(Cat cat) {
-        this.cat = cat;
-    }
-
-    public RealmList<Dog> getDogs() {
-        return dogs;
-    }
-
-    public void setDogs(RealmList<Dog> dogs) {
-        this.dogs = dogs;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -49,5 +41,13 @@ public class Owner extends RealmObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 }

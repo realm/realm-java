@@ -37,15 +37,15 @@ jmethodID java_lang_double_init;
 
 void ConvertException(JNIEnv* env, const char *file, int line)
 {
-    std::ostringstream ss;
+    ostringstream ss;
     try {
         throw;
     }
-    catch (std::bad_alloc& e) {
+    catch (bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, OutOfMemory, ss.str());
     }
-    catch (realm::CrossTableLinkTarget& e) {
+    catch (CrossTableLinkTarget& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, CrossTableLink, ss.str());
     }
@@ -53,11 +53,15 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
     }
-    catch (realm::DeletedLinkView& e) {
+    catch (DeletedLinkView& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, DeletedLinkViewException, ss.str());
     }
-    catch (std::exception& e) {
+    catch (invalid_argument& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
     }
@@ -71,7 +75,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr)
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr)
 {
-    std::string message;
+    string message;
     jclass jExceptionClass = NULL;
 
     TR_ERR("jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str())
@@ -418,10 +422,10 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         char* out_end   = m_data.get() + buf_size;
         size_t error_code;
         if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end, error_code)) {
-            throw runtime_error(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
+            throw invalid_argument(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         if (in_begin != in_end) {
-            throw runtime_error(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
+            throw invalid_argument(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         m_size = out_begin - m_data.get();
     }
