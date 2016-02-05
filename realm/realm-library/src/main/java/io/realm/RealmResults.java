@@ -554,7 +554,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Removes and returns the last object in the list. This also deletes the object from the underlying Realm.
+     * Removes the last object in the list. This also deletes the object from the underlying Realm.
      *
      * Using this method while iterating the list can result in a undefined behavior. Use
      * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
