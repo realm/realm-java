@@ -46,3 +46,11 @@ shadowJar {
 }
 
 shadowJar.dependsOn ':realm-library:assemble'
+
+uploadShadow {
+  repositories {
+    mavenDeployer {
+      repository(url: mavenLocal().url)
+    }
+  }
+}
