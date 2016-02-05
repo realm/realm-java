@@ -296,18 +296,24 @@ public abstract class RealmObject {
      */
     void notifyChangeListeners() {
         if (listeners != null && !listeners.isEmpty()) {
-            // FIXME
-            // Completed async queries might result in `table == null`, `isCompleted == true` and `row == Row.EMPTY_ROW`
-            // We still want to trigger change notifications for these cases.
-            // isLoaded / isValid should be considered properties on RealmObjects as well so any change to these
-            // should trigger a RealmChangeListener.
+            boolean notify = false;
+
             Table table = row.getTable();
             if (table == null) {
-                return;
+                // Completed async queries might result in `table == null`, `isCompleted == true` and `row == Row.EMPTY_ROW`
+                // We still want to trigger change notifications for these cases.
+                // isLoaded / isValid should be considered properties on RealmObjects as well so any change to these
+                // should trigger a RealmChangeListener.
+                notify = true;
+            } else {
+                long version = table.version();
+                if (currentTableVersion != version) {
+                    currentTableVersion = version;
+                    notify = true;
+                }
             }
-            long version = table.version();
-            if (currentTableVersion != version) {
-                currentTableVersion = version;
+
+            if (notify) {
                 for (RealmChangeListener listener : listeners) {
                     listener.onChange();
                 }
