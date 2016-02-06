@@ -306,11 +306,11 @@ public class ClassMetaData {
     }
 
     public String getGetter(String fieldName) {
-        return "realmGet__" + fieldName;
+        return "realmGet$" + fieldName;
     }
 
     public String getSetter(String fieldName) {
-        return "realmSet__" + fieldName;
+        return "realmSet$" + fieldName;
     }
 
     public List<VariableElement> getIndexedFields() {

@@ -37,11 +37,13 @@ public class RealmProxyClassGenerator {
     private ProcessingEnvironment processingEnvironment;
     private ClassMetaData metadata;
     private final String className;
+    private final String interfaceName;
 
     public RealmProxyClassGenerator(ProcessingEnvironment processingEnvironment, ClassMetaData metadata) {
         this.processingEnvironment = processingEnvironment;
         this.metadata = metadata;
         this.className = metadata.getSimpleClassName();
+        this.interfaceName = Utils.getProxyInterfaceName(className);
     }
 
     public void generate() throws IOException, UnsupportedOperationException {
@@ -49,8 +51,8 @@ public class RealmProxyClassGenerator {
         JavaFileObject sourceFile = processingEnvironment.getFiler().createSourceFile(qualifiedGeneratedClassName);
         JavaWriter writer = new JavaWriter(new BufferedWriter(sourceFile.openWriter()));
 
-        // Set source code indent to 4 spaces
-        writer.setIndent("    ");
+        // Set source code indent
+        writer.setIndent(Constants.INDENT);
 
         writer.emitPackage(Constants.REALM_PACKAGE_NAME)
                 .emitEmptyLine();
@@ -59,7 +61,6 @@ public class RealmProxyClassGenerator {
         imports.add("android.util.JsonReader");
         imports.add("android.util.JsonToken");
         imports.add("io.realm.RealmFieldType");
-        imports.add("io.realm.exceptions.RealmException");
         imports.add("io.realm.exceptions.RealmMigrationNeededException");
         imports.add("io.realm.internal.ColumnInfo");
         imports.add("io.realm.internal.RealmObjectProxy");
@@ -69,7 +70,6 @@ public class RealmProxyClassGenerator {
         imports.add("io.realm.internal.LinkView");
         imports.add("io.realm.internal.android.JsonUtils");
         imports.add("java.io.IOException");
-        imports.add("java.lang.reflect.Field");
         imports.add("java.util.ArrayList");
         imports.add("java.util.Collections");
         imports.add("java.util.List");
@@ -120,15 +120,9 @@ public class RealmProxyClassGenerator {
         emitCopyMethod(writer);
         emitCreateDetachedCopyMethod(writer);
         emitUpdateMethod(writer);
-        if (!metadata.containsToString()) {
-            emitToStringMethod(writer);
-        }
-        if (!metadata.containsHashCode()) {
-            emitHashcodeMethod(writer);
-        }
-        if (!metadata.containsEquals()) {
-            emitEqualsMethod(writer);
-        }
+        emitToStringMethod(writer);
+        emitHashcodeMethod(writer);
+        emitEqualsMethod(writer);
 
         // End the class definition
         writer.endType();
@@ -583,55 +577,18 @@ public class RealmProxyClassGenerator {
                 .beginControlFlow("if (canUpdate)")
                     .emitStatement("Table table = realm.getTable(%s.class)", className)
                     .emitStatement("long pkColumnIndex = table.getPrimaryKey()");
-            if (Utils.isString(metadata.getPrimaryKey())) {
-                writer.emitStatement("String primaryKey");
-            } else {
-                writer.emitStatement("long primaryKey");
-            }
 
+            String primaryKeyGetter = metadata.getPrimaryKeyGetter();
             if (Utils.isString(metadata.getPrimaryKey())) {
                 writer
-                    .beginControlFlow("if (object.realm != null)")
-                        .emitStatement("primaryKey = ((%sRealmProxy)object).%s()", className, metadata.getPrimaryKeyGetter())
-                    .nextControlFlow("else")
-                        .emitStatement("Field field = null;")
-                        .emitStatement("Class<? extends %s> clazz = object.getClass()", className)
-                        .beginControlFlow("try")
-                            .emitStatement("field = clazz.getDeclaredField(\"%s\")", metadata.getPrimaryKey())
-                        .nextControlFlow("catch (NoSuchFieldException e)")
-                            .emitStatement("throw new RealmException(e.getMessage())")
-                        .endControlFlow()
-                        .emitStatement("field.setAccessible(true)")
-                        .beginControlFlow("try")
-                            .emitStatement("primaryKey = (String) field.get(object)")
-                        .nextControlFlow("catch (IllegalAccessException e)")
-                            .emitStatement("throw new RealmException(e.getMessage())")
-                        .endControlFlow()
-                    .endControlFlow()
-                    .beginControlFlow("if (primaryKey == null)")
+                    .beginControlFlow("if (((%s) object).%s() == null)", interfaceName, primaryKeyGetter)
                         .emitStatement("throw new IllegalArgumentException(\"Primary key value must not be null.\")")
                     .endControlFlow()
-                    .emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, primaryKey)", metadata.getPrimaryKeyGetter());
+                    .emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, ((%s) object).%s())",
+                            interfaceName, primaryKeyGetter);
             } else {
-                writer
-                    .beginControlFlow("if (object.realm != null)")
-                        .emitStatement("primaryKey = ((%sRealmProxy)object).%s()", className, metadata.getPrimaryKeyGetter())
-                    .nextControlFlow("else")
-                        .emitStatement("Field field = null;")
-                        .emitStatement("Class<? extends %s> clazz = object.getClass()", className)
-                        .beginControlFlow("try")
-                            .emitStatement("field = clazz.getDeclaredField(\"%s\")", metadata.getPrimaryKey())
-                        .nextControlFlow("catch (NoSuchFieldException e)")
-                            .emitStatement("throw new RealmException(e.getMessage())")
-                        .endControlFlow()
-                        .emitStatement("field.setAccessible(true)")
-                        .beginControlFlow("try")
-                            .emitStatement("primaryKey = (Long) field.get(object)")
-                        .nextControlFlow("catch (IllegalAccessException e)")
-                            .emitStatement("throw new RealmException(e.getMessage())")
-                        .endControlFlow()
-                    .endControlFlow()
-                    .emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, primaryKey)");
+                writer.emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, ((%s) object).%s())",
+                        interfaceName, primaryKeyGetter);
             }
 
             writer
@@ -666,52 +623,15 @@ public class RealmProxyClassGenerator {
                 className, // Return type
                 "copy", // Method name
                 EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), // Modifiers
-                "Realm", "realm", className, "from", "boolean", "update", "Map<RealmObject, RealmObjectProxy>",
-                "cache"); // Argument type & argument name
-
-        writer.emitStatement("final boolean isStandalone = !(from instanceof %sRealmProxy)", className);
-        writer.emitStatement("Class<? extends %s> clazz", className);
-        writer.emitStatement("Field field = null");
-        writer
-            .beginControlFlow("if (isStandalone)")
-                .emitStatement("clazz = from.getClass()")
-            .nextControlFlow("else")
-                .emitStatement("clazz = null")
-            .endControlFlow()
-            .emitStatement("%sRealmProxy to", className);
-        writer.emitEmptyLine();
+                "Realm", "realm", className, "newObject", "boolean", "update", "Map<RealmObject,RealmObjectProxy>", "cache"); // Argument type & argument name
 
         if (metadata.hasPrimaryKey()) {
-            writer
-                .beginControlFlow("if (isStandalone)")
-                    .beginControlFlow("try")
-                        .emitStatement("field = clazz.getDeclaredField(\"%s\")", metadata.getPrimaryKey().getSimpleName().toString())
-                    .nextControlFlow("catch (NoSuchFieldException e)")
-                        .emitStatement("throw new RealmException(e.getMessage())")
-                    .endControlFlow()
-                    .emitStatement("field.setAccessible(true)")
-                    .emitStatement("Object primaryKey")
-                    .beginControlFlow("try")
-                        .emitStatement("primaryKey = field.get(from)")
-                    .nextControlFlow("catch (IllegalAccessException e)")
-                        .emitStatement("throw new RealmException(e.getMessage())")
-                    .endControlFlow()
-                    .emitStatement("to = (%sRealmProxy) realm.createObject(%s.class, primaryKey)",
-                    className, className)
-                .nextControlFlow("else")
-                    .emitStatement("to = (%sRealmProxy) realm.createObject(%s.class, ((%sRealmProxy) from).%s())",
-                    className, className, className, metadata.getPrimaryKeyGetter())
-                .endControlFlow();
+            writer.emitStatement("%s realmObject = realm.createObject(%s.class, ((%s) newObject).%s())",
+                    className, className, interfaceName, metadata.getPrimaryKeyGetter());
         } else {
-            writer.emitStatement("to = (%sRealmProxy) realm.createObject(%s.class)",
-                    className, className);
+            writer.emitStatement("%s realmObject = realm.createObject(%s.class)", className, className);
         }
-
-        writer.emitStatement("cache.put(from, (RealmObjectProxy) to)");
-        writer.emitEmptyLine();
-
-        writer.beginControlFlow("try");
-
+        writer.emitStatement("cache.put(newObject, (RealmObjectProxy) realmObject)");
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
             String fieldType = field.asType().toString();
@@ -719,84 +639,51 @@ public class RealmProxyClassGenerator {
             String getter = metadata.getGetter(fieldName);
 
             if (Utils.isRealmObject(field)) {
-                writer.emitEmptyLine();
-                writer.beginControlFlow("");
-
-                writer.emitStatement("%s %sObj", fieldType, fieldName);
                 writer
-                    .beginControlFlow("if (isStandalone)")
-                        .emitStatement("field = clazz.getDeclaredField(\"%s\")", fieldName)
-                        .emitStatement("field.setAccessible(true)")
-                        .emitStatement("%sObj = (%s) field.get(from)", fieldName, fieldType)
-                    .nextControlFlow("else")
-                        .emitStatement("%sObj = ((%sRealmProxy) from).%s()", fieldName, className, getter)
-                    .endControlFlow();
-
-                writer
+                    .emitEmptyLine()
+                    .emitStatement("%s %sObj = ((%s) newObject).%s()", fieldType, fieldName, interfaceName, getter)
                     .beginControlFlow("if (%sObj != null)", fieldName)
                         .emitStatement("%s cache%s = (%s) cache.get(%sObj)", fieldType, fieldName, fieldType, fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
-                            .emitStatement("to.%s(cache%s)", setter, fieldName)
+                            .emitStatement("((%s) realmObject).%s(cache%s)", interfaceName, setter, fieldName)
                         .nextControlFlow("else")
-                            .emitStatement("to.%s(%s.copyOrUpdate(realm, %sObj, update, cache))",
-                                metadata.getSetter(fieldName), Utils.getProxyClassSimpleName(field), fieldName)
+                            .emitStatement("((%s) realmObject).%s(%s.copyOrUpdate(realm, %sObj, update, cache))",
+                                    interfaceName,
+                                    setter,
+                                    Utils.getProxyClassSimpleName(field),
+                                    fieldName)
                         .endControlFlow()
                     .nextControlFlow("else")
                         // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                        .emitStatement("to.%s(null)", setter)
+                        .emitStatement("((%s) realmObject).%s(null)", interfaceName, setter)
                     .endControlFlow();
-
-                writer.endControlFlow();
             } else if (Utils.isRealmList(field)) {
-                writer.emitEmptyLine();
-                writer.beginControlFlow("");
-
-                writer.emitStatement("RealmList<%s> %sList", Utils.getGenericType(field), fieldName);
                 writer
-                    .beginControlFlow("if (isStandalone)")
-                        .emitStatement("field = clazz.getDeclaredField(\"%s\")", fieldName)
-                        .emitStatement("field.setAccessible(true)")
-                        .emitStatement("%sList = (RealmList<%s>) field.get(from)",
-                                fieldName, Utils.getGenericType(field))
-                    .nextControlFlow("else")
-                        .emitStatement("%sList = ((%sRealmProxy) from).%s()", fieldName, className, getter)
-                    .endControlFlow();
-
-                writer
+                    .emitEmptyLine()
+                    .emitStatement("RealmList<%s> %sList = ((%s) newObject).%s()",
+                            Utils.getGenericType(field), fieldName, interfaceName, getter)
                     .beginControlFlow("if (%sList != null)", fieldName)
-                        .emitStatement("RealmList<%s> %sRealmList = to.%s()", Utils.getGenericType(field), fieldName, getter)
+                        .emitStatement("RealmList<%s> %sRealmList = ((%s) realmObject).%s()",
+                                Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
-                            .emitStatement("%s %sItem = %sList.get(i)", Utils.getGenericType(field), fieldName, fieldName)
-                            .emitStatement("%s cache%s = (%s) cache.get(%sItem)", Utils.getGenericType(field), fieldName, Utils.getGenericType(field), fieldName)
-                            .beginControlFlow("if (cache%s != null)", fieldName)
-                                .emitStatement("%sRealmList.add(cache%s)", fieldName, fieldName)
-                            .nextControlFlow("else")
-                                .emitStatement("%sRealmList.add(%s.copyOrUpdate(realm, %sList.get(i), update, cache))", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
-                            .endControlFlow()
+                                .emitStatement("%s %sItem = %sList.get(i)", Utils.getGenericType(field), fieldName, fieldName)
+                                .emitStatement("%s cache%s = (%s) cache.get(%sItem)", Utils.getGenericType(field), fieldName, Utils.getGenericType(field), fieldName)
+                                .beginControlFlow("if (cache%s != null)", fieldName)
+                                        .emitStatement("%sRealmList.add(cache%s)", fieldName, fieldName)
+                                .nextControlFlow("else")
+                                        .emitStatement("%sRealmList.add(%s.copyOrUpdate(realm, %sList.get(i), update, cache))", fieldName, Utils.getProxyClassSimpleName(field), fieldName)
+                                .endControlFlow()
                         .endControlFlow()
-                    .endControlFlow();
+                    .endControlFlow()
+                    .emitEmptyLine();
 
-                writer.endControlFlow();
             } else {
-                writer
-                    .beginControlFlow("if (isStandalone)")
-                        .emitStatement("field = clazz.getDeclaredField(\"%s\")", fieldName)
-                        .emitStatement("field.setAccessible(true)")
-                        .emitStatement("to.%s((%s) field.get(from))", metadata.getSetter(fieldName), fieldType)
-                    .nextControlFlow("else")
-                        .emitStatement("to.%s(((%sRealmProxy) from).%s())", metadata.getSetter(fieldName), className, getter)
-                    .endControlFlow();
+                writer.emitStatement("((%s) realmObject).%s(((%s)newObject).%s())",
+                        interfaceName, setter, interfaceName, getter);
             }
         }
 
-        writer
-            .nextControlFlow("catch (NoSuchFieldException e)")
-                .emitStatement("throw new RealmException(e.getMessage())")
-            .nextControlFlow("catch (IllegalAccessException e)")
-                .emitStatement("throw new RealmException(e.getMessage())")
-            .endControlFlow();
-
-        writer.emitStatement("return to");
+        writer.emitStatement("return realmObject");
         writer.endMethod();
         writer.emitEmptyLine();
     }
@@ -826,50 +713,28 @@ public class RealmProxyClassGenerator {
                 .emitStatement("cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject))")
             .endControlFlow();
 
-        writer.emitStatement("Class<?> clazz = standaloneObject.getClass()");
-        writer.emitStatement("Field field = null");
-
         for (VariableElement field : metadata.getFields()) {
             String fieldName = field.getSimpleName().toString();
+            String setter = metadata.getSetter(fieldName);
             String getter = metadata.getGetter(fieldName);
-
-            writer.beginControlFlow("try");
-            writer.emitStatement("field = clazz.getDeclaredField(\"%s\")", fieldName);
-            writer.nextControlFlow("catch (NoSuchFieldException e)");
-            writer.emitStatement("throw new RealmException(e.getMessage())");
-            writer.endControlFlow();
-            writer.emitStatement("field.setAccessible(true)");
 
             if (Utils.isRealmObject(field)) {
                 writer
                     .emitEmptyLine()
                     .emitSingleLineComment("Deep copy of %s", fieldName)
-                    .beginControlFlow("try")
-                        .emitStatement("field.set(standaloneObject, %s.createDetachedCopy( ((%sRealmProxy) " +
-                                "realmObject).%s(), currentDepth + 1, maxDepth, cache))",
-                            Utils.getProxyClassSimpleName(field), className, getter)
-                    .nextControlFlow("catch (IllegalAccessException e)")
-                        .emitStatement("throw new RealmException(e.getMessage())")
-                    .endControlFlow();
+                    .emitStatement("((%s) standaloneObject).%s(%s.createDetachedCopy(((%s) realmObject).%s(), currentDepth + 1, maxDepth, cache))",
+                                interfaceName, setter, Utils.getProxyClassSimpleName(field), interfaceName, getter);
             } else if (Utils.isRealmList(field)) {
                 writer
                     .emitEmptyLine()
                     .emitSingleLineComment("Deep copy of %s", fieldName)
                     .beginControlFlow("if (currentDepth == maxDepth)")
-                        .beginControlFlow("try")
-                            .emitStatement("field.set(standaloneObject, null)")
-                        .nextControlFlow("catch (IllegalAccessException e)")
-                            .emitStatement("throw new RealmException(e.getMessage())")
-                        .endControlFlow()
+                        .emitStatement("((%s) standaloneObject).%s(null)", interfaceName, setter)
                     .nextControlFlow("else")
-                        .emitStatement("RealmList<%s> managed%sList = ((%sRealmProxy) realmObject).%s()",
-                                Utils.getGenericType(field), fieldName, className, getter)
+                        .emitStatement("RealmList<%s> managed%sList = ((%s) realmObject).%s()",
+                                Utils.getGenericType(field), fieldName, interfaceName, getter)
                         .emitStatement("RealmList<%1$s> standalone%2$sList = new RealmList<%1$s>()", Utils.getGenericType(field), fieldName)
-                        .beginControlFlow("try")
-                            .emitStatement("field.set(standaloneObject, standalone%sList)", fieldName)
-                        .nextControlFlow("catch (IllegalAccessException e)")
-                            .emitStatement("throw new RealmException(e.getMessage())")
-                        .endControlFlow()
+                        .emitStatement("((%s) standaloneObject).%s(standalone%sList)", interfaceName, setter, fieldName)
                         .emitStatement("int nextDepth = currentDepth + 1")
                         .emitStatement("int size = managed%sList.size()", fieldName)
                         .beginControlFlow("for (int i = 0; i < size; i++)")
@@ -879,13 +744,8 @@ public class RealmProxyClassGenerator {
                         .endControlFlow()
                     .endControlFlow();
             } else {
-                writer.beginControlFlow("try");
-                writer.emitStatement("field.%s(standaloneObject, ((%sRealmProxy) realmObject).%s())",
-                        Constants.JAVA_TO_FIELD_SETTER.get(field.asType().toString()), className, getter);
-                writer.nextControlFlow("catch (IllegalAccessException e)");
-                writer.emitStatement("throw new RealmException(e.getMessage())");
-                writer.endControlFlow();
-
+                writer.emitStatement("((%s) standaloneObject).%s(((%s) realmObject).%s())",
+                        interfaceName, setter, interfaceName, getter);
             }
         }
 
@@ -911,14 +771,15 @@ public class RealmProxyClassGenerator {
             String getter = metadata.getGetter(fieldName);
             if (Utils.isRealmObject(field)) {
                 writer
-                    .emitStatement("%s %sObj = newObject.%s()", Utils.getFieldTypeSimpleName(field), fieldName, getter)
+                    .emitStatement("%s %sObj = ((%s) newObject).%s()",
+                            Utils.getFieldTypeSimpleName(field), fieldName, interfaceName, getter)
                     .beginControlFlow("if (%sObj != null)", fieldName)
                         .emitStatement("%s cache%s = (%s) cache.get(%sObj)", Utils.getFieldTypeSimpleName(field), fieldName, Utils.getFieldTypeSimpleName(field), fieldName)
                         .beginControlFlow("if (cache%s != null)", fieldName)
-                            .emitStatement("((%sRealmProxy) realmObject).%s(cache%s)", className, setter, fieldName)
+                            .emitStatement("((%s) realmObject).%s(cache%s)", interfaceName, setter, fieldName)
                         .nextControlFlow("else")
-                            .emitStatement("((%sRealmProxy) realmObject).%s(%s.copyOrUpdate(realm, %sObj, true, cache))",
-                                    className,
+                            .emitStatement("((%s) realmObject).%s(%s.copyOrUpdate(realm, %sObj, true, cache))",
+                                    interfaceName,
                                     setter,
                                     Utils.getProxyClassSimpleName(field),
                                     fieldName,
@@ -927,12 +788,14 @@ public class RealmProxyClassGenerator {
                         .endControlFlow()
                     .nextControlFlow("else")
                         // No need to throw exception here if the field is not nullable. A exception will be thrown in setter.
-                        .emitStatement("((%sRealmProxy) realmObject).%s(null)", className, setter)
+                        .emitStatement("((%s) realmObject).%s(null)", interfaceName, setter)
                     .endControlFlow();
             } else if (Utils.isRealmList(field)) {
                 writer
-                    .emitStatement("RealmList<%s> %sList = newObject.%s()", Utils.getGenericType(field), fieldName, getter)
-                    .emitStatement("RealmList<%s> %sRealmList = realmObject.%s()", Utils.getGenericType(field), fieldName, getter)
+                    .emitStatement("RealmList<%s> %sList = ((%s) newObject).%s()",
+                            Utils.getGenericType(field), fieldName, interfaceName, getter)
+                    .emitStatement("RealmList<%s> %sRealmList = ((%s) realmObject).%s()",
+                            Utils.getGenericType(field), fieldName, interfaceName, getter)
                     .emitStatement("%sRealmList.clear()", fieldName)
                     .beginControlFlow("if (%sList != null)", fieldName)
                         .beginControlFlow("for (int i = 0; i < %sList.size(); i++)", fieldName)
@@ -950,24 +813,8 @@ public class RealmProxyClassGenerator {
                 if (field == metadata.getPrimaryKey()) {
                     continue;
                 }
-                writer
-                    .beginControlFlow("if (newObject.realm == null)")
-                        .emitStatement("Field field")
-                        .emitStatement("Class<? extends %s> clazz = newObject.getClass()", className)
-                        .beginControlFlow("try")
-                            .emitStatement("field = clazz.getDeclaredField(\"%s\")", fieldName)
-                        .nextControlFlow("catch (NoSuchFieldException e)")
-                            .emitStatement("throw new RealmException(e.getMessage())")
-                        .endControlFlow()
-                        .emitStatement("field.setAccessible(true)")
-                        .beginControlFlow("try")
-                            .emitStatement("((%sRealmProxy) realmObject).%s(((%s) field.get(newObject)))", className, setter, Utils.getFieldTypeSimpleName(field))
-                        .nextControlFlow("catch (IllegalAccessException e)")
-                            .emitStatement("throw new RealmException(e.getMessage())")
-                        .endControlFlow()
-                    .nextControlFlow("else")
-                        .emitStatement("((%sRealmProxy) realmObject).%s(((%sRealmProxy) newObject).%s())", className, setter, className, getter)
-                    .endControlFlow();
+                writer.emitStatement("((%s) realmObject).%s(((%s) newObject).%s())",
+                        interfaceName, setter, interfaceName, getter);
             }
         }
 
@@ -1074,12 +921,11 @@ public class RealmProxyClassGenerator {
                 Collections.singletonList("JSONException"));
 
         if (!metadata.hasPrimaryKey()) {
-            writer.emitStatement("%sRealmProxy obj = (%sRealmProxy) realm.createObject(%s.class)", className,
-                    className, className);
+            writer.emitStatement("%s obj = realm.createObject(%s.class)", className, className);
         } else {
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
             writer
-                .emitStatement("%sRealmProxy obj = null", className)
+                .emitStatement("%s obj = null", className)
                 .beginControlFlow("if (update)")
                     .emitStatement("Table table = realm.getTable(%s.class)", className)
                     .emitStatement("long pkColumnIndex = table.getPrimaryKey()")
@@ -1108,6 +954,7 @@ public class RealmProxyClassGenerator {
             String qualifiedFieldType = field.asType().toString();
             if (Utils.isRealmObject(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
+                        interfaceName,
                         metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
@@ -1117,6 +964,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmList(field)) {
                 RealmJsonTypeHelper.emitFillRealmListWithJsonValue(
+                        interfaceName,
                         metadata.getGetter(fieldName),
                         metadata.getSetter(fieldName),
                         fieldName,
@@ -1126,6 +974,7 @@ public class RealmProxyClassGenerator {
 
             } else {
                 RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
+                        interfaceName,
                         metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
@@ -1148,8 +997,7 @@ public class RealmProxyClassGenerator {
                 Arrays.asList("Realm", "realm", "JsonReader", "reader"),
                 Collections.singletonList("IOException"));
 
-        writer.emitStatement("%sRealmProxy obj = (%sRealmProxy) realm.createObject(%s.class)",className, className,
-                className);
+        writer.emitStatement("%s obj = realm.createObject(%s.class)",className, className);
         writer.emitStatement("reader.beginObject()");
         writer.beginControlFlow("while (reader.hasNext())");
         writer.emitStatement("String name = reader.nextName()");
@@ -1167,6 +1015,7 @@ public class RealmProxyClassGenerator {
             }
             if (Utils.isRealmObject(field)) {
                 RealmJsonTypeHelper.emitFillRealmObjectFromStream(
+                        interfaceName,
                         metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,
@@ -1176,6 +1025,7 @@ public class RealmProxyClassGenerator {
 
             } else if (Utils.isRealmList(field)) {
                 RealmJsonTypeHelper.emitFillRealmListFromStream(
+                        interfaceName,
                         metadata.getGetter(fieldName),
                         metadata.getSetter(fieldName),
                         ((DeclaredType) field.asType()).getTypeArguments().get(0).toString(),
@@ -1184,6 +1034,7 @@ public class RealmProxyClassGenerator {
 
             } else {
                 RealmJsonTypeHelper.emitFillJavaTypeFromStream(
+                        interfaceName,
                         metadata.getSetter(fieldName),
                         fieldName,
                         qualifiedFieldType,

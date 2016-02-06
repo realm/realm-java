@@ -77,6 +77,7 @@ task connectedCheck(type:GradleBuild) {
 task installRealm(type:GradleBuild) {
     group = 'Install'
     description = 'Install the artifacts of Realm libraries into mavenLocal()'
+    dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['install', 'uploadShadow']
 }

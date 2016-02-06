@@ -71,7 +71,6 @@ class RealmTransformer extends Transform {
 
         // Find all the class names
         def classNames = getClassNames(inputs)
-        println classNames
 
         // Create and populate the Javassist class pool
         ClassPool classPool = createClassPool(inputs, referencedInputs)
@@ -99,13 +98,17 @@ class RealmTransformer extends Transform {
         logger.info "Managed Fields: ${managedFields*.name}"
 
         // Add accessors to the model classes
-        modelClasses.each { BytecodeModifier.addRealmAccessors(it) }
+        modelClasses.each {
+            BytecodeModifier.addRealmAccessors(it)
+            def proxyInterface = classPool.get("io.realm.${it.getSimpleName()}RealmProxyInterface")
+            it.addInterface(proxyInterface)
+        }
 
         // Use accessors instead of direct field access
         classNames.each {
             logger.info "  Modifying class ${it}"
             def ctClass = classPool.getCtClass(it)
-            BytecodeModifier.useRealmAccessors(ctClass, managedFields)
+            BytecodeModifier.useRealmAccessors(ctClass, managedFields, modelClasses)
             ctClass.writeFile(outputProvider.getContentLocation(
                     'realm', getInputTypes(), getScopes(), Format.DIRECTORY).canonicalPath)
         }
@@ -158,7 +161,7 @@ class RealmTransformer extends Transform {
                 def dirPath = it.file.absolutePath
                 it.file.eachFileRecurse(FileType.FILES) {
                     if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                        def className = it.absolutePath.substring(dirPath.length() + 1, it.absolutePath.length() - SdkConstants.DOT_CLASS.length()).replaceAll('/', '.').replaceAll('\\$\\d+', '')
+                        def className = it.absolutePath.substring(dirPath.length() + 1, it.absolutePath.length() - SdkConstants.DOT_CLASS.length()).replaceAll('/', '.')
                         classNames.add(className)
                     }
                 }

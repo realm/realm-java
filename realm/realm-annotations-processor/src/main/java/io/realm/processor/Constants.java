@@ -22,6 +22,8 @@ import java.util.Map;
 public class Constants {
     public static final String REALM_PACKAGE_NAME = "io.realm";
     public static final String PROXY_SUFFIX = "RealmProxy";
+    public static final String INTERFACE_SUFFIX = "RealmProxyInterface";
+    public static final String INDENT = "    ";
     public static final String TABLE_PREFIX = "class_";
     public static final String DEFAULT_MODULE_CLASS_NAME = "DefaultRealmModule";
     static final String STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE =

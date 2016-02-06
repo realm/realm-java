@@ -42,8 +42,8 @@ class BytecodeModifierTest extends Specification {
         then: 'the accessors are generated'
         def ctMethods = ctClass.getDeclaredMethods()
         def methodNames = ctMethods.name
-        methodNames.contains('realmGetter$age')
-        methodNames.contains('realmSetter$age')
+        methodNames.contains('realmGet$age')
+        methodNames.contains('realmSet$age')
 
         and: 'the accessors are public'
         ctMethods.each {
@@ -68,7 +68,7 @@ class BytecodeModifierTest extends Specification {
         BytecodeModifier.addRealmAccessors(ctClass)
 
         when: 'the field use is replaced by the accessor'
-        BytecodeModifier.useRealmAccessors(ctClass, [ctField])
+        BytecodeModifier.useRealmAccessors(ctClass, [ctField], [])
 
         then: 'the field is not used in the method anymore'
         def methodInfo = ctMethod.getMethodInfo()

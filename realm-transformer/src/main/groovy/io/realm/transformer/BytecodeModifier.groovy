@@ -15,14 +15,11 @@
  */
 
 package io.realm.transformer
-
 import javassist.*
 import javassist.expr.ExprEditor
 import javassist.expr.FieldAccess
-import javassist.expr.MethodCall
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 /**
  * This class encapsulates the bytecode manipulation code needed to transform model classes
  * and the classes using them.
@@ -43,10 +40,10 @@ class BytecodeModifier {
         clazz.declaredFields.each { CtField field ->
             if (!Modifier.isStatic(field.getModifiers())) {
                 if (!methods.contains("realmGet__${field.name}")) {
-                    clazz.addMethod(CtNewMethod.getter("realmGet__${field.name}", field))
+                    clazz.addMethod(CtNewMethod.getter("realmGet\$${field.name}", field))
                 }
                 if (!methods.contains("realmSet__${field.name}")) {
-                    clazz.addMethod(CtNewMethod.setter("realmSet__${field.name}", field))
+                    clazz.addMethod(CtNewMethod.setter("realmSet\$${field.name}", field))
                 }
             }
         }
@@ -58,17 +55,22 @@ class BytecodeModifier {
      * @param clazz The CtClass to modify
      * @param managedFields List of fields whose access should be replaced
      */
-    public static void useRealmAccessors(CtClass clazz, List<CtField> managedFields) {
+    public static void useRealmAccessors(CtClass clazz, List<CtField> managedFields, List<CtClass> modelClasses) {
         clazz.getDeclaredBehaviors().each { behavior ->
             logger.info "    Behavior: ${behavior.name}"
-            if (!behavior.name.startsWith('realmGet__') && !behavior.name.startsWith('realmSet__')) {
+            if (
+                (
+                    behavior instanceof CtMethod &&
+                    !behavior.name.startsWith('realmGet$') &&
+                    !behavior.name.startsWith('realmSet$')
+                ) || (
+                    behavior instanceof CtConstructor &&
+                    !modelClasses.contains(clazz)
+                )
+            ) {
                 behavior.instrument(new FieldAccessToAccessorConverter(managedFields, clazz, behavior))
             }
         }
-    }
-
-    public static void replaceStaticAccessors(CtClass clazz) {
-        clazz.getDeclaredBehaviors().each { it.instrument(new StaticToInstanceAccessorConverter()) }
     }
 
     /**
@@ -98,31 +100,12 @@ class BytecodeModifier {
                     logger.info "        Methods: ${ctClass.declaredMethods}"
                     def fieldName = fieldAccess.fieldName
                     if (fieldAccess.isReader()) {
-                        fieldAccess.replace('$_ = $0.realmGet__' + fieldName + '();')
+                        fieldAccess.replace('$_ = $0.realmGet$' + fieldName + '();')
                     } else if (fieldAccess.isWriter()) {
-                        fieldAccess.replace('$0.realmSet__' + fieldName + '($1);')
+                        fieldAccess.replace('$0.realmSet$' + fieldName + '($1);')
                     }
                 }
             } catch (NotFoundException ignored) {
-            }
-        }
-    }
-
-    /**
-     * This class goes through all the method call behaviors of a proxy class and replaces static accessor with
-     * instance ones.
-     */
-    private static class StaticToInstanceAccessorConverter extends ExprEditor {
-        @Override
-        void edit(MethodCall methodCall) throws CannotCompileException {
-            logger.info "      Method being called: ${methodCall.className}.${methodCall.methodName}"
-            if (methodCall.className.equals('io.realm.RealmObject') && Modifier.isStatic(methodCall.method.getModifiers())) {
-                logger.info "      Replacing method"
-                if (methodCall.methodName.equals('get')) {
-                    methodCall.replace('{ $_ = $1.realmGet__$2(); }')
-                } else if (methodCall.methodName.equals('set')) {
-                    methodCall.replace('{ $1.realmSet__$2($3); }')
-                }
             }
         }
     }
