@@ -25,7 +25,7 @@ import org.json.JSONObject;
 import some.test.NullTypes;
 
 public class NullTypesRealmProxy extends NullTypes
-    implements RealmObjectProxy {
+    implements RealmObjectProxy, NullTypesRealmProxyInterface {
 
     static final class NullTypesColumnInfo extends ColumnInfo {
 

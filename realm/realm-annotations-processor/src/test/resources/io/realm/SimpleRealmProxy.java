@@ -25,7 +25,7 @@ import org.json.JSONObject;
 import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple
-    implements RealmObjectProxy {
+    implements RealmObjectProxy, SimpleRealmProxyInterface {
 
     static final class SimpleColumnInfo extends ColumnInfo {
 

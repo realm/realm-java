@@ -102,7 +102,8 @@ public class RealmProxyClassGenerator {
                 "class",                     // the type of the item
                 EnumSet.of(Modifier.PUBLIC), // modifiers to apply
                 className,                   // class to extend
-                "RealmObjectProxy")          // interfaces to implement
+                "RealmObjectProxy",          // interfaces to implement
+                interfaceName)
                 .emitEmptyLine();
 
         emitColumnIndicesClass(writer);

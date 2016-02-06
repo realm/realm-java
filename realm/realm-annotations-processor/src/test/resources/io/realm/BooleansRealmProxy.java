@@ -25,7 +25,7 @@ import org.json.JSONObject;
 import some.test.Booleans;
 
 public class BooleansRealmProxy extends Booleans
-    implements RealmObjectProxy {
+    implements RealmObjectProxy, BooleansRealmProxyInterface {
 
     static final class BooleansColumnInfo extends ColumnInfo {
 

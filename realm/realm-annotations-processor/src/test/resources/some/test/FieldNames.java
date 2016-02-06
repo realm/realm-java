@@ -26,7 +26,7 @@ import some.test.Simple;
  *
  * This class list field names that has caused problems.
  */
-public class FieldNames extends RealmObject {
+public class FieldNames extends RealmObject implements FieldNamesRealmProxyInterface {
 
     private Simple name;
     private Simple cache;
