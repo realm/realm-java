@@ -128,8 +128,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                             StringWriter testStackTrace = new StringWriter();
                             testException.printStackTrace(new PrintWriter(testStackTrace));
 
-                            StringWriter aftertStackTrace = new StringWriter();
-                            e.printStackTrace(new PrintWriter(aftertStackTrace));
+                            StringWriter afterStackTrace = new StringWriter();
+                            e.printStackTrace(new PrintWriter(afterStackTrace));
 
                             StringBuilder errorMessage = new StringBuilder()
                                     .append("after() threw an error that shadows a test case error")
@@ -138,7 +138,7 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                                     .append(testStackTrace.toString())
                                     .append('\n')
                                     .append("== after() exception ==\n")
-                                    .append(aftertStackTrace.toString());
+                                    .append(afterStackTrace.toString());
                             fail(errorMessage.toString());
                         } else {
                             // Only after() threw an exception
