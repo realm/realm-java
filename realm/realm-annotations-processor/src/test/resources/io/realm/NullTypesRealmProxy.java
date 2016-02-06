@@ -4,7 +4,6 @@ package io.realm;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
-import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
@@ -14,7 +13,6 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -155,12 +153,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public String realmGetter$fieldStringNotNull() {
+    public String realmGet$fieldStringNotNull() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.fieldStringNotNullIndex);
     }
 
-    public void realmSetter$fieldStringNotNull(String value) {
+    public void realmSet$fieldStringNotNull(String value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldStringNotNull to null.");
@@ -169,12 +167,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public String realmGetter$fieldStringNull() {
+    public String realmGet$fieldStringNull() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.fieldStringNullIndex);
     }
 
-    public void realmSetter$fieldStringNull(String value) {
+    public void realmSet$fieldStringNull(String value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldStringNullIndex);
@@ -184,12 +182,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Boolean realmGetter$fieldBooleanNotNull() {
+    public Boolean realmGet$fieldBooleanNotNull() {
         realm.checkIfValid();
         return (boolean) row.getBoolean(columnInfo.fieldBooleanNotNullIndex);
     }
 
-    public void realmSetter$fieldBooleanNotNull(Boolean value) {
+    public void realmSet$fieldBooleanNotNull(Boolean value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldBooleanNotNull to null.");
@@ -198,7 +196,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Boolean realmGetter$fieldBooleanNull() {
+    public Boolean realmGet$fieldBooleanNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldBooleanNullIndex)) {
             return null;
@@ -206,7 +204,7 @@ public class NullTypesRealmProxy extends NullTypes
         return (boolean) row.getBoolean(columnInfo.fieldBooleanNullIndex);
     }
 
-    public void realmSetter$fieldBooleanNull(Boolean value) {
+    public void realmSet$fieldBooleanNull(Boolean value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldBooleanNullIndex);
@@ -216,12 +214,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public byte[] realmGetter$fieldBytesNotNull() {
+    public byte[] realmGet$fieldBytesNotNull() {
         realm.checkIfValid();
         return (byte[]) row.getBinaryByteArray(columnInfo.fieldBytesNotNullIndex);
     }
 
-    public void realmSetter$fieldBytesNotNull(byte[] value) {
+    public void realmSet$fieldBytesNotNull(byte[] value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldBytesNotNull to null.");
@@ -230,12 +228,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public byte[] realmGetter$fieldBytesNull() {
+    public byte[] realmGet$fieldBytesNull() {
         realm.checkIfValid();
         return (byte[]) row.getBinaryByteArray(columnInfo.fieldBytesNullIndex);
     }
 
-    public void realmSetter$fieldBytesNull(byte[] value) {
+    public void realmSet$fieldBytesNull(byte[] value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldBytesNullIndex);
@@ -245,12 +243,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Byte realmGetter$fieldByteNotNull() {
+    public Byte realmGet$fieldByteNotNull() {
         realm.checkIfValid();
         return (byte) row.getLong(columnInfo.fieldByteNotNullIndex);
     }
 
-    public void realmSetter$fieldByteNotNull(Byte value) {
+    public void realmSet$fieldByteNotNull(Byte value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldByteNotNull to null.");
@@ -259,7 +257,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Byte realmGetter$fieldByteNull() {
+    public Byte realmGet$fieldByteNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldByteNullIndex)) {
             return null;
@@ -267,7 +265,7 @@ public class NullTypesRealmProxy extends NullTypes
         return (byte) row.getLong(columnInfo.fieldByteNullIndex);
     }
 
-    public void realmSetter$fieldByteNull(Byte value) {
+    public void realmSet$fieldByteNull(Byte value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldByteNullIndex);
@@ -277,12 +275,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Short realmGetter$fieldShortNotNull() {
+    public Short realmGet$fieldShortNotNull() {
         realm.checkIfValid();
         return (short) row.getLong(columnInfo.fieldShortNotNullIndex);
     }
 
-    public void realmSetter$fieldShortNotNull(Short value) {
+    public void realmSet$fieldShortNotNull(Short value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldShortNotNull to null.");
@@ -291,7 +289,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Short realmGetter$fieldShortNull() {
+    public Short realmGet$fieldShortNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldShortNullIndex)) {
             return null;
@@ -299,7 +297,7 @@ public class NullTypesRealmProxy extends NullTypes
         return (short) row.getLong(columnInfo.fieldShortNullIndex);
     }
 
-    public void realmSetter$fieldShortNull(Short value) {
+    public void realmSet$fieldShortNull(Short value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldShortNullIndex);
@@ -309,12 +307,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Integer realmGetter$fieldIntegerNotNull() {
+    public Integer realmGet$fieldIntegerNotNull() {
         realm.checkIfValid();
         return (int) row.getLong(columnInfo.fieldIntegerNotNullIndex);
     }
 
-    public void realmSetter$fieldIntegerNotNull(Integer value) {
+    public void realmSet$fieldIntegerNotNull(Integer value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldIntegerNotNull to null.");
@@ -323,7 +321,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Integer realmGetter$fieldIntegerNull() {
+    public Integer realmGet$fieldIntegerNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldIntegerNullIndex)) {
             return null;
@@ -331,7 +329,7 @@ public class NullTypesRealmProxy extends NullTypes
         return (int) row.getLong(columnInfo.fieldIntegerNullIndex);
     }
 
-    public void realmSetter$fieldIntegerNull(Integer value) {
+    public void realmSet$fieldIntegerNull(Integer value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldIntegerNullIndex);
@@ -341,12 +339,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Long realmGetter$fieldLongNotNull() {
+    public Long realmGet$fieldLongNotNull() {
         realm.checkIfValid();
         return (long) row.getLong(columnInfo.fieldLongNotNullIndex);
     }
 
-    public void realmSetter$fieldLongNotNull(Long value) {
+    public void realmSet$fieldLongNotNull(Long value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldLongNotNull to null.");
@@ -355,7 +353,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Long realmGetter$fieldLongNull() {
+    public Long realmGet$fieldLongNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldLongNullIndex)) {
             return null;
@@ -363,7 +361,7 @@ public class NullTypesRealmProxy extends NullTypes
         return (long) row.getLong(columnInfo.fieldLongNullIndex);
     }
 
-    public void realmSetter$fieldLongNull(Long value) {
+    public void realmSet$fieldLongNull(Long value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldLongNullIndex);
@@ -373,12 +371,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Float realmGetter$fieldFloatNotNull() {
+    public Float realmGet$fieldFloatNotNull() {
         realm.checkIfValid();
         return (float) row.getFloat(columnInfo.fieldFloatNotNullIndex);
     }
 
-    public void realmSetter$fieldFloatNotNull(Float value) {
+    public void realmSet$fieldFloatNotNull(Float value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldFloatNotNull to null.");
@@ -387,7 +385,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Float realmGetter$fieldFloatNull() {
+    public Float realmGet$fieldFloatNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldFloatNullIndex)) {
             return null;
@@ -395,7 +393,7 @@ public class NullTypesRealmProxy extends NullTypes
         return (float) row.getFloat(columnInfo.fieldFloatNullIndex);
     }
 
-    public void realmSetter$fieldFloatNull(Float value) {
+    public void realmSet$fieldFloatNull(Float value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldFloatNullIndex);
@@ -405,12 +403,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Double realmGetter$fieldDoubleNotNull() {
+    public Double realmGet$fieldDoubleNotNull() {
         realm.checkIfValid();
         return (double) row.getDouble(columnInfo.fieldDoubleNotNullIndex);
     }
 
-    public void realmSetter$fieldDoubleNotNull(Double value) {
+    public void realmSet$fieldDoubleNotNull(Double value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldDoubleNotNull to null.");
@@ -419,7 +417,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Double realmGetter$fieldDoubleNull() {
+    public Double realmGet$fieldDoubleNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldDoubleNullIndex)) {
             return null;
@@ -427,7 +425,7 @@ public class NullTypesRealmProxy extends NullTypes
         return (double) row.getDouble(columnInfo.fieldDoubleNullIndex);
     }
 
-    public void realmSetter$fieldDoubleNull(Double value) {
+    public void realmSet$fieldDoubleNull(Double value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldDoubleNullIndex);
@@ -437,12 +435,12 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Date realmGetter$fieldDateNotNull() {
+    public Date realmGet$fieldDateNotNull() {
         realm.checkIfValid();
         return (java.util.Date) row.getDate(columnInfo.fieldDateNotNullIndex);
     }
 
-    public void realmSetter$fieldDateNotNull(Date value) {
+    public void realmSet$fieldDateNotNull(Date value) {
         realm.checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field fieldDateNotNull to null.");
@@ -451,7 +449,7 @@ public class NullTypesRealmProxy extends NullTypes
     }
 
     @SuppressWarnings("cast")
-    public Date realmGetter$fieldDateNull() {
+    public Date realmGet$fieldDateNull() {
         realm.checkIfValid();
         if (row.isNull(columnInfo.fieldDateNullIndex)) {
             return null;
@@ -459,7 +457,7 @@ public class NullTypesRealmProxy extends NullTypes
         return (java.util.Date) row.getDate(columnInfo.fieldDateNullIndex);
     }
 
-    public void realmSetter$fieldDateNull(Date value) {
+    public void realmSet$fieldDateNull(Date value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.fieldDateNullIndex);
@@ -468,7 +466,7 @@ public class NullTypesRealmProxy extends NullTypes
         row.setDate(columnInfo.fieldDateNullIndex, value);
     }
 
-    public NullTypes realmGetter$fieldObjectNull() {
+    public NullTypes realmGet$fieldObjectNull() {
         realm.checkIfValid();
         if (row.isNullLink(columnInfo.fieldObjectNullIndex)) {
             return null;
@@ -476,7 +474,7 @@ public class NullTypesRealmProxy extends NullTypes
         return realm.get(some.test.NullTypes.class, row.getLink(columnInfo.fieldObjectNullIndex));
     }
 
-    public void realmSetter$fieldObjectNull(NullTypes value) {
+    public void realmSet$fieldObjectNull(NullTypes value) {
         realm.checkIfValid();
         if (value == null) {
             row.nullifyLink(columnInfo.fieldObjectNullIndex);
@@ -747,163 +745,163 @@ public class NullTypesRealmProxy extends NullTypes
     @SuppressWarnings("cast")
     public static NullTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
         throws JSONException {
-        NullTypesRealmProxy obj = (NullTypesRealmProxy) realm.createObject(NullTypes.class);
+        NullTypes obj = realm.createObject(NullTypes.class);
         if (json.has("fieldStringNotNull")) {
             if (json.isNull("fieldStringNotNull")) {
-                obj.realmSetter$fieldStringNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull(null);
             } else {
-                obj.realmSetter$fieldStringNotNull((String) json.getString("fieldStringNotNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull((String) json.getString("fieldStringNotNull"));
             }
         }
         if (json.has("fieldStringNull")) {
             if (json.isNull("fieldStringNull")) {
-                obj.realmSetter$fieldStringNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNull(null);
             } else {
-                obj.realmSetter$fieldStringNull((String) json.getString("fieldStringNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNull((String) json.getString("fieldStringNull"));
             }
         }
         if (json.has("fieldBooleanNotNull")) {
             if (json.isNull("fieldBooleanNotNull")) {
-                obj.realmSetter$fieldBooleanNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNotNull(null);
             } else {
-                obj.realmSetter$fieldBooleanNotNull((boolean) json.getBoolean("fieldBooleanNotNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNotNull((boolean) json.getBoolean("fieldBooleanNotNull"));
             }
         }
         if (json.has("fieldBooleanNull")) {
             if (json.isNull("fieldBooleanNull")) {
-                obj.realmSetter$fieldBooleanNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNull(null);
             } else {
-                obj.realmSetter$fieldBooleanNull((boolean) json.getBoolean("fieldBooleanNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNull((boolean) json.getBoolean("fieldBooleanNull"));
             }
         }
         if (json.has("fieldBytesNotNull")) {
             if (json.isNull("fieldBytesNotNull")) {
-                obj.realmSetter$fieldBytesNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNotNull(null);
             } else {
-                obj.realmSetter$fieldBytesNotNull(JsonUtils.stringToBytes(json.getString("fieldBytesNotNull")));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNotNull(JsonUtils.stringToBytes(json.getString("fieldBytesNotNull")));
             }
         }
         if (json.has("fieldBytesNull")) {
             if (json.isNull("fieldBytesNull")) {
-                obj.realmSetter$fieldBytesNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNull(null);
             } else {
-                obj.realmSetter$fieldBytesNull(JsonUtils.stringToBytes(json.getString("fieldBytesNull")));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNull(JsonUtils.stringToBytes(json.getString("fieldBytesNull")));
             }
         }
         if (json.has("fieldByteNotNull")) {
             if (json.isNull("fieldByteNotNull")) {
-                obj.realmSetter$fieldByteNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNotNull(null);
             } else {
-                obj.realmSetter$fieldByteNotNull((byte) json.getInt("fieldByteNotNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNotNull((byte) json.getInt("fieldByteNotNull"));
             }
         }
         if (json.has("fieldByteNull")) {
             if (json.isNull("fieldByteNull")) {
-                obj.realmSetter$fieldByteNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNull(null);
             } else {
-                obj.realmSetter$fieldByteNull((byte) json.getInt("fieldByteNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNull((byte) json.getInt("fieldByteNull"));
             }
         }
         if (json.has("fieldShortNotNull")) {
             if (json.isNull("fieldShortNotNull")) {
-                obj.realmSetter$fieldShortNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNotNull(null);
             } else {
-                obj.realmSetter$fieldShortNotNull((short) json.getInt("fieldShortNotNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNotNull((short) json.getInt("fieldShortNotNull"));
             }
         }
         if (json.has("fieldShortNull")) {
             if (json.isNull("fieldShortNull")) {
-                obj.realmSetter$fieldShortNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNull(null);
             } else {
-                obj.realmSetter$fieldShortNull((short) json.getInt("fieldShortNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNull((short) json.getInt("fieldShortNull"));
             }
         }
         if (json.has("fieldIntegerNotNull")) {
             if (json.isNull("fieldIntegerNotNull")) {
-                obj.realmSetter$fieldIntegerNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNotNull(null);
             } else {
-                obj.realmSetter$fieldIntegerNotNull((int) json.getInt("fieldIntegerNotNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNotNull((int) json.getInt("fieldIntegerNotNull"));
             }
         }
         if (json.has("fieldIntegerNull")) {
             if (json.isNull("fieldIntegerNull")) {
-                obj.realmSetter$fieldIntegerNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNull(null);
             } else {
-                obj.realmSetter$fieldIntegerNull((int) json.getInt("fieldIntegerNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNull((int) json.getInt("fieldIntegerNull"));
             }
         }
         if (json.has("fieldLongNotNull")) {
             if (json.isNull("fieldLongNotNull")) {
-                obj.realmSetter$fieldLongNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNotNull(null);
             } else {
-                obj.realmSetter$fieldLongNotNull((long) json.getLong("fieldLongNotNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNotNull((long) json.getLong("fieldLongNotNull"));
             }
         }
         if (json.has("fieldLongNull")) {
             if (json.isNull("fieldLongNull")) {
-                obj.realmSetter$fieldLongNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNull(null);
             } else {
-                obj.realmSetter$fieldLongNull((long) json.getLong("fieldLongNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNull((long) json.getLong("fieldLongNull"));
             }
         }
         if (json.has("fieldFloatNotNull")) {
             if (json.isNull("fieldFloatNotNull")) {
-                obj.realmSetter$fieldFloatNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNotNull(null);
             } else {
-                obj.realmSetter$fieldFloatNotNull((float) json.getDouble("fieldFloatNotNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNotNull((float) json.getDouble("fieldFloatNotNull"));
             }
         }
         if (json.has("fieldFloatNull")) {
             if (json.isNull("fieldFloatNull")) {
-                obj.realmSetter$fieldFloatNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNull(null);
             } else {
-                obj.realmSetter$fieldFloatNull((float) json.getDouble("fieldFloatNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNull((float) json.getDouble("fieldFloatNull"));
             }
         }
         if (json.has("fieldDoubleNotNull")) {
             if (json.isNull("fieldDoubleNotNull")) {
-                obj.realmSetter$fieldDoubleNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNotNull(null);
             } else {
-                obj.realmSetter$fieldDoubleNotNull((double) json.getDouble("fieldDoubleNotNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNotNull((double) json.getDouble("fieldDoubleNotNull"));
             }
         }
         if (json.has("fieldDoubleNull")) {
             if (json.isNull("fieldDoubleNull")) {
-                obj.realmSetter$fieldDoubleNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNull(null);
             } else {
-                obj.realmSetter$fieldDoubleNull((double) json.getDouble("fieldDoubleNull"));
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNull((double) json.getDouble("fieldDoubleNull"));
             }
         }
         if (json.has("fieldDateNotNull")) {
             if (json.isNull("fieldDateNotNull")) {
-                obj.realmSetter$fieldDateNotNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(null);
             } else {
                 Object timestamp = json.get("fieldDateNotNull");
                 if (timestamp instanceof String) {
-                    obj.realmSetter$fieldDateNotNull(JsonUtils.stringToDate((String) timestamp));
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(JsonUtils.stringToDate((String) timestamp));
                 } else {
-                    obj.realmSetter$fieldDateNotNull(new Date(json.getLong("fieldDateNotNull")));
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(new Date(json.getLong("fieldDateNotNull")));
                 }
             }
         }
         if (json.has("fieldDateNull")) {
             if (json.isNull("fieldDateNull")) {
-                obj.realmSetter$fieldDateNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(null);
             } else {
                 Object timestamp = json.get("fieldDateNull");
                 if (timestamp instanceof String) {
-                    obj.realmSetter$fieldDateNull(JsonUtils.stringToDate((String) timestamp));
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(JsonUtils.stringToDate((String) timestamp));
                 } else {
-                    obj.realmSetter$fieldDateNull(new Date(json.getLong("fieldDateNull")));
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(new Date(json.getLong("fieldDateNull")));
                 }
             }
         }
         if (json.has("fieldObjectNull")) {
             if (json.isNull("fieldObjectNull")) {
-                obj.realmSetter$fieldObjectNull(null);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldObjectNull(null);
             } else {
                 some.test.NullTypes fieldObjectNullObj = NullTypesRealmProxy.createOrUpdateUsingJsonObject(realm, json.getJSONObject("fieldObjectNull"), update);
-                obj.realmSetter$fieldObjectNull(fieldObjectNullObj);
+                ((NullTypesRealmProxyInterface) obj).realmSet$fieldObjectNull(fieldObjectNullObj);
             }
         }
         return obj;
@@ -912,167 +910,167 @@ public class NullTypesRealmProxy extends NullTypes
     @SuppressWarnings("cast")
     public static NullTypes createUsingJsonStream(Realm realm, JsonReader reader)
         throws IOException {
-        NullTypesRealmProxy obj = (NullTypesRealmProxy) realm.createObject(NullTypes.class);
+        NullTypes obj = realm.createObject(NullTypes.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (name.equals("fieldStringNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldStringNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull(null);
                 } else {
-                    obj.realmSetter$fieldStringNotNull((String) reader.nextString());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNotNull((String) reader.nextString());
                 }
             } else if (name.equals("fieldStringNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldStringNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNull(null);
                 } else {
-                    obj.realmSetter$fieldStringNull((String) reader.nextString());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldStringNull((String) reader.nextString());
                 }
             } else if (name.equals("fieldBooleanNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldBooleanNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNotNull(null);
                 } else {
-                    obj.realmSetter$fieldBooleanNotNull((boolean) reader.nextBoolean());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNotNull((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("fieldBooleanNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldBooleanNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNull(null);
                 } else {
-                    obj.realmSetter$fieldBooleanNull((boolean) reader.nextBoolean());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBooleanNull((boolean) reader.nextBoolean());
                 }
             } else if (name.equals("fieldBytesNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldBytesNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNotNull(null);
                 } else {
-                    obj.realmSetter$fieldBytesNotNull(JsonUtils.stringToBytes(reader.nextString()));
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNotNull(JsonUtils.stringToBytes(reader.nextString()));
                 }
             } else if (name.equals("fieldBytesNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldBytesNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNull(null);
                 } else {
-                    obj.realmSetter$fieldBytesNull(JsonUtils.stringToBytes(reader.nextString()));
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldBytesNull(JsonUtils.stringToBytes(reader.nextString()));
                 }
             } else if (name.equals("fieldByteNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldByteNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNotNull(null);
                 } else {
-                    obj.realmSetter$fieldByteNotNull((byte) reader.nextInt());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNotNull((byte) reader.nextInt());
                 }
             } else if (name.equals("fieldByteNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldByteNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNull(null);
                 } else {
-                    obj.realmSetter$fieldByteNull((byte) reader.nextInt());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldByteNull((byte) reader.nextInt());
                 }
             } else if (name.equals("fieldShortNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldShortNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNotNull(null);
                 } else {
-                    obj.realmSetter$fieldShortNotNull((short) reader.nextInt());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNotNull((short) reader.nextInt());
                 }
             } else if (name.equals("fieldShortNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldShortNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNull(null);
                 } else {
-                    obj.realmSetter$fieldShortNull((short) reader.nextInt());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldShortNull((short) reader.nextInt());
                 }
             } else if (name.equals("fieldIntegerNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldIntegerNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNotNull(null);
                 } else {
-                    obj.realmSetter$fieldIntegerNotNull((int) reader.nextInt());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNotNull((int) reader.nextInt());
                 }
             } else if (name.equals("fieldIntegerNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldIntegerNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNull(null);
                 } else {
-                    obj.realmSetter$fieldIntegerNull((int) reader.nextInt());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldIntegerNull((int) reader.nextInt());
                 }
             } else if (name.equals("fieldLongNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldLongNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNotNull(null);
                 } else {
-                    obj.realmSetter$fieldLongNotNull((long) reader.nextLong());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNotNull((long) reader.nextLong());
                 }
             } else if (name.equals("fieldLongNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldLongNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNull(null);
                 } else {
-                    obj.realmSetter$fieldLongNull((long) reader.nextLong());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldLongNull((long) reader.nextLong());
                 }
             } else if (name.equals("fieldFloatNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldFloatNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNotNull(null);
                 } else {
-                    obj.realmSetter$fieldFloatNotNull((float) reader.nextDouble());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNotNull((float) reader.nextDouble());
                 }
             } else if (name.equals("fieldFloatNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldFloatNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNull(null);
                 } else {
-                    obj.realmSetter$fieldFloatNull((float) reader.nextDouble());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldFloatNull((float) reader.nextDouble());
                 }
             } else if (name.equals("fieldDoubleNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldDoubleNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNotNull(null);
                 } else {
-                    obj.realmSetter$fieldDoubleNotNull((double) reader.nextDouble());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNotNull((double) reader.nextDouble());
                 }
             } else if (name.equals("fieldDoubleNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldDoubleNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNull(null);
                 } else {
-                    obj.realmSetter$fieldDoubleNull((double) reader.nextDouble());
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDoubleNull((double) reader.nextDouble());
                 }
             } else if (name.equals("fieldDateNotNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldDateNotNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(null);
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
-                        obj.realmSetter$fieldDateNotNull(new Date(timestamp));
+                        ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(new Date(timestamp));
                     }
                 } else {
-                    obj.realmSetter$fieldDateNotNull(JsonUtils.stringToDate(reader.nextString()));
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNotNull(JsonUtils.stringToDate(reader.nextString()));
                 }
             } else if (name.equals("fieldDateNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldDateNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(null);
                 } else if (reader.peek() == JsonToken.NUMBER) {
                     long timestamp = reader.nextLong();
                     if (timestamp > -1) {
-                        obj.realmSetter$fieldDateNull(new Date(timestamp));
+                        ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(new Date(timestamp));
                     }
                 } else {
-                    obj.realmSetter$fieldDateNull(JsonUtils.stringToDate(reader.nextString()));
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldDateNull(JsonUtils.stringToDate(reader.nextString()));
                 }
             } else if (name.equals("fieldObjectNull")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$fieldObjectNull(null);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldObjectNull(null);
                 } else {
                     some.test.NullTypes fieldObjectNullObj = NullTypesRealmProxy.createUsingJsonStream(realm, reader);
-                    obj.realmSetter$fieldObjectNull(fieldObjectNullObj);
+                    ((NullTypesRealmProxyInterface) obj).realmSet$fieldObjectNull(fieldObjectNullObj);
                 }
             } else {
                 reader.skipValue();
@@ -1089,188 +1087,42 @@ public class NullTypesRealmProxy extends NullTypes
         return copy(realm, object, update, cache);
     }
 
-    public static NullTypes copy(Realm realm, NullTypes from, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        final boolean isStandalone = !(from instanceof NullTypesRealmProxy);
-        Class<? extends NullTypes> clazz;
-        Field field = null;
-        if (isStandalone) {
-            clazz = from.getClass();
+    public static NullTypes copy(Realm realm, NullTypes newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        NullTypes realmObject = realm.createObject(NullTypes.class);
+        cache.put(newObject, (RealmObjectProxy) realmObject);
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldStringNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldStringNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldBooleanNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldBooleanNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldBooleanNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldBooleanNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldBytesNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldBytesNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldBytesNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldBytesNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldByteNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldByteNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldByteNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldByteNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldShortNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldShortNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldShortNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldShortNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldIntegerNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldIntegerNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldIntegerNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldIntegerNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldLongNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldLongNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldLongNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldLongNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldFloatNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldFloatNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldFloatNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldFloatNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldDoubleNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldDoubleNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldDoubleNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldDoubleNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldDateNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldDateNotNull());
+        ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldDateNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldDateNull());
+
+        some.test.NullTypes fieldObjectNullObj = ((NullTypesRealmProxyInterface) newObject).realmGet$fieldObjectNull();
+        if (fieldObjectNullObj != null) {
+            some.test.NullTypes cachefieldObjectNull = (some.test.NullTypes) cache.get(fieldObjectNullObj);
+            if (cachefieldObjectNull != null) {
+                ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldObjectNull(cachefieldObjectNull);
+            } else {
+                ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
+            }
         } else {
-            clazz = null;
+            ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldObjectNull(null);
         }
-        NullTypesRealmProxy to;
-
-        to = (NullTypesRealmProxy) realm.createObject(NullTypes.class);
-        cache.put(from, (RealmObjectProxy) to);
-
-        try {
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldStringNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldStringNotNull((java.lang.String) field.get(from));
-            } else {
-                to.realmSetter$fieldStringNotNull(((NullTypesRealmProxy) from).realmGetter$fieldStringNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldStringNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldStringNull((java.lang.String) field.get(from));
-            } else {
-                to.realmSetter$fieldStringNull(((NullTypesRealmProxy) from).realmGetter$fieldStringNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldBooleanNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldBooleanNotNull((java.lang.Boolean) field.get(from));
-            } else {
-                to.realmSetter$fieldBooleanNotNull(((NullTypesRealmProxy) from).realmGetter$fieldBooleanNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldBooleanNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldBooleanNull((java.lang.Boolean) field.get(from));
-            } else {
-                to.realmSetter$fieldBooleanNull(((NullTypesRealmProxy) from).realmGetter$fieldBooleanNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldBytesNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldBytesNotNull((byte[]) field.get(from));
-            } else {
-                to.realmSetter$fieldBytesNotNull(((NullTypesRealmProxy) from).realmGetter$fieldBytesNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldBytesNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldBytesNull((byte[]) field.get(from));
-            } else {
-                to.realmSetter$fieldBytesNull(((NullTypesRealmProxy) from).realmGetter$fieldBytesNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldByteNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldByteNotNull((java.lang.Byte) field.get(from));
-            } else {
-                to.realmSetter$fieldByteNotNull(((NullTypesRealmProxy) from).realmGetter$fieldByteNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldByteNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldByteNull((java.lang.Byte) field.get(from));
-            } else {
-                to.realmSetter$fieldByteNull(((NullTypesRealmProxy) from).realmGetter$fieldByteNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldShortNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldShortNotNull((java.lang.Short) field.get(from));
-            } else {
-                to.realmSetter$fieldShortNotNull(((NullTypesRealmProxy) from).realmGetter$fieldShortNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldShortNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldShortNull((java.lang.Short) field.get(from));
-            } else {
-                to.realmSetter$fieldShortNull(((NullTypesRealmProxy) from).realmGetter$fieldShortNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldIntegerNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldIntegerNotNull((java.lang.Integer) field.get(from));
-            } else {
-                to.realmSetter$fieldIntegerNotNull(((NullTypesRealmProxy) from).realmGetter$fieldIntegerNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldIntegerNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldIntegerNull((java.lang.Integer) field.get(from));
-            } else {
-                to.realmSetter$fieldIntegerNull(((NullTypesRealmProxy) from).realmGetter$fieldIntegerNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldLongNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldLongNotNull((java.lang.Long) field.get(from));
-            } else {
-                to.realmSetter$fieldLongNotNull(((NullTypesRealmProxy) from).realmGetter$fieldLongNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldLongNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldLongNull((java.lang.Long) field.get(from));
-            } else {
-                to.realmSetter$fieldLongNull(((NullTypesRealmProxy) from).realmGetter$fieldLongNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldFloatNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldFloatNotNull((java.lang.Float) field.get(from));
-            } else {
-                to.realmSetter$fieldFloatNotNull(((NullTypesRealmProxy) from).realmGetter$fieldFloatNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldFloatNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldFloatNull((java.lang.Float) field.get(from));
-            } else {
-                to.realmSetter$fieldFloatNull(((NullTypesRealmProxy) from).realmGetter$fieldFloatNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldDoubleNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldDoubleNotNull((java.lang.Double) field.get(from));
-            } else {
-                to.realmSetter$fieldDoubleNotNull(((NullTypesRealmProxy) from).realmGetter$fieldDoubleNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldDoubleNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldDoubleNull((java.lang.Double) field.get(from));
-            } else {
-                to.realmSetter$fieldDoubleNull(((NullTypesRealmProxy) from).realmGetter$fieldDoubleNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldDateNotNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldDateNotNull((java.util.Date) field.get(from));
-            } else {
-                to.realmSetter$fieldDateNotNull(((NullTypesRealmProxy) from).realmGetter$fieldDateNotNull());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("fieldDateNull");
-                field.setAccessible(true);
-                to.realmSetter$fieldDateNull((java.util.Date) field.get(from));
-            } else {
-                to.realmSetter$fieldDateNull(((NullTypesRealmProxy) from).realmGetter$fieldDateNull());
-            }
-
-             {
-                some.test.NullTypes fieldObjectNullObj;
-                if (isStandalone) {
-                    field = clazz.getDeclaredField("fieldObjectNull");
-                    field.setAccessible(true);
-                    fieldObjectNullObj = (some.test.NullTypes) field.get(from);
-                } else {
-                    fieldObjectNullObj = ((NullTypesRealmProxy) from).realmGetter$fieldObjectNull();
-                }
-                if (fieldObjectNullObj != null) {
-                    some.test.NullTypes cachefieldObjectNull = (some.test.NullTypes) cache.get(fieldObjectNullObj);
-                    if (cachefieldObjectNull != null) {
-                        to.realmSetter$fieldObjectNull(cachefieldObjectNull);
-                    } else {
-                        to.realmSetter$fieldObjectNull(NullTypesRealmProxy.copyOrUpdate(realm, fieldObjectNullObj, update, cache));
-                    }
-                } else {
-                    to.realmSetter$fieldObjectNull(null);
-                }
-            }
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        return to;
+        return realmObject;
     }
 
     public static NullTypes createDetachedCopy(NullTypes realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
@@ -1291,241 +1143,29 @@ public class NullTypesRealmProxy extends NullTypes
             standaloneObject = new NullTypes();
             cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
         }
-        Class<?> clazz = standaloneObject.getClass();
-        Field field = null;
-        try {
-            field = clazz.getDeclaredField("fieldStringNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldStringNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldStringNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldStringNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldBooleanNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldBooleanNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldBooleanNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldBooleanNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldBytesNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldBytesNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldBytesNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldBytesNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldByteNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldByteNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldByteNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldByteNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldShortNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldShortNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldShortNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldShortNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldIntegerNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldIntegerNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldIntegerNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldIntegerNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldLongNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldLongNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldLongNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldLongNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldFloatNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldFloatNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldFloatNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldFloatNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldDoubleNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldDoubleNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldDoubleNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldDoubleNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldDateNotNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldDateNotNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldDateNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((NullTypesRealmProxy) realmObject).realmGetter$fieldDateNull());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("fieldObjectNull");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldStringNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldStringNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldBooleanNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBooleanNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldBooleanNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBooleanNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldBytesNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBytesNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldBytesNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldBytesNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldByteNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldByteNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldByteNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldByteNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldShortNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldShortNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldShortNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldShortNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldIntegerNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldIntegerNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldIntegerNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldIntegerNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldLongNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldLongNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldLongNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldLongNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldFloatNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldFloatNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldFloatNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldFloatNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldDoubleNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDoubleNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldDoubleNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDoubleNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldDateNotNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDateNotNull());
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldDateNull(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldDateNull());
 
         // Deep copy of fieldObjectNull
-        try {
-            field.set(standaloneObject, NullTypesRealmProxy.createDetachedCopy( ((NullTypesRealmProxy) realmObject).realmGetter$fieldObjectNull(), currentDepth + 1, maxDepth, cache));
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
+        ((NullTypesRealmProxyInterface) standaloneObject).realmSet$fieldObjectNull(NullTypesRealmProxy.createDetachedCopy(((NullTypesRealmProxyInterface) realmObject).realmGet$fieldObjectNull(), currentDepth + 1, maxDepth, cache));
         return standaloneObject;
     }
 
@@ -1536,87 +1176,87 @@ public class NullTypesRealmProxy extends NullTypes
         }
         StringBuilder stringBuilder = new StringBuilder("NullTypes = [");
         stringBuilder.append("{fieldStringNotNull:");
-        stringBuilder.append(realmGetter$fieldStringNotNull());
+        stringBuilder.append(realmGet$fieldStringNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldStringNull:");
-        stringBuilder.append(realmGetter$fieldStringNull() != null ? realmGetter$fieldStringNull() : "null");
+        stringBuilder.append(realmGet$fieldStringNull() != null ? realmGet$fieldStringNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldBooleanNotNull:");
-        stringBuilder.append(realmGetter$fieldBooleanNotNull());
+        stringBuilder.append(realmGet$fieldBooleanNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldBooleanNull:");
-        stringBuilder.append(realmGetter$fieldBooleanNull() != null ? realmGetter$fieldBooleanNull() : "null");
+        stringBuilder.append(realmGet$fieldBooleanNull() != null ? realmGet$fieldBooleanNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldBytesNotNull:");
-        stringBuilder.append(realmGetter$fieldBytesNotNull());
+        stringBuilder.append(realmGet$fieldBytesNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldBytesNull:");
-        stringBuilder.append(realmGetter$fieldBytesNull() != null ? realmGetter$fieldBytesNull() : "null");
+        stringBuilder.append(realmGet$fieldBytesNull() != null ? realmGet$fieldBytesNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldByteNotNull:");
-        stringBuilder.append(realmGetter$fieldByteNotNull());
+        stringBuilder.append(realmGet$fieldByteNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldByteNull:");
-        stringBuilder.append(realmGetter$fieldByteNull() != null ? realmGetter$fieldByteNull() : "null");
+        stringBuilder.append(realmGet$fieldByteNull() != null ? realmGet$fieldByteNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldShortNotNull:");
-        stringBuilder.append(realmGetter$fieldShortNotNull());
+        stringBuilder.append(realmGet$fieldShortNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldShortNull:");
-        stringBuilder.append(realmGetter$fieldShortNull() != null ? realmGetter$fieldShortNull() : "null");
+        stringBuilder.append(realmGet$fieldShortNull() != null ? realmGet$fieldShortNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldIntegerNotNull:");
-        stringBuilder.append(realmGetter$fieldIntegerNotNull());
+        stringBuilder.append(realmGet$fieldIntegerNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldIntegerNull:");
-        stringBuilder.append(realmGetter$fieldIntegerNull() != null ? realmGetter$fieldIntegerNull() : "null");
+        stringBuilder.append(realmGet$fieldIntegerNull() != null ? realmGet$fieldIntegerNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldLongNotNull:");
-        stringBuilder.append(realmGetter$fieldLongNotNull());
+        stringBuilder.append(realmGet$fieldLongNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldLongNull:");
-        stringBuilder.append(realmGetter$fieldLongNull() != null ? realmGetter$fieldLongNull() : "null");
+        stringBuilder.append(realmGet$fieldLongNull() != null ? realmGet$fieldLongNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldFloatNotNull:");
-        stringBuilder.append(realmGetter$fieldFloatNotNull());
+        stringBuilder.append(realmGet$fieldFloatNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldFloatNull:");
-        stringBuilder.append(realmGetter$fieldFloatNull() != null ? realmGetter$fieldFloatNull() : "null");
+        stringBuilder.append(realmGet$fieldFloatNull() != null ? realmGet$fieldFloatNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldDoubleNotNull:");
-        stringBuilder.append(realmGetter$fieldDoubleNotNull());
+        stringBuilder.append(realmGet$fieldDoubleNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldDoubleNull:");
-        stringBuilder.append(realmGetter$fieldDoubleNull() != null ? realmGetter$fieldDoubleNull() : "null");
+        stringBuilder.append(realmGet$fieldDoubleNull() != null ? realmGet$fieldDoubleNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldDateNotNull:");
-        stringBuilder.append(realmGetter$fieldDateNotNull());
+        stringBuilder.append(realmGet$fieldDateNotNull());
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldDateNull:");
-        stringBuilder.append(realmGetter$fieldDateNull() != null ? realmGetter$fieldDateNull() : "null");
+        stringBuilder.append(realmGet$fieldDateNull() != null ? realmGet$fieldDateNull() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{fieldObjectNull:");
-        stringBuilder.append(realmGetter$fieldObjectNull() != null ? "NullTypes" : "null");
+        stringBuilder.append(realmGet$fieldObjectNull() != null ? "NullTypes" : "null");
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();

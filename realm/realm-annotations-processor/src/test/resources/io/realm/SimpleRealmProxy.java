@@ -4,7 +4,6 @@ package io.realm;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
-import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
@@ -14,7 +13,6 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.android.JsonUtils;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -60,12 +58,12 @@ public class SimpleRealmProxy extends Simple
     }
 
     @SuppressWarnings("cast")
-    public String realmGetter$name() {
+    public String realmGet$name() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.nameIndex);
     }
 
-    public void realmSetter$name(String value) {
+    public void realmSet$name(String value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.nameIndex);
@@ -75,12 +73,12 @@ public class SimpleRealmProxy extends Simple
     }
 
     @SuppressWarnings("cast")
-    public int realmGetter$age() {
+    public int realmGet$age() {
         realm.checkIfValid();
         return (int) row.getLong(columnInfo.ageIndex);
     }
 
-    public void realmSetter$age(int value) {
+    public void realmSet$age(int value) {
         realm.checkIfValid();
         row.setLong(columnInfo.ageIndex, value);
     }
@@ -144,19 +142,19 @@ public class SimpleRealmProxy extends Simple
     @SuppressWarnings("cast")
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
         throws JSONException {
-        SimpleRealmProxy obj = (SimpleRealmProxy) realm.createObject(Simple.class);
+        Simple obj = realm.createObject(Simple.class);
         if (json.has("name")) {
             if (json.isNull("name")) {
-                obj.realmSetter$name(null);
+                ((SimpleRealmProxyInterface) obj).realmSet$name(null);
             } else {
-                obj.realmSetter$name((String) json.getString("name"));
+                ((SimpleRealmProxyInterface) obj).realmSet$name((String) json.getString("name"));
             }
         }
         if (json.has("age")) {
             if (json.isNull("age")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field age to null.");
             } else {
-                obj.realmSetter$age((int) json.getInt("age"));
+                ((SimpleRealmProxyInterface) obj).realmSet$age((int) json.getInt("age"));
             }
         }
         return obj;
@@ -165,23 +163,23 @@ public class SimpleRealmProxy extends Simple
     @SuppressWarnings("cast")
     public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
         throws IOException {
-        SimpleRealmProxy obj = (SimpleRealmProxy) realm.createObject(Simple.class);
+        Simple obj = realm.createObject(Simple.class);
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
             if (name.equals("name")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.realmSetter$name(null);
+                    ((SimpleRealmProxyInterface) obj).realmSet$name(null);
                 } else {
-                    obj.realmSetter$name((String) reader.nextString());
+                    ((SimpleRealmProxyInterface) obj).realmSet$name((String) reader.nextString());
                 }
             } else if (name.equals("age")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field age to null.");
                 } else {
-                    obj.realmSetter$age((int) reader.nextInt());
+                    ((SimpleRealmProxyInterface) obj).realmSet$age((int) reader.nextInt());
                 }
             } else {
                 reader.skipValue();
@@ -198,41 +196,12 @@ public class SimpleRealmProxy extends Simple
         return copy(realm, object, update, cache);
     }
 
-    public static Simple copy(Realm realm, Simple from, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        final boolean isStandalone = !(from instanceof SimpleRealmProxy);
-        Class<? extends Simple> clazz;
-        Field field = null;
-        if (isStandalone) {
-            clazz = from.getClass();
-        } else {
-            clazz = null;
-        }
-        SimpleRealmProxy to;
-
-        to = (SimpleRealmProxy) realm.createObject(Simple.class);
-        cache.put(from, (RealmObjectProxy) to);
-
-        try {
-            if (isStandalone) {
-                field = clazz.getDeclaredField("name");
-                field.setAccessible(true);
-                to.realmSetter$name((java.lang.String) field.get(from));
-            } else {
-                to.realmSetter$name(((SimpleRealmProxy) from).realmGetter$name());
-            }
-            if (isStandalone) {
-                field = clazz.getDeclaredField("age");
-                field.setAccessible(true);
-                to.realmSetter$age((int) field.get(from));
-            } else {
-                to.realmSetter$age(((SimpleRealmProxy) from).realmGetter$age());
-            }
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        return to;
+    public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        Simple realmObject = realm.createObject(Simple.class);
+        cache.put(newObject, (RealmObjectProxy) realmObject);
+        ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface)newObject).realmGet$name());
+        ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface)newObject).realmGet$age());
+        return realmObject;
     }
 
     public static Simple createDetachedCopy(Simple realmObject, int currentDepth, int maxDepth, Map<RealmObject, CacheData<RealmObject>> cache) {
@@ -253,31 +222,58 @@ public class SimpleRealmProxy extends Simple
             standaloneObject = new Simple();
             cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
         }
-        Class<?> clazz = standaloneObject.getClass();
-        Field field = null;
-        try {
-            field = clazz.getDeclaredField("name");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.set(standaloneObject, ((SimpleRealmProxy) realmObject).realmGetter$name());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
-        try {
-            field = clazz.getDeclaredField("age");
-        } catch (NoSuchFieldException e) {
-            throw new RealmException(e.getMessage());
-        }
-        field.setAccessible(true);
-        try {
-            field.setInt(standaloneObject, ((SimpleRealmProxy) realmObject).realmGetter$age());
-        } catch (IllegalAccessException e) {
-            throw new RealmException(e.getMessage());
-        }
+        ((SimpleRealmProxyInterface) standaloneObject).realmSet$name(((SimpleRealmProxyInterface) realmObject).realmGet$name());
+        ((SimpleRealmProxyInterface) standaloneObject).realmSet$age(((SimpleRealmProxyInterface) realmObject).realmGet$age());
         return standaloneObject;
+    }
+
+    @Override
+    public String toString() {
+        if (!isValid()) {
+            return "Invalid object";
+        }
+        StringBuilder stringBuilder = new StringBuilder("Simple = [");
+        stringBuilder.append("{name:");
+        stringBuilder.append(realmGet$name() != null ? realmGet$name() : "null");
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{age:");
+        stringBuilder.append(realmGet$age());
+        stringBuilder.append("}");
+        stringBuilder.append("]");
+        return stringBuilder.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        String realmName = realm.getPath();
+        String tableName = row.getTable().getName();
+        long rowIndex = row.getIndex();
+
+        int result = 17;
+        result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
+        result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0);
+        result = 31 * result + (int) (rowIndex ^ (rowIndex >>> 32));
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleRealmProxy aSimple = (SimpleRealmProxy)o;
+
+        String path = realm.getPath();
+        String otherPath = aSimple.realm.getPath();
+        if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
+
+        String tableName = row.getTable().getName();
+        String otherTableName = aSimple.row.getTable().getName();
+        if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
+
+        if (row.getIndex() != aSimple.row.getIndex()) return false;
+
+        return true;
     }
 
 }
