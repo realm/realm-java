@@ -326,12 +326,4 @@ public abstract class RealmObject {
             currentTableVersion = row.getTable().version();
         }
     }
-
-    @SuppressWarnings("UnusedParameters")
-    static Object get(RealmObject obj, String fieldName) {
-        return null;
-    }
-
-    @SuppressWarnings("UnusedParameters")
-    static void set(RealmObject obj, String fieldName, Object value) {}
 }
