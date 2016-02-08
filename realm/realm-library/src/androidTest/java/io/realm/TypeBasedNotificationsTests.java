@@ -539,7 +539,11 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange() {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
-                    case 1: {
+                    case 1:
+                        assertTrue(dog.isLoaded());
+                        assertFalse(dog.isValid());
+                        break;
+                    case 2:
                         assertEquals("Akamaru", dog.getName());
                         realm.handler.post(new Runnable() {
                             @Override
@@ -551,8 +555,7 @@ public class TypeBasedNotificationsTests {
                             }
                         });
                         break;
-                    }
-                    case 2: {
+                    case 3:
                         assertEquals("Akamaru", dog.getName());
                         assertEquals(17, dog.getAge());
                         // posting as an event will give the handler a chance
@@ -562,12 +565,11 @@ public class TypeBasedNotificationsTests {
                             @Override
                             public void run() {
                                 assertEquals(3, globalCommitInvocations.get());
-                                assertEquals(2, typebasedCommitInvocations.get());
+                                assertEquals(3, typebasedCommitInvocations.get());
                                 looperThread.testComplete();
                             }
                         });
                         break;
-                    }
                 }
             }
         });
@@ -619,7 +621,12 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange() {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
-                    case 1: {
+                    case 1:  // triggered by COMPLETED_ASYNC_REALM_OBJECT
+                    case 2: // triggered by the irrelevant commit (not affecting Dog table)
+                        assertTrue(dog.isLoaded());
+                        assertFalse(dog.isValid());
+                        break;
+                    case 3:
                         assertEquals("Akamaru", dog.getName());
                         realm.handler.post(new Runnable() {
                             @Override
@@ -639,8 +646,7 @@ public class TypeBasedNotificationsTests {
                             }
                         });
                         break;
-                    }
-                    case 2: {
+                    case 4:
                         assertEquals("Akamaru", dog.getName());
                         assertEquals(17, dog.getAge());
                         // posting as an event will give the handler a chance
@@ -650,7 +656,7 @@ public class TypeBasedNotificationsTests {
                             @Override
                             public void run() {
                                 assertEquals(3, globalCommitInvocations.get());
-                                assertEquals(2, typebasedCommitInvocations.get());
+                                assertEquals(4, typebasedCommitInvocations.get());
                                 looperThread1.quit();
                                 looperThread2.quit();
                                 looperThread3.quit();
@@ -661,7 +667,6 @@ public class TypeBasedNotificationsTests {
                             }
                         });
                         break;
-                    }
                 }
             }
         });
@@ -711,7 +716,13 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange() {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
-                    case 1: {
+                    case 1:  // triggered by COMPLETED_ASYNC_REALM_OBJECT
+                    case 2: {// triggered by the irrelevant commit (not affecting Dog table)
+                        assertTrue(dog.isLoaded());
+                        assertFalse(dog.isValid());
+                        break;
+                    }
+                    case 3: {
                         assertEquals("Akamaru", dog.getName());
                         realm.handler.postDelayed(new Runnable() {
                             @Override
@@ -732,7 +743,7 @@ public class TypeBasedNotificationsTests {
                         }, TimeUnit.SECONDS.toMillis(0));
                         break;
                     }
-                    case 2: {
+                    case 4: {
                         assertEquals("Akamaru", dog.getName());
                         assertEquals(17, dog.getAge());
                         // posting as an event will give the handler a chance
@@ -742,7 +753,7 @@ public class TypeBasedNotificationsTests {
                             @Override
                             public void run() {
                                 assertEquals(3, globalCommitInvocations.get());
-                                assertEquals(2, typebasedCommitInvocations.get());
+                                assertEquals(4, typebasedCommitInvocations.get());
                                 looperThread.testComplete();
                             }
                         });

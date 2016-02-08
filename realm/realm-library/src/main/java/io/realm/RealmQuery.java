@@ -1822,7 +1822,9 @@ public class RealmQuery<E extends RealmObject> {
      * @return immediately an empty {@link RealmObject}. Trying to access any field on the returned object
      * before it is loaded will throw an {@code IllegalStateException}. Use {@link RealmObject#isLoaded()} to check if
      * the object is fully loaded or register a listener {@link io.realm.RealmObject#addChangeListener}
-     * to be notified when the query completes.
+     * to be notified when the query completes. If no RealmObject was found after the query completed, the returned
+     * RealmObject will have {@link RealmObject#isLoaded()} set to {@code true} and {@link RealmObject#isValid()} set to
+     * {@code false}.
      */
     public E findFirstAsync() {
         checkQueryIsNotReused();
