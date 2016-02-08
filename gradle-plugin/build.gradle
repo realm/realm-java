@@ -24,7 +24,7 @@ dependencies {
     compile "io.realm:realm-transformer:${version}"
     compile 'com.neenbedankt.gradle.plugins:android-apt:1.8'
     compile 'com.android.tools.build:gradle:1.5.0'
-    compile 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0-beta-4589'
+    compile 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.0-rc-1036'
 
     testCompile gradleTestKit()
     testCompile 'junit:junit:4.12'
