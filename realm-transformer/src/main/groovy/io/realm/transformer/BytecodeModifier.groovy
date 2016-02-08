@@ -30,9 +30,9 @@ class BytecodeModifier {
 
     /**
      * Adds Realm specific accessors to a model class.
+     * All the declared fields will be associated with a getter and a setter.
      *
      * @param clazz the CtClass to add accessors to.
-     * All the declared fields will be associated with a getter and a setter.
      */
     public static void addRealmAccessors(CtClass clazz) {
         logger.info "  Realm: Adding accessors to ${clazz.simpleName}"

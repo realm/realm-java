@@ -125,7 +125,7 @@ class RealmTransformer extends Transform {
      */
     private ClassPool createClassPool(Collection<TransformInput> inputs, Collection<TransformInput> referencedInputs) {
         // Don't use ClassPool.getDefault(). Doing consecutive builds in the same run (e.g. debug+release)
-        // will use a cached object and all the classes will result frozen.
+        // will use a cached object and all the classes will be frozen.
         ClassPool classPool = new ClassPool(null)
         classPool.appendSystemPath()
         classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()))
