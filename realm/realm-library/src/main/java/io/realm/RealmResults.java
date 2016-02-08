@@ -418,7 +418,8 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         if (!isLoaded()) {
             return 0;
         } else {
-            return ((Long)getTable().size()).intValue();
+            long size = getTable().size();
+            return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
         }
     }
 

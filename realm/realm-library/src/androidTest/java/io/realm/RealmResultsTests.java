@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import java.util.Date;
 import java.util.List;
@@ -42,6 +43,7 @@ import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
+import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -993,6 +995,19 @@ public class RealmResultsTests {
         // querying a result with zero objects must give zero objects
         RealmResults<AllTypes> stillNone = none.where().greaterThan(AllTypes.FIELD_LONG, TEST_DATA_SIZE).findAll();
         assertEquals(0, stillNone.size());
+    }
+
+    @Test
+    public void size_returns_Integer_MAX_VALUE_for_huge_results() {
+        final Table table = Mockito.mock(Table.class);
+        final RealmResults<AllTypes> targetResult = TestHelper.newRealmResults(realm, table, AllTypes.class);
+
+        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE) - 1);
+        assertEquals(Integer.MAX_VALUE - 1, targetResult.size());
+        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE));
+        assertEquals(Integer.MAX_VALUE, targetResult.size());
+        Mockito.when(table.size()).thenReturn(((long) Integer.MAX_VALUE) + 1);
+        assertEquals(Integer.MAX_VALUE, targetResult.size());
     }
 
     @Test
