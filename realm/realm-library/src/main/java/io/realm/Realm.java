@@ -19,7 +19,6 @@ package io.realm;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
-import android.os.Handler;
 import android.os.Looper;
 import android.util.JsonReader;
 
@@ -1067,16 +1066,20 @@ public final class Realm extends BaseRealm {
     }
 
     /**
-     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously from a worker thread.
+     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously on a worker thread.
      *
      * @param transaction {@link io.realm.Realm.Transaction} to execute.
      * @param callback optional, to receive the result of this query.
      * @return a {@link RealmAsyncTask} representing a cancellable task.
      * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     * @deprecated replaced by {@link #executeTransactionAsync(Transaction)}, {@link #executeTransactionAsync(Transaction, Transaction.OnSuccess)}, {@link #executeTransactionAsync(Transaction, io.realm.Realm.Transaction.OnError)} and {@link #executeTransactionAsync(Transaction, Transaction.OnSuccess, Transaction.OnError)}.
      */
+    @Deprecated
     public RealmAsyncTask executeTransaction(final Transaction transaction, final Transaction.Callback callback) {
-        if (transaction == null)
+        checkIfValid();
+        if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
+        }
 
         // If the user provided a Callback then we make sure, the current Realm has a Handler
         // we can use to deliver the result
@@ -1155,6 +1158,174 @@ public final class Realm extends BaseRealm {
 
         return new RealmAsyncTask(pendingQuery);
     }
+
+    /**
+     * Similar to {@link #executeTransaction(Transaction)} but runs asynchronously on a worker thread.
+     *
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction) {
+        return executeTransactionAsync(transaction, null, null);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnSuccess callback.
+     *
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param onSuccess callback invoked when the transaction succeeds.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnSuccess onSuccess) {
+        if (onSuccess == null) {
+            throw new IllegalArgumentException("onSuccess callback can't be null");
+        }
+
+        return executeTransactionAsync(transaction, onSuccess, null);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnError callback.
+     *
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param onError callback invoked when the transaction failed.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnError onError) {
+        if (onError == null) {
+            throw new IllegalArgumentException("onError callback can't be null");
+        }
+
+        return executeTransactionAsync(transaction, null, onError);
+    }
+
+    /**
+     * Similar to {@link #executeTransactionAsync(Transaction)}, but also accepts an OnSuccess and OnError callbacks.
+     *
+     * @param transaction {@link io.realm.Realm.Transaction} to execute.
+     * @param onSuccess callback invoked when the transaction succeeds.
+     * @param onError callback invoked when the transaction failed.
+     * @return a {@link RealmAsyncTask} representing a cancellable task.
+     * @throws IllegalArgumentException if the {@code transaction} is {@code null}, or if the realm is opened from another thread.
+     */
+    public RealmAsyncTask executeTransactionAsync(final Transaction transaction, final Realm.Transaction.OnSuccess onSuccess, final Realm.Transaction.OnError onError) {
+        checkIfValid();
+
+        if (transaction == null) {
+            throw new IllegalArgumentException("Transaction should not be null");
+        }
+
+        // If the user provided a Callback then we make sure, the current Realm has a Handler
+        // we can use to deliver the result
+        if ((onSuccess != null || onError != null)  && handler == null) {
+            throw new IllegalStateException("Your Realm is opened from a thread without a Looper" +
+                    " and you provided a callback, we need a Handler to invoke your callback");
+        }
+
+        // We need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // to perform the transaction
+        final RealmConfiguration realmConfiguration = getConfiguration();
+
+        final Future<?> pendingQuery = asyncQueryExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
+
+                boolean transactionCommitted = false;
+                final Throwable[] exception = new Throwable[1];
+                final Realm bgRealm = Realm.getInstance(realmConfiguration);
+                bgRealm.beginTransaction();
+                try {
+                    transaction.execute(bgRealm);
+
+                    if (!Thread.currentThread().isInterrupted()) {
+                        bgRealm.commitTransaction(new Runnable() {
+                            @Override
+                            public void run() {
+                                // The bgRealm needs to be closed before post event to caller's handler to avoid
+                                // concurrency problem. eg.: User wants to delete Realm in the callbacks.
+                                // This will close Realm before sending REALM_CHANGED.
+                                bgRealm.close();
+                            }
+                        });
+                        transactionCommitted = true;
+                    }
+                } catch (final Throwable e) {
+                    exception[0] = e;
+                } finally {
+                    if (!bgRealm.isClosed()) {
+                        if (bgRealm.isInTransaction()) {
+                            bgRealm.cancelTransaction();
+                        } else if (exception[0] != null) {
+                            RealmLog.w("Could not cancel transaction, not currently in a transaction.");
+                        }
+                        bgRealm.close();
+                    }
+
+                    final Throwable backgroundException = exception[0];
+                    // Send response as the final step to ensure the bg thread quit before others get the response!
+                    if (handler != null
+                            && !Thread.currentThread().isInterrupted()
+                            && handler.getLooper().getThread().isAlive()) {
+                        if (onSuccess != null && transactionCommitted) {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    onSuccess.onSuccess();
+                                }
+                            });
+                        }
+
+                        if (backgroundException != null) {
+                            if (onError != null) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        onError.onError(backgroundException);
+                                    }
+                                });
+                            } else {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (backgroundException instanceof RuntimeException) {
+                                            throw (RuntimeException) backgroundException;
+                                        } else if (backgroundException instanceof Exception) {
+                                            throw new RealmException("Async transaction failed", backgroundException);
+                                        } else if (backgroundException instanceof Error) {
+                                            throw (Error) backgroundException;
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    } else {
+                        // Throw exception in the worker thread if the caller thread terminated
+                        if (backgroundException != null) {
+                            if (backgroundException instanceof RuntimeException) {
+                                //noinspection ThrowFromFinallyBlock
+                                throw (RuntimeException) backgroundException;
+                            } else if (backgroundException instanceof Exception) {
+                                //noinspection ThrowFromFinallyBlock
+                                throw new RealmException("Async transaction failed", backgroundException);
+                            } else if (backgroundException instanceof Error) {
+                                //noinspection ThrowFromFinallyBlock
+                                throw (Error) backgroundException;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return new RealmAsyncTask(pendingQuery);
+    }
+
 
     /**
      * Removes all objects of the specified class.
@@ -1325,6 +1496,22 @@ public final class Realm extends BaseRealm {
         class Callback {
             public void onSuccess() {}
             public void onError(Exception e) {}
+        }
+
+        /**
+         * Callback invoked to notify the caller thread about the success of the transaction.
+         */
+        interface OnSuccess {
+            void onSuccess();
+        }
+
+        /**
+         * Callback invoked to notify the caller thread about error during the transaction.
+         * The transaction will be rolled back and the background Realm will be closed before
+         * invoking {@link #onError(Throwable)}.
+         */
+        interface OnError {
+            void onError(Throwable error);
         }
     }
 }

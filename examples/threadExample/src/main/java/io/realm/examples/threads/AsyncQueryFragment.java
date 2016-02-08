@@ -89,7 +89,7 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
             case R.id.translate_button: {
                 cancelAsyncTransaction();
                 // translate all points coordinates using an async transaction
-                asyncTransaction = realm.executeTransaction(new Realm.Transaction() {
+                asyncTransaction = realm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
                         // query for all points
@@ -105,16 +105,17 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
                             }
                         }
                     }
-                }, new Realm.Transaction.Callback() {
+                }, new Realm.Transaction.OnSuccess() {
                     @Override
                     public void onSuccess() {
                         if (isAdded()) {
                             Toast.makeText(getActivity(), "Translation completed", Toast.LENGTH_SHORT).show();
                         }
                     }
+                }, new Realm.Transaction.OnError() {
 
                     @Override
-                    public void onError(Exception e) {
+                    public void onError(Throwable e) {
                         if (isAdded()) {
                             Toast.makeText(getActivity(), "Error while translating dots", Toast.LENGTH_SHORT).show();
                             e.printStackTrace();
