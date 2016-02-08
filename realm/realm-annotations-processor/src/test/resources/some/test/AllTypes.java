@@ -41,146 +41,146 @@ public class AllTypes extends RealmObject {
     private RealmList<AllTypes> columnRealmList;
 
     public String getColumnString() {
-        return realmGetter$columnString();
+        return realmGet$columnString();
     }
 
     public void setColumnString(String columnString) {
-        realmSetter$columnString(columnString);
+        realmSet$columnString(columnString);
     }
 
-    public String realmGetter$columnString() {
+    public String realmGet$columnString() {
         return columnString;
     }
 
-    public void realmSetter$columnString(String columnString) {
+    public void realmSet$columnString(String columnString) {
         this.columnString = columnString;
     }
 
     public long getColumnLong() {
-        return realmGetter$columnLong();
+        return realmGet$columnLong();
     }
 
     public void setColumnLong(long columnLong) {
-        realmSetter$columnLong(columnLong);
+        realmSet$columnLong(columnLong);
     }
 
-    public long realmGetter$columnLong() {
+    public long realmGet$columnLong() {
         return columnLong;
     }
 
-    public void realmSetter$columnLong(long columnLong) {
+    public void realmSet$columnLong(long columnLong) {
         this.columnLong = columnLong;
     }
 
     public float getColumnFloat() {
-        return realmGetter$columnFloat();
+        return realmGet$columnFloat();
     }
 
     public void setColumnFloat(float columnFloat) {
-        realmSetter$columnFloat(columnFloat);
+        realmSet$columnFloat(columnFloat);
     }
 
-    public float realmGetter$columnFloat() {
+    public float realmGet$columnFloat() {
         return columnFloat;
     }
 
-    public void realmSetter$columnFloat(float columnFloat) {
+    public void realmSet$columnFloat(float columnFloat) {
         this.columnFloat = columnFloat;
     }
 
     public double getColumnDouble() {
-        return realmGetter$columnDouble();
+        return realmGet$columnDouble();
     }
 
     public void setColumnDouble(double columnDouble) {
-        realmSetter$columnDouble(columnDouble);
+        realmSet$columnDouble(columnDouble);
     }
 
-    public double realmGetter$columnDouble() {
+    public double realmGet$columnDouble() {
         return columnDouble;
     }
 
-    public void realmSetter$columnDouble(double columnDouble) {
+    public void realmSet$columnDouble(double columnDouble) {
         this.columnDouble = columnDouble;
     }
 
     public boolean isColumnBoolean() {
-        return realmGetter$columnBoolean();
+        return realmGet$columnBoolean();
     }
 
     public void setColumnBoolean(boolean columnBoolean) {
-        realmSetter$columnBoolean(columnBoolean);
+        realmSet$columnBoolean(columnBoolean);
     }
 
-    public boolean realmGetter$columnBoolean() {
+    public boolean realmGet$columnBoolean() {
         return columnBoolean;
     }
 
-    public void realmSetter$columnBoolean(boolean columnBoolean) {
+    public void realmSet$columnBoolean(boolean columnBoolean) {
         this.columnBoolean = columnBoolean;
     }
 
     public Date getColumnDate() {
-        return realmGetter$columnDate();
+        return realmGet$columnDate();
     }
 
     public void setColumnDate(Date columnDate) {
-        realmSetter$columnDate(columnDate);
+        realmSet$columnDate(columnDate);
     }
 
-    public Date realmGetter$columnDate() {
+    public Date realmGet$columnDate() {
         return columnDate;
     }
 
-    public void realmSetter$columnDate(Date columnDate) {
+    public void realmSet$columnDate(Date columnDate) {
         this.columnDate = columnDate;
     }
 
     public byte[] getColumnBinary() {
-        return realmGetter$columnBinary();
+        return realmGet$columnBinary();
     }
 
     public void setColumnBinary(byte[] columnBinary) {
-        realmSetter$columnBinary(columnBinary);
+        realmSet$columnBinary(columnBinary);
     }
 
-    public byte[] realmGetter$columnBinary() {
+    public byte[] realmGet$columnBinary() {
         return columnBinary;
     }
 
-    public void realmSetter$columnBinary(byte[] columnBinary) {
+    public void realmSet$columnBinary(byte[] columnBinary) {
         this.columnBinary = columnBinary;
     }
 
     public AllTypes getColumnObject() {
-        return realmGetter$columnObject();
+        return realmGet$columnObject();
     }
 
     public void setColumnObject(AllTypes columnObject) {
-        realmSetter$columnObject(columnObject);
+        realmSet$columnObject(columnObject);
     }
 
-    public AllTypes realmGetter$columnObject() {
+    public AllTypes realmGet$columnObject() {
         return columnObject;
     }
 
-    public void realmSetter$columnObject(AllTypes columnObject) {
+    public void realmSet$columnObject(AllTypes columnObject) {
         this.columnObject = columnObject;
     }
 
     public RealmList<AllTypes> getColumnRealmList() {
-        return realmGetter$columnRealmList();
+        return realmGet$columnRealmList();
     }
 
     public void setColumnRealmList(RealmList<AllTypes> columnRealmList) {
-        realmSetter$columnRealmList(columnRealmList);
+        realmSet$columnRealmList(columnRealmList);
     }
 
-    public RealmList<AllTypes> realmGetter$columnRealmList() {
+    public RealmList<AllTypes> realmGet$columnRealmList() {
         return columnRealmList;
     }
 
-    public void realmSetter$columnRealmList(RealmList<AllTypes> columnRealmList) {
+    public void realmSet$columnRealmList(RealmList<AllTypes> columnRealmList) {
         this.columnRealmList = columnRealmList;
     }
 

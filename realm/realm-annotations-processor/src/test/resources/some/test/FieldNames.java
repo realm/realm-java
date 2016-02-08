@@ -32,34 +32,34 @@ public class FieldNames extends RealmObject implements FieldNamesRealmProxyInter
     private Simple cache;
 
     public Simple getName() {
-        return realmGetter$name();
+        return realmGet$name();
     }
 
     public void setName(Simple name) {
-        realmSetter$name(name);
+        realmSet$name(name);
     }
 
-    public Simple realmGetter$name() {
+    public Simple realmGet$name() {
         return name;
     }
 
-    public void realmSetter$name(Simple name) {
+    public void realmSet$name(Simple name) {
         this.name = name;
     }
 
     public Simple getCache() {
-        return realmGetter$cache();
+        return realmGet$cache();
     }
 
     public void setCache(Simple cache) {
-        realmSetter$cache(cache);
+        realmSet$cache(cache);
     }
 
-    public Simple realmGetter$cache() {
+    public Simple realmGet$cache() {
         return cache;
     }
 
-    public void realmSetter$cache(Simple cache) {
+    public void realmSet$cache(Simple cache) {
         this.cache = cache;
     }
 }

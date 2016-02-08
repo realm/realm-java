@@ -25,66 +25,66 @@ public class Booleans extends RealmObject {
     private boolean anotherBoolean;
 
     public boolean isDone() {
-        return realmGetter$done();
+        return realmGet$done();
     }
 
     public void setDone(boolean done) {
-        realmSetter$done(done);
+        realmSet$done(done);
     }
 
-    public boolean realmGetter$done() {
+    public boolean realmGet$done() {
         return done;
     }
 
-    public void realmSetter$done(boolean done) {
+    public void realmSet$done(boolean done) {
         this.done = done;
     }
 
     public boolean isReady() {
-        return realmGetter$isReady();
+        return realmGet$isReady();
     }
 
     public void setIsReady(boolean isReady) {
-        realmSetter$isReady(isReady);
+        realmSet$isReady(isReady);
     }
 
-    public boolean realmGetter$isReady() {
+    public boolean realmGet$isReady() {
         return isReady;
     }
 
-    public void realmSetter$isReady(boolean isReady) {
+    public void realmSet$isReady(boolean isReady) {
         this.isReady = isReady;
     }
 
     public boolean ismCompleted() {
-        return realmGetter$mCompleted();
+        return realmGet$mCompleted();
     }
 
     public void setMCompleted(boolean mCompleted) {
-        realmSetter$mCompleted(mCompleted);
+        realmSet$mCompleted(mCompleted);
     }
 
-    public boolean realmGetter$mCompleted() {
+    public boolean realmGet$mCompleted() {
         return mCompleted;
     }
 
-    public void realmSetter$mCompleted(boolean mCompleted) {
+    public void realmSet$mCompleted(boolean mCompleted) {
         this.mCompleted = mCompleted;
     }
 
     public boolean getAnotherBoolean() {
-        return realmGetter$anotherBoolean();
+        return realmGet$anotherBoolean();
     }
 
     public void setAnotherBoolean(boolean anotherBoolean) {
-        realmSetter$anotherBoolean(anotherBoolean);
+        realmSet$anotherBoolean(anotherBoolean);
     }
 
-    public boolean realmGetter$anotherBoolean() {
+    public boolean realmGet$anotherBoolean() {
         return anotherBoolean;
     }
 
-    public void realmSetter$anotherBoolean(boolean anotherBoolean) {
+    public void realmSet$anotherBoolean(boolean anotherBoolean) {
         this.anotherBoolean = anotherBoolean;
     }
 }

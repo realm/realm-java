@@ -73,7 +73,7 @@ public class TestRealmObjectFileObject extends SimpleJavaFileObject {
                 fieldType, // Return type
                 "get" + FieldName, // Method name
                 EnumSet.of(Modifier.PUBLIC)); // Modifiers
-        writer.emitStatement("return realmGetter$" +  fieldName + "()");
+        writer.emitStatement("return realmGet$" +  fieldName + "()");
         writer.endMethod();
 
         // Setter
@@ -82,13 +82,13 @@ public class TestRealmObjectFileObject extends SimpleJavaFileObject {
                 "set"+ FieldName, // Method name
                 EnumSet.of(Modifier.PUBLIC),
                 fieldType, fieldName); // Modifiers
-        writer.emitStatement("realmSetter$" + fieldName + "(" + fieldName + ")");
+        writer.emitStatement("realmSet$" + fieldName + "(" + fieldName + ")");
         writer.endMethod();
 
         // Realm Getter
         writer.beginMethod(
                 fieldType, // Return type
-                "realmGetter$" + fieldName, // Method name
+                "realmGet$" + fieldName, // Method name
                 EnumSet.of(Modifier.PUBLIC)); // Modifiers
         writer.emitStatement("return " +  fieldName);
         writer.endMethod();
@@ -96,7 +96,7 @@ public class TestRealmObjectFileObject extends SimpleJavaFileObject {
         // Realm Setter
         writer.beginMethod(
                 "void", // Return type
-                "realmSetter$"+ fieldName, // Method name
+                "realmSet$"+ fieldName, // Method name
                 EnumSet.of(Modifier.PUBLIC),
                 fieldType, fieldName); // Modifiers
         writer.emitStatement("this." + fieldName + "=" + fieldName);

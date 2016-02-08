@@ -23,34 +23,34 @@ public class Final extends RealmObject {
     private int age;
 
     public String getName() {
-        return realmGetter$name();
+        return realmGet$name();
     }
 
     public void setName(String name) {
-        realmSetter$name(name);
+        realmSet$name(name);
     }
 
-    public String realmGetter$name() {
+    public String realmGet$name() {
         return name;
     }
 
-    public void realmSetter$name(String name) {
+    public void realmSet$name(String name) {
         this.name = name;
     }
 
     public int getAge() {
-        return realmGetter$age();
+        return realmGet$age();
     }
 
     public void setAge(int age) {
-        realmSetter$age(age);
+        realmSet$age(age);
     }
 
-    public int realmGetter$age() {
+    public int realmGet$age() {
         return age;
     }
 
-    public void realmSetter$age(int age) {
+    public void realmSet$age(int age) {
         this.age = age;
     }
 
