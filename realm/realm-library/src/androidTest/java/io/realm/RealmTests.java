@@ -2588,12 +2588,12 @@ public class RealmTests {
 
                 realm.addChangeListener(listener);
 
-                realm.executeTransaction(new Realm.Transaction() {
+                realm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
                         realm.createObject(AllTypes.class);
                     }
-                }, new Realm.Transaction.Callback());
+                });
             }
         });
         TestHelper.awaitOrFail(signalTestFinished);
@@ -2632,12 +2632,12 @@ public class RealmTests {
         final AllTypes allTypes = realm.where(AllTypes.class).findFirstAsync();
         allTypes.addChangeListener(dummyListener);
 
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(AllTypes.class);
             }
-        }, new Realm.Transaction.Callback());
+        });
     }
 
     // Test if close can be called from Realm change listener when there is an listener on non-empty Realm Object
@@ -2677,12 +2677,12 @@ public class RealmTests {
         // Step 1: Change listener on Realm Object
         final AllTypes allTypes = realm.where(AllTypes.class).findFirst();
         allTypes.addChangeListener(dummyListener);
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(AllTypes.class);
             }
-        }, new Realm.Transaction.Callback());
+        });
     }
 
     // Test if close can be called from Realm change listener when there is an listener on RealmResults
@@ -2717,12 +2717,12 @@ public class RealmTests {
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAll();
         results.addChangeListener(dummyListener);
 
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 realm.createObject(AllTypes.class);
             }
-        }, new Realm.Transaction.Callback());
+        });
     }
 
     @Test
