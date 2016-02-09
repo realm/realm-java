@@ -23,7 +23,6 @@ import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 
 class Realm implements Plugin<Project> {
 
@@ -36,7 +35,9 @@ class Realm implements Plugin<Project> {
             throw new GradleException("'com.android.application' or 'com.android.library' plugin required.")
         }
 
-        def isKotlinProject = project.plugins.withType(KotlinAndroidPluginWrapper)
+        def isKotlinProject = project.plugins.find {
+            it.getClass().name == 'org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper'
+        }
 
         if (!isKotlinProject) {
             project.plugins.apply(AndroidAptPlugin)
