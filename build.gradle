@@ -242,9 +242,9 @@ task cleanLocalMavenRepos(type:Delete) {
 task clean {
     description = 'Perform all the other clean tasks'
     group = 'Clean'
-    dependsOn cleanRealm
-    dependsOn cleanGradlePlugin
-    dependsOn cleanExamples
+    cleanLocalMavenRepos.dependsOn cleanRealm
+    cleanLocalMavenRepos.dependsOn cleanGradlePlugin
+    cleanLocalMavenRepos.dependsOn cleanExamples
     dependsOn cleanLocalMavenRepos
 }
 
