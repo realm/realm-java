@@ -23,7 +23,7 @@ import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPlugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 
 class Realm implements Plugin<Project> {
 
@@ -36,9 +36,11 @@ class Realm implements Plugin<Project> {
             throw new GradleException("'com.android.application' or 'com.android.library' plugin required.")
         }
 
-        def isKotlinProject = project.plugins.withType(KotlinAndroidPlugin)
+        def isKotlinProject = project.plugins.withType(KotlinAndroidPluginWrapper)
 
-        project.plugins.apply(AndroidAptPlugin)
+        if (!isKotlinProject) {
+            project.plugins.apply(AndroidAptPlugin)
+        }
 
         project.android.registerTransform(new RealmTransformer())
         project.repositories.add(project.getRepositories().jcenter())
@@ -46,8 +48,8 @@ class Realm implements Plugin<Project> {
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
         if (isKotlinProject) {
-            project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
             project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
+            project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else {
             project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
