@@ -58,6 +58,9 @@ import rx.Observable;
  * If a RealmResults is built on RealmList through {@link RealmList#where()}, it will become invalid when the source
  * RealmList gets deleted. When that happens, the RealmResults will behave like a empty RealmResults, but calling
  * {@link #where()} will throw an {@link IllegalStateException}. Use {@link #isValid} to detect this situation.
+ * <p>
+ * {@link RealmResults} can contain more elements than {@code Integer.MAX_VALUE}.
+ * In that case, you can access only first {@code Integer.MAX_VALUE} elements in it.
  *
  * @param <E> The class of objects in this list.
  * @see RealmQuery#findAll()
@@ -418,7 +421,8 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         if (!isLoaded()) {
             return 0;
         } else {
-            return ((Long)getTable().size()).intValue();
+            long size = getTable().size();
+            return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
         }
     }
 

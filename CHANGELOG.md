@@ -10,6 +10,7 @@
 * Improved performance of RealmList#contains() (#897).
 * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
+* RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
 
 ## 0.87.4
 * Updated Realm Core to 0.96.0
