@@ -31,8 +31,9 @@ import java.util.jar.JarFile
 
 import static com.android.build.api.transform.QualifiedContent.*
 /**
- * This class implements the Transform API provided by the Android Gradle plugin
+ * This class implements the Transform API provided by the Android Gradle plugin.
  */
+@SuppressWarnings("GroovyUnusedDeclaration")
 class RealmTransformer extends Transform {
 
     private Logger logger = LoggerFactory.getLogger('realm-logger')
@@ -77,14 +78,12 @@ class RealmTransformer extends Transform {
 
         logger.info "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
 
-        // Find the proxy classes
-        def proxyClasses = classNames
-                .findAll { it.endsWith('RealmProxy') }
-                .collect { classPool.getCtClass(it)}
-        logger.info "Proxy Classes: ${proxyClasses*.name}"
-
         // Find the model classes
-        def modelClasses = proxyClasses.collect { it.superclass }
+        def realmObject = classPool.get('io.realm.RealmObject')
+        def modelClasses = classNames
+                .findAll { it.endsWith('RealmProxy') }
+                .collect { classPool.getCtClass(it).superclass }
+                .findAll { it.superclass?.equals(realmObject) }
         logger.info "Model Classes: ${modelClasses*.name}"
 
         // Populate a list of the fields that need to be managed with bytecode manipulation
@@ -100,8 +99,7 @@ class RealmTransformer extends Transform {
         // Add accessors to the model classes
         modelClasses.each {
             BytecodeModifier.addRealmAccessors(it)
-            def proxyInterface = classPool.get("io.realm.${it.getSimpleName()}RealmProxyInterface")
-            it.addInterface(proxyInterface)
+            BytecodeModifier.addRealmProxyInterface(it, classPool)
         }
 
         // Use accessors instead of direct field access
@@ -118,7 +116,8 @@ class RealmTransformer extends Transform {
     }
 
     /**
-     * Create and populate the Javassist class pool
+     * Create and populate the Javassist class pool.
+     *
      * @param inputs The inputs provided by the Transform API
      * @param referencedInputs the referencedInputs provided by the Transform API
      * @return the populated ClassPool instance
@@ -153,7 +152,7 @@ class RealmTransformer extends Transform {
         return classPool
     }
 
-    private Set<String> getClassNames(Collection<TransformInput> inputs) {
+    private static Set<String> getClassNames(Collection<TransformInput> inputs) {
         Set<String> classNames = new HashSet<String>()
 
         inputs.each {
@@ -161,7 +160,11 @@ class RealmTransformer extends Transform {
                 def dirPath = it.file.absolutePath
                 it.file.eachFileRecurse(FileType.FILES) {
                     if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                        def className = it.absolutePath.substring(dirPath.length() + 1, it.absolutePath.length() - SdkConstants.DOT_CLASS.length()).replaceAll('/', '.')
+                        def className =
+                                it.absolutePath.substring(
+                                        dirPath.length() + 1,
+                                        it.absolutePath.length() - SdkConstants.DOT_CLASS.length()
+                                ).replace(File.separatorChar, '.' as char)
                         classNames.add(className)
                     }
                 }

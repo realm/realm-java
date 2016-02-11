@@ -50,7 +50,7 @@ class BytecodeModifier {
     }
 
     /**
-     * Modify a class replacing field accesses with the appropriate Realm accessors
+     * Modify a class replacing field accesses with the appropriate Realm accessors.
      *
      * @param clazz The CtClass to modify
      * @param managedFields List of fields whose access should be replaced
@@ -71,6 +71,17 @@ class BytecodeModifier {
                 behavior.instrument(new FieldAccessToAccessorConverter(managedFields, clazz, behavior))
             }
         }
+    }
+
+    /**
+     * Modify a class adding its RealmProxy interface.
+     *
+     * @param clazz The CtClass to modify
+     * @param classPool the Javassist class pool
+     */
+    public static void addRealmProxyInterface(CtClass clazz, ClassPool classPool) {
+        def proxyInterface = classPool.get("io.realm.${clazz.getSimpleName()}RealmProxyInterface")
+        clazz.addInterface(proxyInterface)
     }
 
     /**
