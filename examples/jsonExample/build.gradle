@@ -29,6 +29,6 @@ android {
 }
 
 dependencies {
-    provided "org.projectlombok:lombok:1.12.6"
-    apt "org.projectlombok:lombok:1.12.6"
+    provided 'org.projectlombok:lombok:1.16.6'
+    apt 'org.projectlombok:lombok:1.16.6'
 }
