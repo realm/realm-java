@@ -391,7 +391,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
+        sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
     /**
@@ -567,19 +567,17 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Returns a distinct set of objects of a specific class. If the result is sorted, the first
-     * object will be returend in case of multiple occurences, otherwise it is undefined which
+     * object will be returned in case of multiple occurrences, otherwise it is undefined which
      * object is returned.
      *
      * @param fieldName the field name.
      * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field name does not exist.
-     * @throws IllegalArgumentException if a field's type is not supported.
-     * @throws IllegalArgumentException if a field points linked properties.
-     * @throws UnsupportedOperationException if a field is not indexed.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndex(fieldName);
+        long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
 
         TableOrView tableOrView = getTable();
         if (tableOrView instanceof Table) {
@@ -588,6 +586,22 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             ((TableView) tableOrView).distinct(columnIndex);
         }
         return this;
+    }
+
+    /**
+     * Asynchronously returns a distinct set of objects of a specific class. If the result is
+     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
+     * undefined which object is returned.
+     *
+     * @param fieldName the field name.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
+     */
+    public RealmResults<E> distinctAsync(String fieldName) {
+        return where().distinctAsync(fieldName);
     }
 
     // Deleting
@@ -799,7 +813,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             // had a chance to call setPendingQuery to register the pendingQuery (used btw
             // to determine isLoaded behaviour)
             onCompleted();
-        } // else, it will be handled by the Realm#handler
+        } // else, it will be handled by the {@link BaseRealm#handlerController#handleMessage}
     }
 
     /**
@@ -938,7 +952,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             // table might be null (if the async query didn't complete
             // but we have already registered listeners for it)
             if (pendingQuery != null && !isCompleted) return;
-
             //FIXME: still waiting for Core to provide a fix
             //       for crash when calling _sync_if_needed on a cleared View.
             //       https://github.com/realm/realm-core/pull/1390

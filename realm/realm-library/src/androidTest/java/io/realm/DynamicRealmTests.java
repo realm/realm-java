@@ -431,15 +431,13 @@ public class DynamicRealmTests {
     public void distinct() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
-
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        RealmResults<DynamicRealmObject> distinctBool = realm.distinct(AnnotationIndexTypes.CLASS_NAME, "indexBoolean");
+        RealmResults<DynamicRealmObject> distinctBool = realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_BOOL);
         assertEquals(2, distinctBool.size());
-
-        for (String fieldName : new String[]{"Long", "Date", "String"}) {
-            RealmResults<DynamicRealmObject> distinct = realm.distinct(AnnotationIndexTypes.CLASS_NAME, "index" + fieldName);
-            assertEquals("index" + fieldName, numberOfBlocks, distinct.size());
+        for (String field : new String[]{AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING}) {
+            RealmResults<DynamicRealmObject> distinct = realm.distinct(AnnotationIndexTypes.CLASS_NAME, field);
+            assertEquals(field, numberOfBlocks, distinct.size());
         }
     }
 
@@ -450,11 +448,11 @@ public class DynamicRealmTests {
 
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+        for (String field : AnnotationIndexTypes.NOT_INDEX_FIELDS) {
             try {
-                realm.distinct(AnnotationIndexTypes.CLASS_NAME, "notIndex" + fieldName);
-                fail("notIndex" + fieldName);
-            } catch (UnsupportedOperationException ignored) {
+                realm.distinct(AnnotationIndexTypes.CLASS_NAME, field);
+                fail(field);
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
@@ -463,11 +461,11 @@ public class DynamicRealmTests {
     public void distinct_invalidTypes() {
         populateTestRealm();
 
-        for (String field : new String[]{"columnRealmObject", "columnRealmList", "columnDouble", "columnFloat"}) {
+        for (String field : new String[]{AllTypes.FIELD_REALMOBJECT, AllTypes.FIELD_REALMLIST, AllTypes.FIELD_DOUBLE, AllTypes.FIELD_FLOAT}) {
             try {
                 realm.distinct(AllTypes.CLASS_NAME, field);
                 fail(field);
-            } catch (UnsupportedOperationException ignored) {
+            } catch (IllegalArgumentException ignored) {
             }
         }
     }
@@ -662,10 +660,10 @@ public class DynamicRealmTests {
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(dynamicRealm, numberOfBlocks, numberOfObjects, false);
 
-        final RealmResults<DynamicRealmObject> distinctBool = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, "indexBoolean");
-        final RealmResults<DynamicRealmObject> distinctLong = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, "indexLong");
-        final RealmResults<DynamicRealmObject> distinctDate = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, "indexDate");
-        final RealmResults<DynamicRealmObject> distinctString = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, "indexString");
+        final RealmResults<DynamicRealmObject> distinctBool = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_BOOL);
+        final RealmResults<DynamicRealmObject> distinctLong = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_LONG);
+        final RealmResults<DynamicRealmObject> distinctDate = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_DATE);
+        final RealmResults<DynamicRealmObject> distinctString = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_STRING);
 
         final Runnable callbackDoneTask = new Runnable() {
             @Override
@@ -716,7 +714,6 @@ public class DynamicRealmTests {
     public void accessingDynamicRealmObjectBeforeAsyncQueryCompleted() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
         final DynamicRealmObject[] dynamicRealmObject = new DynamicRealmObject[1];
-
 
         // Intercept completion of the async DynamicRealmObject query
         Handler handler = new HandlerProxy(dynamicRealm.handler) {

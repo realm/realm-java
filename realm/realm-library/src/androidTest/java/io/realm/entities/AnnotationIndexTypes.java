@@ -25,7 +25,27 @@ import io.realm.annotations.Index;
 public class AnnotationIndexTypes extends RealmObject {
 
     public static final String CLASS_NAME = "AnnotationIndexTypes";
+
+    public static final String FIELD_INDEX_STRING = "indexString";
+    public static final String FIELD_INDEX_INT = "indexInt";
+    public static final String FIELD_INDEX_BYTE = "indexByte";
+    public static final String FIELD_INDEX_SHORT = "indexShort";
+    public static final String FIELD_INDEX_LONG = "indexLong";
+    public static final String FIELD_INDEX_BOOL = "indexBoolean";
+    public static final String FIELD_INDEX_DATE = "indexDate";
+
+    public static final String FIELD_NOT_INDEX_STRING = "notIndexString";
+    public static final String FIELD_NOT_INDEX_INT = "notIndexInt";
+    public static final String FIELD_NOT_INDEX_BYTE = "notIndexByte";
+    public static final String FIELD_NOT_INDEX_SHORT = "notIndexShort";
+    public static final String FIELD_NOT_INDEX_LONG = "notIndexLong";
+    public static final String FIELD_NOT_INDEX_BOOL = "notIndexBoolean";
+    public static final String FIELD_NOT_INDEX_DATE = "notIndexDate";
+
     public static final String FIELD_OBJECT = "fieldObject";
+
+    public static final String[] INDEX_FIELDS = new String[]{FIELD_INDEX_STRING, FIELD_INDEX_INT, FIELD_INDEX_BYTE, FIELD_INDEX_SHORT, FIELD_INDEX_LONG, FIELD_INDEX_BOOL, FIELD_INDEX_DATE};
+    public static final String[] NOT_INDEX_FIELDS = new String[]{FIELD_NOT_INDEX_STRING, FIELD_NOT_INDEX_INT, FIELD_NOT_INDEX_BYTE, FIELD_NOT_INDEX_SHORT, FIELD_NOT_INDEX_LONG, FIELD_NOT_INDEX_BOOL, FIELD_NOT_INDEX_DATE};
 
     @Index
     private String indexString;
