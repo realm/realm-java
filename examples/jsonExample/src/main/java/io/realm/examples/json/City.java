@@ -17,8 +17,12 @@
 package io.realm.examples.json;
 
 import io.realm.RealmObject;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class City extends RealmObject {
-    public String name;
-    public long votes;
+    private String name;
+    private long votes;
 }

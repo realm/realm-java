@@ -134,7 +134,7 @@ class RealmTransformer extends Transform {
                 classPool.appendClassPath(it.file.absolutePath)
             }
 
-            it.jarInputs.stream().each {
+            it.jarInputs.each {
                 classPool.appendClassPath(it.file.absolutePath)
             }
         }
@@ -144,7 +144,7 @@ class RealmTransformer extends Transform {
                 classPool.appendClassPath(it.file.absolutePath)
             }
 
-            it.jarInputs.stream().each {
+            it.jarInputs.each {
                 classPool.appendClassPath(it.file.absolutePath)
             }
         }
@@ -170,11 +170,14 @@ class RealmTransformer extends Transform {
                 }
             }
 
-            it.jarInputs.stream().each {
+            it.jarInputs.each {
                 def jarFile = new JarFile(it.file)
-                jarFile.stream()
-                        .filter { it.name.endsWith(SdkConstants.DOT_CLASS) }
-                        .each { classNames.add(it.name.substring(0, it.name.length() - SdkConstants.DOT_CLASS.length()).replaceAll('/', '.')) }
+                jarFile
+                        .findAll() { it.name.endsWith(SdkConstants.DOT_CLASS) }
+                        .each { classNames.add(
+                        it.name
+                                .substring(0, it.name.length() - SdkConstants.DOT_CLASS.length())
+                                .replace(File.separatorChar, '.' as char)) }
             }
         }
 
