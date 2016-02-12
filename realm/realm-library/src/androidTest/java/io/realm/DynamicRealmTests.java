@@ -716,9 +716,14 @@ public class DynamicRealmTests {
         final DynamicRealmObject[] dynamicRealmObject = new DynamicRealmObject[1];
 
         // Intercept completion of the async DynamicRealmObject query
-        Handler handler = new HandlerProxy(dynamicRealm.handler) {
+        Handler handler = new HandlerProxy(dynamicRealm.handlerController) {
             @Override
-            public boolean onInterceptMessage(int what) {
+            public boolean onInterceptOutMessage(int what) {
+                return false;
+            }
+
+            @Override
+            public boolean onInterceptInMessage(int what) {
                 switch (what) {
                     case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
                         post(new Runnable() {

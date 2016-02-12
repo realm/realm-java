@@ -621,12 +621,13 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange() {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
-                    case 1:  // triggered by COMPLETED_ASYNC_REALM_OBJECT
-                    case 2: // triggered by the irrelevant commit (not affecting Dog table)
+                    case 1: // triggered by COMPLETED_ASYNC_REALM_OBJECT from caling dog.load()
+                    case 2: // triggered by the irrelevant commit (not affecting Dog table) from LooperThread1
                         assertTrue(dog.isLoaded());
                         assertFalse(dog.isValid());
                         break;
-                    case 3:
+
+                    case 3: // triggered by relevant commmit from LooperThread2
                         assertEquals("Akamaru", dog.getName());
                         realm.handler.post(new Runnable() {
                             @Override
@@ -685,6 +686,7 @@ public class TypeBasedNotificationsTests {
         new Handler(looperThread2.getLooper()).post(new Runnable() {
             @Override
             public void run() {
+                TestHelper.awaitOrFail(looperThread1Done);
                 Realm realmLooperThread2 = Realm.getInstance(realm.getConfiguration());
                 // trigger first callback invocation
                 realmLooperThread2.beginTransaction();
@@ -1407,9 +1409,14 @@ public class TypeBasedNotificationsTests {
     public void refresh_should_notify_callbacks_realmobject_sync() {
         final Realm realm = looperThread.realm;
         // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handler) {
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public boolean onInterceptMessage(int what) {
+            public boolean onInterceptOutMessage(int what) {
+                return false;
+            }
+
+            @Override
+            public boolean onInterceptInMessage(int what) {
                 switch (what) {
                     case HandlerController.REALM_CHANGED: {
                         return true;
@@ -1461,9 +1468,14 @@ public class TypeBasedNotificationsTests {
     public void refresh_should_notify_callbacks_realmobject_async() {
         final Realm realm = looperThread.realm;
         // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handler) {
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public boolean onInterceptMessage(int what) {
+            public boolean onInterceptOutMessage(int what) {
+                return false;
+            }
+
+            @Override
+            public boolean onInterceptInMessage(int what) {
                 switch (what) {
                     case HandlerController.REALM_CHANGED: {
                         return true;
@@ -1512,9 +1524,14 @@ public class TypeBasedNotificationsTests {
     public void refresh_should_notify_callbacks_realmresults_sync() {
         final Realm realm = looperThread.realm;
         // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handler) {
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public boolean onInterceptMessage(int what) {
+            public boolean onInterceptOutMessage(int what) {
+                return false;
+            }
+
+            @Override
+            public boolean onInterceptInMessage(int what) {
                 switch (what) {
                     case HandlerController.REALM_CHANGED: {
                         return true;
@@ -1562,9 +1579,14 @@ public class TypeBasedNotificationsTests {
     public void refresh_should_notify_callbacks_realmresults_async() {
         final Realm realm = looperThread.realm;
         // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handler) {
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public boolean onInterceptMessage(int what) {
+            public boolean onInterceptOutMessage(int what) {
+                return false;
+            }
+
+            @Override
+            public boolean onInterceptInMessage(int what) {
                 switch (what) {
                     case HandlerController.REALM_CHANGED: {
                         return true;
@@ -1617,9 +1639,14 @@ public class TypeBasedNotificationsTests {
 
         final Realm realm = looperThread.realm;
         // Swallow all REALM_CHANGED events to test the behaviour of an explicit refresh
-        final Handler handler = new HandlerProxy(realm.handler) {
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public boolean onInterceptMessage(int what) {
+            public boolean onInterceptOutMessage(int what) {
+                return false;
+            }
+
+            @Override
+            public boolean onInterceptInMessage(int what) {
                 switch (what) {
                     case HandlerController.REALM_CHANGED: {
                         return true;
