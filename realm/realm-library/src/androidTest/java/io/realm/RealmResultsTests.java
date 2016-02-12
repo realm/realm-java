@@ -72,7 +72,7 @@ public class RealmResultsTests {
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
 
-    private  Realm realm;
+    private Realm realm;
 
     @Before
     public void setUp() {
@@ -262,12 +262,14 @@ public class RealmResultsTests {
         try {
             allTypes.first();
             fail();
-        } catch (ArrayIndexOutOfBoundsException ignored) {}
+        } catch (ArrayIndexOutOfBoundsException ignored) {
+        }
 
         try {
             allTypes.last();
             fail();
-        } catch (ArrayIndexOutOfBoundsException ignored) {}
+        } catch (ArrayIndexOutOfBoundsException ignored) {
+        }
     }
 
     @Test
@@ -1032,7 +1034,8 @@ public class RealmResultsTests {
             realm.where(AllTypes.class).findAllSorted("invalid",
                     Sort.DESCENDING);
             fail();
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
     }
 
     @Test
@@ -1061,7 +1064,8 @@ public class RealmResultsTests {
             RealmResults<AllTypes> all = realm.allObjects(AllTypes.class);
             all.indexOf(all.first());
             fail();
-        } catch (NoSuchMethodError ignored) {}
+        } catch (NoSuchMethodError ignored) {
+        }
     }
 
     @Test
@@ -1084,10 +1088,8 @@ public class RealmResultsTests {
             realm.beginTransaction();
             list.first().setFieldStringNotNull(null);
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
-        }
-        finally {
+        } catch (IllegalArgumentException ignored) {
+        } finally {
             realm.cancelTransaction();
         }
 
@@ -1096,10 +1098,8 @@ public class RealmResultsTests {
             realm.beginTransaction();
             list.first().setFieldBytesNotNull(null);
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
-        }
-        finally {
+        } catch (IllegalArgumentException ignored) {
+        } finally {
             realm.cancelTransaction();
         }
 
@@ -1108,10 +1108,8 @@ public class RealmResultsTests {
             realm.beginTransaction();
             list.first().setFieldBooleanNotNull(null);
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
-        }
-        finally {
+        } catch (IllegalArgumentException ignored) {
+        } finally {
             realm.cancelTransaction();
         }
 
@@ -1120,10 +1118,8 @@ public class RealmResultsTests {
             realm.beginTransaction();
             list.first().setFieldBytesNotNull(null);
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
-        }
-        finally {
+        } catch (IllegalArgumentException ignored) {
+        } finally {
             realm.cancelTransaction();
         }
 
@@ -1134,10 +1130,8 @@ public class RealmResultsTests {
             realm.beginTransaction();
             list.first().setFieldFloatNotNull(null);
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
-        }
-        finally {
+        } catch (IllegalArgumentException ignored) {
+        } finally {
             realm.cancelTransaction();
         }
 
@@ -1146,10 +1140,8 @@ public class RealmResultsTests {
             realm.beginTransaction();
             list.first().setFieldDoubleNotNull(null);
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
-        }
-        finally {
+        } catch (IllegalArgumentException ignored) {
+        } finally {
             realm.cancelTransaction();
         }
 
@@ -1158,10 +1150,8 @@ public class RealmResultsTests {
             realm.beginTransaction();
             list.first().setFieldDateNotNull(null);
             fail();
-        }
-        catch (IllegalArgumentException ignored) {
-        }
-        finally {
+        } catch (IllegalArgumentException ignored) {
+        } finally {
             realm.cancelTransaction();
         }
     }
@@ -1222,11 +1212,13 @@ public class RealmResultsTests {
         RealmResults<AllTypes> result = realm.where(AllTypes.class).findAll();
 
         try { //noinspection deprecation
-            result.add(null);     fail();
+            result.add(null);
+            fail();
         } catch (UnsupportedOperationException ignored) {
         }
         try {
-            result.set(0, null);  fail();
+            result.set(0, null);
+            fail();
         } catch (UnsupportedOperationException ignored) {
         }
     }
@@ -1406,7 +1398,7 @@ public class RealmResultsTests {
     }
 
     @Test
-    public void distinct_indexedLinkedFields(){
+    public void distinct_indexedLinkedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
@@ -1421,7 +1413,7 @@ public class RealmResultsTests {
     }
 
     @Test
-    public void distinct_notIndexedLinkedFields(){
+    public void distinct_notIndexedLinkedFields() {
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
@@ -1614,7 +1606,7 @@ public class RealmResultsTests {
         final long numberOfObjects = 10;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        try{
+        try {
             realm.where(AnnotationIndexTypes.class).findAll().distinctAsync("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
@@ -1651,7 +1643,7 @@ public class RealmResultsTests {
     public void distinctAsync_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
-        try{
+        try {
             realm.where(AllJavaTypes.class).findAll().distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
