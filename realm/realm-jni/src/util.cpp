@@ -53,10 +53,6 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
     }
-    catch (realm::DeletedLinkView& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, DeletedLinkViewException, ss.str());
-    }
     catch (std::exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
@@ -154,11 +150,6 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
 
         case BadVersion:
             jExceptionClass = env->FindClass("io/realm/internal/async/BadVersionException");
-            message = classStr;
-            break;
-
-        case DeletedLinkViewException:
-            jExceptionClass = env->FindClass("io/realm/internal/DeletedRealmListException");
             message = classStr;
             break;
     }

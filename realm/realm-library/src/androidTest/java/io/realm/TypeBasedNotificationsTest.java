@@ -1912,7 +1912,7 @@ public class TypeBasedNotificationsTest extends AndroidTestCase {
                     @Override
                     public void onChange() {
                         if (typebasedCommitInvocations.getAndIncrement() == 0) {
-                            assertFalse(dogs.isValid());
+                            assertTrue(dogs.isValid());
                             assertEquals(0, dogs.size());
                         } else {
                             fail("This listener should only be called once.");

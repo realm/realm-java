@@ -64,8 +64,7 @@ public class Util {
         Exception_RowInvalid(13),
         Exception_EncryptionNotSupported(14),
         Exception_CrossTableLink(15),
-        Exception_BadVersion(16),
-        Exception_DeletedLinkView(17);
+        Exception_BadVersion(16);
 
         private final int nativeTestcase;
         Testcase(int nativeValue) {
