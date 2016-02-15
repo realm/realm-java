@@ -73,7 +73,7 @@ public abstract class RealmBackgroundTask {
     }
 
     /**
-     * Execute the task. This method is called on a background thread.
+     * Executes the task. This method is called on a background thread.
      *
      * @param realm Realm instance created by the provided configuration.
      */
