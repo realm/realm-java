@@ -538,9 +538,12 @@ public:
     {
 #ifdef REALM_ENABLE_ENCRYPTION
         if (arr) {
-            if (env->GetArrayLength(m_array) != 64)
+            if (env->GetArrayLength(m_array) != 64) {
                 ThrowException(env, UnsupportedOperation, "Encryption key must be exactly 64 bytes.");
-            m_ptr = env->GetByteArrayElements(m_array, NULL);
+            }
+            else {
+                m_ptr = env->GetByteArrayElements(m_array, NULL);
+            }
         }
 #else
         if (arr)

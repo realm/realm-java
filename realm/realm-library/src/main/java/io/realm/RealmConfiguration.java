@@ -94,7 +94,9 @@ public class RealmConfiguration {
 
         nativeConfigurationPointer = createConfigurationPointer();
         nativeSetPath(nativeConfigurationPointer, builder.folder + "/" + builder.fileName);
-        nativeSetEncryptionKey(nativeConfigurationPointer, builder.key);
+        if (builder.key != null  && builder.key.length > 0) {
+            nativeSetEncryptionKey(nativeConfigurationPointer, builder.key);
+        }
         nativeSetSchemaVersion(nativeConfigurationPointer, builder.schemaVersion);
     }
 

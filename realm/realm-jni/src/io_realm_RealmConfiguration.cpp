@@ -41,8 +41,9 @@ JNIEXPORT void JNICALL Java_io_realm_RealmConfiguration_nativeSetPath(
     realm::Realm::Config* realm_configuration = CONF(nativePointer);
     try {
         JStringAccessor path(env, jpath);
-        realm::StringData sd(path);
-        realm_configuration->path = sd.data();
+        realm::StringData cpath = realm::StringData(path);
+        realm_configuration->path = cpath;
+        realm_configuration->in_memory = false;
     }
     CATCH_STD()
 }
@@ -53,9 +54,12 @@ JNIEXPORT jstring JNICALL Java_io_realm_RealmConfiguration_nativeGetPath(
     TR_ENTER_PTR(nativePointer);
     realm::Realm::Config* realm_configuration = CONF(nativePointer);
     try {
-        return to_jstring(env, realm_configuration->path);
+        if (!realm_configuration->in_memory) {
+            return to_jstring(env, realm_configuration->path);
+        }
     }
     CATCH_STD()
+    return NULL;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_RealmConfiguration_nativeSetEncryptionKey(
@@ -63,7 +67,18 @@ JNIEXPORT void JNICALL Java_io_realm_RealmConfiguration_nativeSetEncryptionKey(
 {
     TR_ENTER_PTR(nativePointer);
     realm::Realm::Config* realm_configuration = CONF(nativePointer);
-    // FIXME: convert jkey to vector<char>
+    try {
+        realm_configuration->encryption_key.clear();
+        KeyBuffer kb(env, jkey);
+        if (env->GetArrayLength(jkey) != io_realm_RealmConfiguration_KEY_LENGTH ) { // KeyBuffer does the check and sets the exception
+            return;
+        }
+        const char* bytes = kb.data();
+        for (std::size_t i = 0; i < io_realm_RealmConfiguration_KEY_LENGTH; ++i) {
+            realm_configuration->encryption_key.push_back(bytes[i]);
+        }
+    }
+    CATCH_STD()
 }
 
 JNIEXPORT jbyteArray JNICALL Java_io_realm_RealmConfiguration_nativeGetEncryptionKey(
@@ -71,7 +86,21 @@ JNIEXPORT jbyteArray JNICALL Java_io_realm_RealmConfiguration_nativeGetEncryptio
 {
     TR_ENTER_PTR(nativePointer);
     realm::Realm::Config* realm_configuration = CONF(nativePointer);
-    // convert vector<char> to jbyteArray
+    try {
+        if (realm_configuration->encryption_key.size() == 0) {
+            return NULL;
+        }
+        char key[io_realm_RealmConfiguration_KEY_LENGTH];
+        for (std::size_t i = 0; i < io_realm_RealmConfiguration_KEY_LENGTH; ++i) {
+            key[i] = realm_configuration->encryption_key[i];
+        }
+        jbyteArray key_array = env->NewByteArray(io_realm_RealmConfiguration_KEY_LENGTH);
+        env->SetByteArrayRegion(key_array, 0, io_realm_RealmConfiguration_KEY_LENGTH,
+            reinterpret_cast<const jbyte*>(key));
+        return key_array;
+    }
+    CATCH_STD()
+    return NULL;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_RealmConfiguration_nativeGetSchemaVersion(
