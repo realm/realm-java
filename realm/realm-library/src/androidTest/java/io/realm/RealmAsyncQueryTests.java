@@ -454,12 +454,6 @@ public class RealmAsyncQueryTests {
 
         // 2. Configure handler interceptor
         final Handler handler = new HandlerProxy(realm.handlerController) {
-
-            @Override
-            public boolean onInterceptOutMessage(int what) {
-                return false;
-            }
-
             @Override
             public boolean onInterceptInMessage(int what) {
                 // Intercepts in order: [QueryComplete, RealmChanged, QueryUpdated]
@@ -521,11 +515,6 @@ public class RealmAsyncQueryTests {
 
         // 1. Configure Handler interceptor
         Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptOutMessage(int what) {
-                return false;
-            }
-
             @Override
             public boolean onInterceptInMessage(int what) {
                 int intercepts = numberOfIntercept.getAndIncrement();
@@ -632,11 +621,6 @@ public class RealmAsyncQueryTests {
         // Configure handler interceptor
         final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public boolean onInterceptOutMessage(int what) {
-                return false;
-            }
-
-            @Override
             public boolean onInterceptInMessage(int what) {
                 // Intercepts in order [QueryCompleted, RealmChanged, QueryUpdated]
                 Log.d("HandlerBug", "onInterceptInMessage: " + what);
@@ -697,11 +681,6 @@ public class RealmAsyncQueryTests {
 
         // Configure Handler Interceptor
         final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptOutMessage(int what) {
-                return false;
-            }
-
             @Override
             public boolean onInterceptInMessage(int what) {
                 switch (what) {
@@ -936,11 +915,6 @@ public class RealmAsyncQueryTests {
         // Configure interceptor handler
         final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public boolean onInterceptOutMessage(int what) {
-                return false;
-            }
-
-            @Override
             public boolean onInterceptInMessage(int what) {
                 Log.d("HandlerBug", "onInterceptInMessage: " + what);
                 int intercepts = numberOfIntercept.incrementAndGet();
@@ -1036,12 +1010,6 @@ public class RealmAsyncQueryTests {
 
         // 2. Configure proxy handler to intercept messages
         final Handler handler = new HandlerProxy(realm.handlerController) {
-
-            @Override
-            public boolean onInterceptOutMessage(int what) {
-                return false; // Ignore outgoing messages
-            }
-
             @Override
             public boolean onInterceptInMessage(int what) {
                 // In order [QueryCompleted, RealmChanged, QueryUpdated]
@@ -1107,11 +1075,6 @@ public class RealmAsyncQueryTests {
 
         // 2. Configure interceptor
         final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptOutMessage(int what) {
-                return false;
-            }
-
             @Override
             public boolean onInterceptInMessage(int what) {
                 switch (what) {
@@ -1249,11 +1212,6 @@ public class RealmAsyncQueryTests {
 
         // 2. Configure interceptor
         final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptOutMessage(int what) {
-                return false;
-            }
-
             @Override
             public boolean onInterceptInMessage(int what) {
                 int intercepts = numberOfIntercept.incrementAndGet();

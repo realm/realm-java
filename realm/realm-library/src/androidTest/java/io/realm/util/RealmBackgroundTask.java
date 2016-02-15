@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
-import io.realm.util.ExceptionHolder;
 
 /**
  * Utility class for running a task on a background thread.
@@ -31,7 +30,7 @@ import io.realm.util.ExceptionHolder;
  *
  * Failures can be asserted using {@code task.checkFailure()}
  */
-public abstract class RealmBackgroundTask  {
+public abstract class RealmBackgroundTask {
 
     private final RealmConfiguration configuration;
     private final ExceptionHolder exceptionHolder = new ExceptionHolder();
@@ -41,7 +40,7 @@ public abstract class RealmBackgroundTask  {
     }
 
     /**
-     * Runs the task on a background thread. It will either return when it completes ssuccessfully or throw an
+     * Runs the task on a background thread. It will either return when it completes successfully or throw an
      * {@link junit.framework.AssertionFailedError} if it failed or timed out. The background task is limited to
      * 10 seconds after which it will time out.
      */
@@ -60,7 +59,7 @@ public abstract class RealmBackgroundTask  {
                     jobDone.countDown();
                 }
             }
-        }).start();
+        }, "RealmBackgroundTask").start();
 
         try {
             if (!jobDone.await(10, TimeUnit.SECONDS)) {
@@ -78,5 +77,5 @@ public abstract class RealmBackgroundTask  {
      *
      * @param realm Realm instance created by the provided configuration.
      */
-    public abstract void doInBackground(Realm realm);
+    protected abstract void doInBackground(Realm realm);
 }

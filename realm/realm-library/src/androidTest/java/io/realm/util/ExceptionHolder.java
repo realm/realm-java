@@ -48,7 +48,6 @@ import static junit.framework.Assert.fail;
  */
 public class ExceptionHolder {
 
-    private boolean exceptionSet = false;
     private Throwable exception;
 
     /**
@@ -58,11 +57,10 @@ public class ExceptionHolder {
      * @throws IllegalStateException if an exception have already been put into this holder.
      */
     public void setException(Throwable throwable) {
-        if (exceptionSet) {
+        if (exception != null) {
             throw new IllegalStateException("An exception has already been set.");
         }
         this.exception = throwable;
-        this.exceptionSet = true;
     }
 
     /**

@@ -65,14 +65,22 @@ public abstract class HandlerProxy extends Handler {
      * swallow it.
      *
      * This method will be executed on the thread sending the message.
+     *
+     * @return {@code true} if message should be swallowed. {@code false} to continue processing it.
      */
-    public abstract boolean onInterceptOutMessage(int what);
+    protected boolean onInterceptOutMessage(int what) {
+        return false;
+    }
 
     /**
      * Intercepts a message as it is being received. Return {@code false} to let subclasses continue the handling.
      * {@code true} to swallow it.
      *
-     * This method will be executed on the thread of the Looper backing the Handler.
+     * This method will be executed on the thread of the Looper backing the Handler
+     *
+     * @return {@code true} if message should be swallowed. {@code false} to continue processing it.
      */
-    public abstract boolean onInterceptInMessage(int what);
+    protected boolean onInterceptInMessage(int what) {
+        return false;
+    }
 }
