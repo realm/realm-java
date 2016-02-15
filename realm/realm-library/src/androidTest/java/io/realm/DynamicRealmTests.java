@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
@@ -78,6 +79,10 @@ public class DynamicRealmTests {
     }
 
     private void populateTestRealm(DynamicRealm realm, int objects) {
+        boolean autoRefreshEnabled = realm.isAutoRefresh();
+        if (autoRefreshEnabled) {
+            realm.setAutoRefresh(false);
+        }
         realm.beginTransaction();
         realm.allObjects(AllTypes.CLASS_NAME).clear();
         for (int i = 0; i < objects; ++i) {
@@ -93,6 +98,9 @@ public class DynamicRealmTests {
             allTypes.getList(AllTypes.FIELD_REALMLIST).add(realm.createObject(Dog.CLASS_NAME));
         }
         realm.commitTransaction();
+        if (autoRefreshEnabled) {
+            realm.setAutoRefresh(true);
+        }
     }
 
     private void populateTestRealm() {
@@ -385,6 +393,10 @@ public class DynamicRealmTests {
     }
 
     private void populateForDistinct(DynamicRealm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {
+        boolean autoRefreshEnabled = realm.isAutoRefresh();
+        if (autoRefreshEnabled) {
+            realm.setAutoRefresh(false);
+        }
         realm.beginTransaction();
         for (int i = 0; i < numberOfObjects * numberOfBlocks; i++) {
             for (int j = 0; j < numberOfBlocks; j++) {
@@ -400,6 +412,9 @@ public class DynamicRealmTests {
             }
         }
         realm.commitTransaction();
+        if (autoRefreshEnabled) {
+            realm.setAutoRefresh(true);
+        }
     }
 
     @Test
@@ -496,6 +511,7 @@ public class DynamicRealmTests {
         final RealmResults<DynamicRealmObject> allTypes = dynamicRealm.where(AllTypes.CLASS_NAME)
                 .between(AllTypes.FIELD_LONG, 4, 9)
                 .findAllAsync();
+
         assertFalse(allTypes.isLoaded());
         assertEquals(0, allTypes.size());
 
@@ -538,8 +554,7 @@ public class DynamicRealmTests {
 
     // Initialize a Dynamic Realm used by the *Async tests.
     private DynamicRealm initializeDynamicRealm() {
-        RealmConfiguration defaultConfig = looperThread.createConfiguration();
-        Realm.getInstance(defaultConfig).close(); // Create Schema
+        RealmConfiguration defaultConfig = looperThread.realmConfiguration;
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(defaultConfig);
         populateTestRealm(dynamicRealm, 10);
         return dynamicRealm;
@@ -549,8 +564,8 @@ public class DynamicRealmTests {
     @RunTestInLooperThread
     public void findAllSortedAsync_usingMultipleFields() {
         final DynamicRealm dynamicRealm = initializeDynamicRealm();
-        final CountDownLatch callbacksDone = new CountDownLatch(2);
 
+        dynamicRealm.setAutoRefresh(false);
         dynamicRealm.beginTransaction();
         dynamicRealm.clear(AllTypes.CLASS_NAME);
         for (int i = 0; i < 5; ) {
@@ -563,6 +578,7 @@ public class DynamicRealmTests {
             allTypes.set(AllTypes.FIELD_STRING, "data " + (++i % 3));
         }
         dynamicRealm.commitTransaction();
+        dynamicRealm.setAutoRefresh(true);
 
         // Sort first set by using: String[ASC], Long[DESC]
         final RealmResults<DynamicRealmObject> realmResults1 = dynamicRealm.where(AllTypes.CLASS_NAME)
@@ -579,11 +595,11 @@ public class DynamicRealmTests {
                         new Sort[]{Sort.DESCENDING, Sort.ASCENDING}
                 );
 
-        final Runnable callbackDoneTask = new Runnable() {
+        final Runnable signalCallbackDone = new Runnable() {
+            final AtomicInteger callbacksDone = new AtomicInteger(2);
             @Override
             public void run() {
-                callbacksDone.countDown();
-                if (callbacksDone.getCount() == 0) {
+                if (callbacksDone.decrementAndGet() == 0) {
                     dynamicRealm.close();
                     looperThread.testComplete();
                 }
@@ -616,7 +632,7 @@ public class DynamicRealmTests {
                 assertEquals("data 2", realmResults1.get(9).get(AllTypes.FIELD_STRING));
                 assertEquals(1L, realmResults1.get(9).get(AllTypes.FIELD_LONG));
 
-                callbackDoneTask.run();
+                signalCallbackDone.run();
             }
         });
 
@@ -646,7 +662,7 @@ public class DynamicRealmTests {
                 assertEquals("data 0", realmResults2.get(9).get(AllTypes.FIELD_STRING));
                 assertEquals(3L, realmResults2.get(9).get(AllTypes.FIELD_LONG));
 
-                callbackDoneTask.run();
+                signalCallbackDone.run();
             }
         });
     }
@@ -654,8 +670,7 @@ public class DynamicRealmTests {
     @Test
     @RunTestInLooperThread
     public void distinctAsync() {
-        final CountDownLatch signalTestFinished = new CountDownLatch(4);
-        final DynamicRealm dynamicRealm = initializeDynamicRealm();
+        final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.realmConfiguration);
         final long numberOfBlocks = 25;
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(dynamicRealm, numberOfBlocks, numberOfObjects, false);
@@ -666,6 +681,7 @@ public class DynamicRealmTests {
         final RealmResults<DynamicRealmObject> distinctString = dynamicRealm.distinctAsync(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_STRING);
 
         final Runnable callbackDoneTask = new Runnable() {
+            final CountDownLatch signalTestFinished = new CountDownLatch(4);
             @Override
             public void run() {
                 signalTestFinished.countDown();

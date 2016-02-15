@@ -21,7 +21,6 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -487,7 +486,7 @@ public class RealmAsyncQueryTests {
         realmResults.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(2, numberOfIntercept.get());
+                assertEquals(3, numberOfIntercept.get());
                 assertEquals(1, numberOfInvocation.incrementAndGet());
                 assertTrue(realmResults.isLoaded());
                 assertEquals(0, realmResults.size());
@@ -623,7 +622,6 @@ public class RealmAsyncQueryTests {
             @Override
             public boolean onInterceptInMessage(int what) {
                 // Intercepts in order [QueryCompleted, RealmChanged, QueryUpdated]
-                Log.d("HandlerBug", "onInterceptInMessage: " + what);
                 int intercepts = numberOfIntercept.incrementAndGet();
                 switch (what) {
                     case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
@@ -652,7 +650,7 @@ public class RealmAsyncQueryTests {
         realmResults.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(2, numberOfIntercept.get());
+                assertEquals(3, numberOfIntercept.get());
                 assertTrue(realmResults.isLoaded());
                 assertEquals(6, realmResults.size());
                 looperThread.testComplete();
@@ -916,7 +914,6 @@ public class RealmAsyncQueryTests {
         final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
             public boolean onInterceptInMessage(int what) {
-                Log.d("HandlerBug", "onInterceptInMessage: " + what);
                 int intercepts = numberOfIntercept.incrementAndGet();
                 switch (what) {
                     case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
@@ -953,7 +950,7 @@ public class RealmAsyncQueryTests {
         realmResults.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(2, numberOfIntercept.get());
+                assertEquals(3, numberOfIntercept.get());
                 assertTrue(realmResults.isLoaded());
                 assertEquals(5, realmResults.getColumnLong());
                 assertEquals("The Endless River", realmResults.getColumnString());
@@ -1045,7 +1042,7 @@ public class RealmAsyncQueryTests {
         realmResults.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(2, numberOfIntercept.get());
+                assertEquals(3, numberOfIntercept.get());
                 looperThread.testComplete();
             }
         });

@@ -18,6 +18,7 @@ package io.realm;
 
 
 import android.os.Handler;
+import android.util.Log;
 
 import java.lang.UnsupportedOperationException;
 import java.lang.ref.WeakReference;

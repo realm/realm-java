@@ -112,6 +112,7 @@ public class HandlerController implements Handler.Callback {
                 }
                 case COMPLETED_UPDATE_ASYNC_QUERIES: {
                     // this is called once the background thread completed the update of the async queries
+                    notifyAllListeners();
                     QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncQueriesUpdate(result);
                     break;
@@ -331,23 +332,27 @@ public class HandlerController implements Handler.Callback {
         } else {
             RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " no async queries, advance_read");
             realm.sharedGroupManager.advanceRead();
-            notifyGlobalListeners();
-            // notify RealmResults & RealmObject callbacks (type based notifications)
-            if (!realm.isClosed()) {
-                // Realm could be closed in the above listener.
-                notifySyncRealmResultsCallbacks();
-            }
-            if (!realm.isClosed()) {
-                notifyRealmObjectCallbacks();
-            }
+            notifyAllListeners();
+        }
+    }
 
-            // empty async RealmObject shouldn't block the realm to advance
-            // they're empty so no risk on running into a corrupt state
-            // where the pointer (Row) is using one version of a Realm, whereas the
-            // current Realm is advancing to a newer version (they're empty anyway)
-            if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
-                updateAsyncEmptyRealmObject();
-            }
+    private void notifyAllListeners() {
+        notifyGlobalListeners();
+        // notify RealmResults & RealmObject callbacks (type based notifications)
+        if (!realm.isClosed()) {
+            // Realm could be closed in the above listener.
+            notifySyncRealmResultsCallbacks();
+        }
+        if (!realm.isClosed()) {
+            notifyRealmObjectCallbacks();
+        }
+
+        // empty async RealmObject shouldn't block the realm to advance
+        // they're empty so no risk on running into a corrupt state
+        // where the pointer (Row) is using one version of a Realm, whereas the
+        // current Realm is advancing to a newer version (they're empty anyway)
+        if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
+            updateAsyncEmptyRealmObject();
         }
     }
 
