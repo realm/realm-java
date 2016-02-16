@@ -15,6 +15,10 @@
 * RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
 * Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
 
+## 0.87.5
+ * Updated Realm Core to 0.96.1
+   - IllegalStateException won't be thrown anymore in RealmResults.where() if the RealmList which the RealmResults is created on has been deleted. Instead, the RealmResults will be treated as empty forever.
+
 ## 0.87.4
 * Updated Realm Core to 0.96.0
   - Fixed bug causing BadVersionException or crashing core when running async queries.

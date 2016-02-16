@@ -1670,9 +1670,10 @@ public class RealmResultsTests {
         return dogs;
     }
 
+    // It will still be treated as valid table view in core, just alays be empty.
     @Test
     public void isValid_resultsBuiltOnDeletedLinkView() {
-        assertEquals(false, populateRealmResultsOnDeletedLinkView().isValid());
+        assertEquals(true, populateRealmResultsOnDeletedLinkView().isValid());
     }
 
     @Test
@@ -1749,11 +1750,6 @@ public class RealmResultsTests {
 
     @Test
     public void whereResultsBuiltOnDeletedLinkView() {
-        try {
-            populateRealmResultsOnDeletedLinkView().where();
-            fail();
-        } catch (IllegalStateException e) {
-            assertEquals("The RealmList which this RealmResults is created on has been deleted.", e.getMessage());
-        }
+        assertEquals(0, populateRealmResultsOnDeletedLinkView().where().findAll().size());
     }
 }
