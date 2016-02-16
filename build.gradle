@@ -176,6 +176,9 @@ task cleanRealm(type:GradleBuild) {
     group = 'Clean'
     buildFile = file('realm/build.gradle')
     tasks = ['clean']
+    if (project.hasProperty('dontCleanJniFiles')) {
+        startParameter.projectProperties = [dontCleanJniFiles: ""]
+    }
 }
 
 task cleanGradlePlugin(type:GradleBuild) {
@@ -241,7 +244,7 @@ task uploadUpdateVersion(type: Exec) {
 
 task distribute {
     group = 'Release'
-    description = 'Distribute release artifacts to Bintray and S3'
+    description = 'Distribute release artifacts to S3'
     dependsOn uploadUpdateVersion
 }
 

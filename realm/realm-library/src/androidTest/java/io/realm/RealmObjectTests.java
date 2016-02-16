@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.After;
@@ -26,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -51,6 +51,7 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -117,6 +118,34 @@ public class RealmObjectTests {
             assertEquals(strings[i], s);
             i++;
         }
+    }
+
+    // invalid surrogate pairs:
+    // both high and low should lead to an IllegalArgumentException
+    @Test
+    public void invalidSurrogates() {
+        String high = "Invalid high surrogate \uD83C\uD83C\uDF51";
+        String low  = "Invalid low surrogate \uD83C\uDF51\uDF51";
+
+        realm.beginTransaction();
+        realm.clear(AllTypes.class);
+        realm.commitTransaction();
+
+        realm.beginTransaction();
+        try {
+            AllTypes highSurrogate = realm.createObject(AllTypes.class);
+            highSurrogate.setColumnString(high);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+        realm.cancelTransaction();
+
+        realm.beginTransaction();
+        try {
+            AllTypes lowSurrogate = realm.createObject(AllTypes.class);
+            lowSurrogate.setColumnString(low);
+            fail();
+        } catch (IllegalArgumentException ignored) {}
+        realm.cancelTransaction();
     }
 
     // removing original object and see if has been removed
@@ -383,18 +412,59 @@ public class RealmObjectTests {
 
     @Test
     public void hashCode_cyclicObject() {
-        // Don't use the configFactory as we need absolute control over the path to be able to calculate the hashCode
-        realm.close();
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(InstrumentationRegistry.getTargetContext()).build();
-        realm = Realm.getInstance(realmConfig);
-
         realm.beginTransaction();
-        CyclicType foo = createCyclicData();
+        final CyclicType foo = createCyclicData();
         realm.commitTransaction();
-        assertEquals(1344723738, foo.hashCode());
+
+        // Check that the hash code is always the same between multiple calls.
+        assertEquals(foo.hashCode(), foo.hashCode());
+        // Check that the hash code is the same among same object
+        assertEquals(foo.hashCode(), realm.where(CyclicType.class).equalTo("name", foo.getName()).findFirst().hashCode());
+        // hash code is different from other objects.
+        assertNotEquals(foo.getObject().hashCode(), foo.hashCode());
+
+        final int originalHashCode = foo.hashCode();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                foo.setName(foo.getName() + "1234");
+            }
+        });
+        // Check that Updating the value of its field does not affect the hash code.
+        assertEquals(originalHashCode, foo.hashCode());
+
+        // Check the hash code of the object from a Realm in different file name.
+        RealmConfiguration realmConfig_differentName = configFactory.createConfiguration(
+                "another_" + realmConfig.getRealmFileName());
+        Realm realm_differentName = Realm.getInstance(realmConfig_differentName);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            realm_differentName.beginTransaction();
+            CyclicType fooFromDifferentName = createCyclicData(realm_differentName);
+            realm_differentName.commitTransaction();
+
+            assertNotEquals(fooFromDifferentName.hashCode(), foo.hashCode());
+        } finally {
+            realm_differentName.close();
+        }
+
+        // Check the hash code of the object from a Realm in different folder.
+        RealmConfiguration realmConfig_differentPath = configFactory.createConfiguration(
+                "anotherDir", realmConfig.getRealmFileName());
+        Realm realm_differentPath = Realm.getInstance(realmConfig_differentPath);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            realm_differentPath.beginTransaction();
+            CyclicType fooFromDifferentPath = createCyclicData(realm_differentPath);
+            realm_differentPath.commitTransaction();
+
+            assertNotEquals(fooFromDifferentPath.hashCode(), foo.hashCode());
+        } finally {
+            realm_differentPath.close();
+        }
     }
 
-    private CyclicType createCyclicData() {
+    private CyclicType createCyclicData(Realm realm) {
         CyclicType foo = realm.createObject(CyclicType.class);
         foo.setName("Foo");
         CyclicType bar = realm.createObject(CyclicType.class);
@@ -404,6 +474,10 @@ public class RealmObjectTests {
         foo.setObject(bar);
         bar.setObject(foo);
         return foo;
+    }
+
+    private CyclicType createCyclicData() {
+        return createCyclicData(realm);
     }
 
     @Test
