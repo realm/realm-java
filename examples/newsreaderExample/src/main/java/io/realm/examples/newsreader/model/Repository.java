@@ -106,7 +106,7 @@ public class Repository implements Closeable {
      */
     @UiThread
     public void updateStoryReadState(final String storyId, final boolean read) {
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 NYTimesStory persistedStory = realm.where(NYTimesStory.class).equalTo(NYTimesStory.URL, storyId).findFirst();
@@ -116,7 +116,12 @@ public class Repository implements Closeable {
                     Timber.e("Trying to update a story that no longer exists: " + storyId);
                 }
             }
-        }, new DefaultTransactionCallback());
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable throwable) {
+                Timber.e(throwable, "Failed to save data.");
+            }
+        });
     }
 
     /**

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Locale;
 
 import io.realm.Realm;
-import io.realm.examples.newsreader.model.DefaultTransactionCallback;
 import io.realm.examples.newsreader.model.entity.NYTimesStory;
 import retrofit.JacksonConverterFactory;
 import retrofit.Retrofit;
@@ -90,7 +89,7 @@ public class NYTimesDataLoader {
     private void processAndAddData(final Realm realm, final String sectionKey, final List<NYTimesStory> stories) {
         if (stories.isEmpty()) return;
 
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 for (NYTimesStory story : stories) {
@@ -114,6 +113,11 @@ public class NYTimesDataLoader {
                     }
                 }
             }
-        }, new DefaultTransactionCallback());
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable throwable) {
+                Timber.e(throwable, "Could not save data");
+            }
+        });
     }
 }

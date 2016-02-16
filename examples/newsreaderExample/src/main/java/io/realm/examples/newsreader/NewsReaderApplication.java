@@ -49,7 +49,7 @@ public abstract class NewsReaderApplication extends Application {
     }
 
     /**
-     * Initialize Timer logging
+     * Initialize Timber logging
      */
     protected abstract void initializeTimber();
 
