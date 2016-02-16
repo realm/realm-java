@@ -16,17 +16,11 @@
 
 package io.realm;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.Table;
-import io.realm.internal.TableQuery;
-import io.realm.internal.log.RealmLog;
-import rx.Observable;
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
@@ -78,37 +72,54 @@ import rx.Observable;
  * @see Realm#copyToRealm(RealmObject)
  */
 
-@RealmClass
-public abstract class RealmObject {
+public abstract class RealmObject implements RealmModel {
 
-    protected Row row;
-    protected BaseRealm realm;
 
-    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
-    private Future<Long> pendingQuery;
-    private boolean isCompleted = false;
-    protected long currentTableVersion = -1;
+// TODO Move this to the proxy classes
+//    protected Row row;
+//    protected BaseRealm realm;
+//
+//    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+//    private Future<Long> pendingQuery;
+//    private boolean isCompleted = false;
+//    protected long currentTableVersion = -1;
+//
+    /**
+     * Removes the object from the Realm it is currently associated to.
+     * <p>
+     * After this method is called the object will be invalid and any operation (read or write) performed on it will
+     * fail with an IllegalStateException.
+     *
+     * @throws IllegalArgumentException if the object is not managed by Realm.
+     * @throws IllegalStateException if the Realm is closed or accessed from the wrong thread.
+     */
+    public final void removeFromRealm() {
+        RealmObject.removeFromRealm(this);
+    }
 
     /**
      * Removes the object from the Realm it is currently associated to.
      * <p>
      * After this method is called the object will be invalid and any operation (read or write) performed on it will
-     * fail with an IllegalStateException
+     * fail with an IllegalStateException.
      *
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     * @param realmObject RealmObject to remove from the underlying Realm.
+     * @throws IllegalArgumentException if the object is not managed by Realm.
+     * @throws IllegalStateException if the Realm is closed or accessed from the wrong thread.
      */
-    public void removeFromRealm() {
-        if (row == null) {
-            throw new IllegalStateException("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
+    public static <E extends RealmModel> void removeFromRealm(E realmObject) {
+        if (!(realmObject instanceof RealmObjectProxy)) {
+            // TODO What type of exception IllegalArgument/IllegalState?
+            throw new IllegalArgumentException("Object not managed by Realm, so it cannot be removed.");
         }
-        if (realm == null) {
-            throw new IllegalStateException("Object malformed: missing Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
-        }
-        realm.checkIfValid();
 
+        RealmObjectProxy proxy = (RealmObjectProxy) realmObject;
+        proxy.getRealm().checkIfValid();
+        Row row = proxy.getRow();
         row.getTable().moveLastOver(row.getIndex());
-        row = InvalidRow.INSTANCE;
+        proxy.setRow(InvalidRow.INSTANCE);
     }
+
 
     /**
      * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
@@ -117,28 +128,24 @@ public abstract class RealmObject {
      * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a standalone object.
      */
     public final boolean isValid() {
-        return row != null && row.isAttached();
-    }
-
-    protected Table getTable () {
-        return realm.schema.getTable(getClass());
+        return RealmObject.isValid(this);
     }
 
     /**
-     * Sets the Future instance returned by the worker thread, we need this instance to force {@link #load()} an async
-     * query, we use it to determine if the current RealmResults is a sync or async one.
+     * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
+     * {@link io.realm.Realm} been closed. It will always return false for stand alone objects.
      *
-     * @param pendingQuery pending query.
+     * @param realmObject RealmObject to check validity for.
+     * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a standalone object.
      */
-    void setPendingQuery(Future<Long> pendingQuery) {
-        this.pendingQuery = pendingQuery;
-        if (isLoaded()) {
-            // the query completed before RealmQuery
-            // had a chance to call setPendingQuery to register the pendingQuery (used btw
-            // to determine isLoaded behaviour)
-            onCompleted();
-
-        } // else, it will be handled by the Realm#handler
+    public static <E extends RealmModel> boolean isValid(E realmObject) {
+        if (realmObject instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) realmObject;
+            Row row = proxy.getRow();
+            return row != null && row.isAttached();
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -150,11 +157,26 @@ public abstract class RealmObject {
      * progress.
      */
     public final boolean isLoaded() {
-        if (realm == null) {
+        return RealmObject.isLoaded(this);
+    }
+
+    /**
+     * Determines if the RealmObject is obtained synchronously or asynchronously (from a worker thread).
+     * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
+     * This will return {@code true} if called for a standalone object (created outside of Realm).
+     *
+     * @param realmObject RealmObject to check.
+     * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
+     * progress.
+     */
+    public static <E extends RealmModel> boolean isLoaded(E realmObject) {
+        if (realmObject instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) realmObject;
+            proxy.getRealm().checkIfValid();
+            return proxy.getPendingQuery() == null || proxy.isCompleted();
+        } else {
             return true;
         }
-        realm.checkIfValid();
-        return pendingQuery == null || isCompleted;
     }
 
     /**
@@ -164,179 +186,222 @@ public abstract class RealmObject {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public final boolean load() {
-        if (isLoaded()) {
-            return true;
-        } else {
-            // doesn't guarantee to import correctly the result (because the user may have advanced)
-            // in this case the Realm#handler will be responsible of retrying
-            return onCompleted();
-        }
+        return RealmObject.load(this);
     }
 
     /**
-     * Called to import the handover row pointer & notify listeners.
+     * Makes an asynchronous query blocking. This will also trigger any registered listeners.
+     * Note: This will return {@code true} if called for a standalone object (created outside of Realm).
      *
+     * @param realmObject RealmObject to force load.
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
-    boolean onCompleted() {
-        try {
-            Long handoverResult = pendingQuery.get();// make the query blocking
-            if (handoverResult != 0) {
-                // this may fail with BadVersionException if the caller and/or the worker thread
-                // are not in sync (same shared_group version).
-                // COMPLETED_ASYNC_REALM_OBJECT will be fired by the worker thread
-                // this should handle more complex use cases like retry, ignore etc
-                onCompleted(handoverResult);
-                notifyChangeListeners();
+    public static <E extends RealmModel> boolean load(E realmObject) {
+        if (RealmObject.isLoaded(realmObject)) {
+            return true;
+        } else {
+            if (realmObject instanceof RealmObjectProxy) {
+                // doesn't guarantee to import correctly the result (because the user may have advanced)
+                // in this case the Realm#handler will be responsible of retrying
+                return ((RealmObjectProxy) realmObject).onCompleted();
             } else {
-                isCompleted = true;
-            }
-        } catch (Exception e) {
-            RealmLog.d(e.getMessage());
-            return false;
-        }
-        return true;
-    }
-
-    void onCompleted(Long handoverRowPointer) {
-        if (handoverRowPointer == 0) {
-            // we'll retry later to update the row pointer, but we consider
-            // the query done
-            isCompleted = true;
-
-        } else if (!isCompleted || row == Row.EMPTY_ROW) {
-            isCompleted = true;
-            long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());
-            Table table = getTable();
-            this.row = table.getUncheckedRowByPointer(nativeRowPointer);
-        }// else: already loaded query no need to import again the pointer
-    }
-
-    /**
-     * Adds a change listener to this RealmObject.
-     *
-     * @param listener the change listener to be notified.
-     */
-    public final void addChangeListener(RealmChangeListener listener) {
-        if (listener == null) {
-            throw new IllegalArgumentException("Listener should not be null");
-        }
-        if (realm != null) {
-            realm.checkIfValid();
-        } else {
-            throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");
-        }
-        if (realm.handler == null) {
-            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
-        }
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
-    }
-
-    /**
-     * Removes a previously registered listener.
-     *
-     * @param listener the instance to be removed.
-     */
-    public final void removeChangeListener(RealmChangeListener listener) {
-        if (listener == null) {
-            throw new IllegalArgumentException("Listener should not be null");
-        }
-        if (realm != null) {
-            realm.checkIfValid();
-        } else {
-            throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
-        }
-        listeners.remove(listener);
-    }
-
-    /**
-     * Removes all registered listeners.
-     */
-    public final void removeChangeListeners() {
-        if (realm != null) {
-            realm.checkIfValid();
-        } else {
-            throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");
-        }
-        listeners.clear();
-    }
-
-    /**
-     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
-     * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
-     * {@code onComplete} will never be called.
-     *
-     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
-     * type information, otherwise the type of the following observables will be {@code RealmObject}.
-     *
-     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
-     * only emit only the first item by using the {@code first()} operator:
-     *
-     * <pre>
-     * {@code
-     * obj.asObservable()
-     *      .filter(obj -> obj.isLoaded())
-     *      .first()
-     *      .subscribe( ... ) // You only get the object once
-     * }
-     * </pre>
-     *
-     * @param <E> RealmObject class that is being observed. Must be this class or its super types.
-     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
-     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
-     */
-    public <E extends RealmObject> Observable<E> asObservable() {
-        if (realm instanceof Realm) {
-            @SuppressWarnings("unchecked")
-            E obj = (E) this;
-            return realm.configuration.getRxFactory().from((Realm) realm, obj);
-        } else if (realm instanceof DynamicRealm) {
-            DynamicRealm dynamicRealm = (DynamicRealm) realm;
-            DynamicRealmObject dynamicObject = (DynamicRealmObject) this;
-            @SuppressWarnings("unchecked")
-            Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
-            return observable;
-        } else {
-            throw new UnsupportedOperationException(realm.getClass() + " not supported");
-        }
-    }
-
-    /**
-     * Notifies all registered listeners.
-     */
-    void notifyChangeListeners() {
-        if (listeners != null && !listeners.isEmpty()) {
-            boolean notify = false;
-
-            Table table = row.getTable();
-            if (table == null) {
-                // Completed async queries might result in `table == null`, `isCompleted == true` and `row == Row.EMPTY_ROW`
-                // We still want to trigger change notifications for these cases.
-                // isLoaded / isValid should be considered properties on RealmObjects as well so any change to these
-                // should trigger a RealmChangeListener.
-                notify = true;
-            } else {
-                long version = table.version();
-                if (currentTableVersion != version) {
-                    currentTableVersion = version;
-                    notify = true;
-                }
-            }
-
-            if (notify) {
-                for (RealmChangeListener listener : listeners) {
-                    listener.onChange();
-                }
+                return false;
             }
         }
     }
 
-    void setTableVersion() {
-        if (row.getTable() != null) {
-            currentTableVersion = row.getTable().version();
-        }
-    }
+//    /**
+//     * Adds a change listener to this RealmObject.
+//     *
+//     * @param listener the change listener to be notified.
+//     */
+//    public final void addChangeListener(RealmChangeListener listener) {
+//        if (listener == null) {
+//            throw new IllegalArgumentException("Listener should not be null");
+//        }
+//        if (realm != null) {
+//            realm.checkIfValid();
+//        } else {
+//            throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");
+//        }
+//        if (realm.handler == null) {
+//            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+//        }
+//        if (!listeners.contains(listener)) {
+//            listeners.add(listener);
+//        }
+//    }
+//
+//    /**
+//     * Removes a previously registered listener.
+//     *
+//     * @param listener the instance to be removed.
+//     */
+//    public final void removeChangeListener(RealmChangeListener listener) {
+//        if (listener == null) {
+//            throw new IllegalArgumentException("Listener should not be null");
+//        }
+//        if (realm != null) {
+//            realm.checkIfValid();
+//        } else {
+//            throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
+//        }
+//        listeners.remove(listener);
+//    }
+//
+//    /**
+//     * Removes all registered listeners.
+//     */
+//    public final void removeChangeListeners() {
+//        if (realm != null) {
+//            realm.checkIfValid();
+//        } else {
+//            throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");
+//        }
+//        listeners.clear();
+//    }
+//
+//    /**
+//     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+//     * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
+//     * {@code onComplete} will never be called.
+//     *
+//     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+//     * type information, otherwise the type of the following observables will be {@code RealmObject}.
+//     *
+//     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+//     * only emit only the first item by using the {@code first()} operator:
+//     *
+//     * <pre>
+//     * {@code
+//     * obj.asObservable()
+//     *      .filter(obj -> obj.isLoaded())
+//     *      .first()
+//     *      .subscribe( ... ) // You only get the object once
+//     * }
+//     * </pre>
+//     *
+//     * @param <E> RealmObject class that is being observed. Must be this class or its super types.
+//     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+//     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+//     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+//     */
+//    public <E extends RealmObject> Observable<E> asObservable() {
+//        if (realm instanceof Realm) {
+//            @SuppressWarnings("unchecked")
+//            E obj = (E) this;
+//            return realm.configuration.getRxFactory().from((Realm) realm, obj);
+//        } else if (realm instanceof DynamicRealm) {
+//            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+//            DynamicRealmObject dynamicObject = (DynamicRealmObject) this;
+//            @SuppressWarnings("unchecked")
+//            Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
+//            return observable;
+//        } else {
+//            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+//        }
+//    }
+//
+
+// TODO Move all the below methods somewhere else
+
+    // TODO Move to RealmObjectProxy
+//    protected Table getTable () {
+//        return realm.schema.getTable(getClass());
+//    }
+
+      // TODO Move to RealmObjectPRoxy
+//    /**
+//     * Sets the Future instance returned by the worker thread, we need this instance to force {@link #load()} an async
+//     * query, we use it to determine if the current RealmResults is a sync or async one.
+//     *
+//     * @param pendingQuery pending query.
+//     */
+//    void setPendingQuery(Future<Long> pendingQuery) {
+//        this.pendingQuery = pendingQuery;
+//        if (isLoaded()) {
+//            // the query completed before RealmQuery
+//            // had a chance to call setPendingQuery to register the pendingQuery (used btw
+//            // to determine isLoaded behaviour)
+//            onCompleted();
+//
+//        } // else, it will be handled by the Realm#handler
+//    }
+
+    // TODO Move to RealmObjectPRoxy
+//    /**
+//     * Called to import the handover row pointer & notify listeners.
+//     *
+//     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
+//     */
+//    boolean onCompleted() {
+//        try {
+//            Long handoverResult = pendingQuery.get();// make the query blocking
+//            if (handoverResult != 0) {
+//                // this may fail with BadVersionException if the caller and/or the worker thread
+//                // are not in sync (same shared_group version).
+//                // COMPLETED_ASYNC_REALM_OBJECT will be fired by the worker thread
+//                // this should handle more complex use cases like retry, ignore etc
+//                onCompleted(handoverResult);
+//                notifyChangeListeners();
+//            } else {
+//                isCompleted = true;
+//            }
+//        } catch (Exception e) {
+//            RealmLog.d(e.getMessage());
+//            return false;
+//        }
+//        return true;
+//    }
+
+    // TODO Move to RealmObjectPRoxy
+//    void onCompleted(Long handoverRowPointer) {
+//        if (handoverRowPointer == 0) {
+//            // we'll retry later to update the row pointer, but we consider
+//            // the query done
+//            isCompleted = true;
+//
+//        } else if (!isCompleted || row == Row.EMPTY_ROW) {
+//            isCompleted = true;
+//            long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());
+//            Table table = getTable();
+//            this.row = table.getUncheckedRowByPointer(nativeRowPointer);
+//        }// else: already loaded query no need to import again the pointer
+//    }
+//
+//    /**
+//     * Notifies all registered listeners.
+//     */
+//    void notifyChangeListeners() {
+//        if (listeners != null && !listeners.isEmpty()) {
+//            boolean notify = false;
+//
+//            Table table = row.getTable();
+//            if (table == null) {
+//                // Completed async queries might result in `table == null`, `isCompleted == true` and `row == Row.EMPTY_ROW`
+//                // We still want to trigger change notifications for these cases.
+//                // isLoaded / isValid should be considered properties on RealmObjects as well so any change to these
+//                // should trigger a RealmChangeListener.
+//                notify = true;
+//            } else {
+//                long version = table.version();
+//                if (currentTableVersion != version) {
+//                    currentTableVersion = version;
+//                    notify = true;
+//                }
+//            }
+//
+//            if (notify) {
+//                for (RealmChangeListener listener : listeners) {
+//                    listener.onChange();
+//                }
+//            }
+//        }
+//    }
+//
+//    void setTableVersion() {
+//        if (row.getTable() != null) {
+//            currentTableVersion = row.getTable().version();
+//        }
+//    }
 }

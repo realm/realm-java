@@ -16,6 +16,7 @@
 
 package io.realm.internal;
 
+import io.realm.BaseRealm;
 import io.realm.RealmObject;
 
 /**
@@ -24,6 +25,14 @@ import io.realm.RealmObject;
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
 public interface RealmObjectProxy {
+
+    BaseRealm getRealm();
+    void setRealm(BaseRealm realm);
+    Row getRow();
+    void setRow(Row row);
+    Object getPendingQuery();
+    boolean isCompleted();
+    boolean onCompleted();
 
     /**
      * Tuple class for saving meta data about a cached RealmObject.
