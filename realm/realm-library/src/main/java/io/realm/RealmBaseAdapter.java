@@ -31,7 +31,7 @@ import android.widget.BaseAdapter;
  * closed. Trying to access read objects, will at this point also result in a
  * {@link io.realm.exceptions.RealmException}.
  */
-public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
+public abstract class RealmBaseAdapter<T extends RealmModel> extends BaseAdapter {
 
     protected LayoutInflater inflater;
     protected RealmResults<T> realmResults;

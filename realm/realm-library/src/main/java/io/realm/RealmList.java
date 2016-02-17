@@ -24,6 +24,7 @@ import java.util.List;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmObjectProxy;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -41,7 +42,7 @@ import io.realm.internal.LinkView;
  * @param <E> the class of objects in list.
  */
 
-public class RealmList<E extends RealmObject> extends AbstractList<E> {
+public class RealmList<E extends RealmModel> extends AbstractList<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
@@ -130,11 +131,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * <ol>
      * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
      *
      * @param location the index at which to insert.
@@ -147,8 +148,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         checkValidObject(object);
         if (managedMode) {
             checkValidView();
-            object = copyToRealmIfNeeded(object);
-            view.insert(location, object.row.getIndex());
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+            view.insert(location, proxy.getRow().getIndex());
         } else {
             nonManagedList.add(location, object);
         }
@@ -159,11 +160,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * <ol>
      * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
      *
      * @param object the object to add.
@@ -175,8 +176,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         checkValidObject(object);
         if (managedMode) {
             checkValidView();
-            object = copyToRealmIfNeeded(object);
-            view.add(object.row.getIndex());
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
+            view.add(proxy.getRow().getIndex());
         } else {
             nonManagedList.add(object);
         }
@@ -188,11 +189,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * <ol>
      * <li><b>Un-managed RealmLists:</b> It is possible to add both managed and un-managed objects. If adding managed
      * objects to a un-managed RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmObject)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
      *
      * <li><b>Managed RealmLists:</b> It is possible to add un-managed objects to a RealmList that is already managed.
-     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmObject)} or
-     * {@link Realm#copyToRealmOrUpdate(RealmObject)} if it has a primary key.</li>
+     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)} or
+     * {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
      * </ol>
      * @param location the index at which to put the specified object.
      * @param object the object to add.
@@ -205,9 +206,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         checkValidObject(object);
         if (managedMode) {
             checkValidView();
-            object = copyToRealmIfNeeded(object);
+            RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded(object);
             E oldObject = get(location);
-            view.set(location, object.row.getIndex());
+            view.set(location, proxy.getRow().getIndex());
             return oldObject;
         } else {
             return nonManagedList.set(location, object);
@@ -217,8 +218,11 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
         // Object is already in this realm
-        if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
-            return object;
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            if (proxy.getRealm().getPath().equals(realm.getPath())) {
+                return object;
+            }
         }
 
         // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as you
@@ -313,8 +317,8 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
             checkValidView();
             view.removeAllTargetRows();
         } else {
-            for (RealmObject object : nonManagedList) {
-                object.removeFromRealm();
+            for (RealmModel object : nonManagedList) {
+                RealmObject.removeFromRealm(object);
             }
             nonManagedList.clear();
         }
@@ -418,10 +422,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     public boolean contains(Object object) {
         boolean contains = false;
         if (managedMode) {
-            if (object instanceof RealmObject) {
-                RealmObject realmObject = (RealmObject) object;
-                if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
-                    contains = view.contains(realmObject.row.getIndex());
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                if (realm.getPath().equals(proxy.getRealm().getPath()) && proxy.getRow() != InvalidRow.INSTANCE) {
+                    contains = view.contains(proxy.getRow().getIndex());
                 }
             }
         } else {
@@ -460,7 +464,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         } else {
             for (int i = 0; i < size(); i++) {
                 if (managedMode) {
-                    sb.append(get(i).row.getIndex());
+                    sb.append(((RealmObjectProxy) get(i)).getRow().getIndex());
                 } else {
                     sb.append(System.identityHashCode(get(i)));
                 }

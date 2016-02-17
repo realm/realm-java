@@ -21,6 +21,7 @@ import io.realm.DynamicRealmObject;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
+import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -107,7 +108,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmObject> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
+    public <E extends RealmModel> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
         checkRxJavaAvailable();
         return getRealmResultsObservable(results);
     }
@@ -118,7 +119,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return getRealmResultsObservable(results);
     }
 
-    private <E extends RealmObject> Observable<RealmResults<E>> getRealmResultsObservable(final RealmResults<E> results) {
+    private <E extends RealmModel> Observable<RealmResults<E>> getRealmResultsObservable(final RealmResults<E> results) {
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
             public void call(final Subscriber<? super RealmResults<E>> subscriber) {
@@ -146,7 +147,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmObject> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
+    public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
         checkRxJavaAvailable();
         return getRealmListObservable();
     }
@@ -157,12 +158,12 @@ public class RealmObservableFactory implements RxObservableFactory {
         return getRealmListObservable();
     }
 
-    private <E extends RealmObject> Observable<RealmList<E>> getRealmListObservable() {
+    private <E extends RealmModel> Observable<RealmList<E>> getRealmListObservable() {
         throw new RuntimeException("RealmList does not support change listeners yet, so cannot create an Observable");
     }
 
     @Override
-    public <E extends RealmObject> Observable<E> from(Realm realm, final E object) {
+    public <E extends RealmModel> Observable<E> from(Realm realm, final E object) {
         checkRxJavaAvailable();
         return getObjectObservable(object);
     }
@@ -173,7 +174,7 @@ public class RealmObservableFactory implements RxObservableFactory {
         return getObjectObservable(object);
     }
 
-    private <E extends RealmObject> Observable<E> getObjectObservable(final E object) {
+    private <E extends RealmModel> Observable<E> getObjectObservable(final E object) {
         return Observable.create(new Observable.OnSubscribe<E>() {
             @Override
             public void call(final Subscriber<? super E> subscriber) {
@@ -185,11 +186,11 @@ public class RealmObservableFactory implements RxObservableFactory {
                         }
                     }
                 };
-                object.addChangeListener(listener);
+                RealmObject.addChangeListener(object, listener);
                 subscriber.add(Subscriptions.create(new Action0() {
                     @Override
                     public void call() {
-                        object.removeChangeListener(listener);
+                        RealmObject.removeChangeListener(object, listener);
                     }
                 }));
 
@@ -201,7 +202,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public <E extends RealmObject> Observable<RealmQuery<E>> from(final Realm realm, final RealmQuery<E> query) {
+    public <E extends RealmModel> Observable<RealmQuery<E>> from(final Realm realm, final RealmQuery<E> query) {
         throw new RuntimeException("RealmQuery not supported yet.");
     }
 

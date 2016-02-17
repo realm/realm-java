@@ -16,6 +16,12 @@
 
 package io.realm.internal;
 
+import java.util.List;
+import java.util.concurrent.Future;
+
+import io.realm.BaseRealm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmModel;
 import io.realm.RealmObject;
 
 /**
@@ -23,12 +29,27 @@ import io.realm.RealmObject;
  *
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
-public interface RealmObjectProxy {
+public interface RealmObjectProxy extends RealmModel {
+
+    // TODO Revisit naming on these since they suddenly became more "public"
+    BaseRealm getRealm();
+    void setRealm(BaseRealm realm);
+    Row getRow();
+    void setRow(Row row);
+    Object getPendingQuery();
+    boolean isCompleted();
+    boolean onCompleted();
+    void onCompleted(long rowPointer);
+    List<RealmChangeListener> getListeners();
+    void setTableVersion();
+    Table getTable();
+    void notifyChangeListeners();
+    void setPendingQuery(Future<Long> pendingQuery);
 
     /**
      * Tuple class for saving meta data about a cached RealmObject.
      */
-    class CacheData<E extends RealmObject> {
+    class CacheData<E extends RealmModel> {
         public int minDepth;
         public final E object;
 

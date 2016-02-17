@@ -313,7 +313,7 @@ public class RealmProxyClassGenerator {
                 writer.beginControlFlow("if (value == null)");
                     writer.emitStatement("return");
                 writer.endControlFlow();
-                writer.beginControlFlow("for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value)");
+                writer.beginControlFlow("for (RealmObject linkedObject : (RealmList<? extends RealmModel>) value)");
                     writer.beginControlFlow("if (!linkedObject.isValid())");
                         writer.emitStatement("throw new IllegalArgumentException(\"Each element of 'value' must be a valid managed object.\")");
                     writer.endControlFlow();

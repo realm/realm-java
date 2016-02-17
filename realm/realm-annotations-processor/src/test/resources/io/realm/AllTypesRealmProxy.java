@@ -221,7 +221,7 @@ public class AllTypesRealmProxy extends AllTypes
         if (value == null) {
             return;
         }
-        for (RealmObject linkedObject : (RealmList<? extends RealmObject>) value) {
+        for (RealmObject linkedObject : (RealmList<? extends RealmModel>) value) {
             if (!linkedObject.isValid()) {
                 throw new IllegalArgumentException("Each element of 'value' must be a valid managed object.");
             }
