@@ -1230,7 +1230,7 @@ public final class Realm extends BaseRealm {
                     transaction.execute(bgRealm);
 
                     if (!Thread.currentThread().isInterrupted()) {
-                        bgRealm.commitTransaction(true, new Runnable() {
+                        bgRealm.commitTransaction(false, new Runnable() {
                             @Override
                             public void run() {
                                 // The bgRealm needs to be closed before post event to caller's handler to avoid
