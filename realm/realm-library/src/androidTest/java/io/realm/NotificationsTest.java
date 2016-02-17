@@ -541,11 +541,12 @@ public class NotificationsTest {
         realm.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                if (strongCounter.incrementAndGet() == 1) {
+                int count = strongCounter.incrementAndGet();
+                if (count == 1) {
                     realm.beginTransaction();
                     realm.createObject(AllTypes.class);
                     realm.commitTransaction();
-                } else if (strongCounter.get() == 2) {
+                } else if (count == 2) {
                     assertEquals(0, weakCounter.get());
                     assertEquals(0, realm.handlerController.weakChangeListeners.size());
                     looperThread.testComplete();
@@ -602,6 +603,31 @@ public class NotificationsTest {
         realm.commitTransaction();
     }
 
+    @Test
+    @RunTestInLooperThread
+    public void realmNotificationOrder() {
+        // Tests that global notifications are called in the order they are added
+        final CountDownLatch firstListenerCalled = new CountDownLatch(1);
+        Realm realm = looperThread.realm;
+        realm.addChangeListener(new RealmChangeListener() {
+
+            @Override
+            public void onChange() {
+                firstListenerCalled.countDown();
+            }
+        });
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                TestHelper.awaitOrFail(firstListenerCalled);
+                looperThread.testComplete();
+
+            }
+        });
+
+        realm.beginTransaction();
+        realm.commitTransaction();
+    }
 
     // Tests that if the same configuration is used on 2 different Looper threads that each gets its own Handler. This
     // prevents commitTransaction from accidentally posting messages to Handlers which might reference a closed Realm.
