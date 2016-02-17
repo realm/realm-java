@@ -16,13 +16,10 @@
 
 package io.realm;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,17 +54,11 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmAsyncQueryTests {
-    private Context context;
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-
-    @Before
-    public void setUp() throws Exception {
-        context = InstrumentationRegistry.getInstrumentation().getContext();
-    }
 
     // ****************************
     // ****  Async transaction  ***

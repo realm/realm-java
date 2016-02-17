@@ -201,7 +201,8 @@ abstract class BaseRealm implements Closeable {
         handlerController.removeAllChangeListeners();
     }
 
-    // WARNING: If this method is used after calling a any async method, the old handler will still be used.
+    // WARNING: If this method is used after calling any async method, the old handler will still be used.
+    //          package private, for test purpose only
     void setHandler(Handler handler) {
         // remove the old one
         handlers.remove(this.handler);
@@ -270,8 +271,7 @@ abstract class BaseRealm implements Closeable {
         }
         sharedGroupManager.advanceRead();
         if (handlerController != null) {
-            handlerController.notifyGlobalListeners();
-            handlerController.notifyTypeBasedListeners();
+            handlerController.notifyAllListeners();
             // if we have empty async RealmObject then rerun
             if (handlerController.threadContainsAsyncEmptyRealmObject()) {
                 handlerController.updateAsyncEmptyRealmObject();

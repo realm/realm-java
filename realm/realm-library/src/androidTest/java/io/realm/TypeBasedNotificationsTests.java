@@ -855,10 +855,15 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange() {
                 // Step 4: Respond to relevant change
-                typebasedCommitInvocations.incrementAndGet();
-                assertEquals("Size wong", 1, dogs.size());
-                assertEquals("Akamaru", dogs.get(0).getName());
-                assertEquals(17, dogs.get(0).getAge());
+                int commits = typebasedCommitInvocations.incrementAndGet();
+                switch (commits) {
+                    case 2:
+                        assertEquals(17, dogs.get(0).getAge());
+                    case 1:
+                        assertEquals(1, dogs.size());
+                        assertEquals("Akamaru", dogs.get(0).getName());
+
+                }
             }
         });
 
@@ -885,7 +890,7 @@ public class TypeBasedNotificationsTests {
                         realm.handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                assertEquals("Typebased wrong", 1, typebasedCommitInvocations.get());
+                                assertEquals(2, typebasedCommitInvocations.get());
                                 looperThread.testComplete();
                             }
                         });

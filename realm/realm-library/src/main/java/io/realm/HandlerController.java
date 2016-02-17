@@ -112,12 +112,10 @@ public class HandlerController implements Handler.Callback {
                 }
                 case COMPLETED_UPDATE_ASYNC_QUERIES: {
                     // this is called once the background thread completed the update of the async queries
-                    notifyAllListeners();
                     QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncQueriesUpdate(result);
                     break;
                 }
-
                 case REALM_ASYNC_BACKGROUND_EXCEPTION: {
                     // Don't fail silently in the background in case of Core exception
                     throw (Error) message.obj;
@@ -178,14 +176,14 @@ public class HandlerController implements Handler.Callback {
     void notifyGlobalListeners() {
         // notify strong reference listener
         Iterator<RealmChangeListener> iteratorStrongListeners = changeListeners.iterator();
-        while (iteratorStrongListeners.hasNext()) {
+        while (iteratorStrongListeners.hasNext() && !realm.isClosed()) { // every callback could close the realm
             RealmChangeListener listener = iteratorStrongListeners.next();
             listener.onChange();
         }
         // notify weak reference listener (internals)
         Iterator<WeakReference<RealmChangeListener>> iteratorWeakListeners = weakChangeListeners.iterator();
         List<WeakReference<RealmChangeListener>> toRemoveList = null;
-        while (iteratorWeakListeners.hasNext()) {
+        while (iteratorWeakListeners.hasNext() && !realm.isClosed()) {
             WeakReference<RealmChangeListener> weakRef = iteratorWeakListeners.next();
             RealmChangeListener listener = weakRef.get();
             if (listener == null) {
@@ -200,12 +198,6 @@ public class HandlerController implements Handler.Callback {
         if (toRemoveList != null) {
             weakChangeListeners.removeAll(toRemoveList);
         }
-    }
-
-    void notifyTypeBasedListeners() {
-        notifyAsyncRealmResultsCallbacks();
-        notifySyncRealmResultsCallbacks();
-        notifyRealmObjectCallbacks();
     }
 
     void updateAsyncEmptyRealmObject() {
@@ -226,6 +218,17 @@ public class HandlerController implements Handler.Callback {
                 iterator.remove();
             }
         }
+    }
+
+    void notifyAllListeners() {
+        notifyGlobalListeners();
+        notifyTypeBasedListeners();
+    }
+
+    private void notifyTypeBasedListeners() {
+        notifyAsyncRealmResultsCallbacks();
+        notifySyncRealmResultsCallbacks();
+        notifyRealmObjectCallbacks();
     }
 
     private void notifyAsyncRealmResultsCallbacks() {
@@ -250,7 +253,8 @@ public class HandlerController implements Handler.Callback {
             }
         }
 
-        for (RealmResults<? extends RealmObject> realmResults : resultsToBeNotified) {
+        for (Iterator<RealmResults<? extends RealmObject>> it = resultsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
+            RealmResults<? extends RealmObject> realmResults = it.next();
             realmResults.notifyChangeListeners();
         }
     }
@@ -274,7 +278,8 @@ public class HandlerController implements Handler.Callback {
             }
         }
 
-        for (RealmObject realmObject : objectsToBeNotified) {
+        for (Iterator<RealmObject> it = objectsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
+            RealmObject realmObject = it.next();
             realmObject.notifyChangeListeners();
         }
     }
@@ -330,29 +335,16 @@ public class HandlerController implements Handler.Callback {
             updateAsyncQueries();
 
         } else {
-            RealmLog.d("REALM_CHANGED realm:"+ HandlerController.this + " no async queries, advance_read");
+            RealmLog.d("REALM_CHANGED realm:" + HandlerController.this + " no async queries, advance_read");
             realm.sharedGroupManager.advanceRead();
             notifyAllListeners();
-        }
-    }
-
-    private void notifyAllListeners() {
-        notifyGlobalListeners();
-        // notify RealmResults & RealmObject callbacks (type based notifications)
-        if (!realm.isClosed()) {
-            // Realm could be closed in the above listener.
-            notifySyncRealmResultsCallbacks();
-        }
-        if (!realm.isClosed()) {
-            notifyRealmObjectCallbacks();
-        }
-
-        // empty async RealmObject shouldn't block the realm to advance
-        // they're empty so no risk on running into a corrupt state
-        // where the pointer (Row) is using one version of a Realm, whereas the
-        // current Realm is advancing to a newer version (they're empty anyway)
-        if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
-            updateAsyncEmptyRealmObject();
+            // empty async RealmObject shouldn't block the realm to advance
+            // they're empty so no risk on running into a corrupt state
+            // where the pointer (Row) is using one version of a Realm, whereas the
+            // current Realm is advancing to a newer version (they're empty anyway)
+            if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {
+                updateAsyncEmptyRealmObject();
+            }
         }
     }
 
@@ -474,13 +466,11 @@ public class HandlerController implements Handler.Callback {
                 query.notifyChangeListeners();
             }
 
-            // notify listeners only when we advanced
-            if (compare != 0) {
-                notifyGlobalListeners();
-                // notify RealmResults & RealmObject callbacks (type based notifications)
-                notifySyncRealmResultsCallbacks();
-                notifyRealmObjectCallbacks();
-            }
+            // We need to notify the rest of listeners, since the original REALM_CHANGE
+            // was delayed/swallowed in order to be able to update async queries
+            notifyGlobalListeners();
+            notifySyncRealmResultsCallbacks();
+            notifyRealmObjectCallbacks();
 
             updateAsyncQueriesTask = null;
         }

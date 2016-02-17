@@ -54,12 +54,11 @@ public class RxJavaTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private RealmConfiguration realmConfig;
     private Realm realm;
 
     @Before
     public void setUp() throws Exception {
-        realmConfig = configFactory.createConfiguration();
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
 
