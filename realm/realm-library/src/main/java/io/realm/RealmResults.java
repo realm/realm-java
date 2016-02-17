@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.DeletedRealmListException;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
@@ -64,7 +65,7 @@ import rx.Observable;
  * @see Realm#allObjects(Class)
  * @see io.realm.Realm#beginTransaction()
  */
-public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
+public final class RealmResults<E extends RealmModel> extends AbstractList<E> {
 
     BaseRealm realm;
     Class<E> classSpec;   // Return type
@@ -81,11 +82,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
 
-    static <E extends RealmObject> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
+    static <E extends RealmModel> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
     }
 
-    static <E extends RealmObject> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
+    static <E extends RealmModel> RealmResults<E> createFromTableOrView(BaseRealm realm, TableOrView table, Class<E> clazz) {
         RealmResults<E> realmResults = new RealmResults<E>(realm, table, clazz);
         if (realm.handlerController != null) {
             realm.handlerController.addToRealmResults(realmResults);
@@ -188,10 +189,10 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     @Override
     public boolean contains(Object object) {
         boolean contains = false;
-        if (isLoaded() && object instanceof RealmObject) {
-            RealmObject realmObject = (RealmObject) object;
-            if (realmObject.row != null && realm.getPath().equals(realmObject.realm.getPath()) && realmObject.row != InvalidRow.INSTANCE) {
-                contains = (table.sourceRowIndex(realmObject.row.getIndex()) != TableOrView.NO_MATCH);
+        if (isLoaded() && object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            if (realm.getPath().equals(proxy.getRealm().getPath()) && proxy.getRow() != InvalidRow.INSTANCE) {
+                contains = (table.sourceRowIndex(proxy.getRow().getIndex()) != TableOrView.NO_MATCH);
             }
         }
         return contains;

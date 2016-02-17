@@ -17,9 +17,13 @@ package io.realm;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 
 import io.realm.internal.CheckedRow;
 import io.realm.internal.LinkView;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
@@ -29,8 +33,19 @@ import io.realm.internal.android.JsonUtils;
  * Class that wraps a normal RealmObject in order to allow dynamic access instead of a typed interface.
  * Using a DynamicRealmObject is slower than using the regular RealmObject class.
  */
-public final class DynamicRealmObject extends RealmObject {
+public final class DynamicRealmObject extends RealmObject implements RealmObjectProxy {
     private String className;
+
+    // TODO This fields is duplicated between DynamicRealmObject and Proxy classes....eeew
+    // Brainstorm idea: Composition over inheritance. Perhaps encapsulate in a RealmObjectProxyState class ?
+    protected Row row;
+    protected BaseRealm realm;
+    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
+    private Future<Long> pendingQuery;
+    private boolean isCompleted = false;
+    protected long currentTableVersion = -1;
+    // TODO - end
+
 
     /**
      * Creates a dynamic Realm object based on an existing object.
@@ -38,7 +53,7 @@ public final class DynamicRealmObject extends RealmObject {
      * @param obj the Realm object to convert to a dynamic object. Only objects managed by {@link Realm} can be used.
      * @throws IllegalArgumentException if object isn't managed by Realm or is a {@link DynamicRealmObject} already.
      */
-    public DynamicRealmObject(RealmObject obj) {
+    public DynamicRealmObject(RealmModel obj) {
         if (obj == null) {
             throw new IllegalArgumentException("A non-null object must be provided.");
         }
@@ -46,12 +61,14 @@ public final class DynamicRealmObject extends RealmObject {
             throw new IllegalArgumentException("The object is already a DynamicRealmObject: " + obj);
         }
 
-        Row row = obj.row;
-        if (!obj.isValid()) {
+        if (!RealmObject.isValid(obj)) {
             throw new IllegalArgumentException("An object managed by Realm must be provided. This " +
                     "is a standalone object or it was deleted.");
         }
-        this.realm = obj.realm;
+
+        RealmObjectProxy proxy = (RealmObjectProxy) obj;
+        Row row = proxy.getRow();
+        this.realm = proxy.getRealm();
         this.row = ((UncheckedRow) row).convertToChecked();
     }
 
@@ -564,7 +581,7 @@ public final class DynamicRealmObject extends RealmObject {
      * @throws IllegalArgumentException if field name doesn't exists, it is not a list field or the type
      * of the object represented by the DynamicRealmObject doesn't match.
      */
-    public void setList(String fieldName, RealmList<? extends RealmObject> list) {
+    public void setList(String fieldName, RealmList<? extends RealmModel> list) {
         if (list == null) {
             throw new IllegalArgumentException("Null values not allowed for lists");
         }
@@ -588,15 +605,15 @@ public final class DynamicRealmObject extends RealmObject {
         LinkView links = row.getLinkList(columnIndex);
         links.clear();
         for (int i = 0; i < list.size(); i++) {
-            RealmObject obj = list.get(i);
+            RealmObjectProxy obj = (RealmObjectProxy) list.get(i);
             if (!typeValidated) {
-                String elementType = obj.row.getTable().getName();
+                String elementType = obj.getRow().getTable().getName();
                 if (!tableName.equals(elementType)) {
                     throw new IllegalArgumentException(String.format("Element at index %d is not the proper type. " +
                             "Was %s expected %s.", i, elementType, tableName));
                 }
             }
-            links.add(obj.row.getIndex());
+            links.add(obj.getRow().getIndex());
         }
     }
 
@@ -717,11 +734,73 @@ public final class DynamicRealmObject extends RealmObject {
         return sb.toString();
     }
 
+    // TODO Slightly annoying, it means we have to duplicate some implementation between proxies and this class.
+
     @Override
-    protected Table getTable() {
+    public BaseRealm getRealm() {
+        return null;
+    }
+
+    @Override
+    public void setRealm(BaseRealm realm) {
+
+    }
+
+    @Override
+    public Row getRow() {
+        return null;
+    }
+
+    @Override
+    public void setRow(Row row) {
+
+    }
+
+    @Override
+    public Object getPendingQuery() {
+        return null;
+    }
+
+    @Override
+    public boolean isCompleted() {
+        return false;
+    }
+
+    @Override
+    public boolean onCompleted() {
+        return false;
+    }
+
+    @Override
+    public void onCompleted(long rowPointer) {
+
+    }
+
+    @Override
+    public List<RealmChangeListener> getListeners() {
+        return null;
+    }
+
+    @Override
+    public void setTableVersion() {
+
+    }
+
+    @Override
+    public Table getTable() {
         if (className != null) {
             return realm.schema.getTable(className);
         }
-        return super.getTable();
+        return realm.schema.getTable(getClass());
+    }
+
+    @Override
+    public void notifyChangeListeners() {
+
+    }
+
+    @Override
+    public void setPendingQuery(Future<Long> pendingQuery) {
+
     }
 }

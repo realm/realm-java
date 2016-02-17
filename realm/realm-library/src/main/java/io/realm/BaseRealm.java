@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.exceptions.RealmMigrationNeededException;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
 import io.realm.internal.TableView;
@@ -524,13 +525,15 @@ public abstract class BaseRealm implements Closeable {
         return schema;
     }
 
-    <E extends RealmObject> E get(Class<E> clazz, long rowIndex) {
+    <E extends RealmModel> E get(Class<E> clazz, long rowIndex) {
         Table table = schema.getTable(clazz);
         UncheckedRow row = table.getUncheckedRow(rowIndex);
         E result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
-        result.row = row;
-        result.realm = this;
-        result.setTableVersion();
+        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        proxy.setRow(row);
+        proxy.setRealm(this);
+        proxy.setTableVersion();
+
         if (handlerController != null) {
             handlerController.addToRealmObjects(result);
         }
@@ -539,7 +542,7 @@ public abstract class BaseRealm implements Closeable {
 
     // Used by RealmList/RealmResults
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
-    <E extends RealmObject> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
+    <E extends RealmModel> E get(Class<E> clazz, String dynamicClassName, long rowIndex) {
         Table table;
         E result;
         if (dynamicClassName != null) {
@@ -551,9 +554,11 @@ public abstract class BaseRealm implements Closeable {
             table = schema.getTable(clazz);
             result = configuration.getSchemaMediator().newInstance(clazz, schema.getColumnInfo(clazz));
         }
-        result.row = table.getUncheckedRow(rowIndex);
-        result.realm = this;
-        result.setTableVersion();
+
+        RealmObjectProxy proxy = (RealmObjectProxy) result;
+        proxy.setRow(table.getUncheckedRow(rowIndex));
+        proxy.setRealm(this);
+        proxy.setTableVersion();
 
         if (handlerController != null) {
             handlerController.addToRealmObjects(result);

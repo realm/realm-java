@@ -1733,7 +1733,7 @@ public class TypeBasedNotificationsTests {
                 boolean foundKey = false;
                 // Check if the results has been added to the syncRealmResults in case of the behaviour of
                 // allObjects changes
-                for (WeakReference<RealmResults<? extends RealmObject>> weakReference :
+                for (WeakReference<RealmResults<? extends RealmModel>> weakReference :
                         realm.handlerController.syncRealmResults.keySet()) {
                     if (weakReference.get() == results) {
                         foundKey = true;

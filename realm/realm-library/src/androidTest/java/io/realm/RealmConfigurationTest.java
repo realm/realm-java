@@ -442,7 +442,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
     public void testModelClassesForDefaultMediator() throws Exception {
         assertTrue(defaultConfig.getSchemaMediator() instanceof DefaultRealmModuleMediator);
 
-        final Set<Class<? extends RealmObject>> realmClasses = defaultConfig.getRealmObjectClasses();
+        final Set<Class<? extends RealmModel>> realmClasses = defaultConfig.getRealmObjectClasses();
 
         assertTrue(realmClasses.contains(AllTypes.class));
 
@@ -459,7 +459,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .setModules(new HumanModule()).build();
         assertTrue(config.getSchemaMediator() instanceof HumanModuleMediator);
 
-        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+        final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
 
         assertFalse(realmClasses.contains(AllTypes.class));
         assertTrue(realmClasses.contains(CatOwner.class));
@@ -478,7 +478,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .setModules(new HumanModule(), new AnimalModule()).build();
         assertTrue(config.getSchemaMediator() instanceof CompositeMediator);
 
-        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+        final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
 
         assertFalse(realmClasses.contains(AllTypes.class));
         assertTrue(realmClasses.contains(CatOwner.class));
@@ -498,7 +498,7 @@ public class RealmConfigurationTest extends AndroidTestCase {
                 .schema(AllTypes.class, CatOwner.class).build();
         assertTrue(config.getSchemaMediator() instanceof FilterableMediator);
 
-        final Set<Class<? extends RealmObject>> realmClasses = config.getRealmObjectClasses();
+        final Set<Class<? extends RealmModel>> realmClasses = config.getRealmObjectClasses();
 
         assertTrue(realmClasses.contains(AllTypes.class));
         assertTrue(realmClasses.contains(CatOwner.class));

@@ -18,30 +18,30 @@ package io.realm.internal;
 
 import java.util.Map;
 
-import io.realm.RealmObject;
+import io.realm.RealmModel;
 
 /**
  * Utility class used to cache the mapping between object field names and their column indices.
  */
 public class ColumnIndices {
 
-    private final Map<Class<? extends RealmObject>, ColumnInfo> classes;
+    private final Map<Class<? extends RealmModel>, ColumnInfo> classes;
 
-    public ColumnIndices(Map<Class<? extends RealmObject>, ColumnInfo> classes) {
+    public ColumnIndices(Map<Class<? extends RealmModel>, ColumnInfo> classes) {
         this.classes = classes;
     }
 
     /**
      * Returns {@link ColumnInfo} for the given class or {@code null} if no mapping exists.
      */
-    public ColumnInfo getColumnInfo(Class<? extends RealmObject> clazz) {
+    public ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
         return classes.get(clazz);
     }
 
     /**
      * Returns the column index for a given field on a clazz or {@code -1} if no such field exists.
      */
-    public long getColumnIndex(Class<? extends RealmObject> clazz, String fieldName) {
+    public long getColumnIndex(Class<? extends RealmModel> clazz, String fieldName) {
         final ColumnInfo columnInfo = classes.get(clazz);
         if (columnInfo != null) {
             Long index = columnInfo.getIndicesMap().get(fieldName);

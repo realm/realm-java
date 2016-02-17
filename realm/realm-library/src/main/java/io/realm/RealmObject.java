@@ -16,11 +16,12 @@
 
 package io.realm;
 
-import java.util.concurrent.Future;
+import java.util.List;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import rx.Observable;
 
 /**
  * In Realm you define your RealmObject classes by sub-classing RealmObject and adding fields to be persisted. You then 
@@ -69,13 +70,13 @@ import io.realm.internal.Row;
  * A RealmObject cannot be passed between different threads.
  *
  * @see Realm#createObject(Class)
- * @see Realm#copyToRealm(RealmObject)
+ * @see Realm#copyToRealm(RealmModel)
  */
 
 public abstract class RealmObject implements RealmModel {
 
 
-// TODO Move this to the proxy classes
+// TODO Move this to the proxy classes and expose methods in the RealmObjectProxy interface
 //    protected Row row;
 //    protected BaseRealm realm;
 //
@@ -103,17 +104,17 @@ public abstract class RealmObject implements RealmModel {
      * After this method is called the object will be invalid and any operation (read or write) performed on it will
      * fail with an IllegalStateException.
      *
-     * @param realmObject RealmObject to remove from the underlying Realm.
+     * @param object RealmObject to remove from the underlying Realm.
      * @throws IllegalArgumentException if the object is not managed by Realm.
      * @throws IllegalStateException if the Realm is closed or accessed from the wrong thread.
      */
-    public static <E extends RealmModel> void removeFromRealm(E realmObject) {
-        if (!(realmObject instanceof RealmObjectProxy)) {
+    public static <E extends RealmModel> void removeFromRealm(E object) {
+        if (!(object instanceof RealmObjectProxy)) {
             // TODO What type of exception IllegalArgument/IllegalState?
             throw new IllegalArgumentException("Object not managed by Realm, so it cannot be removed.");
         }
 
-        RealmObjectProxy proxy = (RealmObjectProxy) realmObject;
+        RealmObjectProxy proxy = (RealmObjectProxy) object;
         proxy.getRealm().checkIfValid();
         Row row = proxy.getRow();
         row.getTable().moveLastOver(row.getIndex());
@@ -135,12 +136,12 @@ public abstract class RealmObject implements RealmModel {
      * Checks if the RealmObject is still valid to use i.e. the RealmObject hasn't been deleted nor has the
      * {@link io.realm.Realm} been closed. It will always return false for stand alone objects.
      *
-     * @param realmObject RealmObject to check validity for.
+     * @param object RealmObject to check validity for.
      * @return {@code true} if the object is still accessible, {@code false} otherwise or if it is a standalone object.
      */
-    public static <E extends RealmModel> boolean isValid(E realmObject) {
-        if (realmObject instanceof RealmObjectProxy) {
-            RealmObjectProxy proxy = (RealmObjectProxy) realmObject;
+    public static <E extends RealmModel> boolean isValid(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
             Row row = proxy.getRow();
             return row != null && row.isAttached();
         } else {
@@ -165,13 +166,13 @@ public abstract class RealmObject implements RealmModel {
      * Synchronous RealmObjects are by definition blocking hence this method will always return {@code true} for them.
      * This will return {@code true} if called for a standalone object (created outside of Realm).
      *
-     * @param realmObject RealmObject to check.
+     * @param object RealmObject to check.
      * @return {@code true} if the query has completed and the data is available {@code false} if the query is in
      * progress.
      */
-    public static <E extends RealmModel> boolean isLoaded(E realmObject) {
-        if (realmObject instanceof RealmObjectProxy) {
-            RealmObjectProxy proxy = (RealmObjectProxy) realmObject;
+    public static <E extends RealmModel> boolean isLoaded(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
             proxy.getRealm().checkIfValid();
             return proxy.getPendingQuery() == null || proxy.isCompleted();
         } else {
@@ -193,115 +194,187 @@ public abstract class RealmObject implements RealmModel {
      * Makes an asynchronous query blocking. This will also trigger any registered listeners.
      * Note: This will return {@code true} if called for a standalone object (created outside of Realm).
      *
-     * @param realmObject RealmObject to force load.
+     * @param object RealmObject to force load.
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
-    public static <E extends RealmModel> boolean load(E realmObject) {
-        if (RealmObject.isLoaded(realmObject)) {
+    public static <E extends RealmModel> boolean load(E object) {
+        if (RealmObject.isLoaded(object)) {
             return true;
         } else {
-            if (realmObject instanceof RealmObjectProxy) {
+            if (object instanceof RealmObjectProxy) {
                 // doesn't guarantee to import correctly the result (because the user may have advanced)
                 // in this case the Realm#handler will be responsible of retrying
-                return ((RealmObjectProxy) realmObject).onCompleted();
+                return ((RealmObjectProxy) object).onCompleted();
             } else {
                 return false;
             }
         }
     }
 
-//    /**
-//     * Adds a change listener to this RealmObject.
-//     *
-//     * @param listener the change listener to be notified.
-//     */
-//    public final void addChangeListener(RealmChangeListener listener) {
-//        if (listener == null) {
-//            throw new IllegalArgumentException("Listener should not be null");
-//        }
-//        if (realm != null) {
-//            realm.checkIfValid();
-//        } else {
-//            throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");
-//        }
-//        if (realm.handler == null) {
-//            throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
-//        }
-//        if (!listeners.contains(listener)) {
-//            listeners.add(listener);
-//        }
-//    }
-//
-//    /**
-//     * Removes a previously registered listener.
-//     *
-//     * @param listener the instance to be removed.
-//     */
-//    public final void removeChangeListener(RealmChangeListener listener) {
-//        if (listener == null) {
-//            throw new IllegalArgumentException("Listener should not be null");
-//        }
-//        if (realm != null) {
-//            realm.checkIfValid();
-//        } else {
-//            throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
-//        }
-//        listeners.remove(listener);
-//    }
-//
-//    /**
-//     * Removes all registered listeners.
-//     */
-//    public final void removeChangeListeners() {
-//        if (realm != null) {
-//            realm.checkIfValid();
-//        } else {
-//            throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");
-//        }
-//        listeners.clear();
-//    }
-//
-//    /**
-//     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
-//     * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
-//     * {@code onComplete} will never be called.
-//     *
-//     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
-//     * type information, otherwise the type of the following observables will be {@code RealmObject}.
-//     *
-//     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
-//     * only emit only the first item by using the {@code first()} operator:
-//     *
-//     * <pre>
-//     * {@code
-//     * obj.asObservable()
-//     *      .filter(obj -> obj.isLoaded())
-//     *      .first()
-//     *      .subscribe( ... ) // You only get the object once
-//     * }
-//     * </pre>
-//     *
-//     * @param <E> RealmObject class that is being observed. Must be this class or its super types.
-//     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
-//     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
-//     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
-//     */
-//    public <E extends RealmObject> Observable<E> asObservable() {
-//        if (realm instanceof Realm) {
-//            @SuppressWarnings("unchecked")
-//            E obj = (E) this;
-//            return realm.configuration.getRxFactory().from((Realm) realm, obj);
-//        } else if (realm instanceof DynamicRealm) {
-//            DynamicRealm dynamicRealm = (DynamicRealm) realm;
-//            DynamicRealmObject dynamicObject = (DynamicRealmObject) this;
-//            @SuppressWarnings("unchecked")
-//            Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
-//            return observable;
-//        } else {
-//            throw new UnsupportedOperationException(realm.getClass() + " not supported");
-//        }
-//    }
-//
+    /**
+     * Adds a change listener to this RealmObject.
+     *
+     * @param listener the change listener to be notified.
+     * @throws IllegalArgumentException if object is an un-managed RealmObject.
+     */
+    public final void addChangeListener(RealmChangeListener listener) {
+        RealmObject.addChangeListener(this, listener);
+    }
+
+    /**
+     * Adds a change listener to a RealmObject.
+     *
+     * @param object RealmObject to add listener to.
+     * @param listener the change listener to be notified.
+     * @throws IllegalArgumentException if object is an un-managed RealmObject.
+     */
+    public static <E extends RealmModel> void addChangeListener(E object, RealmChangeListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            BaseRealm realm = proxy.getRealm();
+            realm.checkIfValid();
+            if (realm.handler == null) {
+                throw new IllegalStateException("You can't register a listener from a non-Looper thread ");
+            }
+            List<RealmChangeListener> listeners = proxy.getListeners();
+            if (!listeners.contains(listener)) {
+                listeners.add(listener);
+            }
+        } else {
+            throw new IllegalArgumentException("Cannot add listener from this unmanaged RealmObject (created outside of Realm)");
+        }
+    }
+
+
+    /**
+     * Removes a previously registered listener.
+     *
+     * @param listener the instance to be removed.
+     */
+    public final void removeChangeListener(RealmChangeListener listener) {
+        RealmObject.removeChangeListener(this, listener);
+    }
+
+    /**
+     * Removes a previously registered listener on the given RealmObject.
+     *
+     * @param object RealmObject to remove listener from.
+     * @param listener the instance to be removed.
+     */
+    public static <E extends RealmModel> void removeChangeListener(E object, RealmChangeListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            proxy.getRealm().checkIfValid();
+            proxy.getListeners().remove(listener);
+        } else {
+            throw new IllegalArgumentException("Cannot remove listener from this unmanaged RealmObject (created outside of Realm)");
+        }
+    }
+
+    /**
+     * Removes all registered listeners.
+     */
+    public final void removeChangeListeners() {
+        RealmObject.removeChangeListeners(this);
+    }
+
+    /**
+     * Removes all registered listeners from the given RealmObject.
+     *
+     * @param object RealmObject to remove all listeners from.
+     * @throws IllegalArgumentException if object is {@code null} or isn't managed by Realm.
+     */
+    public static <E extends RealmModel> void removeChangeListeners(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            proxy.getRealm().checkIfValid();
+            proxy.getListeners().clear();
+        } else {
+            throw new IllegalArgumentException("Cannot remove listeners from this un-managed RealmObject (created outside of Realm)");
+        }
+    }
+
+    /**
+     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
+     * {@code onComplete} will never be called.
+     *
+     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * type information, otherwise the type of the following observables will be {@code RealmObject}.
+     *
+     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * only emit only the first item by using the {@code first()} operator:
+     *
+     * <pre>
+     * {@code
+     * obj.asObservable()
+     *      .filter(obj -> obj.isLoaded())
+     *      .first()
+     *      .subscribe( ... ) // You only get the object once
+     * }
+     * </pre>
+     *
+     * @param <E> RealmObject class that is being observed. Must be this class or its super types.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public <E extends RealmModel> Observable<E> asObservable() {
+        return (Observable<E>) RealmObject.asObservable(this);
+    }
+
+    /**
+     * Returns an RxJava Observable that monitors changes to this RealmObject. It will emit the current object when
+     * subscribed to. Object updates will continually be emitted as the RealmObject is updated -
+     * {@code onComplete} will never be called.
+     *
+     * If chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asObservable()} to pass on
+     * type information, otherwise the type of the following observables will be {@code RealmObject}.
+     *
+     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * only emit only the first item by using the {@code first()} operator:
+     *
+     * <pre>
+     * {@code
+     * obj.asObservable()
+     *      .filter(obj -> obj.isLoaded())
+     *      .first()
+     *      .subscribe( ... ) // You only get the object once
+     * }
+     * </pre>
+     *
+     * @param object RealmObject class that is being observed. Must be this class or its super types.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     */
+    public static <E extends RealmModel> Observable<E> asObservable(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            BaseRealm realm = proxy.getRealm();
+            if (realm instanceof Realm) {
+                return realm.configuration.getRxFactory().from((Realm) realm, object);
+            } else if (realm instanceof DynamicRealm) {
+                DynamicRealm dynamicRealm = (DynamicRealm) realm;
+                DynamicRealmObject dynamicObject = (DynamicRealmObject) object;
+                @SuppressWarnings("unchecked")
+                Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
+                return observable;
+            } else {
+                throw new UnsupportedOperationException(realm.getClass() + " not supported");
+            }
+        } else {
+            // TODO Is this true? Should we just return Observable.just(object) ?
+            throw new IllegalArgumentException("Cannot create Observables from un-managed RealmObjects");
+        }
+    }
+
 
 // TODO Move all the below methods somewhere else
 
