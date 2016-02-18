@@ -79,6 +79,19 @@ import rx.Observable;
  * A standard pattern for working with Realm in Android activities can be seen below:
  * <p>
  * <pre>
+ * public class RealmApplication extends Application {
+ *
+ *     private static RealmConfiguration defaultRealmConfig;
+ *
+ *     \@Override
+ *     public void onCreate() {
+ *         super.onCreate();
+ *         // The Realm file will be located in package's "files" directory.
+ *         defaultRealmConfig = new RealmConfiguration.Builder(this).build();
+ *         Realm.setDefaultConfiguration(defaultRealmConfig);
+ *     }
+ * }
+ *
  * public class RealmActivity extends Activity {
  *
  *   private Realm realm;
@@ -87,7 +100,7 @@ import rx.Observable;
  *   protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
  *     setContentView(R.layout.layout_main);
- *     realm = Realm.getInstance(this);
+ *     realm = Realm.getDefaultInstance();
  *   }
  *
  *   \@Override
@@ -157,6 +170,7 @@ public final class Realm extends BaseRealm {
      * @throws RealmMigrationNeededException if the RealmObject classes no longer match the underlying Realm and it must be
      * migrated.
      * @throws RealmIOException if an error happened when accessing the underlying Realm file.
+     * @deprecated use {@link #getDefaultInstance()} or {@link #getInstance(RealmConfiguration)} instead.
      */
     public static Realm getInstance(Context context) {
         return Realm.getInstance(new RealmConfiguration.Builder(context)
