@@ -308,7 +308,8 @@ public final class Realm extends BaseRealm {
     /**
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm and unknown properties
-     * will be ignored.
+     * will be ignored. If a {@link RealmObject} field is not present in the JSON object the RealmObject
+     * field will be set to the default value for that type.
      *
      * @param clazz type of Realm objects to create.
      * @param json an array where each JSONObject must map to the specified class.
@@ -331,6 +332,9 @@ public final class Realm extends BaseRealm {
     /**
      * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
      * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
+     * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated. If a
+     * new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned the default
+     * value for the field type.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json array with object data.
@@ -356,7 +360,7 @@ public final class Realm extends BaseRealm {
     /**
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm and unknown properties
-     * will be ignored.
+     * will be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field will be set to the default value for that type.
      *
      * @param clazz type of Realm objects to create.
      * @param json the JSON array as a String where each object can map to the specified class.
@@ -380,6 +384,9 @@ public final class Realm extends BaseRealm {
     /**
      * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
      * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
+     * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated.
+     * If a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned
+     * the default value for the field type.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with an array of JSON objects.
@@ -407,7 +414,8 @@ public final class Realm extends BaseRealm {
     /**
      * Creates a Realm object for each object in a JSON array. This must be done within a transaction.
      * JSON properties with a null value will map to the default value for the data type in Realm and unknown properties
-     * will be ignored.
+     * will be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field
+     * will be set to the default value for that type.
      *
      * @param clazz type of Realm objects created.
      * @param inputStream the JSON array as a InputStream. All objects in the array must be of the specified class.
@@ -435,6 +443,9 @@ public final class Realm extends BaseRealm {
     /**
      * Tries to update a list of existing objects identified by their primary key with new JSON data. If an existing
      * object could not be found in the Realm, a new object will be created. This must happen within a transaction.
+     * If updating a {@link RealmObject} and a field is not found in the JSON object, that field will not be updated.
+     * If a new {@link RealmObject} is created and a field is not found in the JSON object, that field will be assigned
+     * the default value for the field type.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the InputStream with a list of object data in JSON format.
@@ -471,7 +482,8 @@ public final class Realm extends BaseRealm {
     /**
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
      * properties with a null value will map to the default value for the data type in Realm and unknown properties will
-     * be ignored.
+     * be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field will
+     * be set to the default value for that type.
      *
      * @param clazz type of Realm object to create.
      * @param json the JSONObject with object data.
@@ -494,7 +506,9 @@ public final class Realm extends BaseRealm {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new object will be saved in the Realm. This must happen within a transaction.
+     * found a new object will be saved in the Realm. This must happen within a transaction. If updating a {@link RealmObject}
+     * and a field is not found in the JSON object, that field will not be updated. If a new {@link RealmObject} is
+     * created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
      *
      * @param clazz Type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json {@link org.json.JSONObject} with object data.
@@ -523,7 +537,8 @@ public final class Realm extends BaseRealm {
     /**
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
      * properties with a null value will map to the default value for the data type in Realm and unknown properties will
-     * be ignored.
+     * be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field will
+     * be set to the default value for that type.
      *
      * @param clazz type of Realm object to create.
      * @param json the JSON string with object data.
@@ -547,7 +562,9 @@ public final class Realm extends BaseRealm {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new object will be saved in the Realm. This must happen within a transaction.
+     * found a new object will be saved in the Realm. This must happen within a transaction. If updating a {@link RealmObject}
+     * and a field is not found in the JSON object, that field will not be updated. If a new {@link RealmObject} is
+     * created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param json string with object data in JSON format.
@@ -576,7 +593,8 @@ public final class Realm extends BaseRealm {
     /**
      * Creates a Realm object pre-filled with data from a JSON object. This must be done inside a transaction. JSON
      * properties with a null value will map to the default value for the data type in Realm and unknown properties will
-     * be ignored.
+     * be ignored. If a {@link RealmObject} field is not present in the JSON object the {@link RealmObject} field will
+     * be set to the default value for that type.
      *
      * @param clazz type of Realm object to create.
      * @param inputStream the JSON object data as a InputStream.
@@ -620,7 +638,9 @@ public final class Realm extends BaseRealm {
 
     /**
      * Tries to update an existing object defined by its primary key with new JSON data. If no existing object could be
-     * found a new object will be saved in the Realm. This must happen within a transaction.
+     * found a new object will be saved in the Realm. This must happen within a transaction. If updating a {@link RealmObject}
+     * and a field is not found in the JSON object, that field will not be updated. If a new {@link RealmObject} is
+     * created and a field is not found in the JSON object, that field will be assigned the default value for the field type.
      *
      * @param clazz type of {@link io.realm.RealmObject} to create or update. It must have a primary key defined.
      * @param in the {@link InputStream} with object data in JSON format.
@@ -697,6 +717,9 @@ public final class Realm extends BaseRealm {
      * will not be reflected in the Realm copy. This is a deep copy, so all referenced objects will be copied. Objects
      * already in this Realm will be ignored.
      *
+     * Please note, copying an object will copy all field values. All unset fields in this and child objects will be
+     * set to their default value if not provided.
+     *
      * @param object the {@link io.realm.RealmObject} to copy to the Realm.
      * @return a managed RealmObject with its properties backed by the Realm.
      * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
@@ -711,6 +734,9 @@ public final class Realm extends BaseRealm {
      * Updates an existing RealmObject that is identified by the same {@link io.realm.annotations.PrimaryKey} or creates
      * a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects will be
      * either copied or updated.
+     *
+     * Please note, copying an object will copy all field values. All unset fields in this and child objects will be
+     * set to their default value if not provided.
      *
      * @param object {@link io.realm.RealmObject} to copy or update.
      * @return the new or updated RealmObject with all its properties backed by the Realm.
@@ -728,6 +754,9 @@ public final class Realm extends BaseRealm {
      * Copies a collection of RealmObjects to the Realm instance and returns their copy. Any further changes to the
      * original RealmObjects will not be reflected in the Realm copies. This is a deep copy, so all referenced objects
      * will be copied. Objects already in this Realm will be ignored.
+     *
+     * Please note, copying an object will copy all field values. All unset fields in this and child objects will be
+     * set to their default value if not provided.
      *
      * @param objects the RealmObjects to copy to the Realm.
      * @return a list of the the converted RealmObjects that all has their properties managed by the Realm.
@@ -751,6 +780,9 @@ public final class Realm extends BaseRealm {
      * Updates a list of existing RealmObjects that is identified by their {@link io.realm.annotations.PrimaryKey} or
      * creates a new copy if no existing object could be found. This is a deep copy or update, so all referenced objects
      * will be either copied or updated.
+     *
+     * Please note, copying an object will copy all field values. All unset fields in this and child objects will be
+     * set to their default value if not provided.
      *
      * @param objects a list of objects to update or copy into Realm.
      * @return a list of all the new or updated RealmObjects.
