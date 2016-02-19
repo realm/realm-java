@@ -13,6 +13,7 @@
 * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 * RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
 * Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
+* Removed allowBackup from AndroidManifest (#2307).
 
 ## 0.87.5
  * Updated Realm Core to 0.96.1
