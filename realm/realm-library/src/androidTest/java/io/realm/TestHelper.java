@@ -21,29 +21,31 @@ import android.content.res.AssetManager;
 import android.os.Looper;
 import android.util.Log;
 
+import org.junit.Assert;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 import io.realm.internal.log.Logger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -126,21 +128,6 @@ public class TestHelper {
         return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
     }
 
-    // Copies a Realm file from assets to app files dir
-    public static void copyRealmFromAssets(Context context, String realmPath, String newName) throws IOException {
-        AssetManager assetManager = context.getAssets();
-        InputStream is = assetManager.open(realmPath);
-        File file = new File(context.getFilesDir(), newName);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        byte[] buf = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = is.read(buf)) > -1) {
-            outputStream.write(buf, 0, bytesRead);
-        }
-        outputStream.close();
-        is.close();
-    }
-
     // Creates a simple migration step in order to support null
     // FIXME: generate a new encrypted.realm will null support
     public static RealmMigration prepareMigrationToNullSupportStep() {
@@ -152,13 +139,6 @@ public class TestHelper {
             }
         };
         return realmMigration;
-    }
-
-
-    // Deletes the old database and copies a new one into its place
-    public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
-        Realm.deleteRealm(createConfiguration(context, newName));
-        TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
 
     // Returns a random key used by encrypted Realms.
@@ -657,7 +637,7 @@ public class TestHelper {
     }
 
     public static void awaitOrFail(CountDownLatch latch) {
-        awaitOrFail(latch, 7);
+        awaitOrFail(latch, 1000);
     }
 
     public static void awaitOrFail(CountDownLatch latch, int numberOfSeconds) {
@@ -672,10 +652,10 @@ public class TestHelper {
 
     // clean resource, shutdown the executor service & throw any background exception
     public static void exitOrThrow(final ExecutorService executorService,
-                     final CountDownLatch signalTestFinished,
-                     final CountDownLatch signalClosedRealm,
-                     final Looper[] looper,
-                     final Throwable[] throwable) throws Throwable {
+                                   final CountDownLatch signalTestFinished,
+                                   final CountDownLatch signalClosedRealm,
+                                   final Looper[] looper,
+                                   final Throwable[] throwable) throws Throwable {
 
         // wait for the signal indicating the test's use case is done
         try {
@@ -705,5 +685,43 @@ public class TestHelper {
     public static InputStream loadJsonFromAssets(Context context, String file) throws IOException {
         AssetManager assetManager = context.getAssets();
         return assetManager.open(file);
+    }
+
+    public static void quitLooperOrFail() {
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            looper.quit();
+        } else {
+            Assert.fail();
+        }
+    }
+
+    /**
+     * Creates a {@link RealmResults} instance.
+     * This helper method is useful to create a mocked {@link RealmResults}.
+     *
+     * @param realm a {@link Realm} or a {@link DynamicRealm} instance.
+     * @param table a {@link Table} or a {@link io.realm.internal.TableView} instance.
+     * @param tableClass a Class of Table.
+     * @return a created {@link RealmResults} instance.
+     */
+    public static <T extends RealmObject> RealmResults<T> newRealmResults(
+            BaseRealm realm, TableOrView table, Class<T> tableClass) {
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
+                    BaseRealm.class, TableOrView.class, Class.class);
+            c.setAccessible(true);
+            //noinspection unchecked
+            return c.newInstance(realm, table, tableClass);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

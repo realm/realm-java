@@ -37,15 +37,15 @@ jmethodID java_lang_double_init;
 
 void ConvertException(JNIEnv* env, const char *file, int line)
 {
-    std::ostringstream ss;
+    ostringstream ss;
     try {
         throw;
     }
-    catch (std::bad_alloc& e) {
+    catch (bad_alloc& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, OutOfMemory, ss.str());
     }
-    catch (realm::CrossTableLinkTarget& e) {
+    catch (CrossTableLinkTarget& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, CrossTableLink, ss.str());
     }
@@ -53,7 +53,11 @@ void ConvertException(JNIEnv* env, const char *file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
     }
-    catch (std::exception& e) {
+    catch (invalid_argument& e) {
+        ss << e.what() << " in " << file << " line " << line;
+        ThrowException(env, IllegalArgument, ss.str());
+    }
+    catch (exception& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, FatalError, ss.str());
     }
@@ -67,7 +71,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const char *classStr)
 
 void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& classStr, const std::string& itemStr)
 {
-    std::string message;
+    string message;
     jclass jExceptionClass = NULL;
 
     TR_ERR("jni: ThrowingException %d, %s, %s.", exception, classStr.c_str(), itemStr.c_str())
@@ -280,7 +284,7 @@ string string_to_hex(const string& message, StringData& str, const char* in_begi
     ret << "error_code = " << error_code << "; ";
     ret << "retcode = " << retcode << "; ";
     ret << "StringData.size = " << str.size() << "; ";
-    ret << "StringData.data = " << str.data() << "; ";
+    ret << "StringData.data = " << str << "; ";
     ret << "StringData as hex = ";
     for (string::size_type i = 0; i < str.size(); ++i)
         ret << " 0x" << std::hex << std::setfill('0') << std::setw(2) << (int)s[i];
@@ -304,7 +308,10 @@ string string_to_hex(const string& message, const jchar *str, size_t size, size_
 
 string concat_stringdata(const char *message, StringData strData)
 {
-    return std::string(message) + (strData != NULL ? strData.data() : "");
+    if (strData.is_null()) {
+        return std::string(message);
+    }
+    return std::string(message) + std::string(strData.data(), strData.size());
 }
 
 jstring to_jstring(JNIEnv* env, StringData str)
@@ -312,7 +319,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
     if (str.is_null()) {
         return NULL;
     }
-    
+
     // For efficiency, if the incoming UTF-8 string is sufficiently
     // small, we will attempt to store the UTF-16 output into a stack
     // allocated buffer of static size. Otherwise we will have to
@@ -343,7 +350,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         const char* in_begin2 = in_begin;
         size_t error_code;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
-        if (in_begin2 != in_end) 
+        if (in_begin2 != in_end)
             throw runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr, out_end, size, error_code));
         if (int_add_with_overflow_detect(size, stack_buf_size))
             throw runtime_error("String size overflow");
@@ -352,7 +359,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         out_begin = dyn_buf.get();
         out_end   = dyn_buf.get() + size;
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
-        if (retcode != 0) 
+        if (retcode != 0)
             throw runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end, out_curr, out_end, size_t(0), retcode));
         REALM_ASSERT(in_begin == in_end);
     }
@@ -406,10 +413,10 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str)
         char* out_end   = m_data.get() + buf_size;
         size_t error_code;
         if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end, error_code)) {
-            throw runtime_error(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
+            throw invalid_argument(string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         if (in_begin != in_end) {
-            throw runtime_error(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
+            throw invalid_argument(string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         m_size = out_begin - m_data.get();
     }

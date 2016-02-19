@@ -16,46 +16,47 @@
 
 package io.realm.internal;
 
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 
-import android.test.AndroidTestCase;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.TestHelper;
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class JNITransactions extends AndroidTestCase {
-    
-    String testFile;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
-    @Override
-    protected void setUp() throws Exception {
-        createDBFileName();
-    }
+@RunWith(AndroidJUnit4.class)
+public class JNITransactions {
 
-    @Override
-    public void tearDown() throws IOException {
-        deleteFile(testFile);
-    }
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    protected void deleteFile(String filename) throws IOException {
-        for (String filePath : Arrays.asList(filename, filename + ".lock")) {
-            File f = new File(filePath);
-            if (f.exists()) {
-                boolean result = f.delete();
-                if (!result) {
-                    throw new java.io.IOException("Could not delete " + filePath);
-                }
-            }
-        }
+    private String testFile;
+    private android.content.Context context;
+
+    @Before
+    public void setUp() throws Exception {
+        testFile = new File(
+                configFactory.getRoot(),
+                System.currentTimeMillis() + "_transact.realm").getAbsolutePath();
+        context = InstrumentationRegistry.getInstrumentation().getContext();
+        RealmCore.loadLibrary(context);
     }
 
     private Table getTableWithStringPrimaryKey() {
@@ -74,12 +75,6 @@ public class JNITransactions extends AndroidTestCase {
         t.addColumn(RealmFieldType.INTEGER, "colName");
         t.setPrimaryKey("colName");
         return t;
-    }
-
-    private void createDBFileName(){
-        testFile = new File(
-                this.getContext().getFilesDir(),
-                System.currentTimeMillis() + "_transact.realm").toString();
     }
 
     protected void writeOneTransaction(SharedGroup db, long rows) {
@@ -115,20 +110,22 @@ public class JNITransactions extends AndroidTestCase {
 
     // TODO: tests should be done both for all Durability options
 
-    public void testMustWriteAndReadEmpty() {
+    @Test
+    public void mustWriteAndReadEmpty() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 0);
         checkRead(db, 0);
     }
 
-    public void testMustWriteCommit() {
+    @Test
+    public void mustWriteCommit() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 10);
         checkRead(db, 10);
     }
 
-
-    public void testShouldThrowExceptionAfterClosedReadTransaction() {
+    @Test
+    public void shouldThrowExceptionAfterClosedReadTransaction() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 10);
         ReadTransaction rt = db.beginRead();
@@ -139,17 +136,15 @@ public class JNITransactions extends AndroidTestCase {
             try {
                 tbl.getColumnCount(); //Should throw exception, the table is invalid when transaction has been closed
                 fail();
-            } catch (IllegalStateException e) {
-                assert(false);
-                //assertNotNull(e);
+            } catch (IllegalStateException ignored) {
             }
         } finally {
             rt.endRead();
         }
     }
 
-
-    public void testShouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
+    @Test
+    public void shouldThrowExceptionAfterClosedReadTransactionWhenWriting() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 10);
         ReadTransaction rt = db.beginRead();
@@ -168,8 +163,8 @@ public class JNITransactions extends AndroidTestCase {
         }
     }
 
-
-    public void testShouldThrowExceptionWhenWritingInReadTrans() {
+    @Test
+    public void shouldThrowExceptionWhenWritingInReadTrans() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         ReadTransaction rt = db.beginRead();
 
@@ -185,8 +180,8 @@ public class JNITransactions extends AndroidTestCase {
         }
     }
 
-
-    public void testOnlyOneCommit() {
+    @Test
+    public void onlyOneCommit() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         WriteTransaction trans = db.beginWrite();
 
@@ -206,7 +201,8 @@ public class JNITransactions extends AndroidTestCase {
         }
     }
 
-    public void testMustRollback() {
+    @Test
+    public void mustRollback() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         writeOneTransaction(db, 1);
         WriteTransaction trans = db.beginWrite();
@@ -219,7 +215,8 @@ public class JNITransactions extends AndroidTestCase {
         checkRead(db, 1); // Only 1 row now.
     }
 
-    public void testMustAllowDoubleCommitAndRollback() {
+    @Test
+    public void mustAllowDoubleCommitAndRollback() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
         {
             WriteTransaction trans = db.beginWrite();
@@ -256,7 +253,8 @@ public class JNITransactions extends AndroidTestCase {
     // Test: above in custom Typed Tables
     // TableQuery.... in ReadTransactions
 
-    public void testMustFailOnWriteInReadTransactions() {
+    @Test
+    public void mustFailOnWriteInReadTransactions() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
 
         writeOneTransaction(db, 1);
@@ -300,7 +298,8 @@ public class JNITransactions extends AndroidTestCase {
     }
 
     // Test that primary key constraints are actually removed
-    public void testRemovingPrimaryKeyRemovesConstraint() {
+    @Test
+    public void removingPrimaryKeyRemovesConstraint() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
 
         WriteTransaction trans = db.beginWrite();
@@ -327,7 +326,8 @@ public class JNITransactions extends AndroidTestCase {
     }
 
     // Test that primary key constraints are actually removed
-    public void testRemovingPrimaryKeyRemovesConstraint_typeSetters() {
+    @Test
+    public void removingPrimaryKeyRemovesConstraint_typeSetters() {
         SharedGroup db = new SharedGroup(testFile, SharedGroup.Durability.FULL, null);
 
         WriteTransaction trans = db.beginWrite();
@@ -354,50 +354,57 @@ public class JNITransactions extends AndroidTestCase {
         fail("Primary key not enforced.");
     }
 
-    public void testAddEmptyRowWithPrimaryKeyWrongTypeStringThrows() {
+    @Test
+    public void addEmptyRowWithPrimaryKeyWrongTypeStringThrows() {
         Table t = getTableWithStringPrimaryKey();
         try {
             t.addEmptyRowWithPrimaryKey(42);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
-    public void testAddEmptyRowWithPrimaryKeyNullStringThrows() {
+    @Test
+    public void addEmptyRowWithPrimaryKeyNullStringThrows() {
         Table t = getTableWithStringPrimaryKey();
         try {
             t.addEmptyRowWithPrimaryKey(null);
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
-    public void testAddEmptyRowWithPrimaryKeyWrongTypeIntegerThrows() {
+    @Test
+    public void addEmptyRowWithPrimaryKeyWrongTypeIntegerThrows() {
         Table t = getTableWithIntegerPrimaryKey();
         try {
             t.addEmptyRowWithPrimaryKey("Foo");
             fail();
-        } catch (IllegalArgumentException expected) {
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
-    public void testAddEmptyRowWithPrimaryKeyString() {
+    @Test
+    public void addEmptyRowWithPrimaryKeyString() {
         Table t = getTableWithStringPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey("Foo");
         assertEquals(1, t.size());
         assertEquals("Foo", t.getUncheckedRow(rowIndex).getString(0));
     }
 
-    public void testAddEmptyRowWithPrimaryKeyLong() {
+    @Test
+    public void addEmptyRowWithPrimaryKeyLong() {
         Table t = getTableWithIntegerPrimaryKey();
         long rowIndex = t.addEmptyRowWithPrimaryKey(42);
         assertEquals(1, t.size());
         assertEquals(42, t.getUncheckedRow(rowIndex).getLong(0));
     }
 
-    public void testFirstPrimaryKeyTableMigration() throws IOException {
-        TestHelper.copyRealmFromAssets(getContext(), "080_annotationtypes.realm", "default.realm");
-        SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
+    @Test
+    public void firstPrimaryKeyTableMigration() throws IOException {
+        configFactory.copyRealmFromAssets(context, "080_annotationtypes.realm", "default.realm");
+        SharedGroup db = new SharedGroup(new File(configFactory.getRoot(),
+                Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
         ImplicitTransaction tr = db.beginImplicitTransaction();
         Table t = tr.getTable("class_AnnotationTypes");
         assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
@@ -406,9 +413,11 @@ public class JNITransactions extends AndroidTestCase {
         db.close();
     }
 
-    public void testSecondPrimaryKeyTableMigration() throws IOException {
-        TestHelper.copyRealmFromAssets(getContext(), "0841_annotationtypes.realm", "default.realm");
-        SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(), Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
+    @Test
+    public void secondPrimaryKeyTableMigration() throws IOException {
+        configFactory.copyRealmFromAssets(context, "0841_annotationtypes.realm", "default.realm");
+        SharedGroup db = new SharedGroup(new File(configFactory.getRoot(),
+                Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
         ImplicitTransaction tr = db.beginImplicitTransaction();
         Table t = tr.getTable("class_AnnotationTypes");
         assertEquals(t.getColumnIndex("id"), t.getPrimaryKey());
@@ -423,13 +432,14 @@ public class JNITransactions extends AndroidTestCase {
     // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
     // "NClass", "Meclass" and etc..
     // The 0841_pk_migration.realm is made to produce the issue.
-    public void testPrimaryKeyTableMigratedWithRightName() throws IOException {
+    @Test
+    public void primaryKeyTableMigratedWithRightName() throws IOException {
         List<String> tableNames = Arrays.asList(
                 "ChatList", "Drafts", "Member", "Message", "Notifs", "NotifyLink", "PopularPost",
                 "Post", "Tags", "Threads", "User");
 
-        TestHelper.copyRealmFromAssets(getContext(), "0841_pk_migration.realm", "default.realm");
-        SharedGroup db = new SharedGroup(new File(getContext().getFilesDir(),
+        configFactory.copyRealmFromAssets(context, "0841_pk_migration.realm", "default.realm");
+        SharedGroup db = new SharedGroup(new File(configFactory.getRoot(),
                 Realm.DEFAULT_REALM_NAME).getAbsolutePath(), SharedGroup.Durability.FULL, null);
 
         ImplicitTransaction tr = db.beginImplicitTransaction();

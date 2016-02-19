@@ -37,6 +37,8 @@ import io.realm.internal.LinkView;
  * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
  * Non-managed elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
  * <p>
+ * {@link RealmList} can contain more elements than {@code Integer.MAX_VALUE}.
+ * In that case, you can access only first {@code Integer.MAX_VALUE} elements in it.
  *
  * @param <E> the class of objects in list.
  */

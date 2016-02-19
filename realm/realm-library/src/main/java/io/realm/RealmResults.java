@@ -53,6 +53,12 @@ import rx.Observable;
  * <p>
  * Notice that a RealmResults is never {@code null} not even in the case where it contains no objects. You should always
  * use the size() method to check if a RealmResults is empty or not.
+ * <p>
+ * If a RealmResults is built on RealmList through {@link RealmList#where()}, it will become empty when the source
+ * RealmList gets deleted.
+ * <p>
+ * {@link RealmResults} can contain more elements than {@code Integer.MAX_VALUE}.
+ * In that case, you can access only first {@code Integer.MAX_VALUE} elements in it.
  *
  * @param <E> The class of objects in this list.
  * @see RealmQuery#findAll()
@@ -67,7 +73,8 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private TableOrView table = null;
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
-    private long currentTableViewVersion = -1;
+    private static final long TABLE_VIEW_VERSION_NONE = -1;
+    private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
 
     private final TableQuery query;
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
@@ -153,9 +160,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @return a typed RealmQuery.
      * @see io.realm.RealmQuery
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     public RealmQuery<E> where() {
         realm.checkIfValid();
+
         return RealmQuery.createQueryFromResult(this);
     }
 
@@ -369,7 +378,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
     public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
+        sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
     /**
@@ -399,7 +408,8 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         if (!isLoaded()) {
             return 0;
         } else {
-            return ((Long)getTable().size()).intValue();
+            long size = getTable().size();
+            return (size > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) size;
         }
     }
 
@@ -544,35 +554,41 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Returns a distinct set of objects of a specific class. If the result is sorted, the first
-     * object will be returend in case of multiple occurences, otherwise it is undefined which
+     * object will be returned in case of multiple occurrences, otherwise it is undefined which
      * object is returned.
      *
      * @param fieldName the field name.
      * @return a non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field name does not exist.
-     * @throws IllegalArgumentException if a field's type is not supported.
-     * @throws IllegalArgumentException if a field points linked properties.
-     * @throws UnsupportedOperationException if a field is not indexed.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
     public RealmResults<E> distinct(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = getColumnIndex(fieldName);
+        long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
+
         TableOrView tableOrView = getTable();
-
-        TableView tableView;
         if (tableOrView instanceof Table) {
-            tableView = ((Table) tableOrView).getDistinctView(columnIndex);
+            this.table = ((Table) tableOrView).getDistinctView(columnIndex);
         } else {
-            tableView = ((TableView) tableOrView).getTable().getDistinctView(columnIndex);
+            ((TableView) tableOrView).distinct(columnIndex);
         }
+        return this;
+    }
 
-        RealmResults<E> realmResults;
-        if (realm instanceof DynamicRealm) {
-            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
-        } else {
-            realmResults = RealmResults.createFromTableOrView(realm, tableView, classSpec);
-        }
-        return realmResults;
+    /**
+     * Asynchronously returns a distinct set of objects of a specific class. If the result is
+     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
+     * undefined which object is returned.
+     *
+     * @param fieldName the field name.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
+     */
+    public RealmResults<E> distinctAsync(String fieldName) {
+        return where().distinctAsync(fieldName);
     }
 
     // Deleting
@@ -596,7 +612,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Removes and returns the last object in the list. This also deletes the object from the underlying Realm.
+     * Removes the last object in the list. This also deletes the object from the underlying Realm.
      *
      * Using this method while iterating the list can result in a undefined behavior. Use
      * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
@@ -620,8 +636,8 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         table.clear();
     }
 
-    void refresh() {
-        currentTableViewVersion = table.refresh();
+    void syncIfNeeded() {
+        currentTableViewVersion = table.syncIfNeeded();
     }
 
     // Adding objects
@@ -798,7 +814,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             // had a chance to call setPendingQuery to register the pendingQuery (used btw
             // to determine isLoaded behaviour)
             onCompleted();
-        } // else, it will be handled by the Realm#handler
+        } // else, it will be handled by the {@link BaseRealm#handlerController#handleMessage}
     }
 
     /**
@@ -895,7 +911,20 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     /**
      * Returns an Rx Observable that monitors changes to this RealmResults. It will emit the current RealmResults when
-     * subscribed to.
+     * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
+     * {@code onComplete} will never be called.
+     *
+     * If you would like the {@code asObservable()} to stop emitting items you can instruct RxJava to
+     * only emit only the first item by using the {@code first()} operator:
+     *
+     *<pre>
+     * {@code
+     * realm.where(Foo.class).findAllAsync().asObservable()
+     *      .filter(results -> results.isLoaded())
+     *      .first()
+     *      .subscribe( ... ) // You only get the results once
+     * }
+     * </pre>
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
@@ -924,18 +953,14 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             // table might be null (if the async query didn't complete
             // but we have already registered listeners for it)
             if (pendingQuery != null && !isCompleted) return;
-
-            //FIXME: still waiting for Core to provide a fix
-            //       for crash when calling _sync_if_needed on a cleared View.
-            //       https://github.com/realm/realm-core/pull/1390
             // FIXME Cleanup this mess of booleans / logic. Should all changelisteners be triggered on a looper event?
-            long version = refreshBeforeNotification ? table.refresh() : table.getVersion();
-            if (currentTableViewVersion != version) {
-                currentTableViewVersion = version;
+            long version = refreshBeforeNotification ? table.syncIfNeeded() : table.getVersion();
+//            if (currentTableViewVersion != version) {
+//                currentTableViewVersion = version;
                 for (RealmChangeListener listener : listeners) {
                     listener.onChange();
                 }
-            }
+//            }
         }
     }
 }

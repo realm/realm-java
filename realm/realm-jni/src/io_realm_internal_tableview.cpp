@@ -132,12 +132,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetSourceRowIndex
 {
     try {
         if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
-            return -1;
+            return npos;
         if (!ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
-            return -1;
-        if (!TV(nativeViewPtr)->is_row_attached(rowIndex))
-            return -1;
-
+            return npos;
     } CATCH_STD()
     return TV(nativeViewPtr)->get_source_ndx(S(rowIndex));   // noexcept
 }

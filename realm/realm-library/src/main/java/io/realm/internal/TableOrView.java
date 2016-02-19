@@ -388,5 +388,5 @@ public interface TableOrView {
      *
      * @return the version number for the updated tableview.
      */
-    long refresh();
+    long syncIfNeeded();
 }

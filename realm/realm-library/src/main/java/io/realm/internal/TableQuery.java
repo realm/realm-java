@@ -504,9 +504,8 @@ public class TableQuery implements Closeable {
 
     // Suppose to be called from the caller SharedGroup thread
     public TableView importHandoverTableView(long handoverPtr, long callerSharedGroupPtr) {
-        long nativeTvPtr = 0;
+        long nativeTvPtr = nativeImportHandoverTableViewIntoSharedGroup(handoverPtr, callerSharedGroupPtr);
         try {
-            nativeTvPtr = nativeImportHandoverTableViewIntoSharedGroup(handoverPtr, callerSharedGroupPtr);
             return new TableView(this.context, this.table, nativeTvPtr);
         } catch (RuntimeException e) {
             if (nativeTvPtr != 0) {

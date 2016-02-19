@@ -247,17 +247,13 @@ public final class DynamicRealm extends BaseRealm {
      * @param className the Class to get objects of.
      * @param fieldName the field name.
      * @return A non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
     public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
-        checkNotNullFieldName(fieldName);
         checkIfValid();
         Table table = schema.getTable(className);
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex == -1) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
-
+        long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, table);
         TableView tableView = table.getDistinctView(columnIndex);
         return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
@@ -269,26 +265,15 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @param className the Class to get objects of.
      * @param fieldName the field name.
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
-     * when the query completes.
-     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
     public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
-        checkNotNullFieldName(fieldName);
         checkIfValid();
-        Table table = schema.getTable(className);
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex == -1) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
-
-        // check if the field is indexed
-        if (!table.hasSearchIndex(columnIndex)) {
-            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
-        }
-
-        return where(className).distinctAsync(columnIndex);
+        return where(className).distinctAsync(fieldName);
     }
 
     /**

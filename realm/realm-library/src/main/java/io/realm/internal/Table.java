@@ -1337,7 +1337,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     @Override
-    public long refresh() {
+    public long syncIfNeeded() {
         throw new RuntimeException("Not supported for tables");
     }
 

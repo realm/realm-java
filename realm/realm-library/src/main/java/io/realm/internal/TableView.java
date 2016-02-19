@@ -811,7 +811,7 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
-    public long refresh() {
+    public long syncIfNeeded() {
         version = nativeSyncIfNeeded(nativePtr);
         return version;
     }

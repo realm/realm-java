@@ -25,6 +25,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import org.junit.Test;
+
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
@@ -475,9 +477,20 @@ public class DynamicRealmObjectTests {
     // List is not a simple getter, test separately.
     @Test
     public void getList() {
-        RealmList<DynamicRealmObject> list = dObj.getList(AllJavaTypes.FIELD_LIST);
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        Dog dog = realm.createObject(Dog.class);
+        dog.setName("fido");
+        obj.getColumnRealmList().add(dog);
+        realm.commitTransaction();
+
+        DynamicRealmObject dynamicAllTypes = new DynamicRealmObject(obj);
+        RealmList<DynamicRealmObject> list = dynamicAllTypes.getList(AllTypes.FIELD_REALMLIST);
+        DynamicRealmObject listObject = list.get(0);
+
         assertEquals(1, list.size());
-        assertEquals(dObj, list.get(0));
+        assertEquals(Dog.CLASS_NAME, listObject.getType());
+        assertEquals("fido", listObject.getString(Dog.FIELD_NAME));
     }
 
     @Test
@@ -747,5 +760,20 @@ public class DynamicRealmObjectTests {
         String str = dObj.toString();
         assertTrue(str.startsWith("class_AllJavaTypes = ["));
         assertTrue(str.endsWith("}]"));
+    }
+
+    public void testExceptionMessage() {
+        // test for https://github.com/realm/realm-java/issues/2141
+        realm.beginTransaction();
+        AllTypes obj = realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        DynamicRealmObject o = new DynamicRealmObject(obj);
+        try {
+            o.getFloat("nonExisting"); // Note that "o" does not have "nonExisting" field.
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("Illegal Argument: Field not found: nonExisting", e.getMessage());
+        }
     }
 }

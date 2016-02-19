@@ -33,6 +33,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
+import io.realm.rule.RunInLooperThread;
+import io.realm.rule.RunTestInLooperThread;
+import io.realm.rule.TestRealmConfigurationFactory;
 import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -43,29 +46,32 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RxJavaTests {
+
     @Rule
     public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
     @Rule
-    public final TemporaryFolder tempDir = new TemporaryFolder();
+    public final RunInLooperThread looperThread = new RunInLooperThread();
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private RealmConfiguration realmConfig;
     private Realm realm;
 
     @Before
     public void setUp() throws Exception {
-        realmConfig = TestHelper.createConfiguration(tempDir.getRoot(), Realm.DEFAULT_REALM_NAME);
-        Realm.deleteRealm(realmConfig);
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
     }
 
     @After
     public void tearDown() throws Exception {
-        realm.close();
+        if (realm != null) {
+            realm.close();
+        }
     }
 
     @Test
     @UiThreadTest
-    public void testObjectEmittedOnSubscribe() {
+    public void realmObject_emittedOnSubscribe() {
         realm.beginTransaction();
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -82,9 +88,10 @@ public class RxJavaTests {
     }
 
     @Test
-    @UiThreadTest
-    public void testObjectEmittedOnUpdate() {
+    @RunTestInLooperThread
+    public void realmObject_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.realm;
         realm.beginTransaction();
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -92,20 +99,38 @@ public class RxJavaTests {
         obj.<AllTypes>asObservable().subscribe(new Action1<AllTypes>() {
             @Override
             public void call(AllTypes rxObject) {
-                subscriberCalled.incrementAndGet();
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    looperThread.testComplete();
+                }
             }
         });
 
         realm.beginTransaction();
         obj.setColumnLong(1);
         realm.commitTransaction();
-
-        assertEquals(2, subscriberCalled.get());
     }
 
     @Test
     @UiThreadTest
-    public void testAsyncObjectEmittedOnSubscribe() {
+    public void findFirst_emittedOnSubscribe() {
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class).setColumnLong(42);
+        realm.commitTransaction();
+
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 42).findFirst().<AllTypes>asObservable()
+                .subscribe(new Action1<AllTypes>() {
+                    @Override
+                    public void call(AllTypes rxObject) {
+                        subscribedNotified.set(true);
+                    }
+                });
+        assertTrue(subscribedNotified.get());
+    }
+
+    @Test
+    @UiThreadTest
+    public void findFirstAsync_emittedOnSubscribe() {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
@@ -124,7 +149,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
-    public void testAsyncObjectEmittedOnUpdate() {
+    public void findFirstAsync_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
@@ -145,7 +170,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
-    public void testRealmResultsEmittedOnSubscribe() {
+    public void realmResults_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final RealmResults<AllTypes> results = realm.allObjects(AllTypes.class);
         results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
@@ -159,9 +184,10 @@ public class RxJavaTests {
     }
 
     @Test
-    @UiThreadTest
-    public void testResultsEmittedOnUpdate() {
+    @RunTestInLooperThread
+    public void realmResults_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.realm;
         realm.beginTransaction();
         RealmResults<AllTypes> results = realm.allObjects(AllTypes.class);
         realm.commitTransaction();
@@ -169,20 +195,20 @@ public class RxJavaTests {
         results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
             public void call(RealmResults<AllTypes> allTypes) {
-                subscriberCalled.incrementAndGet();
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    looperThread.testComplete();
+                }
             }
         });
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
-
-        assertEquals(2, subscriberCalled.get());
     }
 
     @Test
     @UiThreadTest
-    public void testAsyncRealmResultsEmittedOnSubscribe() {
+    public void findAllAsync_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         results.asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
@@ -197,7 +223,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
-    public void testAsyncResultsEmittedOnUpdate() {
+    public void findAllAsync_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         realm.where(AllTypes.class).findAllAsync().asObservable().subscribe(new Action1<RealmResults<AllTypes>>() {
             @Override
@@ -215,7 +241,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
-    public void testRealmEmittedOnSubscribe() {
+    public void realm_emittedOnSubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         realm.asObservable().subscribe(new Action1<Realm>() {
             @Override
@@ -228,26 +254,27 @@ public class RxJavaTests {
     }
 
     @Test
-    @UiThreadTest
-    public void testRealmEmittedOnUpdate() {
+    @RunTestInLooperThread
+    public void realm_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        Realm realm = looperThread.realm;
         realm.asObservable().subscribe(new Action1<Realm>() {
             @Override
             public void call(Realm rxRealm) {
-                subscriberCalled.incrementAndGet();
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    looperThread.testComplete();
+                }
             }
         });
 
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
-
-        assertEquals(2, subscriberCalled.get());
     }
 
     @Test
     @UiThreadTest
-    public void testDynamicRealmEmittedOnSubscribe() {
+    public void dynamicRealm_emittedOnSubscribe() {
         final DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.getConfiguration());
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         dynamicRealm.asObservable().subscribe(new Action1<DynamicRealm>() {
@@ -262,28 +289,28 @@ public class RxJavaTests {
     }
 
     @Test
-    @UiThreadTest
-    public void testDynamicRealmEmittedOnUpdate() {
+    @RunTestInLooperThread
+    public void dynamicRealm_emittedOnUpdate() {
         final DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.getConfiguration());
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
         dynamicRealm.asObservable().subscribe(new Action1<DynamicRealm>() {
             @Override
             public void call(DynamicRealm rxRealm) {
-                subscriberCalled.incrementAndGet();
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    dynamicRealm.close();
+                    looperThread.testComplete();
+                }
             }
         });
 
         dynamicRealm.beginTransaction();
         dynamicRealm.createObject("AllTypes");
         dynamicRealm.commitTransaction();
-
-        assertEquals(2, subscriberCalled.get());
-        dynamicRealm.close();
     }
 
     @Test
     @UiThreadTest
-    public void testUnsubscribe() {
+    public void unsubscribe() {
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         Subscription subscription = realm.asObservable().subscribe(new Action1<Realm>() {
             @Override
@@ -299,7 +326,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
-    public void testUnsubscribeFromOtherThreadFails() {
+    public void unsubscribe_fromOtherThreadThrows() {
         final CountDownLatch unsubscribeCompleted = new CountDownLatch(1);
         final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
         final Subscription subscription = realm.asObservable().subscribe(new Action1<Realm>() {
@@ -328,7 +355,7 @@ public class RxJavaTests {
 
     @Test
     @UiThreadTest
-    public void testWrongGenericClassThrows() {
+    public void wrongGenericClassThrows() {
         realm.beginTransaction();
         final AllTypes obj = realm.createObject(AllTypes.class);
         realm.commitTransaction();

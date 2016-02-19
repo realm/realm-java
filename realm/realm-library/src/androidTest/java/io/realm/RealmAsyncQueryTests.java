@@ -16,19 +16,11 @@
 
 package io.realm;
 
-import android.content.Context;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.MessageQueue;
 import android.os.SystemClock;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
-import junit.framework.AssertionFailedError;
-
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,8 +31,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
@@ -53,24 +43,23 @@ import io.realm.internal.log.RealmLog;
 import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
+import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.util.RealmBackgroundTask;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmAsyncQueryTests {
-    private Context context;
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
-
-    @Before
-    public void setUp() throws Exception {
-        context = InstrumentationRegistry.getInstrumentation().getContext();
-    }
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
     // ****************************
     // ****  Async transaction  ***
@@ -79,113 +68,138 @@ public class RealmAsyncQueryTests {
     // start asynchronously a transaction to insert one element
     @Test
     @RunTestInLooperThread
-    public void executeTransaction_async() throws Throwable {
-        assertEquals(0, looperThread.realm.allObjects(Owner.class).size());
+    public void executeTransactionAsync() throws Throwable {
+        final Realm realm = looperThread.realm;
+        assertEquals(0, realm.allObjects(Owner.class).size());
 
-        looperThread.realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 Owner owner = realm.createObject(Owner.class);
                 owner.setName("Owner");
             }
-        }, new Realm.Transaction.Callback() {
+        }, new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
-                assertEquals(1, looperThread.realm.allObjects(Owner.class).size());
-                assertEquals("Owner", looperThread.realm.where(Owner.class).findFirst().getName());
+                assertEquals(1, realm.allObjects(Owner.class).size());
+                assertEquals("Owner", realm.where(Owner.class).findFirst().getName());
                 looperThread.testComplete();
             }
+        }, new Realm.Transaction.OnError() {
 
             @Override
-            public void onError(Exception e) {
-                looperThread.testComplete();;
-                fail(e.getMessage());
+            public void onError(Throwable error) {
+                fail(error.getMessage());
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_onSuccess() throws Throwable {
+        final Realm realm = looperThread.realm;
+        assertEquals(0, realm.allObjects(Owner.class).size());
+
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Owner owner = realm.createObject(Owner.class);
+                owner.setName("Owner");
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                assertEquals(1, realm.allObjects(Owner.class).size());
+                assertEquals("Owner", realm.where(Owner.class).findFirst().getName());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_onError() throws Throwable {
+        final Realm realm = looperThread.realm;
+        assertEquals(0, realm.allObjects(Owner.class).size());
+
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                throw new RuntimeException("Oh! What a Terrible Failure");
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                assertEquals(0, realm.allObjects(Owner.class).size());
+                assertNull(realm.where(Owner.class).findFirst());
+                looperThread.testComplete();
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void executeTransactionAsync_NoCallbacks() throws Throwable {
+        final Realm realm = looperThread.realm;
+        assertEquals(0, realm.allObjects(Owner.class).size());
+
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Owner owner = realm.createObject(Owner.class);
+                owner.setName("Owner");
+            }
+        });
+        realm.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals("Owner", realm.where(Owner.class).findFirst().getName());
+                looperThread.testComplete();
             }
         });
     }
 
     // Test that an async transaction that throws an exception propagate it properly to the user.
     @Test
-    public void executeTransaction_async_exceptionHandling() throws Throwable {
+    @RunTestInLooperThread
+    public void executeTransactionAsync_exceptionHandling() throws Throwable {
         final TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Realm[] realm = new Realm[1];
-        final Throwable[] threadAssertionError = new Throwable[1];// to catch both Exception & AssertionError
-        final Looper[] backgroundLooper = new Looper[1];
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        RealmLog.add(testLogger);
+
+        final Realm realm = looperThread.realm;
+
+        assertEquals(0, realm.allObjects(Owner.class).size());
+
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                try {
-                    RealmLog.add(testLogger);
-                    realm[0] = openRealmInstance("testAsyncTransaction");
-
-                    assertEquals(0, realm[0].allObjects(Owner.class).size());
-
-                    realm[0].executeTransaction(new Realm.Transaction() {
-                        @Override
-                        public void execute(Realm realm) {
-                            Owner owner = realm.createObject(Owner.class);
-                            owner.setName("Owner");
-                            realm.cancelTransaction(); // Cancel the transaction then throw
-                            throw new RuntimeException("Boom");
-                        }
-                    }, new Realm.Transaction.Callback() {
-                        @Override
-                        public void onSuccess() {
-                            try {
-                                fail("Should not reach success if runtime exception is thrown in callback.");
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-
-                        @Override
-                        public void onError(Exception e) {
-                            try {
-                                // Ensure we are giving developers quality messages in the logs.
-                                assertEquals(testLogger.message, "Could not cancel transaction, not currently in a transaction.");
-                            } catch (AssertionFailedError afe) {
-                                threadAssertionError[0] = afe;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    RealmLog.remove(testLogger);
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm.length > 0 && realm[0] != null) {
-                        realm[0].close();
-                    }
-                    signalClosedRealm.countDown();
-                }
+            public void execute(Realm realm) {
+                Owner owner = realm.createObject(Owner.class);
+                owner.setName("Owner");
+                realm.cancelTransaction(); // Cancel the transaction then throw
+                throw new RuntimeException("Boom");
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                fail("Should not reach success if runtime exception is thrown in callback.");
+            }
+        }, new Realm.Transaction.OnError() {
+            @Override
+            public void onError(Throwable error) {
+                // Ensure we are giving developers quality messages in the logs.
+                assertEquals("Could not cancel transaction, not currently in a transaction.", testLogger.message);
+                RealmLog.remove(testLogger);
+                looperThread.testComplete();
             }
         });
-
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // Test if the background Realm is closed when transaction success returned.
     @Test
     @RunTestInLooperThread
-    public void executeTransaction_async_realmClosedOnSuccess() {
+    public void executeTransactionAsync_realmClosedOnSuccess() {
         final AtomicInteger counter = new AtomicInteger(100);
-        final Realm realm = Realm.getInstance(looperThread.createConfiguration("testClosedBeforeAsyncTransactionSuccess"));
+        final Realm realm = looperThread.realm;
         final RealmCache.Callback cacheCallback = new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
@@ -196,7 +210,7 @@ public class RealmAsyncQueryTests {
                 }
             }
         };
-        final Realm.Transaction.Callback transactionCallback = new Realm.Transaction.Callback() {
+        final Realm.Transaction.OnSuccess transactionCallback = new Realm.Transaction.OnSuccess() {
             @Override
             public void onSuccess() {
                 RealmCache.invokeWithGlobalRefCount(realm.getConfiguration(), cacheCallback);
@@ -204,7 +218,7 @@ public class RealmAsyncQueryTests {
                     // Finish testing
                     return;
                 }
-                realm.executeTransaction(new Realm.Transaction() {
+                realm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
                     }
@@ -212,7 +226,7 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
             }
@@ -224,7 +238,7 @@ public class RealmAsyncQueryTests {
     @RunTestInLooperThread
     public void executeTransaction_async_realmClosedOnError() {
         final AtomicInteger counter = new AtomicInteger(100);
-        final Realm realm = Realm.getInstance(looperThread.createConfiguration("testClosedBeforeAsyncTransactionSuccess"));
+        final Realm realm = looperThread.realm;
         final RealmCache.Callback cacheCallback = new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
@@ -235,15 +249,15 @@ public class RealmAsyncQueryTests {
                 }
             }
         };
-        final Realm.Transaction.Callback transactionCallback = new Realm.Transaction.Callback() {
+        final Realm.Transaction.OnError transactionCallback = new Realm.Transaction.OnError() {
             @Override
-            public void onError(Exception e) {
+            public void onError(Throwable error) {
                 RealmCache.invokeWithGlobalRefCount(realm.getConfiguration(), cacheCallback);
                 if (counter.get() == 0) {
                     // Finish testing
                     return;
                 }
-                realm.executeTransaction(new Realm.Transaction() {
+                realm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
                         throw new RuntimeException("Dummy exception");
@@ -252,7 +266,7 @@ public class RealmAsyncQueryTests {
             }
         };
 
-        realm.executeTransaction(new Realm.Transaction() {
+        realm.executeTransactionAsync(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
                 throw new RuntimeException("Dummy exception");
@@ -265,105 +279,45 @@ public class RealmAsyncQueryTests {
     // ************************************
 
     // finding element [0-4] asynchronously then wait for the promise to be loaded.
-    // no use of notification callback
     @Test
+    @RunTestInLooperThread
     public void findAllAsync() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final RealmResults[] results = new RealmResults[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .between("columnLong", 0, 4)
+                .findAllAsync();
+
+        assertFalse(results.isLoaded());
+        assertEquals(0, results.size());
+
+        results.addChangeListener(new RealmChangeListener() {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                // register IdleHandler to quit the Looper once all messages have proceeded
-                // Let the first queueIdle invocation pass, because it occurs before the first message is received.
-                // WARNING: when debugging the 'queueIdle' will be called more often (because of the break points)
-                //          making the countdown latch to be invoked earlier.
-                final boolean[] isFirstIdle = {true};
-                Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
-                    @Override
-                    public boolean queueIdle() {
-                        if (isFirstIdle[0]) {
-                            isFirstIdle[0] = false;
-                            return true;
-
-                        } else {
-                            // Last message (i.e COMPLETED_ASYNC_REALM_RESULTS was processed)
-                            try {
-                                assertTrue(results[0].isLoaded());
-                                assertEquals(5, results[0].size());
-                                assertTrue(results[0].get(0).isValid());
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                            return false; // unregister from the future IdleHandler events
-                        }
-                    }
-                });
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testFindAllAsync");
-                    Realm.asyncQueryExecutor.pause();
-
-                    populateTestRealm(realm, 10);
-                    final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
-                            .between("columnLong", 0, 4)
-                            .findAllAsync();
-                    results[0] = realmResults;
-                    assertFalse(realmResults.isLoaded());
-                    assertEquals(0, realmResults.size());
-
-                    Realm.asyncQueryExecutor.resume();
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                    signalClosedRealm.countDown();
-                }
+            public void onChange() {
+                assertTrue(results.isLoaded());
+                assertEquals(5, results.size());
+                assertTrue(results.get(0).isValid());
+                looperThread.testComplete();
             }
         });
-
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     @Test
     @RunTestInLooperThread
     public void accessingRealmListOnUnloadedRealmObjectShouldThrow() {
-        Realm.asyncQueryExecutor.pause();
-
-        populateTestRealm(looperThread.realm, 10);
-        final AllTypes alltypes1 = looperThread.realm.where(AllTypes.class)
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+        final AllTypes results = realm.where(AllTypes.class)
                 .equalTo("columnLong", 0)
                 .findFirstAsync();
 
-        assertFalse(alltypes1.isLoaded());
+        assertFalse(results.isLoaded());
         try {
-            alltypes1.getColumnRealmList();
+            results.getColumnRealmList();
             fail("Accessing property on an empty row");
         } catch (IllegalStateException ignored) {
         }
-
-        Realm.asyncQueryExecutor.resume();
         looperThread.testComplete();
-        Looper.loop();
-
     }
 
     @Test
@@ -378,56 +332,22 @@ public class RealmAsyncQueryTests {
 
     @Test
     public void findAllAsync_throwsOnNonLooperThread() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testAsyncQueryOnNonLooperThreadShouldThrow");
-                    populateTestRealm(realm, 10);
-
-                    try {
-                        final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
-                                .between("columnLong", 0, 4)
-                                .findAllAsync();
-                        fail("Should not be able to use async query without a Looper thread");
-                    } catch (IllegalStateException ignore) {
-                        signalCallbackFinished.countDown();
-                    }
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                }
-            }
-        });
-
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-
-        executorService.shutdownNow();
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
+        Realm realm = Realm.getInstance(configFactory.createConfiguration());
+        try {
+            realm.where(AllTypes.class).findAllAsync();
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.close();
         }
     }
 
     @Test
     @RunTestInLooperThread
     public void findAllAsync_reusingQuery() throws Throwable {
-        populateTestRealm(looperThread.realm, 10);
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
 
-        RealmQuery<AllTypes> query = looperThread.realm.where(AllTypes.class)
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class)
                 .between("columnLong", 0, 4);
         RealmResults<AllTypes> queryAllSync = query.findAll();
         RealmResults<AllTypes> allAsync = query.findAllAsync();
@@ -437,7 +357,7 @@ public class RealmAsyncQueryTests {
 
         // the RealmQuery already has an argumentHolder, can't reuse it
         try {
-            RealmResults<AllTypes> allAsyncSorted = query.findAllSorted("columnLong");
+            query.findAllSorted("columnLong");
             fail("Should throw an exception, can not reuse RealmQuery");
         } catch (IllegalStateException ignored) {
             looperThread.testComplete();
@@ -449,28 +369,24 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllAsync_withNotification() throws Throwable {
-        Realm.asyncQueryExecutor.pause();
-
-        populateTestRealm(looperThread.realm, 10);
-        final RealmResults<AllTypes> realmResults = looperThread.realm.where(AllTypes.class)
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class)
                 .between("columnLong", 0, 4)
                 .findAllAsync();
 
-        realmResults.addChangeListener(new RealmChangeListener() {
+        results.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertTrue(realmResults.isLoaded());
-                assertEquals(5, realmResults.size());
-                assertTrue(realmResults.get(4).isValid());
+                assertTrue(results.isLoaded());
+                assertEquals(5, results.size());
+                assertTrue(results.get(4).isValid());
                 looperThread.testComplete();
             }
         });
 
-        assertFalse(realmResults.isLoaded());
-        assertEquals(0, realmResults.size());
-
-        Realm.asyncQueryExecutor.resume();
-        looperThread.keepStrongReference.add(realmResults);
+        assertFalse(results.isLoaded());
+        assertEquals(0, results.size());
     }
 
     // transforming an async query into sync by calling load to force
@@ -478,10 +394,9 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findAllAsync_forceLoad() throws Throwable {
-        Realm.asyncQueryExecutor.pause();
-
-        populateTestRealm(looperThread.realm, 10);
-        final RealmResults<AllTypes> realmResults = looperThread.realm.where(AllTypes.class)
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+        final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
                 .between("columnLong", 0, 4)
                 .findAllAsync();
 
@@ -499,7 +414,6 @@ public class RealmAsyncQueryTests {
         assertFalse(realmResults.isLoaded());
         assertEquals(0, realmResults.size());
 
-        Realm.asyncQueryExecutor.resume();
         boolean successful = realmResults.load();
 
         assertTrue(successful);
@@ -518,94 +432,59 @@ public class RealmAsyncQueryTests {
     //   8- the notification should be called once (when we retry automatically we shouldn't
     //      notify the user).
     @Test
+    @RunTestInLooperThread
     public void findAllAsync_retry() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final AtomicInteger numberOfIntercept = new AtomicInteger(0);
+        final AtomicInteger numberOfInvocation = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+
+        // 1. Populate initial data
+        realm.setAutoRefresh(false);
+        populateTestRealm(realm, 10);
+        realm.setAutoRefresh(true);
+
+        // 2. Configure handler interceptor
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-                final Realm[] realm = new Realm[1];
-                try {
-                    final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    realm[0] = openRealmInstance("testFindAllAsyncRetry");
-                    final Handler handler = new HandlerProxy(realm[0].handler) {
-                        @Override
-                        public boolean onInterceptMessage(int what) {
-                            switch (what) {
-                                case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
-                                    if (numberOfIntercept.getAndDecrement() > 0) {
-                                        // We advance the Realm so we can simulate a retry
-                                        // This is intercepted on the worker thread, we need to use
-                                        // the Realm on the original thread
-                                        postAtFront(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                realm[0].beginTransaction();
-                                                realm[0].clear(AllTypes.class);
-                                                realm[0].commitTransaction();
-                                            }
-                                        });
-                                    }
-                                    break;
-                                }
-                            }
-                            return false;
+            public boolean onInterceptInMessage(int what) {
+                // Intercepts in order: [QueryComplete, RealmChanged, QueryUpdated]
+                int intercepts = numberOfIntercept.incrementAndGet();
+                switch (what) {
+                    // 5. Intercept all messages from other threads. On the first complete, we advance the tread
+                    // which will cause the async query to rerun instead of triggering the change listener.
+                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS:
+                        if (intercepts == 1) {
+                            // We advance the Realm so we can simulate a retry
+                            realm.beginTransaction();
+                            realm.clear(AllTypes.class);
+                            realm.commitTransaction();
                         }
-                    };
-                    realm[0].setHandler(handler);
-
-                    Realm.asyncQueryExecutor.pause();
-
-                    populateTestRealm(realm[0], 10);
-                    final RealmResults<AllTypes> realmResults = realm[0].where(AllTypes.class)
-                            .between("columnLong", 0, 4)
-                            .findAllAsync();
-
-                    assertFalse(realmResults.isLoaded());
-                    assertEquals(0, realmResults.size());
-
-                    Realm.asyncQueryExecutor.resume();
-
-                    final AtomicInteger numberOfInvocation = new AtomicInteger(0);
-                    realmResults.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                assertEquals(1, numberOfInvocation.incrementAndGet());
-                                assertTrue(realmResults.isLoaded());
-                                assertEquals(0, realmResults.size());
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm[0] != null) {
-                        realm[0].close();
-                    }
-                    signalClosedRealm.countDown();
                 }
+                return false;
+            }
+        };
+        realm.setHandler(handler);
+
+        // 3. Create a async query
+        final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
+                .between("columnLong", 0, 4)
+                .findAllAsync();
+
+        // 4. Ensure that query isn't loaded yet
+        assertFalse(realmResults.isLoaded());
+        assertEquals(0, realmResults.size());
+
+        // 6. Callback triggered after retry has completed
+        realmResults.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals(3, numberOfIntercept.get());
+                assertEquals(1, numberOfInvocation.incrementAndGet());
+                assertTrue(realmResults.isLoaded());
+                assertEquals(0, realmResults.size());
+                looperThread.testComplete();
             }
         });
-
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // UC:
@@ -617,310 +496,158 @@ public class RealmAsyncQueryTests {
     //   6- now REALM_CHANGED will trigger a COMPLETED_UPDATE_ASYNC_QUERIES that should update all queries
     //   7- callbacks are notified with the latest results (called twice overall)
     @Test
+    @RunTestInLooperThread
     public void findAllAsync_batchUpdate() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final AtomicInteger numberOfNotificationsQuery1 = new AtomicInteger(0);
         final AtomicInteger numberOfNotificationsQuery2 = new AtomicInteger(0);
-        executorService.submit(new Runnable() {
+        final AtomicInteger numberOfIntercept = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+
+        // 1. Configure Handler interceptor
+        Handler handler = new HandlerProxy(realm.handlerController) {
+            @Override
+            public boolean onInterceptInMessage(int what) {
+                int intercepts = numberOfIntercept.getAndIncrement();
+                if (what == HandlerController.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
+                    // 4. The first time the async queries complete we start an update from
+                    // another background thread. This will cause queries to rerun when the
+                    // background thread notifies this thread.
+                    new RealmBackgroundTask(looperThread.realmConfiguration) {
+                        @Override
+                        public void doInBackground(Realm realm) {
+                            realm.beginTransaction();
+                            realm.where(AllTypes.class)
+                                    .equalTo(AllTypes.FIELD_LONG, 4)
+                                    .findFirst()
+                                    .setColumnString("modified");
+                            realm.createObject(AllTypes.class);
+                            realm.createObject(AllTypes.class);
+                            realm.commitTransaction();
+                        }
+                    }.awaitOrFail();
+                }
+                return false;
+            }
+        };
+        realm.setHandler(handler);
+
+        // 2. Create 2 async queries and check they are not loaded
+        final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class).findAllAsync();
+        final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class).between("columnLong", 0, 4).findAllAsync();
+
+        assertFalse(realmResults1.isLoaded());
+        assertFalse(realmResults2.isLoaded());
+        assertEquals(0, realmResults1.size());
+        assertEquals(0, realmResults2.size());
+
+        // 3. Change listeners will be called twice. Once when the first query completely and then
+        // when the background thread has completed, notifying this thread to rerun and then receive
+        // the updated results.
+        final Runnable signalCallbackDone = new Runnable() {
+            private AtomicInteger signalCallbackFinished = new AtomicInteger(2);
             @Override
             public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testFindAllAsyncBatchUpdate");
-                    final RealmConfiguration realmConfiguration = realm.getConfiguration();
-                    final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    assertNotNull(realm.handler);
-                    final Handler handler = new HandlerProxy(realm.handler) {
-                        @Override
-                        public boolean onInterceptMessage(int what) {
-                            switch (what) {
-                                case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
-                                    if (numberOfIntercept.getAndDecrement() > 0) {
-                                        // We advance the Realm so we can simulate a retry
-                                        // This is intercepted on the worker thread, we need to use
-                                        // the Realm on the caller thread
-                                        postAtFront(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                final CountDownLatch bgThreadLatch = new CountDownLatch(1);
-                                                new Thread() {
-                                                    @Override
-                                                    public void run() {
-                                                        Realm bgRealm = Realm.getInstance(realmConfiguration);
-                                                        bgRealm.beginTransaction();
-                                                        bgRealm.where(AllTypes.class).equalTo("columnLong", 4).findFirst().setColumnString("modified");
-                                                        bgRealm.createObject(AllTypes.class);
-                                                        bgRealm.createObject(AllTypes.class);
-                                                        bgRealm.commitTransaction();
-                                                        bgRealm.close();
-                                                        bgThreadLatch.countDown();
-                                                    }
-                                                }.start();
-                                                try {
-                                                    bgThreadLatch.await();
-                                                } catch (InterruptedException e) {
-                                                    e.printStackTrace();
-                                                    threadAssertionError[0] = e;
-                                                }
-                                            }
-                                        });
-                                    }
-                                    break;
-                                }
-                            }
-                            return false;
-                        }
-                    };
-                    realm.setHandler(handler);
-                    Realm.asyncQueryExecutor.pause();
+                if (signalCallbackFinished.decrementAndGet() == 0) {
+                    assertEquals(4, numberOfIntercept.get());
+                    assertEquals(2, numberOfNotificationsQuery1.get());
+                    assertEquals(2, numberOfNotificationsQuery2.get());
+                    looperThread.testComplete();
+                }
+            }
+        };
 
-                    populateTestRealm(realm, 10);
-                    final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
-                            .findAllAsync();
-                    final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
-                            .between("columnLong", 0, 4).findAllAsync();
+        realmResults1.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                switch (numberOfNotificationsQuery1.incrementAndGet()) {
+                    case 1: // first callback invocation
+                        assertTrue(realmResults1.isLoaded());
+                        assertEquals(10, realmResults1.size());
+                        assertEquals("test data 4", realmResults1.get(4).getColumnString());
+                        break;
 
-                    assertFalse(realmResults1.isLoaded());
-                    assertFalse(realmResults2.isLoaded());
-                    assertEquals(0, realmResults1.size());
-                    assertEquals(0, realmResults2.size());
-
-                    Realm.asyncQueryExecutor.resume();
-
-                    realmResults1.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                switch (numberOfNotificationsQuery1.incrementAndGet()) {
-                                    case 1: { // first callback invocation
-                                        assertTrue(realmResults1.isLoaded());
-                                        assertEquals(10, realmResults1.size());
-                                        assertEquals("test data 4", realmResults1.get(4).getColumnString());
-                                        break;
-                                    }
-                                    case 2: { // second callback
-                                        assertTrue(realmResults1.isLoaded());
-                                        assertEquals(12, realmResults1.size());
-                                        assertEquals("modified", realmResults1.get(4).getColumnString());
-                                        signalCallbackFinished.countDown();
-                                        break;
-                                    }
-                                    default: {
-                                        throw new AssertionFailedError("Callback called more than twice");
-                                    }
-                                }
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    realmResults2.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                switch (numberOfNotificationsQuery2.incrementAndGet()) {
-                                    case 1: { // first callback invocation
-                                        assertTrue(realmResults2.isLoaded());
-                                        assertEquals(5, realmResults2.size());
-                                        assertEquals("test data 4", realmResults2.get(4).getColumnString());
-                                        break;
-                                    }
-                                    case 2: { // second callback
-                                        assertTrue(realmResults2.isLoaded());
-                                        assertEquals(7, realmResults2.size());
-                                        assertEquals("modified", realmResults2.get(4).getColumnString());
-                                        signalCallbackFinished.countDown();
-                                        break;
-                                    }
-                                    default: {
-                                        throw new AssertionFailedError("Callback called more than twice");
-                                    }
-                                }
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                    signalClosedRealm.countDown();
+                    case 2: // second callback
+                        assertTrue(realmResults1.isLoaded());
+                        assertEquals(12, realmResults1.size());
+                        assertEquals("modified", realmResults1.get(4).getColumnString());
+                        signalCallbackDone.run();
+                        break;
                 }
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
 
-        assertEquals(2, numberOfNotificationsQuery1.get());
-        assertEquals(2, numberOfNotificationsQuery2.get());
+        realmResults2.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                switch (numberOfNotificationsQuery2.incrementAndGet()) {
+                    case 1: // first callback invocation
+                        assertTrue(realmResults2.isLoaded());
+                        assertEquals(5, realmResults2.size());
+                        assertEquals("test data 4", realmResults2.get(4).getColumnString());
+                        break;
+
+                    case 2: // second callback
+                        assertTrue(realmResults2.isLoaded());
+                        assertEquals(7, realmResults2.size());
+                        assertEquals("modified", realmResults2.get(4).getColumnString());
+                        signalCallbackDone.run();
+                        break;
+                }
+            }
+        });
     }
 
     // simulate a use case, when the caller thread advance read, while the background thread
     // is operating on a previous version, this should retry the query on the worker thread
     // to deliver the results once (using the latest version of the Realm)
     @Test
+    @RunTestInLooperThread
     public void findAllAsync_callerIsAdvanced() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch callbackInvokedFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final AtomicInteger numberOfInvocation = new AtomicInteger(0);
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final AtomicInteger numberOfIntercept = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+
+        // Configure handler interceptor
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-                final boolean[] isFirstIdle = {true};
-                Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
-                    @Override
-                    public boolean queueIdle() {
-                        if (isFirstIdle[0]) {
-                            isFirstIdle[0] = false;
-                            return true;
-
-                        } else {
-                            signalCallbackFinished.countDown();
-                            return false; // unregister from the future IdleHandler events
+            public boolean onInterceptInMessage(int what) {
+                // Intercepts in order [QueryCompleted, RealmChanged, QueryUpdated]
+                int intercepts = numberOfIntercept.incrementAndGet();
+                switch (what) {
+                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
+                        // we advance the Realm so we can simulate a retry
+                        if (intercepts == 1) {
+                            realm.beginTransaction();
+                            realm.createObject(AllTypes.class).setColumnLong(0);
+                            realm.commitTransaction();
                         }
                     }
-                });
-                final Realm[] realm = new Realm[1];
-                try {
-                    final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    realm[0] = openRealmInstance("testFindAllCallerIsAdvanced");
-                    final CountDownLatch updateCallerThread = new CountDownLatch(1);
-                    final Handler handler = new HandlerProxy(realm[0].handler) {
-                        @Override
-                        public boolean onInterceptMessage(int what) {
-                            switch (what) {
-                                case HandlerController.COMPLETED_UPDATE_ASYNC_QUERIES: {
-                                    // posting this as a runnable guarantee that  COMPLETED_UPDATE_ASYNC_QUERIES
-                                    // logic complete before resuming the awaiting COMPLETED_ASYNC_REALM_RESULTS
-                                    post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            updateCallerThread.countDown();
-                                        }
-                                    });
-                                    break;
-                                }
-                                case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
-                                    if (numberOfIntercept.getAndDecrement() > 0) {
-                                        // we advance the Realm so we can simulate a retry
-                                        // this is intercepted on the worker thread, we need to use
-                                        // the Realm on the original thread
-                                        postAtFront(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                // this should trigger the update of all
-                                                // async queries
-                                                realm[0].beginTransaction();
-                                                realm[0].createObject(AllTypes.class);
-                                                realm[0].commitTransaction();
-                                                sendEmptyMessage(HandlerController.REALM_CHANGED);
-                                            }
-                                        });
-
-                                        // make this worker thread wait, until we finish
-                                        // updating all queries from another thread
-                                        try {
-                                            updateCallerThread.await();
-                                        } catch (InterruptedException e) {
-                                            e.printStackTrace();
-                                            threadAssertionError[0] = e;
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                            return false;
-                        }
-                    };
-                    realm[0].setHandler(handler);
-                    Realm.asyncQueryExecutor.pause();
-
-                    populateTestRealm(realm[0], 10);
-                    final RealmResults<AllTypes> realmResults = realm[0].where(AllTypes.class)
-                            .between("columnLong", 0, 4)
-                            .findAllAsync();
-
-                    assertFalse(realmResults.isLoaded());
-                    assertEquals(0, realmResults.size());
-
-                    Realm.asyncQueryExecutor.resume();
-
-                    realmResults.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                assertEquals(1, numberOfInvocation.incrementAndGet());
-                                assertTrue(realmResults.isLoaded());
-                                assertEquals(6, realmResults.size());
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                callbackInvokedFinished.countDown();
-                            }
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (realm[0] != null) {
-                        realm[0].close();
-                    }
-                    signalClosedRealm.countDown();
                 }
+                return false;
+            }
+        };
+        realm.setHandler(handler);
+
+        // Create async query and verify it has not been loaded.
+        final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
+                .between("columnLong", 0, 4)
+                .findAllAsync();
+
+        assertFalse(realmResults.isLoaded());
+        assertEquals(0, realmResults.size());
+
+        // Add change listener that should only be called once
+        realmResults.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals(3, numberOfIntercept.get());
+                assertTrue(realmResults.isLoaded());
+                assertEquals(6, realmResults.size());
+                looperThread.testComplete();
             }
         });
-
-        // wait until the callback of our async query proceed
-        TestHelper.awaitOrFail(signalCallbackFinished);
-        TestHelper.awaitOrFail(callbackInvokedFinished);
-
-
-        if (backgroundLooper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            backgroundLooper[0].quit();
-        }
-
-        TestHelper.awaitOrFail(signalClosedRealm);
-
-        if (null != threadAssertionError[0]) {
-            // throw any assertion errors happened in the background thread
-            throw threadAssertionError[0];
-        }
-
-        assertEquals(1, numberOfInvocation.get());
-        executorService.shutdownNow();
     }
 
     // UC:
@@ -933,135 +660,102 @@ public class RealmAsyncQueryTests {
     //      update (using the latest realm) for all async queries is in progress
     //   7- onChange notification will be triggered once
     @Test
+    @RunTestInLooperThread
     public void findAllAsync_callerThreadBehind() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final AtomicInteger numberOfCompletedAsyncQuery = new AtomicInteger(0);
+        final AtomicInteger numberOfInterceptedChangeMessage = new AtomicInteger(0);
+        final AtomicInteger maxNumberOfNotificationsQuery1 = new AtomicInteger(1);
+        final AtomicInteger maxNumberOfNotificationsQuery2 = new AtomicInteger(1);
+        final Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+
+        // Configure Handler Interceptor
+        final Handler handler = new HandlerProxy(realm.handlerController) {
+            @Override
+            public boolean onInterceptInMessage(int what) {
+                switch (what) {
+                    case HandlerController.REALM_CHANGED: {
+                        // should only intercept the first REALM_CHANGED coming from the
+                        // background update thread
+
+                        // swallow this message, so the caller thread
+                        // remain behind the worker thread. This has as
+                        // a consequence to ignore the delivered result & wait for the
+                        // upcoming REALM_CHANGED to batch update all async queries
+                        return numberOfInterceptedChangeMessage.getAndIncrement() == 0;
+                    }
+                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
+                        if (numberOfCompletedAsyncQuery.incrementAndGet() == 2) {
+                            // both queries have completed now (& their results should be ignored)
+                            // now send the REALM_CHANGED event that should batch update all queries
+                            sendEmptyMessage(HandlerController.REALM_CHANGED);
+                        }
+                    }
+                }
+                return false;
+            }
+        };
+        realm.setHandler(handler);
+        Realm.asyncQueryExecutor.pause();
+
+        // Create async queries and check they haven't completed
+        final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
+                .findAllAsync();
+        final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
+                .between("columnLong", 0, 4).findAllAsync();
+
+        assertFalse(realmResults1.isLoaded());
+        assertFalse(realmResults2.isLoaded());
+        assertEquals(0, realmResults1.size());
+        assertEquals(0, realmResults2.size());
+
+        // advance the Realm from a background thread
+        new RealmBackgroundTask(looperThread.realmConfiguration) {
+            @Override
+            public void doInBackground(Realm realm) {
+                realm.beginTransaction();
+                realm.where(AllTypes.class).equalTo("columnLong", 4).findFirst().setColumnString("modified");
+                realm.createObject(AllTypes.class);
+                realm.createObject(AllTypes.class);
+                realm.commitTransaction();
+            }
+        }.awaitOrFail();
+        Realm.asyncQueryExecutor.resume();
+
+        // Setup change listeners
+        final Runnable signalCallbackDone = new Runnable() {
+            private AtomicInteger signalCallbackFinished = new AtomicInteger(2);
             @Override
             public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testFindAllCallerThreadBehind");
-                    final RealmConfiguration realmConfiguration = realm.getConfiguration();
-                    final AtomicInteger numberOfCompletedAsyncQuery = new AtomicInteger(0);
-                    final AtomicInteger numberOfInterceptedChangeMessage = new AtomicInteger(0);
-                    final Handler handler = new HandlerProxy(realm.handler) {
-                        @Override
-                        public boolean onInterceptMessage(int what) {
-                            switch (what) {
-                                case HandlerController.REALM_CHANGED: {
-                                    // should only intercept the first REALM_CHANGED coming from the
-                                    // background update thread
-
-                                    // swallow this message, so the caller thread
-                                    // remain behind the worker thread. This has as
-                                    // a consequence to ignore the delivered result & wait for the
-                                    // upcoming REALM_CHANGED to batch update all async queries
-                                    return numberOfInterceptedChangeMessage.getAndIncrement() == 0;
-                                }
-                                case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
-                                    if (numberOfCompletedAsyncQuery.incrementAndGet() == 2) {
-                                        // both queries have completed now (& their results should be ignored)
-                                        // now send the REALM_CHANGED event that should batch update all queries
-                                        sendEmptyMessage(HandlerController.REALM_CHANGED);
-                                    }
-                                }
-                            }
-                            return false;
-                        }
-                    };
-                    realm.setHandler(handler);
-                    Realm.asyncQueryExecutor.pause();
-
-                    populateTestRealm(realm, 10);
-                    final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
-                            .findAllAsync();
-                    final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
-                            .between("columnLong", 0, 4).findAllAsync();
-
-                    assertFalse(realmResults1.isLoaded());
-                    assertFalse(realmResults2.isLoaded());
-                    assertEquals(0, realmResults1.size());
-                    assertEquals(0, realmResults2.size());
-
-                    // advance the Realm from a background thread
-                    final CountDownLatch bgThreadLatch = new CountDownLatch(1);
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            Realm bgRealm = Realm.getInstance(realmConfiguration);
-                            bgRealm.beginTransaction();
-                            bgRealm.where(AllTypes.class).equalTo("columnLong", 4).findFirst().setColumnString("modified");
-                            bgRealm.createObject(AllTypes.class);
-                            bgRealm.createObject(AllTypes.class);
-                            bgRealm.commitTransaction();
-                            bgRealm.close();
-                            bgThreadLatch.countDown();
-                        }
-                    }.start();
-                    bgThreadLatch.await();
-                    Realm.asyncQueryExecutor.resume();
-
-                    final AtomicInteger maxNumberOfNotificationsQuery1 = new AtomicInteger(1);
-                    final AtomicInteger maxNumberOfNotificationsQuery2 = new AtomicInteger(1);
-                    realmResults1.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                assertTrue(maxNumberOfNotificationsQuery1.getAndDecrement() > 0);
-                                assertTrue(realmResults1.isLoaded());
-                                assertEquals(12, realmResults1.size());
-                                assertEquals("modified", realmResults1.get(4).getColumnString());
-
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    realmResults2.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                assertTrue(maxNumberOfNotificationsQuery2.getAndDecrement() > 0);
-                                assertTrue(realmResults2.isLoaded());
-                                assertEquals(7, realmResults2.size());// the 2 add rows has columnLong == 0
-                                assertEquals("modified", realmResults2.get(4).getColumnString());
-
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                    signalClosedRealm.countDown();
+                if (signalCallbackFinished.decrementAndGet() == 0) {
+                    assertEquals(0, maxNumberOfNotificationsQuery1.get());
+                    assertEquals(0, maxNumberOfNotificationsQuery2.get());
+                    looperThread.testComplete();
                 }
+            }
+        };
+
+        realmResults1.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertTrue(maxNumberOfNotificationsQuery1.getAndDecrement() > 0);
+                assertTrue(realmResults1.isLoaded());
+                assertEquals(12, realmResults1.size());
+                assertEquals("modified", realmResults1.get(4).getColumnString());
+                signalCallbackDone.run();
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+        realmResults2.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertTrue(maxNumberOfNotificationsQuery2.getAndDecrement() > 0);
+                assertTrue(realmResults2.isLoaded());
+                assertEquals(7, realmResults2.size());// the 2 add rows has columnLong == 0
+                assertEquals("modified", realmResults2.get(4).getColumnString());
+                signalCallbackDone.run();
+            }
+        });
     }
 
     // **********************************
@@ -1070,75 +764,30 @@ public class RealmAsyncQueryTests {
 
     // similar UC as #testFindAllAsync using 'findFirst'
     @Test
-    public void findFirstAsync() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final RealmObject[] result = new RealmObject[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+    @RunTestInLooperThread
+    public void findFirstAsync() {
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+
+        final AllTypes asyncObj = realm.where(AllTypes.class).findFirstAsync();
+        assertFalse(asyncObj.isValid());
+        assertFalse(asyncObj.isLoaded());
+
+        asyncObj.addChangeListener(new RealmChangeListener() {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                final boolean[] isFirstIdle = {true};
-                Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
-                    @Override
-                    public boolean queueIdle() {
-                        if (isFirstIdle[0]) {
-                            isFirstIdle[0] = false;
-                            return true;
-
-                        } else {
-                            // Last message (i.e COMPLETED_ASYNC_REALM_RESULTS was processed)
-                            try {
-                                assertTrue(result[0].isLoaded());
-                                //TODO assert value are correct for empty & populated object + test RealmList & RealmObject
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                            return false; // unregister from the future IdleHandler events
-                        }
-                    }
-                });
-
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testFindFirstAsync");
-                    populateTestRealm(realm, 10);
-
-                    final AllTypes firstAsync = realm.where(AllTypes.class).findFirstAsync();
-                    result[0] = firstAsync;
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                    signalClosedRealm.countDown();
-                }
+            public void onChange() {
+                assertTrue(asyncObj.isLoaded());
+                assertTrue(asyncObj.isValid());
+                looperThread.testComplete();
             }
         });
-
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_initalEmptyRow() throws Throwable {
-        final AllTypes firstAsync = looperThread.realm.where(AllTypes.class).findFirstAsync();
+        Realm realm = looperThread.realm;
+        final AllTypes firstAsync = realm.where(AllTypes.class).findFirstAsync();
         firstAsync.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
@@ -1153,8 +802,9 @@ public class RealmAsyncQueryTests {
         assertTrue(firstAsync.isLoaded());
         assertFalse(firstAsync.isValid());
 
-        populateTestRealm(looperThread.realm, 10);
-        looperThread.keepStrongReference.add(firstAsync);
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class).setColumnLong(0);
+        realm.commitTransaction();
     }
 
     @Test
@@ -1190,10 +840,9 @@ public class RealmAsyncQueryTests {
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_withNotification() throws Throwable {
-        Realm.asyncQueryExecutor.pause();
-
-        populateTestRealm(looperThread.realm, 10);
-        final AllTypes realmResults = looperThread.realm.where(AllTypes.class)
+        Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+        final AllTypes realmResults = realm.where(AllTypes.class)
                 .between("columnLong", 4, 9)
                 .findFirstAsync();
 
@@ -1214,25 +863,19 @@ public class RealmAsyncQueryTests {
             fail("Accessing an unloaded object should throw");
         } catch (IllegalStateException ignored) {
         }
-
-        Realm.asyncQueryExecutor.resume();
-        looperThread.keepStrongReference.add(realmResults);
     }
 
     // similar UC as #testForceLoadAsync using 'findFirst'
     @Test
     @RunTestInLooperThread
     public void findFirstAsync_forceLoad() throws Throwable {
-        Realm.asyncQueryExecutor.pause();
-
-        populateTestRealm(looperThread.realm, 10);
-        final AllTypes realmResults = looperThread.realm.where(AllTypes.class)
+        Realm Realm = looperThread.realm;
+        populateTestRealm(Realm, 10);
+        final AllTypes realmResults = Realm.where(AllTypes.class)
                 .between("columnLong", 4, 9)
                 .findFirstAsync();
 
         assertFalse(realmResults.isLoaded());
-
-        Realm.asyncQueryExecutor.resume();
 
         assertTrue(realmResults.load());
         assertTrue(realmResults.isLoaded());
@@ -1242,101 +885,70 @@ public class RealmAsyncQueryTests {
     }
 
     // similar UC as #testFindAllAsyncRetry using 'findFirst'
+    // UC:
+    //   1- insert 10 objects
+    //   2- start an async query to find object [0-4]
+    //   3- assert current RealmResults is empty (Worker Thread didn't complete)
+    //   4- when the worker thread complete, advance the Realm
+    //   5- the caller thread is ahead of the result provided by the worker thread
+    //   6- retry automatically the async query
+    //   7- the returned RealmResults is now in the same version as the caller thread
+    //   8- the notification should be called once (when we retry automatically we shouldn't
+    //      notify the user).
     @Test
+    @RunTestInLooperThread
     public void findFirstAsync_retry() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final AtomicInteger numberOfIntercept = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+
+        // Configure interceptor handler
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-                final Realm[] realm = new Realm[1];
-                try {
-                    final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    realm[0] = openRealmInstance("testFindFirstAsyncRetry");
-                    final Handler handler = new HandlerProxy(realm[0].handler) {
-                        @Override
-                        public boolean onInterceptMessage(int what) {
-                            switch (what) {
-                                case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
-                                    if (numberOfIntercept.getAndDecrement() > 0) {
-                                        // we advance the Realm so we can simulate a retry
-                                        // this is intercepted on the worker thread, we need to use
-                                        // the Realm on the original thread
-                                        postAtFront(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                realm[0].beginTransaction();
-                                                realm[0].clear(AllTypes.class);
-                                                AllTypes object = realm[0].createObject(AllTypes.class);
-
-                                                object.setColumnString("The Endless River");
-                                                object.setColumnLong(5);
-                                                realm[0].commitTransaction();
-                                            }
-                                        });
-                                    }
-                                    break;
-                                }
-                            }
-                            return false;
+            public boolean onInterceptInMessage(int what) {
+                int intercepts = numberOfIntercept.incrementAndGet();
+                switch (what) {
+                    case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
+                        if (intercepts == 1) {
+                            // we advance the Realm so we can simulate a retry
+                            realm.beginTransaction();
+                            realm.clear(AllTypes.class);
+                            AllTypes object = realm.createObject(AllTypes.class);
+                            object.setColumnString("The Endless River");
+                            object.setColumnLong(5);
+                            realm.commitTransaction();
                         }
-                    };
-                    realm[0].setHandler(handler);
-                    Realm.asyncQueryExecutor.pause();
-
-                    populateTestRealm(realm[0], 10);
-                    final AllTypes realmResults = realm[0].where(AllTypes.class)
-                            .between("columnLong", 4, 6)
-                            .findFirstAsync();
-                    assertFalse(realmResults.isLoaded());
-                    try {
-                        realmResults.getColumnString();
-                        fail("Accessing property on an empty row");
-                    } catch (IllegalStateException ignored) {
                     }
-
-                    Realm.asyncQueryExecutor.resume();
-
-                    final AtomicInteger numberOfInvocation = new AtomicInteger(0);
-                    realmResults.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                assertEquals(1, numberOfInvocation.incrementAndGet());
-                                assertTrue(realmResults.isLoaded());
-                                assertEquals(5, realmResults.getColumnLong());
-                                assertEquals("The Endless River", realmResults.getColumnString());
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-
-                        }
-                    });
-                    Looper.loop();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm[0] != null) {
-                        realm[0].close();
-                    }
-                    signalClosedRealm.countDown();
                 }
+                return false;
+            }
+        };
+        realm.setHandler(handler);
+
+        // Create a async query and verify it is not still loaded.
+        final AllTypes realmResults = realm.where(AllTypes.class)
+                .between("columnLong", 4, 6)
+                .findFirstAsync();
+
+        assertFalse(realmResults.isLoaded());
+
+        try {
+            realmResults.getColumnString();
+            fail("Accessing property on an empty row");
+        } catch (IllegalStateException ignored) {
+        }
+
+        // Add change listener that should only be called once after the retry completed.
+        realmResults.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals(3, numberOfIntercept.get());
+                assertTrue(realmResults.isLoaded());
+                assertEquals(5, realmResults.getColumnLong());
+                assertEquals("The Endless River", realmResults.getColumnString());
+                looperThread.testComplete();
             }
         });
-
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // **************************************
@@ -1345,577 +957,413 @@ public class RealmAsyncQueryTests {
 
     // similar UC as #testFindAllAsync using 'findAllSorted'
     @Test
+    @RunTestInLooperThread
     public void findAllSortedAsync() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final RealmResults[] result = new RealmResults[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final Realm realm = looperThread.realm;
+        populateTestRealm(realm, 10);
+
+        final RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .between("columnLong", 0, 4)
+                .findAllSortedAsync("columnString", Sort.DESCENDING);
+
+        assertFalse(results.isLoaded());
+        assertEquals(0, results.size());
+
+        results.addChangeListener(new RealmChangeListener() {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                final boolean[] isFirstIdle = {true};
-                Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
-                    @Override
-                    public boolean queueIdle() {
-                        if (isFirstIdle[0]) {
-                            isFirstIdle[0] = false;
-                            return true;
-
-                        } else {
-                            // Last message (i.e COMPLETED_ASYNC_REALM_RESULTS was processed)
-                            try {
-                                assertTrue(result[0].isLoaded());
-                                assertEquals(5, result[0].size());
-                                RealmResults<AllTypes> allTypes = (RealmResults<AllTypes>) result[0];
-                                for (int i = 0; i < 5; i++) {
-                                    int iteration = (4 - i);
-                                    assertEquals("test data " + iteration, allTypes.get(4 - iteration).getColumnString());
-                                }
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                            return false; // unregister from the future IdleHandler events
-                        }
-                    }
-                });
-
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testFindAllSortedAsync");
-                    Realm.asyncQueryExecutor.pause();
-
-                    populateTestRealm(realm, 10);
-                    final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
-                            .between("columnLong", 0, 4)
-                            .findAllSortedAsync("columnString", Sort.DESCENDING);
-
-                    result[0] = realmResults;
-
-                    assertFalse(realmResults.isLoaded());
-                    assertEquals(0, realmResults.size());
-
-                    Realm.asyncQueryExecutor.resume();
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                    signalClosedRealm.countDown();
+            public void onChange() {
+                assertTrue(results.isLoaded());
+                assertEquals(5, results.size());
+                for (int i = 0; i < 5; i++) {
+                    int iteration = (4 - i);
+                    assertEquals("test data " + iteration, results.get(4 - iteration).getColumnString());
                 }
+                looperThread.testComplete();
             }
         });
-
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
 
     // finding elements [4-8] asynchronously then wait for the promise to be loaded
     // using a callback to be notified when the data is loaded
     @Test
+    @RunTestInLooperThread
     public void findAllSortedAsync_retry() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final AtomicInteger numberOfIntercept = new AtomicInteger(0);
+        final Realm realm = looperThread.realm;
+
+        // 1. Populate the Realm without triggering a RealmChangeEvent.
+        realm.setAutoRefresh(false);
+        populateTestRealm(realm, 10);
+        realm.setAutoRefresh(true);
+
+        // 2. Configure proxy handler to intercept messages
+        final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                final Realm[] realm = new Realm[1];
-                try {
-                    final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    realm[0] = openRealmInstance("testFindAllSortedAsyncRetry");
-                    final Handler handler = new HandlerProxy(realm[0].handler) {
-                        @Override
-                        public boolean onInterceptMessage(int what) {
-                            switch (what) {
-                                case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
-                                    if (numberOfIntercept.getAndDecrement() > 0) {
-                                        // We advance the Realm so we can simulate a retry
-                                        // This is intercepted on the worker thread, we need to use
-                                        // the Realm on the original thread
-                                        postAtFront(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                realm[0].beginTransaction();
-                                                realm[0].clear(AllTypes.class);
-                                                realm[0].commitTransaction();
-                                            }
-                                        });
-                                    }
-                                    break;
-                                }
-                            }
-                            return false;
+            public boolean onInterceptInMessage(int what) {
+                // In order [QueryCompleted, RealmChanged, QueryUpdated]
+                int intercepts = numberOfIntercept.incrementAndGet();
+                switch (what) {
+                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
+                        if (intercepts == 1) {
+                            // We advance the Realm so we can simulate a retry before listeners are
+                            // called.
+                            realm.beginTransaction();
+                            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 8).findFirst().removeFromRealm();
+                            realm.commitTransaction();
                         }
-                    };
-                    realm[0].setHandler(handler);
-                    Realm.asyncQueryExecutor.pause();
-
-                    populateTestRealm(realm[0], 10);
-                    final RealmResults<AllTypes> realmResults = realm[0].where(AllTypes.class)
-                            .between("columnLong", 4, 8)
-                            .findAllSortedAsync("columnString", Sort.ASCENDING);
-
-                    assertFalse(realmResults.isLoaded());
-                    assertEquals(0, realmResults.size());
-
-                    Realm.asyncQueryExecutor.resume();
-
-                    final AtomicInteger numberOfInvocation = new AtomicInteger(0);
-                    realmResults.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                assertEquals(1, numberOfInvocation.incrementAndGet());
-                                assertTrue(realmResults.isLoaded());
-                                assertEquals(0, realmResults.size());
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                            } finally {
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
+                        break;
                     }
-                    if (realm[0] != null) {
-                        realm[0].close();
-                    }
-                    signalClosedRealm.countDown();
                 }
+                return false;
+            }
+        };
+        realm.setHandler(handler);
+
+        // 3. This will add a task to the paused asyncQueryExecutor
+        final RealmResults<AllTypes> realmResults = realm.where(AllTypes.class)
+                .between("columnLong", 4, 8)
+                .findAllSortedAsync("columnString", Sort.ASCENDING);
+
+        assertFalse(realmResults.isLoaded());
+        assertEquals(0, realmResults.size());
+
+        // 4. Intercepting the query completed event the first time will
+        // cause a commit that should cause the findAllSortedAsync to be re-run.
+        // This change listener should only be called with the final result.
+        realmResults.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals(3, numberOfIntercept.get());
+                looperThread.testComplete();
             }
         });
-
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     // similar UC as #testFindAllAsyncBatchUpdate using 'findAllSorted'
+    // UC:
+    //   1- insert 10 objects
+    //   2- start 2 async queries to find all objects [0-9] & objects[0-4]
+    //   3- assert both RealmResults are empty (Worker Thread didn't complete)
+    //   4- the queries will complete with the same version as the caller thread
+    //   5- using a background thread update the Realm
+    //   6- now REALM_CHANGED will trigger a COMPLETED_UPDATE_ASYNC_QUERIES that should update all queries
+    //   7- callbacks are notified with the latest results (called twice overall)
     @Test
-    public void findAllSortedAsync_batchUpdate() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    @RunTestInLooperThread
+    public void findAllSortedAsync_batchUpdate() {
         final AtomicInteger numberOfNotificationsQuery1 = new AtomicInteger(0);
         final AtomicInteger numberOfNotificationsQuery2 = new AtomicInteger(0);
-        executorService.submit(new Runnable() {
+        final AtomicInteger numberOfIntercept = new AtomicInteger(0);
+        Realm realm = looperThread.realm;
+
+        // 1. Add initial 10 objects
+        realm.setAutoRefresh(false);
+        populateTestRealm(realm, 10);
+        realm.setAutoRefresh(true);
+
+        // 2. Configure interceptor
+        final Handler handler = new HandlerProxy(realm.handlerController) {
+            @Override
+            public boolean onInterceptInMessage(int what) {
+                switch (what) {
+                    case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
+                        if (numberOfIntercept.incrementAndGet() == 1) {
+                            // 6. The first time the async queries complete we start an update from
+                            // another background thread. This will cause queries to rerun when the
+                            // background thread notifies this thread.
+                            final CountDownLatch bgThreadLatch = new CountDownLatch(1);
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
+                                    bgRealm.beginTransaction();
+                                    bgRealm.where(AllTypes.class).equalTo("columnLong", 4).findFirst().setColumnString("modified");
+                                    bgRealm.createObject(AllTypes.class);
+                                    bgRealm.createObject(AllTypes.class);
+                                    bgRealm.commitTransaction();
+                                    bgRealm.close();
+                                    bgThreadLatch.countDown();
+                                }
+                            }.start();
+                            TestHelper.awaitOrFail(bgThreadLatch);
+                        }
+                    }
+                    break;
+                }
+                return false;
+            }
+        };
+        realm.setHandler(handler);
+
+        // 3. Create 2 async queries
+        final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
+                .findAllSortedAsync("columnString", Sort.ASCENDING);
+        final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
+                .between("columnLong", 0, 4)
+                .findAllSortedAsync("columnString", Sort.DESCENDING);
+
+        // 4. Assert that queries have not finished
+        assertFalse(realmResults1.isLoaded());
+        assertFalse(realmResults2.isLoaded());
+        assertEquals(0, realmResults1.size());
+        assertEquals(0, realmResults2.size());
+
+        // 5. Change listeners will be called twice. Once when the first query completely and then
+        // when the background thread has completed, notifying this thread to rerun and then receive
+        // the updated results.
+        final Runnable signalCallbackDone = new Runnable() {
+            private AtomicInteger signalCallbackFinished = new AtomicInteger(2);
             @Override
             public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
+                if (signalCallbackFinished.decrementAndGet() == 0) {
+                    assertEquals(2, numberOfNotificationsQuery1.get());
+                    assertEquals(2, numberOfNotificationsQuery2.get());
+                    looperThread.testComplete();
+                }
+            }
+        };
 
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testFindAllSortedAsyncBatchUpdate");
-                    final RealmConfiguration realmConfiguration = realm.getConfiguration();
-                    final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    final Handler handler = new HandlerProxy(realm.handler) {
-                        @Override
-                        public boolean onInterceptMessage(int what) {
-                            switch (what) {
-                                case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
-                                    if (numberOfIntercept.getAndDecrement() > 0) {
-                                        // We advance the Realm so we can simulate a retry
-                                        // This is intercepted on the worker thread, we need to use
-                                        // the Realm on the caller thread
-                                        postAtFront(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                final CountDownLatch bgThreadLatch = new CountDownLatch(1);
-                                                new Thread() {
-                                                    @Override
-                                                    public void run() {
-                                                        Realm bgRealm = Realm.getInstance(realmConfiguration);
-                                                        bgRealm.beginTransaction();
-                                                        bgRealm.where(AllTypes.class).equalTo("columnLong", 4).findFirst().setColumnString("modified");
-                                                        bgRealm.createObject(AllTypes.class);
-                                                        bgRealm.createObject(AllTypes.class);
-                                                        bgRealm.commitTransaction();
-                                                        bgRealm.close();
-                                                        bgThreadLatch.countDown();
-                                                    }
-                                                }.start();
-                                                try {
-                                                    bgThreadLatch.await();
-                                                } catch (InterruptedException e) {
-                                                    e.printStackTrace();
-                                                    threadAssertionError[0] = e;
-                                                }
-                                            }
-                                        });
-                                    }
-                                    break;
-                                }
-                            }
-                            return false;
-                        }
-                    };
-                    realm.setHandler(handler);
-                    Realm.asyncQueryExecutor.pause();
-
-                    populateTestRealm(realm, 10);
-                    final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
-                            .findAllSortedAsync("columnString", Sort.ASCENDING);
-                    final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
-                            .between("columnLong", 0, 4)
-                            .findAllSortedAsync("columnString", Sort.DESCENDING);
-
-                    assertFalse(realmResults1.isLoaded());
-                    assertFalse(realmResults2.isLoaded());
-                    assertEquals(0, realmResults1.size());
-                    assertEquals(0, realmResults2.size());
-
-                    Realm.asyncQueryExecutor.resume();
-
-
-                    realmResults1.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                switch (numberOfNotificationsQuery1.incrementAndGet()) {
-                                    case 1: { // first callback invocation
-                                        assertTrue(realmResults1.isLoaded());
-                                        assertEquals(10, realmResults1.size());
-                                        assertEquals("test data 4", realmResults1.get(4).getColumnString());
-                                        break;
-                                    }
-                                    case 2: { // second callback
-                                        assertTrue(realmResults1.isLoaded());
-                                        assertEquals(12, realmResults1.size());
-                                        assertEquals("modified", realmResults1.get(2).getColumnString());
-                                        signalCallbackFinished.countDown();
-                                        break;
-                                    }
-                                    default: {
-                                        throw new AssertionFailedError("Callback called more than twice");
-                                    }
-                                }
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    realmResults2.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                switch (numberOfNotificationsQuery2.incrementAndGet()) {
-                                    case 1: { // first callback invocation
-                                        assertTrue(realmResults2.isLoaded());
-                                        assertEquals(5, realmResults2.size());
-                                        assertEquals("test data 4", realmResults2.get(0).getColumnString());
-                                        break;
-                                    }
-                                    case 2: { // second callback
-                                        assertTrue(realmResults2.isLoaded());
-                                        assertEquals(7, realmResults2.size());
-                                        assertEquals("modified", realmResults2.get(4).getColumnString());
-                                        signalCallbackFinished.countDown();
-                                        break;
-                                    }
-                                    default: {
-                                        throw new AssertionFailedError("Callback called more than twice");
-                                    }
-                                }
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
+        realmResults1.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                switch (numberOfNotificationsQuery1.incrementAndGet()) {
+                    case 1: { // first callback invocation
+                        assertTrue(realmResults1.isLoaded());
+                        assertEquals(10, realmResults1.size());
+                        assertEquals("test data 4", realmResults1.get(4).getColumnString());
+                        break;
                     }
-                    if (realm != null) {
-                        realm.close();
+                    case 2: { // second callback
+                        assertTrue(realmResults1.isLoaded());
+                        assertEquals(12, realmResults1.size());
+                        assertEquals("modified", realmResults1.get(2).getColumnString());
+                        signalCallbackDone.run();
+                        break;
                     }
-                    signalClosedRealm.countDown();
                 }
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
-        assertEquals(2, numberOfNotificationsQuery1.get());
-        assertEquals(2, numberOfNotificationsQuery2.get());
+        realmResults2.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                switch (numberOfNotificationsQuery2.incrementAndGet()) {
+                    case 1: { // first callback invocation
+                        assertTrue(realmResults2.isLoaded());
+                        assertEquals(5, realmResults2.size());
+                        assertEquals("test data 4", realmResults2.get(0).getColumnString());
+                        break;
+                    }
+                    case 2: { // second callback
+                        assertTrue(realmResults2.isLoaded());
+                        assertEquals(7, realmResults2.size());
+                        assertEquals("modified", realmResults2.get(4).getColumnString());
+                        signalCallbackDone.run();
+                        break;
+                    }
+                }
+            }
+        });
     }
 
     // similar UC as #testFindAllAsyncBatchUpdate using 'findAllSortedMulti'
+    // UC:
+    //   1- insert 10 objects
+    //   2- start 2 async queries to find all objects [0-9] & objects[0-4]
+    //   3- assert both RealmResults are empty (Worker Thread didn't complete)
+    //   4- the queries will complete with the same version as the caller thread
+    //   5- using a background thread update the Realm
+    //   6- now REALM_CHANGED will trigger a COMPLETED_UPDATE_ASYNC_QUERIES that should update all queries
+    //   7- callbacks are notified with the latest results (called twice overall)
     @Test
+    @RunTestInLooperThread
     public void findAllSortedAsync_multipleFields_batchUpdate() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(2);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final AtomicInteger numberOfNotificationsQuery1 = new AtomicInteger(0);
         final AtomicInteger numberOfNotificationsQuery2 = new AtomicInteger(0);
-        executorService.submit(new Runnable() {
+        final AtomicInteger numberOfIntercept = new AtomicInteger(0);
+        Realm realm = looperThread.realm;
+
+        // 1. Add initial objects
+        realm.setAutoRefresh(false);
+        realm.beginTransaction();
+        for (int i = 0; i < 5; ) {
+            AllTypes allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnLong(i);
+            allTypes.setColumnString("data " + i % 3);
+
+            allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnLong(i);
+            allTypes.setColumnString("data " + (++i % 3));
+        }
+        realm.commitTransaction();
+        realm.setAutoRefresh(true);
+
+        // 2. Configure interceptor
+        final Handler handler = new HandlerProxy(realm.handlerController) {
+            @Override
+            public boolean onInterceptInMessage(int what) {
+                int intercepts = numberOfIntercept.incrementAndGet();
+                if (what == HandlerController.COMPLETED_ASYNC_REALM_RESULTS && intercepts == 1) {
+                    // 6. The first time the async queries complete we start an update from
+                    // another background thread. This will cause queries to rerun when the
+                    // background thread notifies this thread.
+                    new RealmBackgroundTask(looperThread.realmConfiguration) {
+                        @Override
+                        public void doInBackground(Realm realm) {
+                            realm.beginTransaction();
+                            realm.where(AllTypes.class)
+                                    .equalTo("columnString", "data 1")
+                                    .equalTo("columnLong", 0)
+                                    .findFirst().setColumnDouble(Math.PI);
+                            AllTypes allTypes = realm.createObject(AllTypes.class);
+                            allTypes.setColumnLong(2);
+                            allTypes.setColumnString("data " + 5);
+
+                            allTypes = realm.createObject(AllTypes.class);
+                            allTypes.setColumnLong(0);
+                            allTypes.setColumnString("data " + 5);
+                            realm.commitTransaction();
+                        }
+                    }.awaitOrFail();
+                }
+                return false;
+            }
+        };
+        realm.setHandler(handler);
+
+        // 3. Create 2 async queries
+        final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
+                .findAllSortedAsync("columnString", Sort.ASCENDING, "columnLong", Sort.DESCENDING);
+        final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
+                .between("columnLong", 0, 5)
+                .findAllSortedAsync("columnString", Sort.DESCENDING, "columnLong", Sort.ASCENDING);
+
+        // 4. Assert that queries have not finished
+        assertFalse(realmResults1.isLoaded());
+        assertFalse(realmResults2.isLoaded());
+        assertEquals(0, realmResults1.size());
+        assertEquals(0, realmResults2.size());
+        assertFalse(realmResults1.isLoaded());
+        assertFalse(realmResults2.isLoaded());
+        assertEquals(0, realmResults1.size());
+        assertEquals(0, realmResults2.size());
+
+        // 5. Change listeners will be called twice. Once when the first query completely and then
+        // when the background thread has completed, notifying this thread to rerun and then receive
+        // the updated results.
+        final Runnable signalCallbackDone = new Runnable() {
+            private AtomicInteger signalCallbackFinished = new AtomicInteger(2);
             @Override
             public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testFindAllSortedMultiAsyncBatchUpdate");
-                    final RealmConfiguration realmConfiguration = realm.getConfiguration();
-                    final AtomicInteger numberOfIntercept = new AtomicInteger(1);
-                    final Handler handler = new HandlerProxy(realm.handler) {
-                        @Override
-                        public boolean onInterceptMessage(int what) {
-                            switch (what) {
-                                case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
-                                    if (numberOfIntercept.getAndDecrement() > 0) {
-                                        // We advance the Realm so we can simulate a retry
-                                        // This is intercepted on the worker thread, we need to use
-                                        // the Realm on the caller thread
-                                        postAtFront(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                final CountDownLatch bgThreadLatch = new CountDownLatch(1);
-                                                new Thread() {
-                                                    @Override
-                                                    public void run() {
-                                                        Realm bgRealm = Realm.getInstance(realmConfiguration);
-                                                        bgRealm.beginTransaction();
-                                                        bgRealm.where(AllTypes.class)
-                                                                .equalTo("columnString", "data 1")
-                                                                .equalTo("columnLong", 0)
-                                                                .findFirst().setColumnDouble(Math.PI);
-                                                        AllTypes allTypes = bgRealm.createObject(AllTypes.class);
-                                                        allTypes.setColumnLong(2);
-                                                        allTypes.setColumnString("data " + 5);
+                if (signalCallbackFinished.decrementAndGet() == 0) {
+                    assertEquals(4, numberOfIntercept.get());
+                    assertEquals(2, numberOfNotificationsQuery1.get());
+                    assertEquals(2, numberOfNotificationsQuery2.get());
+                    looperThread.testComplete();
+                }
+            }
+        };
 
-                                                        allTypes = bgRealm.createObject(AllTypes.class);
-                                                        allTypes.setColumnLong(0);
-                                                        allTypes.setColumnString("data " + 5);
-                                                        bgRealm.commitTransaction();
-                                                        bgRealm.close();
-                                                        bgThreadLatch.countDown();
-                                                    }
-                                                }.start();
-                                                try {
-                                                    bgThreadLatch.await();
-                                                } catch (InterruptedException e) {
-                                                    e.printStackTrace();
-                                                    threadAssertionError[0] = e;
-                                                }
-                                            }
-                                        });
-                                    }
-                                    break;
-                                }
-                            }
-                            return false;
-                        }
-                    };
-                    realm.setHandler(handler);
-                    Realm.asyncQueryExecutor.pause();
-                    realm.beginTransaction();
-                    for (int i = 0; i < 5; ) {
-                        AllTypes allTypes = realm.createObject(AllTypes.class);
-                        allTypes.setColumnLong(i);
-                        allTypes.setColumnString("data " + i % 3);
+        realmResults1.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                switch (numberOfNotificationsQuery1.incrementAndGet()) {
+                    case 1: // first callback invocation
+                        assertTrue(realmResults1.isLoaded());
+                        assertEquals(10, realmResults1.size());
 
-                        allTypes = realm.createObject(AllTypes.class);
-                        allTypes.setColumnLong(i);
-                        allTypes.setColumnString("data " + (++i % 3));
-                    }
-                    realm.commitTransaction();
-                    final RealmResults<AllTypes> realmResults1 = realm.where(AllTypes.class)
-                            .findAllSortedAsync(new String[]{"columnString", "columnLong"},
-                                    new Sort[]{Sort.ASCENDING, Sort.DESCENDING});
-                    final RealmResults<AllTypes> realmResults2 = realm.where(AllTypes.class)
-                            .between("columnLong", 0, 5)
-                            .findAllSortedAsync(new String[]{"columnString", "columnLong"},
-                                    new Sort[]{Sort.DESCENDING, Sort.ASCENDING});
+                        assertEquals("data 0", realmResults1.get(0).getColumnString());
+                        assertEquals(3, realmResults1.get(0).getColumnLong());
+                        assertEquals("data 0", realmResults1.get(1).getColumnString());
+                        assertEquals(2, realmResults1.get(1).getColumnLong());
+                        assertEquals("data 0", realmResults1.get(2).getColumnString());
+                        assertEquals(0, realmResults1.get(2).getColumnLong());
 
-                    assertFalse(realmResults1.isLoaded());
-                    assertFalse(realmResults2.isLoaded());
-                    assertEquals(0, realmResults1.size());
-                    assertEquals(0, realmResults2.size());
+                        assertEquals("data 1", realmResults1.get(3).getColumnString());
+                        assertEquals(4, realmResults1.get(3).getColumnLong());
+                        assertEquals("data 1", realmResults1.get(4).getColumnString());
+                        assertEquals(3, realmResults1.get(4).getColumnLong());
+                        assertEquals("data 1", realmResults1.get(5).getColumnString());
+                        assertEquals(1, realmResults1.get(5).getColumnLong());
+                        assertEquals("data 1", realmResults1.get(6).getColumnString());
+                        assertEquals(0, realmResults1.get(6).getColumnLong());
 
-                    Realm.asyncQueryExecutor.resume();
+                        assertEquals("data 2", realmResults1.get(7).getColumnString());
+                        assertEquals(4, realmResults1.get(7).getColumnLong());
+                        assertEquals("data 2", realmResults1.get(8).getColumnString());
+                        assertEquals(2, realmResults1.get(8).getColumnLong());
+                        assertEquals("data 2", realmResults1.get(9).getColumnString());
+                        assertEquals(1, realmResults1.get(9).getColumnLong());
+                        break;
 
-                    realmResults1.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                switch (numberOfNotificationsQuery1.incrementAndGet()) {
-                                    case 1: { // first callback invocation
-                                        assertTrue(realmResults1.isLoaded());
-                                        assertEquals(10, realmResults1.size());
+                    case 2: // second callback
+                        assertTrue(realmResults1.isLoaded());
+                        assertEquals(12, realmResults1.size());
+                        //first
+                        assertEquals("data 0", realmResults1.get(0).getColumnString());
+                        assertEquals(3, realmResults1.get(0).getColumnLong());
 
-                                        assertEquals("data 0", realmResults1.get(0).getColumnString());
-                                        assertEquals(3, realmResults1.get(0).getColumnLong());
-                                        assertEquals("data 0", realmResults1.get(1).getColumnString());
-                                        assertEquals(2, realmResults1.get(1).getColumnLong());
-                                        assertEquals("data 0", realmResults1.get(2).getColumnString());
-                                        assertEquals(0, realmResults1.get(2).getColumnLong());
+                        //last
+                        assertEquals("data 5", realmResults1.get(11).getColumnString());
+                        assertEquals(0, realmResults1.get(11).getColumnLong());
 
-                                        assertEquals("data 1", realmResults1.get(3).getColumnString());
-                                        assertEquals(4, realmResults1.get(3).getColumnLong());
-                                        assertEquals("data 1", realmResults1.get(4).getColumnString());
-                                        assertEquals(3, realmResults1.get(4).getColumnLong());
-                                        assertEquals("data 1", realmResults1.get(5).getColumnString());
-                                        assertEquals(1, realmResults1.get(5).getColumnLong());
-                                        assertEquals("data 1", realmResults1.get(6).getColumnString());
-                                        assertEquals(0, realmResults1.get(6).getColumnLong());
-
-                                        assertEquals("data 2", realmResults1.get(7).getColumnString());
-                                        assertEquals(4, realmResults1.get(7).getColumnLong());
-                                        assertEquals("data 2", realmResults1.get(8).getColumnString());
-                                        assertEquals(2, realmResults1.get(8).getColumnLong());
-                                        assertEquals("data 2", realmResults1.get(9).getColumnString());
-                                        assertEquals(1, realmResults1.get(9).getColumnLong());
-                                        break;
-                                    }
-                                    case 2: { // second callback
-                                        assertTrue(realmResults1.isLoaded());
-                                        assertEquals(12, realmResults1.size());
-                                        //first
-                                        assertEquals("data 0", realmResults1.get(0).getColumnString());
-                                        assertEquals(3, realmResults1.get(0).getColumnLong());
-
-                                        //last
-                                        assertEquals("data 5", realmResults1.get(11).getColumnString());
-                                        assertEquals(0, realmResults1.get(11).getColumnLong());
-
-                                        signalCallbackFinished.countDown();
-                                        break;
-                                    }
-                                    default: {
-                                        throw new AssertionFailedError("Callback called more than twice");
-                                    }
-                                }
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    realmResults2.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            try {
-                                switch (numberOfNotificationsQuery2.incrementAndGet()) {
-                                    case 1: { // first callback invocation
-                                        assertTrue(realmResults2.isLoaded());
-                                        assertEquals(10, realmResults2.size());
-
-                                        assertEquals("data 2", realmResults2.get(0).getColumnString());
-                                        assertEquals(1, realmResults2.get(0).getColumnLong());
-                                        assertEquals("data 2", realmResults2.get(1).getColumnString());
-                                        assertEquals(2, realmResults2.get(1).getColumnLong());
-                                        assertEquals("data 2", realmResults2.get(2).getColumnString());
-                                        assertEquals(4, realmResults2.get(2).getColumnLong());
-
-                                        assertEquals("data 1", realmResults2.get(3).getColumnString());
-                                        assertEquals(0, realmResults2.get(3).getColumnLong());
-                                        assertEquals("data 1", realmResults2.get(4).getColumnString());
-                                        assertEquals(1, realmResults2.get(4).getColumnLong());
-                                        assertEquals("data 1", realmResults2.get(5).getColumnString());
-                                        assertEquals(3, realmResults2.get(5).getColumnLong());
-                                        assertEquals("data 1", realmResults2.get(6).getColumnString());
-                                        assertEquals(4, realmResults2.get(6).getColumnLong());
-
-                                        assertEquals("data 0", realmResults2.get(7).getColumnString());
-                                        assertEquals(0, realmResults2.get(7).getColumnLong());
-                                        assertEquals("data 0", realmResults2.get(8).getColumnString());
-                                        assertEquals(2, realmResults2.get(8).getColumnLong());
-                                        assertEquals("data 0", realmResults2.get(9).getColumnString());
-                                        assertEquals(3, realmResults2.get(9).getColumnLong());
-
-                                        break;
-                                    }
-                                    case 2: { // second callback
-                                        assertTrue(realmResults2.isLoaded());
-                                        assertEquals(12, realmResults2.size());
-
-                                        assertEquals("data 5", realmResults2.get(0).getColumnString());
-                                        assertEquals(0, realmResults2.get(0).getColumnLong());
-
-                                        assertEquals("data 0", realmResults2.get(11).getColumnString());
-                                        assertEquals(3, realmResults2.get(11).getColumnLong());
-
-                                        assertEquals("data 1", realmResults2.get(5).getColumnString());
-                                        assertEquals(Math.PI, realmResults2.get(5).getColumnDouble(), 0.000000000001D);
-
-                                        signalCallbackFinished.countDown();
-                                        break;
-                                    }
-                                    default: {
-                                        throw new AssertionFailedError("Callback called more than twice");
-                                    }
-                                }
-                            } catch (AssertionFailedError e) {
-                                threadAssertionError[0] = e;
-                                signalCallbackFinished.countDown();
-                            }
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                    signalClosedRealm.countDown();
+                        signalCallbackDone.run();
+                        break;
                 }
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
-        assertEquals(2, numberOfNotificationsQuery1.get());
-        assertEquals(2, numberOfNotificationsQuery2.get());
+        realmResults2.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                switch (numberOfNotificationsQuery2.incrementAndGet()) {
+                    case 1: // first callback invocation
+                        assertTrue(realmResults2.isLoaded());
+                        assertEquals(10, realmResults2.size());
+
+                        assertEquals("data 2", realmResults2.get(0).getColumnString());
+                        assertEquals(1, realmResults2.get(0).getColumnLong());
+                        assertEquals("data 2", realmResults2.get(1).getColumnString());
+                        assertEquals(2, realmResults2.get(1).getColumnLong());
+                        assertEquals("data 2", realmResults2.get(2).getColumnString());
+                        assertEquals(4, realmResults2.get(2).getColumnLong());
+
+                        assertEquals("data 1", realmResults2.get(3).getColumnString());
+                        assertEquals(0, realmResults2.get(3).getColumnLong());
+                        assertEquals("data 1", realmResults2.get(4).getColumnString());
+                        assertEquals(1, realmResults2.get(4).getColumnLong());
+                        assertEquals("data 1", realmResults2.get(5).getColumnString());
+                        assertEquals(3, realmResults2.get(5).getColumnLong());
+                        assertEquals("data 1", realmResults2.get(6).getColumnString());
+                        assertEquals(4, realmResults2.get(6).getColumnLong());
+
+                        assertEquals("data 0", realmResults2.get(7).getColumnString());
+                        assertEquals(0, realmResults2.get(7).getColumnLong());
+                        assertEquals("data 0", realmResults2.get(8).getColumnString());
+                        assertEquals(2, realmResults2.get(8).getColumnLong());
+                        assertEquals("data 0", realmResults2.get(9).getColumnString());
+                        assertEquals(3, realmResults2.get(9).getColumnLong());
+                        break;
+
+                    case 2: // second callback
+                        assertTrue(realmResults2.isLoaded());
+                        assertEquals(12, realmResults2.size());
+
+                        assertEquals("data 5", realmResults2.get(0).getColumnString());
+                        assertEquals(0, realmResults2.get(0).getColumnLong());
+
+                        assertEquals("data 0", realmResults2.get(11).getColumnString());
+                        assertEquals(3, realmResults2.get(11).getColumnLong());
+
+                        assertEquals("data 1", realmResults2.get(5).getColumnString());
+                        assertEquals(Math.PI, realmResults2.get(5).getColumnDouble(), 0.000000000001D);
+
+                        signalCallbackDone.run();
+                        break;
+                }
+            }
+        });
     }
 
     // make sure the notification listener does not leak the enclosing class
@@ -2035,150 +1483,94 @@ public class RealmAsyncQueryTests {
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(4);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        Realm realm = looperThread.realm;
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        final RealmResults<AnnotationIndexTypes> distinctBool = realm.distinctAsync(AnnotationIndexTypes.class, "indexBoolean");
+        final RealmResults<AnnotationIndexTypes> distinctLong = realm.distinctAsync(AnnotationIndexTypes.class, "indexLong");
+        final RealmResults<AnnotationIndexTypes> distinctDate = realm.distinctAsync(AnnotationIndexTypes.class, "indexDate");
+        final RealmResults<AnnotationIndexTypes> distinctString = realm.distinctAsync(AnnotationIndexTypes.class, "indexString");
+
+        assertFalse(distinctBool.isLoaded());
+        assertTrue(distinctBool.isValid());
+        assertTrue(distinctBool.isEmpty());
+
+        assertFalse(distinctLong.isLoaded());
+        assertTrue(distinctLong.isValid());
+        assertTrue(distinctLong.isEmpty());
+
+        assertFalse(distinctDate.isLoaded());
+        assertTrue(distinctDate.isValid());
+        assertTrue(distinctDate.isEmpty());
+
+        assertFalse(distinctString.isLoaded());
+        assertTrue(distinctString.isValid());
+        assertTrue(distinctString.isEmpty());
+
+        final Runnable changeListenerDone = new Runnable() {
+            final AtomicInteger signalCallbackFinished = new AtomicInteger(4);
             @Override
             public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                Realm realm = null;
-                try {
-                    Realm.asyncQueryExecutor.pause();
-                    realm = openRealmInstance("testAsyncDistinct");
-                    final long numberOfBlocks = 25;
-                    final long numberOfObjects = 10; // must be greater than 1
-
-                    populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
-
-                    final RealmResults<AnnotationIndexTypes> distinctBool = realm.distinctAsync(AnnotationIndexTypes.class, "indexBoolean");
-                    final RealmResults<AnnotationIndexTypes> distinctLong = realm.distinctAsync(AnnotationIndexTypes.class, "indexLong");
-                    final RealmResults<AnnotationIndexTypes> distinctDate = realm.distinctAsync(AnnotationIndexTypes.class, "indexDate");
-                    final RealmResults<AnnotationIndexTypes> distinctString = realm.distinctAsync(AnnotationIndexTypes.class, "indexString");
-
-                    assertFalse(distinctBool.isLoaded());
-                    assertTrue(distinctBool.isValid());
-                    assertTrue(distinctBool.isEmpty());
-
-                    assertFalse(distinctLong.isLoaded());
-                    assertTrue(distinctLong.isValid());
-                    assertTrue(distinctLong.isEmpty());
-
-                    assertFalse(distinctDate.isLoaded());
-                    assertTrue(distinctDate.isValid());
-                    assertTrue(distinctDate.isEmpty());
-
-                    assertFalse(distinctString.isLoaded());
-                    assertTrue(distinctString.isValid());
-                    assertTrue(distinctString.isEmpty());
-
-                    Realm.asyncQueryExecutor.resume();
-
-                    distinctBool.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            assertEquals(2, distinctBool.size());
-                            signalCallbackFinished.countDown();
-                        }
-                    });
-
-                    distinctLong.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            assertEquals(numberOfBlocks, distinctLong.size());
-                            signalCallbackFinished.countDown();
-                        }
-                    });
-
-                    distinctDate.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            assertEquals(numberOfBlocks, distinctDate.size());
-                            signalCallbackFinished.countDown();
-                        }
-                    });
-
-                    distinctString.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            assertEquals(numberOfBlocks, distinctString.size());
-                            signalCallbackFinished.countDown();
-                        }
-                    });
-
-                    Looper.loop();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                    signalClosedRealm.countDown();
+                if (signalCallbackFinished.decrementAndGet() == 0) {
+                    looperThread.testComplete();
                 }
+            }
+        };
+
+        distinctBool.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals(2, distinctBool.size());
+                changeListenerDone.run();
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+        distinctLong.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals(numberOfBlocks, distinctLong.size());
+                changeListenerDone.run();
+            }
+        });
+
+        distinctDate.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals(numberOfBlocks, distinctDate.size());
+                changeListenerDone.run();
+            }
+        });
+
+        distinctString.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertEquals(numberOfBlocks, distinctString.size());
+                changeListenerDone.run();
+            }
+        });
     }
 
     @Test
+    @RunTestInLooperThread
     public void distinctAsync_notIndexedFields() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(4);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
+        Realm realm = looperThread.realm;
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-                Realm realm = null;
-                try {
-                    realm = openRealmInstance("testAsyncDistinctNotIndexedFields");
-                    final long numberOfBlocks = 25;
-                    final long numberOfObjects = 10; // must be greater than 1
-
-                    populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
-
-                    for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
-                        try {
-                            realm.distinctAsync(AnnotationIndexTypes.class, "notIndex" + fieldName);
-                            fail("notIndex" + fieldName);
-                        } catch (IllegalArgumentException ignored) {
-                            signalCallbackFinished.countDown();
-                        }
-                    }
-
-                    Looper.loop();
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm != null) {
-                        realm.close();
-                    }
-                    signalClosedRealm.countDown();
-                }
+        for (String fieldName : new String[]{"Boolean", "Long", "Date", "String"}) {
+            try {
+                realm.distinctAsync(AnnotationIndexTypes.class, "notIndex" + fieldName);
+                fail("notIndex" + fieldName);
+            } catch (IllegalArgumentException ignored) {
             }
-        });
+        }
 
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+        looperThread.testComplete();
     }
 
     @Test
@@ -2327,111 +1719,59 @@ public class RealmAsyncQueryTests {
     }
 
     // this test make sure that Async queries update when using link
+    @Test
+    @RunTestInLooperThread
     public void queryingLinkHandover() throws Throwable {
-        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
-        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
         final AtomicInteger numberOfInvocations = new AtomicInteger(0);
-        final Realm[] realm = new Realm[1];
-        final Throwable[] threadAssertionError = new Throwable[1];
-        final Looper[] backgroundLooper = new Looper[1];
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        final Realm realm = looperThread.realm;
+
+        final RealmResults<Dog> allAsync = realm.where(Dog.class).equalTo("owner.name", "kiba").findAllAsync();
+        allAsync.addChangeListener(new RealmChangeListener() {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                try {
-                    realm[0] = openRealmInstance("testQueryingLinkHandover");
-
-                    final RealmResults<Dog> allAsync = realm[0].where(Dog.class).equalTo("owner.name", "kiba").findAllAsync();
-                    allAsync.addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            switch (numberOfInvocations.incrementAndGet()) {
-                                case 1: {
-                                    assertEquals(0, allAsync.size());
-                                    assertTrue(allAsync.isLoaded());
-                                    assertTrue(allAsync.isValid());
-                                    assertTrue(allAsync.isEmpty());
-                                    final CountDownLatch wait = new CountDownLatch(1);
-                                    final RealmConfiguration configuration = realm[0].getConfiguration();
-                                    new Thread() {
-                                        @Override
-                                        public void run() {
-                                            Realm instance = Realm.getInstance(configuration);
-                                            instance.beginTransaction();
-                                            Dog dog = instance.createObject(Dog.class);
-                                            dog.setAge(10);
-                                            dog.setName("Akamaru");
-                                            Owner kiba = instance.createObject(Owner.class);
-                                            kiba.setName("kiba");
-                                            dog.setOwner(kiba);
-                                            instance.commitTransaction();
-                                            wait.countDown();
-                                        }
-                                    }.start();
-                                    try {
-                                        wait.await();
-                                    } catch (InterruptedException e) {
-                                        fail(e.getMessage());
-                                    }
-                                    break;
-                                }
-                                case 2: {
-                                    assertEquals(1, realm[0].allObjects(Dog.class).size());
-                                    assertEquals(1, realm[0].allObjects(Owner.class).size());
-                                    assertEquals(1, allAsync.size());
-                                    assertTrue(allAsync.isLoaded());
-                                    assertTrue(allAsync.isValid());
-                                    assertFalse(allAsync.isEmpty());
-                                    assertEquals(1, allAsync.size());
-                                    assertEquals("Akamaru", allAsync.get(0).getName());
-                                    assertEquals("kiba", allAsync.get(0).getOwner().getName());
-                                    signalCallbackFinished.countDown();
-                                    break;
-                                }
-                                default:
-                                    throw new IllegalStateException("invalid number of invocation");
+            public void onChange() {
+                switch (numberOfInvocations.incrementAndGet()) {
+                    case 1:
+                        assertEquals(0, allAsync.size());
+                        assertTrue(allAsync.isLoaded());
+                        assertTrue(allAsync.isValid());
+                        assertTrue(allAsync.isEmpty());
+                        new RealmBackgroundTask(realm.getConfiguration()) {
+                            @Override
+                            public void doInBackground(Realm realm) {
+                                realm.beginTransaction();
+                                Dog dog = realm.createObject(Dog.class);
+                                dog.setAge(10);
+                                dog.setName("Akamaru");
+                                Owner kiba = realm.createObject(Owner.class);
+                                kiba.setName("kiba");
+                                dog.setOwner(kiba);
+                                realm.commitTransaction();
                             }
-                        }
-                    });
+                        }.awaitOrFail();
+                        break;
 
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalCallbackFinished.getCount() > 0) {
-                        signalCallbackFinished.countDown();
-                    }
-                    if (realm.length > 0 && realm[0] != null) {
-                        realm[0].close();
-                    }
-                    signalClosedRealm.countDown();
+                    case 2:
+                        assertEquals(1, realm.allObjects(Dog.class).size());
+                        assertEquals(1, realm.allObjects(Owner.class).size());
+                        assertEquals(1, allAsync.size());
+                        assertTrue(allAsync.isLoaded());
+                        assertTrue(allAsync.isValid());
+                        assertFalse(allAsync.isEmpty());
+                        assertEquals(1, allAsync.size());
+                        assertEquals("Akamaru", allAsync.get(0).getName());
+                        assertEquals("kiba", allAsync.get(0).getOwner().getName());
+                        looperThread.testComplete();
+                        break;
                 }
             }
         });
-
-        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
+
 
     // *** Helper methods ***
 
-    // This could be done from #setUp but then we can't control
-    // which Looper we want to associate this Realm instance with
-    private Realm openRealmInstance(String name) {
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder(context)
-                .name(name)
-                .deleteRealmIfMigrationNeeded()
-                .build();
-        Realm.deleteRealm(realmConfiguration);
-        return Realm.getInstance(realmConfiguration);
-    }
-
     private void populateTestRealm(final Realm testRealm, int objects) {
+        testRealm.setAutoRefresh(false);
         testRealm.beginTransaction();
         testRealm.allObjects(AllTypes.class).clear();
         testRealm.allObjects(NonLatinFieldNames.class).clear();
@@ -2451,7 +1791,7 @@ public class RealmAsyncQueryTests {
             nonLatinFieldNames.setΒήτα(1.234567f + i);
         }
         testRealm.commitTransaction();
-        testRealm.refresh();
+        testRealm.setAutoRefresh(true);
     }
 
     private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {

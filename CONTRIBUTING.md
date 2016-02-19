@@ -146,6 +146,13 @@ All public classes and methods must have Javadoc describing their purpose.
 /**
  * Checks if given field is equal to the provided value. 
  *
+ * <pre>
+ * {@code
+ *   // A multi-line code sample should be formatted like this.
+ *   // Please wrap the code element in a <pre> tag.
+ * }
+ * </pre>
+ *
  * @param fieldName the field to compare.
  * @param fieldValue the value to compare with.
  * @param caseSensitive if {@code true}, substring matching is case sensitive. Setting this to {@code false} works for English locale characters only.
