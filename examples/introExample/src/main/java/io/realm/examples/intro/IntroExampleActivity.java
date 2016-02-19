@@ -182,22 +182,11 @@ public class IntroExampleActivity extends Activity {
                 dogName = pers.getDog().getName();
             }
             status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
-
-            // The field tempReference is annotated with @Ignore
-            // Though we initially set its value to 42, it has
-            // not been saved as part of the Person RealmObject:
-            if (BuildConfig.DEBUG && pers.getTempReference() != 0) {
-                throw new AssertionError();
-            }
         }
 
         // Sorting
         RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
         sortedPersons.sort("age", Sort.DESCENDING);
-        if (BuildConfig.DEBUG &&
-                !realm.allObjects(Person.class).last().getName().equals(sortedPersons.first().getName())) {
-            throw new AssertionError();
-        }
         status += "\nSorting " + sortedPersons.last().getName() + " == "
                 + realm.allObjects(Person.class).first().getName();
 

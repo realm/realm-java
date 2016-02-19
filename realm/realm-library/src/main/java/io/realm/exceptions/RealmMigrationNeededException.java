@@ -39,14 +39,6 @@ public class RealmMigrationNeededException extends RuntimeException {
      * Returns the canonical path to the Realm file that needs to be migrated.
      *
      * This can be used for easy reference during a migration:
-     * FIXME: This example doesn't make too much sense anymore.
-     * <pre>
-     * try {
-     *   Realm.getDefaultInstance();
-     * } catch (RealmMigrationNeededException e) {
-     *   Realm.migrateRealmAtPath(e.getRealmPath(), new CustomMigration());
-     * }
-     * </pre>
      *
      * @return Canonical path to the Realm file.
      * @see File#getCanonicalPath()

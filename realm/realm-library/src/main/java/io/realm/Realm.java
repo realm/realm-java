@@ -81,14 +81,13 @@ import rx.Observable;
  * <pre>
  * public class RealmApplication extends Application {
  *
- *     private static RealmConfiguration defaultRealmConfig;
- *
  *     \@Override
  *     public void onCreate() {
  *         super.onCreate();
+ *
  *         // The Realm file will be located in package's "files" directory.
- *         defaultRealmConfig = new RealmConfiguration.Builder(this).build();
- *         Realm.setDefaultConfiguration(defaultRealmConfig);
+ *         RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
+ *         Realm.setDefaultConfiguration(realmConfig);
  *     }
  * }
  *
