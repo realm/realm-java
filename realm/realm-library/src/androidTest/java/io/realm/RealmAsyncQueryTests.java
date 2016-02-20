@@ -17,6 +17,7 @@
 package io.realm;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
@@ -44,6 +45,7 @@ import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.util.LooperSpy;
 import io.realm.util.RealmBackgroundTask;
 
 import static org.junit.Assert.assertEquals;
@@ -997,11 +999,21 @@ public class RealmAsyncQueryTests {
         populateTestRealm(realm, 10);
         realm.setAutoRefresh(true);
 
+        // FIXME Only happening when running multiple tests -> Other test is doing something?
+        // 02-20 01:51:02.314 2697-2739/io.realm.test D/REALM: Intercept: 39088169
+        // 02-20 01:51:02.317 2697-2739/io.realm.test D/REALM: Intercept: 14930352
+        // 02-20 01:51:02.317 2697-2739/io.realm.test D/REALM: Intercept: 39088169
+        // 02-20 01:51:02.317 2697-2739/io.realm.test D/REALM: Intercept: 24157817
+        LooperSpy.create(Looper.myLooper()).dumpQueue();
+
+
+
         // 2. Configure proxy handler to intercept messages
         final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
             public boolean onInterceptInMessage(int what) {
                 // In order [QueryCompleted, RealmChanged, QueryUpdated]
+                RealmLog.d("Intercept: " + what);
                 int intercepts = numberOfIntercept.incrementAndGet();
                 switch (what) {
                     case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
