@@ -91,7 +91,7 @@ public class RealmResultsTests {
     }
 
     private void populateTestRealm() {
-        populateTestRealm(realm, TEST_DATA_SIZE);
+        populateTestRealm(TEST_DATA_SIZE);
     }
 
     private void populatePartialNullRowsForNumericTesting() {
@@ -1417,31 +1417,6 @@ public class RealmResultsTests {
 
     @Test
     @RunTestInLooperThread
-    public void changeListener_syncIfNeeded_disabledForLocalCommit() {
-        final Realm realm = Realm.getInstance(looperThread.createConfiguration());
-        populateTestRealm(realm, 10);
-
-        final RealmResults<AllTypes> results = realm.where(AllTypes.class).lessThan(AllTypes.FIELD_LONG, 10).findAll();
-        assertEquals(10, results.size());
-        results.addChangeListener(new RealmChangeListener() {
-            @Override
-            public void onChange() {
-                // 2. RealmResults are NOT refreshed before onChange is called
-                assertEquals(10, results.size());
-                realm.close();
-                looperThread.testComplete();
-            }
-        });
-
-        // 1. Delete first object from the same thread
-        realm.beginTransaction();
-        AllTypes obj = results.get(0);
-        obj.removeFromRealm();
-        realm.commitTransaction();
-    }
-
-    @Test
-    @RunTestInLooperThread
     public void changeListener_syncIfNeeded_updatedFromOtherThread() {
         final Realm realm = Realm.getInstance(looperThread.createConfiguration("Foo"));
         populateTestRealm(realm, 10);
@@ -1473,11 +1448,37 @@ public class RealmResultsTests {
         return Realm.getInstance(config);
     }
 
+    private void populateTestRealm(int objects) {
+        realm.beginTransaction();
+        realm.allObjects(AllTypes.class).clear();
+        realm.allObjects(NonLatinFieldNames.class).clear();
+
+        for (int i = 0; i < objects; ++i) {
+            AllTypes allTypes = realm.createObject(AllTypes.class);
+            allTypes.setColumnBoolean((i % 2) == 0);
+            allTypes.setColumnBinary(new byte[]{1, 2, 3});
+            allTypes.setColumnDate(new Date(YEAR_MILLIS * (i - objects / 2)));
+            allTypes.setColumnDouble(3.1415 + i);
+            allTypes.setColumnFloat(1.234567f + i);
+            allTypes.setColumnString("test data " + i);
+            allTypes.setColumnLong(i);
+            Dog d = realm.createObject(Dog.class);
+            d.setName("Foo " + i);
+            allTypes.setColumnRealmObject(d);
+            allTypes.getColumnRealmList().add(d);
+            NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
+            nonLatinFieldNames.set델타(i);
+            nonLatinFieldNames.setΔέλτα(i);
+        }
+        realm.commitTransaction();
+    }
+
+
     private void populateTestRealm(Realm testRealm, int objects) {
         testRealm.beginTransaction();
         testRealm.allObjects(AllTypes.class).clear();
         testRealm.allObjects(NonLatinFieldNames.class).clear();
-        for (int i = 0; i < objects; ++i) {
+        for (int i = 0; i < objects; i++) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
             allTypes.setColumnBinary(new byte[]{1, 2, 3});
