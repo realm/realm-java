@@ -40,14 +40,6 @@ public class RealmMigrationNeededException extends RuntimeException {
      *
      * This can be used for easy reference during a migration:
      *
-     * <pre>
-     * try {
-     *   Realm.getInstance(context);
-     * } catch (RealmMigrationNeededException e) {
-     *   Realm.migrateRealmAtPath(e.getRealmPath(), new CustomMigration());
-     * }
-     * </pre>
-     *
      * @return Canonical path to the Realm file.
      * @see File#getCanonicalPath()
      */

@@ -13,16 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.internal;
 
-import io.realm.exceptions.RealmException;
+package io.realm.examples.newsreader.model.network;
 
-/**
- *  Triggered from JNI level when accessing a RealmResults whose parent RealmList has been deleted already.
- */
-@Keep
-public class DeletedRealmListException extends RealmException {
-    public DeletedRealmListException(String detailMessage) {
-        super(detailMessage);
-    }
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class NYTimesResponse<T> {
+
+    @JsonProperty("status")
+    public String status;
+
+    @JsonProperty("copyright")
+    public String copyright;
+
+    @JsonProperty("section")
+    public String section;
+
+    @JsonProperty("last_updated")
+    public String lastUpdated;
+
+    @JsonProperty("num_results")
+    public Integer numResults;
+
+    @JsonProperty("results")
+    public T results;
 }

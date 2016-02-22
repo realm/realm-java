@@ -2010,7 +2010,7 @@ public class RealmQueryTests {
         final long numberOfObjects = 10; // must be greater than 1
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        try{
+        try {
             realm.where(AnnotationIndexTypes.class).distinct("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
@@ -2063,7 +2063,7 @@ public class RealmQueryTests {
     public void distinct_invalidTypesLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
-        try{
+        try {
             realm.where(AllJavaTypes.class).distinct(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
@@ -2239,7 +2239,7 @@ public class RealmQueryTests {
         final long numberOfObjects = 10;
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
 
-        try{
+        try {
             realm.where(AnnotationIndexTypes.class).distinctAsync("doesNotExist");
         } catch (IllegalArgumentException ignored) {
         }
@@ -2276,7 +2276,7 @@ public class RealmQueryTests {
     public void distinctAsync_notIndexedLinkedFields() {
         populateForDistinctInvalidTypesLinked(realm);
 
-        try{
+        try {
             realm.where(AllJavaTypes.class).distinctAsync(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY);
         } catch (IllegalArgumentException ignored) {
         }
