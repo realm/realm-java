@@ -940,87 +940,56 @@ public class NotificationsTest {
     // to advance to the latest version. We make sure in this test that all Realm listeners will be notified
     // regardless of the presence of an async RealmObject that will delay the `REALM_CHANGE` sometimes
     @Test
-    public void asyncRealmObjectShouldNotBlockBackgroundCommitNotification() throws Throwable {
+    @RunTestInLooperThread
+    public void asyncRealmObjectShouldNotBlockBackgroundCommitNotification() {
         final AtomicInteger numberOfRealmCallbackInvocation = new AtomicInteger(0);
-        final AtomicInteger numberOfAsyncRealmObjectCallbackInvocation = new AtomicInteger(0);
-        final CountDownLatch signalTestFinished = new CountDownLatch(1);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
-        final Realm[] realm = new Realm[1];
-        final Throwable[] threadAssertionError = new Throwable[1];// to catch both Exception & AssertionError
-        final Looper[] backgroundLooper = new Looper[1];
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new Runnable() {
+        looperThread.realm.addChangeListener(new RealmChangeListener() {
             @Override
-            public void run() {
-                Looper.prepare();
-                backgroundLooper[0] = Looper.myLooper();
-
-                try {
-                    realm[0] = Realm.getInstance(realmConfig);
-                    realm[0].addChangeListener(new RealmChangeListener() {
-                        @Override
-                        public void onChange() {
-                            Dog dog; // to keep it as a strong reference
-                            switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
-                                case 1: {
-                                    // first commit
-                                    dog = realm[0].where(Dog.class).findFirstAsync();
-                                    assertTrue(dog.load());
-                                    dog.addChangeListener(new RealmChangeListener() {
-                                        @Override
-                                        public void onChange() {
-                                            numberOfAsyncRealmObjectCallbackInvocation.incrementAndGet();
-                                        }
-                                    });
-
-                                    new Thread() {
-                                        @Override
-                                        public void run() {
-                                            Realm realm = Realm.getInstance(realmConfig);
-                                            realm.beginTransaction();
-                                            realm.createObject(Dog.class);
-                                            realm.commitTransaction();
-                                            realm.close();
-                                        }
-                                    }.start();
-                                    break;
-                                }
-                                case 2: {
-                                    // finish test
-                                    signalTestFinished.countDown();
-                                    break;
-                                }
+            public void onChange() {
+                switch (numberOfRealmCallbackInvocation.incrementAndGet()) {
+                    case 1: {
+                        // first commit
+                        Dog dog = looperThread.realm.where(Dog.class).findFirstAsync();
+                        assertTrue(dog.load());
+                        dog.addChangeListener(new RealmChangeListener() {
+                            @Override
+                            public void onChange() {
                             }
-                        }
-                    });
+                        });
+                        looperThread.keepStrongReference.add(dog);
 
-                    realm[0].handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            realm[0].beginTransaction();
-                            realm[0].createObject(Dog.class);
-                            realm[0].commitTransaction();
-                        }
-                    });
-
-                    Looper.loop();
-
-                } catch (Throwable e) {
-                    threadAssertionError[0] = e;
-
-                } finally {
-                    if (signalTestFinished.getCount() > 0) {
-                        signalTestFinished.countDown();
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                Realm realm = Realm.getInstance(looperThread.realmConfiguration);
+                                realm.beginTransaction();
+                                realm.createObject(Dog.class);
+                                realm.commitTransaction();
+                                realm.close();
+                                signalClosedRealm.countDown();
+                            }
+                        }.start();
+                        break;
                     }
-                    if (realm.length > 0 && realm[0] != null) {
-                        realm[0].close();
+                    case 2: {
+                        // finish test
+                        TestHelper.awaitOrFail(signalClosedRealm);
+                        looperThread.testComplete();
+                        break;
                     }
-                    signalClosedRealm.countDown();
                 }
             }
         });
 
-        TestHelper.exitOrThrow(executorService, signalTestFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+        looperThread.postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                looperThread.realm.beginTransaction();
+                looperThread.realm.createObject(Dog.class);
+                looperThread.realm.commitTransaction();
+            }
+        });
     }
 
     @Test
