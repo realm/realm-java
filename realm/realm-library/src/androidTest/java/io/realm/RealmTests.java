@@ -237,6 +237,20 @@ public class RealmTests {
     }
 
     @Test
+    public void getInstance_context() {
+        RealmConfiguration config = new RealmConfiguration.Builder(context).build();
+        Realm.deleteRealm(config);
+
+        Realm testRealm = Realm.getInstance(context);
+        assertNotNull("Realm.getInstance unexpectedly returns null", testRealm);
+        assertTrue("Realm.getInstance does not contain expected table", testRealm.contains(AllTypes.class));
+        config = testRealm.getConfiguration();
+        config.getRealmFolder().equals(context.getFilesDir());
+        testRealm.close();
+        Realm.deleteRealm(config);
+    }
+
+    @Test
     public void getInstance_nullContext() {
         Realm realm = null;
         try {

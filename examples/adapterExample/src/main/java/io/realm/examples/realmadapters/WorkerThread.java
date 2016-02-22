@@ -15,7 +15,6 @@
  */
 package io.realm.examples.realmadapters;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -25,18 +24,12 @@ public class WorkerThread extends Thread {
 
     public Handler workerHandler;
 
-    private Context context;
-
-    public WorkerThread(Context context) {
-        this.context = context;
-    }
-
     @Override
     public void run() {
         Realm realm = null;
         try {
             Looper.prepare();
-            realm = Realm.getInstance(context);
+            realm = Realm.getDefaultInstance();
             workerHandler = new WorkerHandler(realm);
             Looper.loop();
         } finally {
