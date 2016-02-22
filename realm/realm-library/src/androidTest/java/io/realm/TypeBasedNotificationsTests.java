@@ -1288,6 +1288,7 @@ public class TypeBasedNotificationsTests {
                 typebasedCommitInvocations.incrementAndGet();
                 if (typebasedCommitInvocations.get() == 1) {
                     // COMPLETED_ASYNC_REALM_RESULTS arrived
+                    thread.start();
                     try {
                         thread.join();
                     } catch (InterruptedException e) {
@@ -1296,8 +1297,6 @@ public class TypeBasedNotificationsTests {
                 }
             }
         });
-
-        thread.start();
     }
 
     // ****************************************************************************************** //
