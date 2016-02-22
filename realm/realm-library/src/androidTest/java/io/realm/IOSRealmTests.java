@@ -39,7 +39,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 
 /**
@@ -51,7 +50,7 @@ public class IOSRealmTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private static final String[] IOS_VERSIONS = new String[] {"0.96.2"};
+    private static final String[] IOS_VERSIONS = new String[] {"0.98.0"};
     private static final String REALM_NAME = "alltypes.realm";
     private Realm realm;
     private Context context;
@@ -61,6 +60,7 @@ public class IOSRealmTests {
         RealmConfiguration defaultConfiguration = configFactory.createConfigurationBuilder()
                 .name(REALM_NAME)
                 .schema(IOSAllTypes.class, IOSChild.class)
+                .deleteRealmIfMigrationNeeded()
                 .build();
         Realm.setDefaultConfiguration(defaultConfiguration);
         context = InstrumentationRegistry.getInstrumentation().getContext();
@@ -74,7 +74,6 @@ public class IOSRealmTests {
         }
     }
 
-    // Test relationships and that data in general can be retrieved from an iOS realm
     @Test
     public void iOSDataTypes() throws IOException {
         for (String iosVersion : IOS_VERSIONS) {
@@ -82,31 +81,34 @@ public class IOSRealmTests {
                     "ios/" + iosVersion + "-alltypes.realm", REALM_NAME);
             realm = Realm.getDefaultInstance();
             RealmResults<IOSAllTypes> result = realm.allObjectsSorted(IOSAllTypes.class, "id", Sort.ASCENDING);
-
             // Verify metadata
             Table table = realm.getTable(IOSAllTypes.class);
             assertTrue(table.hasPrimaryKey());
             assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
-
-            IOSAllTypes obj = result.get(1);
-            assertTrue(obj.isBoolCol());
-            assertEquals(2, obj.getShortCol());
-            assertEquals(11, obj.getIntCol());
-            assertEquals(101L, obj.getLongCol());
-            assertEquals(2.23F, obj.getFloatCol(), 0F);
-            assertEquals(2.234D, obj.getDoubleCol(), 0D);
-            assertArrayEquals(new byte[]{1, 2, 3}, obj.getByteCol());
-            assertEquals("String 1", obj.getStringCol());
-            assertEquals(new Date(1001 * 1000), obj.getDateCol());
-            assertEquals("Foo", result.get(1).getChild().getName());
-            assertEquals(10, result.size());
-            assertEquals(10, result.get(1).getChildren().size());
-            assertEquals("Name: 1", result.get(1).getChildren().get(1).getName());
+            // iterative check
+            for (int i = 0; i < 10; i++) {
+                IOSAllTypes obj = result.get(i);
+                assertTrue(obj.isBoolCol());
+                assertEquals(i + 1, obj.getShortCol());
+                assertEquals(10 + i, obj.getIntCol());
+                assertEquals(100 + i, obj.getLongCol());
+                assertEquals(100000000L + (long)i, obj.getLongLongCol());
+                assertEquals(1.23F + (float)i, obj.getFloatCol(), 0F);
+                assertEquals(1.234D + (double)i, obj.getDoubleCol(), 0D);
+                assertArrayEquals(new byte[]{1, 2, 3}, obj.getByteCol());
+                assertEquals("String " + Integer.toString(i), obj.getStringCol());
+                assertEquals(new Date((1000 + i) * 1000), obj.getDateCol());
+                assertEquals("Foo", result.get(i).getChild().getName());
+                assertEquals(10, result.get(i).getChildren().size());
+                for (int j = 0; j < 10; j++) {
+                    assertEquals("Name: " + Integer.toString(i), result.get(i).getChildren().get(j).getName());
+                }
+            }
         }
     }
 
     @Test
-    public void sOSDataTypesDefaultValues() throws IOException {
+    public void iOSDataTypesDefaultValues() throws IOException {
         for (String iosVersion : IOS_VERSIONS) {
             configFactory.copyRealmFromAssets(context,
                     "ios/" + iosVersion + "-alltypes-default.realm", REALM_NAME);
@@ -116,7 +118,8 @@ public class IOSRealmTests {
             assertFalse(obj.isBoolCol());
             assertEquals(0, obj.getShortCol());
             assertEquals(0, obj.getIntCol());
-            assertEquals(0L, obj.getLongCol());
+            assertEquals(0, obj.getLongCol());
+            assertEquals(0L, obj.getLongLongCol());
             assertEquals(0.0F, obj.getFloatCol(), 0F);
             assertEquals(0.0D, obj.getDoubleCol(), 0D);
             assertArrayEquals(new byte[0], obj.getByteCol());
@@ -128,6 +131,22 @@ public class IOSRealmTests {
     }
 
     @Test
+    public void iOSDataTypesNullValues() throws IOException {
+        for (String iosVersion : IOS_VERSIONS) {
+            configFactory.copyRealmFromAssets(context,
+                    "ios/" + iosVersion + "-alltypes-null-value.realm", REALM_NAME);
+            realm = Realm.getDefaultInstance();
+
+            IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
+            assertEquals(null, obj.getByteCol());
+            assertEquals(null, obj.getStringCol());
+            assertEquals(null, obj.getDateCol());
+            assertEquals(null, obj.getChild());
+            assertEquals(new RealmList<IOSChild>(), obj.getChildren());
+        }
+    }
+
+    @Test
     public void iOSDataTypesMinimumValues() throws IOException {
         for (String iosVersion : IOS_VERSIONS) {
             configFactory.copyRealmFromAssets(context,
@@ -135,11 +154,16 @@ public class IOSRealmTests {
             realm = Realm.getDefaultInstance();
 
             IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
+            assertFalse(obj.isBoolCol());
             assertEquals(Short.MIN_VALUE, obj.getShortCol());
             assertEquals(Integer.MIN_VALUE, obj.getIntCol());
-            assertEquals(Long.MIN_VALUE, obj.getLongCol());
-            assertEquals(Float.MIN_NORMAL, obj.getFloatCol(), 0F);
-            assertEquals(Double.MIN_NORMAL, obj.getDoubleCol(), 0D);
+            assertEquals(Integer.MIN_VALUE, obj.getLongCol());
+            assertEquals(Long.MIN_VALUE, obj.getLongLongCol());
+            assertEquals(-Float.MAX_VALUE, obj.getFloatCol(), 0F);
+            assertEquals(-Double.MAX_VALUE, obj.getDoubleCol(), 0D);
+            assertArrayEquals(new byte[0], obj.getByteCol());
+            assertEquals("", obj.getStringCol());
+            assertEquals(0x8000000000000000L * 1000L, obj.getDateCol().getTime());
         }
     }
 
@@ -153,9 +177,13 @@ public class IOSRealmTests {
             IOSAllTypes obj = realm.allObjects(IOSAllTypes.class).first();
             assertEquals(Short.MAX_VALUE, obj.getShortCol());
             assertEquals(Integer.MAX_VALUE, obj.getIntCol());
-            assertEquals(Long.MAX_VALUE, obj.getLongCol());
+            assertEquals(Integer.MAX_VALUE, obj.getLongCol());
+            assertEquals(Long.MAX_VALUE, obj.getLongLongCol());
             assertEquals(Float.MAX_VALUE, obj.getFloatCol(), 0F);
             assertEquals(Double.MAX_VALUE, obj.getDoubleCol(), 0D);
+            assertArrayEquals(new byte[0], obj.getByteCol());
+            assertEquals("", obj.getStringCol());
+            assertEquals(0x8000000000000000L * 1000L, obj.getDateCol().getTime());
         }
     }
 

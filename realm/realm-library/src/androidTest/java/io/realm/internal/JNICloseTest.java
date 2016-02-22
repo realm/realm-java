@@ -166,15 +166,15 @@ public class JNICloseTest extends AndroidTestCase {
         trans.commit();
 
         //methods below should throw exception, as table is invalid after commit
-        try{ view.size();                       fail(); } catch (IllegalStateException e){}
-        try{ view.getBinaryByteArray(0, 0);     fail(); } catch (IllegalStateException e){}
-        try{ view.getBoolean(1, 0);             fail(); } catch (IllegalStateException e){}
-        try{ view.getDate(2, 0);                fail(); } catch (IllegalStateException e){}
-        try{ view.getDouble(3, 0);              fail(); } catch (IllegalStateException e){}
-        try{ view.getFloat(4, 0);               fail(); } catch (IllegalStateException e){}
-        try{ view.getLong(5, 0);                fail(); } catch (IllegalStateException e){}
-        try{ view.getMixed(6, 0);               fail(); } catch (IllegalStateException e){}
-        try{ view.getString(7, 0);              fail(); } catch (IllegalStateException e){}
+        try { view.size();                       fail(); } catch (IllegalStateException e){}
+        try { view.getBinaryByteArray(0, 0);     fail(); } catch (IllegalStateException e){}
+        try { view.getBoolean(1, 0);             fail(); } catch (IllegalStateException e){}
+        try { view.getDate(2, 0);                fail(); } catch (IllegalStateException e){}
+        try { view.getDouble(3, 0);              fail(); } catch (IllegalStateException e){}
+        try { view.getFloat(4, 0);               fail(); } catch (IllegalStateException e){}
+        try { view.getLong(5, 0);                fail(); } catch (IllegalStateException e){}
+        try { view.getMixed(6, 0);               fail(); } catch (IllegalStateException e){}
+        try { view.getString(7, 0);              fail(); } catch (IllegalStateException e){}
         // TODO: Add more methods
 
         db.close();

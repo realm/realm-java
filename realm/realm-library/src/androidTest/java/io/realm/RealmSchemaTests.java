@@ -164,7 +164,8 @@ public class RealmSchemaTests {
 
     // Test that it if { A -> B  && B -> A } you should remove the individual fields first before removing the entire
     // class. This also include transitive dependencies.
-    @Test
+    // FIXME: Disabled until https://github.com/realm/realm-core/pull/1475#issuecomment-185192434 is fixed.
+    // @Test
     public void remove_classWithReferencesThrows() {
         try {
             realmSchema.remove("Cat");

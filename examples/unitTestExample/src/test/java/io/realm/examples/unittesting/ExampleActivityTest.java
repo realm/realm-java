@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
@@ -75,8 +76,9 @@ public class ExampleActivityTest {
         // Create the mock
         final Realm mockRealm = mock(Realm.class);
 
-        // Anytime getInstance is called with any context, then return the mockRealm
-        when(Realm.getInstance(any(Context.class))).thenReturn(mockRealm);
+        // Anytime getInstance is called with any configuration, then return the mockRealm
+        // FIXME: Final class Realm cannot be mocked by Mockito! https://github.com/realm/realm-java/issues/2303
+        when(Realm.getInstance(any(RealmConfiguration.class))).thenReturn(mockRealm);
 
         // Anytime we ask Realm to create a Person, return a new instance.
         when(mockRealm.createObject(Person.class)).thenReturn(new Person());
@@ -156,7 +158,7 @@ public class ExampleActivityTest {
 
         // Verify that two Realm.getInstance() calls took place.
         verifyStatic(times(2));
-        Realm.getInstance(any(Context.class));
+        Realm.getInstance(any(RealmConfiguration.class));
 
         // verify that we have four begin and commit transaction calls
         verify(mockRealm, times(4)).beginTransaction();

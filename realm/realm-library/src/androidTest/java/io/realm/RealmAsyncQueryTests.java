@@ -1616,6 +1616,7 @@ public class RealmAsyncQueryTests {
         looperThread.keepStrongReference.add(findDistinct);
 
         final CountDownLatch queriesCompleted = new CountDownLatch(4);
+        final CountDownLatch bgRealmClosedLatch = new CountDownLatch(1);
         final AtomicInteger batchUpdateCompleted = new AtomicInteger(0);
         final AtomicInteger findAllAsyncInvocation = new AtomicInteger(0);
         final AtomicInteger findAllSortedInvocation = new AtomicInteger(0);
@@ -1632,7 +1633,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            looperThread.testComplete();
+                            looperThread.testComplete(bgRealmClosedLatch);
                         }
                         break;
                     }
@@ -1650,7 +1651,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            looperThread.testComplete();
+                            looperThread.testComplete(bgRealmClosedLatch);
                         }
                         break;
                     }
@@ -1668,7 +1669,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            looperThread.testComplete();
+                            looperThread.testComplete(bgRealmClosedLatch);
                         }
                         break;
                     }
@@ -1686,7 +1687,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            looperThread.testComplete();
+                            looperThread.testComplete(bgRealmClosedLatch);
                         }
                         break;
                     }
@@ -1709,6 +1710,7 @@ public class RealmAsyncQueryTests {
                     bgRealm.commitTransaction();
 
                     bgRealm.close();
+                    bgRealmClosedLatch.countDown();
                 } catch (InterruptedException e) {
                     fail(e.getMessage());
                 }

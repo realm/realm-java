@@ -1,0 +1,47 @@
+apply plugin: 'android-sdk-manager'
+apply plugin: 'com.android.application'
+apply plugin: 'android-command'
+apply plugin: 'realm-android'
+
+android {
+    compileSdkVersion rootProject.sdkVersion
+    buildToolsVersion rootProject.buildTools
+
+    defaultConfig {
+        applicationId "io.realm.examples.newsreader"
+        targetSdkVersion rootProject.sdkVersion
+        minSdkVersion 15
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    command {
+        events 2000
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+    packagingOptions {
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+    compile 'io.reactivex:rxjava:1.1.0'
+    compile 'io.reactivex:rxandroid:1.1.0'
+    compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
+    compile 'com.squareup.retrofit:converter-jackson:2.0.0-beta2'
+    compile 'com.squareup.retrofit:adapter-rxjava:2.0.0-beta2'
+    compile 'com.jakewharton.timber:timber:4.1.0'
+    compile 'com.jakewharton:butterknife:7.0.1'
+    compile 'me.zhanghai.android.materialprogressbar:library:1.1.4'
+}
