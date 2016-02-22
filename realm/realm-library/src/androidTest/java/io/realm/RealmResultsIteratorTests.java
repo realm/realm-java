@@ -165,7 +165,6 @@ public class RealmResultsIteratorTests {
         assertEquals(TEST_SIZE, results.size()); // Size is same even if object is deleted
         Iterator<AllTypes> it = results.iterator();
         AllTypes obj = it.next(); // Iterator can still access the deleted object
-        RealmLog.d("ObjectId: " + obj.isValid());
         assertFalse(obj.isValid());
     }
 
