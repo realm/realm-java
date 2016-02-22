@@ -120,7 +120,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         this.pendingQuery = null;
         this.query = null;
-        this.currentTableViewVersion = table.getVersion();
+//        this.currentTableViewVersion = table.getVersion();
     }
 
     private RealmResults(BaseRealm realm, String className) {
@@ -955,12 +955,12 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             if (pendingQuery != null && !isCompleted) return;
             // FIXME Cleanup this mess of booleans / logic. Should all changelisteners be triggered on a looper event?
             long version = refreshBeforeNotification ? table.syncIfNeeded() : table.getVersion();
-//            if (currentTableViewVersion != version) {
-//                currentTableViewVersion = version;
+            if (currentTableViewVersion != version) {
+                currentTableViewVersion = version;
                 for (RealmChangeListener listener : listeners) {
                     listener.onChange();
                 }
-//            }
+            }
         }
     }
 }

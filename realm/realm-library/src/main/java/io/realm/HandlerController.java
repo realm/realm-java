@@ -100,6 +100,7 @@ public final class HandlerController implements Handler.Callback {
         // access to the handlers as they are the prime mean of notifying about updates. Instead we make sure
         // that if a message does slip though (however unlikely), it will not try to update a SharedGroup that no
         // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
+        RealmLog.d("Handle: " + message.what);
         if (realm.sharedGroupManager != null) {
             switch (message.what) {
                 case REALM_CHANGED: {
@@ -250,7 +251,7 @@ public final class HandlerController implements Handler.Callback {
     }
 
     private void notifySyncRealmResultsCallbacks() {
-        notifyRealmResultsCallbacks(syncRealmResults.keySet().iterator(), false);
+        notifyRealmResultsCallbacks(syncRealmResults.keySet().iterator(), true);
     }
 
     private void notifyRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator, boolean refreshTableViews) {

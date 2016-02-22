@@ -33,6 +33,7 @@ import java.util.ListIterator;
 import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.exceptions.RealmException;
+import io.realm.internal.log.RealmLog;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -158,14 +159,14 @@ public class RealmResultsIteratorTests {
     @Test
     public void iterator_removedObjectsStillAccessible() {
         realm.beginTransaction();
-        results.where().equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        results.get(0).removeFromRealm();
         realm.commitTransaction();
 
         assertEquals(TEST_SIZE, results.size()); // Size is same even if object is deleted
         Iterator<AllTypes> it = results.iterator();
-        AllTypes types = it.next(); // Iterator can still access the deleted object
-
-        assertFalse(types.isValid());
+        AllTypes obj = it.next(); // Iterator can still access the deleted object
+        RealmLog.d("ObjectId: " + obj.isValid());
+        assertFalse(obj.isValid());
     }
 
     public void iterator_refreshClearsRemovedObjects() {
