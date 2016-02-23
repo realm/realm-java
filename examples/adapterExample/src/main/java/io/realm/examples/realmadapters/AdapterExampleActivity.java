@@ -43,7 +43,9 @@ public class AdapterExampleActivity extends Activity {
 
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
         Realm.deleteRealm(realmConfig);
-        realm = Realm.getInstance(realmConfig);
+        // Set the default Realm configuration at the beginning.
+        Realm.setDefaultConfiguration(realmConfig);
+        realm = Realm.getDefaultInstance();
 
         RealmResults<TimeStamp> timeStamps = realm.where(TimeStamp.class).findAll();
         final MyAdapter adapter = new MyAdapter(this, R.id.listView, timeStamps, true);
@@ -70,7 +72,7 @@ public class AdapterExampleActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        workerThread = new WorkerThread(this);
+        workerThread = new WorkerThread();
         workerThread.start();
     }
 

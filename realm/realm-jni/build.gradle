@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.96.0'
+ext.coreVersion = '0.96.1'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '3163e03ece2fce7084076abc43b978c2a9978b53dfcbf7240ce5accbd2047990'
+ext.coreSha256Hash = 'eb32531428f5bc2cd7fe54f9e4905398d5506141d2cebe04c6c80a17ed33df5d'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -14,6 +14,8 @@ ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('st
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
 // core source code.
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
+// The location of core archive.
+ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 
 def commonCflags = [ '-Os', '-std=c++11' ]
 // LTO and debugging don't play well together
@@ -123,7 +125,10 @@ def getDebugExt() {
     return debugBuild ? "-dbg" : ""
 }
 
-ext.coreArchiveFile = rootProject.file("../core-android-${project.coreVersion}.tar.gz")
+if (!ext.coreArchiveDir) {
+    ext.coreArchiveDir = ".."
+}
+ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/core-android-${project.coreVersion}.tar.gz")
 ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false

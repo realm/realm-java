@@ -81,6 +81,12 @@ Prerequisites:
     launchctl setenv NDK_HOME "$NDK_HOME"
     ```
 
+ * And if you'd like to specify the location to store the archives of Realm's core, set `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables you to keep core's archive when executing `git clean -xfd`.
+
+   ```
+   export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
+   ```
+
 Once you have completed all the pre-requisites building Realm is done with a simple command
 
 ```
