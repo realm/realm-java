@@ -19,31 +19,68 @@ package io.realm.proxy;
 import android.os.Handler;
 import android.os.Message;
 
+import io.realm.HandlerController;
+
+import static android.os.Handler.*;
+
 /**
- * Handler decorator, to help intercept some messages
+ * Handler decorator, to help intercept some messages before they are sent and received.
  */
 public abstract class HandlerProxy extends Handler {
-    private final Handler handler;
 
-    public HandlerProxy(Handler handler) {
-        if (null == handler) throw new IllegalArgumentException("null handler");
-        this.handler = handler;
+    private final HandlerController controller;
+
+    public HandlerProxy(HandlerController controller) {
+        if (null == controller) {
+            throw new IllegalArgumentException("non-null HandlerController required.");
+        }
+        this.controller = controller;
     }
 
     /**
      * @see {@link Handler#postAtFrontOfQueue(Runnable)}
      */
-    public void postAtFront (Runnable runnable) {
-        handler.postAtFrontOfQueue(runnable);
+    public void postAtFront(Runnable runnable) {
+        if (onInterceptOutMessage(0)) {
+            postAtFrontOfQueue(runnable);
+        }
     }
 
     @Override
     public boolean sendMessageAtTime(Message msg, long uptimeMillis) {
-        boolean eventConsumed = onInterceptMessage(msg.what);
-        return !eventConsumed && handler.sendMessageAtTime(msg, uptimeMillis);
-
+        boolean eventConsumed = onInterceptOutMessage(msg.what);
+        return !eventConsumed && super.sendMessageAtTime(msg, uptimeMillis);
     }
 
-    // called on the Handler's Thread
-    public abstract boolean onInterceptMessage(int what);
+    @Override
+    public void handleMessage(Message msg) {
+        boolean eventConsumed = onInterceptInMessage(msg.what);
+        if (!eventConsumed) {
+            controller.handleMessage(msg);
+        }
+    }
+
+    /**
+     * Intercepts a message as it is being posted. Return {@code false} to continue sending it. {@code true} to
+     * swallow it.
+     *
+     * This method will be executed on the thread sending the message.
+     *
+     * @return {@code true} if message should be swallowed. {@code false} to continue processing it.
+     */
+    protected boolean onInterceptOutMessage(int what) {
+        return false;
+    }
+
+    /**
+     * Intercepts a message as it is being received. Return {@code false} to let subclasses continue the handling.
+     * {@code true} to swallow it.
+     *
+     * This method will be executed on the thread of the Looper backing the Handler
+     *
+     * @return {@code true} if message should be swallowed. {@code false} to continue processing it.
+     */
+    protected boolean onInterceptInMessage(int what) {
+        return false;
+    }
 }

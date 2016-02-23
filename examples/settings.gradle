@@ -10,6 +10,7 @@ include 'moduleExample:library'
 include 'realmModuleExample'
 include 'threadExample'
 include 'unitTestExample'
+include 'newsreaderExample'
 include 'rxJavaExample'
 include 'robolectricExample'
 

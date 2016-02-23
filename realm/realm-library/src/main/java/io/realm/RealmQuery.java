@@ -30,6 +30,7 @@ import io.realm.annotations.Required;
 import io.realm.internal.LinkView;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
@@ -1092,6 +1093,140 @@ public class RealmQuery<E extends RealmObject> {
         return this;
     }
 
+    /**
+     * Returns a distinct set of objects of a specific class. If the result is sorted, the first
+     * object will be returned in case of multiple occurrences, otherwise it is undefined which
+     * object is returned.
+     *
+     * @param fieldName the field name.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
+     */
+    public RealmResults<E> distinct(String fieldName) {
+        checkQueryIsNotReused();
+        long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
+        TableView tableView = this.query.findAll();
+        tableView.distinct(columnIndex);
+
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
+        }
+        return realmResults;
+    }
+
+    /**
+     * Asynchronously returns a distinct set of objects of a specific class. If the result is
+     * sorted, the first object will be returned in case of multiple occurrences, otherwise it is
+     * undefined which object is returned.
+     *
+     * @param fieldName the field name.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
+     */
+    public RealmResults<E> distinctAsync(String fieldName) {
+        checkQueryIsNotReused();
+        final long columnIndex = getAndValidateDistinctColumnIndex(fieldName, this.table.getTable());
+        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
+
+        // handover the query (to be used by a worker thread)
+        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
+
+        // save query arguments (for future update)
+        argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_DISTINCT);
+        argumentsHolder.columnIndex = columnIndex;
+
+        // we need to use the same configuration to open a background SharedGroup (i.e Realm)
+        // to perform the query
+        final RealmConfiguration realmConfiguration = realm.getConfiguration();
+
+        // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
+        // then update it once the query completes in the background.
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
+        } else {
+            realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
+        }
+
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
+
+        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                if (!Thread.currentThread().isInterrupted()) {
+                    SharedGroup sharedGroup = null;
+
+                    try {
+                        sharedGroup = new SharedGroup(realmConfiguration.getPath(),
+                                SharedGroup.IMPLICIT_TRANSACTION,
+                                realmConfiguration.getDurability(),
+                                realmConfiguration.getEncryptionKey());
+
+                        long handoverTableViewPointer = query.
+                                findDistinctWithHandover(sharedGroup.getNativePointer(),
+                                        sharedGroup.getNativeReplicationPointer(),
+                                        handoverQueryPointer,
+                                        columnIndex);
+
+                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
+                        result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
+                        result.versionID = sharedGroup.getVersion();
+                        closeSharedGroupAndSendMessageToHandler(sharedGroup,
+                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
+
+                        return handoverTableViewPointer;
+                    } catch (Exception e) {
+                        RealmLog.e(e.getMessage(), e);
+                        closeSharedGroupAndSendMessageToHandler(sharedGroup,
+                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
+
+                    } finally {
+                        if (sharedGroup != null && !sharedGroup.isClosed()) {
+                            sharedGroup.close();
+                        }
+                    }
+                } else {
+                    TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
+                }
+
+                return INVALID_NATIVE_POINTER;
+            }
+        });
+
+        realmResults.setPendingQuery(pendingQuery);
+        return realmResults;
+    }
+
+    // Find and validate the column index for the field name used to create a distinctive TableView.
+    static long getAndValidateDistinctColumnIndex(String fieldName, Table table) {
+        // Check empty field name
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Non-empty field name must be provided.");
+        }
+        long columnIndex = table.getColumnIndex(fieldName);
+        // Check if field exists
+        if (columnIndex == -1) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+        // Check linked fields
+        if (fieldName.contains(".")) {
+            throw new IllegalArgumentException("Distinct operation on linked properties is not supported: " + fieldName);
+        }
+        // check if the field is indexed
+        if (!table.hasSearchIndex(columnIndex)) {
+            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
+        }
+        return columnIndex;
+    }
+
     // Aggregates
 
     // Sum
@@ -1233,80 +1368,6 @@ public class RealmQuery<E extends RealmObject> {
         return this.query.count();
     }
 
-    RealmResults<E> distinctAsync(final long columnIndex) {
-        checkQueryIsNotReused();
-        final WeakReference<Handler> weakHandler = getWeakReferenceHandler();
-
-        // handover the query (to be used by a worker thread)
-        final long handoverQueryPointer = query.handoverQuery(realm.sharedGroupManager.getNativePointer());
-
-        // save query arguments (for future update)
-        argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_DISTINCT);
-        argumentsHolder.columnIndex = columnIndex;
-
-        // we need to use the same configuration to open a background SharedGroup (i.e Realm)
-        // to perform the query
-        final RealmConfiguration realmConfiguration = realm.getConfiguration();
-
-        // prepare an empty reference of the RealmResults, so we can return it immediately (promise)
-        // then update it once the query completes in the background.
-        RealmResults<E> realmResults;
-        if (isDynamicQuery()) {
-            //noinspection unchecked
-            realmResults = (RealmResults<E>) RealmResults.createFromDynamicClass(realm, query, className);
-        } else {
-            realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
-        }
-
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
-
-        final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
-            @Override
-            public Long call() throws Exception {
-                if (!Thread.currentThread().isInterrupted()) {
-                    SharedGroup sharedGroup = null;
-
-                    try {
-                        sharedGroup = new SharedGroup(realmConfiguration.getPath(),
-                                SharedGroup.IMPLICIT_TRANSACTION,
-                                realmConfiguration.getDurability(),
-                                realmConfiguration.getEncryptionKey());
-
-                        long handoverTableViewPointer = query.
-                                findDistinctWithHandover(sharedGroup.getNativePointer(),
-                                        sharedGroup.getNativeReplicationPointer(),
-                                        handoverQueryPointer,
-                                        columnIndex);
-
-                        QueryUpdateTask.Result result = QueryUpdateTask.Result.newRealmResultsResponse();
-                        result.updatedTableViews.put(weakRealmResults, handoverTableViewPointer);
-                        result.versionID = sharedGroup.getVersion();
-                        closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
-
-                        return handoverTableViewPointer;
-                    } catch (Exception e) {
-                        RealmLog.e(e.getMessage(), e);
-                        closeSharedGroupAndSendMessageToHandler(sharedGroup,
-                                weakHandler, HandlerController.REALM_ASYNC_BACKGROUND_EXCEPTION, new Error(e));
-
-                    } finally {
-                        if (sharedGroup != null && !sharedGroup.isClosed()) {
-                            sharedGroup.close();
-                        }
-                    }
-                } else {
-                    TableQuery.nativeCloseQueryHandover(handoverQueryPointer);
-                }
-
-                return INVALID_NATIVE_POINTER;
-            }
-        });
-
-        realmResults.setPendingQuery(pendingQuery);
-        return realmResults;
-    }
-
     /**
      * Finds all objects that fulfill the query conditions.
      *
@@ -1322,9 +1383,6 @@ public class RealmQuery<E extends RealmObject> {
             realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, query.findAll(), className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, query.findAll(), clazz);
-        }
-        if (realm.handlerController != null) {
-            realm.handlerController.addToRealmResults(realmResults);
         }
         return realmResults;
     }
@@ -1420,16 +1478,14 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortOrder how to sort the results.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
      * objects is returned.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldName, Sort sortOrder) {
         checkQueryIsNotReused();
         TableView tableView = query.findAll();
-        Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
+        long columnIndex = getColumnIndexForSort(fieldName);
         tableView.sort(columnIndex, sortOrder);
 
         RealmResults<E> realmResults;
@@ -1437,9 +1493,6 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-        }
-        if (realm.handlerController != null) {
-            realm.handlerController.addToRealmResults(realmResults);
         }
         return realmResults;
     }
@@ -1450,14 +1503,12 @@ public class RealmQuery<E extends RealmObject> {
      *
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      *         {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * @throws java.lang.IllegalArgumentException if field name does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
-    public RealmResults<E> findAllSortedAsync(String fieldName, final Sort sortOrder) {
+    public RealmResults<E> findAllSortedAsync(final String fieldName, final Sort sortOrder) {
         checkQueryIsNotReused();
-        final Long columnIndex = schema.getFieldIndex(fieldName);
-        if (columnIndex == null || columnIndex < 0) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
+        long columnIndex = getColumnIndexForSort(fieldName);
 
         // capture the query arguments for future retries & update
         argumentsHolder = new ArgumentsHolder(ArgumentsHolder.TYPE_FIND_ALL_SORTED);
@@ -1480,7 +1531,8 @@ public class RealmQuery<E extends RealmObject> {
             realmResults = RealmResults.createFromTableQuery(realm, query, clazz);
         }
 
-        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = realm.handlerController.addToAsyncRealmResults(realmResults, this);
+        final WeakReference<RealmResults<? extends RealmObject>> weakRealmResults =
+                realm.handlerController.addToAsyncRealmResults(realmResults, this);
 
         final Future<Long> pendingQuery = Realm.asyncQueryExecutor.submit(new Callable<Long>() {
             @Override
@@ -1493,6 +1545,8 @@ public class RealmQuery<E extends RealmObject> {
                                 SharedGroup.IMPLICIT_TRANSACTION,
                                 realmConfiguration.getDurability(),
                                 realmConfiguration.getEncryptionKey());
+
+                        long columnIndex = getColumnIndexForSort(fieldName);
 
                         // run the query & handover the table view for the caller thread
                         long handoverTableViewPointer = query.findAllSortedWithHandover(sharedGroup.getNativePointer(),
@@ -1564,7 +1618,8 @@ public class RealmQuery<E extends RealmObject> {
      * @param sortOrders how to sort the field names.
      * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero 
      *         objects is returned.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     @SuppressWarnings("unchecked")
     public RealmResults<E> findAllSorted(String fieldNames[], Sort sortOrders[]) {
@@ -1577,10 +1632,7 @@ public class RealmQuery<E extends RealmObject> {
             List<Long> columnIndices = new ArrayList<Long>();
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
-                Long columnIndex = schema.getFieldIndex(fieldName);
-                if (columnIndex == null || columnIndex < 0) {
-                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-                }
+                long columnIndex = getColumnIndexForSort(fieldName);
                 columnIndices.add(columnIndex);
             }
             tableView.sort(columnIndices, sortOrders);
@@ -1590,9 +1642,6 @@ public class RealmQuery<E extends RealmObject> {
                 realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
             } else {
                 realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
-            }
-            if (realm.handlerController != null) {
-                realm.handlerController.addToRealmResults(realmResults);
             }
             return realmResults;
         }
@@ -1610,6 +1659,8 @@ public class RealmQuery<E extends RealmObject> {
      * @return immediately an empty {@link RealmResults}. Users need to register a listener
      * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the query completes.
      * @see io.realm.RealmResults
+     * @throws java.lang.IllegalArgumentException if one of the field names does not exist or it belongs to a child
+     * {@link RealmObject} or a child {@link RealmList}.
      */
     public RealmResults<E> findAllSortedAsync(String fieldNames[], final Sort[] sortOrders) {
         checkQueryIsNotReused();
@@ -1630,10 +1681,7 @@ public class RealmQuery<E extends RealmObject> {
             final long indices[] = new long[fieldNames.length];
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
-                Long columnIndex = schema.getFieldIndex(fieldName);
-                if (columnIndex == null || columnIndex < 0) {
-                    throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-                }
+                long columnIndex = getColumnIndexForSort(fieldName);
                 indices[i] = columnIndex;
             }
 
@@ -1800,7 +1848,9 @@ public class RealmQuery<E extends RealmObject> {
      * @return immediately an empty {@link RealmObject}. Trying to access any field on the returned object
      * before it is loaded will throw an {@code IllegalStateException}. Use {@link RealmObject#isLoaded()} to check if
      * the object is fully loaded or register a listener {@link io.realm.RealmObject#addChangeListener}
-     * to be notified when the query completes.
+     * to be notified when the query completes. If no RealmObject was found after the query completed, the returned
+     * RealmObject will have {@link RealmObject#isLoaded()} set to {@code true} and {@link RealmObject#isValid()} set to
+     * {@code false}.
      */
     public E findFirstAsync() {
         checkQueryIsNotReused();
@@ -1932,6 +1982,21 @@ public class RealmQuery<E extends RealmObject> {
         } else {
             return rowIndex;
         }
+    }
+
+    // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
+    // or it belongs to the child object.
+    private long getColumnIndexForSort(String fieldName) {
+        if (fieldName.contains(".")) {
+            throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
+        }
+
+        Long columnIndex = schema.getFieldIndex(fieldName);
+        if (columnIndex == null || columnIndex < 0) {
+            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
+        }
+
+        return columnIndex;
     }
 
     public ArgumentsHolder getArgument() {
