@@ -39,10 +39,10 @@ class BytecodeModifier {
         def methods = clazz.getDeclaredMethods()*.name
         clazz.declaredFields.each { CtField field ->
             if (!Modifier.isStatic(field.getModifiers())) {
-                if (!methods.contains("realmGet__${field.name}")) {
+                if (!methods.contains("realmGet\$${field.name}")) {
                     clazz.addMethod(CtNewMethod.getter("realmGet\$${field.name}", field))
                 }
-                if (!methods.contains("realmSet__${field.name}")) {
+                if (!methods.contains("realmSet\$${field.name}")) {
                     clazz.addMethod(CtNewMethod.setter("realmSet\$${field.name}", field))
                 }
             }
@@ -101,22 +101,19 @@ class BytecodeModifier {
 
         @Override
         void edit(FieldAccess fieldAccess) throws CannotCompileException {
-            try {
-                logger.info "      Field being accessed: ${fieldAccess.className}.${fieldAccess.fieldName}"
-                def isRealmFieldAccess = managedFields.find {
-                    fieldAccess.className.equals(it.declaringClass.name) && fieldAccess.fieldName.equals(it.name)
+            logger.info "      Field being accessed: ${fieldAccess.className}.${fieldAccess.fieldName}"
+            def isRealmFieldAccess = managedFields.find {
+                fieldAccess.className.equals(it.declaringClass.name) && fieldAccess.fieldName.equals(it.name)
+            }
+            if (isRealmFieldAccess != null) {
+                logger.info "        Realm: Manipulating ${ctClass.simpleName}.${behavior.name}(): ${fieldAccess.fieldName}"
+                logger.info "        Methods: ${ctClass.declaredMethods}"
+                def fieldName = fieldAccess.fieldName
+                if (fieldAccess.isReader()) {
+                    fieldAccess.replace('$_ = $0.realmGet$' + fieldName + '();')
+                } else if (fieldAccess.isWriter()) {
+                    fieldAccess.replace('$0.realmSet$' + fieldName + '($1);')
                 }
-                if (isRealmFieldAccess != null) {
-                    logger.info "        Realm: Manipulating ${ctClass.simpleName}.${behavior.name}(): ${fieldAccess.fieldName}"
-                    logger.info "        Methods: ${ctClass.declaredMethods}"
-                    def fieldName = fieldAccess.fieldName
-                    if (fieldAccess.isReader()) {
-                        fieldAccess.replace('$_ = $0.realmGet$' + fieldName + '();')
-                    } else if (fieldAccess.isWriter()) {
-                        fieldAccess.replace('$0.realmSet$' + fieldName + '($1);')
-                    }
-                }
-            } catch (NotFoundException ignored) {
             }
         }
     }
