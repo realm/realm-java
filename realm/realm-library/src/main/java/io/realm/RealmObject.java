@@ -52,8 +52,8 @@ import rx.Observable;
  * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code> when storing
  * within a Realm.
  * <p>
- * You can use any name for getters and setters as long as they are valid method name in Java language, or
- * even omitting the getters/setters is allowed(in the case, you may directly access to the fields).
+ * The only restriction a RealmObject has is that fields are not allowed to be final, transient' or volatile.
+ * Any method as well as public fields are allowed.
  * <p>
  * Fields annotated with {@link io.realm.annotations.Ignore} don't have these restrictions and don't require either a
  * getter or setter.
