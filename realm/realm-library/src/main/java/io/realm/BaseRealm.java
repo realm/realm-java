@@ -201,7 +201,9 @@ abstract class BaseRealm implements Closeable {
         handlerController.removeAllChangeListeners();
     }
 
-    void setHandler (Handler handler) {
+    // WARNING: If this method is used after calling any async method, the old handler will still be used.
+    //          package private, for test purpose only
+    void setHandler(Handler handler) {
         // remove the old one
         handlers.remove(this.handler);
         handlers.put(handler, configuration.getPath());
@@ -269,8 +271,7 @@ abstract class BaseRealm implements Closeable {
         }
         sharedGroupManager.advanceRead();
         if (handlerController != null) {
-            handlerController.notifyGlobalListeners();
-            handlerController.notifyTypeBasedListeners();
+            handlerController.notifyAllListeners();
             // if we have empty async RealmObject then rerun
             if (handlerController.threadContainsAsyncEmptyRealmObject()) {
                 handlerController.updateAsyncEmptyRealmObject();
@@ -301,7 +302,7 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(null);
+        commitTransaction(true, null);
     }
 
     /**
@@ -309,9 +310,10 @@ abstract class BaseRealm implements Closeable {
      * timing conditions like the async transaction. In async transaction, the background Realm has to be closed before
      * other threads see the changes to majoyly avoid the flaky tests.
      *
+     * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
      * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, Runnable runAfterCommit) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
 
@@ -323,15 +325,9 @@ abstract class BaseRealm implements Closeable {
             Handler handler = handlerIntegerEntry.getKey();
             String realmPath = handlerIntegerEntry.getValue();
 
-            // Notify at once on thread doing the commit
-            if (handler.equals(this.handler)) {
-                handlerController.notifyGlobalListeners();
-                // notify RealmResults & RealmObject callbacks
-                handlerController.notifyTypeBasedListeners();
-                // if we have empty async RealmObject then rerun
-                if (handlerController.threadContainsAsyncEmptyRealmObject()) {
-                    handlerController.updateAsyncEmptyRealmObject();
-                }
+            // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
+            // file will make a commit in order to create the schema. Users should not be notified about that.
+            if (!notifyLocalThread && handler.equals(this.handler)) {
                 continue;
             }
 

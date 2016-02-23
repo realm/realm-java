@@ -81,6 +81,9 @@ public class RealmThreadPoolExecutor extends ThreadPoolExecutor {
         }
     }
 
+    /**
+     * Pauses the executor. Pausing means the executor will stop starting new tasks (but complete current ones).
+     */
     public void pause() {
         pauseLock.lock();
         try {

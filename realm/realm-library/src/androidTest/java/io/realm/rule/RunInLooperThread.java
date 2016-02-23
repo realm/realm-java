@@ -164,6 +164,18 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     }
 
     /**
+     * Signal that the test has completed.
+     *
+     * @param latches additional latches to wait before set the test completed flag.
+     */
+    public void testComplete(CountDownLatch... latches) {
+        for (CountDownLatch latch : latches) {
+            TestHelper.awaitOrFail(latch);
+        }
+        signalTestCompleted.countDown();
+    }
+
+    /**
      * Posts a runnable to this worker threads looper.
      */
     public void postRunnable(Runnable runnable) {
