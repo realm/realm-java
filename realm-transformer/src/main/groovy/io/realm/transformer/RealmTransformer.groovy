@@ -116,9 +116,9 @@ class RealmTransformer extends Transform {
     }
 
     /**
-     * Create and populate the Javassist class pool.
+     * Creates and populates the Javassist class pool.
      *
-     * @param inputs The inputs provided by the Transform API
+     * @param inputs the inputs provided by the Transform API
      * @param referencedInputs the referencedInputs provided by the Transform API
      * @return the populated ClassPool instance
      */

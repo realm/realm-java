@@ -50,7 +50,7 @@ class BytecodeModifier {
     }
 
     /**
-     * Modify a class replacing field accesses with the appropriate Realm accessors.
+     * Modifies a class replacing field accesses with the appropriate Realm accessors.
      *
      * @param clazz The CtClass to modify
      * @param managedFields List of fields whose access should be replaced
@@ -74,7 +74,7 @@ class BytecodeModifier {
     }
 
     /**
-     * Modify a class adding its RealmProxy interface.
+     * Modifies a class adding its RealmProxy interface.
      *
      * @param clazz The CtClass to modify
      * @param classPool the Javassist class pool
