@@ -12,7 +12,7 @@
 * Added Realm.clear() and RealmList.removeAllFromRealm() (#1560).
 * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 * Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
-* Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
+* Improved .so loading by using [ReLinker](https://github.com/KeepSafe/ReLinker).
 * Improved performance of RealmList#contains() (#897).
 * RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
 * Removed allowBackup from AndroidManifest (#2307).
@@ -110,7 +110,7 @@
 ## 0.84.1
 * Updated Realm Core to 0.94.4
   - Fixed a bug that could cause a crash when running the same query multiple times.
-* Updated ProGuard configuration. See documentation https://realm.io/docs/java/latest/#proguard for more details.
+* Updated ProGuard configuration. See [documentation](https://realm.io/docs/java/latest/#proguard) for more details.
 * Updated Kotlin example to use 1.0.0-beta.
 * Fixed warnings reported by "lint -Xlint:all" (#1644).
 * Fixed a bug where simultaneous opening and closing a Realm from different threads might result in a NullPointerException (#1646).
@@ -363,7 +363,7 @@
  * Added support for deploying to Maven
  * Throw exception if nested transactions are used (it's not allowed)
  * Javadoc updated
- * Fixed bug in RealmResults: https://github.com/realm/realm-java/issues/453
+ * Fixed [bug in RealmResults](https://github.com/realm/realm-java/issues/453)
  * New annotation @Index to add search index to a field (currently only supporting String fields)
  * Made the annotations processor more verbose and strict
  * Adding RealmQuery.count() method
