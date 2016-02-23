@@ -1,19 +1,19 @@
 ## 0.88.0
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
-* BREAKING CHANGE: String setters now throws IllegalArgumentException instead of RealmError for invalid surrogates. 
+* BREAKING CHANGE: String setters now throws IllegalArgumentException instead of RealmError for invalid surrogates.
 * BREAKING CHANGE: DynamicRealm.distinct()/distinctAsync() and Realm.distinct()/distinctAsync() now throw IllegalArgumentException instead of UnsupportedOperationException for invalid type or unindexed field.
 * Deprecated methods: Realm.getInstance(Context). Use Realm.getInstance(RealmConfiguration) or Realm.getDefaultInstance() instead.
 * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
 * Fixed bug in jsonExample (#2092).
+* Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
 * Added Realm.clear() and RealmList.removeAllFromRealm() (#1560).
+* Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
+* Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
 * Improved .so loading by using ReLinker (https://github.com/KeepSafe/ReLinker).
 * Improved performance of RealmList#contains() (#897).
-* Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
-* Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 * RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
-* Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
 
 ## 0.87.5
  * Updated Realm Core to 0.96.1
