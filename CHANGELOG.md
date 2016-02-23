@@ -15,9 +15,10 @@
 * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 * RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
 * Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
+* Removed allowBackup from AndroidManifest (#2307).
 
 ## 0.87.5
- * Updated Realm Core to 0.96.1
+ * Updated Realm Core to 0.96.2
    - IllegalStateException won't be thrown anymore in RealmResults.where() if the RealmList which the RealmResults is created on has been deleted. Instead, the RealmResults will be treated as empty forever.
 
 ## 0.87.4
