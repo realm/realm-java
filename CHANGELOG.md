@@ -1,8 +1,9 @@
 ## 0.88.0
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
-* BREAKING CHANGE: String setters now throws IllegalArgumentException instead of RealmError for invalid surrogates. 
+* BREAKING CHANGE: String setters now throw IllegalArgumentException instead of RealmError for invalid surrogates.
 * BREAKING CHANGE: DynamicRealm.distinct()/distinctAsync() and Realm.distinct()/distinctAsync() now throw IllegalArgumentException instead of UnsupportedOperationException for invalid type or unindexed field.
+* BREAKING CHANGE: All thread local change listeners are now delayed until the next Looper event instead of being triggered when committing.
 * Deprecated methods: Realm.getInstance(Context). Use Realm.getInstance(RealmConfiguration) or Realm.getDefaultInstance() instead.
 * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
 * Fixed bug in jsonExample (#2092).
