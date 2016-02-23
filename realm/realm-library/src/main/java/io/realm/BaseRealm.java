@@ -269,13 +269,12 @@ abstract class BaseRealm implements Closeable {
         if (isInTransaction()) {
             throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
         }
-        sharedGroupManager.advanceRead();
-        if (handlerController != null) {
-            handlerController.notifyAllListeners();
-            // if we have empty async RealmObject then rerun
-            if (handlerController.threadContainsAsyncEmptyRealmObject()) {
-                handlerController.updateAsyncEmptyRealmObject();
-            }
+        if (handlerController == null) {
+            // non Looper Thread, just advance the Realm
+            // registering listeners is not allowed, hence nothing to notify
+            sharedGroupManager.advanceRead();
+        } else {
+            handlerController.realm.handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
         }
     }
 

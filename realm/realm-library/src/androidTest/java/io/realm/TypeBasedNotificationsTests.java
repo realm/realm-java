@@ -43,7 +43,6 @@ import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
-import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -836,7 +835,6 @@ public class TypeBasedNotificationsTests {
                                 looperThread.testComplete();
                             }
                         });
-
                 }
             }
         });
@@ -899,7 +897,6 @@ public class TypeBasedNotificationsTests {
                                 looperThread.testComplete();
                             }
                         });
-
                 }
             }
         });
@@ -1402,25 +1399,12 @@ public class TypeBasedNotificationsTests {
 
     // ****************************************************************************************** //
     // UC 5.
-    // Callback should be notified if we call refresh (even without getting the REALM_CHANGE yet)
+    // Callback should be notified if we call refresh
     // ***************************************************************************************** //
     @Test
     @RunTestInLooperThread
     public void refresh_should_notify_callbacks_realmobject_sync() {
         final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
 
         realm.beginTransaction();
         realm.createObject(Dog.class);
@@ -1462,19 +1446,6 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void refresh_should_notify_callbacks_realmobject_async() {
         final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
 
         final Dog dog = realm.where(Dog.class).findFirstAsync();
         assertTrue(dog.load());
@@ -1482,8 +1453,10 @@ public class TypeBasedNotificationsTests {
         dog.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals("Akamaru", dog.getName());
-                looperThread.testComplete();
+                if (dog.isValid()) {
+                    assertEquals("Akamaru", dog.getName());
+                    looperThread.testComplete();
+                }
             }
         });
 
@@ -1513,20 +1486,6 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void refresh_should_notify_callbacks_realmresults_sync() {
         final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
-
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAll();
 
         dogs.addChangeListener(new RealmChangeListener() {
@@ -1563,19 +1522,6 @@ public class TypeBasedNotificationsTests {
     @RunTestInLooperThread
     public void refresh_should_notify_callbacks_realmresults_async() {
         final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
 
         final RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
         assertTrue(dogs.load());
@@ -1618,19 +1564,6 @@ public class TypeBasedNotificationsTests {
         final CountDownLatch listenerWasCalledOnRealmResults = new CountDownLatch(1);
 
         final Realm realm = looperThread.realm;
-        // Swallow all REALM_CHANGED events to test the behaviour of an explicit refresh
-        final Handler handler = new HandlerProxy(realm.handlerController) {
-            @Override
-            public boolean onInterceptInMessage(int what) {
-                switch (what) {
-                    case HandlerController.REALM_CHANGED: {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-        realm.setHandler(handler);
 
         Dog dog = realm.where(Dog.class).findFirstAsync();
         RealmResults<Dog> dogs = realm.where(Dog.class).findAllAsync();
@@ -1678,6 +1611,8 @@ public class TypeBasedNotificationsTests {
         }
 
         realm.refresh();
+        assertEquals(1, listenerWasCalledOnRealmObject.getCount());
+        assertEquals(1, listenerWasCalledOnRealmResults.getCount());
     }
 
     // Test modifying realmObjects in RealmObject's change listener

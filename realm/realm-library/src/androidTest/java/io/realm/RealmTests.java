@@ -2053,19 +2053,25 @@ public class RealmTests {
         }
     }
 
-    // FIXME HandlerThread
+    // This test assure that calling refresh will not trigger local listeners
+    // after the Looper receives REALM_CHANGE message
     @Test
-    public void processLocalListenersAfterRefresh() throws InterruptedException {
+    public void processRefreshLocalListenersAfterLooperQueueStart() throws Throwable {
         // Used to validate the result
         final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);
         final AtomicBoolean typeListenerWasCalled = new AtomicBoolean(false);
 
         // Used by the background thread to wait for the main thread to do the write operation
         final CountDownLatch bgThreadLatch = new CountDownLatch(1);
-        final CountDownLatch bgClosedLatch = new CountDownLatch(1);
+        final CountDownLatch bgClosedLatch = new CountDownLatch(2);
         final CountDownLatch bgThreadReadyLatch = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
 
-        Thread backgroundThread = new Thread() {
+        final Looper[] looper = new Looper[1];
+        final Throwable[] throwable = new Throwable[1];
+
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
             @Override
             public void run() {
                 // this will allow to register a listener.
@@ -2073,6 +2079,7 @@ public class RealmTests {
                 // the handler mechanism, the purpose of this test is to make sure refresh calls
                 // the listeners.
                 Looper.prepare();
+                looper[0] = Looper.myLooper();
 
                 Realm bgRealm = Realm.getInstance(realmConfig);
                 RealmResults<Dog> dogs = bgRealm.where(Dog.class).findAll();
@@ -2081,34 +2088,34 @@ public class RealmTests {
                         @Override
                         public void onChange() {
                             listenerWasCalled.set(true);
+                            bgClosedLatch.countDown();
                         }
                     });
                     dogs.addChangeListener(new RealmChangeListener() {
                         @Override
                         public void onChange() {
                             typeListenerWasCalled.set(true);
+                            bgClosedLatch.countDown();
                         }
                     });
 
                     bgThreadReadyLatch.countDown();
                     bgThreadLatch.await(); // Wait for the main thread to do a write operation
                     bgRealm.refresh(); // This should call the listener
-                    assertTrue(listenerWasCalled.get());
-                    assertTrue(typeListenerWasCalled.get());
-                    bgRealm.close();
-                    bgRealm = null;
-                    // DON'T count down in the final block! The test will fail silently!!!
-                    bgClosedLatch.countDown();
-                } catch (InterruptedException e) {
-                    fail(e.getMessage());
+                    assertFalse(listenerWasCalled.get());
+                    assertFalse(typeListenerWasCalled.get());
+
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    throwable[0] = e;
+
                 } finally {
-                    if (bgRealm != null) {
-                        bgRealm.close();
-                    }
+                    bgRealm.close();
+                    signalClosedRealm.countDown();
                 }
             }
-        };
-        backgroundThread.start();
+        });
 
         // Wait until bgThread finishes adding listener to the RealmResults. Otherwise same TableView version won't
         // trigger the listener.
@@ -2118,6 +2125,11 @@ public class RealmTests {
         realm.commitTransaction();
         bgThreadLatch.countDown();
         bgClosedLatch.await();
+
+        TestHelper.exitOrThrow(executorService, bgClosedLatch, signalClosedRealm, looper, throwable);
+
+        assertTrue(listenerWasCalled.get());
+        assertTrue(typeListenerWasCalled.get());
     }
 
     private void populateForDistinct(Realm realm, long numberOfBlocks, long numberOfObjects, boolean withNull) {

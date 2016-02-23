@@ -87,6 +87,8 @@ public class HandlerController implements Handler.Callback {
         this.realm = realm;
     }
 
+    private boolean realmChangedSwallowed = false;
+
     @Override
     public boolean handleMessage(Message message) {
         // Due to how a ConcurrentHashMap iterator is created we cannot be sure that other threads are
@@ -332,6 +334,7 @@ public class HandlerController implements Handler.Callback {
     private void realmChanged() {
         deleteWeakReferences();
         if (threadContainsAsyncQueries()) {
+            realmChangedSwallowed = true;
             updateAsyncQueries();
 
         } else {
@@ -419,10 +422,8 @@ public class HandlerController implements Handler.Callback {
         SharedGroup.VersionID callerVersionID = realm.sharedGroupManager.getVersion();
         int compare = callerVersionID.compareTo(result.versionID);
         if (compare > 0) {
-            RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:" + HandlerController.this + " caller is more advanced, rerun updates");
-            // The caller is more advance than the updated queries ==>
-            // need to refresh them again (if there is still async queries)
-            realm.handler.sendEmptyMessage(REALM_CHANGED);
+            // if the caller thread is advanced i.e it already sent a REALM_CHANGE that will update the queries
+            RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:" + HandlerController.this + " caller is more advanced, Looper will updates queries");
 
         } else {
             // We're behind or on the same version as the worker thread
@@ -468,9 +469,12 @@ public class HandlerController implements Handler.Callback {
 
             // We need to notify the rest of listeners, since the original REALM_CHANGE
             // was delayed/swallowed in order to be able to update async queries
-            notifyGlobalListeners();
-            notifySyncRealmResultsCallbacks();
-            notifyRealmObjectCallbacks();
+            if (realmChangedSwallowed) {
+                notifyGlobalListeners();
+                notifySyncRealmResultsCallbacks();
+                notifyRealmObjectCallbacks();
+                realmChangedSwallowed = false;
+            }
 
             updateAsyncQueriesTask = null;
         }
