@@ -1,4 +1,3 @@
-apply plugin: 'de.undercouch.download'
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 apply plugin: 'android-command'
