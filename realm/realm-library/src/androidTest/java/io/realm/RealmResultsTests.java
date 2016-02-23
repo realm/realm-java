@@ -1699,7 +1699,7 @@ public class RealmResultsTests {
         return dogs;
     }
 
-    // It will still be treated as valid table view in core, just alays be empty.
+    // It will still be treated as valid table view in core, just always be empty.
     @Test
     public void isValid_resultsBuiltOnDeletedLinkView() {
         assertEquals(true, populateRealmResultsOnDeletedLinkView().isValid());
@@ -1760,7 +1760,7 @@ public class RealmResultsTests {
     }
 
     @Test
-    public void max_dateResultsBuiltOnDeletedLinkView() {
+    public void maxDate_resultsBuiltOnDeletedLinkView() {
         assertEquals(null, populateRealmResultsOnDeletedLinkView().maxDate(Dog.FIELD_BIRTHDAY));
     }
 
@@ -1773,12 +1773,12 @@ public class RealmResultsTests {
     }
 
     @Test
-    public void minDateResultsBuiltOnDeletedLinkView() {
+    public void minDate_resultsBuiltOnDeletedLinkView() {
         assertEquals(null, populateRealmResultsOnDeletedLinkView().minDate(Dog.FIELD_BIRTHDAY));
     }
 
     @Test
-    public void whereResultsBuiltOnDeletedLinkView() {
+    public void where_resultsBuiltOnDeletedLinkView() {
         assertEquals(0, populateRealmResultsOnDeletedLinkView().where().findAll().size());
     }
 }

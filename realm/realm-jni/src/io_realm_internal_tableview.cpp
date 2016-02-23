@@ -34,7 +34,12 @@ inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
             ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
             return false;
         }
-//        TV(nativeViewPtr)->sync_if_needed();
+        if (!TV(nativeViewPtr)->is_in_sync() && TV(nativeViewPtr)->outside_version() == std::numeric_limits<uint64_t>::max()) {
+            // This table view is no longer valid. By calling sync_if_needed we ensure it behaves
+            // properly as a 0-size TableView.
+            TV(nativeViewPtr)->sync_if_needed();
+        }
+
     }
     return valid;
 }
