@@ -601,6 +601,9 @@ public class TypeBasedNotificationsTests {
         looperThread1.start();
         looperThread2.start();
         looperThread3.start();
+        final Handler looperHandler1 = new Handler(looperThread1.getLooper());
+        final Handler looperHandler2 = new Handler(looperThread2.getLooper());
+        final Handler looperHandler3 = new Handler(looperThread3.getLooper());
         final Realm realm = looperThread.realm;
         realm.addChangeListener(new RealmChangeListener() {
             @Override
@@ -615,19 +618,47 @@ public class TypeBasedNotificationsTests {
             @Override
             public void onChange() {
                 switch (typebasedCommitInvocations.incrementAndGet()) {
-                    case 1: // triggered by COMPLETED_ASYNC_REALM_OBJECT from caling dog.load()
+                    case 1: // triggered by COMPLETED_ASYNC_REALM_OBJECT from calling dog.load()
+                        assertTrue(dog.isLoaded());
+                        assertFalse(dog.isValid());
+
+                        looperHandler1.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Realm realmLooperThread1 = Realm.getInstance(realm.getConfiguration());
+                                realmLooperThread1.beginTransaction();
+                                realmLooperThread1.commitTransaction();
+                                realmLooperThread1.close();
+                                looperThread1Done.countDown();
+                            }
+                        });
+                        break;
                     case 2: // triggered by the irrelevant commit (not affecting Dog table) from LooperThread1
                         assertTrue(dog.isLoaded());
                         assertFalse(dog.isValid());
+
+                        looperHandler2.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Realm realmLooperThread2 = Realm.getInstance(realm.getConfiguration());
+                                // trigger first callback invocation
+                                realmLooperThread2.beginTransaction();
+                                Dog dog = realmLooperThread2.createObject(Dog.class);
+                                dog.setName("Akamaru");
+                                realmLooperThread2.commitTransaction();
+                                realmLooperThread2.close();
+                                looperThread2Done.countDown();
+                            }
+                        });
                         break;
 
-                    case 3: // triggered by relevant commmit from LooperThread2
+                    case 3: // triggered by relevant commit from LooperThread2
                         assertEquals("Akamaru", dog.getName());
                         realm.handler.post(new Runnable() {
                             @Override
                             public void run() {
                                 // trigger second callback invocation
-                                new Handler(looperThread3.getLooper()).post(new Runnable() {
+                                looperHandler3.post(new Runnable() {
                                     @Override
                                     public void run() {
                                         Realm realmLooperThread3 = Realm.getInstance(realm.getConfiguration());
@@ -666,41 +697,13 @@ public class TypeBasedNotificationsTests {
             }
         });
 
-        new Handler(looperThread1.getLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Realm realmLooperThread1 = Realm.getInstance(realm.getConfiguration());
-                realmLooperThread1.beginTransaction();
-                realmLooperThread1.commitTransaction();
-                realmLooperThread1.close();
-                looperThread1Done.countDown();
-            }
-        });
-
-        new Handler(looperThread2.getLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                TestHelper.awaitOrFail(looperThread1Done);
-                Realm realmLooperThread2 = Realm.getInstance(realm.getConfiguration());
-                // trigger first callback invocation
-                realmLooperThread2.beginTransaction();
-                Dog dog = realmLooperThread2.createObject(Dog.class);
-                dog.setName("Akamaru");
-                realmLooperThread2.commitTransaction();
-                realmLooperThread2.close();
-                looperThread2Done.countDown();
-            }
-        });
     }
 
     // UC 1 Async RealmObject
     @Test
     @RunTestInLooperThread
     public void callback_with_relevant_commit_from_different_non_looper_realmobject_async() throws Throwable {
-        final CountDownLatch asyncQueryComplete = new CountDownLatch(1);
-        final CountDownLatch nonRelevantCommitComplete = new CountDownLatch(1);
-        final CountDownLatch dogCreatedCompelte = new CountDownLatch(1);
-
+        final CountDownLatch nonLooperThread3CloseLatch = new CountDownLatch(1);
         final Realm realm = looperThread.realm;
         realm.addChangeListener(new RealmChangeListener() {
             @Override
@@ -753,6 +756,7 @@ public class TypeBasedNotificationsTests {
                                         realmNonLooperThread3.where(Dog.class).findFirst().setAge(17);
                                         realmNonLooperThread3.commitTransaction();
                                         realmNonLooperThread3.close();
+                                        nonLooperThread3CloseLatch.countDown();
                                     }
                                 }.start();
                             }
@@ -770,6 +774,7 @@ public class TypeBasedNotificationsTests {
                             public void run() {
                                 assertEquals(3, globalCommitInvocations.get());
                                 assertEquals(4, typebasedCommitInvocations.get());
+                                TestHelper.awaitOrFail(nonLooperThread3CloseLatch);
                                 looperThread.testComplete();
                             }
                         });
@@ -1283,6 +1288,7 @@ public class TypeBasedNotificationsTests {
                 typebasedCommitInvocations.incrementAndGet();
                 if (typebasedCommitInvocations.get() == 1) {
                     // COMPLETED_ASYNC_REALM_RESULTS arrived
+                    thread.start();
                     try {
                         thread.join();
                     } catch (InterruptedException e) {
@@ -1291,8 +1297,6 @@ public class TypeBasedNotificationsTests {
                 }
             }
         });
-
-        thread.start();
     }
 
     // ****************************************************************************************** //
