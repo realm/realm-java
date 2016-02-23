@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
