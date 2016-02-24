@@ -69,46 +69,46 @@ public class BooleansRealmProxy extends Booleans
 
     @SuppressWarnings("cast")
     public boolean realmGet$done() {
-        realm.checkIfValid();
-        return (boolean) row.getBoolean(columnInfo.doneIndex);
+        ((RealmObject) this).realm.checkIfValid();
+        return (boolean) ((RealmObject) this).row.getBoolean(columnInfo.doneIndex);
     }
 
     public void realmSet$done(boolean value) {
-        realm.checkIfValid();
-        row.setBoolean(columnInfo.doneIndex, value);
+        ((RealmObject) this).realm.checkIfValid();
+        ((RealmObject) this).row.setBoolean(columnInfo.doneIndex, value);
     }
 
     @SuppressWarnings("cast")
     public boolean realmGet$isReady() {
-        realm.checkIfValid();
-        return (boolean) row.getBoolean(columnInfo.isReadyIndex);
+        ((RealmObject) this).realm.checkIfValid();
+        return (boolean) ((RealmObject) this).row.getBoolean(columnInfo.isReadyIndex);
     }
 
     public void realmSet$isReady(boolean value) {
-        realm.checkIfValid();
-        row.setBoolean(columnInfo.isReadyIndex, value);
+        ((RealmObject) this).realm.checkIfValid();
+        ((RealmObject) this).row.setBoolean(columnInfo.isReadyIndex, value);
     }
 
     @SuppressWarnings("cast")
     public boolean realmGet$mCompleted() {
-        realm.checkIfValid();
-        return (boolean) row.getBoolean(columnInfo.mCompletedIndex);
+        ((RealmObject) this).realm.checkIfValid();
+        return (boolean) ((RealmObject) this).row.getBoolean(columnInfo.mCompletedIndex);
     }
 
     public void realmSet$mCompleted(boolean value) {
-        realm.checkIfValid();
-        row.setBoolean(columnInfo.mCompletedIndex, value);
+        ((RealmObject) this).realm.checkIfValid();
+        ((RealmObject) this).row.setBoolean(columnInfo.mCompletedIndex, value);
     }
 
     @SuppressWarnings("cast")
     public boolean realmGet$anotherBoolean() {
-        realm.checkIfValid();
-        return (boolean) row.getBoolean(columnInfo.anotherBooleanIndex);
+        ((RealmObject) this).realm.checkIfValid();
+        return (boolean) ((RealmObject) this).row.getBoolean(columnInfo.anotherBooleanIndex);
     }
 
     public void realmSet$anotherBoolean(boolean value) {
-        realm.checkIfValid();
-        row.setBoolean(columnInfo.anotherBooleanIndex, value);
+        ((RealmObject) this).realm.checkIfValid();
+        ((RealmObject) this).row.setBoolean(columnInfo.anotherBooleanIndex, value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -189,7 +189,7 @@ public class BooleansRealmProxy extends Booleans
 
     @SuppressWarnings("cast")
     public static Booleans createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-        throws JSONException {
+            throws JSONException {
         Booleans obj = realm.createObject(Booleans.class);
         if (json.has("done")) {
             if (json.isNull("done")) {
@@ -224,7 +224,7 @@ public class BooleansRealmProxy extends Booleans
 
     @SuppressWarnings("cast")
     public static Booleans createUsingJsonStream(Realm realm, JsonReader reader)
-        throws IOException {
+            throws IOException {
         Booleans obj = realm.createObject(Booleans.class);
         reader.beginObject();
         while (reader.hasNext()) {
@@ -266,7 +266,7 @@ public class BooleansRealmProxy extends Booleans
     }
 
     public static Booleans copyOrUpdate(Realm realm, Booleans object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
+        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
@@ -275,10 +275,10 @@ public class BooleansRealmProxy extends Booleans
     public static Booleans copy(Realm realm, Booleans newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Booleans realmObject = realm.createObject(Booleans.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
-        ((BooleansRealmProxyInterface) realmObject).realmSet$done(((BooleansRealmProxyInterface)newObject).realmGet$done());
-        ((BooleansRealmProxyInterface) realmObject).realmSet$isReady(((BooleansRealmProxyInterface)newObject).realmGet$isReady());
-        ((BooleansRealmProxyInterface) realmObject).realmSet$mCompleted(((BooleansRealmProxyInterface)newObject).realmGet$mCompleted());
-        ((BooleansRealmProxyInterface) realmObject).realmSet$anotherBoolean(((BooleansRealmProxyInterface)newObject).realmGet$anotherBoolean());
+        ((BooleansRealmProxyInterface) realmObject).realmSet$done(((BooleansRealmProxyInterface) newObject).realmGet$done());
+        ((BooleansRealmProxyInterface) realmObject).realmSet$isReady(((BooleansRealmProxyInterface) newObject).realmGet$isReady());
+        ((BooleansRealmProxyInterface) realmObject).realmSet$mCompleted(((BooleansRealmProxyInterface) newObject).realmGet$mCompleted());
+        ((BooleansRealmProxyInterface) realmObject).realmSet$anotherBoolean(((BooleansRealmProxyInterface) newObject).realmGet$anotherBoolean());
         return realmObject;
     }
 
@@ -334,9 +334,9 @@ public class BooleansRealmProxy extends Booleans
 
     @Override
     public int hashCode() {
-        String realmName = realm.getPath();
-        String tableName = row.getTable().getName();
-        long rowIndex = row.getIndex();
+        String realmName = ((RealmObject) this).realm.getPath();
+        String tableName = ((RealmObject) this).row.getTable().getName();
+        long rowIndex = ((RealmObject) this).row.getIndex();
 
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
@@ -351,15 +351,15 @@ public class BooleansRealmProxy extends Booleans
         if (o == null || getClass() != o.getClass()) return false;
         BooleansRealmProxy aBooleans = (BooleansRealmProxy)o;
 
-        String path = realm.getPath();
-        String otherPath = aBooleans.realm.getPath();
+        String path = ((RealmObject) this).realm.getPath();
+        String otherPath = ((RealmObject) aBooleans).realm.getPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
 
-        String tableName = row.getTable().getName();
-        String otherTableName = aBooleans.row.getTable().getName();
+        String tableName = ((RealmObject) this).row.getTable().getName();
+        String otherTableName = ((RealmObject) aBooleans).row.getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
 
-        if (row.getIndex() != aBooleans.row.getIndex()) return false;
+        if (((RealmObject) this).row.getIndex() != ((RealmObject) aBooleans).row.getIndex()) return false;
 
         return true;
     }
