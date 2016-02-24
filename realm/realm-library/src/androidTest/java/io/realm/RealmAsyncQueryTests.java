@@ -1767,6 +1767,48 @@ public class RealmAsyncQueryTests {
         });
     }
 
+    // Make sure we don't get the run into the IllegalStateException
+    // (Caller thread behind the worker thread)
+    // Scenario:
+    // - Caller thread is in version 1, start an asyncFindFirst
+    // - Another thread advance the Realm, now the latest version = 2
+    // - The worker thread should query against version 1 not version 2
+    // otherwise the caller thread wouldn't be able to import the result
+    // - The notification mechanism will guarantee that the REALM_CHANGE triggered by
+    // the background thread, will update the caller thread (advancing it to version 2)
+    @Test
+    @RunTestInLooperThread
+    public void testFindFirstUsesCallerThreadVersion() throws Throwable {
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+
+        populateTestRealm(looperThread.realm, 10);
+        Realm.asyncQueryExecutor.pause();
+
+        final AllTypes firstAsync = looperThread.realm.where(AllTypes.class).findFirstAsync();
+        firstAsync.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertNotNull(firstAsync);
+                assertEquals("test data 0", firstAsync.getColumnString());
+                looperThread.testComplete(signalClosedRealm);
+            }
+        });
+
+        // advance the background Realm
+        new Thread() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
+                // Advancing the Realm without generating notifications
+                bgRealm.sharedGroupManager.promoteToWrite();
+                bgRealm.sharedGroupManager.commitAndContinueAsRead();
+                Realm.asyncQueryExecutor.resume();
+                bgRealm.close();
+                signalClosedRealm.countDown();
+            }
+        }.start();
+    }
+
 
     // *** Helper methods ***
 
