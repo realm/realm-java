@@ -2350,6 +2350,7 @@ public class RealmAsyncQueryTests {
     }
 
     // this test make sure that Async queries update when using link
+    @Test
     public void testQueryingLinkHandover() throws Throwable {
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
@@ -2432,6 +2433,78 @@ public class RealmAsyncQueryTests {
                     }
                     if (realm.length > 0 && realm[0] != null) {
                         realm[0].close();
+                    }
+                    signalClosedRealm.countDown();
+                }
+            }
+        });
+
+        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
+    }
+
+    // Make sure we don't get the run into the IllegalStateException
+    // (Caller thread behind the worker thread)
+    // Scenario:
+    // - Caller thread is in version 1, start an asyncFindFirst
+    // - Another thread advance the Realm, now the latest version = 2
+    // - The worker thread should query against version 1 not version 2
+    // otherwise the caller thread wouldn't be able to import the result
+    // - The notification mechanism will guarantee that the REALM_CHANGE triggered by
+    // the background thread, will update the caller thread (advancing it to version 2)
+    @Test
+    public void testFindFirstUsesCallerThreadVersion() throws Throwable {
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                Realm realm = null;
+                try {
+                    realm = openRealmInstance("testFindFirstUsesCallerThreadVersion");
+                    final RealmConfiguration configuration = realm.getConfiguration();
+                    populateTestRealm(realm, 10);
+                    Realm.asyncQueryExecutor.pause();
+
+                    final AllTypes firstAsync = realm.where(AllTypes.class).findFirstAsync();
+                    firstAsync.addChangeListener(new RealmChangeListener() {
+                        @Override
+                        public void onChange() {
+                            assertNotNull(firstAsync);
+                            assertEquals("test data 0", firstAsync.getColumnString());
+                            signalCallbackFinished.countDown();
+                        }
+                    });
+
+                    // advance the background Realm
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            Realm bgRealm = Realm.getInstance(configuration);
+                            // Advancing the Realm without generating notifications
+                            bgRealm.sharedGroupManager.promoteToWrite();
+                            bgRealm.sharedGroupManager.commitAndContinueAsRead();
+                            Realm.asyncQueryExecutor.resume();
+                        }
+                    }.start();
+
+                    Looper.loop();
+
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (realm != null) {
+                        realm.close();
                     }
                     signalClosedRealm.countDown();
                 }
