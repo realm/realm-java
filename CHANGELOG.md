@@ -21,6 +21,7 @@
 ## 0.87.5
 * Updated Realm Core to 0.96.2.
   - IllegalStateException won't be thrown anymore in RealmResults.where() if the RealmList which the RealmResults is created on has been deleted. Instead, the RealmResults will be treated as empty forever.
+  - Fixed a bug causing a bad version exception, when using findFirstAsync (#2115).
 
 ## 0.87.4
 * Updated Realm Core to 0.96.0.
