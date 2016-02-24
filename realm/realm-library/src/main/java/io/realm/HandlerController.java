@@ -427,10 +427,8 @@ public final class HandlerController implements Handler.Callback {
         SharedGroup.VersionID callerVersionID = realm.sharedGroupManager.getVersion();
         int compare = callerVersionID.compareTo(result.versionID);
         if (compare > 0) {
-            RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:" + HandlerController.this + " caller is more advanced, rerun updates");
-            // The caller is more advance than the updated queries ==>
-            // need to refresh them again (if there is still async queries)
-            realm.handler.sendEmptyMessage(REALM_CHANGED);
+            // if the caller thread is advanced i.e it already sent a REALM_CHANGE that will update the queries
+            RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:" + HandlerController.this + " caller is more advanced, Looper will updates queries");
 
         } else {
             // We're behind or on the same version as the worker thread
