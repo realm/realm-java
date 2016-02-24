@@ -510,8 +510,7 @@ public final class Realm extends BaseRealm {
         }
 
         try {
-            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
-            return realmObject;
+            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
         } catch (Exception e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -701,8 +700,7 @@ public final class Realm extends BaseRealm {
         checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
-        E object = get(clazz, rowIndex);
-        return object;
+        return get(clazz, rowIndex);
     }
 
     /**
@@ -739,8 +737,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
-        E realmObject = copyOrUpdate(object, false);
-        return realmObject;
+        return copyOrUpdate(object, false);
     }
 
     /**
@@ -759,8 +756,7 @@ public final class Realm extends BaseRealm {
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
-        E realmObject = copyOrUpdate(object, true);
-        return realmObject;
+        return copyOrUpdate(object, true);
     }
 
     /**
@@ -1513,6 +1509,7 @@ public final class Realm extends BaseRealm {
     public static Object getDefaultModule() {
         String moduleName = "io.realm.DefaultRealmModule";
         Class<?> clazz;
+        //noinspection TryWithIdenticalCatches
         try {
             clazz = Class.forName(moduleName);
             Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
