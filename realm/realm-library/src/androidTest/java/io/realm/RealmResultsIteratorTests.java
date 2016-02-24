@@ -89,7 +89,7 @@ public class RealmResultsIteratorTests {
     public void iterator() {
         Iterator<AllTypes> it = results.iterator();
         int i = 0;
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             AllTypes item = it.next();
             assertEquals("Failed at index: " + i, i, item.getColumnLong());
             i++;
@@ -130,7 +130,7 @@ public class RealmResultsIteratorTests {
     public void iterator_transactionBeforeNextItem() {
         Iterator<AllTypes> it = results.iterator();
         int i = 0;
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             AllTypes item = it.next();
             assertEquals("Failed at index: " + i, i, item.getColumnLong());
             i++;
@@ -366,7 +366,7 @@ public class RealmResultsIteratorTests {
     public void listIterator_transactionBeforeNextItem() {
         Iterator<AllTypes> it = results.listIterator();
         int i = 0;
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             AllTypes item = it.next();
             assertEquals("Failed at index: " + i, i, item.getColumnLong());
             i++;
