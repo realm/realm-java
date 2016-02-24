@@ -58,7 +58,7 @@ public final class HandlerController implements Handler.Callback {
     final List<WeakReference<RealmChangeListener>> weakChangeListeners =
             new CopyOnWriteArrayList<WeakReference<RealmChangeListener>>();
 
-    private final BaseRealm realm;
+    final BaseRealm realm;
     private boolean autoRefresh; // Requires a Looper thread to be true.
 
     // pending update of async queries
@@ -626,7 +626,7 @@ public final class HandlerController implements Handler.Callback {
      * Refreshes all synchronous RealmResults by calling `sync_if_needed` on them. This will cause any backing queries
      * to be rerun and any deleted objects will be removed from the TableView.
      */
-    private void refreshTableViews() {
+    public void refreshTableViews() {
         Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator = syncRealmResults.keySet().iterator();
         while (iterator.hasNext()) {
             WeakReference<RealmResults<? extends RealmObject>> weakRealmResults = iterator.next();
@@ -648,5 +648,11 @@ public final class HandlerController implements Handler.Callback {
 
     public boolean isAutoRefreshEnabled() {
         return autoRefresh;
+    }
+
+    public void notifyRealmChanged() {
+        if (realm != null) {
+            realm.handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
+        }
     }
 }

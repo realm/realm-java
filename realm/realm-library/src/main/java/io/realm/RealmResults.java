@@ -123,7 +123,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         this.pendingQuery = null;
         this.query = null;
-        this.currentTableViewVersion = table.getVersion();
+        this.currentTableViewVersion = table.syncIfNeeded();
     }
 
     private RealmResults(BaseRealm realm, String className) {
@@ -137,7 +137,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private RealmResults(BaseRealm realm, TableOrView table, String className) {
         this(realm, className);
         this.table = table;
-        this.currentTableViewVersion = table.getVersion();
+        this.currentTableViewVersion = table.syncIfNeeded();
     }
 
     TableOrView getTable() {

@@ -281,12 +281,13 @@ abstract class BaseRealm implements Closeable {
         if (isInTransaction()) {
             throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
         }
-        if (handlerController == null) {
+        if (!handlerController.isAutoRefreshEnabled()) {
             // non Looper Thread, just advance the Realm
             // registering listeners is not allowed, hence nothing to notify
             sharedGroupManager.advanceRead();
+            handlerController.refreshTableViews();
         } else {
-            handlerController.realm.handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
+            handlerController.notifyRealmChanged();
         }
     }
 
