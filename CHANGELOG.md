@@ -5,6 +5,7 @@
 * BREAKING CHANGE: DynamicRealm.distinct()/distinctAsync() and Realm.distinct()/distinctAsync() now throw IllegalArgumentException instead of UnsupportedOperationException for invalid type or unindexed field.
 * BREAKING CHANGE: All thread local change listeners are now delayed until the next Looper event instead of being triggered when committing.
 * Deprecated methods: Realm.getInstance(Context). Use Realm.getInstance(RealmConfiguration) or Realm.getDefaultInstance() instead.
+* Deprecated methods: Realm.getTable(Class) which was public because of the old migration API. Use Realm.getSchema() or DynamicRealm.getSchema() instead.
 * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
 * Fixed bug in jsonExample (#2092).
 * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
