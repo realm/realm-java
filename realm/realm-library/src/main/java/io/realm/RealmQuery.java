@@ -1227,6 +1227,49 @@ public class RealmQuery<E extends RealmObject> {
         return columnIndex;
     }
 
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        checkQueryIsNotReused();
+        List<Long> columnIndexes = getValidatedColumIndexes(this.table.getTable(), firstFieldName, remainingFieldNames);
+        TableView tableView = this.query.findAll();
+        tableView.distinct(columnIndexes);
+
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
+        }
+        return realmResults;
+    }
+
+    // find and validate the column indices of fields for building a distinctive TableView with multi-args
+    static List<Long> getValidatedColumIndexes(Table table, String firstFieldName, String... remainingFieldNames) {
+        List<Long> columnIndexes = new ArrayList<Long>();
+        // find the first index
+        long firstIndex = getAndValidateDistinctColumnIndex(firstFieldName, table);
+        columnIndexes.add(Long.valueOf(firstIndex));
+        // add remaining of indexes
+        if (remainingFieldNames != null && 0 < remainingFieldNames.length) {
+            for (String field : remainingFieldNames) {
+                long index = getAndValidateDistinctColumnIndex(field, table);
+                columnIndexes.add(Long.valueOf(index));
+            }
+        }
+        return columnIndexes;
+    }
+
     // Aggregates
 
     // Sum

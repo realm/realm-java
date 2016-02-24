@@ -16,6 +16,7 @@
 * Improved performance of RealmList#contains() (#897).
 * RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
 * Removed allowBackup from AndroidManifest (#2307).
+* Added multi-arguments distinct(...) for Realm, DynamicRealm, RealmQuery, and RealmResults (#2284).
 
 ## 0.87.5
 * Updated Realm Core to 0.96.2.

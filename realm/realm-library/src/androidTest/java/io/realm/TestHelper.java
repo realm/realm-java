@@ -41,6 +41,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
@@ -633,6 +634,36 @@ public class TestHelper {
         DynamicRealmObject object3 = realm.createObject(AllTypes.CLASS_NAME);
         object3.setLong(AllTypes.FIELD_LONG, 4);
         object3.setString(AllTypes.FIELD_STRING, "Adam");
+        realm.commitTransaction();
+    }
+
+
+    /*
+     * Fields order test for Chained or Multi-Arguments Distinct()
+     *
+     * The idea is to interweave different values in 2's multiplier and 3's multiplier in a way that
+     * the outcome is different if the order of distinct* operations alternates. More numbers of
+     * fields can be constructed with the combination of multipliers in prime numbers such as 2, 3,
+     * and 5.
+     *
+     * An example is illustrated below.
+     *
+     * Object      : O1| O2| O3| O4| O5| O6
+     * indexString : A | A | B | B | A | A
+     * indexLong   : 1 | 1 | 1 | 2 | 2 | 2
+     *
+     * @param realm a {@link Realm} instance.
+     * @param numberOfBlocks number of times set of unique objects should be created.
+     */
+    public static void populateForDistinctFieldsOrder(Realm realm, long numberOfBlocks) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfBlocks; i++) {
+            for (int j = 0; j < 6; j++) {
+                AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
+                obj.setIndexString((((j / 2) % 2) == 0) ? "A" : "B");
+                obj.setIndexLong((j < 3) ? 1 : 2);
+            }
+        }
         realm.commitTransaction();
     }
 
