@@ -87,8 +87,6 @@ public class HandlerController implements Handler.Callback {
         this.realm = realm;
     }
 
-    private boolean realmChangedSwallowed = false;
-
     @Override
     public boolean handleMessage(Message message) {
         // Due to how a ConcurrentHashMap iterator is created we cannot be sure that other threads are
@@ -334,7 +332,6 @@ public class HandlerController implements Handler.Callback {
     private void realmChanged() {
         deleteWeakReferences();
         if (threadContainsAsyncQueries()) {
-            realmChangedSwallowed = true;
             updateAsyncQueries();
 
         } else {
@@ -469,12 +466,9 @@ public class HandlerController implements Handler.Callback {
 
             // We need to notify the rest of listeners, since the original REALM_CHANGE
             // was delayed/swallowed in order to be able to update async queries
-            if (realmChangedSwallowed) {
-                notifyGlobalListeners();
-                notifySyncRealmResultsCallbacks();
-                notifyRealmObjectCallbacks();
-                realmChangedSwallowed = false;
-            }
+            notifyGlobalListeners();
+            notifySyncRealmResultsCallbacks();
+            notifyRealmObjectCallbacks();
 
             updateAsyncQueriesTask = null;
         }
