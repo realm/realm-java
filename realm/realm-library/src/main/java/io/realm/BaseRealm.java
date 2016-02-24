@@ -282,7 +282,7 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException(BaseRealm.CANNOT_REFRESH_INSIDE_OF_TRANSACTION_MESSAGE);
         }
         sharedGroupManager.advanceRead();
-        handlerController.notifyRealmUpdated(true);
+        handlerController.notifyAllListeners();
     }
 
     /**

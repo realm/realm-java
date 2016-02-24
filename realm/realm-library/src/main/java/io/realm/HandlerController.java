@@ -352,7 +352,7 @@ public final class HandlerController implements Handler.Callback {
         } else {
             RealmLog.d("REALM_CHANGED realm:" + HandlerController.this + " no async queries, advance_read");
             realm.sharedGroupManager.advanceRead();
-            notifyRealmUpdated(false);
+            notifyAllListeners();
         }
     }
 
@@ -638,21 +638,6 @@ public final class HandlerController implements Handler.Callback {
             } else {
                 realmResults.syncIfNeeded();
             }
-        }
-    }
-
-    /**
-     * Notify all listeners that a Realm version has advanced to latest version.
-     *
-     * @param updateTableViews {@code true} if RealmResults should be updated before notifying them. Not updating
-     *                                     can cause deleted objects to remain.
-     */
-    public void notifyRealmUpdated(boolean updateTableViews) {
-        if (updateTableViews) {
-            refreshTableViews();
-        }
-        if (isAutoRefreshEnabled()) {
-            notifyAllListeners();
         }
     }
 

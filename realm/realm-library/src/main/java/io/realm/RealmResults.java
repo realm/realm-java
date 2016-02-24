@@ -74,12 +74,12 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final long TABLE_VIEW_VERSION_NONE = -1;
-    private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
 
+    private long currentTableViewVersion = TABLE_VIEW_VERSION_NONE;
     private final TableQuery query;
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
-    private boolean isCompleted = false;
+    private boolean asyncQueryCompleted = false;
     // Keep track of changes to the RealmResult. Is updated after a call `syncIfNeeded. Calling notifyListeners will
     // clear it.
     private boolean viewUpdated = false;
@@ -123,7 +123,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         this.pendingQuery = null;
         this.query = null;
-//        this.currentTableViewVersion = table.getVersion();
+        this.currentTableViewVersion = table.getVersion();
     }
 
     private RealmResults(BaseRealm realm, String className) {
@@ -819,7 +819,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     void swapTableViewPointer(long handoverTableViewPointer) {
         table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
-        isCompleted = true;
+        asyncQueryCompleted = true;
     }
 
     /**
@@ -834,7 +834,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             // the query completed before RealmQuery
             // had a chance to call setPendingQuery to register the pendingQuery (used btw
             // to determine isLoaded behaviour)
-            onCompleted();
+            onAsyncQueryCompleted();
         } // else, it will be handled by the {@link BaseRealm#handlerController#handleMessage}
     }
 
@@ -849,7 +849,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public boolean isLoaded() {
         realm.checkIfValid();
-        return pendingQuery == null || isCompleted;
+        return pendingQuery == null || asyncQueryCompleted;
     }
 
     /**
@@ -865,7 +865,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         } else {
         // doesn't guarantee to import correctly the result (because the user may have advanced)
         // in this case the Realm#handler will be responsible of retrying
-            return onCompleted();
+            return onAsyncQueryCompleted();
         }
     }
 
@@ -875,15 +875,15 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      *
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
-    private boolean onCompleted() {
+    private boolean onAsyncQueryCompleted() {
         try {
             long tvHandover = pendingQuery.get();// make the query blocking
             // this may fail with BadVersionException if the caller and/or the worker thread
             // are not in sync. COMPLETED_ASYNC_REALM_RESULTS will be fired by the worker thread
             // this should handle more complex use cases like retry, ignore etc
             table = query.importHandoverTableView(tvHandover, realm.sharedGroupManager.getNativePointer());
-            isCompleted = true;
-            notifyChangeListeners(true);
+            asyncQueryCompleted = true;
+            notifyChangeListeners(false, true);
         } catch (Exception e) {
             RealmLog.d(e.getMessage());
             return false;
@@ -970,14 +970,17 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Notifies all registered listeners.
      */
     void notifyChangeListeners(boolean syncBeforeNotifying) {
+        notifyChangeListeners(syncBeforeNotifying, false);
+    }
+    void notifyChangeListeners(boolean syncBeforeNotifying, boolean forceNotify) {
         if (syncBeforeNotifying) {
             syncIfNeeded();
         }
         if (listeners != null && !listeners.isEmpty()) {
             // table might be null (if the async query didn't complete
             // but we have already registered listeners for it)
-            if (pendingQuery != null && !isCompleted) return;
-            if (!viewUpdated) return;
+            if (pendingQuery != null && !asyncQueryCompleted) return;
+            if (!viewUpdated && !forceNotify) return;
             viewUpdated = false;
             for (RealmChangeListener listener : listeners) {
                 listener.onChange();
