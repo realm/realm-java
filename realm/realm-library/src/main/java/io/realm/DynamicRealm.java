@@ -277,6 +277,24 @@ public final class DynamicRealm extends BaseRealm {
     }
 
     /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param className the Class to get objects of.
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<DynamicRealmObject> distinct(String className, String firstFieldName, String... remainingFieldNames) {
+        checkIfValid();
+        return where(className).distinct(firstFieldName, remainingFieldNames);
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
