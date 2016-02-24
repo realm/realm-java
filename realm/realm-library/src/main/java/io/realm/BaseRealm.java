@@ -105,23 +105,11 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * DEPRECATED: Use {@link #getAutoRefresh()} instead.
-     *
      * Retrieves the auto-refresh status of the Realm instance.
      *
      * @return the auto-refresh status.
      */
-    @Deprecated()
     public boolean isAutoRefresh() {
-        return handlerController.isAutoRefreshEnabled();
-    }
-
-    /**
-     * Retrieves the auto-refresh status of the Realm instance.
-     *
-     * @return the auto-refresh status.
-     */
-    public boolean getAutoRefresh() {
         return handlerController.isAutoRefreshEnabled();
     }
 
@@ -287,7 +275,7 @@ abstract class BaseRealm implements Closeable {
             sharedGroupManager.advanceRead();
             handlerController.refreshTableViews();
         } else {
-            handlerController.notifyRealmChanged();
+            handlerController.notifyCurrentThreadRealmChanged();
         }
     }
 

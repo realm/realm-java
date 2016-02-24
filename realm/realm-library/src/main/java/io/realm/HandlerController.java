@@ -625,6 +625,8 @@ public final class HandlerController implements Handler.Callback {
     /**
      * Refreshes all synchronous RealmResults by calling `sync_if_needed` on them. This will cause any backing queries
      * to be rerun and any deleted objects will be removed from the TableView.
+     *
+     * Note this will _not_ notify any registered listeners.
      */
     public void refreshTableViews() {
         Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator = syncRealmResults.keySet().iterator();
@@ -650,7 +652,10 @@ public final class HandlerController implements Handler.Callback {
         return autoRefresh;
     }
 
-    public void notifyRealmChanged() {
+    /**
+     * Notify the current thread that the Realm has changed. This will also trigger change listener asynchronously.
+     */
+    public void notifyCurrentThreadRealmChanged() {
         if (realm != null) {
             realm.handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
         }
