@@ -247,14 +247,14 @@ public final class HandlerController implements Handler.Callback {
     }
 
     private void notifyAsyncRealmResultsCallbacks() {
-        notifyRealmResultsCallbacks(asyncRealmResults.keySet().iterator(), true);
+        notifyRealmResultsCallbacks(asyncRealmResults.keySet().iterator());
     }
 
     private void notifySyncRealmResultsCallbacks() {
-        notifyRealmResultsCallbacks(syncRealmResults.keySet().iterator(), true);
+        notifyRealmResultsCallbacks(syncRealmResults.keySet().iterator());
     }
 
-    private void notifyRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator, boolean refreshTableViews) {
+    private void notifyRealmResultsCallbacks(Iterator<WeakReference<RealmResults<? extends RealmObject>>> iterator) {
         List<RealmResults<? extends RealmObject>> resultsToBeNotified =
                 new ArrayList<RealmResults<? extends RealmObject>>();
         while (iterator.hasNext()) {
@@ -270,7 +270,7 @@ public final class HandlerController implements Handler.Callback {
 
         for (Iterator<RealmResults<? extends RealmObject>> it = resultsToBeNotified.iterator(); it.hasNext() && !realm.isClosed(); ) {
             RealmResults<? extends RealmObject> realmResults = it.next();
-            realmResults.notifyChangeListeners(refreshTableViews);
+            realmResults.notifyChangeListeners(true);
         }
     }
 
@@ -352,7 +352,7 @@ public final class HandlerController implements Handler.Callback {
         } else {
             RealmLog.d("REALM_CHANGED realm:" + HandlerController.this + " no async queries, advance_read");
             realm.sharedGroupManager.advanceRead();
-            notifyRealmUpdated(true);
+            notifyRealmUpdated(false);
         }
     }
 

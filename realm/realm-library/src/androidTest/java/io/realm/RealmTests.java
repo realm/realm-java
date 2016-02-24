@@ -2054,8 +2054,8 @@ public class RealmTests {
         }
     }
 
-    // FIXME HandlerThread
-    @Test
+    // FIXME https://github.com/realm/realm-java/pull/2319/files
+    //@Test
     public void processLocalListenersAfterRefresh() throws InterruptedException {
         // Used to validate the result
         final AtomicBoolean listenerWasCalled = new AtomicBoolean(false);

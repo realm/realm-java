@@ -80,6 +80,9 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
+    // Keep track of changes to the RealmResult. Is updated after a call `syncIfNeeded. Calling notifyListeners will
+    // clear it.
+    private boolean viewUpdated = false;
 
     static <E extends RealmObject> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
@@ -653,7 +656,9 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     void syncIfNeeded() {
-        currentTableViewVersion = table.syncIfNeeded();
+        long newVersion = table.syncIfNeeded();
+        viewUpdated = newVersion != currentTableViewVersion;
+        currentTableViewVersion = newVersion;
     }
 
     // Adding objects
@@ -848,11 +853,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Makes an asynchronous query blocking. This will also trigger any registered listeners.
-     * This will return {@code true} for standalone object (created outside of Realm). {@link RealmChangeListener} when
+     * Makes an asynchronous query blocking. This will also trigger any registered {@link RealmChangeListener} when
      * the query completes.
      *
-     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
+     * @return {@code true} if it successfully completed the query, {@code false} otherwise. {@code true} will always
+     *         be returned for standalone objects.
      */
     public boolean load() {
         if (isLoaded()) {
@@ -964,18 +969,18 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     /**
      * Notifies all registered listeners.
      */
-    void notifyChangeListeners(boolean refreshBeforeNotification) {
+    void notifyChangeListeners(boolean syncBeforeNotifying) {
+        if (syncBeforeNotifying) {
+            syncIfNeeded();
+        }
         if (listeners != null && !listeners.isEmpty()) {
             // table might be null (if the async query didn't complete
             // but we have already registered listeners for it)
             if (pendingQuery != null && !isCompleted) return;
-            // FIXME Cleanup this mess of booleans / logic. Should all changelisteners be triggered on a looper event?
-            long version = refreshBeforeNotification ? table.syncIfNeeded() : table.getVersion();
-            if (currentTableViewVersion != version) {
-                currentTableViewVersion = version;
-                for (RealmChangeListener listener : listeners) {
-                    listener.onChange();
-                }
+            if (!viewUpdated) return;
+            viewUpdated = false;
+            for (RealmChangeListener listener : listeners) {
+                listener.onChange();
             }
         }
     }
