@@ -96,22 +96,22 @@ public class IntroExampleActivity extends Activity {
 
         // Add a person
         Person person = realm.createObject(Person.class);
-        person.id = 1;
-        person.name = "Young Person";
-        person.age = 14;
+        person.setId(1);
+        person.setName("Young Person");
+        person.setAge(14);
 
         // When the transaction is committed, all changes a synced to disk.
         realm.commitTransaction();
 
         // Find the first person (no query conditions) and read a field
         person = realm.where(Person.class).findFirst();
-        showStatus(person.name + ":" + person.age);
+        showStatus(person.getName() + ":" + person.getAge());
 
         // Update person in a transaction
         realm.beginTransaction();
-        person.name = "Senior Person";
-        person.age = 99;
-        showStatus(person.name + " got older: " + person.age);
+        person.setName("Senior Person");
+        person.setAge(99);
+        showStatus(person.getName() + " got older: " + person.getAge());
         realm.commitTransaction();
 
         // Delete all persons
@@ -151,21 +151,21 @@ public class IntroExampleActivity extends Activity {
         fido.name = "fido";
         for (int i = 0; i < 10; i++) {
             Person person = realm.createObject(Person.class);
-            person.id = i;
-            person.name = "Person no. " + i;
-            person.age = i;
-            person.dog = fido;
+            person.setId(i);
+            person.setName("Person no. " + i);
+            person.setAge(i);
+            person.setDog(fido);
 
             // The field tempReference is annotated with @Ignore.
             // This means setTempReference sets the Person tempReference
             // field directly. The tempReference is NOT saved as part of
             // the RealmObject:
-            person.tempReference = 42;
+            person.setTempReference(42);
 
             for (int j = 0; j < i; j++) {
                 Cat cat = realm.createObject(Cat.class);
                 cat.name = "Cat_" + j;
-                person.cats.add(cat);
+                person.getCats().add(cat);
             }
         }
         realm.commitTransaction();
@@ -176,18 +176,19 @@ public class IntroExampleActivity extends Activity {
         // Iterate over all objects
         for (Person pers : realm.allObjects(Person.class)) {
             String dogName;
-            if (pers.dog == null) {
+            if (pers.getDog() == null) {
                 dogName = "None";
             } else {
-                dogName = pers.dog.name;
+                dogName = pers.getDog().name;
             }
-            status += "\n" + pers.name + ":" + pers.age + " : " + dogName + " : " + pers.cats.size();
+            status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
         }
 
         // Sorting
         RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
         sortedPersons.sort("age", Sort.DESCENDING);
-        status += "\nSorting " + sortedPersons.last().name + " == " + realm.allObjects(Person.class).first().name;
+        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first()
+                .getName();
 
         realm.close();
         return status;
