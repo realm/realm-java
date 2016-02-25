@@ -39,7 +39,7 @@ publishing {
         annotations(MavenPublication) {
             groupId 'io.realm'
             artifactId = 'realm-annotations'
-            artifact file("${rootDir}/realm/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
+            artifact file("${rootDir}/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-annotations')

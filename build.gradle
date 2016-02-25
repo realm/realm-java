@@ -20,16 +20,41 @@ props.each { key, val ->
     project.set(key, val)
 }
 
-task assembleGradlePlugin(type:GradleBuild) {
+task assembleAnnotations(type:GradleBuild) {
     group = 'Build'
-    description = 'Assemble the Realm Gradle plugin'
-    buildFile = file('gradle-plugin/build.gradle')
+    description = 'Assemble the Realm annotations'
+    buildFile = file('realm-annotations/build.gradle')
     tasks = ['assemble']
+}
+
+task installAnnotations(type:GradleBuild) {
+    group = 'Install'
+    description = 'Install the jar realm-annotations into mavenLocal()'
+    buildFile = file('realm-annotations/build.gradle')
+    tasks = ['install']
+}
+
+task assembleTransformer(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble the Realm transformer'
+    dependsOn installAnnotations
+    buildFile = file('realm-transformer/build.gradle')
+    tasks = ['assemble']
+}
+
+task installTransformer(type:GradleBuild) {
+    group = 'Install'
+    description = 'Install the jar realm-transformer into mavenLocal()'
+    dependsOn installAnnotations
+    buildFile = file('realm-transformer/build.gradle')
+    tasks = ['install']
 }
 
 task assembleRealm(type:GradleBuild) {
     group = 'Build'
     description = 'Assemble the Realm project'
+    dependsOn installAnnotations
+    dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['assemble', 'javadocJar', 'sourcesJar']
 }
@@ -44,21 +69,34 @@ task check(type:GradleBuild) {
 task connectedCheck(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'
+    dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['connectedCheck']
+}
+
+task installRealm(type:GradleBuild) {
+    group = 'Install'
+    description = 'Install the artifacts of Realm libraries into mavenLocal()'
+    dependsOn installTransformer
+    buildFile = file('realm/build.gradle')
+    tasks = ['install', 'uploadShadow']
+}
+
+task assembleGradlePlugin(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble the Realm Gradle plugin'
+    dependsOn installRealm
+    dependsOn installTransformer
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['assemble']
 }
 
 task installGradlePlugin(type:GradleBuild) {
     description = 'Install the Realm Gradle plugin into mavenLocal()'
     group = 'Install'
+    dependsOn installRealm
+    dependsOn installTransformer
     buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['install']
-}
-
-task installRealm(type:GradleBuild) {
-    group = 'Install'
-    description = 'Install the artifacts of Realm project into mavenLocal()'
-    buildFile = file('realm/build.gradle')
     tasks = ['install']
 }
 
@@ -204,9 +242,9 @@ task cleanLocalMavenRepos(type:Delete) {
 task clean {
     description = 'Perform all the other clean tasks'
     group = 'Clean'
-    dependsOn cleanRealm
-    dependsOn cleanGradlePlugin
-    dependsOn cleanExamples
+    cleanLocalMavenRepos.dependsOn cleanRealm
+    cleanLocalMavenRepos.dependsOn cleanGradlePlugin
+    cleanLocalMavenRepos.dependsOn cleanExamples
     dependsOn cleanLocalMavenRepos
 }
 
@@ -299,6 +337,13 @@ task bintrayGradlePlugin(type: GradleBuild) {
     tasks = ['bintrayUpload']
 }
 
+task bintrayTransformer(type: GradleBuild) {
+    description = 'Publish the Realm Transformer to Bintray'
+    group = 'Distribute'
+    buildFile = file('bintrayTransformer.gradle')
+    tasks = ['bintrayUpload']
+}
+
 task bintrayUpload {
     description = 'Publish all the Realm artifacts to Bintray'
     group = 'Distribute'
@@ -307,6 +352,7 @@ task bintrayUpload {
     dependsOn bintrayAnnotations
     dependsOn bintrayAnnotationsProcessor
     dependsOn bintrayGradlePlugin
+    dependsOn bintrayTransformer
 }
 
 task ojoUpload {

@@ -112,9 +112,11 @@ Generating the Javadoc using the command above will report a large number of war
 
 ### Gotchas
 
-The repository is organized in four Gradle projects:
+The repository is organized in six Gradle projects:
 
- * `realm`: it contains the actual library (including the JNI layer), the annotations and the annotations processor.
+ * `realm`: it contains the actual library (including the JNI layer) and the annotations processor.
+ * `realm-annotations`: it contains the annotations defined by Realm.
+ * `realm-transformer`: it contains the bytecode transformer.
  * `gradle-plugin`: it contains the Gradle plugin.
  * `examples`: it contains the example projects. This project directly depends on `gradle-plugin` which adds a dependency to the artifacts produced by `realm`.
  * The root folder is another Gradle project and all it does is orchestrating the other jobs

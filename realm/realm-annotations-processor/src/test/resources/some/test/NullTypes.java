@@ -19,6 +19,7 @@ package some.test;
 import java.lang.String;
 import java.util.Date;
 
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
 
@@ -67,170 +68,338 @@ public class NullTypes extends RealmObject {
 
 
     public String getFieldStringNotNull() {
-        return fieldStringNotNull;
+        return realmGet$fieldStringNotNull();
     }
 
     public void setFieldStringNotNull(String fieldStringNotNull) {
+        realmSet$fieldStringNotNull(fieldStringNotNull);
+    }
+
+    public String realmGet$fieldStringNotNull() {
+        return fieldStringNotNull;
+    }
+
+    public void realmSet$fieldStringNotNull(String fieldStringNotNull) {
         this.fieldStringNotNull = fieldStringNotNull;
     }
 
     public String getFieldStringNull() {
-        return fieldStringNull;
+        return realmGet$fieldStringNull();
     }
 
     public void setFieldStringNull(String fieldStringNull) {
+        realmSet$fieldStringNull(fieldStringNull);
+    }
+
+    public String realmGet$fieldStringNull() {
+        return fieldStringNull;
+    }
+
+    public void realmSet$fieldStringNull(String fieldStringNull) {
         this.fieldStringNull = fieldStringNull;
     }
 
     public Boolean getFieldBooleanNotNull() {
-        return fieldBooleanNotNull;
+        return realmGet$fieldBooleanNotNull();
     }
 
     public void setFieldBooleanNotNull(Boolean fieldBooleanNotNull) {
+        realmSet$fieldBooleanNotNull(fieldBooleanNotNull);
+    }
+
+    public Boolean realmGet$fieldBooleanNotNull() {
+        return fieldBooleanNotNull;
+    }
+
+    public void realmSet$fieldBooleanNotNull(Boolean fieldBooleanNotNull) {
         this.fieldBooleanNotNull = fieldBooleanNotNull;
     }
 
     public Boolean getFieldBooleanNull() {
-        return fieldBooleanNull;
+        return realmGet$fieldBooleanNull();
     }
 
     public void setFieldBooleanNull(Boolean fieldBooleanNull) {
+        realmSet$fieldBooleanNull(fieldBooleanNull);
+    }
+
+    public Boolean realmGet$fieldBooleanNull() {
+        return fieldBooleanNull;
+    }
+
+    public void realmSet$fieldBooleanNull(Boolean fieldBooleanNull) {
         this.fieldBooleanNull = fieldBooleanNull;
     }
 
     public byte[] getFieldBytesNotNull() {
-        return fieldBytesNotNull;
+        return realmGet$fieldBytesNotNull();
     }
 
     public void setFieldBytesNotNull(byte[] fieldBytesNotNull) {
+        realmSet$fieldBytesNotNull(fieldBytesNotNull);
+    }
+
+    public byte[] realmGet$fieldBytesNotNull() {
+        return fieldBytesNotNull;
+    }
+
+    public void realmSet$fieldBytesNotNull(byte[] fieldBytesNotNull) {
         this.fieldBytesNotNull = fieldBytesNotNull;
     }
 
     public byte[] getFieldBytesNull() {
-        return fieldBytesNull;
+        return realmGet$fieldBytesNull();
     }
 
     public void setFieldBytesNull(byte[] fieldBytesNull) {
+        realmSet$fieldBytesNull(fieldBytesNull);
+    }
+
+    public byte[] realmGet$fieldBytesNull() {
+        return fieldBytesNull;
+    }
+
+    public void realmSet$fieldBytesNull(byte[] fieldBytesNull) {
         this.fieldBytesNull = fieldBytesNull;
     }
 
     public Byte getFieldByteNotNull() {
-        return fieldByteNotNull;
+        return realmGet$fieldByteNotNull();
     }
 
     public void setFieldByteNotNull(Byte fieldByteNotNull) {
+        realmSet$fieldByteNotNull(fieldByteNotNull);
+    }
+
+    public Byte realmGet$fieldByteNotNull() {
+        return fieldByteNotNull;
+    }
+
+    public void realmSet$fieldByteNotNull(Byte fieldByteNotNull) {
         this.fieldByteNotNull = fieldByteNotNull;
     }
 
     public Byte getFieldByteNull() {
-        return fieldByteNull;
+        return realmGet$fieldByteNull();
     }
 
     public void setFieldByteNull(Byte fieldByteNull) {
+        realmSet$fieldByteNull(fieldByteNull);
+    }
+
+    public Byte realmGet$fieldByteNull() {
+        return fieldByteNull;
+    }
+
+    public void realmSet$fieldByteNull(Byte fieldByteNull) {
         this.fieldByteNull = fieldByteNull;
     }
 
     public Short getFieldShortNotNull() {
-        return fieldShortNotNull;
+        return realmGet$fieldShortNotNull();
     }
 
     public void setFieldShortNotNull(Short fieldShortNotNull) {
+        realmSet$fieldShortNotNull(fieldShortNotNull);
+    }
+
+    public Short realmGet$fieldShortNotNull() {
+        return fieldShortNotNull;
+    }
+
+    public void realmSet$fieldShortNotNull(Short fieldShortNotNull) {
         this.fieldShortNotNull = fieldShortNotNull;
     }
 
     public Short getFieldShortNull() {
-        return fieldShortNull;
+        return realmGet$fieldShortNull();
     }
 
     public void setFieldShortNull(Short fieldShortNull) {
+        realmSet$fieldShortNull(fieldShortNull);
+    }
+
+    public Short realmGet$fieldShortNull() {
+        return fieldShortNull;
+    }
+
+    public void realmSet$fieldShortNull(Short fieldShortNull) {
         this.fieldShortNull = fieldShortNull;
     }
 
     public Integer getFieldIntegerNotNull() {
-        return fieldIntegerNotNull;
+        return realmGet$fieldIntegerNotNull();
     }
 
     public void setFieldIntegerNotNull(Integer fieldIntegerNotNull) {
+        realmSet$fieldIntegerNotNull(fieldIntegerNotNull);
+    }
+
+    public Integer realmGet$fieldIntegerNotNull() {
+        return fieldIntegerNotNull;
+    }
+
+    public void realmSet$fieldIntegerNotNull(Integer fieldIntegerNotNull) {
         this.fieldIntegerNotNull = fieldIntegerNotNull;
     }
 
     public Integer getFieldIntegerNull() {
-        return fieldIntegerNull;
+        return realmGet$fieldIntegerNull();
     }
 
     public void setFieldIntegerNull(Integer fieldIntegerNull) {
+        realmSet$fieldIntegerNull(fieldIntegerNull);
+    }
+
+    public Integer realmGet$fieldIntegerNull() {
+        return fieldIntegerNull;
+    }
+
+    public void realmSet$fieldIntegerNull(Integer fieldIntegerNull) {
         this.fieldIntegerNull = fieldIntegerNull;
     }
 
     public Long getFieldLongNotNull() {
-        return fieldLongNotNull;
+        return realmGet$fieldLongNotNull();
     }
 
     public void setFieldLongNotNull(Long fieldLongNotNull) {
+        realmSet$fieldLongNotNull(fieldLongNotNull);
+    }
+
+    public Long realmGet$fieldLongNotNull() {
+        return fieldLongNotNull;
+    }
+
+    public void realmSet$fieldLongNotNull(Long fieldLongNotNull) {
         this.fieldLongNotNull = fieldLongNotNull;
     }
 
     public Long getFieldLongNull() {
-        return fieldLongNull;
+        return realmGet$fieldLongNull();
     }
 
     public void setFieldLongNull(Long fieldLongNull) {
+        realmSet$fieldLongNull(fieldLongNull);
+    }
+
+    public Long realmGet$fieldLongNull() {
+        return fieldLongNull;
+    }
+
+    public void realmSet$fieldLongNull(Long fieldLongNull) {
         this.fieldLongNull = fieldLongNull;
     }
 
     public Float getFieldFloatNotNull() {
-        return fieldFloatNotNull;
+        return realmGet$fieldFloatNotNull();
     }
 
     public void setFieldFloatNotNull(Float fieldFloatNotNull) {
+        realmSet$fieldFloatNotNull(fieldFloatNotNull);
+    }
+
+    public Float realmGet$fieldFloatNotNull() {
+        return fieldFloatNotNull;
+    }
+
+    public void realmSet$fieldFloatNotNull(Float fieldFloatNotNull) {
         this.fieldFloatNotNull = fieldFloatNotNull;
     }
 
     public Float getFieldFloatNull() {
-        return fieldFloatNull;
+        return realmGet$fieldFloatNull();
     }
 
     public void setFieldFloatNull(Float fieldFloatNull) {
+        realmSet$fieldFloatNull(fieldFloatNull);
+    }
+
+    public Float realmGet$fieldFloatNull() {
+        return fieldFloatNull;
+    }
+
+    public void realmSet$fieldFloatNull(Float fieldFloatNull) {
         this.fieldFloatNull = fieldFloatNull;
     }
 
     public Double getFieldDoubleNotNull() {
-        return fieldDoubleNotNull;
+        return realmGet$fieldDoubleNotNull();
     }
 
     public void setFieldDoubleNotNull(Double fieldDoubleNotNull) {
+        realmSet$fieldDoubleNotNull(fieldDoubleNotNull);
+    }
+
+    public Double realmGet$fieldDoubleNotNull() {
+        return fieldDoubleNotNull;
+    }
+
+    public void realmSet$fieldDoubleNotNull(Double fieldDoubleNotNull) {
         this.fieldDoubleNotNull = fieldDoubleNotNull;
     }
 
     public Double getFieldDoubleNull() {
-        return fieldDoubleNull;
+        return realmGet$fieldDoubleNull();
     }
 
     public void setFieldDoubleNull(Double fieldDoubleNull) {
+        realmSet$fieldDoubleNull(fieldDoubleNull);
+    }
+
+    public Double realmGet$fieldDoubleNull() {
+        return fieldDoubleNull;
+    }
+
+    public void realmSet$fieldDoubleNull(Double fieldDoubleNull) {
         this.fieldDoubleNull = fieldDoubleNull;
     }
 
     public Date getFieldDateNotNull() {
-        return fieldDateNotNull;
+        return realmGet$fieldDateNotNull();
     }
 
     public void setFieldDateNotNull(Date fieldDateNotNull) {
+        realmSet$fieldDateNotNull(fieldDateNotNull);
+    }
+
+    public Date realmGet$fieldDateNotNull() {
+        return fieldDateNotNull;
+    }
+
+    public void realmSet$fieldDateNotNull(Date fieldDateNotNull) {
         this.fieldDateNotNull = fieldDateNotNull;
     }
 
     public Date getFieldDateNull() {
-        return fieldDateNull;
+        return realmGet$fieldDateNull();
     }
 
     public void setFieldDateNull(Date fieldDateNull) {
+        realmSet$fieldDateNull(fieldDateNull);
+    }
+
+    public Date realmGet$fieldDateNull() {
+        return fieldDateNull;
+    }
+
+    public void realmSet$fieldDateNull(Date fieldDateNull) {
         this.fieldDateNull = fieldDateNull;
     }
 
     public NullTypes getFieldObjectNull() {
-        return fieldObjectNull;
+        return realmGet$fieldObjectNull();
     }
 
     public void setFieldObjectNull(NullTypes fieldObjectNull) {
+        realmSet$fieldObjectNull(fieldObjectNull);
+    }
+
+    public NullTypes realmGet$fieldObjectNull() {
+        return fieldObjectNull;
+    }
+
+    public void realmSet$fieldObjectNull(NullTypes fieldObjectNull) {
         this.fieldObjectNull = fieldObjectNull;
     }
 }

@@ -25,7 +25,7 @@ import org.json.JSONObject;
 import some.test.Simple;
 
 public class SimpleRealmProxy extends Simple
-        implements RealmObjectProxy {
+    implements RealmObjectProxy, SimpleRealmProxyInterface {
 
     static final class SimpleColumnInfo extends ColumnInfo {
 
@@ -57,15 +57,13 @@ public class SimpleRealmProxy extends Simple
         this.columnInfo = (SimpleColumnInfo) columnInfo;
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public String getName() {
+    public String realmGet$name() {
         realm.checkIfValid();
         return (java.lang.String) row.getString(columnInfo.nameIndex);
     }
 
-    @Override
-    public void setName(String value) {
+    public void realmSet$name(String value) {
         realm.checkIfValid();
         if (value == null) {
             row.setNull(columnInfo.nameIndex);
@@ -74,15 +72,13 @@ public class SimpleRealmProxy extends Simple
         row.setString(columnInfo.nameIndex, value);
     }
 
-    @Override
     @SuppressWarnings("cast")
-    public int getAge() {
+    public int realmGet$age() {
         realm.checkIfValid();
         return (int) row.getLong(columnInfo.ageIndex);
     }
 
-    @Override
-    public void setAge(int value) {
+    public void realmSet$age(int value) {
         realm.checkIfValid();
         row.setLong(columnInfo.ageIndex, value);
     }
@@ -145,20 +141,20 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-            throws JSONException {
+        throws JSONException {
         Simple obj = realm.createObject(Simple.class);
         if (json.has("name")) {
             if (json.isNull("name")) {
-                obj.setName(null);
+                ((SimpleRealmProxyInterface) obj).realmSet$name(null);
             } else {
-                obj.setName((String) json.getString("name"));
+                ((SimpleRealmProxyInterface) obj).realmSet$name((String) json.getString("name"));
             }
         }
         if (json.has("age")) {
             if (json.isNull("age")) {
                 throw new IllegalArgumentException("Trying to set non-nullable field age to null.");
             } else {
-                obj.setAge((int) json.getInt("age"));
+                ((SimpleRealmProxyInterface) obj).realmSet$age((int) json.getInt("age"));
             }
         }
         return obj;
@@ -166,7 +162,7 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
-            throws IOException {
+        throws IOException {
         Simple obj = realm.createObject(Simple.class);
         reader.beginObject();
         while (reader.hasNext()) {
@@ -174,16 +170,16 @@ public class SimpleRealmProxy extends Simple
             if (name.equals("name")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
-                    obj.setName(null);
+                    ((SimpleRealmProxyInterface) obj).realmSet$name(null);
                 } else {
-                    obj.setName((String) reader.nextString());
+                    ((SimpleRealmProxyInterface) obj).realmSet$name((String) reader.nextString());
                 }
             } else if (name.equals("age")) {
                 if (reader.peek() == JsonToken.NULL) {
                     reader.skipValue();
                     throw new IllegalArgumentException("Trying to set non-nullable field age to null.");
                 } else {
-                    obj.setAge((int) reader.nextInt());
+                    ((SimpleRealmProxyInterface) obj).realmSet$age((int) reader.nextInt());
                 }
             } else {
                 reader.skipValue();
@@ -203,8 +199,8 @@ public class SimpleRealmProxy extends Simple
     public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
-        realmObject.setName(newObject.getName());
-        realmObject.setAge(newObject.getAge());
+        ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface)newObject).realmGet$name());
+        ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface)newObject).realmGet$age());
         return realmObject;
     }
 
@@ -226,8 +222,8 @@ public class SimpleRealmProxy extends Simple
             standaloneObject = new Simple();
             cache.put(realmObject, new RealmObjectProxy.CacheData<RealmObject>(currentDepth, standaloneObject));
         }
-        standaloneObject.setName(realmObject.getName());
-        standaloneObject.setAge(realmObject.getAge());
+        ((SimpleRealmProxyInterface) standaloneObject).realmSet$name(((SimpleRealmProxyInterface) realmObject).realmGet$name());
+        ((SimpleRealmProxyInterface) standaloneObject).realmSet$age(((SimpleRealmProxyInterface) realmObject).realmGet$age());
         return standaloneObject;
     }
 
@@ -238,11 +234,11 @@ public class SimpleRealmProxy extends Simple
         }
         StringBuilder stringBuilder = new StringBuilder("Simple = [");
         stringBuilder.append("{name:");
-        stringBuilder.append(getName() != null ? getName() : "null");
+        stringBuilder.append(realmGet$name() != null ? realmGet$name() : "null");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{age:");
-        stringBuilder.append(getAge());
+        stringBuilder.append(realmGet$age());
         stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();
