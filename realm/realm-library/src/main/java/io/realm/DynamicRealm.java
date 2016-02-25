@@ -79,8 +79,7 @@ public final class DynamicRealm extends BaseRealm {
         checkIfValid();
         Table table = schema.getTable(className);
         long rowIndex = table.addEmptyRow();
-        DynamicRealmObject dynamicRealmObject = get(DynamicRealmObject.class, className, rowIndex);
-        return dynamicRealmObject;
+        return get(DynamicRealmObject.class, className, rowIndex);
     }
 
     /**

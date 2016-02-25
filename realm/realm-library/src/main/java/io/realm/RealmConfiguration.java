@@ -220,6 +220,7 @@ public class RealmConfiguration {
         String moduleSimpleName = moduleNameParts[moduleNameParts.length - 1];
         String mediatorName = String.format("io.realm.%s%s", moduleSimpleName, "Mediator");
         Class<?> clazz;
+        //noinspection TryWithIdenticalCatches
         try {
             clazz = Class.forName(mediatorName);
             Constructor<?> constructor = clazz.getDeclaredConstructors()[0];
@@ -238,25 +239,25 @@ public class RealmConfiguration {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("");
-        stringBuilder.append("realmFolder: "); stringBuilder.append(realmFolder.toString());
+        //noinspection StringBufferReplaceableByString
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("realmFolder: ").append(realmFolder.toString());
         stringBuilder.append("\n");
-        stringBuilder.append("realmFileName : "); stringBuilder.append(realmFileName);
+        stringBuilder.append("realmFileName : ").append(realmFileName);
         stringBuilder.append("\n");
-        stringBuilder.append("canonicalPath: "); stringBuilder.append(canonicalPath);
+        stringBuilder.append("canonicalPath: ").append(canonicalPath);
         stringBuilder.append("\n");
-        stringBuilder.append("key: ");
-        stringBuilder.append("[length: " + Integer.toString(key == null ? 0 : KEY_LENGTH) + "]");
+        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : KEY_LENGTH).append("]");
         stringBuilder.append("\n");
-        stringBuilder.append("schemaVersion: "); stringBuilder.append(Long.toString(schemaVersion));
+        stringBuilder.append("schemaVersion: ").append(Long.toString(schemaVersion));
         stringBuilder.append("\n");
-        stringBuilder.append("migration: "); stringBuilder.append(migration);
+        stringBuilder.append("migration: ").append(migration);
         stringBuilder.append("\n");
-        stringBuilder.append("deleteRealmIfMigrationNeeded: "); stringBuilder.append(deleteRealmIfMigrationNeeded);
+        stringBuilder.append("deleteRealmIfMigrationNeeded: ").append(deleteRealmIfMigrationNeeded);
         stringBuilder.append("\n");
-        stringBuilder.append("durability: "); stringBuilder.append(durability);
+        stringBuilder.append("durability: ").append(durability);
         stringBuilder.append("\n");
-        stringBuilder.append("schemaMediator: "); stringBuilder.append(schemaMediator);
+        stringBuilder.append("schemaMediator: ").append(schemaMediator);
 
         return stringBuilder.toString();
     }

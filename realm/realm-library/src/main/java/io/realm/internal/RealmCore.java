@@ -17,7 +17,6 @@
 package io.realm.internal;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.getkeepsafe.relinker.ReLinker;
 
@@ -122,7 +121,7 @@ public class RealmCore {
             try {
                 System.loadLibrary(libraryCandidateName);
                 return libraryCandidateName;
-            } catch (Throwable e) {
+            } catch (Throwable ignored) {
             }
         }
         return null;

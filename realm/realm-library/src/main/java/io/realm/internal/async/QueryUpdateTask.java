@@ -75,7 +75,7 @@ public class QueryUpdateTask implements Runnable {
                     realmConfiguration.getEncryptionKey());
 
             Result result;
-            boolean updateSuccessful = false;
+            boolean updateSuccessful;
             if (updateMode == MODE_UPDATE_REALM_RESULTS) {
                 result = Result.newRealmResultsResponse();
                 AlignedQueriesParameters alignedParameters = prepareQueriesParameters();

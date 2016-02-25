@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -1111,7 +1112,8 @@ public class RealmQuery<E extends RealmObject> {
 
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
         }
@@ -1247,6 +1249,7 @@ public class RealmQuery<E extends RealmObject> {
 
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
+            //noinspection unchecked
             realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
@@ -1259,12 +1262,12 @@ public class RealmQuery<E extends RealmObject> {
         List<Long> columnIndexes = new ArrayList<Long>();
         // find the first index
         long firstIndex = getAndValidateDistinctColumnIndex(firstFieldName, table);
-        columnIndexes.add(Long.valueOf(firstIndex));
+        columnIndexes.add(firstIndex);
         // add remaining of indexes
         if (remainingFieldNames != null && 0 < remainingFieldNames.length) {
             for (String field : remainingFieldNames) {
                 long index = getAndValidateDistinctColumnIndex(field, table);
-                columnIndexes.add(Long.valueOf(index));
+                columnIndexes.add(index);
             }
         }
         return columnIndexes;
@@ -1673,6 +1676,7 @@ public class RealmQuery<E extends RealmObject> {
         } else {
             TableView tableView = query.findAll();
             List<Long> columnIndices = new ArrayList<Long>();
+            //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
                 long columnIndex = getColumnIndexForSort(fieldName);
@@ -1979,7 +1983,9 @@ public class RealmQuery<E extends RealmObject> {
         } else if (fieldNames.length == 0) {
             throw new IllegalArgumentException("At least one field name must be specified.");
         } else if (fieldNames.length != sortOrders.length) {
-            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortOrders.length));
+            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                    "Number of field names (%d) and sort orders (%d) does not match.",
+                    fieldNames.length, sortOrders.length));
         }
     }
 
