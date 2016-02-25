@@ -426,7 +426,7 @@ publishing {
         annotations(MavenPublication) {
             groupId 'io.realm'
             artifactId = 'realm-annotations'
-            artifact file("${rootDir}/realm/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
+            artifact file("${rootDir}/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
             pom.withXml {
                 Node root = asNode()
                 root.appendNode('name', 'realm-annotations')
@@ -459,6 +459,18 @@ publishing {
                 root.children().last() + commonPom
             }
         }
+        transformer(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-transformer'
+            artifact file("${rootDir}/realm-transformer/build/libs/realm-transformer-${currentVersion}.jar")
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-transformer')
+                root.appendNode('description', 'Gradle Android transformer for Realm. Realm is a mobile database: a replacement for SQLite & ORMs.')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
     }
 }
 
@@ -471,7 +483,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-            publications ('jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin')
+            publications ('jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin', 'transformer')
         }
     }
 }
