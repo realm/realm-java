@@ -26,6 +26,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -1244,7 +1245,7 @@ public class RealmObjectTests {
         assertEquals(1, realm.where(AllTypes.class).equalTo("columnDouble", Double.POSITIVE_INFINITY).count());
     }
 
-    private RealmConfiguration prepareColumnSwappedRealm() {
+    private RealmConfiguration prepareColumnSwappedRealm() throws FileNotFoundException {
 
         final RealmConfiguration columnSwappedRealmConfigForV0 = configFactory.createConfigurationBuilder()
                 .name("columnSwapped.realm")
@@ -1291,7 +1292,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void realmProxy_columnIndex() {
+    public void realmProxy_columnIndex() throws FileNotFoundException {
         final RealmConfiguration configForSwapped = prepareColumnSwappedRealm();
 
         // open swapped Realm in order to load column index

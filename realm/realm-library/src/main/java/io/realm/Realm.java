@@ -27,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -250,7 +251,12 @@ public final class Realm extends BaseRealm {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
                 deleteRealm(configuration);
             } else {
-                migrateRealm(configuration);
+                try {
+                    migrateRealm(configuration);
+                } catch (FileNotFoundException fileNotFoundException) {
+                    // Should never happen
+                    throw new RealmIOException(fileNotFoundException);
+                }
             }
 
             return createAndValidate(configuration, columnIndices);
@@ -1429,8 +1435,9 @@ public final class Realm extends BaseRealm {
      * version, nothing will happen.
      *
      * @param configuration {@link RealmConfiguration}
+     * @throws FileNotFoundException if the Realm file doesn't exist.
      */
-    public static void migrateRealm(RealmConfiguration configuration) {
+    public static void migrateRealm(RealmConfiguration configuration) throws FileNotFoundException {
         migrateRealm(configuration, null);
     }
 
@@ -1440,8 +1447,10 @@ public final class Realm extends BaseRealm {
      * @param configuration the{@link RealmConfiguration}.
      * @param migration the {@link RealmMigration} to run on the Realm. This will override any migration set on the
      *                  configuration.
+     * @throws FileNotFoundException if the Realm file doesn't exist.
      */
-    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration)
+            throws FileNotFoundException {
         BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
             @Override
             public void migrationComplete() {
