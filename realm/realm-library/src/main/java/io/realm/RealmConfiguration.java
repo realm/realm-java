@@ -125,13 +125,10 @@ public class RealmConfiguration {
 
     /**
      * Returns the mediator instance of schema which is defined by this configuration.
-     * This method is left public by mistake and will be removed.
      *
      * @return the mediator of the schema.
-     * @deprecated use {@link #getRealmObjectClasses()} instead if you need to access to the set of model classes.
      */
-    @Deprecated
-    public RealmProxyMediator getSchemaMediator() {
+    RealmProxyMediator getSchemaMediator() {
         return schemaMediator;
     }
 
