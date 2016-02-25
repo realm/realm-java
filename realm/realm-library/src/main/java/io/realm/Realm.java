@@ -1491,7 +1491,7 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    // Public because of migrations
+    @Deprecated
     public Table getTable(Class<? extends RealmObject> clazz) {
         Table table = classToTable.get(clazz);
         if (table == null) {
