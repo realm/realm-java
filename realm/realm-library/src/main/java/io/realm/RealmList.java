@@ -19,7 +19,10 @@ package io.realm;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
@@ -432,6 +435,38 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         return contains;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Iterator<E> iterator() {
+        if (managedMode) {
+            return new RealmListIterator();
+        } else {
+            return super.iterator();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ListIterator<E> listIterator() {
+        return listIterator(0);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ListIterator<E> listIterator(int location) {
+        if (managedMode) {
+            return new RealmListListIterator(location);
+        } else {
+            return super.listIterator(location);
+        }
+    }
+
     private void checkValidObject(E object) {
         if (object == null) {
             throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
@@ -473,5 +508,139 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    // Custom RealmList iterator.
+    private class RealmListIterator implements Iterator<E> {
+        long tableViewVersion = 0;
+        int pos = -1;
+        private boolean removeUsed = false;
+
+        RealmListIterator() {
+            tableViewVersion = view.getTable().getVersion();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public boolean hasNext() {
+            realm.checkIfValid();
+            checkRealmIsStable();
+            return pos + 1 < size();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public E next() {
+            realm.checkIfValid();
+            checkRealmIsStable();
+            pos++;
+            if (pos >= size()) {
+                throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
+            }
+            return get(pos);
+        }
+
+        /**
+         * Removes the RealmObject at the current position from both the list and the underlying Realm.
+         */
+        public void remove() {
+            realm.checkIfValid();
+            checkRealmIsStable();
+            if (pos == -1) {
+                throw new IllegalStateException("Must call next() before calling remove().");
+            }
+            if (removeUsed) {
+                throw new IllegalStateException("Cannot call remove() twice. Must call next() in between.");
+            }
+            if (!realm.isInTransaction()) {
+                throw new IllegalStateException("Can only remove objects if inside a write transaction.");
+            }
+            // TODO Should also delete the element in the list.
+            RealmList.this.remove(pos);
+            pos--;
+            removeUsed = true;
+        }
+
+        protected void checkRealmIsStable() {
+            long version = view.getTable().getVersion();
+            if (tableViewVersion > -1 && version != tableViewVersion) {
+                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
+            }
+            tableViewVersion = version;
+        }
+    }
+
+    // Custom RealmList list iterator.
+    private class RealmListListIterator extends RealmListIterator implements ListIterator<E> {
+
+        RealmListListIterator(int start) {
+            if (start >= 0 && start <= size()) {
+                pos = start - 1;
+            } else {
+                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + start);
+            }
+        }
+
+        /**
+         * Adding a new object to a {@link RealmResults} is not supported and will always throws an {@link RealmException}.
+         * Use {@link Realm#createObject(Class)} instead.
+         *
+         * @throws RealmException, always.
+         */
+        @Override
+        public void add(E object) {
+            throw new RealmException("Adding elements is not supported. Use Realm.createObject() instead.");
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean hasPrevious() {
+            checkRealmIsStable();
+            return pos > 0;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int nextIndex() {
+            checkRealmIsStable();
+            return pos + 1;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public E previous() {
+            realm.checkIfValid();
+            checkRealmIsStable();
+            pos--;
+            if (pos < 0) {
+                throw new IndexOutOfBoundsException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
+            }
+            return get(pos);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int previousIndex() {
+            checkRealmIsStable();
+            return pos;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void set(E object) {
+            throw new RealmException("Replacing elements not supported.");
+        }
     }
 }

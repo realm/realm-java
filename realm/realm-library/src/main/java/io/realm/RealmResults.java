@@ -709,9 +709,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
         /**
          * Removes the RealmObject at the current position from both the list and the underlying Realm.
-         * The object will not be removed the {@link RealmResults}, but {@link RealmObject#isValid()} will return false.
-         * The object will be removed from the list if {@link Realm#refresh()} is called or the Realm is updated due
-         * to a change from another thread.
          */
         public void remove() {
             realm.checkIfValid();
@@ -725,6 +722,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             if (!realm.isInTransaction()) {
                 throw new IllegalStateException("Can only remove objects if inside a write transaction.");
             }
+            // FIXME Element should also be removed from the TableView (and Table)
             RealmResults.this.remove(pos);
             pos--;
             removeUsed = true;

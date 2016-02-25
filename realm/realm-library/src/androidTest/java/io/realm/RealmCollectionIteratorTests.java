@@ -46,7 +46,6 @@ import static org.junit.Assert.fail;
 
 // TODO Refactor this when we have a shared collection interface between RealmList/RealmResults
 @RunWith(Parameterized.class)
-@SmallTest
 public class RealmCollectionIteratorTests {
 
     private static final int TEST_SIZE = 10;
@@ -145,6 +144,7 @@ public class RealmCollectionIteratorTests {
         realm.beginTransaction();
         it.remove();
         assertFalse(obj.isValid());
+        assertEquals(1, results.get(0).getFieldLong());
     }
 
     @Test
@@ -177,9 +177,7 @@ public class RealmCollectionIteratorTests {
         Iterator<AllJavaTypes> it = results.iterator();
         it.next();
 
-        realm.beginTransaction();
-        realm.createObject(AllJavaTypes.class).setFieldLong(TEST_SIZE);
-        realm.commitTransaction();
+        createNewObject();
         realm.refresh(); // This will trigger rerunning all queries
 
         thrown.expect(ConcurrentModificationException.class);
@@ -325,11 +323,18 @@ public class RealmCollectionIteratorTests {
         ListIterator<AllJavaTypes> it = results.listIterator(location);
         realm.close();
 
-        // These methods work even if the Realm is closed
-        assertEquals(location - 1, it.previousIndex());
-        assertEquals(location, it.nextIndex());
+        try {
+            it.previousIndex();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
 
-        // These methods will throw exceptions
+        try {
+            it.nextIndex();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
         try {
             it.hasNext();
             fail();
@@ -353,7 +358,6 @@ public class RealmCollectionIteratorTests {
             fail();
         } catch (IllegalStateException ignored) {
         }
-
     }
 
     @Test(expected = RealmException.class)
@@ -415,9 +419,7 @@ public class RealmCollectionIteratorTests {
         Iterator<AllJavaTypes> it = results.listIterator();
         it.next();
 
-        realm.beginTransaction();
-        realm.createObject(AllJavaTypes.class).setFieldLong(TEST_SIZE);
-        realm.commitTransaction();
+        createNewObject();
         realm.refresh(); // This will trigger rerunning all queries
 
         thrown.expect(ConcurrentModificationException.class);
