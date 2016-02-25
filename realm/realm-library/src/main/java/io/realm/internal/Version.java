@@ -49,7 +49,7 @@ public class Version {
     }
 
     public static boolean coreLibVersionCompatible(boolean throwIfNot) {
-        String errTxt = "";
+        String errTxt;
         boolean compatible = nativeIsAtLeast(CORE_MIN_MAJOR, CORE_MIN_MINOR, CORE_MIN_PATCH);
         if (!compatible) {
             errTxt = "Version mismatch between realm.jar ("

@@ -153,6 +153,7 @@ public abstract class RealmObject {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public final boolean load() {
+        //noinspection SimplifiableIfStatement
         if (isLoaded()) {
             return true;
         } else {
@@ -297,7 +298,7 @@ public abstract class RealmObject {
      * Notifies all registered listeners.
      */
     void notifyChangeListeners() {
-        if (listeners != null && !listeners.isEmpty()) {
+        if (!listeners.isEmpty()) {
             boolean notify = false;
 
             Table table = row.getTable();
