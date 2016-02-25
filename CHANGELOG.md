@@ -1,5 +1,5 @@
 ## 0.88.0
-* BREAKING CHANGE: Realm has now to be installed as a Gradle plugin
+* BREAKING CHANGE: Realm has now to be installed as a Gradle plugin.
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
 * BREAKING CHANGE: String setters now throw IllegalArgumentException instead of RealmError for invalid surrogates.
