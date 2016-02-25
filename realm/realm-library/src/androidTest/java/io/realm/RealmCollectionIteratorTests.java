@@ -16,24 +16,27 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import android.test.suitebuilder.annotation.SmallTest;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.AbstractList;
+import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.ListIterator;
 
-import io.realm.entities.AllTypes;
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.exceptions.RealmException;
-import io.realm.internal.log.RealmLog;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -41,8 +44,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@RunWith(AndroidJUnit4.class)
-public class RealmResultsIteratorTests {
+// TODO Refactor this when we have a shared collection interface between RealmList/RealmResults
+@RunWith(Parameterized.class)
+@SmallTest
+public class RealmCollectionIteratorTests {
 
     private static final int TEST_SIZE = 10;
 
@@ -50,15 +55,33 @@ public class RealmResultsIteratorTests {
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+    private final Class<? extends AbstractList> listType;
 
     private Realm realm;
-    private RealmResults<AllTypes> results;
+    private AbstractList<AllJavaTypes> results;
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Iterable<Class<? extends AbstractList>> data() {
+        return Arrays.asList(RealmResults.class, RealmList.class);
+    }
+
+    public RealmCollectionIteratorTests(Class<? extends AbstractList> listType) {
+        this.listType = listType;
+    }
 
     @Before
     public void setup() {
-        realm = Realm.getInstance(configFactory.createConfiguration());
+        RealmConfiguration configuration = configFactory.createConfiguration();
+        Realm.deleteRealm(configuration);
+        realm = Realm.getInstance(configuration);
+
         populateRealm(realm, TEST_SIZE);
-        results = realm.allObjectsSorted(AllTypes.class, AllTypes.FIELD_LONG, Sort.ASCENDING);
+
+        if (listType == RealmResults.class) {
+            results = realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+        } else {
+            results = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().getFieldList();
+        }
     }
 
     @After
@@ -70,35 +93,44 @@ public class RealmResultsIteratorTests {
 
     private void populateRealm(Realm realm, int objects) {
         realm.beginTransaction();
-        realm.allObjects(AllTypes.class).clear();
+        realm.allObjects(AllJavaTypes.class).clear();
         realm.allObjects(NonLatinFieldNames.class).clear();
         for (int i = 0; i < objects; i++) {
-            AllTypes allTypes = realm.createObject(AllTypes.class);
-            allTypes.setColumnBoolean((i % 3) == 0);
-            allTypes.setColumnBinary(new byte[]{1, 2, 3});
-            allTypes.setColumnDate(new Date());
-            allTypes.setColumnDouble(3.1415);
-            allTypes.setColumnFloat(1.234567f + i);
-            allTypes.setColumnString("test data " + i);
-            allTypes.setColumnLong(i);
+            AllJavaTypes AllJavaTypes = realm.createObject(AllJavaTypes.class, i);
+            AllJavaTypes.setFieldBoolean(((i % 3) == 0));
+            AllJavaTypes.setFieldBinary(new byte[]{1, 2, 3});
+            AllJavaTypes.setFieldDate(new Date());
+            AllJavaTypes.setFieldDouble(3.1415);
+            AllJavaTypes.setFieldFloat(1.234567f + i);
+            AllJavaTypes.setFieldString("test data " + i);
         }
+
+        // Add all items to the RealmList for the first object
+        AllJavaTypes firstObj = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst();
+        firstObj.getFieldList().addAll(realm.allObjects(AllJavaTypes.class));
+        realm.commitTransaction();
+    }
+
+    private void createNewObject() {
+        realm.beginTransaction();
+        realm.createObject(AllJavaTypes.class, realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG).longValue() + 1);
         realm.commitTransaction();
     }
 
     @Test
     public void iterator() {
-        Iterator<AllTypes> it = results.iterator();
+        Iterator<AllJavaTypes> it = results.iterator();
         int i = 0;
         while (it.hasNext()) {
-            AllTypes item = it.next();
-            assertEquals("Failed at index: " + i, i, item.getColumnLong());
+            AllJavaTypes item = it.next();
+            assertEquals("Failed at index: " + i, i, item.getFieldLong());
             i++;
         }
     }
 
     @Test
     public void iterator_remove_beforeNext() {
-        Iterator<AllTypes> it = results.iterator();
+        Iterator<AllJavaTypes> it = results.iterator();
         realm.beginTransaction();
 
         thrown.expect(IllegalStateException.class);
@@ -107,9 +139,9 @@ public class RealmResultsIteratorTests {
 
     @Test
     public void iterator_remove_deletesObject() {
-        Iterator<AllTypes> it = results.iterator();
-        AllTypes obj = it.next();
-        assertEquals(0, obj.getColumnLong());
+        Iterator<AllJavaTypes> it = results.iterator();
+        AllJavaTypes obj = it.next();
+        assertEquals(0, obj.getFieldLong());
         realm.beginTransaction();
         it.remove();
         assertFalse(obj.isValid());
@@ -117,7 +149,7 @@ public class RealmResultsIteratorTests {
 
     @Test
     public void iterator_remove_calledTwice() {
-        Iterator<AllTypes> it = results.iterator();
+        Iterator<AllJavaTypes> it = results.iterator();
         it.next();
         realm.beginTransaction();
         it.remove();
@@ -128,27 +160,25 @@ public class RealmResultsIteratorTests {
 
     @Test
     public void iterator_transactionBeforeNextItem() {
-        Iterator<AllTypes> it = results.iterator();
+        Iterator<AllJavaTypes> it = results.iterator();
         int i = 0;
         while (it.hasNext()) {
-            AllTypes item = it.next();
-            assertEquals("Failed at index: " + i, i, item.getColumnLong());
+            AllJavaTypes item = it.next();
+            assertEquals("Failed at index: " + i, i, item.getFieldLong());
             i++;
 
             // Committing transactions while iterating should not effect the current iterator.
-            realm.beginTransaction();
-            realm.createObject(AllTypes.class).setColumnLong(i - 1);
-            realm.commitTransaction();
+            createNewObject();
         }
     }
 
     @Test
     public void iterator_refreshWhileIterating() {
-        Iterator<AllTypes> it = results.iterator();
+        Iterator<AllJavaTypes> it = results.iterator();
         it.next();
 
         realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnLong(TEST_SIZE);
+        realm.createObject(AllJavaTypes.class).setFieldLong(TEST_SIZE);
         realm.commitTransaction();
         realm.refresh(); // This will trigger rerunning all queries
 
@@ -163,30 +193,34 @@ public class RealmResultsIteratorTests {
         realm.commitTransaction();
 
         assertEquals(TEST_SIZE, results.size()); // Size is same even if object is deleted
-        Iterator<AllTypes> it = results.iterator();
-        AllTypes obj = it.next(); // Iterator can still access the deleted object
+        Iterator<AllJavaTypes> it = results.iterator();
+        AllJavaTypes obj = it.next(); // Iterator can still access the deleted object
         assertFalse(obj.isValid());
     }
 
     public void iterator_refreshClearsRemovedObjects() {
         realm.beginTransaction();
-        results.where().equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        if (results instanceof RealmList) {
+            ((RealmList) results).where().equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        } else if (results instanceof RealmResults) {
+            ((RealmResults) results).where().equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        }
         realm.commitTransaction();
 
         // TODO How does refresh work with async queries?
         realm.refresh(); // Refresh forces a refresh of all RealmResults
 
         assertEquals(TEST_SIZE - 1, results.size()); // Size is same even if object is deleted
-        Iterator<AllTypes> it = results.iterator();
-        AllTypes types = it.next(); // Iterator can no longer access the deleted object
+        Iterator<AllJavaTypes> it = results.iterator();
+        AllJavaTypes types = it.next(); // Iterator can no longer access the deleted object
 
         assertTrue(types.isValid());
-        assertEquals(1, types.getColumnLong());
+        assertEquals(1, types.getFieldLong());
     }
 
     @Test
     public void iterator_closedRealm_methodsThrows() {
-        Iterator<AllTypes> it = results.iterator();
+        Iterator<AllJavaTypes> it = results.iterator();
         realm.close();
 
         try {
@@ -211,8 +245,8 @@ public class RealmResultsIteratorTests {
     @Test
     public void iterator_forEach() {
         int i = 0;
-        for (AllTypes item : results) {
-            assertEquals("Failed at index: " + i, i, item.getColumnLong());
+        for (AllJavaTypes item : results) {
+            assertEquals("Failed at index: " + i, i, item.getFieldLong());
             i++;
         }
     }
@@ -220,7 +254,7 @@ public class RealmResultsIteratorTests {
     @Test
     public void simple_iterator() {
         for (int i = 0; i < results.size(); i++) {
-            assertEquals("Failed at index: " + i, i, results.get(i).getColumnLong());
+            assertEquals("Failed at index: " + i, i, results.get(i).getFieldLong());
         }
     }
 
@@ -228,23 +262,23 @@ public class RealmResultsIteratorTests {
         for (int i = 0; i < results.size(); i++) {
             // Committing transactions while iterating should not effect the current iterator.
             realm.beginTransaction();
-            realm.createObject(AllTypes.class).setColumnLong(i);
+            realm.createObject(AllJavaTypes.class).setFieldLong(i);
             realm.commitTransaction();
 
-            assertEquals("Failed at index: " + i, i, results.get(i).getColumnLong());
+            assertEquals("Failed at index: " + i, i, results.get(i).getFieldLong());
         }
     }
 
     @Test
     public void listIterator() {
-        ListIterator<AllTypes> it = results.listIterator();
+        ListIterator<AllJavaTypes> it = results.listIterator();
 
         // Test beginning of the list
         assertFalse(it.hasPrevious());
         assertTrue(it.hasNext());
         assertEquals(0, it.nextIndex());
-        AllTypes firstObject = it.next();
-        assertEquals(0, firstObject.getColumnLong());
+        AllJavaTypes firstObject = it.next();
+        assertEquals(0, firstObject.getFieldLong());
         assertFalse(it.hasPrevious());
 
         // Move to second last element
@@ -257,16 +291,16 @@ public class RealmResultsIteratorTests {
         assertTrue(it.hasPrevious());
         assertTrue(it.hasNext());
         assertEquals(TEST_SIZE - 1, it.nextIndex());
-        AllTypes lastObject = it.next();
-        assertEquals(TEST_SIZE - 1, lastObject.getColumnLong());
+        AllJavaTypes lastObject = it.next();
+        assertEquals(TEST_SIZE - 1, lastObject.getFieldLong());
         assertFalse(it.hasNext());
         assertEquals(TEST_SIZE, it.nextIndex());
     }
 
     @Test
     public void listIterator_defaultStartIndex() {
-        ListIterator<AllTypes> it1 = results.listIterator(0);
-        ListIterator<AllTypes> it2 = results.listIterator();
+        ListIterator<AllJavaTypes> it1 = results.listIterator(0);
+        ListIterator<AllJavaTypes> it2 = results.listIterator();
 
         assertEquals(it1.previousIndex(), it2.previousIndex());
         assertEquals(it1.nextIndex(), it2.nextIndex());
@@ -275,20 +309,20 @@ public class RealmResultsIteratorTests {
     @Test
     public void listIterator_startIndex() {
         int i = TEST_SIZE/2;
-        ListIterator<AllTypes> it = results.listIterator(i);
+        ListIterator<AllJavaTypes> it = results.listIterator(i);
 
         assertTrue(it.hasPrevious());
         assertTrue(it.hasNext());
         assertEquals(i - 1, it.previousIndex());
         assertEquals(i, it.nextIndex());
-        AllTypes nextObject = it.next();
-        assertEquals(i, nextObject.getColumnLong());
+        AllJavaTypes nextObject = it.next();
+        assertEquals(i, nextObject.getFieldLong());
     }
 
     @Test
     public void listIterator_closedRealm_methods() {
         int location = TEST_SIZE / 2;
-        ListIterator<AllTypes> it = results.listIterator(location);
+        ListIterator<AllJavaTypes> it = results.listIterator(location);
         realm.close();
 
         // These methods work even if the Realm is closed
@@ -334,7 +368,7 @@ public class RealmResultsIteratorTests {
 
     @Test
     public void listIterator_remove_beforeNext() {
-        Iterator<AllTypes> it = results.listIterator();
+        Iterator<AllJavaTypes> it = results.listIterator();
         realm.beginTransaction();
 
         thrown.expect(IllegalStateException.class);
@@ -343,9 +377,9 @@ public class RealmResultsIteratorTests {
 
     @Test
     public void listIterator_remove_deletesObject() {
-        Iterator<AllTypes> it = results.listIterator();
-        AllTypes obj = it.next();
-        assertEquals(0, obj.getColumnLong());
+        Iterator<AllJavaTypes> it = results.listIterator();
+        AllJavaTypes obj = it.next();
+        assertEquals(0, obj.getFieldLong());
         realm.beginTransaction();
         it.remove();
         assertFalse(obj.isValid());
@@ -353,7 +387,7 @@ public class RealmResultsIteratorTests {
 
     @Test
     public void listIterator_remove_calledTwice() {
-        Iterator<AllTypes> it = results.listIterator();
+        Iterator<AllJavaTypes> it = results.listIterator();
         it.next();
         realm.beginTransaction();
         it.remove();
@@ -364,27 +398,25 @@ public class RealmResultsIteratorTests {
 
     @Test
     public void listIterator_transactionBeforeNextItem() {
-        Iterator<AllTypes> it = results.listIterator();
+        Iterator<AllJavaTypes> it = results.listIterator();
         int i = 0;
         while (it.hasNext()) {
-            AllTypes item = it.next();
-            assertEquals("Failed at index: " + i, i, item.getColumnLong());
+            AllJavaTypes item = it.next();
+            assertEquals("Failed at index: " + i, i, item.getFieldLong());
             i++;
 
             // Committing transactions while iterating should not effect the current iterator.
-            realm.beginTransaction();
-            realm.createObject(AllTypes.class).setColumnLong(i - 1);
-            realm.commitTransaction();
+            createNewObject();
         }
     }
 
     @Test
     public void listIterator_refreshWhileIterating() {
-        Iterator<AllTypes> it = results.listIterator();
+        Iterator<AllJavaTypes> it = results.listIterator();
         it.next();
 
         realm.beginTransaction();
-        realm.createObject(AllTypes.class).setColumnLong(TEST_SIZE);
+        realm.createObject(AllJavaTypes.class).setFieldLong(TEST_SIZE);
         realm.commitTransaction();
         realm.refresh(); // This will trigger rerunning all queries
 
@@ -395,29 +427,37 @@ public class RealmResultsIteratorTests {
     @Test
     public void listIterator_removedObjectsStillAccessible() {
         realm.beginTransaction();
-        results.where().equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        if (results instanceof RealmList) {
+            ((RealmList) results).where().equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        } else if (results instanceof RealmResults) {
+            ((RealmResults) results).where().equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        }
         realm.commitTransaction();
 
         assertEquals(TEST_SIZE, results.size()); // Size is same even if object is deleted
-        Iterator<AllTypes> it = results.listIterator();
-        AllTypes types = it.next(); // Iterator can still access the deleted object
+        Iterator<AllJavaTypes> it = results.listIterator();
+        AllJavaTypes types = it.next(); // Iterator can still access the deleted object
 
         assertFalse(types.isValid());
     }
 
     public void listIterator_refreshClearsRemovedObjects() {
         realm.beginTransaction();
-        results.where().equalTo(AllTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        if (results instanceof RealmList) {
+            ((RealmList) results).where().equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        } else if (results instanceof RealmResults) {
+            ((RealmResults) results).where().equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().removeFromRealm();
+        }
         realm.commitTransaction();
 
         // TODO How does refresh work with async queries?
         realm.refresh(); // Refresh forces a refresh of all RealmResults
 
         assertEquals(TEST_SIZE - 1, results.size()); // Size is same even if object is deleted
-        Iterator<AllTypes> it = results.listIterator();
-        AllTypes types = it.next(); // Iterator can no longer access the deleted object
+        Iterator<AllJavaTypes> it = results.listIterator();
+        AllJavaTypes types = it.next(); // Iterator can no longer access the deleted object
 
         assertTrue(types.isValid());
-        assertEquals(1, types.getColumnLong());
+        assertEquals(1, types.getFieldLong());
     }
 }
