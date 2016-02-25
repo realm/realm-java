@@ -209,7 +209,7 @@
 * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
 * Fixed a memory leak when using RealmBaseAdapter.
 * RealmBaseAdapter now allow RealmResults to be null. (Thanks @zaki50)
-* Fixed a bug where a change to a model class (RealmList<A> to RealmList<B>) would not throw a RealmMigrationNeededException.
+* Fixed a bug where a change to a model class (`RealmList<A>` to `RealmList<B>`) would not throw a RealmMigrationNeededException.
 * Fixed a bug where setting multiple RealmLists didn't remove the previously added objects.
 * Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (Thanks @beeender)
 * Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now. (Thanks @beeender)
