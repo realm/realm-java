@@ -21,6 +21,7 @@ import android.os.Looper;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -617,20 +618,31 @@ abstract class BaseRealm implements Closeable {
      * @param configuration configuration for the Realm that should be migrated
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
      * @param callback callback for specific Realm type behaviors.
+     * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final MigrationCallback callback) {
+                                       final MigrationCallback callback) throws FileNotFoundException {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
         }
+
+        final AtomicBoolean fileNotFound = new AtomicBoolean(false);
+
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
                 if (count != 0) {
-                    throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
+                    throw new IllegalStateException("Cannot migrate a Realm file that is already open: "
+                            + configuration.getPath());
+                }
+
+                File realmFile = new File(configuration.getPath());
+                if (!realmFile.exists()) {
+                    fileNotFound.set(true);
+                    return;
                 }
 
                 RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
@@ -655,6 +667,11 @@ abstract class BaseRealm implements Closeable {
                 }
             }
         });
+
+        if (fileNotFound.get()) {
+            throw new FileNotFoundException("Cannot migrate a Realm file which doesn't exist: "
+                    + configuration.getPath());
+        }
     }
 
     // Internal delegate for migrations
