@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Realm Inc.
+ * Copyright 2014-2016 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ public class RealmProcessorTest {
     private JavaFileObject nullTypesModel = JavaFileObjects.forResource("some/test/NullTypes.java");
     private JavaFileObject nullTypesProxy = JavaFileObjects.forResource("io/realm/NullTypesRealmProxy.java");
     private JavaFileObject missingGenericTypeModel = JavaFileObjects.forResource("some/test/MissingGenericType.java");
+    private JavaFileObject conflictingFieldNameModel = JavaFileObjects.forResource("some/test/ConflictingFieldName.java");
 
     @Test
     public void compileSimpleFile() {
@@ -352,6 +353,14 @@ public class RealmProcessorTest {
                     .processedWith(new RealmProcessor())
                     .failsToCompile();
         }
+    }
+
+    @Test
+    public void compileConflictingFieldName() throws Exception {
+        ASSERT.about(javaSource())
+                .that(conflictingFieldNameModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
     }
 
     @Test

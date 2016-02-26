@@ -76,7 +76,7 @@ public abstract class RealmObject {
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
-    protected long currentTableVersion = -1;
+    private long currentTableVersion = -1;
 
     /**
      * Removes the object from the Realm it is currently associated to.

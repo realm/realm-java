@@ -59,28 +59,28 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public String realmGet$name() {
-        realm.checkIfValid();
-        return (java.lang.String) row.getString(columnInfo.nameIndex);
+        ((RealmObject) this).realm.checkIfValid();
+        return (java.lang.String) ((RealmObject) this).row.getString(columnInfo.nameIndex);
     }
 
     public void realmSet$name(String value) {
-        realm.checkIfValid();
+        ((RealmObject) this).realm.checkIfValid();
         if (value == null) {
-            row.setNull(columnInfo.nameIndex);
+            ((RealmObject) this).row.setNull(columnInfo.nameIndex);
             return;
         }
-        row.setString(columnInfo.nameIndex, value);
+        ((RealmObject) this).row.setString(columnInfo.nameIndex, value);
     }
 
     @SuppressWarnings("cast")
     public int realmGet$age() {
-        realm.checkIfValid();
-        return (int) row.getLong(columnInfo.ageIndex);
+        ((RealmObject) this).realm.checkIfValid();
+        return (int) ((RealmObject) this).row.getLong(columnInfo.ageIndex);
     }
 
     public void realmSet$age(int value) {
-        realm.checkIfValid();
-        row.setLong(columnInfo.ageIndex, value);
+        ((RealmObject) this).realm.checkIfValid();
+        ((RealmObject) this).row.setLong(columnInfo.ageIndex, value);
     }
 
     public static Table initTable(ImplicitTransaction transaction) {
@@ -141,7 +141,7 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-        throws JSONException {
+            throws JSONException {
         Simple obj = realm.createObject(Simple.class);
         if (json.has("name")) {
             if (json.isNull("name")) {
@@ -162,7 +162,7 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
-        throws IOException {
+            throws IOException {
         Simple obj = realm.createObject(Simple.class);
         reader.beginObject();
         while (reader.hasNext()) {
@@ -190,7 +190,7 @@ public class SimpleRealmProxy extends Simple
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
-        if (object.realm != null && object.realm.getPath().equals(realm.getPath())) {
+        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath())) {
             return object;
         }
         return copy(realm, object, update, cache);
@@ -199,8 +199,8 @@ public class SimpleRealmProxy extends Simple
     public static Simple copy(Realm realm, Simple newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         Simple realmObject = realm.createObject(Simple.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
-        ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface)newObject).realmGet$name());
-        ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface)newObject).realmGet$age());
+        ((SimpleRealmProxyInterface) realmObject).realmSet$name(((SimpleRealmProxyInterface) newObject).realmGet$name());
+        ((SimpleRealmProxyInterface) realmObject).realmSet$age(((SimpleRealmProxyInterface) newObject).realmGet$age());
         return realmObject;
     }
 
@@ -246,9 +246,9 @@ public class SimpleRealmProxy extends Simple
 
     @Override
     public int hashCode() {
-        String realmName = realm.getPath();
-        String tableName = row.getTable().getName();
-        long rowIndex = row.getIndex();
+        String realmName = ((RealmObject) this).realm.getPath();
+        String tableName = ((RealmObject) this).row.getTable().getName();
+        long rowIndex = ((RealmObject) this).row.getIndex();
 
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
@@ -263,15 +263,15 @@ public class SimpleRealmProxy extends Simple
         if (o == null || getClass() != o.getClass()) return false;
         SimpleRealmProxy aSimple = (SimpleRealmProxy)o;
 
-        String path = realm.getPath();
-        String otherPath = aSimple.realm.getPath();
+        String path = ((RealmObject) this).realm.getPath();
+        String otherPath = ((RealmObject) aSimple).realm.getPath();
         if (path != null ? !path.equals(otherPath) : otherPath != null) return false;;
 
-        String tableName = row.getTable().getName();
-        String otherTableName = aSimple.row.getTable().getName();
+        String tableName = ((RealmObject) this).row.getTable().getName();
+        String otherTableName = ((RealmObject) aSimple).row.getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
 
-        if (row.getIndex() != aSimple.row.getIndex()) return false;
+        if (((RealmObject) this).row.getIndex() != ((RealmObject) aSimple).row.getIndex()) return false;
 
         return true;
     }

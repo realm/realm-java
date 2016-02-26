@@ -40,6 +40,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.ConflictingFieldName;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
@@ -1310,5 +1311,52 @@ public class RealmObjectTests {
                 obj.getStr();
             }
         });
+    }
+
+    @Test
+    public void conflictingFieldName_readAndUpdate() {
+        final ConflictingFieldName standalone = new ConflictingFieldName();
+        standalone.setRealm("realm");
+        standalone.setRow("row");
+        standalone.setIsCompleted("isCompleted");
+        standalone.setListeners("listeners");
+        standalone.setPendingQuery("pendingQuery");
+        standalone.setCurrentTableVersion("currentTableVersion");
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.copyToRealm(standalone);
+            }
+        });
+
+        // tests those values are persisted
+        final ConflictingFieldName managed = realm.where(ConflictingFieldName.class).findFirst();
+        assertEquals("realm", managed.getRealm());
+        assertEquals("row", managed.getRow());
+        assertEquals("isCompleted", managed.getIsCompleted());
+        assertEquals("listeners", managed.getListeners());
+        assertEquals("pendingQuery", managed.getPendingQuery());
+        assertEquals("currentTableVersion", managed.getCurrentTableVersion());
+
+        // tests those values can be updated
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                managed.setRealm("realm_updated");
+                managed.setRow("row_updated");
+                managed.setIsCompleted("isCompleted_updated");
+                managed.setListeners("listeners_updated");
+                managed.setPendingQuery("pendingQuery_updated");
+                managed.setCurrentTableVersion("currentTableVersion_updated");
+            }
+        });
+
+        assertEquals("realm_updated", managed.getRealm());
+        assertEquals("row_updated", managed.getRow());
+        assertEquals("isCompleted_updated", managed.getIsCompleted());
+        assertEquals("listeners_updated", managed.getListeners());
+        assertEquals("pendingQuery_updated", managed.getPendingQuery());
+        assertEquals("currentTableVersion_updated", managed.getCurrentTableVersion());
     }
 }
