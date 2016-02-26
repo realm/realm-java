@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 
 import java.lang.reflect.Modifier
 import java.util.jar.JarFile
+import java.util.regex.Pattern
 
 import static com.android.build.api.transform.QualifiedContent.*
 /**
@@ -77,6 +78,18 @@ class RealmTransformer extends Transform {
         ClassPool classPool = createClassPool(inputs, referencedInputs)
 
         logger.info "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
+
+        // mark as transformed
+        def baseProxyMediator = classPool.get('io.realm.internal.RealmProxyMediator')
+        def mediatorPattern = Pattern.compile('^io\\.realm\\.[^.]+Mediator$')
+        def proxyMediatorClasses = classNames
+                .findAll { it.matches(mediatorPattern) }
+                .collect { classPool.getCtClass(it) }
+                .findAll { it.superclass?.equals(baseProxyMediator) }
+        logger.info "Proxy Mediator Classes: ${proxyMediatorClasses*.name}"
+        proxyMediatorClasses.each {
+            BytecodeModifier.overrideTransformedMarker(it);
+        }
 
         // Find the model classes
         def realmObject = classPool.get('io.realm.RealmObject')

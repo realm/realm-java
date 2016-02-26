@@ -117,4 +117,19 @@ class BytecodeModifier {
             }
         }
     }
+
+    /**
+     * Adds a method to indicate that Realm transformer has been applied.
+     *
+     * @param clazz The CtClass to modify.
+     */
+    public static void overrideTransformedMarker(CtClass clazz) {
+        logger.info "  Realm: Marking as transformed ${clazz.simpleName}"
+        try {
+            clazz.getDeclaredMethod("transformerApplied", new CtClass[0])
+        } catch (NotFoundException ignored) {
+            clazz.addMethod(CtNewMethod.make(Modifier.PUBLIC, CtClass.booleanType, "transformerApplied",
+                    new CtClass[0], new CtClass[0], "{return true;}", clazz))
+        }
+    }
 }

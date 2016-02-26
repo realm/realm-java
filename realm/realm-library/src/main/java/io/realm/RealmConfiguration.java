@@ -65,7 +65,13 @@ public class RealmConfiguration {
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
         if (DEFAULT_MODULE != null) {
-            DEFAULT_MODULE_MEDIATOR = getModuleMediator(DEFAULT_MODULE.getClass().getCanonicalName());
+            final RealmProxyMediator mediator = getModuleMediator(DEFAULT_MODULE.getClass().getCanonicalName());
+            if (!mediator.transformerApplied()) {
+                throw new ExceptionInInitializerError("RealmTransformer doesn't seem to be applied." +
+                        " Please update the project configuration to use the Realm Gradle plugin." +
+                        " See https://realm.io/news/android-installation-change/");
+            }
+            DEFAULT_MODULE_MEDIATOR = mediator;
         } else {
             DEFAULT_MODULE_MEDIATOR = null;
         }
