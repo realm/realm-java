@@ -79,7 +79,7 @@ task installRealm(type:GradleBuild) {
     description = 'Install the artifacts of Realm libraries into mavenLocal()'
     dependsOn installTransformer
     buildFile = file('realm/build.gradle')
-    tasks = ['install', 'uploadShadow']
+    tasks = ['install']
 }
 
 task assembleGradlePlugin(type:GradleBuild) {
@@ -139,40 +139,16 @@ task sourcesJar(type:GradleBuild) {
     tasks = ['sourcesJar']
 }
 
-task eclipseJar(type:GradleBuild) {
-    description = 'Generate the Jar file to be used with Eclipse'
-    group = 'Artifact'
-    buildFile = file('realm/build.gradle')
-    tasks = ['shadowJar']
-}
-
-task gradleJar(type:Zip) {
-    description = 'Generate the jar file to be used with Gradle'
-    group = 'Artifact'
-    dependsOn eclipseJar
-    archiveName = "realm-android-${currentVersion}.jar"
-    destinationDir = file("${buildDir}/outputs/gradle")
-
-    from(zipTree("realm/realm-annotations-processor/build/libs/realm-android-${currentVersion}.jar"))
-    from('realm/realm-library/src/main/jniLibs/') {
-        include '**/*'
-        into 'lib'
-    }
-}
-
 task assemble {
     group 'Build'
     description = 'Build Realm, the Gradle plugin and the examples'
     dependsOn assembleExamples
-    dependsOn gradleJar
 }
 
 task distributionPackage(type:Zip) {
     description = 'Generate the distribution package'
-    dependsOn gradleJar
     dependsOn assembleRealm
     dependsOn javadoc
-    dependsOn eclipseJar
 
     group = 'Artifact'
     archiveName = "realm-java-${currentVersion}.zip"
@@ -181,14 +157,6 @@ task distributionPackage(type:Zip) {
     from('changelog.txt')
     from('LICENSE')
     from('version.txt')
-    from('realm/realm-annotations-processor/build/libs') {
-        include "realm-android-${currentVersion}.jar"
-        into 'eclipse'
-    }
-    from('realm/realm-library/src/main/jniLibs/') {
-        include '**/*'
-        into 'eclipse'
-    }
     from("${buildDir}/outputs/gradle") {
         include "realm-android-${currentVersion}.jar"
         into 'gradle'
@@ -308,14 +276,6 @@ task bintrayAar(type: GradleBuild) {
     tasks = ['bintrayUpload']
 }
 
-task bintrayJar(type: GradleBuild) {
-    description = 'Publish the Realm Jar to Bintray'
-    group = 'Distribute'
-    dependsOn duplicateSourcesAndJavadoc
-    buildFile = file('bintrayJar.gradle')
-    tasks = ['bintrayUpload']
-}
-
 task bintrayAnnotations(type: GradleBuild) {
     description = 'Publish the Realm Annotations to Bintray'
     group = 'Distribute'
@@ -348,7 +308,6 @@ task bintrayUpload {
     description = 'Publish all the Realm artifacts to Bintray'
     group = 'Distribute'
     dependsOn bintrayAar
-    dependsOn bintrayJar
     dependsOn bintrayAnnotations
     dependsOn bintrayAnnotationsProcessor
     dependsOn bintrayGradlePlugin

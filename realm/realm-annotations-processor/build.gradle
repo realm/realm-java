@@ -1,6 +1,5 @@
 apply plugin: 'java'
 apply plugin: 'maven'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
@@ -36,21 +35,3 @@ sourceSets {
 
 compileJava.dependsOn generateVersionClass
 compileTestJava.dependsOn ':realm-library:assemble'
-
-// Generates the Jar for Eclipse
-shadowJar {
-    from zipTree('../realm-library/build/intermediates/bundles/release/classes.jar')
-    relocate 'com.squareup.javawriter', 'io.realm.processor.javawriter'
-    baseName = 'realm-android'
-    classifier = ''
-}
-
-shadowJar.dependsOn ':realm-library:assemble'
-
-uploadShadow {
-  repositories {
-    mavenDeployer {
-      repository(url: mavenLocal().url)
-    }
-  }
-}
