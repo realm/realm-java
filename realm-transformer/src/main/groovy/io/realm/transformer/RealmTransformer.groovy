@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.build.api.transform.*
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Sets
+import com.google.common.io.Files
 import groovy.io.FileType
 import io.realm.annotations.Ignore
 import javassist.ClassPool
@@ -119,9 +120,10 @@ class RealmTransformer extends Transform {
             logger.info "  Modifying class ${it}"
             def ctClass = classPool.getCtClass(it)
             BytecodeModifier.useRealmAccessors(ctClass, managedFields, modelClasses)
-            ctClass.writeFile(outputProvider.getContentLocation(
-                    'realm', getInputTypes(), getScopes(), Format.DIRECTORY).canonicalPath)
+            ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
         }
+
+        copyResourceFiles(inputs, outputProvider)
 
         def toc = System.currentTimeMillis()
         logger.info "Realm Transform time: ${toc-tic} milliseconds"
@@ -186,4 +188,27 @@ class RealmTransformer extends Transform {
         return classNames
     }
 
+    private copyResourceFiles(Collection<TransformInput> inputs, TransformOutputProvider outputProvider) {
+        inputs.each {
+            it.directoryInputs.each {
+                def dirPath = it.file.absolutePath
+                it.file.eachFileRecurse(FileType.FILES) {
+                    if (!it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
+                        logger.info "  Copying resource ${it}"
+                        def dest = new File(getOutputFile(outputProvider),
+                                it.absolutePath.substring(dirPath.length()))
+                        dest.parentFile.mkdirs()
+                        Files.copy(it, dest)
+                    }
+                }
+            }
+
+            // no need to implement the code for `it.jarInputs.each` since PROJECT SCOPE does not use jar input.
+        }
+    }
+
+    private File getOutputFile(TransformOutputProvider outputProvider) {
+        return outputProvider.getContentLocation(
+                'realm', getInputTypes(), getScopes(), Format.DIRECTORY)
+    }
 }
