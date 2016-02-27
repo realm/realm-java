@@ -74,7 +74,7 @@ Prerequisites:
     export NDK_HOME=/usr/local/Cellar/android-ndk/r10e
     ```
 
- * If you are using OS X, you'd be better to add following lines to `~/.profile` in order for Android Studio to see those environment variables.
+ * If you are using OS X, you'd be better to add following lines to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see those environment variables.
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
@@ -85,6 +85,12 @@ Prerequisites:
 
    ```
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
+   ```
+
+   OS X users should also add following line to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see this environment variable..
+
+   ```
+   launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
    ```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
