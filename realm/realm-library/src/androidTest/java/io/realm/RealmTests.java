@@ -74,7 +74,9 @@ import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyMix;
+import io.realm.entities.PrimaryKeyAsIntWithFieldList;
 import io.realm.entities.StringOnly;
+import io.realm.entities.StringAndInt;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.internal.log.RealmLog;
@@ -1595,6 +1597,79 @@ public class RealmTests {
 
         assertEquals(2, realm.allObjects(AllTypesPrimaryKey.class).size());
         assertEquals(1, realm.allObjects(DogPrimaryKey.class).size());
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_asyncChildObjectDuplication() throws Throwable {
+        // prepare an object with subsidiary items that would be duplicated in background.
+        // please noted that the primary key for the mother object will be different
+        {
+            realm.beginTransaction();
+            PrimaryKeyAsIntWithFieldList obj = new PrimaryKeyAsIntWithFieldList();
+            obj.setId(123);
+            RealmList<StringAndInt> list = new RealmList<StringAndInt>();
+            for (int i = 0; i < 100; i++) {
+                StringAndInt item = new StringAndInt();
+                item.setNumber(i);
+                item.setStr(Integer.toString(i));
+                list.add(item);
+            }
+            obj.setList(list);
+            realm.copyToRealm(obj);
+            realm.commitTransaction();
+        }
+        // async duplicated child object task
+        final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+        final Throwable[] threadAssertionError = new Throwable[1];
+        final Looper[] backgroundLooper = new Looper[1];
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                backgroundLooper[0] = Looper.myLooper();
+
+                Realm asyncRealm = null;
+                try {
+                    RealmConfiguration config = configFactory.createConfiguration("asyncRealm");
+                    Realm.deleteRealm(config);
+                    asyncRealm = Realm.getInstance(config);
+                    
+                    // child objects with exactly the same content will be created
+                    asyncRealm.beginTransaction();
+                    PrimaryKeyAsIntWithFieldList obj = new PrimaryKeyAsIntWithFieldList();
+                    obj.setId(456);
+                    RealmList<StringAndInt> list = new RealmList<StringAndInt>();
+                    for (int i = 0; i < 100; i++) {
+                        StringAndInt item = new StringAndInt();
+                        item.setNumber(i);
+                        item.setStr(Integer.toString(i));
+                        list.add(item);
+                    }
+                    obj.setList(list);
+                    asyncRealm.copyToRealmOrUpdate(obj);
+                    asyncRealm.commitTransaction();
+
+                    signalCallbackFinished.countDown();
+                    Looper.loop();
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    threadAssertionError[0] = e;
+
+                } finally {
+                    if (signalCallbackFinished.getCount() > 0) {
+                        signalCallbackFinished.countDown();
+                    }
+                    if (asyncRealm != null) {
+                        asyncRealm.close();
+                    }
+                    signalClosedRealm.countDown();
+                }
+            }
+        });
+
+        TestHelper.exitOrThrow(executorService, signalCallbackFinished, signalClosedRealm, backgroundLooper, threadAssertionError);
     }
 
     @Test
