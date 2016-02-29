@@ -113,11 +113,14 @@ static jlong getDistinctViewWithHandover
             case type_Int:
             case type_DateTime:
             case type_String: {
-                TableView tableView(table->get_distinct_view(S(columnIndex)) );
+                //TableView tableView(table->get_distinct_view(S(columnIndex)) );
+
+                TableView parent_tv(query->find_all());
+                TableView distinct_tv = parent_tv.distinct(S(columnIndex));
 
                 // handover the result
                 std::unique_ptr<SharedGroup::Handover<TableView>> handover = SG(
-                        bgSharedGroupPtr)->export_for_handover(tableView, MutableSourcePayload::Move);
+                        bgSharedGroupPtr)->export_for_handover(distinct_tv, MutableSourcePayload::Move);
                 return reinterpret_cast<jlong>(handover.release());
             }
             default:
