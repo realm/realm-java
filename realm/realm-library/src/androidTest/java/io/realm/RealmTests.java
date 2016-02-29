@@ -1601,11 +1601,11 @@ public class RealmTests {
 
     @Test
     public void copyToRealmOrUpdate_asyncChildObjectDuplication() throws Throwable {
-        // prepare an object with subsidiary items that would be duplicated in background.
+        // prepare an object with subsidiary items that will be duplicated in background.
         // please noted that the primary key for the mother object will be different.
         realm.beginTransaction();
-        PrimaryKeyAsIntWithFieldList obj = new PrimaryKeyAsIntWithFieldList();
-        obj.setId(123);
+        final PrimaryKeyAsIntWithFieldList parent = new PrimaryKeyAsIntWithFieldList();
+        parent.setId(123);
         RealmList<StringAndInt> list = new RealmList<StringAndInt>();
         for (int i = 0; i < 100; i++) {
             StringAndInt item = new StringAndInt();
@@ -1613,11 +1613,11 @@ public class RealmTests {
             item.setStr(Integer.toString(i));
             list.add(item);
         }
-        obj.setList(list);
-        realm.copyToRealmOrUpdate(obj);
+        parent.setList(list);
+        realm.copyToRealmOrUpdate(parent);
         realm.commitTransaction();
 
-        // async duplicated child object task
+        // async task for duplicated child objects
         final CountDownLatch signalCallbackFinished = new CountDownLatch(1);
         final CountDownLatch signalClosedRealm = new CountDownLatch(1);
         final Throwable[] threadAssertionError = new Throwable[1];
@@ -1635,19 +1635,19 @@ public class RealmTests {
                     Realm.deleteRealm(config);
                     asyncRealm = Realm.getInstance(config);
 
-                    // child objects with exactly the same content will be created
                     asyncRealm.beginTransaction();
-                    PrimaryKeyAsIntWithFieldList obj = new PrimaryKeyAsIntWithFieldList();
-                    obj.setId(456);
+                    PrimaryKeyAsIntWithFieldList child = new PrimaryKeyAsIntWithFieldList();
+                    child.setId(456);
                     RealmList<StringAndInt> list = new RealmList<StringAndInt>();
                     for (int i = 0; i < 100; i++) {
+                        StringAndInt cousin = parent.getList().get(i);
                         StringAndInt item = new StringAndInt();
-                        item.setNumber(i);
-                        item.setStr(Integer.toString(i));
+                        item.setNumber(cousin.getNumber());
+                        item.setStr(cousin.getStr());
                         list.add(item);
                     }
-                    obj.setList(list);
-                    asyncRealm.copyToRealmOrUpdate(obj);
+                    child.setList(list);
+                    asyncRealm.copyToRealmOrUpdate(child);
                     asyncRealm.commitTransaction();
 
                     signalCallbackFinished.countDown();
