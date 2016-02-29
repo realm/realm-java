@@ -23,7 +23,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
 /**
- * Utility class for running a task on a background thread.
+ * Utility class for running a task on a non-looper background thread.
  *
  * This class ensures that the background Realm is automatically closed no matter the outcome of
  * the test.

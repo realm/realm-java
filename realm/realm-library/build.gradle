@@ -1,9 +1,9 @@
 apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.library'
 apply plugin: 'com.neenbedankt.android-apt'
-apply plugin: 'maven-publish'
 apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'maven'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.bintray'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
@@ -31,13 +31,17 @@ android {
     }
 }
 
+import io.realm.transformer.RealmTransformer
+
+android.registerTransform(new RealmTransformer())
+
 repositories {
     maven { url "https://jitpack.io" }
 }
 
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
-    compile project(':realm-annotations')
+    compile "io.realm:realm-annotations:${version}"
     compile 'com.github.KeepSafe:ReLinker:1.1'
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
@@ -48,7 +52,6 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
 
     androidTestApt project(':realm-annotations-processor')
-    androidTestApt project(':realm-annotations')
 }
 
 task sourcesJar(type: Jar) {
@@ -58,7 +61,7 @@ task sourcesJar(type: Jar) {
 
 task javadoc(type: Javadoc) {
     source android.sourceSets.main.java.srcDirs
-    source "../realm-annotations/src/main/java"
+    source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     options {
         title = "Realm ${project.version}"
@@ -132,4 +135,81 @@ task checkstyle(type: Checkstyle) {
 
     // empty classpath
     classpath = files()
+}
+
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+
+                // Add your description here
+                name 'realm-library'
+                description 'Realm is a mobile database: a replacement for SQLite & ORMs.'
+                url 'http://realm.io'
+
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+                issueManagement {
+                    system 'github'
+                    url 'https://github.com/realm/realm-java/issues'
+                }
+                scm {
+                    url 'scm:https://github.com/realm/realm-java'
+                    connection 'scm:git@github.com:realm/realm-java.git'
+                    developerConnection 'scm:git@github.com:realm/realm-java.git'
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+
+    dryRun = false
+    publish = false
+
+    configurations = ['archives']
+
+    pkg {
+        repo = 'maven'
+        name = 'realm-annotations-processor'
+        desc = 'Realm for Android'
+        websiteUrl = 'http://realm.io'
+        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
+        vcsUrl = 'https://github.com/realm/realm-java.git'
+        licenses = ['Apache-2.0']
+        labels = ['android', 'realm']
+        publicDownloadNumbers = false
+    }
+}
+
+artifactory {
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+            maven = true
+        }
+        defaults {
+            publishConfigs('archives')
+            publishPom = true
+            publishIvy = false
+        }
+    }
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
 }

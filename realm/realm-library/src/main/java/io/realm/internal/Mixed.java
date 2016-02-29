@@ -248,7 +248,7 @@ public class Mixed {
             case UNSUPPORTED_MIXED:
                 break; // error
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return "ERROR";
     }

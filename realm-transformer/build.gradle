@@ -3,19 +3,42 @@ buildscript {
         jcenter()
     }
     dependencies {
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
     }
 }
 
+apply plugin: 'groovy'
+apply plugin: 'maven'
 apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 
-def currentVersion = file("${projectDir}/version.txt").text.trim();
+group = 'io.realm'
+version = file("${projectDir}/../version.txt").text.trim();
 
-version = currentVersion
+sourceCompatibility = '1.6'
+targetCompatibility = '1.6'
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    compile localGroovy()
+    compile gradleApi()
+    compile "io.realm:realm-annotations:${version}"
+    compile 'com.android.tools.build:gradle:1.5.0'
+    compile 'com.android.tools.build:transform-api:1.5.0'
+    compile 'org.javassist:javassist:3.20.0-GA'
+
+    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+}
 
 def commonPom = {
-    version = currentVersion
     licenses {
         license {
             name 'The Apache Software License, Version 2.0'
@@ -36,14 +59,14 @@ def commonPom = {
 
 publishing {
     publications {
-        annotations(MavenPublication) {
+        realmPubblication(MavenPublication) {
             groupId 'io.realm'
-            artifactId = 'realm-annotations'
-            artifact file("${rootDir}/realm/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
+            artifactId = 'realm-transformer'
+            from components.java
             pom.withXml {
                 Node root = asNode()
-                root.appendNode('name', 'realm-annotations')
-                root.appendNode('description', 'Annotations for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('name', 'realm-transformer')
+                root.appendNode('description', 'Android Gradle Transformer for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
                 root.children().last() + commonPom
             }
@@ -58,10 +81,10 @@ bintray {
     dryRun = false
     publish = false
 
-    publications = ['annotations']
+    publications = ['realmPubblication']
     pkg {
         repo = 'maven'
-        name = 'realm-annotations'
+        name = 'realm-transformer'
         desc = 'Realm for Android'
         websiteUrl = 'http://realm.io'
         issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
@@ -69,5 +92,19 @@ bintray {
         licenses = ['Apache-2.0']
         labels = ['android', 'realm']
         publicDownloadNumbers = false
+    }
+}
+
+artifactory {
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        }
+        defaults {
+            publications ('realmPubblication')
+        }
     }
 }

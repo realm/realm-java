@@ -40,14 +40,14 @@ import rx.subscriptions.Subscriptions;
  */
 public class RealmObservableFactory implements RxObservableFactory {
 
-    private boolean rxJavaAvailble;
+    private boolean rxJavaAvailable;
 
     public RealmObservableFactory() {
         try {
             Class.forName("rx.Observable");
-            rxJavaAvailble = true;
+            rxJavaAvailable = true;
         } catch (ClassNotFoundException ignore) {
-            rxJavaAvailble = false;
+            rxJavaAvailable = false;
         }
     }
 
@@ -211,7 +211,7 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     private void checkRxJavaAvailable() {
-        if (!rxJavaAvailble) {
+        if (!rxJavaAvailable) {
             throw new IllegalStateException("RxJava seems to be missing from the classpath. " +
                     "Remember to add it as a compile dependency. See https://realm.io/docs/java/latest/#rxjava for more details.");
         }

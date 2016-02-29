@@ -594,6 +594,22 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return where().distinctAsync(fieldName);
     }
 
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        return where().distinct(firstFieldName, remainingFieldNames);
+    }
+
     // Deleting
 
     /**
@@ -828,11 +844,12 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
+        //noinspection SimplifiableIfStatement
         if (isLoaded()) {
             return true;
         } else {
-        // doesn't guarantee to import correctly the result (because the user may have advanced)
-        // in this case the Realm#handler will be responsible of retrying
+            // doesn't guarantee to import correctly the result (because the user may have advanced)
+            // in this case the Realm#handler will be responsible of retrying
             return onCompleted();
         }
     }

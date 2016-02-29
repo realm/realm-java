@@ -26,24 +26,40 @@ import some.test.Simple;
  *
  * This class list field names that has caused problems.
  */
-public class FieldNames extends RealmObject {
+public class FieldNames extends RealmObject implements FieldNamesRealmProxyInterface {
 
     private Simple name;
     private Simple cache;
 
     public Simple getName() {
-        return name;
+        return realmGet$name();
     }
 
     public void setName(Simple name) {
+        realmSet$name(name);
+    }
+
+    public Simple realmGet$name() {
+        return name;
+    }
+
+    public void realmSet$name(Simple name) {
         this.name = name;
     }
 
     public Simple getCache() {
-        return cache;
+        return realmGet$cache();
     }
 
     public void setCache(Simple cache) {
+        realmSet$cache(cache);
+    }
+
+    public Simple realmGet$cache() {
+        return cache;
+    }
+
+    public void realmSet$cache(Simple cache) {
         this.cache = cache;
     }
 }

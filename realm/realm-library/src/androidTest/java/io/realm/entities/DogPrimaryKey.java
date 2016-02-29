@@ -20,7 +20,6 @@ package io.realm.entities;
 import java.util.Date;
 
 import io.realm.RealmObject;
-import io.realm.annotations.Index;
 import io.realm.annotations.PrimaryKey;
 
 public class DogPrimaryKey extends RealmObject {

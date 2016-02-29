@@ -16,14 +16,10 @@
 
 package io.realm;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,17 +54,11 @@ import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class RealmAsyncQueryTests {
-    private Context context;
 
     @Rule
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-
-    @Before
-    public void setUp() throws Exception {
-        context = InstrumentationRegistry.getInstrumentation().getContext();
-    }
 
     // ****************************
     // ****  Async transaction  ***
@@ -487,7 +477,7 @@ public class RealmAsyncQueryTests {
         realmResults.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(2, numberOfIntercept.get());
+                assertEquals(3, numberOfIntercept.get());
                 assertEquals(1, numberOfInvocation.incrementAndGet());
                 assertTrue(realmResults.isLoaded());
                 assertEquals(0, realmResults.size());
@@ -623,7 +613,6 @@ public class RealmAsyncQueryTests {
             @Override
             public boolean onInterceptInMessage(int what) {
                 // Intercepts in order [QueryCompleted, RealmChanged, QueryUpdated]
-                Log.d("HandlerBug", "onInterceptInMessage: " + what);
                 int intercepts = numberOfIntercept.incrementAndGet();
                 switch (what) {
                     case HandlerController.COMPLETED_ASYNC_REALM_RESULTS: {
@@ -652,7 +641,7 @@ public class RealmAsyncQueryTests {
         realmResults.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(2, numberOfIntercept.get());
+                assertEquals(3, numberOfIntercept.get());
                 assertTrue(realmResults.isLoaded());
                 assertEquals(6, realmResults.size());
                 looperThread.testComplete();
@@ -916,7 +905,6 @@ public class RealmAsyncQueryTests {
         final Handler handler = new HandlerProxy(realm.handlerController) {
             @Override
             public boolean onInterceptInMessage(int what) {
-                Log.d("HandlerBug", "onInterceptInMessage: " + what);
                 int intercepts = numberOfIntercept.incrementAndGet();
                 switch (what) {
                     case HandlerController.COMPLETED_ASYNC_REALM_OBJECT: {
@@ -953,7 +941,7 @@ public class RealmAsyncQueryTests {
         realmResults.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(2, numberOfIntercept.get());
+                assertEquals(3, numberOfIntercept.get());
                 assertTrue(realmResults.isLoaded());
                 assertEquals(5, realmResults.getColumnLong());
                 assertEquals("The Endless River", realmResults.getColumnString());
@@ -1045,7 +1033,7 @@ public class RealmAsyncQueryTests {
         realmResults.addChangeListener(new RealmChangeListener() {
             @Override
             public void onChange() {
-                assertEquals(2, numberOfIntercept.get());
+                assertEquals(3, numberOfIntercept.get());
                 looperThread.testComplete();
             }
         });
@@ -1628,6 +1616,7 @@ public class RealmAsyncQueryTests {
         looperThread.keepStrongReference.add(findDistinct);
 
         final CountDownLatch queriesCompleted = new CountDownLatch(4);
+        final CountDownLatch bgRealmClosedLatch = new CountDownLatch(1);
         final AtomicInteger batchUpdateCompleted = new AtomicInteger(0);
         final AtomicInteger findAllAsyncInvocation = new AtomicInteger(0);
         final AtomicInteger findAllSortedInvocation = new AtomicInteger(0);
@@ -1644,7 +1633,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            looperThread.testComplete();
+                            looperThread.testComplete(bgRealmClosedLatch);
                         }
                         break;
                     }
@@ -1662,7 +1651,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            looperThread.testComplete();
+                            looperThread.testComplete(bgRealmClosedLatch);
                         }
                         break;
                     }
@@ -1680,7 +1669,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            looperThread.testComplete();
+                            looperThread.testComplete(bgRealmClosedLatch);
                         }
                         break;
                     }
@@ -1698,7 +1687,7 @@ public class RealmAsyncQueryTests {
                     }
                     case 2: {
                         if (batchUpdateCompleted.incrementAndGet() == 4) {
-                            looperThread.testComplete();
+                            looperThread.testComplete(bgRealmClosedLatch);
                         }
                         break;
                     }
@@ -1721,6 +1710,7 @@ public class RealmAsyncQueryTests {
                     bgRealm.commitTransaction();
 
                     bgRealm.close();
+                    bgRealmClosedLatch.countDown();
                 } catch (InterruptedException e) {
                     fail(e.getMessage());
                 }
@@ -1775,6 +1765,48 @@ public class RealmAsyncQueryTests {
                 }
             }
         });
+    }
+
+    // Make sure we don't get the run into the IllegalStateException
+    // (Caller thread behind the worker thread)
+    // Scenario:
+    // - Caller thread is in version 1, start an asyncFindFirst
+    // - Another thread advance the Realm, now the latest version = 2
+    // - The worker thread should query against version 1 not version 2
+    // otherwise the caller thread wouldn't be able to import the result
+    // - The notification mechanism will guarantee that the REALM_CHANGE triggered by
+    // the background thread, will update the caller thread (advancing it to version 2)
+    @Test
+    @RunTestInLooperThread
+    public void testFindFirstUsesCallerThreadVersion() throws Throwable {
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+
+        populateTestRealm(looperThread.realm, 10);
+        Realm.asyncQueryExecutor.pause();
+
+        final AllTypes firstAsync = looperThread.realm.where(AllTypes.class).findFirstAsync();
+        firstAsync.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertNotNull(firstAsync);
+                assertEquals("test data 0", firstAsync.getColumnString());
+                looperThread.testComplete(signalClosedRealm);
+            }
+        });
+
+        // advance the background Realm
+        new Thread() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
+                // Advancing the Realm without generating notifications
+                bgRealm.sharedGroupManager.promoteToWrite();
+                bgRealm.sharedGroupManager.commitAndContinueAsRead();
+                Realm.asyncQueryExecutor.resume();
+                bgRealm.close();
+                signalClosedRealm.countDown();
+            }
+        }.start();
     }
 
 

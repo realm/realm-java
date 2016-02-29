@@ -281,11 +281,7 @@ public class SharedGroup implements Closeable {
             if (!super.equals(object)) return false;
 
             VersionID versionID = (VersionID) object;
-
-            if (version != versionID.version) return false;
-            if (index != versionID.index) return false;
-
-            return true;
+            return (version == versionID.version && index == versionID.index);
         }
 
         @Override

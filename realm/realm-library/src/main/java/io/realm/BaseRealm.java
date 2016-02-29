@@ -21,6 +21,7 @@ import android.os.Looper;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -201,7 +202,9 @@ abstract class BaseRealm implements Closeable {
         handlerController.removeAllChangeListeners();
     }
 
-    void setHandler (Handler handler) {
+    // WARNING: If this method is used after calling any async method, the old handler will still be used.
+    //          package private, for test purpose only
+    void setHandler(Handler handler) {
         // remove the old one
         handlers.remove(this.handler);
         handlers.put(handler, configuration.getPath());
@@ -269,8 +272,7 @@ abstract class BaseRealm implements Closeable {
         }
         sharedGroupManager.advanceRead();
         if (handlerController != null) {
-            handlerController.notifyGlobalListeners();
-            handlerController.notifyTypeBasedListeners();
+            handlerController.notifyAllListeners();
             // if we have empty async RealmObject then rerun
             if (handlerController.threadContainsAsyncEmptyRealmObject()) {
                 handlerController.updateAsyncEmptyRealmObject();
@@ -301,7 +303,7 @@ abstract class BaseRealm implements Closeable {
      * changes from this commit.
      */
     public void commitTransaction() {
-        commitTransaction(null);
+        commitTransaction(true, null);
     }
 
     /**
@@ -309,9 +311,10 @@ abstract class BaseRealm implements Closeable {
      * timing conditions like the async transaction. In async transaction, the background Realm has to be closed before
      * other threads see the changes to majoyly avoid the flaky tests.
      *
+     * @param notifyLocalThread set to {@code false} to prevent this commit from triggering thread local change listeners.
      * @param runAfterCommit runnable will run after transaction committed but before notification sent.
      */
-    void commitTransaction(Runnable runAfterCommit) {
+    void commitTransaction(boolean notifyLocalThread, Runnable runAfterCommit) {
         checkIfValid();
         sharedGroupManager.commitAndContinueAsRead();
 
@@ -323,15 +326,9 @@ abstract class BaseRealm implements Closeable {
             Handler handler = handlerIntegerEntry.getKey();
             String realmPath = handlerIntegerEntry.getValue();
 
-            // Notify at once on thread doing the commit
-            if (handler.equals(this.handler)) {
-                handlerController.notifyGlobalListeners();
-                // notify RealmResults & RealmObject callbacks
-                handlerController.notifyTypeBasedListeners();
-                // if we have empty async RealmObject then rerun
-                if (handlerController.threadContainsAsyncEmptyRealmObject()) {
-                    handlerController.updateAsyncEmptyRealmObject();
-                }
+            // Sometimes we don't want to notify the local thread about commits, e.g. creating a completely new Realm
+            // file will make a commit in order to create the schema. Users should not be notified about that.
+            if (!notifyLocalThread && handler.equals(this.handler)) {
                 continue;
             }
 
@@ -504,12 +501,6 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    protected void checkNotNullFieldName(String fieldName) {
-        if (fieldName == null) {
-            throw new IllegalArgumentException("fieldName must be provided.");
-        }
-    }
-
     // Return all handlers registered for this Realm
     static Map<Handler, String> getHandlers() {
         return handlers;
@@ -627,20 +618,31 @@ abstract class BaseRealm implements Closeable {
      * @param configuration configuration for the Realm that should be migrated
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
      * @param callback callback for specific Realm type behaviors.
+     * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final MigrationCallback callback) {
+                                       final MigrationCallback callback) throws FileNotFoundException {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
         }
+
+        final AtomicBoolean fileNotFound = new AtomicBoolean(false);
+
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
                 if (count != 0) {
-                    throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
+                    throw new IllegalStateException("Cannot migrate a Realm file that is already open: "
+                            + configuration.getPath());
+                }
+
+                File realmFile = new File(configuration.getPath());
+                if (!realmFile.exists()) {
+                    fileNotFound.set(true);
+                    return;
                 }
 
                 RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
@@ -665,6 +667,11 @@ abstract class BaseRealm implements Closeable {
                 }
             }
         });
+
+        if (fileNotFound.get()) {
+            throw new FileNotFoundException("Cannot migrate a Realm file which doesn't exist: "
+                    + configuration.getPath());
+        }
     }
 
     // Internal delegate for migrations

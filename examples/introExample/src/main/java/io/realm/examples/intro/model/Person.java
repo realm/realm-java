@@ -40,10 +40,8 @@ public class Person extends RealmObject {
 
     private long id;
 
-    // The standard getters and setters your IDE generates are fine.
-    // Realm will overload them and code inside them is ignored.
-    // So if you prefer you can also just have empty abstract methods.
-
+    // Let your IDE generate getters and setters for you!
+    // Or if you like you can even have public fields and no accessors! See Dog.java and Cat.java
     public String getName() {
         return name;
     }
