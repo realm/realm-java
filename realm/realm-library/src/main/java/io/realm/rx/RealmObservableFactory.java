@@ -40,20 +40,8 @@ import rx.subscriptions.Subscriptions;
  */
 public class RealmObservableFactory implements RxObservableFactory {
 
-    private boolean rxJavaAvailable;
-
-    public RealmObservableFactory() {
-        try {
-            Class.forName("rx.Observable");
-            rxJavaAvailable = true;
-        } catch (ClassNotFoundException ignore) {
-            rxJavaAvailable = false;
-        }
-    }
-
     @Override
     public Observable<Realm> from(final Realm realm) {
-        checkRxJavaAvailable();
         return Observable.create(new Observable.OnSubscribe<Realm>() {
             @Override
             public void call(final Subscriber<? super Realm> subscriber) {
@@ -79,7 +67,6 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public Observable<DynamicRealm> from(final DynamicRealm realm) {
-        checkRxJavaAvailable();
         return Observable.create(new Observable.OnSubscribe<DynamicRealm>() {
             @Override
             public void call(final Subscriber<? super DynamicRealm> subscriber) {
@@ -108,17 +95,17 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E extends RealmObject> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
-        checkRxJavaAvailable();
         return getRealmResultsObservable(results);
     }
 
     @Override
-    public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
-        checkRxJavaAvailable();
+    public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm,
+                                                             RealmResults<DynamicRealmObject> results) {
         return getRealmResultsObservable(results);
     }
 
-    private <E extends RealmObject> Observable<RealmResults<E>> getRealmResultsObservable(final RealmResults<E> results) {
+    private <E extends RealmObject> Observable<RealmResults<E>> getRealmResultsObservable(
+            final RealmResults<E> results) {
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
             public void call(final Subscriber<? super RealmResults<E>> subscriber) {
@@ -147,13 +134,11 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E extends RealmObject> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
-        checkRxJavaAvailable();
         return getRealmListObservable();
     }
 
     @Override
     public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
-        checkRxJavaAvailable();
         return getRealmListObservable();
     }
 
@@ -163,13 +148,11 @@ public class RealmObservableFactory implements RxObservableFactory {
 
     @Override
     public <E extends RealmObject> Observable<E> from(Realm realm, final E object) {
-        checkRxJavaAvailable();
         return getObjectObservable(object);
     }
 
     @Override
     public Observable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
-        checkRxJavaAvailable();
         return getObjectObservable(object);
     }
 
@@ -206,15 +189,9 @@ public class RealmObservableFactory implements RxObservableFactory {
     }
 
     @Override
-    public Observable<RealmQuery<DynamicRealmObject>> from(final DynamicRealm realm, final RealmQuery<DynamicRealmObject> query) {
+    public Observable<RealmQuery<DynamicRealmObject>> from(final DynamicRealm realm,
+                                                           final RealmQuery<DynamicRealmObject> query) {
         throw new RuntimeException("RealmQuery not supported yet.");
-    }
-
-    private void checkRxJavaAvailable() {
-        if (!rxJavaAvailable) {
-            throw new IllegalStateException("RxJava seems to be missing from the classpath. " +
-                    "Remember to add it as a compile dependency. See https://realm.io/docs/java/latest/#rxjava for more details.");
-        }
     }
 
     @Override
