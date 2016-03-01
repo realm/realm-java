@@ -284,7 +284,11 @@ targets.each { target ->
             "-l${Runtime.getRuntime().availableProcessors()}",
             '-C', "${projectDir}/src",
             "CC_IS=${clang?'clang':'gcc'}",
+<<<<<<< HEAD
             "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include -Iobject-store -Iobject-store/impl/android -Iobject-store/impl",
+=======
+            "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include -Iobject-store/impl/android -Iobject-store/impl",
+>>>>>>> dba94e24c002173a84d61b2052e1ef783577fa14
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
             "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections",
