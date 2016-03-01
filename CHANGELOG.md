@@ -24,6 +24,7 @@
 * Removed allowBackup from AndroidManifest (#2307).
 * Added multi-arguments distinct(...) for Realm, DynamicRealm, RealmQuery, and RealmResults (#2284).
 * Allowed "realm" and "row" as a field name of model class (#2255).
+* Added support for compacting encrypted Realms (#1033).
 
 ## 0.87.5
 * Updated Realm Core to 0.96.2.
