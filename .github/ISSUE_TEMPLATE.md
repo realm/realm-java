@@ -1,35 +1,40 @@
-> In order for us to help you most effectively, please fill out this template when filing
-> an issue.
-> All lines marked as quotes (`>`) instruct you with what info we expect.
-> Remove this opening paragraph.
+> We LOVE to help with any issues or bug you have!
 
-## Goals
+> **Questions**: If you have questions about how to use Realm, please ask on [SO](http://stackoverflow.com/questions/ask?tags=realm) - we monitor the Realm tag.
 
-> Replace this with what you tried to achieve.
+> **Feature Request**: Just fill in the first two sections below.
+
+> **Bugs**: To help you as fast as possible with an issue or bug please describe your issue and the steps you have taken to reproduce it in as many details as possible.
+>
+> Thanks for helping us help you :-)
+>
+> Remove this and above before submitting.
+
+## Goal (what do you want to achieve?)
+
+?
 
 ## Expected Results
 
-> Replace this with what you expected to happen.
+?
 
-## Actual Results
+## Actual Results (e.g. full stack trace with exception)
 
-> Replace this with what actually happened.
-> e.g. the full stack trace with exception messages.
+?
 
-## Steps to Reproduce
+## Steps & Code to Reproduce (Or describe your current debugging efforts)
 
-> Provide steps we can follow to reproduce this issue.
+?
 
-## Code Sample
+### Code Sample (Bigger samples, ideally an AS project, in gists/repositories or privately at help@realm.io)
 
-> Provide a code sample that highlights the issue.
-> If relevant, include your model definitions.
-> For larger code samples, links to external gists or repositories are preferred.
-> Full Android Studio projects that we can compile ourselves are ideal.
-> See https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#code
-> for how to do code formatting.
+```java
 
-## Version of Realm and Tooling
+? your code here
 
-> Describe which version of Realm is effected, which Android Studio version you are using
-> as well as which devices/emulators you have tested on and with what version of Android.
+```
+
+## Version of Realm and tooling
+Realm version(s): ?
+Android Studio version: ?
+Android version(s) on device/simulator: ?
