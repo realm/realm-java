@@ -88,7 +88,7 @@ def commonPom = {
 
 publishing {
     publications {
-        realmPubblication(MavenPublication) {
+        realmPublication(MavenPublication) {
             groupId 'io.realm'
             artifactId = 'realm-gradle-plugin'
             from components.java
@@ -110,7 +110,7 @@ bintray {
     dryRun = false
     publish = false
 
-    publications = ['realmPubblication']
+    publications = ['realmPublication']
     pkg {
         repo = 'maven'
         name = 'realm-gradle-plugin'
@@ -133,7 +133,7 @@ artifactory {
             password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
         }
         defaults {
-            publications ('realmPubblication')
+            publications ('realmPublication')
         }
     }
 }
