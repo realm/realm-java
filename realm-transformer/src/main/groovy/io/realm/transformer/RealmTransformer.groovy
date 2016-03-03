@@ -185,7 +185,7 @@ class RealmTransformer extends Transform {
 
             it.jarInputs.each {
                 def jarFile = new JarFile(it.file)
-                jarFile
+                jarFile.entries()
                         .findAll() { it.name.endsWith(SdkConstants.DOT_CLASS) }
                         .each { classNames.add(
                         it.name
