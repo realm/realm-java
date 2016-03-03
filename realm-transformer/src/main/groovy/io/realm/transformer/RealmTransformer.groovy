@@ -27,7 +27,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.lang.reflect.Modifier
-import java.util.jar.JarFile
 import java.util.regex.Pattern
 
 import static com.android.build.api.transform.QualifiedContent.*
@@ -181,16 +180,6 @@ class RealmTransformer extends Transform {
                         classNames.add(className)
                     }
                 }
-            }
-
-            it.jarInputs.each {
-                def jarFile = new JarFile(it.file)
-                jarFile.entries()
-                        .findAll() { it.name.endsWith(SdkConstants.DOT_CLASS) }
-                        .each { classNames.add(
-                        it.name
-                                .substring(0, it.name.length() - SdkConstants.DOT_CLASS.length())
-                                .replace(File.separatorChar, '.' as char)) }
             }
         }
 
