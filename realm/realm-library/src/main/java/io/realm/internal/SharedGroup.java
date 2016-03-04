@@ -293,6 +293,18 @@ public class SharedGroup implements Closeable {
         }
     }
 
+    boolean waitForChange() {
+        return nativeWaitForChange(nativePtr);
+    }
+
+    void releaseWaitForChange() {
+        nativeReleaseWaitForChange(nativePtr);
+    }
+
+    void enableWaitForChange() {
+        nativeEnableWaitForChange(nativePtr);
+    }
+
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
                                                              int durability, byte[] key);
     private native long nativeCreateReplication(String databaseFile, byte[] key);
@@ -321,4 +333,7 @@ public class SharedGroup implements Closeable {
     private native void nativeAdvanceReadToVersion(long nativePtr, long nativeReplicationPtr,
                                                    long version, long index);
     private native void nativePromoteToWrite(long nativePtr, long nativeReplicationPtr);
+    private native boolean nativeWaitForChange(long nativePtr);
+    private native void nativeReleaseWaitForChange(long nativePtr);
+    private native void nativeEnableWaitForChange(long nativePtr);
 }

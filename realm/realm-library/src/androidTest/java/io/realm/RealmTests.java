@@ -2976,4 +2976,130 @@ public class RealmTests {
         assertEquals(0, realm.where(Cat.class).count());
         assertTrue(realm.isEmpty());
     }
+
+    @Test
+    public void waitForChange_onNonLooperThread() {
+        final long numberOfBlocks = 16;
+        final long numberOfObjects = 1; // must be greater than 1
+        final long totalObjectCount = numberOfBlocks * numberOfBlocks;
+
+        // wait in background
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                try {
+                    assertTrue(realm.waitForChange());
+                    assertEquals(totalObjectCount, realm.where(AnnotationIndexTypes.class).findAll().size());
+                } catch (Exception ignored) {
+                } finally {
+                    realm.close();
+                    signalTestFinished.countDown();
+                }
+            }
+        });
+        thread.start();
+
+        // populate caller thread's realm
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            thread.interrupt();
+        }
+    }
+
+    @Test
+    public void waitForChange_onLooperThread() throws Throwable {
+        final long numberOfBlocks = 16;
+        final long numberOfObjects = 1; // must be greater than 1
+        final long totalObjectCount = numberOfBlocks * numberOfBlocks;
+
+        // wait in background
+        final CountDownLatch signalTestFinished = new CountDownLatch(2);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+
+                final Realm realm = Realm.getInstance(realmConfig);
+
+                final Runnable endTest = new Runnable() {
+                    @Override
+                    public void run() {
+                        signalTestFinished.countDown();
+                        if (signalTestFinished.getCount() == 0) {
+                            realm.close();
+                        }
+                    }
+                };
+
+                final RealmResults<AnnotationIndexTypes> results = realm.where(AnnotationIndexTypes.class).findAll();
+
+                assertTrue(results.isLoaded());
+                assertTrue(results.isValid());
+                assertTrue(results.isEmpty());
+
+                realm.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(totalObjectCount, results.size());
+                        endTest.run();
+                    }
+                });
+
+                results.addChangeListener(new RealmChangeListener() {
+                    @Override
+                    public void onChange() {
+                        assertEquals(totalObjectCount, results.size());
+                        endTest.run();
+                    }
+                });
+
+                assertTrue(realm.waitForChange());
+                assertTrue(results.isLoaded());
+                assertTrue(results.isValid());
+                assertEquals(totalObjectCount, results.size());
+
+                Looper.loop();
+            }
+        });
+        thread.start();
+
+        // populate caller thread's realm
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            thread.interrupt();
+        }
+    }
+
+    @Test
+    public void waitForChange_illegalWaitInsideTransaction() {
+        realm.beginTransaction();
+        try {
+            realm.waitForChange();
+            fail("Cannot wait inside of a transaction");
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    @Test
+    public void releaseWaitForChange_illegalReleaseInsideTransaction() {
+        realm.beginTransaction();
+        try {
+            realm.releaseWaitForChange();
+            fail("Cannot release a wait inside of a transaction");
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
 }

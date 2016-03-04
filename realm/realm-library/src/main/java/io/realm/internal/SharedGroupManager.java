@@ -184,4 +184,16 @@ public class SharedGroupManager implements Closeable {
     public long getNativePointer() {
         return sharedGroup.getNativePointer();
     }
+
+    public boolean waitForChange() {
+        return sharedGroup.waitForChange();
+    }
+
+    public void releaseWaitForChange() {
+        sharedGroup.releaseWaitForChange();
+    }
+
+    public void enableWaitForChange() {
+        sharedGroup.enableWaitForChange();
+    }
 }

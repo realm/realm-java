@@ -176,6 +176,30 @@ JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeCloseReplication
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_SharedGroup_nativeGetVersionID
         (JNIEnv *, jobject, jlong);
 
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    waitForChange
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeWaitForChange
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    releaseWaitForChange
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeReleaseWaitForChange
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_SharedGroup
+ * Method:    enableWaitForChange
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeEnableWaitForChange
+  (JNIEnv *, jobject, jlong);
+
 #ifdef __cplusplus
 }
 #endif

@@ -263,8 +263,10 @@ abstract class BaseRealm implements Closeable {
      * It also calls the listeners associated to the Realm instance.
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
+     * @deprecated Please use {@link #waitForChange()} instead.
      */
     @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
     public void refresh() {
         checkIfValid();
         if (isInTransaction()) {
@@ -278,6 +280,41 @@ abstract class BaseRealm implements Closeable {
                 handlerController.updateAsyncEmptyRealmObject();
             }
         }
+    }
+
+    /**
+     * The calling thread goes to sleep until the database is changed, or until {@link releaseWaitForChange()}
+     * is called.
+     * @throws IllegalStateException IllegalStateException if attempting to wait within a transaction.
+     */
+    public boolean waitForChange() {
+        checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
+        }
+        sharedGroupManager.enableWaitForChange();
+        boolean hasChanged = sharedGroupManager.waitForChange();
+        if (hasChanged) {
+            sharedGroupManager.advanceRead();
+            if (handlerController != null) {
+                if (handler.getLooper().getThread().isAlive()) {
+                    handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
+                }
+            }
+        }
+        return hasChanged;
+    }
+
+    /**
+     * Release any thread waiting in wait_for_change() on *this* SharedGroup.
+     * @throws IllegalStateException IllegalStateException if attempting to release a wait within a transaction.
+     */
+    public void releaseWaitForChange() {
+        checkIfValid();
+        if (isInTransaction()) {
+            throw new IllegalStateException("Cannot release a wait for changes inside of a transaction.");
+        }
+        sharedGroupManager.releaseWaitForChange();
     }
 
     /**
