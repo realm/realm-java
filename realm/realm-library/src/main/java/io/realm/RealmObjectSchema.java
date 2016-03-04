@@ -192,7 +192,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field name to remove.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists.
+     * @throws IllegalArgumentException if field name doesn't exist.
      */
     public RealmObjectSchema removeField(String fieldName) {
         checkLegalName(fieldName);
@@ -213,7 +213,7 @@ public final class RealmObjectSchema {
      * @param currentFieldName field name to rename.
      * @param newFieldName     the new field name.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or if the new field name already exists.
+     * @throws IllegalArgumentException if field name doesn't exist or if the new field name already exists.
      */
     public RealmObjectSchema renameField(String currentFieldName, String newFieldName) {
         checkLegalName(currentFieldName);
@@ -241,7 +241,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field to add index to.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists, the field cannot be indexed or it already has a
+     * @throws IllegalArgumentException if field name doesn't exist, the field cannot be indexed or it already has a
      * index defined.
      */
     public RealmObjectSchema addIndex(String fieldName) {
@@ -274,7 +274,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field to remove index from.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists or the field doesn't have an index.
+     * @throws IllegalArgumentException if field name doesn't exist or the field doesn't have an index.
      */
     public RealmObjectSchema removeIndex(String fieldName) {
         checkLegalName(fieldName);
@@ -293,7 +293,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field to set as primary key.
      * @return the updated schema.
-     * @throws IllegalArgumentException if field name doesn't exists, the field cannot be a primary key or it already
+     * @throws IllegalArgumentException if field name doesn't exist, the field cannot be a primary key or it already
      * has a primary key defined.
      */
     public RealmObjectSchema addPrimaryKey(String fieldName) {
@@ -328,7 +328,7 @@ public final class RealmObjectSchema {
      * @param fieldName name of field in the class.
      * @param required  {@code true} if field should be required, {@code false} otherwise.
      * @return the updated schema.
-     * @throws IllegalArgumentException if the field name doesn't exists, cannot have the {@link Required} annotation or
+     * @throws IllegalArgumentException if the field name doesn't exist, cannot have the {@link Required} annotation or
      *                                  the field already have been set as required.
      * @see Required
      */
@@ -365,7 +365,7 @@ public final class RealmObjectSchema {
      * @param fieldName name of field in the class.
      * @param nullable  {@code true} if field should be nullable, {@code false} otherwise.
      * @return the updated schema.
-     * @throws IllegalArgumentException if the field name doesn't exists, or cannot be set as nullable.
+     * @throws IllegalArgumentException if the field name doesn't exist, or cannot be set as nullable.
      */
     public RealmObjectSchema setNullable(String fieldName, boolean nullable) {
         setRequired(fieldName, !nullable);
@@ -377,7 +377,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field to check.
      * @return {@code true} if it is requied, {@code false} otherwise.
-     * @throws IllegalArgumentException if field name doesn't exists.
+     * @throws IllegalArgumentException if field name doesn't exist.
      * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
@@ -390,7 +390,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName field to check.
      * @return {@code true} if it is requied, {@code false} otherwise.
-     * @throws IllegalArgumentException if field name doesn't exists.
+     * @throws IllegalArgumentException if field name doesn't exist.
      * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
