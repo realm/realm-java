@@ -292,7 +292,7 @@ abstract class BaseRealm implements Closeable {
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
         }
-        sharedGroupManager.enableWaitForChange();
+        sharedGroupManager.setWaitForChangeEnabled(true);
         boolean hasChanged = sharedGroupManager.waitForChange();
         if (hasChanged) {
             sharedGroupManager.advanceRead();
@@ -307,12 +307,12 @@ abstract class BaseRealm implements Closeable {
      * Release any thread waiting in wait_for_change() on *this* SharedGroup.
      * @throws IllegalStateException IllegalStateException if attempting to release a wait within a transaction.
      */
-    public void releaseWaitForChange() {
+    public void stopWaitForChange() {
         checkIfValid();
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot release a wait for changes inside of a transaction.");
         }
-        sharedGroupManager.releaseWaitForChange();
+        sharedGroupManager.setWaitForChangeEnabled(false);
     }
 
     /**

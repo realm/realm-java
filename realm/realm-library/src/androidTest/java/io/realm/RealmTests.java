@@ -55,6 +55,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllJavaTypes;
@@ -3078,6 +3079,110 @@ public class RealmTests {
         }
     }
 
+    // Test if waitForChange gets waked up by 1) empty transaction 2) transaction with some data changes.
+    @Test
+    public void waitForChange() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch changedLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result = new AtomicBoolean(false);
+        final AtomicLong count1 = new AtomicLong(0);
+        final AtomicLong count2 = new AtomicLong(0);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                openedLatch.countDown();
+                result.set(realm.waitForChange());
+                count1.set(realm.where(AllTypes.class).count());
+                changedLatch.countDown();
+                result.set(realm.waitForChange());
+                count2.set(realm.where(AllTypes.class).count());
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(100);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        TestHelper.awaitOrFail(changedLatch);
+        assertEquals(0, count1.get());
+        Thread.sleep(500);
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        assertTrue(result.get());
+        TestHelper.awaitOrFail(closedLatch);
+        assertEquals(1, count2.get());
+    }
+
+    // Test if waitForChange gets waked up by stopWaitForChange called.
+    @Test
+    public void stopWaitForChange() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch canceledLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result = new AtomicBoolean(false);
+        final Realm[] otherRealm = new Realm[1];
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                otherRealm[0] = Realm.getInstance(realmConfig);
+                openedLatch.countDown();
+                result.set(otherRealm[0].waitForChange());
+                canceledLatch.countDown();
+                otherRealm[0].close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(200);
+        otherRealm[0].stopWaitForChange();
+        TestHelper.awaitOrFail(canceledLatch);
+        assertFalse(result.get());
+        TestHelper.awaitOrFail(closedLatch);
+    }
+
+    // Test if waitForChange still blocks if stopWaitForChange has been called before.
+    @Test
+    public void waitForChange_againAfterStop() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch changedLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result1 = new AtomicBoolean(true);
+        final AtomicBoolean result2 = new AtomicBoolean(false);
+        final Realm[] realmArray = new Realm[1];
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                realmArray[0] = Realm.getInstance(realmConfig);
+                openedLatch.countDown();
+                result1.set(realmArray[0].waitForChange());
+                changedLatch.countDown();
+                result2.set(realmArray[0].waitForChange());
+                realmArray[0].close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(100);
+        realmArray[0].stopWaitForChange();
+        TestHelper.awaitOrFail(changedLatch);
+        assertFalse(result1.get());
+        Thread.sleep(500);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        TestHelper.awaitOrFail(closedLatch);
+        assertTrue(result2.get());
+    }
+
     @Test
     public void waitForChange_illegalWaitInsideTransaction() {
         realm.beginTransaction();
@@ -3091,10 +3196,10 @@ public class RealmTests {
     }
 
     @Test
-    public void releaseWaitForChange_illegalReleaseInsideTransaction() {
+    public void stopWaitForChange_illegalReleaseInsideTransaction() {
         realm.beginTransaction();
         try {
-            realm.releaseWaitForChange();
+            realm.stopWaitForChange();
             fail("Cannot release a wait inside of a transaction");
         } catch (IllegalStateException ignored) {
         } finally {
