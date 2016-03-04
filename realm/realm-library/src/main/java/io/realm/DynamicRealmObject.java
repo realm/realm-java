@@ -17,6 +17,7 @@ package io.realm;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 
 import io.realm.internal.CheckedRow;
 import io.realm.internal.LinkView;
@@ -275,7 +276,6 @@ public final class DynamicRealmObject extends RealmObject {
     /**
      * Checks if the value of a given field is {@code null}.
      *
-     * @param fieldName name of field.
      * @param fieldName the name of the field.
      * @return {@code true} if field value is null, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exists.
@@ -592,7 +592,8 @@ public final class DynamicRealmObject extends RealmObject {
             if (!typeValidated) {
                 String elementType = obj.row.getTable().getName();
                 if (!tableName.equals(elementType)) {
-                    throw new IllegalArgumentException(String.format("Element at index %d is not the proper type. " +
+                    throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                            "Element at index %d is not the proper type. " +
                             "Was %s expected %s.", i, elementType, tableName));
                 }
             }

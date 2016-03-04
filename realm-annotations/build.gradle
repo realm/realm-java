@@ -3,19 +3,24 @@ buildscript {
         jcenter()
     }
     dependencies {
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
     }
 }
 
+apply plugin: 'java'
+apply plugin: 'maven'
 apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'com.jfrog.bintray'
 
-def currentVersion = file("${projectDir}/version.txt").text.trim();
+sourceCompatibility = '1.6'
+targetCompatibility = '1.6'
 
-version = currentVersion
+group = 'io.realm'
+version = file("${projectDir}/../version.txt").text.trim();
 
 def commonPom = {
-    version = currentVersion
     licenses {
         license {
             name 'The Apache Software License, Version 2.0'
@@ -36,20 +41,15 @@ def commonPom = {
 
 publishing {
     publications {
-        annotationsProcessor(MavenPublication) {
+        realmPublication(MavenPublication) {
             groupId 'io.realm'
-            artifactId = 'realm-annotations-processor'
-            artifact file("${rootDir}/realm/realm-annotations-processor/build/libs/realm-annotations-processor-${currentVersion}.jar")
+            artifactId = 'realm-annotations'
+            from components.java
             pom.withXml {
                 Node root = asNode()
-                root.appendNode('name', 'realm-annotations-processor')
-                root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('name', 'realm-annotations')
+                root.appendNode('description', 'Annotations for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
                 root.appendNode('url', 'http://realm.io')
-                def dependenciesNode = root.appendNode('dependencies')
-                def dependencyNode = dependenciesNode.appendNode('dependency')
-                dependencyNode.appendNode('groupId', 'com.squareup')
-                dependencyNode.appendNode('artifactId', 'javawriter')
-                dependencyNode.appendNode('version', '2.5.0')
                 root.children().last() + commonPom
             }
         }
@@ -63,10 +63,10 @@ bintray {
     dryRun = false
     publish = false
 
-    publications = ['annotationsProcessor']
+    publications = ['realmPublication']
     pkg {
         repo = 'maven'
-        name = 'realm-annotations-processor'
+        name = 'realm-annotations'
         desc = 'Realm for Android'
         websiteUrl = 'http://realm.io'
         issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
@@ -74,5 +74,19 @@ bintray {
         licenses = ['Apache-2.0']
         labels = ['android', 'realm']
         publicDownloadNumbers = false
+    }
+}
+
+artifactory {
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        }
+        defaults {
+            publications ('realmPublication')
+        }
     }
 }

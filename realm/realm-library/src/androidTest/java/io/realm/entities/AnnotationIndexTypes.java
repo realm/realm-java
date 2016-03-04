@@ -46,6 +46,11 @@ public class AnnotationIndexTypes extends RealmObject {
 
     public static final String[] INDEX_FIELDS = new String[]{FIELD_INDEX_STRING, FIELD_INDEX_INT, FIELD_INDEX_BYTE, FIELD_INDEX_SHORT, FIELD_INDEX_LONG, FIELD_INDEX_BOOL, FIELD_INDEX_DATE};
     public static final String[] NOT_INDEX_FIELDS = new String[]{FIELD_NOT_INDEX_STRING, FIELD_NOT_INDEX_INT, FIELD_NOT_INDEX_BYTE, FIELD_NOT_INDEX_SHORT, FIELD_NOT_INDEX_LONG, FIELD_NOT_INDEX_BOOL, FIELD_NOT_INDEX_DATE};
+    public static final String   INDEX_LINKED_FIELD_STRING = AnnotationIndexTypes.FIELD_OBJECT + "." + AnnotationIndexTypes.FIELD_INDEX_STRING;
+    public static final String[] INDEX_LINKED_FIELDS = new String[]{FIELD_OBJECT + "." + FIELD_INDEX_STRING, FIELD_OBJECT + "." + FIELD_INDEX_INT};
+    public static final String   NOT_INDEX_LINKED_FILED_STRING = FIELD_OBJECT + "." + FIELD_NOT_INDEX_STRING;
+    public static final String[] NOT_INDEX_LINKED_FIELDS = new String[]{FIELD_OBJECT + "." + FIELD_NOT_INDEX_STRING, FIELD_OBJECT + "." + FIELD_NOT_INDEX_INT};
+    public static final String[] NONEXISTANT_MIX_FIELDS = new String[]{FIELD_INDEX_INT, "doesNotExists", FIELD_INDEX_STRING};
 
     @Index
     private String indexString;

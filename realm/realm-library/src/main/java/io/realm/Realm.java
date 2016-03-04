@@ -27,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -250,7 +251,12 @@ public final class Realm extends BaseRealm {
             if (configuration.shouldDeleteRealmIfMigrationNeeded()) {
                 deleteRealm(configuration);
             } else {
-                migrateRealm(configuration);
+                try {
+                    migrateRealm(configuration);
+                } catch (FileNotFoundException fileNotFoundException) {
+                    // Should never happen
+                    throw new RealmIOException(fileNotFoundException);
+                }
             }
 
             return createAndValidate(configuration, columnIndices);
@@ -510,8 +516,7 @@ public final class Realm extends BaseRealm {
         }
 
         try {
-            E realmObject = configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
-            return realmObject;
+            return configuration.getSchemaMediator().createOrUpdateUsingJsonObject(clazz, this, json, false);
         } catch (Exception e) {
             throw new RealmException("Could not map Json", e);
         }
@@ -701,8 +706,7 @@ public final class Realm extends BaseRealm {
         checkIfValid();
         Table table = getTable(clazz);
         long rowIndex = table.addEmptyRow();
-        E object = get(clazz, rowIndex);
-        return object;
+        return get(clazz, rowIndex);
     }
 
     /**
@@ -739,8 +743,7 @@ public final class Realm extends BaseRealm {
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
-        E realmObject = copyOrUpdate(object, false);
-        return realmObject;
+        return copyOrUpdate(object, false);
     }
 
     /**
@@ -759,8 +762,7 @@ public final class Realm extends BaseRealm {
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
         checkNotNullObject(object);
         checkHasPrimaryKey(object.getClass());
-        E realmObject = copyOrUpdate(object, true);
-        return realmObject;
+        return copyOrUpdate(object, true);
     }
 
     /**
@@ -1067,6 +1069,24 @@ public final class Realm extends BaseRealm {
     public <E extends RealmObject> RealmResults<E> distinctAsync(Class<E> clazz, String fieldName) {
         checkIfValid();
         return where(clazz).distinctAsync(fieldName);
+    }
+
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param clazz the Class to get objects of.
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public <E extends RealmObject> RealmResults<E> distinct(Class<E> clazz, String firstFieldName, String... remainingFieldNames) {
+        checkIfValid();
+        return where(clazz).distinct(firstFieldName, remainingFieldNames);
     }
 
     /**
@@ -1415,8 +1435,9 @@ public final class Realm extends BaseRealm {
      * version, nothing will happen.
      *
      * @param configuration {@link RealmConfiguration}
+     * @throws FileNotFoundException if the Realm file doesn't exist.
      */
-    public static void migrateRealm(RealmConfiguration configuration) {
+    public static void migrateRealm(RealmConfiguration configuration) throws FileNotFoundException {
         migrateRealm(configuration, null);
     }
 
@@ -1426,8 +1447,10 @@ public final class Realm extends BaseRealm {
      * @param configuration the{@link RealmConfiguration}.
      * @param migration the {@link RealmMigration} to run on the Realm. This will override any migration set on the
      *                  configuration.
+     * @throws FileNotFoundException if the Realm file doesn't exist.
      */
-    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration) {
+    public static void migrateRealm(RealmConfiguration configuration, RealmMigration migration)
+            throws FileNotFoundException {
         BaseRealm.migrateRealm(configuration, migration, new MigrationCallback() {
             @Override
             public void migrationComplete() {
@@ -1473,7 +1496,7 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    // Public because of migrations
+    @Deprecated
     public Table getTable(Class<? extends RealmObject> clazz) {
         Table table = classToTable.get(clazz);
         if (table == null) {
@@ -1495,6 +1518,7 @@ public final class Realm extends BaseRealm {
     public static Object getDefaultModule() {
         String moduleName = "io.realm.DefaultRealmModule";
         Class<?> clazz;
+        //noinspection TryWithIdenticalCatches
         try {
             clazz = Class.forName(moduleName);
             Constructor<?> constructor = clazz.getDeclaredConstructors()[0];

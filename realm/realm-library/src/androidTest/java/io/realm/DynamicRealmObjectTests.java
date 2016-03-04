@@ -25,8 +25,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import org.junit.Test;
-
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,16 +35,16 @@ import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
-import io.realm.exceptions.RealmException;
 import io.realm.entities.Owner;
+import io.realm.exceptions.RealmException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)

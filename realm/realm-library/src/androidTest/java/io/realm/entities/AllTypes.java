@@ -35,6 +35,8 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLIST = "columnRealmList";
 
+    public static final String[] INVALID_TYPES_FIELDS_FOR_DISTINCT = new String[]{FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT};
+
     @Required
     private String columnString = "";
     private long columnLong;

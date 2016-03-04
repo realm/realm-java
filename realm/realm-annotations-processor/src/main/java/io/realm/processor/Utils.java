@@ -245,4 +245,8 @@ public class Utils {
 
         return stringBuilder.toString();
     }
+
+    public static String getProxyInterfaceName(String className) {
+        return className + Constants.INTERFACE_SUFFIX;
+    }
 }
