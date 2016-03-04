@@ -27,12 +27,14 @@ import org.junit.runner.RunWith;
 
 import java.util.Collections;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllTypes;
+import io.realm.entities.Cat;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
@@ -103,6 +105,7 @@ public class RealmListTests {
     private void checkMethodsOnEmptyList(Realm realm, RealmList<Dog> list) {
         realm.beginTransaction();
         for (int i = 0; i < 4; i++) {
+            //noinspection TryWithIdenticalCatches
             try {
                 switch (i) {
                     case 0: list.get(0); break;
@@ -915,7 +918,7 @@ public class RealmListTests {
     }
 
     @Test
-    public void testRemoveAllFromRealm() {
+    public void removeAllFromRealm() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
         assertEquals(TEST_OBJECTS, dogs.size());
@@ -928,7 +931,7 @@ public class RealmListTests {
     }
 
     @Test
-    public void testRealmRemoveAllNotManagedList() {
+    public void removeAllFromRealm_notManagedList() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
         assertEquals(TEST_OBJECTS, dogs.size());
@@ -947,7 +950,7 @@ public class RealmListTests {
     }
 
     @Test
-    public void testRealmRemoveAllOutsideTransaction() {
+    public void removeAllFromRealm_outsideTransaction() {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
         try {
@@ -959,7 +962,7 @@ public class RealmListTests {
     }
 
     @Test
-    public void testRemoveAllFromListStandaloneObjectShouldThrow() {
+    public void removeAllFromRealm_listWithStandaloneObjectShouldThrow() {
         final RealmList<Dog> list = new RealmList<Dog>();
 
         testRealm.beginTransaction();
@@ -986,7 +989,7 @@ public class RealmListTests {
     }
 
     @Test
-    public void testRemoveAllFromRealmEmptyList() {
+    public void removeAllFromRealm_emptyList() {
         RealmList<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs();
         assertEquals(TEST_OBJECTS, dogs.size());
 
@@ -1006,7 +1009,7 @@ public class RealmListTests {
     }
 
     @Test
-    public void testRemoveAllFromRealmInvalidListShouldThrow() {
+    public void removeAllFromRealm_invalidListShouldThrow() {
         RealmList<Dog> dogs = testRealm.where(Owner.class).findFirst().getDogs();
         assertEquals(TEST_OBJECTS, dogs.size());
         testRealm.close();
@@ -1018,5 +1021,167 @@ public class RealmListTests {
         } catch (IllegalStateException e) {
             assertEquals("This Realm instance has already been closed, making it unusable.", e.getMessage());
         }
+    }
+
+    @Test
+    public void add_set_objectFromOtherThread() {
+        final CountDownLatch finishedLatch = new CountDownLatch(1);
+        final Dog dog = testRealm.where(Dog.class).findFirst();
+        final String expectedMsg = "Cannot copy an object from another Realm instance.";
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(testRealm.getConfiguration());
+                realm.beginTransaction();
+                RealmList<Dog> list = realm.createObject(Owner.class).getDogs();
+                list.add(realm.createObject(Dog.class));
+                try {
+                    list.add(dog);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals(expectedMsg, expected.getMessage());
+                }
+
+                try {
+                    list.add(0, dog);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals(expectedMsg, expected.getMessage());
+                }
+
+                try {
+                    list.set(0, dog);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals(expectedMsg, expected.getMessage());
+                }
+
+                realm.cancelTransaction();
+                realm.close();
+                finishedLatch.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(finishedLatch);
+    }
+
+    @Test
+    public void add_set_dynamicObjectFromOtherThread() {
+        final CountDownLatch finishedLatch = new CountDownLatch(1);
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(testRealm.getConfiguration());
+        final DynamicRealmObject dynDog = dynamicRealm.where(Dog.CLASS_NAME).findFirst();
+        final String expectedMsg = "Cannot copy an object to a Realm instance created in another thread.";
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm dynamicRealm = DynamicRealm.getInstance(testRealm.getConfiguration());
+                dynamicRealm.beginTransaction();
+                RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
+                        .getList(Owner.FIELD_DOGS);
+                list.add(dynamicRealm.createObject(Dog.CLASS_NAME));
+
+                try {
+                    list.add(dynDog);
+                    fail();
+                } catch (IllegalStateException expected) {
+                    assertEquals(expectedMsg, expected.getMessage());
+                }
+
+                try {
+                    list.add(0,dynDog);
+                    fail();
+                } catch (IllegalStateException expected) {
+                    assertEquals(expectedMsg, expected.getMessage());
+                }
+
+                try {
+                    list.set(0,dynDog);
+                    fail();
+                } catch (IllegalStateException expected) {
+                    assertEquals(expectedMsg, expected.getMessage());
+                }
+
+                dynamicRealm.cancelTransaction();
+                dynamicRealm.close();
+                finishedLatch.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(finishedLatch);
+        dynamicRealm.close();
+    }
+
+    @Test
+    public void add_set_withWrongDynamicObjectType() {
+        final String expectedMsg = "The object has a different type from list's. Type of the list is 'Dog'," +
+                        " type of object is 'Cat'.";
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(testRealm.getConfiguration());
+
+        dynamicRealm.beginTransaction();
+        RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
+                .getList(Owner.FIELD_DOGS);
+        DynamicRealmObject dynCat = dynamicRealm.createObject(Cat.CLASS_NAME);
+
+        try {
+            list.add(dynCat);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expectedMsg, expected.getMessage());
+
+        }
+
+        try {
+            list.add(0, dynCat);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expectedMsg, expected.getMessage());
+
+        }
+
+        try {
+            list.set(0, dynCat);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expectedMsg, expected.getMessage());
+
+        }
+
+        dynamicRealm.cancelTransaction();
+        dynamicRealm.close();
+    }
+
+    @Test
+    public void add_set_dynamicObjectCreatedFromTypedRealm() {
+        final String expectedMsg = "Cannot copy DynamicRealmObject between Realm instances.";
+        DynamicRealmObject dynDog = new DynamicRealmObject(testRealm.where(Dog.class).findFirst());
+        DynamicRealm dynamicRealm = DynamicRealm.getInstance(testRealm.getConfiguration());
+
+        dynamicRealm.beginTransaction();
+        RealmList<DynamicRealmObject> list = dynamicRealm.createObject(Owner.CLASS_NAME)
+                .getList(Owner.FIELD_DOGS);
+
+        try {
+            list.add(dynDog);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expectedMsg, expected.getMessage());
+        }
+
+        try {
+            list.add(0, dynDog);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expectedMsg, expected.getMessage());
+        }
+
+        try {
+            list.set(0, dynDog);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expectedMsg, expected.getMessage());
+        }
+
+        dynamicRealm.cancelTransaction();
+        dynamicRealm.close();
     }
 }
