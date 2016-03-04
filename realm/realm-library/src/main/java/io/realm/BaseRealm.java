@@ -296,10 +296,8 @@ abstract class BaseRealm implements Closeable {
         boolean hasChanged = sharedGroupManager.waitForChange();
         if (hasChanged) {
             sharedGroupManager.advanceRead();
-            if (handlerController != null) {
-                if (handler.getLooper().getThread().isAlive()) {
-                    handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
-                }
+            if (handler != null && handler.getLooper().getThread().isAlive()) {
+                handler.sendEmptyMessage(HandlerController.REALM_CHANGED);
             }
         }
         return hasChanged;
