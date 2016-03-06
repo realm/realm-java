@@ -283,8 +283,11 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * The calling thread goes to sleep until the database is changed, or until {@link releaseWaitForChange()}
-     * is called.
+     * Blocks the current thread util transactions are committed by other threads to this Realm or
+     * {@link #stopWaitForChange()} gets called.
+     *
+     * @return {@code true} if transactions are committed to this Realm, {@code false} if
+     * {@link #stopWaitForChange()} gets called.
      * @throws IllegalStateException IllegalStateException if attempting to wait within a transaction.
      */
     public boolean waitForChange() {
@@ -304,14 +307,12 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Release any thread waiting in wait_for_change() on *this* SharedGroup.
-     * @throws IllegalStateException IllegalStateException if attempting to release a wait within a transaction.
+     * Makes {@link #waitForChange()} return {@code false} immediately. This method is supposed to
+     * be called by another thread different from the one created the Realm.
+     *
+     * @throws IllegalStateException IllegalStateException if attempting to wait within a transaction.
      */
     public void stopWaitForChange() {
-        checkIfValid();
-        if (isInTransaction()) {
-            throw new IllegalStateException("Cannot release a wait for changes inside of a transaction.");
-        }
         sharedGroupManager.setWaitForChangeEnabled(false);
     }
 
