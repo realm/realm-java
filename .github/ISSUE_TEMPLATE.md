@@ -36,5 +36,7 @@
 
 ## Version of Realm and tooling
 Realm version(s): ?
+
 Android Studio version: ?
+
 Android version(s) on device/simulator: ?
