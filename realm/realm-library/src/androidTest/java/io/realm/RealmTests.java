@@ -3051,7 +3051,7 @@ public class RealmTests {
                         }
                     }
                 };
-                // first result counter
+                // first async results
                 Realm.asyncQueryExecutor.pause();
                 final RealmResults<AllTypes> asyncResults1 = realm.where(AllTypes.class).findAllAsync();
                 Realm.asyncQueryExecutor.resume();
@@ -3064,7 +3064,7 @@ public class RealmTests {
                 });
                 result1.set(realm.waitForChange());
                 changedLatch.countDown();
-                // second result counter
+                // second async results
                 Realm.asyncQueryExecutor.pause();
                 final RealmResults<AnnotationIndexTypes> asyncResults2 = realm.where(AnnotationIndexTypes.class).findAllAsync();
                 Realm.asyncQueryExecutor.resume();
