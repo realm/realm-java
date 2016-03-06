@@ -120,9 +120,20 @@ public final class DynamicRealm extends BaseRealm {
     /**
      * Removes all objects of the specified class.
      *
+     * DEPRECATED: Use {@link #delete(String)} instead.
+     *
      * @param className the class for which all objects should be removed.
      */
     public void clear(String className) {
+        delete(className);
+    }
+
+    /**
+     * Deletes all objects of the specified class from the Realm.
+     *
+     * @param className the class for which all objects should be removed.
+     */
+    public void delete(String className) {
         checkIfValid();
         schema.getTable(className).clear();
     }

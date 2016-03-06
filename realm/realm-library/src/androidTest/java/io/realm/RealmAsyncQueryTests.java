@@ -455,7 +455,7 @@ public class RealmAsyncQueryTests {
                         if (intercepts == 1) {
                             // We advance the Realm so we can simulate a retry
                             realm.beginTransaction();
-                            realm.clear(AllTypes.class);
+                            realm.delete(AllTypes.class);
                             realm.commitTransaction();
                         }
                 }
@@ -911,7 +911,7 @@ public class RealmAsyncQueryTests {
                         if (intercepts == 1) {
                             // we advance the Realm so we can simulate a retry
                             realm.beginTransaction();
-                            realm.clear(AllTypes.class);
+                            realm.delete(AllTypes.class);
                             AllTypes object = realm.createObject(AllTypes.class);
                             object.setColumnString("The Endless River");
                             object.setColumnLong(5);
@@ -1008,7 +1008,7 @@ public class RealmAsyncQueryTests {
                             // We advance the Realm so we can simulate a retry before listeners are
                             // called.
                             realm.beginTransaction();
-                            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 8).findFirst().removeFromRealm();
+                            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 8).findFirst().deleteFromRealm();
                             realm.commitTransaction();
                         }
                         break;
@@ -1815,8 +1815,7 @@ public class RealmAsyncQueryTests {
     private void populateTestRealm(final Realm testRealm, int objects) {
         testRealm.setAutoRefresh(false);
         testRealm.beginTransaction();
-        testRealm.allObjects(AllTypes.class).clear();
-        testRealm.allObjects(NonLatinFieldNames.class).clear();
+        testRealm.deleteAll();
         for (int i = 0; i < objects; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);

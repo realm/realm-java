@@ -54,7 +54,7 @@ public class AdapterExampleActivity extends Activity {
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                TimeStamp timeStamp = adapter.getRealmResults().get(i);
+                TimeStamp timeStamp = adapter.getAdapterData().get(i);
                 Message message = buildMessage(WorkerHandler.REMOVE_TIMESTAMP, timeStamp.getTimeStamp());
 
                 workerThread.workerHandler.sendMessage(message);

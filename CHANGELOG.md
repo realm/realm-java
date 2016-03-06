@@ -1,3 +1,12 @@
+## 0.89.0
+* BREAKING CHANGE: RealmResults.clear() now throws UnsupportedOperationException. Use RealmResults.deleteAllFromRealm() instead.
+* BREAKING CHANGE: RealmResults.remove(int) now throws UnsupportedOperationException. Use RealmResults.deleteFromRealm() instead.
+* Added two new interfaces: RealmCollection and OrderedRealmCollection. RealmList and RealmResults both implement these interfaces.
+* Deprecated RealmObject.removeFromRealm() in place of RealmObject.deleteFromRealm()
+* Deprecated Realm.clear(Class) in place of Realm.delete(Class).
+* Deprecated DynamicRealm.clear(Class) in place of DynamicRealm.delete(Class).
+* RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
+
 ## 0.88.0
 * BREAKING CHANGE: Realm has now to be installed as a Gradle plugin.
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).

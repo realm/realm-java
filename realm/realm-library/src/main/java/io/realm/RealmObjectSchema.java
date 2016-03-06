@@ -593,13 +593,27 @@ public final class RealmObjectSchema {
 
     /**
      * Returns the column index in the underlying table for the given field name.
-     * INVARIANT: fieldName should be present.
      *
      * @param fieldName field name to find index for.
-     * @return column index
+     * @return column index or null if it doesn't exists.
      */
     Long getFieldIndex(String fieldName) {
         return columnIndices.get(fieldName);
+    }
+
+    /**
+     * Returns the column index in the underlying table for the given field name.
+     *
+     * @param fieldName field name to find index for.
+     * @return column index.
+     * @throws IllegalArgumentException if the field does not exists.
+     */
+    long getAndCheckFieldIndex(String fieldName) {
+        Long index =  columnIndices.get(fieldName);
+        if (index == null) {
+            throw new IllegalArgumentException("Field does not exist:" + fieldName);
+        }
+        return index;
     }
 
     /**

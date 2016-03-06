@@ -116,7 +116,7 @@ public class DynamicRealmObjectTests {
     @Test
     public void constructor_deletedObjectThrows() {
         realm.beginTransaction();
-        typedObj.removeFromRealm();
+        typedObj.deleteFromRealm();
         realm.commitTransaction();
         thrown.expect(IllegalArgumentException.class);
         new DynamicRealmObject(typedObj);

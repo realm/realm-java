@@ -109,7 +109,7 @@ public class RealmAdapterTest {
         RealmAdapter realmAdapter = new RealmAdapter(context, resultList, automaticUpdate);
 
         testRealm.beginTransaction();
-        realmAdapter.getRealmResults().clear();
+        realmAdapter.getRealmResults().deleteAllFromRealm();
         testRealm.commitTransaction();
 
         assertEquals(0, realmAdapter.getCount());
@@ -123,7 +123,7 @@ public class RealmAdapterTest {
         RealmAdapter realmAdapter = new RealmAdapter(context, resultList, automaticUpdate);
 
         testRealm.beginTransaction();
-        realmAdapter.getRealmResults().remove(0);
+        realmAdapter.getRealmResults().deleteFromRealm(0);
         testRealm.commitTransaction();
         assertEquals(TEST_DATA_SIZE - 1, realmAdapter.getCount());
 

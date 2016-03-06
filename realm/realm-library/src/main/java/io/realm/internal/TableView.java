@@ -454,6 +454,14 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
+    public void removeFirst() {
+        if (parent.isImmutable()) throwImmutable();
+        if (!isEmpty()) {
+            nativeRemoveRow(nativePtr, 0);
+        }
+    }
+
+    @Override
     public void removeLast() {
         if (parent.isImmutable()) throwImmutable();
         if (!isEmpty()) {

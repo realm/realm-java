@@ -496,6 +496,10 @@ public class TestHelper {
     }
 
     public static void populatePartialNullRowsForNumericTesting (Realm realm) {
+        // Id values are [1, 2, 3]
+        // IntegerNull values are [3, null, 4]
+        // FloatNull values are [4F, null, 5F]
+        // DoubleNull values are [5D, null, 6F]
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(3);
@@ -624,7 +628,7 @@ public class TestHelper {
 
     public static void populateForMultiSort(DynamicRealm realm) {
         realm.beginTransaction();
-        realm.clear(AllTypes.CLASS_NAME);
+        realm.delete(AllTypes.CLASS_NAME);
         DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
         object1.setLong(AllTypes.FIELD_LONG, 5);
         object1.setString(AllTypes.FIELD_STRING, "Adam");

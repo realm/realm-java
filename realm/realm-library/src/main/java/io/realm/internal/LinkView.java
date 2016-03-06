@@ -16,8 +16,9 @@
 
 package io.realm.internal;
 
-import io.realm.RealmFieldType;
 import java.lang.ref.ReferenceQueue;
+
+import io.realm.RealmFieldType;
 
 /**
  * The LinkView class represents a core {@link RealmFieldType#LIST}.
@@ -146,11 +147,19 @@ public class LinkView extends NativeObject {
     }
 
     /**
-     * Remove all target rows pointed to by links in this link view, and clear this link view.
+     * Remove all target rows pointed to by links in this link view, and deleteAll this link view.
      */
     public void removeAllTargetRows() {
         checkImmutable();
         nativeRemoveAllTargetRows(nativePointer);
+    }
+
+    /**
+     * Remove target row from both the Realm and the LinkView.
+     */
+    public void removeTargetRow(int index) {
+        checkImmutable();
+        nativeRemoveTargetRow(nativePointer, index);
     }
 
     private void checkImmutable() {
@@ -173,5 +182,6 @@ public class LinkView extends NativeObject {
     protected native long nativeWhere(long nativeLinkViewPtr);
     private native boolean nativeIsAttached(long nativeLinkViewPtr);
     private native long nativeFind(long nativeLinkViewPtr, long targetRowIndex);
+    private native void nativeRemoveTargetRow(long nativeLinkViewPtr, long rowIndex);
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
 }

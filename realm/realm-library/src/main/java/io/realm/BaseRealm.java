@@ -45,7 +45,7 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
-abstract class BaseRealm implements Closeable {
+public abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -555,14 +555,31 @@ abstract class BaseRealm implements Closeable {
     /**
      * Removes all objects from this Realm.
      *
+     * DEPRECATED: Use {@link #deleteAll()}
+     *
      * @throws IllegalStateException if the corresponding Realm is closed or on an incorrect thread.
      */
+    @Deprecated
     public void clear() {
         checkIfValid();
         for (RealmObjectSchema objectSchema : schema.getAll()) {
             schema.getTable(objectSchema.getClassName()).clear();
         }
     }
+
+    /**
+     * Deletes all objects from this Realm.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
+     */
+    public void deleteAll() {
+        checkIfValid();
+        for (RealmObjectSchema objectSchema : schema.getAll()) {
+            schema.getTable(objectSchema.getClassName()).clear();
+        }
+    }
+
+
 
     /**
      * Deletes the Realm file defined by the given configuration.

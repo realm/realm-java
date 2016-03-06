@@ -1381,13 +1381,27 @@ public final class Realm extends BaseRealm {
     /**
      * Removes all objects of the specified class.
      *
+     * DEPRECATED: Use {@link #delete(Class)} instead.
+     *
      * @param clazz the class which objects should be removed.
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
+    @Deprecated
     public void clear(Class<? extends RealmObject> clazz) {
+        delete(clazz);
+    }
+
+    /**
+     * Deletes all objects of the specified class from the Realm.
+     *
+     * @param clazz the class which objects should be removed.
+     * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
+     */
+    public void delete(Class<? extends RealmObject> clazz) {
         checkIfValid();
         getTable(clazz).clear();
     }
+
 
     @SuppressWarnings("unchecked")
     private <E extends RealmObject> E copyOrUpdate(E object, boolean update) {

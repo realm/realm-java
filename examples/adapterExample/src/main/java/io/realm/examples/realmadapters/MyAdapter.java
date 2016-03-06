@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import io.realm.OrderedRealmCollection;
 import io.realm.RealmBaseAdapter;
 import io.realm.RealmResults;
 import io.realm.examples.realmadapters.models.TimeStamp;
@@ -48,12 +49,12 @@ public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapte
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        TimeStamp item = realmResults.get(position);
+        TimeStamp item = adapterData.get(position);
         viewHolder.timestamp.setText(item.getTimeStamp());
         return convertView;
     }
 
-    public RealmResults<TimeStamp> getRealmResults() {
-        return realmResults;
+    public OrderedRealmCollection<TimeStamp> getAdapterData() {
+        return adapterData;
     }
 }
