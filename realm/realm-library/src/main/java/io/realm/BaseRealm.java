@@ -22,6 +22,10 @@ import android.os.Looper;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +69,54 @@ abstract class BaseRealm implements Closeable {
     RealmSchema schema;
     Handler handler;
     HandlerController handlerController;
+
+    // Map between RealmConfig and SharedGroup to stop a Realm from waiting
+    protected static final Map<String, WeakReference<? extends BaseRealm>> waitingRealms =
+        Collections.synchronizedMap(new HashMap<String, WeakReference<? extends BaseRealm>>());
+
+    protected static <R extends BaseRealm> void addRealmToWaitList(R realm) {
+        waitingRealms.put(realm.getPath(), new WeakReference<R>(realm));
+    }
+
+    protected static <R extends BaseRealm> void removeRealmFromWaitList(R realm) {
+        String realmPath = realm.getPath();
+        Iterator<Map.Entry<String, WeakReference<? extends BaseRealm>>> iterator = waitingRealms.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, WeakReference<? extends BaseRealm>> entry = iterator.next();
+            String waitingRealmPath = entry.getKey();
+            WeakReference<? extends BaseRealm> weakRealm = entry.getValue();
+            if (weakRealm.get() == null || (realmPath.equals(waitingRealmPath) && weakRealm.get().equals(realm))) {
+                iterator.remove();
+            }
+        }
+    }
+
+    /**
+     * Makes all Realm in shared database which called {@link #waitForChange()} return {@code false}
+     * immediately. This method is safe to be called in any thread different.
+     *
+     * @param realm to find other waiting Realm with shared database.
+     * @throws IllegalArgumentException if realm is null.
+     */
+    public static <R extends BaseRealm> void stopAllWaitingRealmInSharedDatabase(R realm) {
+        if (realm == null) {
+            throw new IllegalArgumentException("Cannot stop waiting Realm in shared database.");
+        }
+        String realmPath = realm.getPath();
+        Iterator<Map.Entry<String, WeakReference<? extends BaseRealm>>> iterator = waitingRealms.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, WeakReference<? extends BaseRealm>> entry = iterator.next();
+            String waitingRealmPath = entry.getKey();
+            WeakReference<? extends BaseRealm> weakRealm = entry.getValue();
+            if (realmPath.equals(waitingRealmPath)) {
+                // in case weakRealm is not null, stop it from waiting
+                if (weakRealm.get() != null) {
+                    weakRealm.get().sharedGroupManager.setWaitForChangeEnabled(false);
+                }
+                iterator.remove();
+            }
+        }
+    }
 
     static {
         RealmLog.add(BuildConfig.DEBUG ? new DebugAndroidLogger() : new ReleaseAndroidLogger());
@@ -288,7 +340,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return {@code true} if transactions are committed to this Realm, {@code false} if
      * {@link #stopWaitForChange()} gets called.
-     * @throws IllegalStateException IllegalStateException if attempting to wait within a transaction.
+     * @throws IllegalStateException if attempting to wait within a transaction.
      */
     public boolean waitForChange() {
         checkIfValid();
@@ -296,7 +348,11 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
         }
         sharedGroupManager.setWaitForChangeEnabled(true);
+        // add this to wait list for batch stop
+        addRealmToWaitList(this);
         boolean hasChanged = sharedGroupManager.waitForChange();
+        // remove this from wait list
+        removeRealmFromWaitList(this);
         if (hasChanged) {
             sharedGroupManager.advanceRead();
             if (handlerController != null) {
@@ -312,10 +368,10 @@ abstract class BaseRealm implements Closeable {
     /**
      * Makes {@link #waitForChange()} return {@code false} immediately. This method is supposed to
      * be called by another thread different from the one created the Realm.
-     *
-     * @throws IllegalStateException IllegalStateException if attempting to wait within a transaction.
      */
     public void stopWaitForChange() {
+        // remove this from wait list
+        removeRealmFromWaitList(this);
         sharedGroupManager.setWaitForChangeEnabled(false);
     }
 

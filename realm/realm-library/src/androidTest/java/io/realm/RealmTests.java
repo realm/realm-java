@@ -3171,4 +3171,66 @@ public class RealmTests {
             realm.cancelTransaction();
         }
     }
+
+    // Test if waitForChange gets waked up by stopAllWaitingRealmInSharedDatabase called.
+    @Test
+    public void stopAllWaitingRealmInSharedDatabase() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch canceledLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result = new AtomicBoolean(false);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                openedLatch.countDown();
+                result.set(realm.waitForChange());
+                canceledLatch.countDown();
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(200);
+        Realm.stopAllWaitingRealmInSharedDatabase(realm);
+        TestHelper.awaitOrFail(canceledLatch);
+        assertFalse(result.get());
+        TestHelper.awaitOrFail(closedLatch);
+    }
+
+    // Test if waitForChange still blocks if stopAllWaitingRealmInSharedDatabase has been called before.
+    @Test
+    public void stopAllWaitingRealmInSharedDatabase_againAfterStop() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch changedLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result1 = new AtomicBoolean(true);
+        final AtomicBoolean result2 = new AtomicBoolean(false);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                openedLatch.countDown();
+                result1.set(realm.waitForChange());
+                changedLatch.countDown();
+                result2.set(realm.waitForChange());
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(100);
+        Realm.stopAllWaitingRealmInSharedDatabase(realm);
+        TestHelper.awaitOrFail(changedLatch);
+        assertFalse(result1.get());
+        Thread.sleep(500);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        TestHelper.awaitOrFail(closedLatch);
+        assertTrue(result2.get());
+    }
 }
