@@ -75,17 +75,23 @@ abstract class BaseRealm implements Closeable {
         Collections.synchronizedMap(new HashMap<String, WeakReference<? extends BaseRealm>>());
 
     protected static <R extends BaseRealm> void addRealmToWaitList(R realm) {
+        if (realm == null) {
+            return;
+        }
         waitingRealms.put(realm.getPath(), new WeakReference<R>(realm));
     }
 
     protected static <R extends BaseRealm> void removeRealmFromWaitList(R realm) {
+        if (realm == null) {
+            return;
+        }
         String realmPath = realm.getPath();
         Iterator<Map.Entry<String, WeakReference<? extends BaseRealm>>> iterator = waitingRealms.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, WeakReference<? extends BaseRealm>> entry = iterator.next();
             String waitingRealmPath = entry.getKey();
             WeakReference<? extends BaseRealm> weakRealm = entry.getValue();
-            if (weakRealm.get() == null || (realmPath.equals(waitingRealmPath) && weakRealm.get().equals(realm))) {
+            if (weakRealm.get() == null || (realmPath.equals(waitingRealmPath) && weakRealm.get() == realm)) {
                 iterator.remove();
             }
         }
