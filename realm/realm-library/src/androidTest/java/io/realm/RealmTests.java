@@ -2980,7 +2980,7 @@ public class RealmTests {
 
     // Test if waitForChange gets waked up by 1) empty transaction 2) transaction with some data changes.
     @Test
-    public void waitForChange_onNonLooperThread() throws InterruptedException {
+    public void waitForChange() throws InterruptedException {
         final long numberOfBlocks = 16;
         final long numberOfObjects = 1; // must be greater than 1
         final CountDownLatch openedLatch = new CountDownLatch(1);
@@ -3020,79 +3020,6 @@ public class RealmTests {
         populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
         TestHelper.awaitOrFail(closedLatch);
         assertTrue(result2.get());
-        assertEquals(numberOfBlocks * numberOfBlocks, count2.get());
-    }
-
-    @Test
-    public void waitForChange_onLooperThread() throws InterruptedException {
-        final long numberOfBlocks = 16;
-        final long numberOfObjects = 1; // must be greater than 1
-        final CountDownLatch openedLatch = new CountDownLatch(1);
-        final CountDownLatch changedLatch = new CountDownLatch(1);
-        final CountDownLatch closedLatch = new CountDownLatch(2);
-        final AtomicBoolean result1 = new AtomicBoolean(false);
-        final AtomicBoolean result2 = new AtomicBoolean(false);
-        final AtomicLong count1 = new AtomicLong(0);
-        final AtomicLong count2 = new AtomicLong(0);
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Looper.prepare();
-                // create background realm
-                final Realm realm = Realm.getInstance(realmConfig);
-                openedLatch.countDown();
-                final Runnable endTest = new Runnable() {
-                    @Override
-                    public void run() {
-                        closedLatch.countDown();
-                        if (closedLatch.getCount() == 0) {
-                            realm.close();
-                        }
-                    }
-                };
-                // first async results
-                Realm.asyncQueryExecutor.pause();
-                final RealmResults<AllTypes> asyncResults1 = realm.where(AllTypes.class).findAllAsync();
-                Realm.asyncQueryExecutor.resume();
-                asyncResults1.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        count1.set(asyncResults1.size());
-                        endTest.run();
-                    }
-                });
-                result1.set(realm.waitForChange());
-                changedLatch.countDown();
-                // second async results
-                Realm.asyncQueryExecutor.pause();
-                final RealmResults<AnnotationIndexTypes> asyncResults2 = realm.where(AnnotationIndexTypes.class).findAllAsync();
-                Realm.asyncQueryExecutor.resume();
-                asyncResults2.addChangeListener(new RealmChangeListener() {
-                    @Override
-                    public void onChange() {
-                        count2.set(asyncResults2.size());
-                        endTest.run();
-                    }
-                });
-                result2.set(realm.waitForChange());
-                Looper.loop();
-            }
-        });
-        thread.start();
-
-        TestHelper.awaitOrFail(openedLatch);
-        Thread.sleep(100);
-        realm.beginTransaction();
-        realm.createObject(AllTypes.class);
-        realm.commitTransaction();
-        TestHelper.awaitOrFail(changedLatch);
-        assertTrue(result1.get());
-        Thread.sleep(500);
-        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
-        TestHelper.awaitOrFail(closedLatch);
-        assertTrue(result2.get());
-        assertEquals(1, count1.get());
         assertEquals(numberOfBlocks * numberOfBlocks, count2.get());
     }
 

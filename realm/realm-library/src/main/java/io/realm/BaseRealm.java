@@ -361,12 +361,6 @@ abstract class BaseRealm implements Closeable {
         removeRealmFromWaitList(this);
         if (hasChanged) {
             sharedGroupManager.advanceRead();
-            if (handlerController != null) {
-                handlerController.notifyAllListeners();
-                if (!isClosed() && handlerController.threadContainsAsyncEmptyRealmObject()) {
-                    handlerController.updateAsyncEmptyRealmObject();
-                }
-            }
         }
         return hasChanged;
     }
