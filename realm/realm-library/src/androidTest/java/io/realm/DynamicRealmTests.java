@@ -30,6 +30,9 @@ import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
@@ -995,5 +998,188 @@ public class DynamicRealmTests {
 
         assertEquals(0, list.size());
         assertEquals(0, realm.where(Dog.CLASS_NAME).count());
+    }
+
+    // Test if waitForChange gets waked up by 1) empty transaction 2) transaction with some data changes.
+    @Test
+    public void waitForChange() throws InterruptedException {
+        final long numberOfBlocks = 16;
+        final long numberOfObjects = 1; // must be greater than 1
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch changedLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result1 = new AtomicBoolean(false);
+        final AtomicBoolean result2 = new AtomicBoolean(false);
+        final AtomicLong count1 = new AtomicLong(0);
+        final AtomicLong count2 = new AtomicLong(0);
+
+        // wait in background
+        final CountDownLatch signalTestFinished = new CountDownLatch(1);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+                openedLatch.countDown();
+                result1.set(realm.waitForChange());
+                count1.set(realm.where(AllTypes.CLASS_NAME).count());
+                changedLatch.countDown();
+                result2.set(realm.waitForChange());
+                count2.set(realm.where(AnnotationIndexTypes.CLASS_NAME).count());
+                realm.close();
+                closedLatch.countDown();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(100);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        TestHelper.awaitOrFail(changedLatch);
+        assertTrue(result1.get());
+        assertEquals(0, count1.get());
+        Thread.sleep(500);
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+        TestHelper.awaitOrFail(closedLatch);
+        assertTrue(result2.get());
+        assertEquals(numberOfBlocks * numberOfBlocks, count2.get());
+    }
+
+    // Test if waitForChange gets waked up by stopWaitForChange called.
+    @Test
+    public void stopWaitForChange() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch canceledLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result = new AtomicBoolean(false);
+        final DynamicRealm[] otherRealm = new DynamicRealm[1];
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                otherRealm[0] = DynamicRealm.getInstance(defaultConfig);
+                openedLatch.countDown();
+                result.set(otherRealm[0].waitForChange());
+                canceledLatch.countDown();
+                otherRealm[0].close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(200);
+        otherRealm[0].stopWaitForChange();
+        TestHelper.awaitOrFail(canceledLatch);
+        assertFalse(result.get());
+        TestHelper.awaitOrFail(closedLatch);
+    }
+
+    // Test if waitForChange still blocks if stopWaitForChange has been called before.
+    @Test
+    public void waitForChange_againAfterStop() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch changedLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result1 = new AtomicBoolean(true);
+        final AtomicBoolean result2 = new AtomicBoolean(false);
+        final DynamicRealm[] realmArray = new DynamicRealm[1];
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                realmArray[0] = DynamicRealm.getInstance(defaultConfig);
+                openedLatch.countDown();
+                result1.set(realmArray[0].waitForChange());
+                changedLatch.countDown();
+                result2.set(realmArray[0].waitForChange());
+                realmArray[0].close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(100);
+        realmArray[0].stopWaitForChange();
+        TestHelper.awaitOrFail(changedLatch);
+        assertFalse(result1.get());
+        Thread.sleep(500);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        TestHelper.awaitOrFail(closedLatch);
+        assertTrue(result2.get());
+    }
+
+    @Test
+    public void waitForChange_illegalWaitInsideTransaction() {
+        realm.beginTransaction();
+        try {
+            realm.waitForChange();
+            fail("Cannot wait inside of a transaction");
+        } catch (IllegalStateException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    // Test if waitForChange gets waked up by stopAllWaitingRealmInSharedDatabase called.
+    @Test
+    public void stopAllWaitingRealmInSharedDatabase() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch canceledLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result = new AtomicBoolean(false);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+                openedLatch.countDown();
+                result.set(realm.waitForChange());
+                canceledLatch.countDown();
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(200);
+        DynamicRealm.stopAllWaitingRealmInSharedDatabase(realm);
+        TestHelper.awaitOrFail(canceledLatch);
+        assertFalse(result.get());
+        TestHelper.awaitOrFail(closedLatch);
+    }
+
+    // Test if waitForChange still blocks if stopAllWaitingRealmInSharedDatabase has been called before.
+    @Test
+    public void stopAllWaitingRealmInSharedDatabase_againAfterStop() throws InterruptedException {
+        final CountDownLatch openedLatch = new CountDownLatch(1);
+        final CountDownLatch changedLatch = new CountDownLatch(1);
+        final CountDownLatch closedLatch = new CountDownLatch(1);
+        final AtomicBoolean result1 = new AtomicBoolean(true);
+        final AtomicBoolean result2 = new AtomicBoolean(false);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DynamicRealm realm = DynamicRealm.getInstance(defaultConfig);
+                openedLatch.countDown();
+                result1.set(realm.waitForChange());
+                changedLatch.countDown();
+                result2.set(realm.waitForChange());
+                realm.close();
+                closedLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(openedLatch);
+        Thread.sleep(100);
+        DynamicRealm.stopAllWaitingRealmInSharedDatabase(realm);
+        TestHelper.awaitOrFail(changedLatch);
+        assertFalse(result1.get());
+        Thread.sleep(500);
+        realm.beginTransaction();
+        realm.commitTransaction();
+        TestHelper.awaitOrFail(closedLatch);
+        assertTrue(result2.get());
     }
 }

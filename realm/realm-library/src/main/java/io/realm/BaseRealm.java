@@ -71,6 +71,7 @@ abstract class BaseRealm implements Closeable {
     HandlerController handlerController;
 
     // Map between RealmConfig and SharedGroup to stop a Realm from waiting
+    // Only one thread at a time can operation on Collections.synchronizedMap
     protected static final Map<String, WeakReference<? extends BaseRealm>> waitingRealms =
         Collections.synchronizedMap(new HashMap<String, WeakReference<? extends BaseRealm>>());
 
@@ -99,9 +100,9 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Makes all Realm in shared database which called {@link #waitForChange()} return {@code false}
-     * immediately. This method is safe to be called in any thread different.
+     * immediately. This method is safe to be called in any thread.
      *
-     * @param realm to find other waiting Realm with shared database.
+     * @param realm to find other waiting Realm in shared database.
      * @throws IllegalArgumentException if realm is null.
      */
     public static <R extends BaseRealm> void stopAllWaitingRealmInSharedDatabase(R realm) {
