@@ -7,6 +7,7 @@
 * BREAKING CHANGE: All thread local change listeners are now delayed until the next Looper event instead of being triggered when committing.
 * BREAKING CHANGE: Removed RealmConfiguration.getSchemaMediator() from public API which was deprecated in 0.86.0. Please use RealmConfiguration.getRealmObjectClasses() to obtain the set of model classes (#1797).
 * BREAKING CHANGE: Realm.migrateRealm() throws a FileNotFoundException if the Realm file doesn't exist.
+* BREAKING CHANGE: It is now required to unsubscribe from all Realm RxJava observables in order to fully close the Realm (#2357).
 * Added support for custom methods, custom logic in accessors, custom accessor names, interface implementation and public fields in Realm objects. (#909)
 * Added support to project Lombok. (#502)
 * Deprecated methods: Realm.getInstance(Context). Use Realm.getInstance(RealmConfiguration) or Realm.getDefaultInstance() instead.
