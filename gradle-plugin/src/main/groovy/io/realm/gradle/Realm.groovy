@@ -35,6 +35,10 @@ class Realm implements Plugin<Project> {
             throw new GradleException("'com.android.application' or 'com.android.library' plugin required.")
         }
 
+        if (!isTransformAvailable()) {
+            throw new GradleException('Realm gradle plugin only supports android gradle plugin 1.5.0 or later.')
+        }
+
         def isKotlinProject = project.plugins.find {
             it.getClass().name == 'org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper'
         }
@@ -54,6 +58,15 @@ class Realm implements Plugin<Project> {
         } else {
             project.dependencies.add("apt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("apt", "io.realm:realm-annotations-processor:${Version.VERSION}")
+        }
+    }
+
+    private static boolean isTransformAvailable() {
+        try {
+            Class.forName('com.android.build.api.transform.Transform')
+            return true
+        } catch (Exception ignored) {
+            return false
         }
     }
 }
