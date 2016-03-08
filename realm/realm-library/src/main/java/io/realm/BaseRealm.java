@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.SharedGroupManager;
 import io.realm.internal.Table;
@@ -185,6 +186,7 @@ abstract class BaseRealm implements Closeable {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
+    @OptionalAPI(dependencies = {"rx.Observable"})
     public abstract Observable asObservable();
 
     /**

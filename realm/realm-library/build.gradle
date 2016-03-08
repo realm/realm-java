@@ -37,8 +37,10 @@ android {
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
 
 import io.realm.transformer.RealmTransformer
+//import io.realm.transformer.RealmOptionalAPITransformer
 
 android.registerTransform(new RealmTransformer())
+//android.registerTransform(new RealmOptionalAPITransformer())
 
 repositories {
     maven { url "https://jitpack.io" }

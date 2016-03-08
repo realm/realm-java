@@ -41,6 +41,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import io.realm.annotations.internal.OptionalAPI;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmIOException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -142,6 +143,7 @@ public final class Realm extends BaseRealm {
      * {@inheritDoc}
      */
     @Override
+    @OptionalAPI(dependencies = {"rx.Observable"})
     public Observable<Realm> asObservable() {
         return configuration.getRxFactory().from(this);
     }
