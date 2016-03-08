@@ -3030,23 +3030,24 @@ public class RealmTests {
         final CountDownLatch canceledLatch = new CountDownLatch(1);
         final CountDownLatch closedLatch = new CountDownLatch(1);
         final AtomicBoolean result = new AtomicBoolean(false);
-        final Realm[] otherRealm = new Realm[1];
+        final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                otherRealm[0] = Realm.getInstance(realmConfig);
+                Realm realm = Realm.getInstance(realmConfig);
+                bgRealm.set(realm);
                 openedLatch.countDown();
-                result.set(otherRealm[0].waitForChange());
+                result.set(realm.waitForChange());
                 canceledLatch.countDown();
-                otherRealm[0].close();
+                realm.close();
                 closedLatch.countDown();
             }
         }).start();
 
         TestHelper.awaitOrFail(openedLatch);
         Thread.sleep(200);
-        otherRealm[0].stopWaitForChange();
+        bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(canceledLatch);
         assertFalse(result.get());
         TestHelper.awaitOrFail(closedLatch);
@@ -3060,24 +3061,25 @@ public class RealmTests {
         final CountDownLatch closedLatch = new CountDownLatch(1);
         final AtomicBoolean result1 = new AtomicBoolean(true);
         final AtomicBoolean result2 = new AtomicBoolean(false);
-        final Realm[] realmArray = new Realm[1];
+        final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                realmArray[0] = Realm.getInstance(realmConfig);
+                Realm realm = Realm.getInstance(realmConfig);
+                bgRealm.set(realm);
                 openedLatch.countDown();
-                result1.set(realmArray[0].waitForChange());
+                result1.set(realm.waitForChange());
                 changedLatch.countDown();
-                result2.set(realmArray[0].waitForChange());
-                realmArray[0].close();
+                result2.set(realm.waitForChange());
+                realm.close();
                 closedLatch.countDown();
             }
         }).start();
 
         TestHelper.awaitOrFail(openedLatch);
         Thread.sleep(100);
-        realmArray[0].stopWaitForChange();
+        bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(changedLatch);
         assertFalse(result1.get());
         Thread.sleep(500);
@@ -3097,67 +3099,5 @@ public class RealmTests {
         } finally {
             realm.cancelTransaction();
         }
-    }
-
-    // Test if waitForChange gets waked up by stopAllWaitingRealmInSharedDatabase called.
-    @Test
-    public void stopAllWaitingRealmInSharedDatabase() throws InterruptedException {
-        final CountDownLatch openedLatch = new CountDownLatch(1);
-        final CountDownLatch canceledLatch = new CountDownLatch(1);
-        final CountDownLatch closedLatch = new CountDownLatch(1);
-        final AtomicBoolean result = new AtomicBoolean(false);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-                openedLatch.countDown();
-                result.set(realm.waitForChange());
-                canceledLatch.countDown();
-                realm.close();
-                closedLatch.countDown();
-            }
-        }).start();
-
-        TestHelper.awaitOrFail(openedLatch);
-        Thread.sleep(200);
-        Realm.stopAllWaitingRealmInSharedDatabase(realm);
-        TestHelper.awaitOrFail(canceledLatch);
-        assertFalse(result.get());
-        TestHelper.awaitOrFail(closedLatch);
-    }
-
-    // Test if waitForChange still blocks if stopAllWaitingRealmInSharedDatabase has been called before.
-    @Test
-    public void stopAllWaitingRealmInSharedDatabase_againAfterStop() throws InterruptedException {
-        final CountDownLatch openedLatch = new CountDownLatch(1);
-        final CountDownLatch changedLatch = new CountDownLatch(1);
-        final CountDownLatch closedLatch = new CountDownLatch(1);
-        final AtomicBoolean result1 = new AtomicBoolean(true);
-        final AtomicBoolean result2 = new AtomicBoolean(false);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Realm realm = Realm.getInstance(realmConfig);
-                openedLatch.countDown();
-                result1.set(realm.waitForChange());
-                changedLatch.countDown();
-                result2.set(realm.waitForChange());
-                realm.close();
-                closedLatch.countDown();
-            }
-        }).start();
-
-        TestHelper.awaitOrFail(openedLatch);
-        Thread.sleep(100);
-        Realm.stopAllWaitingRealmInSharedDatabase(realm);
-        TestHelper.awaitOrFail(changedLatch);
-        assertFalse(result1.get());
-        Thread.sleep(500);
-        realm.beginTransaction();
-        realm.commitTransaction();
-        TestHelper.awaitOrFail(closedLatch);
-        assertTrue(result2.get());
     }
 }
