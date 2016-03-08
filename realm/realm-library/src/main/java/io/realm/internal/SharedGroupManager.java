@@ -173,6 +173,8 @@ public class SharedGroupManager implements Closeable {
                     SharedGroup.Durability.FULL,
                     configuration.getEncryptionKey());
             result = sharedGroup.compact();
+        } catch (Exception e) {
+            return false;
         } finally {
             if (sharedGroup != null) {
                 sharedGroup.close();
