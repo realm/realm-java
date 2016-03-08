@@ -115,7 +115,7 @@ abstract class BaseRealm implements Closeable {
             Map.Entry<String, WeakReference<? extends BaseRealm>> entry = iterator.next();
             String waitingRealmPath = entry.getKey();
             WeakReference<? extends BaseRealm> weakRealm = entry.getValue();
-            if (realmPath.equals(waitingRealmPath)) {
+            if (realmPath.equals(waitingRealmPath) || weakRealm.get() == null) {
                 BaseRealm waitingRealm = weakRealm.get();
                 if (waitingRealm != null && waitingRealm.sharedGroupManager != null) {
                     waitingRealm.sharedGroupManager.setWaitForChangeEnabled(false);
