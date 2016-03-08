@@ -921,7 +921,7 @@ public class RealmListTests {
         assertEquals(TEST_OBJECTS, dogs.size());
 
         testRealm.beginTransaction();
-        dogs.removeAllFromRealm();
+        dogs.deleteAllFromRealm();
         testRealm.commitTransaction();
         assertEquals(0, dogs.size());
         assertEquals(0, testRealm.where(Dog.class).count());
@@ -939,7 +939,7 @@ public class RealmListTests {
         }
 
         testRealm.beginTransaction();
-        notManagedDogs.removeAllFromRealm();
+        notManagedDogs.deleteAllFromRealm();
         testRealm.commitTransaction();
         assertEquals(0, dogs.size());
         assertEquals(0, notManagedDogs.size());
@@ -951,7 +951,7 @@ public class RealmListTests {
         Owner owner = testRealm.where(Owner.class).findFirst();
         RealmList<Dog> dogs = owner.getDogs();
         try {
-            dogs.removeAllFromRealm();
+            dogs.deleteAllFromRealm();
             fail("removeAllFromRealm should be called in a transaction.");
         } catch (IllegalStateException e) {
             assertEquals("Changing Realm data can only be done from inside a transaction.", e.getMessage());
@@ -972,7 +972,7 @@ public class RealmListTests {
 
         testRealm.beginTransaction();
         try {
-            list.removeAllFromRealm();
+            list.deleteAllFromRealm();
             fail("Cannot remove a list with a standalone object in it!");
         } catch (IllegalStateException e) {
             assertEquals("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with" +
@@ -991,14 +991,14 @@ public class RealmListTests {
         assertEquals(TEST_OBJECTS, dogs.size());
 
         testRealm.beginTransaction();
-        dogs.removeAllFromRealm();
+        dogs.deleteAllFromRealm();
         testRealm.commitTransaction();
         assertEquals(0, dogs.size());
         assertEquals(0, testRealm.where(Dog.class).count());
 
         // The dogs is empty now.
         testRealm.beginTransaction();
-        dogs.removeAllFromRealm();
+        dogs.deleteAllFromRealm();
         testRealm.commitTransaction();
         assertEquals(0, dogs.size());
         assertEquals(0, testRealm.where(Dog.class).count());
@@ -1013,7 +1013,7 @@ public class RealmListTests {
         testRealm = null;
 
         try {
-            dogs.removeAllFromRealm();
+            dogs.deleteAllFromRealm();
             fail("dogs is invalid and it should throw an exception");
         } catch (IllegalStateException e) {
             assertEquals("This Realm instance has already been closed, making it unusable.", e.getMessage());

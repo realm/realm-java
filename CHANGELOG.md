@@ -18,7 +18,7 @@
 * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 * Fixed bug when calling DynamicRealmObject.setList() with RealmList<DynamicRealmObject> (#2368).
 * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
-* Added Realm.clear() and RealmList.removeAllFromRealm() (#1560).
+* Added Realm.deleteAll() and RealmList.deleteAllFromRealm() (#1560).
 * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 * Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
 * Improved .so loading by using [ReLinker](https://github.com/KeepSafe/ReLinker).

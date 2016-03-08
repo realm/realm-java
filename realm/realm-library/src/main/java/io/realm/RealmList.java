@@ -270,7 +270,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
      * @see List#isEmpty
      * @see List#size
-     * @see #removeAllFromRealm()
+     * @see #deleteAllFromRealm()
      */
     @Override
     public void clear() {
@@ -310,7 +310,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
      * method is called in a wrong thread or any RealmObject in the list is not managed by Realm.
      * @see #clear()
      */
-    public void removeAllFromRealm() {
+    public void deleteAllFromRealm() {
         if (managedMode) {
             checkValidView();
             view.removeAllTargetRows();
