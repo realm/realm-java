@@ -169,7 +169,7 @@ public class SharedGroupManager implements Closeable {
         try {
             sharedGroup = new SharedGroup(
                     configuration.getPath(),
-                    SharedGroup.EXPLICIT_TRANSACTION,
+                    SharedGroup.IMPLICIT_TRANSACTION,
                     SharedGroup.Durability.FULL,
                     configuration.getEncryptionKey());
             result = sharedGroup.compact();
