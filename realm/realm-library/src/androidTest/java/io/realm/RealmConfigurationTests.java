@@ -43,6 +43,8 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rx.RxObservableFactory;
+import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -576,5 +578,70 @@ public class RealmConfigurationTests {
             fail();
         } catch (UnsupportedOperationException ignored) {
         }
+    }
+
+    @Test
+    public void rxFactory() {
+        final RxObservableFactory dummyFactory = new RxObservableFactory() {
+            @Override
+            public Observable<Realm> from(Realm realm) {
+                return null;
+            }
+
+            @Override
+            public Observable<DynamicRealm> from(DynamicRealm realm) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmObject> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
+                return null;
+            }
+
+            @Override
+            public Observable<RealmResults<DynamicRealmObject>> from(DynamicRealm realm, RealmResults<DynamicRealmObject> results) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmObject> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
+                return null;
+            }
+
+            @Override
+            public Observable<RealmList<DynamicRealmObject>> from(DynamicRealm realm, RealmList<DynamicRealmObject> list) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmObject> Observable<E> from(Realm realm, E object) {
+                return null;
+            }
+
+            @Override
+            public Observable<DynamicRealmObject> from(DynamicRealm realm, DynamicRealmObject object) {
+                return null;
+            }
+
+            @Override
+            public <E extends RealmObject> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
+                return null;
+            }
+
+            @Override
+            public Observable<RealmQuery<DynamicRealmObject>> from(DynamicRealm realm, RealmQuery<DynamicRealmObject> query) {
+                return null;
+            }
+        };
+
+        RealmConfiguration configuration1 = configFactory.createConfigurationBuilder()
+                .rxFactory(dummyFactory)
+                .build();
+        assertTrue(configuration1.getRxFactory() == dummyFactory);
+
+        RealmConfiguration configuration2 = configFactory.createConfigurationBuilder()
+                .build();
+        assertNotNull(configuration2.getRxFactory());
+        assertFalse(configuration2.getRxFactory() == dummyFactory);
     }
 }

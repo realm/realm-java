@@ -103,6 +103,14 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
                                 threadAssertionError[0] = e;
                                 unitTestFailed = true;
                             } finally {
+                                try {
+                                    looperTearDown();
+                                } catch (Throwable t) {
+                                    if (threadAssertionError[0] == null) {
+                                        threadAssertionError[0] = t;
+                                    }
+                                    unitTestFailed = true;
+                                }
                                 if (signalTestCompleted.getCount() > 0) {
                                     signalTestCompleted.countDown();
                                 }
@@ -180,5 +188,12 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      */
     public void postRunnable(Runnable runnable) {
         backgroundHandler.post(runnable);
+    }
+
+    /**
+     * Tear down logic which is guaranteed to run after the looper test has either completed or failed.
+     * This will run on the same thread as the looper test.
+     */
+    public void looperTearDown() {
     }
 }
