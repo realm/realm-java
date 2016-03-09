@@ -124,6 +124,7 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @param className the class for which all objects should be removed.
      */
+    @Deprecated
     public void clear(String className) {
         delete(className);
     }

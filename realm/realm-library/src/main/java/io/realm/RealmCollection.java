@@ -26,10 +26,6 @@ import io.realm.RealmQuery;
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
  * collections and the behavior that they will have in all implementations of {@code RealmCollection}s.
  *
- * Methods marked with (optional) can throw an
- * {@code UnsupportedOperationException} if the underlying collection doesn't
- * support that method.
- *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
 public interface RealmCollection<E extends RealmObject> extends Collection<E> {

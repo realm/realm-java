@@ -27,16 +27,18 @@ import java.util.List;
 public interface OrderedRealmCollection<E extends RealmObject> extends List<E>, RealmCollection<E> {
 
     /**
-     * Gets the first object from the list or {@code null} if the collection is empty.
+     * Gets the first object from the collection.
      *
      * @return the first object or {@code null} if the collection is empty.
+     * @throws IndexOutOfBoundsException if the collection is empty.
      */
     E first();
 
     /**
-     * Gets the last object from the list or {@code null} if the collection is empty.
+     * Gets the last object from the collection.
      *
      * @return the last object or {@code null} if the collection is empty.
+     * @throws IndexOutOfBoundsException if the collection is empty.
      */
     E last();
 

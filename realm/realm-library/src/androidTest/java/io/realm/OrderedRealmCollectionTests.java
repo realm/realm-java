@@ -214,7 +214,11 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     @Test
     public void first_emptyCollection() {
         collection = createEmptyCollection(realm, collectionClass);
-        assertNull(collection.first());
+        try {
+            collection.first();
+            fail();
+        } catch (IndexOutOfBoundsException ignored) {
+        }
     }
 
     @Test
@@ -225,7 +229,11 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     @Test
     public void last_emptyCollection() {
         collection = createEmptyCollection(realm, collectionClass);
-        assertNull(collection.last());
+        try {
+            collection.last();
+            fail();
+        } catch (IndexOutOfBoundsException ignored) {
+        }
     }
 
     @Test

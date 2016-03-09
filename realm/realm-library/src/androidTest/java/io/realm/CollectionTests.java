@@ -24,8 +24,6 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 
-import static org.junit.Assert.fail;
-
 /**
  * Super class for all RealmCollection related tests.
  * This class only contains configuration and helper methods.
@@ -36,22 +34,22 @@ public abstract class CollectionTests {
 
     // Enumerate all known collection classes from the Realm API.
     protected enum CollectionClass {
-        MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS;
+        MANAGED_REALMLIST, UNMANAGED_REALMLIST, REALMRESULTS
     }
 
     // Enumerate all current supported collections that can be in un-managed mode.
     protected enum UnManagedCollection {
-        UNMANAGED_REALMLIST;
+        UNMANAGED_REALMLIST
     }
 
     // Enumerate all current supported collections that can be managed by Realm.
     protected enum ManagedCollection {
-        MANAGED_REALMLIST, REALMRESULTS;
+        MANAGED_REALMLIST, REALMRESULTS
     }
 
     // Enumerate all methods from the RealmCollection interface that depend on Realm API's.
     protected enum RealmCollectionMethod {
-        WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID;
+        WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID
     }
 
     // Enumerate all methods from the Collection interface

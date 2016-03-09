@@ -609,9 +609,9 @@ public final class RealmObjectSchema {
      * @throws IllegalArgumentException if the field does not exists.
      */
     long getAndCheckFieldIndex(String fieldName) {
-        Long index =  columnIndices.get(fieldName);
+        Long index = columnIndices.get(fieldName);
         if (index == null) {
-            throw new IllegalArgumentException("Field does not exist:" + fieldName);
+            throw new IllegalArgumentException("Field does not exist: " + fieldName);
         }
         return index;
     }
