@@ -283,17 +283,20 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Blocks the current thread util transactions are committed by other threads to this Realm or
+     * Blocks the current thread until transactions are committed by other threads to this Realm or
      * {@link #stopWaitForChange()} is called from other threads.
      *
-     * @return {@code true} if transactions are committed to this Realm, {@code false} if
-     * {@link #stopWaitForChange()} gets called.
+     * @return {@code true} if transactions are committed to this Realm instance, {@code false} if
+     * wait has been cancelled by {@link #stopWaitForChange()} called.
      * @throws IllegalStateException if attempting to wait within a transaction.
      */
     public boolean waitForChange() {
         checkIfValid();
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
+        }
+        if (handlerController != null) {
+            throw new IllegalStateException("Cannot wait for changes inside of a Looper.");
         }
         sharedGroupManager.setWaitForChangeEnabled(true);
         boolean hasChanged = sharedGroupManager.waitForChange();
@@ -304,8 +307,10 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Makes {@link #waitForChange()} return {@code false} immediately. This method is supposed to
-     * be called by another thread different from the one created the Realm.
+     * Makes {@link #waitForChange()} return {@code false} immediately. This method is threadsafe
+     * and should be called from another thread than the one that called {@link #waitForChange}.
+     * If {@link #waitForChange()} is called on a Realm in another thread after this method is called,
+     * the Realm will continue to wait for changes.
      */
     public void stopWaitForChange() {
         sharedGroupManager.setWaitForChangeEnabled(false);

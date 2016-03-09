@@ -42,6 +42,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -82,6 +84,7 @@ import io.realm.internal.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.util.ExceptionHolder;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -3001,10 +3004,6 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // it is necessary to give a time window for the background realm to wait on change.
-        // if we're to use wait/notify pair, we might actually miss notification from background and
-        // the foreground thread might wait indefinitely.
-        Thread.sleep(200);
         realm.beginTransaction();
         realm.commitTransaction();
         TestHelper.awaitOrFail(bgRealmClosed);
@@ -3035,8 +3034,6 @@ public class RealmTests {
         thread.start();
 
         TestHelper.awaitOrFail(bgRealmOpened);
-        // it is necessary to give a time window for the background realm to wait on change.
-        Thread.sleep(200);
         populateTestRealm();
         TestHelper.awaitOrFail(bgRealmClosed);
         assertTrue(bgRealmResult.get());
@@ -3065,6 +3062,8 @@ public class RealmTests {
 
         TestHelper.awaitOrFail(bgRealmOpened);
         // it is necessary to give a time window for the background realm to wait on change.
+        // if we're to use wait/notify pair, we might actually miss notification from background and
+        // the foreground thread might wait indefinitely.
         Thread.sleep(200);
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmClosed);
@@ -3104,12 +3103,77 @@ public class RealmTests {
         bgRealm.get().stopWaitForChange();
         TestHelper.awaitOrFail(bgRealmStopped);
         assertFalse(bgRealmStoppedResult.get());
-        Thread.sleep(200);
         realm.beginTransaction();
         realm.commitTransaction();
         TestHelper.awaitOrFail(bgRealmClosed);
         assertTrue(bgRealmChangeResult.get());
         assertEquals(0, bgReamCount.get());
+    }
+
+    @Test
+    public void waitForChange_onLooperThread() throws InterruptedException {
+        final CountDownLatch bgRealmOpened = new CountDownLatch(1);
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        final Thread.UncaughtExceptionHandler bgRealmError = new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread thread, Throwable exception) {
+                StringWriter stacktrace = new StringWriter();
+                exception.printStackTrace(new PrintWriter(stacktrace));
+                fail(stacktrace.toString());
+            }
+        };
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(realmConfig);
+                bgRealmOpened.countDown();
+                try {
+                    realm.waitForChange();
+                    fail();
+                } catch (IllegalStateException expected) {
+                } finally {
+                    realm.close();
+                    bgRealmClosed.countDown();
+                }
+                Looper.loop();
+            }
+        });
+        thread.setUncaughtExceptionHandler(bgRealmError);
+        thread.start();
+
+        TestHelper.awaitOrFail(bgRealmOpened);
+        TestHelper.awaitOrFail(bgRealmClosed);
+    }
+
+    @Test
+    public void waitForChange_onLooperThreadWithExceptionHolder() throws InterruptedException {
+        final CountDownLatch bgRealmOpened = new CountDownLatch(1);
+        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
+        final ExceptionHolder bgRealmError = new ExceptionHolder();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Looper.prepare();
+                Realm realm = Realm.getInstance(realmConfig);
+                bgRealmOpened.countDown();
+                try {
+                    realm.waitForChange();
+                } catch (IllegalStateException expected) {
+                    bgRealmError.setException(expected);
+                } finally {
+                    realm.close();
+                    bgRealmClosed.countDown();
+                }
+                Looper.loop();
+            }
+        });
+        thread.start();
+
+        TestHelper.awaitOrFail(bgRealmOpened);
+        TestHelper.awaitOrFail(bgRealmClosed);
+        bgRealmError.checkFailure();
     }
 
     @Test
