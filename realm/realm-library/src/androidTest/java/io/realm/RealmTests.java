@@ -42,8 +42,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -3111,69 +3109,30 @@ public class RealmTests {
     }
 
     @Test
-    public void waitForChange_onLooperThread() throws InterruptedException {
-        final CountDownLatch bgRealmOpened = new CountDownLatch(1);
+    public void waitForChange_onLooperThreadWithExceptionHolder() throws InterruptedException {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final Thread.UncaughtExceptionHandler bgRealmError = new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread thread, Throwable exception) {
-                StringWriter stacktrace = new StringWriter();
-                exception.printStackTrace(new PrintWriter(stacktrace));
-                fail(stacktrace.toString());
-            }
-        };
+        final ExceptionHolder bgError = new ExceptionHolder();
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Looper.prepare();
                 Realm realm = Realm.getInstance(realmConfig);
-                bgRealmOpened.countDown();
                 try {
                     realm.waitForChange();
                     fail();
-                } catch (IllegalStateException expected) {
+                } catch (Throwable expected) {
+                    bgError.setException(expected);
                 } finally {
                     realm.close();
                     bgRealmClosed.countDown();
                 }
-                Looper.loop();
-            }
-        });
-        thread.setUncaughtExceptionHandler(bgRealmError);
-        thread.start();
-
-        TestHelper.awaitOrFail(bgRealmOpened);
-        TestHelper.awaitOrFail(bgRealmClosed);
-    }
-
-    @Test
-    public void waitForChange_onLooperThreadWithExceptionHolder() throws InterruptedException {
-        final CountDownLatch bgRealmOpened = new CountDownLatch(1);
-        final CountDownLatch bgRealmClosed = new CountDownLatch(1);
-        final ExceptionHolder bgRealmError = new ExceptionHolder();
-
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Looper.prepare();
-                Realm realm = Realm.getInstance(realmConfig);
-                bgRealmOpened.countDown();
-                try {
-                    realm.waitForChange();
-                } catch (IllegalStateException expected) {
-                    bgRealmError.setException(expected);
-                } finally {
-                    realm.close();
-                    bgRealmClosed.countDown();
-                }
-                Looper.loop();
             }
         });
         thread.start();
 
-        TestHelper.awaitOrFail(bgRealmOpened);
         TestHelper.awaitOrFail(bgRealmClosed);
-        bgRealmError.checkFailure();
+        assertEquals(IllegalStateException.class, bgError.getException().getClass());
     }
 
     @Test
