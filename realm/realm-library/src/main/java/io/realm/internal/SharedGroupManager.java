@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 
 import io.realm.RealmConfiguration;
+import io.realm.internal.log.RealmLog;
 
 /**
  * This class wraps access to a given Realm file on a single thread including its {@link SharedGroup} and
@@ -162,6 +163,7 @@ public class SharedGroupManager implements Closeable {
 
     /**
      * Compacts a Realm file. It cannot be open when calling this method.
+     * Returns true if compaction succeeded, false otherwise.
      */
     public static boolean compact(RealmConfiguration configuration) {
         SharedGroup sharedGroup = null;
@@ -174,6 +176,7 @@ public class SharedGroupManager implements Closeable {
                     configuration.getEncryptionKey());
             result = sharedGroup.compact();
         } catch (Exception e) {
+            RealmLog.i(e.getMessage());
             return false;
         } finally {
             if (sharedGroup != null) {
