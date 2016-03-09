@@ -2726,7 +2726,7 @@ public class RealmTests {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         dynamicRealm.beginTransaction();
         RealmList<DynamicRealmObject> dynamicList = dynamicRealm.createObject(AllTypes.CLASS_NAME).getList(AllTypes.FIELD_REALMLIST);
-        DynamicRealmObject dObj = dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        DynamicRealmObject dObj = dynamicRealm.createObject(Dog.CLASS_NAME);
         dynamicList.add(dObj);
         dynamicRealm.commitTransaction();
         try {

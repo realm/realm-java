@@ -24,6 +24,7 @@ import java.util.List;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
+import io.realm.internal.Table;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -218,15 +219,34 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
 
     // Transparently copies a standalone object or managed object from another Realm to the Realm backing this RealmList.
     private E copyToRealmIfNeeded(E object) {
-        // Object is already in this realm
-        if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
-            return object;
-        }
-
-        // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as you
-        // have to run a full schema validation for each object.
         if (object instanceof DynamicRealmObject) {
-            throw new IllegalArgumentException("Automatically copying DynamicRealmObjects from other Realms are not supported");
+            String listClassName = RealmSchema.getSchemaForTable(view.getTargetTable());
+            String objectClassName = ((DynamicRealmObject) object).getType();
+            if (object.realm == realm) {
+                if (listClassName.equals(objectClassName)) {
+                    // Same Realm instance and same target table
+                    return object;
+                } else {
+                    // Different target table
+                    throw new IllegalArgumentException(String.format("The object has a different type from list's." +
+                            " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
+                }
+            } else if (realm.threadId == object.realm.threadId) {
+                // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
+                // you have to run a full schema validation for each object.
+                // And copying from another Realm instance pointed to the same Realm file is not supported as well.
+                throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
+            } else {
+                throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
+            }
+        } else {
+            // Object is already in this realm
+            if (object.row != null && object.realm.getPath().equals(realm.getPath())) {
+                if (realm != object.realm) {
+                    throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+                }
+                return object;
+            }
         }
 
         // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
