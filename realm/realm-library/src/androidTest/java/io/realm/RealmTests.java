@@ -3109,7 +3109,7 @@ public class RealmTests {
     }
 
     @Test
-    public void waitForChange_onLooperThreadWithExceptionHolder() throws InterruptedException {
+    public void waitForChange_onLooperThread() throws InterruptedException {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
         final ExceptionHolder bgError = new ExceptionHolder();
 
