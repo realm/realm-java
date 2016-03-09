@@ -28,6 +28,9 @@
 * Removed allowBackup from AndroidManifest (#2307).
 * Added multi-arguments distinct(...) for Realm, DynamicRealm, RealmQuery, and RealmResults (#2284).
 * Allowed "realm" and "row" as a field name of model class (#2255).
+* Updated Realm Core to 0.97.0
+  - Fixed bug when setting a null value to trigger RealmChangeListener (#2366).
+  - Fixed bug to prevent throwing BadVersionException (#2391).
 
 ## 0.87.5
 * Updated Realm Core to 0.96.2.
