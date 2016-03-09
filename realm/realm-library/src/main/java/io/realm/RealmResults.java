@@ -977,7 +977,8 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
      * </pre>
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
-     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
@@ -991,7 +992,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
             Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
         }
     }
 

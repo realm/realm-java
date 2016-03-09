@@ -61,6 +61,7 @@ public class RealmConfiguration {
 
     private static final Object DEFAULT_MODULE;
     private static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
+    private static Boolean rxJavaAvailable;
 
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
@@ -154,9 +155,16 @@ public class RealmConfiguration {
     /**
      * Returns the {@link RxObservableFactory} that is used to create Rx Observables from Realm objects.
      *
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @return the factory instance used to create Rx Observables.
      */
     public RxObservableFactory getRxFactory() {
+        // Since RxJava doesn't exist, rxObservableFactory is not initialized.
+        if (rxObservableFactory == null) {
+            throw new UnsupportedOperationException("RxJava seems to be missing from the classpath. " +
+                    "Remember to add it as a compile dependency." +
+                    " See https://realm.io/docs/java/latest/#rxjava for more details.");
+        }
         return rxObservableFactory;
     }
 
@@ -269,6 +277,23 @@ public class RealmConfiguration {
     }
 
     /**
+     * Check if RxJava is can be loaded.
+     *
+     * @return true if RxJava dependency exist.
+     */
+    private static synchronized boolean isRxJavaAvailable() {
+        if (rxJavaAvailable == null) {
+            try {
+                Class.forName("rx.Observable");
+                rxJavaAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                rxJavaAvailable = false;
+            }
+        }
+        return rxJavaAvailable;
+    }
+
+    /**
      * RealmConfiguration.Builder used to construct instances of a RealmConfiguration in a fluent manner.
      */
     public static class Builder {
@@ -281,7 +306,7 @@ public class RealmConfiguration {
         private SharedGroup.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmObject>> debugSchema = new HashSet<Class<? extends RealmObject>>();
-        private RxObservableFactory rxFactory = new RealmObservableFactory();
+        private RxObservableFactory rxFactory;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -486,6 +511,9 @@ public class RealmConfiguration {
          * @return the created {@link RealmConfiguration}.
          */
         public RealmConfiguration build() {
+            if (rxFactory == null && isRxJavaAvailable()) {
+                rxFactory = new RealmObservableFactory();
+            }
             return new RealmConfiguration(this);
         }
 

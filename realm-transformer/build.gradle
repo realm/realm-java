@@ -25,12 +25,22 @@ repositories {
     jcenter()
 }
 
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
+sourceSets {
+    main {
+        compileClasspath += configurations.provided
+    }
+}
+
 dependencies {
     compile localGroovy()
     compile gradleApi()
     compile "io.realm:realm-annotations:${version}"
-    compile 'com.android.tools.build:gradle:1.5.0'
-    compile 'com.android.tools.build:transform-api:1.5.0'
+    provided 'com.android.tools.build:gradle:1.5.0'
     compile 'org.javassist:javassist:3.20.0-GA'
 
     testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {

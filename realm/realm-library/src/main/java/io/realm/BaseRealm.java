@@ -553,21 +553,6 @@ public abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Removes all objects from this Realm.
-     *
-     * DEPRECATED: Use {@link #deleteAll()}
-     *
-     * @throws IllegalStateException if the corresponding Realm is closed or on an incorrect thread.
-     */
-    @Deprecated
-    public void clear() {
-        checkIfValid();
-        for (RealmObjectSchema objectSchema : schema.getAll()) {
-            schema.getTable(objectSchema.getClassName()).clear();
-        }
-    }
-
-    /**
      * Deletes all objects from this Realm.
      *
      * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
@@ -578,8 +563,6 @@ public abstract class BaseRealm implements Closeable {
             schema.getTable(objectSchema.getClassName()).clear();
         }
     }
-
-
 
     /**
      * Deletes the Realm file defined by the given configuration.

@@ -147,7 +147,7 @@ public class LinkView extends NativeObject {
     }
 
     /**
-     * Remove all target rows pointed to by links in this link view, and deleteAll this link view.
+     * Remove all target rows pointed to by links in this link view, and clear this link view.
      */
     public void removeAllTargetRows() {
         checkImmutable();
@@ -160,6 +160,19 @@ public class LinkView extends NativeObject {
     public void removeTargetRow(int index) {
         checkImmutable();
         nativeRemoveTargetRow(nativePointer, index);
+	}
+
+    public Table getTargetTable() {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();
+        long nativeTablePointer = nativeGetTargetTable(nativePointer);
+        try {
+            // Copy context reference from parent
+            return new Table(context, this.parent, nativeTablePointer);
+        } catch (RuntimeException e) {
+            Table.nativeClose(nativeTablePointer);
+            throw e;
+        }
     }
 
     private void checkImmutable() {
@@ -184,4 +197,5 @@ public class LinkView extends NativeObject {
     private native long nativeFind(long nativeLinkViewPtr, long targetRowIndex);
     private native void nativeRemoveTargetRow(long nativeLinkViewPtr, long rowIndex);
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
+    private native long nativeGetTargetTable(long nativeLinkViewPtr);
 }

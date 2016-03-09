@@ -291,7 +291,8 @@ public abstract class RealmObject {
      *
      * @param <E> RealmObject class that is being observed. Must be this class or its super types.
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
-     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public <E extends RealmObject> Observable<E> asObservable() {
@@ -303,10 +304,12 @@ public abstract class RealmObject {
             DynamicRealm dynamicRealm = (DynamicRealm) realm;
             DynamicRealmObject dynamicObject = (DynamicRealmObject) this;
             @SuppressWarnings("unchecked")
-            Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm, dynamicObject);
+            Observable<E> observable = (Observable<E>) realm.configuration.getRxFactory().from(dynamicRealm,
+                    dynamicObject);
             return observable;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava." +
+                    " See https://realm.io/docs/java/latest/#rxjava for more details.");
         }
     }
 

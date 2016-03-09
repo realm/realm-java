@@ -990,7 +990,7 @@ public class DynamicRealmTests {
         assertEquals(2, list.size());
 
         realm.beginTransaction();
-        list.removeAllFromRealm();
+        list.deleteAllFromRealm();
         realm.commitTransaction();
 
         assertEquals(0, list.size());

@@ -16,6 +16,7 @@
 * BREAKING CHANGE: All thread local change listeners are now delayed until the next Looper event instead of being triggered when committing.
 * BREAKING CHANGE: Removed RealmConfiguration.getSchemaMediator() from public API which was deprecated in 0.86.0. Please use RealmConfiguration.getRealmObjectClasses() to obtain the set of model classes (#1797).
 * BREAKING CHANGE: Realm.migrateRealm() throws a FileNotFoundException if the Realm file doesn't exist.
+* BREAKING CHANGE: It is now required to unsubscribe from all Realm RxJava observables in order to fully close the Realm (#2357).
 * Added support for custom methods, custom logic in accessors, custom accessor names, interface implementation and public fields in Realm objects. (#909)
 * Added support to project Lombok. (#502)
 * Deprecated methods: Realm.getInstance(Context). Use Realm.getInstance(RealmConfiguration) or Realm.getDefaultInstance() instead.
@@ -25,8 +26,9 @@
 * Fixed bug in jsonExample (#2092).
 * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 * Fixed bug when calling DynamicRealmObject.setList() with RealmList<DynamicRealmObject> (#2368).
+* Fixed RealmChangeListeners not triggering correctly if findFirstAsync() didn't find any object. findFirstAsync() Observables now also correctly call onNext when the query completes in that case (#2200). (thank you @grahamsmith)
 * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
-* Added Realm.clear() and RealmList.removeAllFromRealm() (#1560).
+* Added Realm.deleteAll() and RealmList.deleteAllFromRealm() (#1560).
 * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 * Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
 * Improved .so loading by using [ReLinker](https://github.com/KeepSafe/ReLinker).
