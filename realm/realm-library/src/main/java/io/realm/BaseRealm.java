@@ -284,7 +284,7 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Blocks the current thread util transactions are committed by other threads to this Realm or
-     * {@link #stopWaitForChange()} gets called.
+     * {@link #stopWaitForChange()} is called from other threads.
      *
      * @return {@code true} if transactions are committed to this Realm, {@code false} if
      * {@link #stopWaitForChange()} gets called.
