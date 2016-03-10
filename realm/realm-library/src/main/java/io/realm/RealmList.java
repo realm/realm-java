@@ -448,11 +448,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     public E first() {
         if (managedMode) {
             checkValidView();
-            return view.isEmpty() ? null : get(0);
+            if (!view.isEmpty()) {
+                return get(0);
+            }
         } else if (nonManagedList != null && nonManagedList.size() > 0) {
             return nonManagedList.get(0);
         }
-        return null;
+        throw new IndexOutOfBoundsException("The list is empty.");
     }
 
     /**
@@ -464,11 +466,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     public E last() {
         if (managedMode) {
             checkValidView();
-            return view.isEmpty() ? null : get((int) view.size() - 1);
+            if (!view.isEmpty()) {
+                return get((int) view.size() - 1);
+            }
         } else if (nonManagedList != null && nonManagedList.size() > 0) {
             return nonManagedList.get(nonManagedList.size() - 1);
         }
-        return null;
+        throw new IndexOutOfBoundsException("The list is empty.");
     }
 
     /**
