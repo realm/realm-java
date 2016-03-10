@@ -15,6 +15,7 @@
  */
 
 package io.realm.transformer
+
 import com.android.SdkConstants
 import com.android.build.api.transform.*
 import com.google.common.collect.ImmutableSet
@@ -28,9 +29,11 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.lang.reflect.Modifier
+import java.util.jar.JarFile
 import java.util.regex.Pattern
 
 import static com.android.build.api.transform.QualifiedContent.*
+
 /**
  * This class implements the Transform API provided by the Android Gradle plugin.
  */
@@ -56,7 +59,8 @@ class RealmTransformer extends Transform {
 
     @Override
     Set<Scope> getReferencedScopes() {
-        return Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.TESTED_CODE)
+        return Sets.immutableEnumSet(Scope.EXTERNAL_LIBRARIES, Scope.PROJECT_LOCAL_DEPS,
+                Scope.SUB_PROJECTS, Scope.SUB_PROJECTS_LOCAL_DEPS, Scope.TESTED_CODE)
     }
 
     @Override
@@ -72,7 +76,9 @@ class RealmTransformer extends Transform {
         def tic = System.currentTimeMillis()
 
         // Find all the class names
-        def classNames = getClassNames(inputs)
+        def inputClassNames = getClassNames(inputs)
+        def referencedClassNames = getClassNames(referencedInputs)
+        def allClassNames = merge(inputClassNames, referencedClassNames);
 
         // Create and populate the Javassist class pool
         ClassPool classPool = createClassPool(inputs, referencedInputs)
@@ -82,7 +88,7 @@ class RealmTransformer extends Transform {
         // mark as transformed
         def baseProxyMediator = classPool.get('io.realm.internal.RealmProxyMediator')
         def mediatorPattern = Pattern.compile('^io\\.realm\\.[^.]+Mediator$')
-        def proxyMediatorClasses = classNames
+        def proxyMediatorClasses = inputClassNames
                 .findAll { it.matches(mediatorPattern) }
                 .collect { classPool.getCtClass(it) }
                 .findAll { it.superclass?.equals(baseProxyMediator) }
@@ -93,33 +99,36 @@ class RealmTransformer extends Transform {
 
         // Find the model classes
         def realmObject = classPool.get('io.realm.RealmObject')
-        def modelClasses = classNames
+        def allModelClasses = allClassNames
                 .findAll { it.endsWith('RealmProxy') }
                 .collect { classPool.getCtClass(it).superclass }
                 .findAll { it.superclass?.equals(realmObject) }
-        logger.info "Model Classes: ${modelClasses*.name}"
+        def inputModelClasses = allModelClasses.findAll {
+            inputClassNames.contains(it.name)
+        }
+        logger.info "Model Classes: ${allModelClasses*.name}"
 
         // Populate a list of the fields that need to be managed with bytecode manipulation
-        def managedFields = []
-        modelClasses.each {
-            managedFields.addAll(it.declaredFields.findAll {
+        def allManagedFields = []
+        allModelClasses.each {
+            allManagedFields.addAll(it.declaredFields.findAll {
                 it.getAnnotations()
                 it.getAnnotation(Ignore.class) == null && !Modifier.isStatic(it.getModifiers())
             })
         }
-        logger.info "Managed Fields: ${managedFields*.name}"
+        logger.info "Managed Fields: ${allManagedFields*.name}"
 
-        // Add accessors to the model classes
-        modelClasses.each {
+        // Add accessors to the model classes in the target project
+        inputModelClasses.each {
             BytecodeModifier.addRealmAccessors(it)
             BytecodeModifier.addRealmProxyInterface(it, classPool)
         }
 
         // Use accessors instead of direct field access
-        classNames.each {
+        inputClassNames.each {
             logger.info "  Modifying class ${it}"
             def ctClass = classPool.getCtClass(it)
-            BytecodeModifier.useRealmAccessors(ctClass, managedFields, modelClasses)
+            BytecodeModifier.useRealmAccessors(ctClass, allManagedFields, allModelClasses)
             ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
         }
 
@@ -183,8 +192,19 @@ class RealmTransformer extends Transform {
                     }
                 }
             }
-        }
 
+            it.jarInputs.each {
+                def jarFile = new JarFile(it.file)
+                jarFile.entries().findAll {
+                    !it.directory && it.name.endsWith(SdkConstants.DOT_CLASS)
+                }.each {
+                    def path = it.name
+                    def className = path.substring(0, path.length() - SdkConstants.DOT_CLASS.length())
+                            .replace(File.separatorChar, '.' as char)
+                    classNames.add(className)
+                }
+            }
+        }
         return classNames
     }
 
@@ -210,5 +230,12 @@ class RealmTransformer extends Transform {
     private File getOutputFile(TransformOutputProvider outputProvider) {
         return outputProvider.getContentLocation(
                 'realm', getInputTypes(), getScopes(), Format.DIRECTORY)
+    }
+
+    private static Set<String> merge(Set<String> set1, Set<String> set2) {
+        Set<String> merged = new HashSet<String>()
+        merged.addAll(set1)
+        merged.addAll(set2)
+        return merged;
     }
 }
