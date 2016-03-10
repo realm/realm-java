@@ -283,11 +283,11 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Blocks the current thread until transactions are committed by other threads to this Realm or
-     * {@link #stopWaitForChange()} is called from other threads.
+     * Blocks the current thread until new changes to the Realm are available or {@link #stopWaitForChange}
+     * is called from another thread.
      *
-     * @return {@code true} if transactions are committed to this Realm instance, {@code false} if
-     * wait has been cancelled by {@link #stopWaitForChange()} called.
+     * @return {@code true} If the Realm was updated to the latest version, {@code false} if it was
+     * cancelled by calling {@link #stopWaitForChange}.
      * @throws IllegalStateException if attempting to wait within a transaction.
      */
     public boolean waitForChange() {
@@ -296,9 +296,8 @@ abstract class BaseRealm implements Closeable {
             throw new IllegalStateException("Cannot wait for changes inside of a transaction.");
         }
         if (handlerController != null) {
-            throw new IllegalStateException("Cannot wait for changes inside of a Looper.");
+            throw new IllegalStateException("Cannot wait for changes inside a Looper thread. Use RealmChangeListeners instead.");
         }
-        sharedGroupManager.setWaitForChangeEnabled(true);
         boolean hasChanged = sharedGroupManager.waitForChange();
         if (hasChanged) {
             sharedGroupManager.advanceRead();
@@ -309,11 +308,10 @@ abstract class BaseRealm implements Closeable {
     /**
      * Makes {@link #waitForChange()} return {@code false} immediately. This method is threadsafe
      * and should be called from another thread than the one that called {@link #waitForChange}.
-     * If {@link #waitForChange()} is called on a Realm in another thread after this method is called,
-     * the Realm will continue to wait for changes.
+     * Calling {@code #stopWaitForChange()} on a Realm that is not waiting for changes has no effect.
      */
     public void stopWaitForChange() {
-        sharedGroupManager.setWaitForChangeEnabled(false);
+        sharedGroupManager.stopWaitForChange();
     }
 
     /**

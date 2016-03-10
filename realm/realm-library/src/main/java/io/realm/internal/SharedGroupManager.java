@@ -194,7 +194,7 @@ public class SharedGroupManager implements Closeable {
         return sharedGroup.waitForChange();
     }
 
-    public void setWaitForChangeEnabled(boolean enabled) {
-        sharedGroup.setWaitForChangeEnabled(enabled);
+    public void stopWaitForChange() {
+        sharedGroup.stopWaitForChange();
     }
 }

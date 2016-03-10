@@ -189,15 +189,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_SharedGroup_nativeWaitForChang
  * Method:    releaseWaitForChange
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeWaitForChangeRelease
-  (JNIEnv *, jobject, jlong);
-
-/*
- * Class:     io_realm_internal_SharedGroup
- * Method:    enableWaitForChange
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeEnableWaitForChange
+JNIEXPORT void JNICALL Java_io_realm_internal_SharedGroup_nativeStopWaitForChange
   (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus

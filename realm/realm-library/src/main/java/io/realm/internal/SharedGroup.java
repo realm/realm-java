@@ -296,12 +296,8 @@ public class SharedGroup implements Closeable {
         return nativeWaitForChange(nativePtr);
     }
 
-    public void setWaitForChangeEnabled(boolean enabled) {
-        if (enabled) {
-            nativeEnableWaitForChange(nativePtr);
-        } else {
-            nativeWaitForChangeRelease(nativePtr);
-        }
+    public void stopWaitForChange() {
+        nativeStopWaitForChange(nativePtr);
     }
 
     private native long createNativeWithImplicitTransactions(long nativeReplicationPtr,
@@ -333,8 +329,7 @@ public class SharedGroup implements Closeable {
                                                    long version, long index);
     private native void nativePromoteToWrite(long nativePtr, long nativeReplicationPtr);
     private native boolean nativeWaitForChange(long nativePtr);
-    private native void nativeWaitForChangeRelease(long nativePtr);
-    private native void nativeEnableWaitForChange(long nativePtr);
+    private native void nativeStopWaitForChange(long nativePtr);
     private native void nativeAdvanceRead(long nativePtr);
     private native void nativeAdvanceReadToVersion(long nativePtr, long version, long index);
     private native void nativePromoteToWrite(long nativePtr);
