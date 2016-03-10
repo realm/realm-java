@@ -324,10 +324,6 @@ public class SharedGroup implements Closeable {
     private native void nativeCloseReplication(long nativeReplicationPtr);
     private native void nativeRollbackAndContinueAsRead(long nativePtr);
     private native long[] nativeGetVersionID (long nativePtr);
-    private native void nativeAdvanceRead(long nativePtr, long nativeReplicationPtr);
-    private native void nativeAdvanceReadToVersion(long nativePtr, long nativeReplicationPtr,
-                                                   long version, long index);
-    private native void nativePromoteToWrite(long nativePtr, long nativeReplicationPtr);
     private native boolean nativeWaitForChange(long nativePtr);
     private native void nativeStopWaitForChange(long nativePtr);
     private native void nativeAdvanceRead(long nativePtr);
