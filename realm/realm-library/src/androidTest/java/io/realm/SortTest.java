@@ -45,7 +45,7 @@ public class SortTest extends AndroidTestCase {
         testRealm = Realm.getInstance(config);
 
         testRealm.beginTransaction();
-        testRealm.clear(AllTypes.class);
+        testRealm.delete(AllTypes.class);
         AllTypes object1 = testRealm.createObject(AllTypes.class);
         object1.setColumnLong(5);
         object1.setColumnString("Adam");
@@ -211,20 +211,16 @@ public class SortTest extends AndroidTestCase {
     }
 
     public void testSortRealmResultsTwoFields() {
-        RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class);
-        results1.sort(ORDER_STRING_INT, ORDER_ASC_ASC);
+        RealmResults<AllTypes> results1 = testRealm.allObjects(AllTypes.class).sort(ORDER_STRING_INT, ORDER_ASC_ASC);
         checkSortTwoFieldsStringAscendingIntAscending(results1);
 
-        RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class);
-        results2.sort(ORDER_INT_STRING, ORDER_ASC_ASC);
+        RealmResults<AllTypes> results2 = testRealm.allObjects(AllTypes.class).sort(ORDER_INT_STRING, ORDER_ASC_ASC);
         checkSortTwoFieldsIntString(results2);
 
-        RealmResults<AllTypes> results3 = testRealm.allObjects(AllTypes.class);
-        results3.sort(ORDER_STRING_INT, ORDER_ASC_DES);
+        RealmResults<AllTypes> results3 = testRealm.allObjects(AllTypes.class).sort(ORDER_STRING_INT, ORDER_ASC_DES);
         checkSortTwoFieldsStringAscendingIntDescending(results3);
 
-        RealmResults<AllTypes> results4 = testRealm.allObjects(AllTypes.class);
-        results4.sort(ORDER_INT_STRING, ORDER_ASC_DES);
+        RealmResults<AllTypes> results4 = testRealm.allObjects(AllTypes.class).sort(ORDER_INT_STRING, ORDER_ASC_DES);
         checkSortTwoFieldsIntAscendingStringDescending(results4);
    }
 

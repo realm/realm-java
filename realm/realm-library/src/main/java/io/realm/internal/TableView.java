@@ -455,6 +455,14 @@ public class TableView implements TableOrView, Closeable {
     }
 
     @Override
+    public void removeFirst() {
+        if (parent.isImmutable()) throwImmutable();
+        if (!isEmpty()) {
+            nativeRemoveRow(nativePtr, 0);
+        }
+    }
+
+    @Override
     public void removeLast() {
         if (parent.isImmutable()) throwImmutable();
         if (!isEmpty()) {
@@ -824,7 +832,7 @@ public class TableView implements TableOrView, Closeable {
         this.context.executeDelayedDisposal();
         long[] indexes = new long[columnIndexes.size()];
         for (int i = 0; i < columnIndexes.size(); i++) {
-            indexes[i] = columnIndexes.get(i).longValue();
+            indexes[i] = columnIndexes.get(i);
         }
         nativeDistinctMulti(nativePtr, indexes);
     }

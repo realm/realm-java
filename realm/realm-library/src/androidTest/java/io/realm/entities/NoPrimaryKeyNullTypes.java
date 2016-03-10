@@ -19,7 +19,6 @@ package io.realm.entities;
 import java.util.Date;
 
 import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 // Always follow below order and put comments like below to make NullTypes Related cases

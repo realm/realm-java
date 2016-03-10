@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -1111,7 +1112,8 @@ public class RealmQuery<E extends RealmObject> {
 
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
         }
@@ -1247,6 +1249,7 @@ public class RealmQuery<E extends RealmObject> {
 
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
+            //noinspection unchecked
             realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
@@ -1259,12 +1262,12 @@ public class RealmQuery<E extends RealmObject> {
         List<Long> columnIndexes = new ArrayList<Long>();
         // find the first index
         long firstIndex = getAndValidateDistinctColumnIndex(firstFieldName, table);
-        columnIndexes.add(Long.valueOf(firstIndex));
+        columnIndexes.add(firstIndex);
         // add remaining of indexes
         if (remainingFieldNames != null && 0 < remainingFieldNames.length) {
             for (String field : remainingFieldNames) {
                 long index = getAndValidateDistinctColumnIndex(field, table);
-                columnIndexes.add(Long.valueOf(index));
+                columnIndexes.add(index);
             }
         }
         return columnIndexes;
@@ -1283,7 +1286,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number sum(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return query.sumInt(columnIndex);
@@ -1308,7 +1311,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public double average(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return query.averageInt(columnIndex);
@@ -1334,7 +1337,7 @@ public class RealmQuery<E extends RealmObject> {
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return this.query.minimumInt(columnIndex);
@@ -1357,7 +1360,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public Date minimumDate(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         return this.query.minimumDate(columnIndex);
     }
 
@@ -1374,7 +1377,7 @@ public class RealmQuery<E extends RealmObject> {
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return this.query.maximumInt(columnIndex);
@@ -1397,7 +1400,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public Date maximumDate(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         return this.query.maximumDate(columnIndex);
     }
 
@@ -1673,6 +1676,7 @@ public class RealmQuery<E extends RealmObject> {
         } else {
             TableView tableView = query.findAll();
             List<Long> columnIndices = new ArrayList<Long>();
+            //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
                 long columnIndex = getColumnIndexForSort(fieldName);
@@ -1977,7 +1981,9 @@ public class RealmQuery<E extends RealmObject> {
         } else if (fieldNames.length == 0) {
             throw new IllegalArgumentException("At least one field name must be specified.");
         } else if (fieldNames.length != sortOrders.length) {
-            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortOrders.length));
+            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                    "Number of field names (%d) and sort orders (%d) does not match.",
+                    fieldNames.length, sortOrders.length));
         }
     }
 
@@ -2028,6 +2034,9 @@ public class RealmQuery<E extends RealmObject> {
     // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
     // or it belongs to the child object.
     private long getColumnIndexForSort(String fieldName) {
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Non-empty fieldname required.");
+        }
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
         }

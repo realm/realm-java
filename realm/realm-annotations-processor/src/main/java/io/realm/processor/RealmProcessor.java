@@ -140,6 +140,13 @@ public class RealmProcessor extends AbstractProcessor {
             classesToValidate.add(metadata);
             packages.add(metadata.getPackageName());
 
+            RealmProxyInterfaceGenerator interfaceGenerator = new RealmProxyInterfaceGenerator(processingEnv, metadata);
+            try {
+                interfaceGenerator.generate();
+            } catch (IOException e) {
+                Utils.error(e.getMessage(), classElement);
+            }
+
             RealmProxyClassGenerator sourceCodeGenerator = new RealmProxyClassGenerator(processingEnv, metadata);
             try {
                 sourceCodeGenerator.generate();

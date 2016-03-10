@@ -85,7 +85,7 @@ public class DynamicRealmTests {
             realm.setAutoRefresh(false);
         }
         realm.beginTransaction();
-        realm.allObjects(AllTypes.CLASS_NAME).clear();
+        realm.deleteAll();
         for (int i = 0; i < objects; ++i) {
             DynamicRealmObject allTypes = realm.createObject(AllTypes.CLASS_NAME);
             allTypes.setBoolean(AllTypes.FIELD_BOOLEAN, (i % 3) == 0);
@@ -200,25 +200,25 @@ public class DynamicRealmTests {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void clear_invalidName() {
+    public void delete_type_invalidName() {
         realm.beginTransaction();
-        realm.clear("I don't exist");
+        realm.delete("I don't exist");
     }
 
     @Test(expected = IllegalStateException.class)
-    public void clear_outsideTransactionClearOutsideTransactionThrows() {
-        realm.clear(AllTypes.CLASS_NAME);
+    public void delete_type_outsideTransactionClearOutsideTransactionThrows() {
+        realm.delete(AllTypes.CLASS_NAME);
     }
 
     @Test
-    public void clear() {
+    public void delete_type() {
         realm.beginTransaction();
         realm.createObject(AllTypes.CLASS_NAME);
         realm.commitTransaction();
 
         assertEquals(1, realm.where(AllTypes.CLASS_NAME).count());
         realm.beginTransaction();
-        realm.clear(AllTypes.CLASS_NAME);
+        realm.delete(AllTypes.CLASS_NAME);
         realm.commitTransaction();
         assertEquals(0, realm.where(AllTypes.CLASS_NAME).count());
     }
@@ -757,7 +757,7 @@ public class DynamicRealmTests {
 
         dynamicRealm.setAutoRefresh(false);
         dynamicRealm.beginTransaction();
-        dynamicRealm.clear(AllTypes.CLASS_NAME);
+        dynamicRealm.delete(AllTypes.CLASS_NAME);
         for (int i = 0; i < 5; ) {
             DynamicRealmObject allTypes = dynamicRealm.createObject(AllTypes.CLASS_NAME);
             allTypes.set(AllTypes.FIELD_LONG, i);
@@ -957,7 +957,7 @@ public class DynamicRealmTests {
     }
 
     @Test
-    public void clear_all() {
+    public void deleteAll() {
         realm.beginTransaction();
         realm.createObject(AllTypes.CLASS_NAME);
         DynamicRealmObject cat = realm.createObject(Cat.CLASS_NAME);
@@ -973,7 +973,7 @@ public class DynamicRealmTests {
         assertEquals(1, realm.where("TestRemoveAll").count());
 
         realm.beginTransaction();
-        realm.clear();
+        realm.deleteAll();
         realm.commitTransaction();
 
         assertEquals(0, realm.where(AllTypes.CLASS_NAME).count());
@@ -990,7 +990,7 @@ public class DynamicRealmTests {
         assertEquals(2, list.size());
 
         realm.beginTransaction();
-        list.removeAllFromRealm();
+        list.deleteAllFromRealm();
         realm.commitTransaction();
 
         assertEquals(0, list.size());

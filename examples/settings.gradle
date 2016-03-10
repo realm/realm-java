@@ -13,4 +13,5 @@ include 'unitTestExample'
 include 'newsreaderExample'
 include 'rxJavaExample'
 
-rootProject.name = 'examples'
+rootProject.name = 'realm-examples'
+

@@ -17,6 +17,7 @@ package io.realm;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 
 import io.realm.internal.CheckedRow;
 import io.realm.internal.LinkView;
@@ -268,14 +269,13 @@ public final class DynamicRealmObject extends RealmObject {
     public RealmList<DynamicRealmObject> getList(String fieldName) {
         long columnIndex = row.getColumnIndex(fieldName);
         LinkView linkView = row.getLinkList(columnIndex);
-        String className = linkView.getTable().getLinkTarget(columnIndex).getName().substring(Table.TABLE_PREFIX.length());
+        String className = RealmSchema.getSchemaForTable(linkView.getTargetTable());
         return new RealmList<DynamicRealmObject>(className, linkView, realm);
     }
 
     /**
      * Checks if the value of a given field is {@code null}.
      *
-     * @param fieldName name of field.
      * @param fieldName the name of the field.
      * @return {@code true} if field value is null, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exists.
@@ -532,8 +532,8 @@ public final class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName field name.
      * @param value object to link to.
-     * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, or the type
-     * of DynamicRealmObject doesn't match.
+     * @throws IllegalArgumentException if field name doesn't exists, it doesn't link to other Realm objects, the type
+     * of DynamicRealmObject doesn't match or it belongs to a different Realm.
      */
     public void setObject(String fieldName, DynamicRealmObject value) {
         long columnIndex = row.getColumnIndex(fieldName);
@@ -543,8 +543,8 @@ public final class DynamicRealmObject extends RealmObject {
             if (value.realm == null || value.row == null) {
                 throw new IllegalArgumentException("Cannot link to objects that are not part of the Realm.");
             }
-            if (!realm.getConfiguration().equals(value.realm.getConfiguration())) {
-                throw new IllegalArgumentException("Cannot add an object from another Realm");
+            if (realm != value.realm) {
+                throw new IllegalArgumentException("Cannot add an object from another Realm instance.");
             }
             Table table = row.getTable().getLinkTarget(columnIndex);
             Table inputTable = value.row.getTable();
@@ -561,8 +561,9 @@ public final class DynamicRealmObject extends RealmObject {
      *
      * @param fieldName field name.
      * @param list list of references.
-     * @throws IllegalArgumentException if field name doesn't exists, it is not a list field or the type
-     * of the object represented by the DynamicRealmObject doesn't match.
+     * @throws IllegalArgumentException if field name doesn't exist, it is not a list field, the type
+     * of the object represented by the DynamicRealmObject doesn't match or any element in the list belongs to a
+     * different Realm.
      */
     public void setList(String fieldName, RealmList<? extends RealmObject> list) {
         if (list == null) {
@@ -587,14 +588,16 @@ public final class DynamicRealmObject extends RealmObject {
         long columnIndex = row.getColumnIndex(fieldName);
         LinkView links = row.getLinkList(columnIndex);
         links.clear();
+        Table linkTargetTable = links.getTargetTable();
         for (int i = 0; i < list.size(); i++) {
             RealmObject obj = list.get(i);
-            if (!typeValidated) {
-                String elementType = obj.row.getTable().getName();
-                if (!tableName.equals(elementType)) {
-                    throw new IllegalArgumentException(String.format("Element at index %d is not the proper type. " +
-                            "Was %s expected %s.", i, elementType, tableName));
-                }
+            if (obj.realm != realm) {
+                throw new IllegalArgumentException("Each element in 'list' must belong to the same Realm instance.");
+            }
+            if (!typeValidated && !linkTargetTable.hasSameSchema(obj.row.getTable())) {
+                throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                        "Element at index %d is not the proper type. " +
+                                "Was '%s' expected '%s'.", i, obj.row.getTable().getName(), linkTargetTable.getName()));
             }
             links.add(obj.row.getIndex());
         }
@@ -623,7 +626,7 @@ public final class DynamicRealmObject extends RealmObject {
      * @return this objects type.
      */
     public String getType() {
-        return row.getTable().getName().substring(Table.TABLE_PREFIX.length());
+        return RealmSchema.getSchemaForTable(row.getTable());
     }
 
     /**

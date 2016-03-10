@@ -1,15 +1,34 @@
+## 0.89.0
+* BREAKING CHANGE: RealmResults.clear() now throws UnsupportedOperationException. Use RealmResults.deleteAllFromRealm() instead.
+* BREAKING CHANGE: RealmResults.remove(int) now throws UnsupportedOperationException. Use RealmResults.deleteFromRealm() instead.
+* Added two new interfaces: RealmCollection and OrderedRealmCollection. RealmList and RealmResults both implement these interfaces.
+* Deprecated RealmObject.removeFromRealm() in place of RealmObject.deleteFromRealm()
+* Deprecated Realm.clear(Class) in place of Realm.delete(Class).
+* Deprecated DynamicRealm.clear(Class) in place of DynamicRealm.delete(Class).
+* RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
+
 ## 0.88.0
+* BREAKING CHANGE: Realm has now to be installed as a Gradle plugin.
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now directly throws any RuntimeException instead of wrapping it in a RealmException (#1682).
 * BREAKING CHANGE: DynamicRealm.executeTransaction() now throws IllegalArgumentException instead of silently accepting a null Transaction object.
 * BREAKING CHANGE: String setters now throw IllegalArgumentException instead of RealmError for invalid surrogates.
 * BREAKING CHANGE: DynamicRealm.distinct()/distinctAsync() and Realm.distinct()/distinctAsync() now throw IllegalArgumentException instead of UnsupportedOperationException for invalid type or unindexed field.
 * BREAKING CHANGE: All thread local change listeners are now delayed until the next Looper event instead of being triggered when committing.
+* BREAKING CHANGE: Removed RealmConfiguration.getSchemaMediator() from public API which was deprecated in 0.86.0. Please use RealmConfiguration.getRealmObjectClasses() to obtain the set of model classes (#1797).
+* BREAKING CHANGE: Realm.migrateRealm() throws a FileNotFoundException if the Realm file doesn't exist.
+* BREAKING CHANGE: It is now required to unsubscribe from all Realm RxJava observables in order to fully close the Realm (#2357).
+* Added support for custom methods, custom logic in accessors, custom accessor names, interface implementation and public fields in Realm objects. (#909)
+* Added support to project Lombok. (#502)
 * Deprecated methods: Realm.getInstance(Context). Use Realm.getInstance(RealmConfiguration) or Realm.getDefaultInstance() instead.
+* Deprecated methods: Realm.getTable(Class) which was public because of the old migration API. Use Realm.getSchema() or DynamicRealm.getSchema() instead.
+* Deprecated Realm.executeTransaction(Transaction, Callback) and replaced it with Realm.executeTransactionAsync(Transaction), Realm.executeTransactionAsync(Transaction, OnSuccess), Realm.executeTransactionAsync(Transaction, OnError) and Realm.executeTransactionAsync(Transaction, OnSuccess, OnError).
 * Fixed an error occurring during test and connectedCheck of unit test example (#1934).
 * Fixed bug in jsonExample (#2092).
 * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
+* Fixed bug when calling DynamicRealmObject.setList() with RealmList<DynamicRealmObject> (#2368).
+* Fixed RealmChangeListeners not triggering correctly if findFirstAsync() didn't find any object. findFirstAsync() Observables now also correctly call onNext when the query completes in that case (#2200). (thank you @grahamsmith)
 * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
-* Added Realm.clear() and RealmList.removeAllFromRealm() (#1560).
+* Added Realm.deleteAll() and RealmList.deleteAllFromRealm() (#1560).
 * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 * Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
 * Improved .so loading by using [ReLinker](https://github.com/KeepSafe/ReLinker).
@@ -17,10 +36,15 @@
 * RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
 * Removed allowBackup from AndroidManifest (#2307).
 * Added multi-arguments distinct(...) for Realm, DynamicRealm, RealmQuery, and RealmResults (#2284).
+* Allowed "realm" and "row" as a field name of model class (#2255).
+* Updated Realm Core to 0.97.0
+  - Fixed bug when setting a null value to trigger RealmChangeListener (#2366).
+  - Fixed bug to prevent throwing BadVersionException (#2391).
 
 ## 0.87.5
 * Updated Realm Core to 0.96.2.
   - IllegalStateException won't be thrown anymore in RealmResults.where() if the RealmList which the RealmResults is created on has been deleted. Instead, the RealmResults will be treated as empty forever.
+  - Fixed a bug causing a bad version exception, when using findFirstAsync (#2115).
 
 ## 0.87.4
 * Updated Realm Core to 0.96.0.
@@ -206,7 +230,7 @@
 * Fixed bug where Realm.createOrUpdateWithJson() reset Date and Binary data to default values if not found in the JSON output.
 * Fixed a memory leak when using RealmBaseAdapter.
 * RealmBaseAdapter now allow RealmResults to be null. (Thanks @zaki50)
-* Fixed a bug where a change to a model class (RealmList<A> to RealmList<B>) would not throw a RealmMigrationNeededException.
+* Fixed a bug where a change to a model class (`RealmList<A>` to `RealmList<B>`) would not throw a RealmMigrationNeededException.
 * Fixed a bug where setting multiple RealmLists didn't remove the previously added objects.
 * Solved ConcurrentModificationException thrown when addChangeListener/removeChangeListener got called in the onChange. (Thanks @beeender)
 * Fixed duplicated listeners in the same realm instance. Trying to add duplicated listeners is ignored now. (Thanks @beeender)

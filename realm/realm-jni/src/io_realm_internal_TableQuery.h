@@ -365,7 +365,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind
  * Signature: (JJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
@@ -381,7 +381,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll
  * Signature: (JJJJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
@@ -389,7 +389,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
  * Signature: (JJJJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewWithHandover
-        (JNIEnv *, jobject, jlong, jlong, jlong, jlong);
+        (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     io_realm_internal_TableQuery
@@ -397,7 +397,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewW
  * Signature: (JJJJJJJZ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong, jlong, jboolean);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong, jboolean);
 
 /*
  * Class:     io_realm_internal_TableQuery
@@ -405,7 +405,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
  * Signature: (JJJJJJ[J[Z)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
-  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlong, jlongArray, jbooleanArray);
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jlong, jlongArray, jbooleanArray);
 
 /*
  * Class:     io_realm_internal_TableQuery
@@ -612,7 +612,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeAcceptHandoverQu
  * Method:    nativeBatchUpdateQueries
  */
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdateQueries
-        (JNIEnv *,jobject,jlong ,jlong ,jlongArray,jobjectArray,jobjectArray,jobjectArray);
+        (JNIEnv *,jobject,jlong ,jlongArray,jobjectArray,jobjectArray,jobjectArray);
 #ifdef __cplusplus
 }
 #endif

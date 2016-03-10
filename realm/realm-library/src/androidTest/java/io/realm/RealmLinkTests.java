@@ -35,9 +35,9 @@ public class RealmLinkTests extends AndroidTestCase {
         testRealm = Realm.getInstance(realmConfig);
 
         testRealm.beginTransaction();
-        testRealm.clear(Dog.class);
-        testRealm.clear(Cat.class);
-        testRealm.clear(Owner.class);
+        testRealm.delete(Dog.class);
+        testRealm.delete(Cat.class);
+        testRealm.delete(Owner.class);
 
         Dog dog1 = testRealm.createObject(Dog.class);
         dog1.setName("Pluto");
@@ -496,7 +496,7 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(0, owners1.size());
 
         testRealm.beginTransaction();
-        testRealm.clear(Cat.class);
+        testRealm.delete(Cat.class);
         testRealm.commitTransaction();
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNull("cat").findAll();
@@ -508,7 +508,7 @@ public class RealmLinkTests extends AndroidTestCase {
         assertEquals(1, owners1.size());
 
         testRealm.beginTransaction();
-        testRealm.clear(Cat.class);
+        testRealm.delete(Cat.class);
         testRealm.commitTransaction();
 
         RealmResults<Owner> owners2 = testRealm.where(Owner.class).isNotNull("cat").findAll();

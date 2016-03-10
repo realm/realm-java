@@ -363,6 +363,8 @@ public interface TableOrView {
      */
     long getVersion();
 
+    void removeFirst();
+
     enum PivotType {
         COUNT(0),
         SUM(1),

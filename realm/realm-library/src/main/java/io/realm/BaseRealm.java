@@ -21,6 +21,7 @@ import android.os.Looper;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ import rx.Observable;
  * @see io.realm.Realm
  * @see io.realm.DynamicRealm
  */
-abstract class BaseRealm implements Closeable {
+public abstract class BaseRealm implements Closeable {
     protected static final long UNVERSIONED = -1;
     private static final String INCORRECT_THREAD_CLOSE_MESSAGE = "Realm access from incorrect thread. Realm instance can only be closed on the thread it was created.";
     private static final String INCORRECT_THREAD_MESSAGE = "Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.";
@@ -500,12 +501,6 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    protected void checkNotNullFieldName(String fieldName) {
-        if (fieldName == null) {
-            throw new IllegalArgumentException("fieldName must be provided.");
-        }
-    }
-
     // Return all handlers registered for this Realm
     static Map<Handler, String> getHandlers() {
         return handlers;
@@ -556,11 +551,11 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Removes all objects from this Realm.
+     * Deletes all objects from this Realm.
      *
-     * @throws IllegalStateException if the corresponding Realm is closed or on an incorrect thread.
+     * @throws IllegalStateException if the corresponding Realm is closed or called from an incorrect thread.
      */
-    public void clear() {
+    public void deleteAll() {
         checkIfValid();
         for (RealmObjectSchema objectSchema : schema.getAll()) {
             schema.getTable(objectSchema.getClassName()).clear();
@@ -621,20 +616,31 @@ abstract class BaseRealm implements Closeable {
      * @param configuration configuration for the Realm that should be migrated
      * @param migration if set, this migration block will override what is set in {@link RealmConfiguration}
      * @param callback callback for specific Realm type behaviors.
+     * @throws FileNotFoundException if the Realm file doesn't exist.
      */
     protected static void migrateRealm(final RealmConfiguration configuration, final RealmMigration migration,
-                                       final MigrationCallback callback) {
+                                       final MigrationCallback callback) throws FileNotFoundException {
         if (configuration == null) {
             throw new IllegalArgumentException("RealmConfiguration must be provided");
         }
         if (migration == null && configuration.getMigration() == null) {
             throw new RealmMigrationNeededException(configuration.getPath(), "RealmMigration must be provided");
         }
+
+        final AtomicBoolean fileNotFound = new AtomicBoolean(false);
+
         RealmCache.invokeWithGlobalRefCount(configuration, new RealmCache.Callback() {
             @Override
             public void onResult(int count) {
                 if (count != 0) {
-                    throw new IllegalStateException("Cannot migrate a Realm file that is already open: " + configuration.getPath());
+                    throw new IllegalStateException("Cannot migrate a Realm file that is already open: "
+                            + configuration.getPath());
+                }
+
+                File realmFile = new File(configuration.getPath());
+                if (!realmFile.exists()) {
+                    fileNotFound.set(true);
+                    return;
                 }
 
                 RealmMigration realmMigration = (migration == null) ? configuration.getMigration() : migration;
@@ -659,6 +665,11 @@ abstract class BaseRealm implements Closeable {
                 }
             }
         });
+
+        if (fileNotFound.get()) {
+            throw new FileNotFoundException("Cannot migrate a Realm file which doesn't exist: "
+                    + configuration.getPath());
+        }
     }
 
     // Internal delegate for migrations

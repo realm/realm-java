@@ -136,8 +136,7 @@ public class RealmTests {
 
     private void populateTestRealm(Realm realm, int objects) {
         realm.beginTransaction();
-        realm.allObjects(AllTypes.class).clear();
-        realm.allObjects(NonLatinFieldNames.class).clear();
+        realm.deleteAll();
         for (int i = 0; i < objects; ++i) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);
@@ -145,6 +144,7 @@ public class RealmTests {
             allTypes.setColumnDate(new Date());
             allTypes.setColumnDouble(3.1415);
             allTypes.setColumnFloat(1.234567f + i);
+
             allTypes.setColumnString("test data " + i);
             allTypes.setColumnLong(i);
             NonLatinFieldNames nonLatinFieldNames = realm.createObject(NonLatinFieldNames.class);
@@ -626,8 +626,8 @@ public class RealmTests {
         METHOD_BEGIN,
         METHOD_COMMIT,
         METHOD_CANCEL,
-        METHOD_CLEAR,
-        METHOD_CLEAR_ALL,
+        METHOD_DELETE_TYPE,
+        METHOD_DELETE_ALL,
         METHOD_DISTINCT,
         METHOD_CREATE_OBJECT,
         METHOD_COPY_TO_REALM,
@@ -659,11 +659,11 @@ public class RealmTests {
                         case METHOD_CANCEL:
                             realm.cancelTransaction();
                             break;
-                        case METHOD_CLEAR:
-                            realm.clear(AllTypes.class);
+                        case METHOD_DELETE_TYPE:
+                            realm.delete(AllTypes.class);
                             break;
-                        case METHOD_CLEAR_ALL:
-                            realm.clear();
+                        case METHOD_DELETE_ALL:
+                            realm.deleteAll();
                             break;
                         case METHOD_DISTINCT:
                             realm.distinct(AllTypesPrimaryKey.class, "columnLong");
@@ -828,14 +828,13 @@ public class RealmTests {
     }
 
     @Test
-    public void clear_type() {
-        // ** clear non existing table should succeed
-
+    public void delete_type() {
+        // ** delete non existing table should succeed
         realm.beginTransaction();
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
         realm.commitTransaction();
 
-        // ** clear existing class, but leave other classes classes
+        // ** delete existing class, but leave other classes classes
 
         // Add two classes
         populateTestRealm();
@@ -845,7 +844,7 @@ public class RealmTests {
         realm.commitTransaction();
         // Clear
         realm.beginTransaction();
-        realm.clear(Dog.class);
+        realm.delete(Dog.class);
         realm.commitTransaction();
         // Check one class is cleared but other class is still there
         RealmResults<AllTypes> resultListTypes = realm.where(AllTypes.class).findAll();
@@ -853,9 +852,9 @@ public class RealmTests {
         RealmResults<Dog> resultListDogs = realm.where(Dog.class).findAll();
         assertEquals(0, resultListDogs.size());
 
-        // ** clear() must throw outside a transaction
+        // ** delete() must throw outside a transaction
         try {
-            realm.clear(AllTypes.class);
+            realm.delete(AllTypes.class);
             fail("Expected exception");
         } catch (IllegalStateException ignored) {
         }
@@ -896,7 +895,7 @@ public class RealmTests {
     @Test
     public void utf8Tests() {
         realm.beginTransaction();
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
         realm.commitTransaction();
 
         String file = "assets/unicode_codepoints.csv";
@@ -977,7 +976,7 @@ public class RealmTests {
             realm.allObjects(StringOnly.class).get(0).getChars();
 
             realm.beginTransaction();
-            realm.clear(StringOnly.class);
+            realm.delete(StringOnly.class);
             realm.commitTransaction();
         }
     }
@@ -1855,8 +1854,8 @@ public class RealmTests {
         try { realm.copyToRealmOrUpdate(t);         fail(); } catch (IllegalStateException expected) {}
         try { realm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
         try { realm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
-        try { realm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
-        try { realm.clear();                        fail(); } catch (IllegalStateException expected) {}
+        try { realm.delete(AllTypes.class);         fail(); } catch (IllegalStateException expected) {}
+        try { realm.deleteAll();                    fail(); } catch (IllegalStateException expected) {}
 
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (RealmException expected) {}
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (RealmException expected) {}
@@ -2540,7 +2539,7 @@ public class RealmTests {
     public void copyFromRealm_invalidObjectThrows() {
         realm.beginTransaction();
         AllTypes obj = realm.createObject(AllTypes.class);
-        obj.removeFromRealm();
+        obj.deleteFromRealm();
         realm.commitTransaction();
 
         try {
@@ -2683,7 +2682,7 @@ public class RealmTests {
         realm.beginTransaction();
         AllTypes object = realm.createObject(AllTypes.class);
         List<AllTypes> list = new RealmList<AllTypes>(object);
-        object.removeFromRealm();
+        object.deleteFromRealm();
         realm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
@@ -2738,7 +2737,7 @@ public class RealmTests {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         dynamicRealm.beginTransaction();
         RealmList<DynamicRealmObject> dynamicList = dynamicRealm.createObject(AllTypes.CLASS_NAME).getList(AllTypes.FIELD_REALMLIST);
-        DynamicRealmObject dObj = dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        DynamicRealmObject dObj = dynamicRealm.createObject(Dog.CLASS_NAME);
         dynamicList.add(dObj);
         dynamicRealm.commitTransaction();
         try {
@@ -2969,7 +2968,7 @@ public class RealmTests {
     }
 
     @Test
-    public void clear_all() {
+    public void deleteAll() {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.createObject(Owner.class).setCat(realm.createObject(Cat.class));
@@ -2980,7 +2979,7 @@ public class RealmTests {
         assertEquals(1, realm.where(Cat.class).count());
 
         realm.beginTransaction();
-        realm.clear();
+        realm.deleteAll();
         realm.commitTransaction();
 
         assertEquals(0, realm.where(AllTypes.class).count());

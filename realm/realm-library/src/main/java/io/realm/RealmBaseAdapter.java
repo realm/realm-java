@@ -34,16 +34,16 @@ import android.widget.BaseAdapter;
 public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
 
     protected LayoutInflater inflater;
-    protected RealmResults<T> realmResults;
+    protected OrderedRealmCollection<T> adapterData;
     protected Context context;
     private final RealmChangeListener listener;
 
-    public RealmBaseAdapter(Context context, RealmResults<T> realmResults, boolean automaticUpdate) {
+    public RealmBaseAdapter(Context context, OrderedRealmCollection<T> data, boolean automaticUpdate) {
         if (context == null) {
             throw new IllegalArgumentException("Context cannot be null");
         }
         this.context = context;
-        this.realmResults = realmResults;
+        this.adapterData = data;
         this.inflater = LayoutInflater.from(context);
         this.listener = (!automaticUpdate) ? null : new RealmChangeListener() {
             @Override
@@ -52,8 +52,8 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
             }
         };
 
-        if (listener != null && realmResults != null) {
-            realmResults.realm.handlerController.addChangeListenerAsWeakReference(listener);
+        if (listener != null && data != null) {
+            data.getRealm().handlerController.addChangeListenerAsWeakReference(listener);
         }
     }
 
@@ -64,10 +64,10 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
      */
     @Override
     public int getCount() {
-        if (realmResults == null) {
+        if (adapterData == null) {
             return 0;
         }
-        return realmResults.size();
+        return adapterData.size();
     }
 
     /**
@@ -78,10 +78,10 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
      */
     @Override
     public T getItem(int i) {
-        if (realmResults == null) {
+        if (adapterData == null) {
             return null;
         }
-        return realmResults.get(i);
+        return adapterData.get(i);
     }
 
     /**
@@ -106,15 +106,15 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     public void updateRealmResults(RealmResults<T> queryResults) {
         if (listener != null) {
             // Making sure that Adapter is refreshed correctly if new RealmResults come from another Realm
-            if (this.realmResults != null) {
-                this.realmResults.realm.removeChangeListener(listener);
+            if (this.adapterData != null) {
+                this.adapterData.getRealm().removeChangeListener(listener);
             }
             if (queryResults != null) {
                 queryResults.realm.addChangeListener(listener);
             }
         }
 
-        this.realmResults = queryResults;
+        this.adapterData = queryResults;
         notifyDataSetChanged();
     }
 }

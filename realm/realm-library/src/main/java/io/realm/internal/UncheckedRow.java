@@ -96,7 +96,7 @@ public class UncheckedRow extends NativeObject implements Row {
      */
     public static UncheckedRow getByRowIndex(Context context, LinkView linkView, long index) {
         long nativeRowPointer = linkView.nativeGetRow(linkView.nativePointer, index);
-        UncheckedRow row = new UncheckedRow(context, linkView.parent.getLinkTarget(linkView.columnIndexInParent),
+        UncheckedRow row = new UncheckedRow(context, linkView.getTargetTable(),
                 nativeRowPointer);
         context.rowReferences.put(new UncheckedRowNativeObjectReference(row, context.referenceQueue),
                 Context.NATIVE_REFERENCES_VALUE);

@@ -496,6 +496,10 @@ public class TestHelper {
     }
 
     public static void populatePartialNullRowsForNumericTesting (Realm realm) {
+        // Id values are [1, 2, 3]
+        // IntegerNull values are [3, null, 4]
+        // FloatNull values are [4F, null, 5F]
+        // DoubleNull values are [5D, null, 6F]
         NullTypes nullTypes1 = new NullTypes();
         nullTypes1.setId(1);
         nullTypes1.setFieldIntegerNull(3);
@@ -537,80 +541,82 @@ public class TestHelper {
     }
 
     // Helper function to create all columns except the given excluding field for NullTypes.
+    // The schema version will be set to 0.
     public static void initNullTypesTableExcludes(DynamicRealm realm, String excludingField) {
+        realm.beginTransaction();
 
-        Table table = realm.schema.getTable(NullTypes.class);
-        if (!excludingField.equals("id")) {
-            table.addColumn(RealmFieldType.INTEGER, "id", Table.NOT_NULLABLE);
-            table.addSearchIndex(table.getColumnIndex("id"));
-            table.setPrimaryKey("id");
+        RealmObjectSchema nullTypesSchema = realm.getSchema().create(NullTypes.CLASS_NAME);
+        if (!excludingField.equals(NullTypes.FIELD_ID)) {
+            nullTypesSchema.addField(NullTypes.FIELD_ID, int.class, FieldAttribute.PRIMARY_KEY);
         }
-        if (!excludingField.equals("fieldStringNotNull")) {
-            table.addColumn(RealmFieldType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_STRING_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_STRING_NOT_NULL, String.class, FieldAttribute.REQUIRED);
         }
-        if (!excludingField.equals("fieldStringNull")) {
-            table.addColumn(RealmFieldType.STRING, "fieldStringNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_STRING_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_STRING_NULL, String.class);
         }
-        if (!excludingField.equals("fieldBytesNotNull")) {
-            table.addColumn(RealmFieldType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BYTES_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BYTES_NOT_NULL, byte[].class, FieldAttribute.REQUIRED);
         }
-        if (!excludingField.equals("fieldBytesNull")) {
-            table.addColumn(RealmFieldType.BINARY, "fieldBytesNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BYTES_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BYTES_NULL, byte[].class);
         }
-        if (!excludingField.equals("fieldBooleanNotNull")) {
-            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BOOLEAN_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BOOLEAN_NOT_NULL, boolean.class);
         }
-        if (!excludingField.equals("fieldBooleanNull")) {
-            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BOOLEAN_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BOOLEAN_NULL, Boolean.class);
         }
-        if (!excludingField.equals("fieldByteNotNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BYTE_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BYTE_NOT_NULL, byte.class);
         }
-        if (!excludingField.equals("fieldByteNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldByteNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BYTE_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BYTE_NULL, Byte.class);
         }
-        if (!excludingField.equals("fieldShortNotNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_SHORT_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_SHORT_NOT_NULL, short.class);
         }
-        if (!excludingField.equals("fieldShortNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldShortNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_SHORT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_SHORT_NULL, Short.class);
         }
-        if (!excludingField.equals("fieldIntegerNotNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_INTEGER_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_INTEGER_NOT_NULL, int.class);
         }
-        if (!excludingField.equals("fieldIntegerNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_INTEGER_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_INTEGER_NULL, Integer.class);
         }
-        if (!excludingField.equals("fieldLongNotNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_LONG_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_LONG_NOT_NULL, long.class);
         }
-        if (!excludingField.equals("fieldLongNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldLongNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_LONG_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_LONG_NULL, Long.class);
         }
-        if (!excludingField.equals("fieldFloatNotNull")) {
-            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_FLOAT_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_FLOAT_NOT_NULL, float.class);
         }
-        if (!excludingField.equals("fieldFloatNull")) {
-            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_FLOAT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_FLOAT_NULL, Float.class);
         }
-        if (!excludingField.equals("fieldDoubleNotNull")) {
-            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_DOUBLE_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_DOUBLE_NOT_NULL, double.class);
         }
-        if (!excludingField.equals("fieldDoubleNull")) {
-            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_DOUBLE_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_DOUBLE_NULL, Double.class);
         }
-        if (!excludingField.equals("fieldDateNotNull")) {
-            table.addColumn(RealmFieldType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_DATE_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_DATE_NOT_NULL, Date.class, FieldAttribute.REQUIRED);
         }
-        if (!excludingField.equals("fieldDateNull")) {
-            table.addColumn(RealmFieldType.DATE, "fieldDateNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_DATE_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_DATE_NULL, Date.class);
         }
-        if (!excludingField.equals("fieldObjectNull")) {
-            table.addColumnLink(RealmFieldType.OBJECT, "fieldObjectNull", table);
+        if (!excludingField.equals(NullTypes.FIELD_OBJECT_NULL)) {
+            nullTypesSchema.addRealmObjectField(NullTypes.FIELD_OBJECT_NULL, nullTypesSchema);
         }
 
-        table.addColumnLink(RealmFieldType.LIST, "fieldListNull", table);
+        nullTypesSchema.addRealmListField(NullTypes.FIELD_LIST_NULL, nullTypesSchema);
 
+        realm.setVersion(0);
+        realm.commitTransaction();
     }
 
     public static void populateForMultiSort(Realm typedRealm) {
@@ -622,7 +628,7 @@ public class TestHelper {
 
     public static void populateForMultiSort(DynamicRealm realm) {
         realm.beginTransaction();
-        realm.clear(AllTypes.CLASS_NAME);
+        realm.delete(AllTypes.CLASS_NAME);
         DynamicRealmObject object1 = realm.createObject(AllTypes.CLASS_NAME);
         object1.setLong(AllTypes.FIELD_LONG, 5);
         object1.setString(AllTypes.FIELD_STRING, "Adam");

@@ -458,7 +458,7 @@ public class RealmAsyncQueryTests {
                         if (intercepts == 1) {
                             // We advance the Realm so we can simulate a retry
                             realm.beginTransaction();
-                            realm.clear(AllTypes.class);
+                            realm.delete(AllTypes.class);
                             realm.commitTransaction();
                         }
                 }
@@ -914,7 +914,7 @@ public class RealmAsyncQueryTests {
                         if (intercepts == 1) {
                             // we advance the Realm so we can simulate a retry
                             realm.beginTransaction();
-                            realm.clear(AllTypes.class);
+                            realm.delete(AllTypes.class);
                             AllTypes object = realm.createObject(AllTypes.class);
                             object.setColumnString("The Endless River");
                             object.setColumnLong(5);
@@ -1011,7 +1011,7 @@ public class RealmAsyncQueryTests {
                             // We advance the Realm so we can simulate a retry before listeners are
                             // called.
                             realm.beginTransaction();
-                            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 8).findFirst().removeFromRealm();
+                            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 8).findFirst().deleteFromRealm();
                             realm.commitTransaction();
                         }
                         break;
@@ -1771,14 +1771,55 @@ public class RealmAsyncQueryTests {
         });
     }
 
+    // Make sure we don't get the run into the IllegalStateException
+    // (Caller thread behind the worker thread)
+    // Scenario:
+    // - Caller thread is in version 1, start an asyncFindFirst
+    // - Another thread advance the Realm, now the latest version = 2
+    // - The worker thread should query against version 1 not version 2
+    // otherwise the caller thread wouldn't be able to import the result
+    // - The notification mechanism will guarantee that the REALM_CHANGE triggered by
+    // the background thread, will update the caller thread (advancing it to version 2)
+    @Test
+    @RunTestInLooperThread
+    public void testFindFirstUsesCallerThreadVersion() throws Throwable {
+        final CountDownLatch signalClosedRealm = new CountDownLatch(1);
+
+        populateTestRealm(looperThread.realm, 10);
+        Realm.asyncQueryExecutor.pause();
+
+        final AllTypes firstAsync = looperThread.realm.where(AllTypes.class).findFirstAsync();
+        firstAsync.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertNotNull(firstAsync);
+                assertEquals("test data 0", firstAsync.getColumnString());
+                looperThread.testComplete(signalClosedRealm);
+            }
+        });
+
+        // advance the background Realm
+        new Thread() {
+            @Override
+            public void run() {
+                Realm bgRealm = Realm.getInstance(looperThread.realmConfiguration);
+                // Advancing the Realm without generating notifications
+                bgRealm.sharedGroupManager.promoteToWrite();
+                bgRealm.sharedGroupManager.commitAndContinueAsRead();
+                Realm.asyncQueryExecutor.resume();
+                bgRealm.close();
+                signalClosedRealm.countDown();
+            }
+        }.start();
+    }
+
 
     // *** Helper methods ***
 
     private void populateTestRealm(final Realm testRealm, int objects) {
         testRealm.setAutoRefresh(false);
         testRealm.beginTransaction();
-        testRealm.allObjects(AllTypes.class).clear();
-        testRealm.allObjects(NonLatinFieldNames.class).clear();
+        testRealm.deleteAll();
         for (int i = 0; i < objects; ++i) {
             AllTypes allTypes = testRealm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 3) == 0);

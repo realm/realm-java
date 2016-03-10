@@ -62,7 +62,8 @@ public class ISO8601Utils {
      * @throws ParseException if the date is not in the appropriate format
      */
     public static Date parse(String date, ParsePosition pos) throws ParseException {
-        Exception fail = null;
+        Exception fail;
+        //noinspection TryWithIdenticalCatches
         try {
             int offset = pos.getIndex();
 
@@ -142,7 +143,7 @@ public class ISO8601Utils {
                 throw new IllegalArgumentException("No time zone indicator");
             }
 
-            TimeZone timezone = null;
+            TimeZone timezone;
             char timezoneIndicator = date.charAt(offset);
 
             if (timezoneIndicator == 'Z') {

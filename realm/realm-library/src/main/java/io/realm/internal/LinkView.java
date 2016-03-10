@@ -16,8 +16,9 @@
 
 package io.realm.internal;
 
-import io.realm.RealmFieldType;
 import java.lang.ref.ReferenceQueue;
+
+import io.realm.RealmFieldType;
 
 /**
  * The LinkView class represents a core {@link RealmFieldType#LIST}.
@@ -153,6 +154,27 @@ public class LinkView extends NativeObject {
         nativeRemoveAllTargetRows(nativePointer);
     }
 
+    /**
+     * Remove target row from both the Realm and the LinkView.
+     */
+    public void removeTargetRow(int index) {
+        checkImmutable();
+        nativeRemoveTargetRow(nativePointer, index);
+	}
+
+    public Table getTargetTable() {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();
+        long nativeTablePointer = nativeGetTargetTable(nativePointer);
+        try {
+            // Copy context reference from parent
+            return new Table(context, this.parent, nativeTablePointer);
+        } catch (RuntimeException e) {
+            Table.nativeClose(nativeTablePointer);
+            throw e;
+        }
+    }
+
     private void checkImmutable() {
         if (parent.isImmutable()) {
             throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
@@ -173,5 +195,7 @@ public class LinkView extends NativeObject {
     protected native long nativeWhere(long nativeLinkViewPtr);
     private native boolean nativeIsAttached(long nativeLinkViewPtr);
     private native long nativeFind(long nativeLinkViewPtr, long targetRowIndex);
+    private native void nativeRemoveTargetRow(long nativeLinkViewPtr, long rowIndex);
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
+    private native long nativeGetTargetTable(long nativeLinkViewPtr);
 }

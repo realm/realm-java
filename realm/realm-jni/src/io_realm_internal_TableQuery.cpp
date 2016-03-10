@@ -1037,7 +1037,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(
     return -1;
 }
 
-std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr)
+std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong queryPtr, bool advanceToLatestVersion)
 {
     SharedGroup::Handover<Query> *handoverQueryPtr = HO(Query, queryPtr);
     std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
@@ -1053,8 +1053,8 @@ std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong replicati
     }
 
     std::unique_ptr<Query> query = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
-    if (isDifferentVersions) {
-        LangBindHelper::advance_read(*SG(bgSharedGroupPtr), *CH(replicationPtr));
+    if (advanceToLatestVersion && isDifferentVersions) {
+        LangBindHelper::advance_read(*SG(bgSharedGroupPtr));
     }
 
     return query;
@@ -1062,11 +1062,11 @@ std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong replicati
 
 // queryPtr would be owned and released by this function
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover(
-    JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong fromTableRow)
+    JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong fromTableRow)
 {
     TR_ENTER()
     try {
-        std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
+        std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, false);
         TableRef table = query->get_table();
 
         if (!QUERY_VALID(env, query.get())) {
@@ -1114,11 +1114,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAll(
 
 // queryPtr would be owned and released by this function
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHandover
-  (JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong start, jlong end, jlong limit)
+  (JNIEnv* env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit)
   {
       TR_ENTER()
       try {
-          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
+          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, true);
           return findAllWithHandover(env, bgSharedGroupPtr, std::move(query), start, end, limit);
       } CATCH_STD()
       return 0;
@@ -1131,7 +1131,7 @@ enum query_type {QUERY_TYPE_FIND_ALL = 0, QUERY_TYPE_DISTINCT = 4, QUERY_TYPE_FI
 
 // batch update of async queries
 JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdateQueries
-        (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr,
+        (JNIEnv *env, jobject, jlong bgSharedGroupPtr,
          jlongArray  handover_queries_array /*list of handover queries*/,
          jobjectArray  query_param_matrix /*type & params of the query to be updated*/,
          jobjectArray  multi_sorted_indices_matrix,
@@ -1165,7 +1165,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
         }
 
         // Step2: Bring the queries into the latest shared group version
-        LangBindHelper::advance_read(*SG(bgSharedGroupPtr), *CH(replicationPtr));
+        LangBindHelper::advance_read(*SG(bgSharedGroupPtr));
 
         // Step3: Run & export the queries against the latest shared group
         for (size_t i = 0; i < number_of_queries; ++i) {
@@ -1242,34 +1242,34 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
 
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewWithHandover
-        (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong columnIndex)
+        (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong columnIndex)
 {
     TR_ENTER()
     try {
-        std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
+        std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, true);
         return getDistinctViewWithHandover(env, bgSharedGroupPtr, std::move(query), columnIndex);
     } CATCH_STD()
     return 0;
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWithHandover
-  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlong columnIndex, jboolean ascending)
   {
       TR_ENTER()
       try {
-          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
+          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, true);
           return findAllSortedWithHandover(env, bgSharedGroupPtr, std::move(query), start, end, limit, columnIndex, ascending);
       } CATCH_STD()
       return 0;
   }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSortedWithHandover
-  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong replicationPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
+  (JNIEnv *env, jobject, jlong bgSharedGroupPtr, jlong queryPtr, jlong start, jlong end, jlong limit, jlongArray columnIndices, jbooleanArray ascending)
   {
       TR_ENTER()
       try {
           // import the handover query pointer using the background SharedGroup
-          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, replicationPtr, queryPtr);
+          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, true);
           return findAllMultiSortedWithHandover(env, bgSharedGroupPtr, std::move(query), start, end, limit,columnIndices, ascending);
       } CATCH_STD()
       return 0;
