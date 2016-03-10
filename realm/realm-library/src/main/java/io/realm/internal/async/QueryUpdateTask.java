@@ -80,7 +80,6 @@ public class QueryUpdateTask implements Runnable {
                 result = Result.newRealmResultsResponse();
                 AlignedQueriesParameters alignedParameters = prepareQueriesParameters();
                 long[] handoverTableViewPointer = TableQuery.nativeBatchUpdateQueries(sharedGroup.getNativePointer(),
-                        sharedGroup.getNativeReplicationPointer(),
                         alignedParameters.handoverQueries,
                         alignedParameters.queriesParameters,
                         alignedParameters.multiSortColumnIndices,
@@ -180,7 +179,6 @@ public class QueryUpdateTask implements Runnable {
                 case ArgumentsHolder.TYPE_FIND_FIRST: {
                     long handoverRowPointer = TableQuery.
                             nativeFindWithHandover(sharedGroup.getNativePointer(),
-                                    sharedGroup.getNativeReplicationPointer(),
                                     realmObjectEntry.handoverQueryPointer, 0);
                     result.updatedRow.put(realmObjectEntry.element, handoverRowPointer);
                     break;
