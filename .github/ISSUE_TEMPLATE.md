@@ -10,33 +10,34 @@
 >
 > Remove this and above before submitting.
 
-## Goal (what do you want to achieve?)
+#### Goal
 
-?
+> What do you want to achieve?
 
-## Expected Results
+#### Expected Results
 
-?
+> ?
 
-## Actual Results (e.g. full stack trace with exception)
+#### Actual Results
 
-?
+>  E.g. full stack trace with exception
 
-## Steps & Code to Reproduce (Or describe your current debugging efforts)
+#### Steps & Code to Reproduce
 
-?
+> Describe your current debugging efforts.
 
-### Code Sample (Bigger samples, ideally an AS project, in gists/repositories or privately at help@realm.io)
+#### Code Sample
 
 ```java
 
-? your code here
+> Your code here. Bigger samples should ideally be as separate Android Studio project, 
+> in gists/repositories or privately at help@realm.io)
 
 ```
 
-## Version of Realm and tooling
+#### Version of Realm and tooling
 Realm version(s): ?
 
 Android Studio version: ?
 
-Android version(s) on device/simulator: ?
+Which Android version and device: ?
