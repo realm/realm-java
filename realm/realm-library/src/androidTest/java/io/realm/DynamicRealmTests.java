@@ -973,7 +973,7 @@ public class DynamicRealmTests {
         assertEquals(1, realm.where("TestRemoveAll").count());
 
         realm.beginTransaction();
-        realm.clear();
+        realm.deleteAll();
         realm.commitTransaction();
 
         assertEquals(0, realm.where(AllTypes.CLASS_NAME).count());
@@ -990,7 +990,7 @@ public class DynamicRealmTests {
         assertEquals(2, list.size());
 
         realm.beginTransaction();
-        list.removeAllFromRealm();
+        list.deleteAllFromRealm();
         realm.commitTransaction();
 
         assertEquals(0, list.size());

@@ -665,7 +665,7 @@ public class RealmTests {
                             realm.clear(AllTypes.class);
                             break;
                         case METHOD_CLEAR_ALL:
-                            realm.clear();
+                            realm.deleteAll();
                             break;
                         case METHOD_DISTINCT:
                             realm.distinct(AllTypesPrimaryKey.class, "columnLong");
@@ -1858,7 +1858,7 @@ public class RealmTests {
         try { realm.copyToRealmOrUpdate(ts);        fail(); } catch (IllegalStateException expected) {}
         try { realm.remove(AllTypes.class, 0);      fail(); } catch (IllegalStateException expected) {}
         try { realm.clear(AllTypes.class);          fail(); } catch (IllegalStateException expected) {}
-        try { realm.clear();                        fail(); } catch (IllegalStateException expected) {}
+        try { realm.deleteAll();                        fail(); } catch (IllegalStateException expected) {}
 
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObj);                fail(); } catch (RealmException expected) {}
         try { realm.createObjectFromJson(AllTypesPrimaryKey.class, jsonObjStr);             fail(); } catch (RealmException expected) {}
@@ -2728,7 +2728,7 @@ public class RealmTests {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         dynamicRealm.beginTransaction();
         RealmList<DynamicRealmObject> dynamicList = dynamicRealm.createObject(AllTypes.CLASS_NAME).getList(AllTypes.FIELD_REALMLIST);
-        DynamicRealmObject dObj = dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        DynamicRealmObject dObj = dynamicRealm.createObject(Dog.CLASS_NAME);
         dynamicList.add(dObj);
         dynamicRealm.commitTransaction();
         try {
@@ -2970,7 +2970,7 @@ public class RealmTests {
         assertEquals(1, realm.where(Cat.class).count());
 
         realm.beginTransaction();
-        realm.clear();
+        realm.deleteAll();
         realm.commitTransaction();
 
         assertEquals(0, realm.where(AllTypes.class).count());

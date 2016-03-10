@@ -18,8 +18,9 @@
 * Fixed bug in jsonExample (#2092).
 * Fixed bug when multiple calls of RealmResults.distinct() causes to return wrong results (#2198).
 * Fixed bug when calling DynamicRealmObject.setList() with RealmList<DynamicRealmObject> (#2368).
+* Fixed RealmChangeListeners not triggering correctly if findFirstAsync() didn't find any object. findFirstAsync() Observables now also correctly call onNext when the query completes in that case (#2200). (thank you @grahamsmith)
 * Added RealmQuery.isNotEmpty() (#2025). (Thank you @stk1m1)
-* Added Realm.clear() and RealmList.removeAllFromRealm() (#1560).
+* Added Realm.deleteAll() and RealmList.deleteAllFromRealm() (#1560).
 * Added RealmQuery.distinct() and RealmResults.distinct() (#1568).
 * Added RealmQuery.distinctAsync() and RealmResults.distinctAsync() (#2118).
 * Improved .so loading by using [ReLinker](https://github.com/KeepSafe/ReLinker).
@@ -29,6 +30,9 @@
 * Added multi-arguments distinct(...) for Realm, DynamicRealm, RealmQuery, and RealmResults (#2284).
 * Allowed "realm" and "row" as a field name of model class (#2255).
 * Added waitForChange() and stopWaitForChange() for Realm and DynamicRealm (#2386).
+* Updated Realm Core to 0.97.0
+  - Fixed bug when setting a null value to trigger RealmChangeListener (#2366).
+  - Fixed bug to prevent throwing BadVersionException (#2391).
 
 ## 0.87.5
 * Updated Realm Core to 0.96.2.

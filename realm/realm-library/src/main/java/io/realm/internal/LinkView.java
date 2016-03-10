@@ -153,6 +153,19 @@ public class LinkView extends NativeObject {
         nativeRemoveAllTargetRows(nativePointer);
     }
 
+    public Table getTargetTable() {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        context.executeDelayedDisposal();
+        long nativeTablePointer = nativeGetTargetTable(nativePointer);
+        try {
+            // Copy context reference from parent
+            return new Table(context, this.parent, nativeTablePointer);
+        } catch (RuntimeException e) {
+            Table.nativeClose(nativeTablePointer);
+            throw e;
+        }
+    }
+
     private void checkImmutable() {
         if (parent.isImmutable()) {
             throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
@@ -174,4 +187,5 @@ public class LinkView extends NativeObject {
     private native boolean nativeIsAttached(long nativeLinkViewPtr);
     private native long nativeFind(long nativeLinkViewPtr, long targetRowIndex);
     private native void nativeRemoveAllTargetRows(long nativeLinkViewPtr);
+    private native long nativeGetTargetTable(long nativeLinkViewPtr);
 }

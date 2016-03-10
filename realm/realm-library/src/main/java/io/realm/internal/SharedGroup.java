@@ -79,16 +79,15 @@ public class SharedGroup implements Closeable {
     }
 
     void advanceRead() {
-        nativeAdvanceRead(nativePtr, nativeReplicationPtr);
+        nativeAdvanceRead(nativePtr);
     }
 
     void advanceRead(VersionID versionID) {
-        nativeAdvanceReadToVersion(nativePtr, nativeReplicationPtr, versionID.version,
-                versionID.index);
+        nativeAdvanceReadToVersion(nativePtr, versionID.version, versionID.index);
     }
 
     void promoteToWrite() {
-        nativePromoteToWrite(nativePtr, nativeReplicationPtr);
+        nativePromoteToWrite(nativePtr);
     }
 
     void commitAndContinueAsRead() {
@@ -96,7 +95,7 @@ public class SharedGroup implements Closeable {
     }
 
     void rollbackAndContinueAsRead() {
-        nativeRollbackAndContinueAsRead(nativePtr, nativeReplicationPtr);
+        nativeRollbackAndContinueAsRead(nativePtr);
     }
 
     public ImplicitTransaction beginImplicitTransaction() {
@@ -327,7 +326,7 @@ public class SharedGroup implements Closeable {
     private native boolean nativeCompact(long nativePtr);
     protected static native void nativeClose(long nativePtr);
     private native void nativeCloseReplication(long nativeReplicationPtr);
-    private native void nativeRollbackAndContinueAsRead(long nativePtr, long nativeReplicationPtr);
+    private native void nativeRollbackAndContinueAsRead(long nativePtr);
     private native long[] nativeGetVersionID (long nativePtr);
     private native void nativeAdvanceRead(long nativePtr, long nativeReplicationPtr);
     private native void nativeAdvanceReadToVersion(long nativePtr, long nativeReplicationPtr,
@@ -336,4 +335,7 @@ public class SharedGroup implements Closeable {
     private native boolean nativeWaitForChange(long nativePtr);
     private native void nativeWaitForChangeRelease(long nativePtr);
     private native void nativeEnableWaitForChange(long nativePtr);
+    private native void nativeAdvanceRead(long nativePtr);
+    private native void nativeAdvanceReadToVersion(long nativePtr, long version, long index);
+    private native void nativePromoteToWrite(long nativePtr);
 }
