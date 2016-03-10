@@ -43,8 +43,6 @@ import io.realm.entities.Owner;
 import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.RunInLooperThread;
-import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -369,9 +367,7 @@ public class RealmResultsTests extends CollectionTests {
     // distinctAsync
     private void populateTestRealm(int objects) {
         realm.beginTransaction();
-        realm.allObjects(AllTypes.class).clear();
-        realm.allObjects(NonLatinFieldNames.class).clear();
-
+        realm.deleteAll();
         for (int i = 0; i < objects; ++i) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
             allTypes.setColumnBoolean((i % 2) == 0);

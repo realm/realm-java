@@ -795,7 +795,10 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
     // TODO Remove once waitForChange is introduced
+    @Test
     public void iterator_refreshClearsRemovedObjects() {
+        assertEquals(0, collection.iterator().next().getFieldLong());
+        realm.setAutoRefresh(false);
         realm.beginTransaction();
         collection.iterator().next().deleteFromRealm();
         realm.commitTransaction();
@@ -803,9 +806,9 @@ public class ManagedRealmCollectionTests extends CollectionTests {
 
         assertEquals(TEST_SIZE - 1, collection.size()); // Size is same even if object is deleted
         Iterator<AllJavaTypes> it = collection.iterator();
-        AllJavaTypes types = it.next(); // Iterator can no longer access the deleted object
+        AllJavaTypes obj = it.next(); // Iterator can no longer access the deleted object
 
-        assertTrue(types.isValid());
-        assertEquals(1, types.getFieldLong());
+        assertTrue(obj.isValid());
+        assertEquals(1, obj.getFieldLong());
     }
 }
