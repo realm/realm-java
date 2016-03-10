@@ -3108,6 +3108,54 @@ public class RealmTests {
         assertEquals(0, bgReamCount.get());
     }
 
+    // Test if waitForChange still blocks if stopWaitForChange has been called for a realm in a different thread.
+    @Test
+    public void waitForChange_fineControlWithMultiThreads() throws InterruptedException {
+        final CountDownLatch bgRealmOpened = new CountDownLatch(2);
+        final CountDownLatch bgRealmClosed = new CountDownLatch(2);
+        final AtomicBoolean bgRealmStoppedResult = new AtomicBoolean(true);
+        final AtomicBoolean bgRealmChangeResult = new AtomicBoolean(false);
+        final AtomicLong bgReamCount = new AtomicLong(0);
+        final AtomicReference<Realm> bgRealm = new AtomicReference<Realm>();
+
+        // wait in background
+        Thread thread1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                bgRealm.set(realm);
+                bgRealmOpened.countDown();
+                bgRealmStoppedResult.set(realm.waitForChange());
+                realm.close();
+                bgRealmClosed.countDown();
+            }
+        });
+
+        Thread thread2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(realmConfig);
+                bgRealmOpened.countDown();
+                bgRealmChangeResult.set(realm.waitForChange());
+                bgReamCount.set(realm.where(AllTypes.class).count());
+                realm.close();
+                bgRealmClosed.countDown();
+            }
+        });
+        thread1.start();
+        thread2.start();
+
+        TestHelper.awaitOrFail(bgRealmOpened);
+        // it is necessary to give a time window for the background realm to wait on change.
+        Thread.sleep(200);
+        bgRealm.get().stopWaitForChange();
+        populateTestRealm();
+        TestHelper.awaitOrFail(bgRealmClosed);
+        assertFalse(bgRealmStoppedResult.get());
+        assertTrue(bgRealmChangeResult.get());
+        assertEquals(TEST_DATA_SIZE, bgReamCount.get());
+    }
+
     @Test
     public void waitForChange_onLooperThread() throws InterruptedException {
         final CountDownLatch bgRealmClosed = new CountDownLatch(1);
