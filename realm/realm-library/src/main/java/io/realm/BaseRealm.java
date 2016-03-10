@@ -288,7 +288,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return {@code true} If the Realm was updated to the latest version, {@code false} if it was
      * cancelled by calling {@link #stopWaitForChange}.
-     * @throws IllegalStateException if attempting to wait within a transaction.
+     * @throws IllegalStateException if attempting to wait within a transaction or a Looper thread.
      */
     public boolean waitForChange() {
         checkIfValid();
