@@ -773,7 +773,6 @@ public class RealmResultsTests extends CollectionTests {
 
 
         RealmResults<Dog> dogs = owner.getDogs().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
-        //dogs = dogs.where().findFirst().getOwner().getDogs().where().equalTo(Dog.FIELD_NAME, "name_0").findAll();
 
         realm.beginTransaction();
         owner.deleteFromRealm();
@@ -796,7 +795,7 @@ public class RealmResultsTests extends CollectionTests {
     public void first_resultsBuiltOnDeletedLinkView() {
         try {
             populateRealmResultsOnDeletedLinkView().first();
-        } catch (ArrayIndexOutOfBoundsException ignored) {
+        } catch (IndexOutOfBoundsException ignored) {
         }
     }
 
@@ -804,7 +803,7 @@ public class RealmResultsTests extends CollectionTests {
     public void last_resultsBuiltOnDeletedLinkView() {
         try {
             populateRealmResultsOnDeletedLinkView().last();
-        } catch (ArrayIndexOutOfBoundsException ignored) {
+        } catch (IndexOutOfBoundsException ignored) {
         }
     }
 
