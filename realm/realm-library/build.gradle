@@ -153,7 +153,7 @@ install {
                 packaging 'aar'
 
                 // Add your description here
-                name 'realm-library'
+                name 'realm-android-library'
                 description 'Realm is a mobile database: a replacement for SQLite & ORMs.'
                 url 'http://realm.io'
 
@@ -190,7 +190,7 @@ bintray {
 
     pkg {
         repo = 'maven'
-        name = 'realm-annotations-processor'
+        name = 'realm-android-library'
         desc = 'Realm for Android'
         websiteUrl = 'http://realm.io'
         issueTrackerUrl = 'https://github.com/realm/realm-java/issues'

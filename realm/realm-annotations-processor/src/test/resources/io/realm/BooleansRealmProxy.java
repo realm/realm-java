@@ -286,14 +286,14 @@ public class BooleansRealmProxy extends Booleans
         if (currentDepth > maxDepth || realmObject == null) {
             return null;
         }
-        CacheData<Booleans> cachedObject = (CacheData) cache.get(realmObject);
+        CacheData<RealmObject> cachedObject = cache.get(realmObject);
         Booleans standaloneObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
-                return cachedObject.object;
+                return (Booleans)cachedObject.object;
             } else {
-                standaloneObject = cachedObject.object;
+                standaloneObject = (Booleans)cachedObject.object;
                 cachedObject.minDepth = currentDepth;
             }
         } else {
