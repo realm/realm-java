@@ -56,7 +56,7 @@
 
 ### Credits
 
-* Thanks to Bill West (@wmbest2) for snapshot testing.
+* Thanks to Bill Best (@wmbest2) for snapshot testing.
 * Thanks to Graham Smith (@grahamsmith) for a detailed bug report (#2200).
 
 ## 0.87.5
