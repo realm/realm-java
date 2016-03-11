@@ -199,6 +199,7 @@ public class RealmConfiguration {
         result = 31 * result + (deleteRealmIfMigrationNeeded ? 1 : 0);
         result = 31 * result + schemaMediator.hashCode();
         result = 31 * result + durability.hashCode();
+        result = 31 * result + (rxObservableFactory != null ? rxObservableFactory.hashCode() : 0);
 
         return result;
     }
