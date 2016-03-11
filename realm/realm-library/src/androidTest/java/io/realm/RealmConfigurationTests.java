@@ -43,11 +43,13 @@ import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.rx.RealmObservableFactory;
 import io.realm.rx.RxObservableFactory;
 import rx.Observable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
@@ -392,6 +394,23 @@ public class RealmConfigurationTests {
                 .build();
 
         assertEquals(config1.hashCode(), config2.hashCode());
+    }
+
+    @Test
+    public void hashCode_withDifferentRxObservableFactory() {
+        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot())
+                .rxFactory(new RealmObservableFactory())
+                .build();
+        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot())
+                .rxFactory(new RealmObservableFactory() {
+                    @Override
+                    public int hashCode() {
+                        return super.hashCode() + 1;
+                    }
+                })
+                .build();
+
+        assertNotEquals(config1.hashCode(), config2.hashCode());
     }
 
     @Test
