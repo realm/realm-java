@@ -1037,24 +1037,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(
     return -1;
 }
 
-std::unique_ptr<Query> getHandoverQuery (jlong bgSharedGroupPtr, jlong queryPtr, bool advanceToLatestVersion)
+std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedGroupPtr, jlong queryPtr, bool advanceToLatestVersion)
 {
     SharedGroup::Handover<Query> *handoverQueryPtr = HO(Query, queryPtr);
     std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
 
-    SG(bgSharedGroupPtr)->end_read();
-
-    SharedGroup::VersionID currentVersion = SG(bgSharedGroupPtr)->get_version_of_current_transaction();
-    bool isDifferentVersions = (currentVersion != handoverQuery->version);
-    if (isDifferentVersions) {
-        SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
-    } else {
-        SG(bgSharedGroupPtr)->begin_read();
-    }
-
     std::unique_ptr<Query> query = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
-    if (advanceToLatestVersion && isDifferentVersions) {
+    if (advanceToLatestVersion) {
         LangBindHelper::advance_read(*SG(bgSharedGroupPtr));
+    } else {
+        try {
+            LangBindHelper::advance_read(*SG(bgSharedGroupPtr), handoverQuery->version);
+        } catch (SharedGroup::BadVersion e) {
+            // The Handover object doesn't prevent a SharedGroup version from no longer being accessible, which in rare
+            // cases means that the version in the handover object no longer is valid.
+            // In this case Core will throw a BadVersionException. If this happens we assume that the caller thread is
+            // at the latest version, so instead of trying to negotiate a new valid version (which also have
+            // race conditions), we just run the query on the latest version. It is then up to the caller thread, to
+            // restart the query in case of version mismatch when the result is returned.
+            LangBindHelper::advance_read(*SG(bgSharedGroupPtr));
+        }
     }
 
     return query;
@@ -1066,7 +1068,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindWithHandover
 {
     TR_ENTER()
     try {
-        std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, false);
+        std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedGroupPtr, queryPtr, false); // throws
         TableRef table = query->get_table();
 
         if (!QUERY_VALID(env, query.get())) {
@@ -1118,7 +1120,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllWithHando
   {
       TR_ENTER()
       try {
-          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, true);
+          std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedGroupPtr, queryPtr, true); // throws
           return findAllWithHandover(env, bgSharedGroupPtr, std::move(query), start, end, limit);
       } CATCH_STD()
       return 0;
@@ -1246,7 +1248,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeGetDistinctViewW
 {
     TR_ENTER()
     try {
-        std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, true);
+        std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedGroupPtr, queryPtr, true); // throws
         return getDistinctViewWithHandover(env, bgSharedGroupPtr, std::move(query), columnIndex);
     } CATCH_STD()
     return 0;
@@ -1257,7 +1259,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllSortedWit
   {
       TR_ENTER()
       try {
-          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, true);
+          std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedGroupPtr, queryPtr, true); // throws
           return findAllSortedWithHandover(env, bgSharedGroupPtr, std::move(query), start, end, limit, columnIndex, ascending);
       } CATCH_STD()
       return 0;
@@ -1269,7 +1271,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFindAllMultiSort
       TR_ENTER()
       try {
           // import the handover query pointer using the background SharedGroup
-          std::unique_ptr<Query> query = getHandoverQuery(bgSharedGroupPtr, queryPtr, true);
+          std::unique_ptr<Query> query = handoverQueryToWorker(bgSharedGroupPtr, queryPtr, true); // throws
           return findAllMultiSortedWithHandover(env, bgSharedGroupPtr, std::move(query), start, end, limit,columnIndices, ascending);
       } CATCH_STD()
       return 0;
@@ -1668,7 +1670,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTa
   {
     TR_ENTER_PTR(handoverPtr)
     SharedGroup::Handover<TableView> *handoverTableViewPtr = HO(TableView, handoverPtr);
-    std::unique_ptr<SharedGroup::Handover<TableView> > handoverTableView(handoverTableViewPtr);
+    std::unique_ptr<SharedGroup::Handover<TableView>> handoverTableView(handoverTableViewPtr);
 
     try {
         // import_from_handover will free (delete) the handover

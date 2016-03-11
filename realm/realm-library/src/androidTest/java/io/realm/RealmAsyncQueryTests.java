@@ -18,6 +18,9 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -59,6 +62,9 @@ public class RealmAsyncQueryTests {
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+
 
     // ****************************
     // ****  Async transaction  ***
@@ -1852,5 +1858,39 @@ public class RealmAsyncQueryTests {
             }
         }
         realm.commitTransaction();
+    }
+
+    // Test case for https://github.com/realm/realm-java/issues/2417
+    @Test
+    @UiThreadTest
+    public void badVersion() {
+        RealmConfiguration config = new RealmConfiguration.Builder(InstrumentationRegistry.getContext()).deleteRealmIfMigrationNeeded().build();
+        Realm realm = Realm.getInstance(config);
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        Realm realm2 = Realm.getInstance(config);
+        try {
+            boolean result = realm2.where(AllTypes.class).findAllAsync().load();
+            assertTrue(result);
+        } finally {
+            realm.close();
+            realm2.close();
+        }
     }
 }

@@ -497,9 +497,15 @@ public class HandlerController implements Handler.Callback {
                     realmObject.onCompleted(rowPointer);
                     realmObject.notifyChangeListeners();
 
-                } else if (compare > 0) {
-                    // the caller has advanced we need to
-                    // retry against the current version of the caller if it's still empty
+                } else {
+                    if (compare > 0) {
+                        RealmLog.d("[COMPLETED_ASYNC_REALM_OBJECT "+ realmObject + "] , realm:" + HandlerController.this
+                                + " caller is more advanced. Schedule a retry on current version");
+                    } else {
+                        RealmLog.d("[COMPLETED_ASYNC_REALM_OBJECT "+ realmObject + "] , realm:" + HandlerController.this +
+                                " worker is more advanced. Schedule a retry on current version.");
+                    }
+
                     if (realmObject.isValid()) { // already completed & has a valid pointer no need to re-run
                         realmObject.notifyChangeListeners();
                     } else {
@@ -518,10 +524,6 @@ public class HandlerController implements Handler.Callback {
 
                         Realm.asyncQueryExecutor.submit(queryUpdateTask);
                     }
-                } else {
-                    // should not happen, since the the background thread position itself against the provided version
-                    // and the caller thread can only go forward (advance_read)
-                    throw new IllegalStateException("Caller thread behind the worker thread");
                 }
             } // else: element GC'd in the meanwhile
         }
