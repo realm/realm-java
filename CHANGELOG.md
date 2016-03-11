@@ -1,3 +1,9 @@
+## 0.88.1
+
+### Bug fixes
+
+* Prevent throwing NullPointerException in RealmConfiguration.equals(RealmConfiguration) when RxJava is not in the classpath (#2416).
+
 ## 0.88.0
 
 * Updated Realm Core to 0.97.0.
