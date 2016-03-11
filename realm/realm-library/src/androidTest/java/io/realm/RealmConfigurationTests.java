@@ -353,6 +353,16 @@ public class RealmConfigurationTests {
     }
 
     @Test
+    public void equalsWhenRxJavaUnavailable() {
+        // test for https://github.com/realm/realm-java/issues/2416
+        RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
+        TestHelper.emulateRxJavaUnavailable(config1);
+        RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
+        TestHelper.emulateRxJavaUnavailable(config2);
+        assertTrue(config1.equals(config2));
+    }
+
+    @Test
     public void hashCode_Test() {
         RealmConfiguration config1 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
         RealmConfiguration config2 = new RealmConfiguration.Builder(configFactory.getRoot()).build();
