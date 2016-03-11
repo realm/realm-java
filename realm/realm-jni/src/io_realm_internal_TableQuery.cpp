@@ -1042,18 +1042,19 @@ std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedGroupPtr, jlong query
     SharedGroup::Handover<Query> *handoverQueryPtr = HO(Query, queryPtr);
     std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
 
+    SharedGroup::VersionID callerVersion = handoverQuery->version;
     std::unique_ptr<Query> query = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
     if (advanceToLatestVersion) {
         LangBindHelper::advance_read(*SG(bgSharedGroupPtr));
     } else {
         try {
-            LangBindHelper::advance_read(*SG(bgSharedGroupPtr), handoverQuery->version);
+            LangBindHelper::advance_read(*SG(bgSharedGroupPtr), callerVersion);
         } catch (SharedGroup::BadVersion e) {
-            // The Handover object doesn't prevent a SharedGroup version from no longer being accessible, which in rare
-            // cases means that the version in the handover object no longer is valid.
-            // In this case Core will throw a BadVersionException. If this happens we assume that the caller thread is
-            // at the latest version, so instead of trying to negotiate a new valid version (which also have
-            // race conditions), we just run the query on the latest version. It is then up to the caller thread, to
+            // The Handover object doesn't prevent a SharedGroup version from no longer being accessible. In rare
+            // cases this means that the version in the Handover object is invalid and Realm Core will throw a
+            // BadVersion as result. If this happens we assume that the caller thread is at the latest version, so
+            // instead of trying to negotiate a new valid version (which also have
+            // race conditions), we just run the query on the latest version. It is then up to the caller thread to
             // restart the query in case of version mismatch when the result is returned.
             LangBindHelper::advance_read(*SG(bgSharedGroupPtr));
         }
