@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -757,4 +758,23 @@ public class TestHelper {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Emulates an environment where RxJava is not available.
+     *
+     * @param config {@link RealmConfiguration} instance to be modified.
+     */
+    public static void emulateRxJavaUnavailable(RealmConfiguration config) {
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Field field = config.getClass().getDeclaredField("rxObservableFactory");
+            field.setAccessible(true);
+            field.set(config, null);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

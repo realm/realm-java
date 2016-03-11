@@ -183,7 +183,8 @@ public class RealmConfiguration {
         if (!Arrays.equals(key, that.key)) return false;
         if (!durability.equals(that.durability)) return false;
         if (migration != null ? !migration.equals(that.migration) : that.migration != null) return false;
-        if (!rxObservableFactory.equals(that.rxObservableFactory)) return false;
+        //noinspection SimplifiableIfStatement
+        if (rxObservableFactory != null ? !rxObservableFactory.equals(that.rxObservableFactory) : that.rxObservableFactory != null) return false;
         return schemaMediator.equals(that.schemaMediator);
     }
 
