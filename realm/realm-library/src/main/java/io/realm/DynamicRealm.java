@@ -216,7 +216,7 @@ public final class DynamicRealm extends BaseRealm {
      * objects instead.
      *
      * @param className the class to get all objects from.
-     * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param sortOrders sort ascending if Sort.ASCENDING, sort descending if Sort.DESCENDING.
      * @param fieldNames an array of field names to sort objects by.
      *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
      * @return A sorted {@link RealmResults} containing the objects.
