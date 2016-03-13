@@ -3,7 +3,8 @@
 ### Bug fixes
 
 * Prevent throwing NullPointerException in RealmConfiguration.equals(RealmConfiguration) when RxJava is not in the classpath (#2416).
-* RealmTransformer fails because of missing annotation classes in user's project. (#2413)
+* RealmTransformer fails because of missing annotation classes in user's project (#2413).
+* add SONAME header to shared libraries (#2432).
 
 ## 0.88.0
 
