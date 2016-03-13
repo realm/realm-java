@@ -1042,22 +1042,19 @@ std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedGroupPtr, jlong query
     SharedGroup::Handover<Query> *handoverQueryPtr = HO(Query, queryPtr);
     std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
 
-    SharedGroup::VersionID callerVersion = handoverQuery->version;
+    // if the SharedGroup is not in Read Transaction, we position it at the same version as the handover
+    if (SG(bgSharedGroupPtr)->get_transact_stage() != SharedGroup::transact_Reading) {
+        SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+
+    } else if (SG(bgSharedGroupPtr)->get_version_of_current_transaction() != handoverQuery->version) {
+        SG(bgSharedGroupPtr)->end_read();
+        SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+    }
+
     std::unique_ptr<Query> query = SG(bgSharedGroupPtr)->import_from_handover(std::move(handoverQuery));
+
     if (advanceToLatestVersion) {
         LangBindHelper::advance_read(*SG(bgSharedGroupPtr));
-    } else {
-        try {
-            LangBindHelper::advance_read(*SG(bgSharedGroupPtr), callerVersion);
-        } catch (SharedGroup::BadVersion e) {
-            // The Handover object doesn't prevent a SharedGroup version from no longer being accessible. In rare
-            // cases this means that the version in the Handover object is invalid and Realm Core will throw a
-            // BadVersion as result. If this happens we assume that the caller thread is at the latest version, so
-            // instead of trying to negotiate a new valid version (which also have
-            // race conditions), we just run the query on the latest version. It is then up to the caller thread to
-            // restart the query in case of version mismatch when the result is returned.
-            LangBindHelper::advance_read(*SG(bgSharedGroupPtr));
-        }
     }
 
     return query;
@@ -1672,7 +1669,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeImportHandoverTa
     TR_ENTER_PTR(handoverPtr)
     SharedGroup::Handover<TableView> *handoverTableViewPtr = HO(TableView, handoverPtr);
     std::unique_ptr<SharedGroup::Handover<TableView>> handoverTableView(handoverTableViewPtr);
-
     try {
         // import_from_handover will free (delete) the handover
         if (SG(callerSharedGrpPtr)->is_attached()) {

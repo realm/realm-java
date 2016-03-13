@@ -18,8 +18,6 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -1815,6 +1813,78 @@ public class RealmAsyncQueryTests {
         }.start();
     }
 
+    // Test case for https://github.com/realm/realm-java/issues/2417
+    @Test
+    @RunTestInLooperThread
+    public void badVersion() throws Throwable {
+        final Realm realm = looperThread.realm;
+        final AtomicInteger numberOfInvocation = new AtomicInteger(0);
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                if (numberOfInvocation.incrementAndGet() == 3) {
+                    realm.handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            looperThread.testComplete();
+                        }
+                    });
+                }
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                if (numberOfInvocation.incrementAndGet() == 3) {
+                    realm.handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            looperThread.testComplete();
+                        }
+                    });
+                }
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        }, new Realm.Transaction.OnSuccess() {
+            @Override
+            public void onSuccess() {
+                if (numberOfInvocation.incrementAndGet() == 3) {
+                    realm.handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            looperThread.testComplete();
+                        }
+                    });
+                }
+            }
+        });
+        final RealmResults<AllTypes> allAsync = realm.where(AllTypes.class).findAllAsync();
+        allAsync.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                assertTrue(allAsync.isEmpty());
+
+            }
+        });
+        // We can't assert the result of load, because this depends
+        // on the execution/timing of completions of the previous 3 async writes
+        allAsync.load();
+    }
 
     // *** Helper methods ***
 
@@ -1858,39 +1928,5 @@ public class RealmAsyncQueryTests {
             }
         }
         realm.commitTransaction();
-    }
-
-    // Test case for https://github.com/realm/realm-java/issues/2417
-    @Test
-    @UiThreadTest
-    public void badVersion() {
-        RealmConfiguration config = new RealmConfiguration.Builder(InstrumentationRegistry.getContext()).deleteRealmIfMigrationNeeded().build();
-        Realm realm = Realm.getInstance(config);
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.deleteAll();
-            }
-        });
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.deleteAll();
-            }
-        });
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.deleteAll();
-            }
-        });
-        Realm realm2 = Realm.getInstance(config);
-        try {
-            boolean result = realm2.where(AllTypes.class).findAllAsync().load();
-            assertTrue(result);
-        } finally {
-            realm.close();
-            realm2.close();
-        }
     }
 }
