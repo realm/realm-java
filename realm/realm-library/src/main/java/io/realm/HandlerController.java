@@ -96,35 +96,35 @@ public class HandlerController implements Handler.Callback {
         // that if a message does slip though (however unlikely), it will not try to update a SharedGroup that no
         // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
         if (realm.sharedGroupManager != null) {
+            QueryUpdateTask.Result result;
             switch (message.what) {
-                case REALM_CHANGED: {
+
+                case REALM_CHANGED:
                     realmChanged();
                     break;
-                }
-                case COMPLETED_ASYNC_REALM_RESULTS: {
-                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+
+                case COMPLETED_ASYNC_REALM_RESULTS:
+                    result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncRealmResults(result);
                     break;
-                }
-                case COMPLETED_ASYNC_REALM_OBJECT: {
-                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+
+                case COMPLETED_ASYNC_REALM_OBJECT:
+                     result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncRealmObject(result);
                     break;
-                }
-                case COMPLETED_UPDATE_ASYNC_QUERIES: {
+
+                case COMPLETED_UPDATE_ASYNC_QUERIES:
                     // this is called once the background thread completed the update of the async queries
-                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+                    result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncQueriesUpdate(result);
                     break;
-                }
-                case REALM_ASYNC_BACKGROUND_EXCEPTION: {
+
+                case REALM_ASYNC_BACKGROUND_EXCEPTION:
                     // Don't fail silently in the background in case of Core exception
-                    if (message.obj != null) {
-                        throw (Error) message.obj;
-                    } else {
-                        RealmLog.d("Error happened in a worker thread. The task should have been rescheduled by REALM_CHANGED");
-                    }
-                }
+                    throw (Error) message.obj;
+
+                default:
+                    throw new IllegalArgumentException("Unknown message: " + message.what);
             }
         }
         return true;
