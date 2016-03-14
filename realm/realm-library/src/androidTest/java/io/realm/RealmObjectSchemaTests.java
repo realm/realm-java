@@ -16,25 +16,42 @@
 
 package io.realm;
 
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 
 import java.util.Date;
 import java.util.Set;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.rule.TestRealmConfigurationFactory;
 
-public class RealmObjectSchemaTests extends AndroidTestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public class RealmObjectSchemaTests {
+
+    @Rule
+    public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     private RealmObjectSchema DOG_SCHEMA;
     private DynamicRealm realm;
     private RealmObjectSchema schema;
     private RealmSchema realmSchema;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getContext()).build();
-        Realm.deleteRealm(realmConfig);
+    @Before
+    public void setUp() {
+        RealmConfiguration realmConfig = configFactory.createConfiguration();
         Realm.getInstance(realmConfig).close(); // Create Schema
         realm = DynamicRealm.getInstance(realmConfig);
         realmSchema = realm.getSchema();
@@ -43,9 +60,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         schema = realmSchema.create("NewClass");
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
+    @After
+    public void tearDown() {
         realm.cancelTransaction();
         realm.close();
     }
@@ -162,7 +178,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testAddRemoveField() {
+    @Test
+    public void addRemoveField() {
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch(fieldType) {
@@ -189,7 +206,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertFalse(schema.hasField(fieldName));
     }
 
-    public void testAddField_nameAlreadyExistsThrows() {
+    @Test
+    public void addField_nameAlreadyExistsThrows() {
         for (SchemaFieldType schemaFieldType : SchemaFieldType.values()) {
             switch (schemaFieldType) {
                 case SIMPLE:
@@ -232,7 +250,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
     }
 
 
-    public void testAddField_illegalFieldNameThrows() {
+    @Test
+    public void addField_illegalFieldNameThrows() {
         String[] fieldNames = new String[] { null, "", "foo.bar", TestHelper.getRandomString(65) };
         for (SchemaFieldType schemaFieldType : SchemaFieldType.values()) {
             for (String fieldName : fieldNames) {
@@ -251,7 +270,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testRequiredFieldAttribute() {
+    @Test
+    public void requiredFieldAttribute() {
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -266,7 +286,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testIndexedFieldAttribute() {
+    @Test
+    public void indexedFieldAttribute() {
         for (IndexFieldType fieldType : IndexFieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -278,7 +299,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testInvalidIndexedFieldAttributeThrows() {
+    @Test
+    public void invalidIndexedFieldAttributeThrows() {
         for (InvalidIndexFieldType fieldType : InvalidIndexFieldType.values()) {
             String fieldName = "foo";
             try {
@@ -289,7 +311,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testPrimaryKeyFieldAttribute() {
+    @Test
+    public void primaryKeyFieldAttribute() {
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
@@ -299,7 +322,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testInvalidPrimaryKeyFieldAttributeThrows() {
+    @Test
+    public void invalidPrimaryKeyFieldAttributeThrows() {
         for (InvalidPrimaryKeyFieldType fieldType : InvalidPrimaryKeyFieldType.values()) {
             String fieldName = "foo";
             try {
@@ -310,7 +334,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testAddPrimaryKeyFieldModifier_alreadyExistsThrows() {
+    @Test
+    public void addPrimaryKeyFieldModifier_alreadyExistsThrows() {
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
@@ -325,7 +350,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testAddPrimaryKeyFieldModifier_illegalFieldTypeThrows() {
+    @Test
+    public void addPrimaryKeyFieldModifier_illegalFieldTypeThrows() {
         String fieldName = "foo";
         for (InvalidPrimaryKeyFieldType fieldType : InvalidPrimaryKeyFieldType.values()) {
             switch (fieldType) {
@@ -342,7 +368,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testAddPrimaryKeyFieldModifier_duplicateValues() {
+    @Test
+    public void addPrimaryKeyFieldModifier_duplicateValues() {
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             final String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
@@ -362,7 +389,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testAddIndexFieldModifier_illegalFieldTypeThrows() {
+    @Test
+    public void addIndexFieldModifier_illegalFieldTypeThrows() {
         String fieldName = "foo";
         for (InvalidIndexFieldType fieldType : InvalidIndexFieldType.values()) {
             switch (fieldType) {
@@ -379,7 +407,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testAddIndexFieldModifier_alreadyIndexedThrows() {
+    @Test
+    public void addIndexFieldModifier_alreadyIndexedThrows() {
         for (IndexFieldType fieldType : IndexFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
@@ -393,7 +422,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testSetRemoveNullable() {
+    @Test
+    public void setRemoveNullable() {
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -428,7 +458,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testSetRemoveRequired() {
+    @Test
+    public void setRemoveRequired() {
         for (FieldType fieldType : FieldType.values()) {
             String fieldName = "foo";
             switch (fieldType) {
@@ -463,7 +494,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testSetRemovePrimaryKey() {
+    @Test
+    public void setRemovePrimaryKey() {
         for (PrimaryKeyFieldType fieldType : PrimaryKeyFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType());
@@ -475,17 +507,17 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testRemoveNonExistingPrimaryKeyThrows() {
+    @Test
+    public void removeNonExistingPrimaryKeyThrows() {
         String fieldName = "foo";
         schema.addField(fieldName, String.class);
-        try {
-            schema.removePrimaryKey();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+
+        thrown.expect(IllegalStateException.class);
+        schema.removePrimaryKey();
     }
 
-    public void testSetRemoveIndex() {
+    @Test
+    public void setRemoveIndex() {
         for (IndexFieldType fieldType : IndexFieldType.values()) {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.INDEXED);
@@ -496,17 +528,17 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         }
     }
 
-    public void testRemoveNonExistingIndexThrows() {
+    @Test
+    public void removeNonExistingIndexThrows() {
         String fieldName = "foo";
         schema.addField(fieldName, String.class);
-        try {
-            schema.removeIndex(fieldName);
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+
+        thrown.expect(IllegalStateException.class);
+        schema.removeIndex(fieldName);
     }
 
-    public void testRemoveField() {
+    @Test
+    public void removeField() {
         String fieldName = "foo";
         schema.addField(fieldName, String.class);
         assertTrue(schema.hasField(fieldName));
@@ -514,7 +546,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertFalse(schema.hasField(fieldName));
     }
 
-    public void testRemoveFieldWithPrimaryKey() {
+    @Test
+    public void removeField_withPrimaryKey() {
         String fieldName = "foo";
         schema.addField(fieldName, String.class, FieldAttribute.PRIMARY_KEY);
         assertTrue(schema.hasField(fieldName));
@@ -523,16 +556,16 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertFalse(schema.hasPrimaryKey());
     }
 
-    public void testRemoveNonExistingFieldThrows() {
+    @Test
+    public void removeField_nonExistingFieldThrows() {
         String fieldName = "foo";
-        try {
-            schema.removeField(fieldName);
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
+
+        thrown.expect(IllegalStateException.class);
+        schema.removeField(fieldName);
     }
 
-    public void testRenameField() {
+    @Test
+    public void renameField() {
         String oldFieldName = "old";
         String newFieldName = "new";
         schema.addField(oldFieldName, String.class);
@@ -543,28 +576,27 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertTrue(schema.hasField(newFieldName));
     }
 
-    public void testRenameNonExistingFieldThrows() {
+    @Test
+    public void renameField_nonExistingFieldThrows() {
         String oldFieldName = "old";
         String newFieldName = "new";
-        try {
-            schema.renameField(oldFieldName, newFieldName);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+
+        thrown.expect(IllegalArgumentException.class);
+        schema.renameField(oldFieldName, newFieldName);
     }
 
-    public void testRenameFieldToIllegalNameThrows() {
+    @Test
+    public void renameField_toIllegalNameThrows() {
         String oldFieldName = "old";
         String newFieldName = "";
         schema.addField(oldFieldName, String.class);
-        try {
-            schema.renameField(oldFieldName, newFieldName);
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+
+        thrown.expect(IllegalArgumentException.class);
+        schema.renameField(oldFieldName, newFieldName);
     }
 
-    public void testSetGetClassName() {
+    @Test
+    public void setGetClassName() {
         assertEquals("Dog", DOG_SCHEMA.getClassName());
         String newClassName = "Darby";
         DOG_SCHEMA.setClassName(newClassName);
@@ -572,7 +604,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertTrue(realmSchema.contains(newClassName));
     }
 
-    public void testTransform() {
+    @Test
+    public void transform() {
         String className = DOG_SCHEMA.getClassName();
         DynamicRealmObject dog1 = realm.createObject(className);
         dog1.setInt("age", 1);
@@ -588,7 +621,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertEquals(5, realm.where("Dog").sum("age").intValue());
     }
 
-    public void testTransformObjectReferences() {
+    @Test
+    public void transformObjectReferences() {
         String className = DOG_SCHEMA.getClassName();
         DynamicRealmObject dog1 = realm.createObject(className);
         dog1.setInt("age", 1);
@@ -601,10 +635,12 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
                 dog.setObject("owner", owner);
             }
         });
+        //noinspection ConstantConditions
         assertEquals("John", realm.where("Dog").findFirst().getObject("owner").getString("name"));
     }
 
-    public void testGetFieldNames() {
+    @Test
+    public void getFieldNames() {
         Set<String> fieldNames = DOG_SCHEMA.getFieldNames();
         assertEquals(7, fieldNames.size());
         assertTrue(fieldNames.contains("name"));
@@ -616,7 +652,8 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertTrue(fieldNames.contains("owner"));
     }
 
-    public void testGetFieldType() {
+    @Test
+    public void getFieldType() {
         schema = realmSchema.getSchemaForClass("AllJavaTypes");
         assertEquals(RealmFieldType.STRING, schema.getFieldType(AllJavaTypes.FIELD_STRING));
         assertEquals(RealmFieldType.BINARY, schema.getFieldType(AllJavaTypes.FIELD_BINARY));
@@ -632,12 +669,9 @@ public class RealmObjectSchemaTests extends AndroidTestCase {
         assertEquals(RealmFieldType.INTEGER, schema.getFieldType(AllJavaTypes.FIELD_LONG));
     }
 
-    public void testGetFieldTypeThrows() {
-        try {
-            schema.getFieldType("I don't exists");
-            fail();
-        } catch (IllegalArgumentException ignored) {
-        }
+    @Test(expected = IllegalArgumentException.class)
+    public void getFieldType_Throws() {
+        schema.getFieldType("I don't exists");
     }
 
     private interface FieldRunnable {
