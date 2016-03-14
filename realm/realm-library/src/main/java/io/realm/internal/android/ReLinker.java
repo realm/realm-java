@@ -35,8 +35,7 @@ import java.util.zip.ZipFile;
  * to Android's inability to properly install / load native libraries for Android versions before
  * API 21
  */
-@SuppressWarnings("deprecation")
-@SuppressWarnings("PMD")
+@SuppressWarnings({"deprecation", "PMD"})
 public class ReLinker {
     private static final String LIB_DIR = "lib";
     private static final int MAX_TRIES = 5;
