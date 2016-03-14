@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 import io.realm.internal.IdentitySet;
 import io.realm.internal.Row;
 import io.realm.internal.SharedGroup;
+import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
 
@@ -95,31 +96,35 @@ public class HandlerController implements Handler.Callback {
         // that if a message does slip though (however unlikely), it will not try to update a SharedGroup that no
         // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
         if (realm.sharedGroupManager != null) {
+            QueryUpdateTask.Result result;
             switch (message.what) {
-                case REALM_CHANGED: {
+
+                case REALM_CHANGED:
                     realmChanged();
                     break;
-                }
-                case COMPLETED_ASYNC_REALM_RESULTS: {
-                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+
+                case COMPLETED_ASYNC_REALM_RESULTS:
+                    result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncRealmResults(result);
                     break;
-                }
-                case COMPLETED_ASYNC_REALM_OBJECT: {
-                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+
+                case COMPLETED_ASYNC_REALM_OBJECT:
+                     result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncRealmObject(result);
                     break;
-                }
-                case COMPLETED_UPDATE_ASYNC_QUERIES: {
+
+                case COMPLETED_UPDATE_ASYNC_QUERIES:
                     // this is called once the background thread completed the update of the async queries
-                    QueryUpdateTask.Result result = (QueryUpdateTask.Result) message.obj;
+                    result = (QueryUpdateTask.Result) message.obj;
                     completedAsyncQueriesUpdate(result);
                     break;
-                }
-                case REALM_ASYNC_BACKGROUND_EXCEPTION: {
+
+                case REALM_ASYNC_BACKGROUND_EXCEPTION:
                     // Don't fail silently in the background in case of Core exception
                     throw (Error) message.obj;
-                }
+
+                default:
+                    throw new IllegalArgumentException("Unknown message: " + message.what);
             }
         }
         return true;
@@ -367,7 +372,13 @@ public class HandlerController implements Handler.Callback {
                     if (!realmResults.isLoaded()) {
                         RealmLog.d("[COMPLETED_ASYNC_REALM_RESULTS "+ weakRealmResults + "] , realm:"+ HandlerController.this + " same versions, using results (RealmResults is not loaded)");
                         // swap pointer
-                        realmResults.swapTableViewPointer(result.updatedTableViews.get(weakRealmResults));
+                        try {
+                            realmResults.swapTableViewPointer(result.updatedTableViews.get(weakRealmResults));
+                        } catch (BadVersionException e) {
+                            RealmLog.d("[COMPLETED_ASYNC_REALM_RESULTS "+ weakRealmResults + "] , realm:"+ HandlerController.this + "." +
+                                    " TableView could not be imported due to a version conflict." +
+                                    " A retry should already be rescheduled through a REALM_CHANGED event.");
+                        }
                         // notify callbacks
                         realmResults.notifyChangeListeners();
                     } else {
@@ -450,6 +461,16 @@ public class HandlerController implements Handler.Callback {
                     asyncRealmResults.remove(weakRealmResults);
 
                 } else {
+                    // update the instance with the new pointer
+                    try {
+                        realmResults.swapTableViewPointer(query.getValue());
+                    } catch (BadVersionException e) {
+                        RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:"+ HandlerController.this + "." +
+                                " TableView could not be imported. A retry should already be scheduled through a" +
+                                " REALM_CHANGED event");
+                        continue;
+                    }
+
                     // it's dangerous to notify the callback about new results before updating
                     // the pointers, because the callback may use another RealmResults not updated yet
                     // this is why we defer the notification until we're done updating all pointers
@@ -457,8 +478,6 @@ public class HandlerController implements Handler.Callback {
 
                     RealmLog.d("COMPLETED_UPDATE_ASYNC_QUERIES realm:"+ HandlerController.this + " updating RealmResults " + weakRealmResults);
 
-                    // update the instance with the new pointer
-                    realmResults.swapTableViewPointer(query.getValue());
                 }
             }
 
@@ -497,9 +516,15 @@ public class HandlerController implements Handler.Callback {
                     realmObject.onCompleted(rowPointer);
                     realmObject.notifyChangeListeners();
 
-                } else if (compare > 0) {
-                    // the caller has advanced we need to
-                    // retry against the current version of the caller if it's still empty
+                } else {
+                    if (compare > 0) {
+                        RealmLog.d("[COMPLETED_ASYNC_REALM_OBJECT "+ realmObject + "] , realm:" + HandlerController.this
+                                + " caller is more advanced. Schedule a retry on current version");
+                    } else {
+                        RealmLog.d("[COMPLETED_ASYNC_REALM_OBJECT "+ realmObject + "] , realm:" + HandlerController.this +
+                                " worker is more advanced. Schedule a retry on current version.");
+                    }
+
                     if (realmObject.isValid()) { // already completed & has a valid pointer no need to re-run
                         realmObject.notifyChangeListeners();
                     } else {
@@ -518,10 +543,6 @@ public class HandlerController implements Handler.Callback {
 
                         Realm.asyncQueryExecutor.submit(queryUpdateTask);
                     }
-                } else {
-                    // should not happen, since the the background thread position itself against the provided version
-                    // and the caller thread can only go forward (advance_read)
-                    throw new IllegalStateException("Caller thread behind the worker thread");
                 }
             } // else: element GC'd in the meanwhile
         }

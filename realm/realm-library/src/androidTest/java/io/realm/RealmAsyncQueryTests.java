@@ -18,6 +18,8 @@ package io.realm;
 
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Rule;
@@ -32,12 +34,14 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
 import io.realm.instrumentation.MockActivityManager;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.RealmLog;
 import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
@@ -59,6 +63,9 @@ public class RealmAsyncQueryTests {
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
+    @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+
 
     // ****************************
     // ****  Async transaction  ***
@@ -1809,6 +1816,139 @@ public class RealmAsyncQueryTests {
         }.start();
     }
 
+    // Test case for https://github.com/realm/realm-java/issues/2417
+    @Test
+    @UiThreadTest
+    public void badVersion_findAll() throws NoSuchFieldException, IllegalAccessException {
+        TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        RealmConfiguration config  = configFactory.createConfiguration();
+        Realm realm = Realm.getInstance(config);
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        boolean result = realm.where(AllTypes.class).findAllAsync().load();
+        try {
+            assertFalse(result);
+        } finally {
+            realm.close();
+        }
+    }
+
+    // Test case for https://github.com/realm/realm-java/issues/2417
+    @Test
+    @UiThreadTest
+    public void badVersion_findAllSortedAsync() throws NoSuchFieldException, IllegalAccessException {
+        TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        RealmConfiguration config = configFactory.createConfiguration();
+        Realm realm = Realm.getInstance(config);
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        try {
+            boolean result = realm.where(AllTypes.class)
+                    .findAllSortedAsync(AllTypes.FIELD_STRING, Sort.ASCENDING, AllTypes.FIELD_LONG, Sort.DESCENDING)
+                    .load();
+            assertFalse(result);
+        } finally {
+            realm.close();
+        }
+    }
+
+    // Test case for https://github.com/realm/realm-java/issues/2417
+    @Test
+    @UiThreadTest
+    public void badVersion_distinct() throws NoSuchFieldException, IllegalAccessException {
+        TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        RealmConfiguration config = configFactory.createConfiguration();
+        Realm realm = Realm.getInstance(config);
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.deleteAll();
+            }
+        });
+        boolean result = realm.where(AllJavaTypes.class)
+                .distinctAsync(AllJavaTypes.FIELD_STRING)
+                .load();
+
+        try {
+            assertFalse(result);
+        } finally {
+            realm.close();
+        }
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void badVersion_syncTransaction() throws NoSuchFieldException, IllegalAccessException {
+        TestHelper.replaceRealmThreadExectutor(RealmThreadPoolExecutor.newSingleThreadExecutor());
+        Realm realm = looperThread.realm;
+
+        // 1. Make sure that async query is not started
+        final RealmResults<AllTypes> result = realm.where(AllTypes.class).findAllSortedAsync(AllTypes.FIELD_STRING);
+        result.addChangeListener(new RealmChangeListener() {
+            @Override
+            public void onChange() {
+                // 4. The commit in #2, should result in a refresh being triggered, which means this callback will
+                // be notified once the updated async queries has run.
+                // with the correct
+                assertTrue(result.isValid());
+                assertTrue(result.isLoaded());
+                assertEquals(1, result.size());
+                looperThread.testComplete();
+            }
+        });
+
+        // 2. Advance the calle Realm, invalidating the version in the handover object
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+
+        // 3. The async query should now (hopefully) fail with a BadVersion
+        assertFalse(result.load());
+    }
 
     // *** Helper methods ***
 

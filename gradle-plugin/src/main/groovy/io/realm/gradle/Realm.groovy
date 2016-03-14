@@ -49,7 +49,6 @@ class Realm implements Plugin<Project> {
 
         project.android.registerTransform(new RealmTransformer())
         project.repositories.add(project.getRepositories().jcenter())
-        project.repositories.add(project.repositories.maven { url "https://jitpack.io" })
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
         if (isKotlinProject) {

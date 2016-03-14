@@ -100,6 +100,7 @@ public class QueryUpdateTask implements Runnable {
             }
 
         } catch (Exception e) {
+            // TODO Should we just ignore BadVersionException?
             RealmLog.e(e.getMessage(), e);
 
         } finally {
