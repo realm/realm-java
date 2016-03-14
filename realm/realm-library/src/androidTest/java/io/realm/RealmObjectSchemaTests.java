@@ -317,6 +317,7 @@ public class RealmObjectSchemaTests {
             String fieldName = "foo";
             schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY);
             assertTrue(schema.hasPrimaryKey());
+            assertTrue(schema.isPrimaryKey(fieldName));
             assertFalse(schema.isNullable(fieldName));
             schema.removeField(fieldName);
         }
@@ -501,8 +502,10 @@ public class RealmObjectSchemaTests {
             schema.addField(fieldName, fieldType.getType());
             schema.addPrimaryKey(fieldName);
             assertTrue(schema.hasPrimaryKey());
+            assertTrue(schema.isPrimaryKey(fieldName));
             schema.removePrimaryKey();
             assertFalse(schema.hasPrimaryKey());
+            assertFalse(schema.isPrimaryKey(fieldName));
             schema.removeField(fieldName);
         }
     }
@@ -552,6 +555,7 @@ public class RealmObjectSchemaTests {
         schema.addField(fieldName, String.class, FieldAttribute.PRIMARY_KEY);
         assertTrue(schema.hasField(fieldName));
         assertTrue(schema.hasPrimaryKey());
+        assertTrue(schema.isPrimaryKey(fieldName));
         schema.removeField(fieldName);
         assertFalse(schema.hasPrimaryKey());
     }
@@ -671,7 +675,27 @@ public class RealmObjectSchemaTests {
 
     @Test(expected = IllegalArgumentException.class)
     public void getFieldType_Throws() {
-        schema.getFieldType("I don't exists");
+        schema.getFieldType("I don't exist");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void hasIndex_nonExistFieldThrows() {
+        schema.hasIndex("I don't exist");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void isRequired_nonExistFieldThrows() {
+        schema.isRequired("I don't exist");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void isNullable_nonExistFieldThrows() {
+        schema.isNullable("I don't exist");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void isPrimaryKey_nonExistFieldThrows() {
+        schema.isPrimaryKey("I don't exist");
     }
 
     private interface FieldRunnable {
