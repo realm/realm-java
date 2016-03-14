@@ -100,16 +100,13 @@ public class ExampleRealmTest {
         dogRepo.createDog("Spot");
 
         // Verify that the begin transaction was called only once
-        verify(mockRealm, times(1)).beginTransaction();
+        verify(mockRealm, times(1)).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Verify that Realm#createObject was called only once
         verify(mockRealm, times(1)).createObject(Dog.class); // Verify that a Dog was in fact created.
 
         // Verify that Dog#setName() is called only once
         verify(dog, times(1)).setName(Mockito.anyString()); // Any string will do
-
-        // Verify that the transaction was committed only once
-        verify(mockRealm, times(1)).commitTransaction();
 
         // Verify that the Realm was closed only once.
         verify(mockRealm, times(1)).close();

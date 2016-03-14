@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
@@ -180,15 +181,13 @@ public class ExampleActivityTest {
         Realm.getInstance(any(RealmConfiguration.class));
 
         // verify that we have four begin and commit transaction calls
-        verify(mockRealm, times(4)).beginTransaction();
-        verify(mockRealm, times(4)).commitTransaction();
+        verify(mockRealm, times(4)).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Click the clean up button
         activity.findViewById(R.id.clean_up).performClick();
 
         // Verify that begin and commit transaction were called (been called a total of 5 times now)
-        verify(mockRealm, times(5)).beginTransaction();
-        verify(mockRealm, times(5)).commitTransaction();
+        verify(mockRealm, times(5)).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Verify that we queried for all Person instance two times in this run (in the original
         // onCreate, and then again in the button click). Was called two times previously in the
