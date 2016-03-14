@@ -31,7 +31,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,6 +49,7 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.Logger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -756,5 +759,17 @@ public class TestHelper {
         } catch (InvocationTargetException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Replace the current thread executor with a another one for testing.
+     * WARNING: This method should only be called before any async tasks have been started.
+     *
+     * @param executor {@link RealmThreadPoolExecutor} that should replace the current one
+     */
+    public static void replaceRealmThreadExectutor(RealmThreadPoolExecutor executor) throws NoSuchFieldException, IllegalAccessException {
+        Field field = BaseRealm.class.getDeclaredField("asyncQueryExecutor");
+        field.setAccessible(true);
+        field.set(field, executor);
     }
 }

@@ -1037,15 +1037,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeFind(
     return -1;
 }
 
+// Returns a pointer to query on the worker SharedGroup or throw a BadVersion if the SharedGroup version required
+// for the handover is no longer available.
 std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedGroupPtr, jlong queryPtr, bool advanceToLatestVersion)
 {
     SharedGroup::Handover<Query> *handoverQueryPtr = HO(Query, queryPtr);
     std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
 
-    // if the SharedGroup is not in Read Transaction, we position it at the same version as the handover
+    // The Handover object doesn't prevent a SharedGroup version from no longer being accessible. In rare
+    // cases this means that the version in the Handover object is invalid and Realm Core will throw a
+    // BadVersion as result.
     if (SG(bgSharedGroupPtr)->get_transact_stage() != SharedGroup::transact_Reading) {
+        // if the SharedGroup is not in Read Transaction, we position it at the same version as the handover
         SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
-
     } else if (SG(bgSharedGroupPtr)->get_version_of_current_transaction() != handoverQuery->version) {
         SG(bgSharedGroupPtr)->end_read();
         SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
@@ -1146,12 +1150,20 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
         std::vector<jlong> exported_handover_tableview_array(number_of_queries);
 
         // Step1: Position the shared group at the handover query version so we can import all queries
-
         // read the first query to determine the version we should use
         SharedGroup::Handover<Query> *handoverQueryPtr = HO(Query, handover_queries_pointer_array[0]);
         std::unique_ptr<SharedGroup::Handover<Query>> handoverQuery(handoverQueryPtr);
-        // position this shared group at the specified version
-        SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+
+        // if the SharedGroup is not in Read Transaction, we position it at the same version as the handover
+        // The Handover object doesn't prevent a SharedGroup version from no longer being accessible. In rare
+        // cases this means that the version in the Handover object is invalid and Realm Core will throw a
+        // BadVersion as result.
+        if (SG(bgSharedGroupPtr)->get_transact_stage() != SharedGroup::transact_Reading) {
+            SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+        } else if (SG(bgSharedGroupPtr)->get_version_of_current_transaction() != handoverQuery->version) {
+            SG(bgSharedGroupPtr)->end_read();
+            SG(bgSharedGroupPtr)->begin_read(handoverQuery->version);
+        }
 
         std::vector<std::unique_ptr<Query>> queries(number_of_queries);
 

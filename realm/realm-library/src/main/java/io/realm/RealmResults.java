@@ -34,6 +34,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.Table;
+import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
@@ -800,8 +801,9 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * thread.
      *
      * @param handoverTableViewPointer handover pointer to the new table_view.
+     * @throws BadVersionException if the handover object contains a different version than the caller thread.
      */
-    void swapTableViewPointer(long handoverTableViewPointer) {
+    void swapTableViewPointer(long handoverTableViewPointer) throws BadVersionException {
         table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
         isCompleted = true;
     }
