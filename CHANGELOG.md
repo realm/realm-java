@@ -32,8 +32,8 @@
 
 ### Enhancements
 
-* Support for custom methods, custom logic in accessors, custom accessor names, interface implementation and public fields in Realm objects. (#909)
-* Support to project Lombok. (#502)
+* Support for custom methods, custom logic in accessors, custom accessor names, interface implementation and public fields in Realm objects (#909).
+* Support to project Lombok (#502).
 * RealmQuery.isNotEmpty() (#2025).
 * Realm.deleteAll() and RealmList.deleteAllFromRealm() (#1560).
 * RealmQuery.distinct() and RealmResults.distinct() (#1568).
