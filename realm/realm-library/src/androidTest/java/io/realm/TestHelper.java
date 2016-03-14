@@ -772,4 +772,22 @@ public class TestHelper {
         field.setAccessible(true);
         field.set(field, executor);
     }
+
+     * Emulates an environment where RxJava is not available.
+     *
+     * @param config {@link RealmConfiguration} instance to be modified.
+     */
+    public static void emulateRxJavaUnavailable(RealmConfiguration config) {
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Field field = config.getClass().getDeclaredField("rxObservableFactory");
+            field.setAccessible(true);
+            field.set(config, null);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
