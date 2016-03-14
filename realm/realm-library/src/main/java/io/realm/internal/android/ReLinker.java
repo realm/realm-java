@@ -36,6 +36,7 @@ import java.util.zip.ZipFile;
  * API 21
  */
 @SuppressWarnings("deprecation")
+@SuppressWarnings("PMD")
 public class ReLinker {
     private static final String LIB_DIR = "lib";
     private static final int MAX_TRIES = 5;
