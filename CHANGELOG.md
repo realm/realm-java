@@ -5,6 +5,7 @@
 * Prevent throwing NullPointerException in RealmConfiguration.equals(RealmConfiguration) when RxJava is not in the classpath (#2416).
 * RealmTransformer fails because of missing annotation classes in user's project (#2413).
 * add SONAME header to shared libraries (#2432).
+* now DynamicRealmObject.toString() correctly shows null value as "null" and the format is aligned to the String from typed RealmObject (#2439).
 
 ## 0.88.0
 

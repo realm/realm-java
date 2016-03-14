@@ -871,8 +871,29 @@ public class DynamicRealmObjectTests {
         // Check that toString() doesn't crash. And do simple formatting checks. We cannot compare to a set String as
         // eg. the byte array will be allocated each time it is accessed.
         String str = dObjTyped.toString();
-        assertTrue(str.startsWith("class_AllJavaTypes = ["));
+        assertTrue(str.startsWith("AllJavaTypes = ["));
         assertTrue(str.endsWith("}]"));
+    }
+
+    @Test
+    public void toString_nullValues() {
+        dynamicRealm.beginTransaction();
+        final DynamicRealmObject obj = dynamicRealm.createObject(NullTypes.CLASS_NAME);
+        dynamicRealm.commitTransaction();
+
+        String str = obj.toString();
+        assertTrue(str.contains(NullTypes.FIELD_STRING_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_BYTES_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_BOOLEAN_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_BYTE_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_SHORT_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_INTEGER_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_LONG_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_FLOAT_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_DOUBLE_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_DATE_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_OBJECT_NULL + ":null"));
+        assertTrue(str.contains(NullTypes.FIELD_LIST_NULL + ":RealmList<NullTypes>[0]"));
     }
 
     public void testExceptionMessage() {

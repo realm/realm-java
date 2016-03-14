@@ -683,35 +683,52 @@ public final class DynamicRealmObject extends RealmObject {
         if (row == null || !row.isAttached()) {
             return "Invalid object";
         }
-        StringBuilder sb = new StringBuilder(row.getTable().getName() + " = [");
+
+        final String className = Table.tableNameToClassName(row.getTable().getName());
+        StringBuilder sb = new StringBuilder(className + " = [");
         String[] fields = getFieldNames();
         for (String field : fields) {
             long columnIndex = row.getColumnIndex(field);
             RealmFieldType type = row.getColumnType(columnIndex);
             sb.append("{");
+            sb.append(field).append(":");
             switch (type) {
-                case BOOLEAN: sb.append(field).append(": ").append(row.getBoolean(columnIndex)); break;
-                case INTEGER: sb.append(field).append(": ").append(row.getLong(columnIndex)); break;
-                case FLOAT: sb.append(field).append(": ").append(row.getFloat(columnIndex)); break;
-                case DOUBLE: sb.append(field).append(": ").append(row.getDouble(columnIndex)); break;
-                case STRING: sb.append(field).append(": ").append(row.getString(columnIndex)); break;
-                case BINARY: sb.append(field).append(": ").append(Arrays.toString(row.getBinaryByteArray(columnIndex))); break;
-                case DATE: sb.append(field).append(": ").append(row.getDate(columnIndex)); break;
+                case BOOLEAN:
+                    sb.append(row.isNull(columnIndex) ? "null" : row.getBoolean(columnIndex));
+                    break;
+                case INTEGER:
+                    sb.append(row.isNull(columnIndex) ? "null" : row.getLong(columnIndex));
+                    break;
+                case FLOAT:
+                    sb.append(row.isNull(columnIndex) ? "null" : row.getFloat(columnIndex));
+                    break;
+                case DOUBLE:
+                    sb.append(row.isNull(columnIndex) ? "null" : row.getDouble(columnIndex));
+                    break;
+                case STRING:
+                    sb.append(row.getString(columnIndex));
+                    break;
+                case BINARY:
+                    sb.append(Arrays.toString(row.getBinaryByteArray(columnIndex)));
+                    break;
+                case DATE:
+                    sb.append(row.isNull(columnIndex) ? "null" : row.getDate(columnIndex));
+                    break;
                 case OBJECT:
-                    if (row.isNullLink(columnIndex)) {
-                        sb.append("null");
-                    } else {
-                        sb.append(field).append(": ").append(row.getTable().getLinkTarget(columnIndex).getName());
-                    }
+                    sb.append(row.isNullLink(columnIndex)
+                            ? "null"
+                            : Table.tableNameToClassName(row.getTable().getLinkTarget(columnIndex).getName()));
                     break;
                 case LIST:
-                    String targetType = row.getTable().getLinkTarget(columnIndex).getName();
-                    sb.append(String.format("%s: RealmList<%s>[%s]", field, targetType, row.getLinkList(columnIndex).size()));
+                    final String tableName = row.getTable().getLinkTarget(columnIndex).getName();
+                    String targetType = Table.tableNameToClassName(tableName);
+                    sb.append(String.format("RealmList<%s>[%s]", targetType, row.getLinkList(columnIndex).size()));
                     break;
                 case UNSUPPORTED_TABLE:
                 case UNSUPPORTED_MIXED:
                 default:
-                    sb.append(field).append(": ?");
+                    sb.append("?");
+                    break;
             }
             sb.append("}, ");
         }
