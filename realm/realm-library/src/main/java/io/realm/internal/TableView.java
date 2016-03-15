@@ -789,6 +789,40 @@ public class TableView implements TableOrView, Closeable {
         return result;
    }
 
+    /**
+     * Removes rows that are duplicated with respect to the column set passed as argument.
+     * If two rows are indentical (for the given set of distinct-columns), then the last row is
+     * removed unless sorted, in which case the first object is returned.
+     *
+     * @param columnIndex the column index.
+     * @throws IllegalArgumentException if the type of the column is unsupported.
+     * @throws UnsupportedOperationException if a column is not indexed.
+     */
+    public void distinct(long columnIndex) {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        this.context.executeDelayedDisposal();
+        nativeDistinct(nativePtr, columnIndex);
+    }
+
+    /**
+     * If two rows are indentical (for the given set of distinct-columns), then the last row is
+     * removed unless sorted, in which case the first object is returned.
+     * Each time distinct() gets called, it will first fetch the full original TableView contents
+     * and then apply distinct() on that, invalidating previous distinct().
+     *
+     * @param columnIndexes the column indexes.
+     * @throws IllegalArgumentException if a column is unsupported type, or is not indexed.
+     */
+    public void distinct(List<Long> columnIndexes) {
+        // Execute the disposal of abandoned realm objects each time a new realm object is created
+        this.context.executeDelayedDisposal();
+        long[] indexes = new long[columnIndexes.size()];
+        for (int i = 0; i < columnIndexes.size(); i++) {
+            indexes[i] = columnIndexes.get(i);
+        }
+        nativeDistinctMulti(nativePtr, indexes);
+    }
+
     @Override
     public long sync() {
         return nativeSync(nativePtr);
@@ -862,5 +896,7 @@ public class TableView implements TableOrView, Closeable {
     private native String nativeRowToString(long nativeTablePtr, long rowIndex);
     private native long nativeWhere(long nativeViewPtr);
     private native void nativePivot(long nativeTablePtr, long stringCol, long intCol, int pivotType, long result);
+    private native long nativeDistinct(long nativeViewPtr, long columnIndex);
+    private native long nativeDistinctMulti(long nativeViewPtr, long[] columnIndexes);
     private native long nativeSync(long nativeTablePtr);
 }

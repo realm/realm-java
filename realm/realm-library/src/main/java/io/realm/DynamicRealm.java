@@ -79,8 +79,7 @@ public final class DynamicRealm extends BaseRealm {
         checkIfValid();
         Table table = schema.getTable(className);
         long rowIndex = table.addEmptyRow();
-        DynamicRealmObject dynamicRealmObject = get(DynamicRealmObject.class, className, rowIndex);
-        return dynamicRealmObject;
+        return get(DynamicRealmObject.class, className, rowIndex);
     }
 
     /**
@@ -186,11 +185,7 @@ public final class DynamicRealm extends BaseRealm {
         }
 
         TableView tableView = table.getSortedView(columnIndex, sortOrder);
-        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
 
@@ -221,7 +216,7 @@ public final class DynamicRealm extends BaseRealm {
      * objects instead.
      *
      * @param className the class to get all objects from.
-     * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param sortOrders sort ascending if Sort.ASCENDING, sort descending if Sort.DESCENDING.
      * @param fieldNames an array of field names to sort objects by.
      *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
      * @return A sorted {@link RealmResults} containing the objects.
@@ -231,13 +226,9 @@ public final class DynamicRealm extends BaseRealm {
     public RealmResults<DynamicRealmObject> allObjectsSorted(String className, String fieldNames[], Sort sortOrders[]) {
         checkAllObjectsSortedParameters(fieldNames, sortOrders);
         Table table = schema.getTable(className);
-        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
 
-        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        TableView tableView = doMultiFieldSort(fieldNames, sortOrders, table);
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
     /**
@@ -257,23 +248,15 @@ public final class DynamicRealm extends BaseRealm {
      * @param className the Class to get objects of.
      * @param fieldName the field name.
      * @return A non-null {@link RealmResults} containing the distinct objects.
-     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
     public RealmResults<DynamicRealmObject> distinct(String className, String fieldName) {
-        checkNotNullFieldName(fieldName);
         checkIfValid();
         Table table = schema.getTable(className);
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex == -1) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
-
+        long columnIndex = RealmQuery.getAndValidateDistinctColumnIndex(fieldName, table);
         TableView tableView = table.getDistinctView(columnIndex);
-        RealmResults<DynamicRealmObject> realmResults = RealmResults.createFromDynamicTableOrView(this, tableView, className);
-        if (handlerController != null) {
-            handlerController.addToRealmResults(realmResults);
-        }
-        return realmResults;
+        return RealmResults.createFromDynamicTableOrView(this, tableView, className);
     }
 
     /**
@@ -283,26 +266,33 @@ public final class DynamicRealm extends BaseRealm {
      *
      * @param className the Class to get objects of.
      * @param fieldName the field name.
-     * @return immediately an empty {@link RealmResults}. Users need to register a listener
-     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified
-     * when the query completes.
-     * @throws IllegalArgumentException if a field name does not exist or the field is not indexed.
+     * @return immediately a {@link RealmResults}. Users need to register a listener
+     * {@link io.realm.RealmResults#addChangeListener(RealmChangeListener)} to be notified when the
+     * query completes.
+     * @throws IllegalArgumentException if a field is null, does not exist, is an unsupported type,
+     * is not indexed, or points to linked fields.
      */
     public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
-        checkNotNullFieldName(fieldName);
         checkIfValid();
-        Table table = schema.getTable(className);
-        long columnIndex = table.getColumnIndex(fieldName);
-        if (columnIndex == -1) {
-            throw new IllegalArgumentException(String.format("Field name '%s' does not exist.", fieldName));
-        }
+        return where(className).distinctAsync(fieldName);
+    }
 
-        // check if the field is indexed
-        if (!table.hasSearchIndex(columnIndex)) {
-            throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
-        }
-
-        return where(className).distinctAsync(columnIndex);
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param className the Class to get objects of.
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<DynamicRealmObject> distinct(String className, String firstFieldName, String... remainingFieldNames) {
+        checkIfValid();
+        return where(className).distinct(firstFieldName, remainingFieldNames);
     }
 
     /**

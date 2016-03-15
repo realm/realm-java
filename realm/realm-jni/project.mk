@@ -52,7 +52,7 @@ ifeq ($(REALM_ANDROID),)
     endif
   endif
 else
-  PROJECT_CFLAGS += -fvisibility=hidden -DANDROID -ffunction-sections -fdata-sections -flto
+  PROJECT_CFLAGS += -DANDROID
   CFLAGS_OPTIM = -Os -DNDEBUG
 endif
 

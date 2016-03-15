@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.examples.unittesting.model.Person;
 
@@ -35,6 +36,7 @@ public class ExampleActivity extends Activity {
     private LinearLayout rootLayout = null;
 
     private Realm realm;
+    private static RealmConfiguration realmConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +45,10 @@ public class ExampleActivity extends Activity {
         rootLayout = ((LinearLayout) findViewById(R.id.container));
         rootLayout.removeAllViews();
 
+        // Create Realm configuration if it doesn't exist.
+        realmConfig = new RealmConfiguration.Builder(this).build();
         // Open the default Realm for the UI thread.
-        realm = Realm.getInstance(this);
+        realm = Realm.getInstance(realmConfig);
 
         // Clean up from previous run
         cleanUp();
@@ -148,7 +152,7 @@ public class ExampleActivity extends Activity {
     private String complexQuery() {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = Realm.getInstance(this);
+        Realm realm = Realm.getInstance(realmConfig);
         status += "\nNumber of people in the DB: " + realm.allObjects(Person.class).size();
 
         // Find all persons where age between 1 and 99 and name begins with "J".

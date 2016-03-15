@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.examples.intro.model.Cat;
@@ -36,6 +37,7 @@ public class IntroExampleActivity extends Activity {
     private LinearLayout rootLayout = null;
 
     private Realm realm;
+    private RealmConfiguration realmConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +49,10 @@ public class IntroExampleActivity extends Activity {
         // These operations are small enough that
         // we can generally safely run them on the UI thread.
 
-        // Open the default Realm for the UI thread.
-        realm = Realm.getInstance(this);
+        // Create the Realm configuration
+        realmConfig = new RealmConfiguration.Builder(this).build();
+        // Open the Realm for the UI thread.
+        realm = Realm.getInstance(realmConfig);
 
         basicCRUD(realm);
         basicQuery(realm);
@@ -139,12 +143,12 @@ public class IntroExampleActivity extends Activity {
 
         // Open the default realm. All threads must use it's own reference to the realm.
         // Those can not be transferred across threads.
-        Realm realm = Realm.getInstance(this);
+        Realm realm = Realm.getInstance(realmConfig);
 
         // Add ten persons in one transaction
         realm.beginTransaction();
         Dog fido = realm.createObject(Dog.class);
-        fido.setName("fido");
+        fido.name = "fido";
         for (int i = 0; i < 10; i++) {
             Person person = realm.createObject(Person.class);
             person.setId(i);
@@ -160,7 +164,7 @@ public class IntroExampleActivity extends Activity {
 
             for (int j = 0; j < i; j++) {
                 Cat cat = realm.createObject(Cat.class);
-                cat.setName("Cat_" + j);
+                cat.name = "Cat_" + j;
                 person.getCats().add(cat);
             }
         }
@@ -175,21 +179,16 @@ public class IntroExampleActivity extends Activity {
             if (pers.getDog() == null) {
                 dogName = "None";
             } else {
-                dogName = pers.getDog().getName();
+                dogName = pers.getDog().name;
             }
             status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
-
-            // The field tempReference is annotated with @Ignore
-            // Though we initially set its value to 42, it has
-            // not been saved as part of the Person RealmObject:
-            assert(pers.getTempReference() == 0);
         }
 
         // Sorting
         RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
         sortedPersons.sort("age", Sort.DESCENDING);
-        assert(realm.allObjects(Person.class).last().getName() == sortedPersons.first().getName());
-        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first().getName();
+        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first()
+                .getName();
 
         realm.close();
         return status;
@@ -198,7 +197,7 @@ public class IntroExampleActivity extends Activity {
     private String complexQuery() {
         String status = "\n\nPerforming complex Query operation...";
 
-        Realm realm = Realm.getInstance(this);
+        Realm realm = Realm.getInstance(realmConfig);
         status += "\nNumber of persons: " + realm.allObjects(Person.class).size();
 
         // Find all persons where age between 7 and 9 and name begins with "Person".

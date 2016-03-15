@@ -101,7 +101,7 @@ std::string num_to_string(T pNumber)
 #define G(x)    reinterpret_cast<realm::Group*>(x)
 #define ROW(x)  reinterpret_cast<realm::Row*>(x)
 #define SG(ptr) reinterpret_cast<realm::SharedGroup*>(ptr)
-#define CH(ptr) reinterpret_cast<realm::ClientHistory*>(ptr)
+#define CH(ptr) reinterpret_cast<realm::Replication*>(ptr)
 #define HO(T, ptr) reinterpret_cast<realm::SharedGroup::Handover <T>* >(ptr)
 
 // Exception handling

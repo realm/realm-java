@@ -109,7 +109,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeWhere
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsAttached
-        (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong);
 
 /*
  * Class:     io_realm_internal_LinkView
@@ -117,7 +117,23 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_LinkView_nativeIsAttached
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeFind
-        (JNIEnv *, jobject, jlong, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     io_realm_internal_LinkView
+ * Method:    nativeRemoveAllTargetRows
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveAllTargetRows
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     io_realm_internal_LinkView
+ * Method:    nativeGetTargetTable
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetTable
+  (JNIEnv *, jobject, jlong);
 
 #ifdef __cplusplus
 }

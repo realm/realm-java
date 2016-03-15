@@ -191,3 +191,26 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeFind
     } CATCH_STD()
     return -1;
 }
+
+JNIEXPORT void JNICALL Java_io_realm_internal_LinkView_nativeRemoveAllTargetRows
+  (JNIEnv *env, jobject, jlong nativeLinkViewPtr)
+{
+    TR_ENTER_PTR(nativeLinkViewPtr)
+    try {
+        LinkView *lv = LV(nativeLinkViewPtr);
+        lv->remove_all_target_rows();
+    } CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_LinkView_nativeGetTargetTable
+  (JNIEnv*, jobject, jlong nativeLinkViewPtr)
+{
+    TR_ENTER_PTR(nativeLinkViewPtr)
+
+    LinkView* lv = LV(nativeLinkViewPtr);
+    Table* pTable = &(lv->get_target_table());
+    LangBindHelper::bind_table_ptr(pTable);
+
+    return reinterpret_cast<jlong>(pTable);
+}
+

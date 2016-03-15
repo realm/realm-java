@@ -17,9 +17,8 @@
 package io.realm.internal;
 
 import android.content.Context;
-import android.util.Log;
 
-import com.getkeepsafe.relinker.ReLinker;
+import io.realm.internal.android.ReLinker;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -92,13 +91,15 @@ public class RealmCore {
     }
 
     private static String loadLibraryWindows() {
+///*
         try {
             addNativeLibraryPath(BINARIES_PATH);
             resetLibraryPath();
-        } catch (Throwable e) {
+        }
+        catch (Throwable e) {
             // Above can't be used on Android.
         }
-
+//*/
         // Load debug library first - if available
         String jnilib;
         jnilib = loadCorrectLibrary("realm_jni32d", "realm_jni64d");

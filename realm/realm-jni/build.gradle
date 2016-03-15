@@ -1,8 +1,8 @@
 import java.security.MessageDigest
 
-ext.coreVersion = '0.95.7'
+ext.coreVersion = '0.97.0'
 // empty or comment out this to disable hash checking
-ext.coreSha256Hash = '11c82f5da9b43b62fbf55fbd3aa61dc6956bc3483bbaa5f69262018144c8cc3c'
+ext.coreSha256Hash = 'b864547b6dea65cb36818d9ae52e72bb5b912759675ab2707cb956f73137424c'
 ext.forceDownloadCore =
         project.hasProperty('forceDownloadCore') ? project.getProperty('forceDownloadCore').toBoolean() : false
 // gcc is default for the NDK. It also produces smaller binaries
@@ -14,8 +14,14 @@ ext.stripSymbols = project.hasProperty('stripSymbols') ? project.getProperty('st
 // Set the core source code path. By setting this, the core will be built from source. And coreVersion will be read from
 // core source code.
 ext.coreSourcePath = project.hasProperty('coreSourcePath') ? project.getProperty('coreSourcePath') : null
+// The location of core archive.
+ext.coreArchiveDir = System.getenv("REALM_CORE_DOWNLOAD_DIR")
 
-def commonCflags = [ '-Os', '-std=c++11', '-ffunction-sections', '-fdata-sections', '-flto' ]
+def commonCflags = [ '-Os', '-std=c++11' ]
+// LTO and debugging don't play well together
+if (!ext.debugBuild) {
+    commonCflags += [ '-fvisibility=hidden', '-ffunction-sections', '-fdata-sections', '-flto' ]
+}
 
 enum Compiler {
     GCC, CLANG
@@ -119,7 +125,10 @@ def getDebugExt() {
     return debugBuild ? "-dbg" : ""
 }
 
-ext.coreArchiveFile = rootProject.file("../core-android-${project.coreVersion}.tar.gz")
+if (!ext.coreArchiveDir) {
+    ext.coreArchiveDir = ".."
+}
+ext.coreArchiveFile = rootProject.file("${ext.coreArchiveDir}/core-android-${project.coreVersion}.tar.gz")
 ext.coreDir = file("${buildDir}/core-${project.coreVersion}")
 
 def coreDownloaded = false
@@ -283,7 +292,7 @@ targets.each { target ->
             "REALM_CFLAGS_COMMON=-Wno-variadic-macros -DREALM_HAVE_CONFIG -DPIC -I${project.coreDir}/include",
             "CFLAGS_ARCH=${(commonCflags + target.cflags).join(' ')}",
             "BASE_DENOM=${target.name}",
-            "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections",
+            "REALM_LDFLAGS_COMMON=-lrealm-android-${target.name} -lstdc++ -lsupc++ -llog -L${project.coreDir} -Wl,--gc-sections -Wl,-soname,librealm-jni.so",
             'LIB_SUFFIX_SHARED=.so',
             "librealm-jni-${target.name}${getDebugExt()}.so"
         ]
@@ -312,6 +321,10 @@ task buildAndroidJni(group: 'build', description: 'Build the Android JNI shared 
 }
 
 task clean(type: Delete) {
+    outputs.upToDateWhen {
+        project.hasProperty('dontCleanJniFiles')
+    }
+
     delete project.buildDir
 
     delete fileTree(dir: "${projectDir}/../realm-library/src/main/jniLibs/", include: '**/librealm-jni*.so')

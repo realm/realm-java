@@ -120,7 +120,7 @@ public interface Row {
 
     Row EMPTY_ROW = new Row() {
         private final static String UNLOADED_ROW_MESSAGE = "Can't access a row that hasn't been loaded, make sure the instance" +
-                " is loaded by calling RealmObject.isLoaded";
+                " is loaded by calling RealmObject.isLoaded().";
 
         @Override
         public long getColumnCount() {

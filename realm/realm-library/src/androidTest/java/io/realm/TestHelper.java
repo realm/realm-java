@@ -21,29 +21,33 @@ import android.content.res.AssetManager;
 import android.os.Looper;
 import android.util.Log;
 
+import org.junit.Assert;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
+import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
+import io.realm.internal.TableOrView;
 import io.realm.internal.log.Logger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -126,21 +130,6 @@ public class TestHelper {
         return new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
     }
 
-    // Copies a Realm file from assets to app files dir
-    public static void copyRealmFromAssets(Context context, String realmPath, String newName) throws IOException {
-        AssetManager assetManager = context.getAssets();
-        InputStream is = assetManager.open(realmPath);
-        File file = new File(context.getFilesDir(), newName);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        byte[] buf = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = is.read(buf)) > -1) {
-            outputStream.write(buf, 0, bytesRead);
-        }
-        outputStream.close();
-        is.close();
-    }
-
     // Creates a simple migration step in order to support null
     // FIXME: generate a new encrypted.realm will null support
     public static RealmMigration prepareMigrationToNullSupportStep() {
@@ -152,13 +141,6 @@ public class TestHelper {
             }
         };
         return realmMigration;
-    }
-
-
-    // Deletes the old database and copies a new one into its place
-    public static void prepareDatabaseFromAssets(Context context, String realmPath, String newName) throws IOException {
-        Realm.deleteRealm(createConfiguration(context, newName));
-        TestHelper.copyRealmFromAssets(context, realmPath, newName);
     }
 
     // Returns a random key used by encrypted Realms.
@@ -556,80 +538,82 @@ public class TestHelper {
     }
 
     // Helper function to create all columns except the given excluding field for NullTypes.
+    // The schema version will be set to 0.
     public static void initNullTypesTableExcludes(DynamicRealm realm, String excludingField) {
+        realm.beginTransaction();
 
-        Table table = realm.schema.getTable(NullTypes.class);
-        if (!excludingField.equals("id")) {
-            table.addColumn(RealmFieldType.INTEGER, "id", Table.NOT_NULLABLE);
-            table.addSearchIndex(table.getColumnIndex("id"));
-            table.setPrimaryKey("id");
+        RealmObjectSchema nullTypesSchema = realm.getSchema().create(NullTypes.CLASS_NAME);
+        if (!excludingField.equals(NullTypes.FIELD_ID)) {
+            nullTypesSchema.addField(NullTypes.FIELD_ID, int.class, FieldAttribute.PRIMARY_KEY);
         }
-        if (!excludingField.equals("fieldStringNotNull")) {
-            table.addColumn(RealmFieldType.STRING, "fieldStringNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_STRING_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_STRING_NOT_NULL, String.class, FieldAttribute.REQUIRED);
         }
-        if (!excludingField.equals("fieldStringNull")) {
-            table.addColumn(RealmFieldType.STRING, "fieldStringNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_STRING_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_STRING_NULL, String.class);
         }
-        if (!excludingField.equals("fieldBytesNotNull")) {
-            table.addColumn(RealmFieldType.BINARY, "fieldBytesNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BYTES_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BYTES_NOT_NULL, byte[].class, FieldAttribute.REQUIRED);
         }
-        if (!excludingField.equals("fieldBytesNull")) {
-            table.addColumn(RealmFieldType.BINARY, "fieldBytesNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BYTES_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BYTES_NULL, byte[].class);
         }
-        if (!excludingField.equals("fieldBooleanNotNull")) {
-            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BOOLEAN_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BOOLEAN_NOT_NULL, boolean.class);
         }
-        if (!excludingField.equals("fieldBooleanNull")) {
-            table.addColumn(RealmFieldType.BOOLEAN, "fieldBooleanNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BOOLEAN_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BOOLEAN_NULL, Boolean.class);
         }
-        if (!excludingField.equals("fieldByteNotNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldByteNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BYTE_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BYTE_NOT_NULL, byte.class);
         }
-        if (!excludingField.equals("fieldByteNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldByteNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_BYTE_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_BYTE_NULL, Byte.class);
         }
-        if (!excludingField.equals("fieldShortNotNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldShortNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_SHORT_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_SHORT_NOT_NULL, short.class);
         }
-        if (!excludingField.equals("fieldShortNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldShortNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_SHORT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_SHORT_NULL, Short.class);
         }
-        if (!excludingField.equals("fieldIntegerNotNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_INTEGER_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_INTEGER_NOT_NULL, int.class);
         }
-        if (!excludingField.equals("fieldIntegerNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldIntegerNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_INTEGER_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_INTEGER_NULL, Integer.class);
         }
-        if (!excludingField.equals("fieldLongNotNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldLongNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_LONG_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_LONG_NOT_NULL, long.class);
         }
-        if (!excludingField.equals("fieldLongNull")) {
-            table.addColumn(RealmFieldType.INTEGER, "fieldLongNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_LONG_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_LONG_NULL, Long.class);
         }
-        if (!excludingField.equals("fieldFloatNotNull")) {
-            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_FLOAT_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_FLOAT_NOT_NULL, float.class);
         }
-        if (!excludingField.equals("fieldFloatNull")) {
-            table.addColumn(RealmFieldType.FLOAT, "fieldFloatNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_FLOAT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_FLOAT_NULL, Float.class);
         }
-        if (!excludingField.equals("fieldDoubleNotNull")) {
-            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_DOUBLE_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_DOUBLE_NOT_NULL, double.class);
         }
-        if (!excludingField.equals("fieldDoubleNull")) {
-            table.addColumn(RealmFieldType.DOUBLE, "fieldDoubleNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_DOUBLE_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_DOUBLE_NULL, Double.class);
         }
-        if (!excludingField.equals("fieldDateNotNull")) {
-            table.addColumn(RealmFieldType.DATE, "fieldDateNotNull", Table.NOT_NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_DATE_NOT_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_DATE_NOT_NULL, Date.class, FieldAttribute.REQUIRED);
         }
-        if (!excludingField.equals("fieldDateNull")) {
-            table.addColumn(RealmFieldType.DATE, "fieldDateNull", Table.NULLABLE);
+        if (!excludingField.equals(NullTypes.FIELD_DATE_NULL)) {
+            nullTypesSchema.addField(NullTypes.FIELD_DATE_NULL, Date.class);
         }
-        if (!excludingField.equals("fieldObjectNull")) {
-            table.addColumnLink(RealmFieldType.OBJECT, "fieldObjectNull", table);
+        if (!excludingField.equals(NullTypes.FIELD_OBJECT_NULL)) {
+            nullTypesSchema.addRealmObjectField(NullTypes.FIELD_OBJECT_NULL, nullTypesSchema);
         }
 
-        table.addColumnLink(RealmFieldType.LIST, "fieldListNull", table);
+        nullTypesSchema.addRealmListField(NullTypes.FIELD_LIST_NULL, nullTypesSchema);
 
+        realm.setVersion(0);
+        realm.commitTransaction();
     }
 
     public static void populateForMultiSort(Realm typedRealm) {
@@ -656,6 +640,36 @@ public class TestHelper {
         realm.commitTransaction();
     }
 
+
+    /*
+     * Fields order test for Chained or Multi-Arguments Distinct()
+     *
+     * The idea is to interweave different values in 2's multiplier and 3's multiplier in a way that
+     * the outcome is different if the order of distinct* operations alternates. More numbers of
+     * fields can be constructed with the combination of multipliers in prime numbers such as 2, 3,
+     * and 5.
+     *
+     * An example is illustrated below.
+     *
+     * Object      : O1| O2| O3| O4| O5| O6
+     * indexString : A | A | B | B | A | A
+     * indexLong   : 1 | 1 | 1 | 2 | 2 | 2
+     *
+     * @param realm a {@link Realm} instance.
+     * @param numberOfBlocks number of times set of unique objects should be created.
+     */
+    public static void populateForDistinctFieldsOrder(Realm realm, long numberOfBlocks) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfBlocks; i++) {
+            for (int j = 0; j < 6; j++) {
+                AnnotationIndexTypes obj = realm.createObject(AnnotationIndexTypes.class);
+                obj.setIndexString((((j / 2) % 2) == 0) ? "A" : "B");
+                obj.setIndexLong((j < 3) ? 1 : 2);
+            }
+        }
+        realm.commitTransaction();
+    }
+
     public static void awaitOrFail(CountDownLatch latch) {
         awaitOrFail(latch, 7);
     }
@@ -672,30 +686,33 @@ public class TestHelper {
 
     // clean resource, shutdown the executor service & throw any background exception
     public static void exitOrThrow(final ExecutorService executorService,
-                     final CountDownLatch signalTestFinished,
-                     final CountDownLatch signalClosedRealm,
-                     final Looper[] looper,
-                     final Throwable[] throwable,
-                     int... timeout) throws Throwable {
+                                   final CountDownLatch signalTestFinished,
+                                   final CountDownLatch signalClosedRealm,
+                                   final Looper[] looper,
+                                   final Throwable[] throwable) throws Throwable {
 
         // wait for the signal indicating the test's use case is done
-        TestHelper.awaitOrFail(signalTestFinished, (timeout.length == 1) ? timeout[0] : 7);
+        try {
+            // Even if this fails we want to try as hard as possible to cleanup. If we fail to close all resources
+            // properly, the `after()` method will most likely throw as well because it tries do delete any Realms
+            // used. Any exception in the `after()` code will mask the original error.
+            TestHelper.awaitOrFail(signalTestFinished);
+        } finally {
+            // close the executor
+            executorService.shutdownNow();
+            if (looper[0] != null) {
+                // failing to quit the looper will not execute the finally block responsible
+                // of closing the Realm
+                looper[0].quit();
+            }
 
-        // close the executor
-        executorService.shutdownNow();
+            // wait for the finally block to execute & close the Realm
+            TestHelper.awaitOrFail(signalClosedRealm);
 
-        if (looper[0] != null) {
-            // failing to quit the looper will not execute the finally block responsible
-            // of closing the Realm
-            looper[0].quit();
-        }
-
-        // wait for the finally block to execute & close the Realm
-        TestHelper.awaitOrFail(signalClosedRealm, (timeout.length == 1) ? timeout[0] : 7);
-
-        if (throwable[0] != null) {
-            // throw any assertion errors happened in the background thread
-            throw throwable[0];
+            if (throwable[0] != null) {
+                // throw any assertion errors happened in the background thread
+                throw throwable[0];
+            }
         }
     }
 
@@ -703,4 +720,61 @@ public class TestHelper {
         AssetManager assetManager = context.getAssets();
         return assetManager.open(file);
     }
+
+    public static void quitLooperOrFail() {
+        Looper looper = Looper.myLooper();
+        if (looper != null) {
+            looper.quit();
+        } else {
+            Assert.fail();
+        }
+    }
+
+    /**
+     * Creates a {@link RealmResults} instance.
+     * This helper method is useful to create a mocked {@link RealmResults}.
+     *
+     * @param realm a {@link Realm} or a {@link DynamicRealm} instance.
+     * @param table a {@link Table} or a {@link io.realm.internal.TableView} instance.
+     * @param tableClass a Class of Table.
+     * @return a created {@link RealmResults} instance.
+     */
+    public static <T extends RealmObject> RealmResults<T> newRealmResults(
+            BaseRealm realm, TableOrView table, Class<T> tableClass) {
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Constructor<RealmResults> c = RealmResults.class.getDeclaredConstructor(
+                    BaseRealm.class, TableOrView.class, Class.class);
+            c.setAccessible(true);
+            //noinspection unchecked
+            return c.newInstance(realm, table, tableClass);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Emulates an environment where RxJava is not available.
+     *
+     * @param config {@link RealmConfiguration} instance to be modified.
+     */
+    public static void emulateRxJavaUnavailable(RealmConfiguration config) {
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Field field = config.getClass().getDeclaredField("rxObservableFactory");
+            field.setAccessible(true);
+            field.set(config, null);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

@@ -18,7 +18,6 @@ package io.realm.internal.android;
 
 import android.test.AndroidTestCase;
 
-
 import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.Calendar;

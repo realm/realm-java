@@ -28,15 +28,20 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ActivityController;
 
+import java.lang.Exception;
 import java.util.Arrays;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import io.realm.examples.unittesting.ExampleActivity;
 import io.realm.examples.unittesting.model.Person;
+import io.realm.internal.RealmCore;
 
 
 import static org.hamcrest.CoreMatchers.is;
@@ -50,11 +55,13 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
-@PrepareForTest({Realm.class, RealmResults.class})
+@PrepareForTest({Realm.class, RealmConfiguration.class, RealmResults.class, RealmCore.class})
 public class ExampleActivityTest {
 
     // Robolectric, Using Power Mock https://github.com/robolectric/robolectric/wiki/Using-PowerMock
@@ -63,20 +70,32 @@ public class ExampleActivityTest {
     public PowerMockRule rule = new PowerMockRule();
 
     private Realm mockRealm;
-    private ExampleActivity activity;
     private RealmResults<Person> people;
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
 
         // Setup Realm to be mocked
         mockStatic(Realm.class);
+        mockStatic(RealmConfiguration.class);
+        mockStatic(RealmCore.class);
 
         // Create the mock
         final Realm mockRealm = mock(Realm.class);
+        final RealmConfiguration mockRealmConfig = mock(RealmConfiguration.class);
 
-        // Anytime getInstance is called with any context, then return the mockRealm
-        when(Realm.getInstance(any(Context.class))).thenReturn(mockRealm);
+        // TODO: Better solution would be just mock the RealmConfiguration.Builder class. But it seems there is some
+        // problems for powermock to mock it (static inner class). We just mock the RealmCore.loadLibrary(Context) which
+        // will be called by RealmConfiguration.Builder's constructor.
+        doNothing().when(RealmCore.class);
+        RealmCore.loadLibrary(any(Context.class));
+
+        // TODO: Mock the RealmConfiguration's constructor. If the RealmConfiguration.Builder.build can be mocked, this
+        // is not necessary anymore.
+        whenNew(RealmConfiguration.class).withAnyArguments().thenReturn(mockRealmConfig);
+
+        // Anytime getInstance is called with any configuration, then return the mockRealm
+        when(Realm.getInstance(any(RealmConfiguration.class))).thenReturn(mockRealm);
 
         // Anytime we ask Realm to create a Person, return a new instance.
         when(mockRealm.createObject(Person.class)).thenReturn(new Person());
@@ -144,19 +163,21 @@ public class ExampleActivityTest {
 
         this.mockRealm = mockRealm;
         this.people = people;
-
-        // Get the activity so we can start testing
-        activity = Robolectric.setupActivity(ExampleActivity.class);
     }
 
 
     @Test
     public void shouldBeAbleToAccessActivityAndVerifyRealmInteractions() {
+        // Create activity
+        ActivityController<ExampleActivity> controller =
+                Robolectric.buildActivity(ExampleActivity.class).setup();
+        ExampleActivity activity = controller.get();
+
         assertThat(activity.getTitle().toString(), is("Unit Test Example"));
 
         // Verify that two Realm.getInstance() calls took place.
         verifyStatic(times(2));
-        Realm.getInstance(any(Context.class));
+        Realm.getInstance(any(RealmConfiguration.class));
 
         // verify that we have four begin and commit transaction calls
         verify(mockRealm, times(4)).beginTransaction();
@@ -179,7 +200,7 @@ public class ExampleActivityTest {
         verify(people, times(2)).clear();
 
         // Call the destroy method so we can verify that the .close() method was called (below)
-        activity.onDestroy();
+        controller.destroy();
 
         // Verify that the realm got closed 2 separate times. Once in the AsyncTask, once
         // in onDestroy
