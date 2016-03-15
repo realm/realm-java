@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## 0.89.0
 
 ### Enhancements
@@ -8,11 +7,10 @@
 ### Bug fixes
 
 * RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the give field name doesn't exist.
-=======
+
 ## 0.88.2
 
 * Updated Realm Core to 0.97.1.
->>>>>>> origin/releases
 
 ## 0.88.1
 
