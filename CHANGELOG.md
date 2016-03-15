@@ -1,6 +1,10 @@
 ## 0.88.2
 
-* Updated Realm Core to 0.97.1.
+* Updated Realm Core to 0.97.2.
+
+### Enhancements
+
+* Outputs additional information when incompatible lock file error occurs.
 
 ### Bug fixes
 
