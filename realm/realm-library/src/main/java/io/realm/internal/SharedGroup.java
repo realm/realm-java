@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOError;
 
 import io.realm.exceptions.RealmIOException;
+import io.realm.internal.async.BadVersionException;
 
 public class SharedGroup implements Closeable {
 
@@ -82,7 +83,7 @@ public class SharedGroup implements Closeable {
         nativeAdvanceRead(nativePtr);
     }
 
-    void advanceRead(VersionID versionID) {
+    void advanceRead(VersionID versionID) throws BadVersionException {
         nativeAdvanceReadToVersion(nativePtr, versionID.version, versionID.index);
     }
 
@@ -317,6 +318,6 @@ public class SharedGroup implements Closeable {
     private native void nativeRollbackAndContinueAsRead(long nativePtr);
     private native long[] nativeGetVersionID (long nativePtr);
     private native void nativeAdvanceRead(long nativePtr);
-    private native void nativeAdvanceReadToVersion(long nativePtr, long version, long index);
+    private native void nativeAdvanceReadToVersion(long nativePtr, long version, long index) throws BadVersionException;
     private native void nativePromoteToWrite(long nativePtr);
 }
