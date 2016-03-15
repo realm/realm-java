@@ -1,3 +1,7 @@
+## 0.88.2
+
+* Updated Realm Core to 0.97.1.
+
 ## 0.88.1
 
 ### Bug fixes
