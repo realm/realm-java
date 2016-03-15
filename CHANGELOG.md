@@ -6,6 +6,10 @@
 
 * Outputs additional information when incompatible lock file error occurs.
 
+### Bug fixes
+
+* Race condition causing BadVersionException when running multiple async writes and queries at the same time (#2021/#2391/#2417).
+
 ## 0.88.1
 
 ### Bug fixes
