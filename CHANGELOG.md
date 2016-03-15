@@ -1,3 +1,13 @@
+## 0.89.0
+
+### Enhancements
+
+* RealmObjectSchema.isPrimaryKey(String) (#2440)
+
+### Bug fixes
+
+* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the give field name doesn't exist.
+
 ## 0.88.1
 
 ### Bug fixes
