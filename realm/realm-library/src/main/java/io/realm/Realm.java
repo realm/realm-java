@@ -1017,7 +1017,7 @@ public final class Realm extends BaseRealm {
      * {@link RealmResults} will not be null. The RealmResults.size() to check the number of objects instead.
      *
      * @param clazz the Class to get objects of.
-     * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param sortOrders sort ascending if Sort.ASCENDING, sort descending if Sort.DESCENDING.
      * @param fieldNames an array of field names to sort objects by. The objects are first sorted by fieldNames[0], then
      *                   by fieldNames[1] and so forth.
      * @return a sorted RealmResults containing the objects.

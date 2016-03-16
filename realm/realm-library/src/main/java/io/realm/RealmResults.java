@@ -35,6 +35,7 @@ import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
+import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
@@ -872,10 +873,15 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
      * thread.
      *
      * @param handoverTableViewPointer handover pointer to the new table_view.
+     * @throws IllegalStateException if caller and worker are not at the same version.
      */
     void swapTableViewPointer(long handoverTableViewPointer) {
-        table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
-        asyncQueryCompleted = true;
+        try {
+            table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
+            isCompleted = true;
+        } catch (BadVersionException e) {
+            throw new IllegalStateException("Caller and Worker Realm should have been at the same version");
+        }
     }
 
     /**

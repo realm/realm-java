@@ -160,7 +160,7 @@ public class LinkView extends NativeObject {
     public void removeTargetRow(int index) {
         checkImmutable();
         nativeRemoveTargetRow(nativePointer, index);
-	}
+    }
 
     public Table getTargetTable() {
         // Execute the disposal of abandoned realm objects each time a new realm object is created

@@ -31,7 +31,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -47,6 +49,7 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.StringOnly;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.log.Logger;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -761,4 +764,37 @@ public class TestHelper {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Replaces the current thread executor with a another one for testing.
+     * WARNING: This method should only be called before any async tasks have been started.
+     *
+     * @param executor {@link RealmThreadPoolExecutor} that should replace the current one
+     */
+    public static RealmThreadPoolExecutor replaceRealmThreadExectutor(RealmThreadPoolExecutor executor) throws NoSuchFieldException, IllegalAccessException {
+        Field field = BaseRealm.class.getDeclaredField("asyncQueryExecutor");
+        field.setAccessible(true);
+        RealmThreadPoolExecutor oldExecutor = (RealmThreadPoolExecutor) field.get(null);
+        field.set(field, executor);
+        return oldExecutor;
+    }
+
+    /**
+     * Emulates an environment where RxJava is not available.
+     *
+     * @param config {@link RealmConfiguration} instance to be modified.
+     */
+    public static void emulateRxJavaUnavailable(RealmConfiguration config) {
+        //noinspection TryWithIdenticalCatches
+        try {
+            final Field field = config.getClass().getDeclaredField("rxObservableFactory");
+            field.setAccessible(true);
+            field.set(config, null);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

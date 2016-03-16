@@ -585,11 +585,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 return NO_PRIMARY_KEY; // Free table = No primary key
             }
 
-            String tableName = getName();
-            if (tableName.startsWith(TABLE_PREFIX)) {
-                tableName = tableName.substring(TABLE_PREFIX.length());
-            }
-            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, tableName);
+            String className = tableNameToClassName(getName());
+            long rowIndex = pkTable.findFirstString(PRIMARY_KEY_CLASS_COLUMN_INDEX, className);
             if (rowIndex != NO_MATCH) {
                 String pkColumnName = pkTable.getUncheckedRow(rowIndex).getString(PRIMARY_KEY_FIELD_COLUMN_INDEX);
                 cachedPrimaryKeyColumnIndex = getColumnIndex(pkColumnName);
@@ -1373,6 +1370,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     public long getVersion() {
         return nativeVersion(nativePtr);
+    }
+
+    public static String tableNameToClassName(String tableName) {
+        if (!tableName.startsWith(Table.TABLE_PREFIX)) {
+            return tableName;
+        }
+        return tableName.substring(Table.TABLE_PREFIX.length());
     }
 
     protected native long createNative();
