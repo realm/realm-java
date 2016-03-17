@@ -15,6 +15,8 @@
  */
 
 package io.realm.transformer
+
+import io.realm.annotations.Ignore
 import javassist.*
 import javassist.expr.ExprEditor
 import javassist.expr.FieldAccess
@@ -38,7 +40,7 @@ class BytecodeModifier {
         logger.info "  Realm: Adding accessors to ${clazz.simpleName}"
         def methods = clazz.getDeclaredMethods()*.name
         clazz.declaredFields.each { CtField field ->
-            if (!Modifier.isStatic(field.getModifiers())) {
+            if (!Modifier.isStatic(field.getModifiers()) && !field.hasAnnotation(Ignore.class)) {
                 if (!methods.contains("realmGet\$${field.name}")) {
                     clazz.addMethod(CtNewMethod.getter("realmGet\$${field.name}", field))
                 }
