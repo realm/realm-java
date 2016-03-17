@@ -10,8 +10,13 @@
 
 ## 0.88.3
 
+### Deprecated
+
+* Realm.refresh() and DynamicRealm.refresh(). Use Realm.waitForChange()/stopWaitForChange() or DynamicRealm.waitForChange()/stopWaitForChange() instead.
+
 ### Enhancements
 
+* Realm.waitForChange()/stopWaitForChange() and DynamicRealm.waitForChange()/stopWaitForChange() (#2386).
 * Throws an IllegalArgumentExcpetion when calling Realm.copyToRealm()/Realm.copyToRealmOrUpdate() with a RealmObject which belongs to another Realm instance in a different thread.
 
 ### Bug fixes
@@ -61,7 +66,6 @@
 * Realm.getInstance(Context). Use Realm.getInstance(RealmConfiguration) or Realm.getDefaultInstance() instead.
 * Realm.getTable(Class) which was public because of the old migration API. Use Realm.getSchema() or DynamicRealm.getSchema() instead.
 * Realm.executeTransaction(Transaction, Callback) and replaced it with Realm.executeTransactionAsync(Transaction), Realm.executeTransactionAsync(Transaction, OnSuccess), Realm.executeTransactionAsync(Transaction, OnError) and Realm.executeTransactionAsync(Transaction, OnSuccess, OnError).
-* Realm.refresh() and DynamicRealm.refresh(). Use Realm.waitForChange()/stopWaitForChange() or DynamicRealm.waitForChange()/stopWaitForChange() instead.
 
 ### Enhancements
 
@@ -77,7 +81,6 @@
 * "realm" and "row" can be used as field name in model classes (#2255).
 * RealmResults.size() now returns Integer.MAX_VALUE when actual size is greater than Integer.MAX_VALUE (#2129).
 * Removed allowBackup from AndroidManifest (#2307).
-* Realm.waitForChange()/stopWaitForChange() and DynamicRealm.waitForChange()/stopWaitForChange() (#2386).
 
 ### Bug fixes
 
