@@ -19,9 +19,6 @@ package io.realm;
 import java.util.Collection;
 import java.util.Date;
 
-import io.realm.RealmObject;
-import io.realm.RealmQuery;
-
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
  * collections and the behavior that they will have in all implementations of {@code RealmCollection}s.
@@ -124,7 +121,7 @@ public interface RealmCollection<E extends RealmObject> extends Collection<E> {
     /**
      * Checks if a collection has finished loading its data yet.
      *
-     * @return {@code true} if data has loaded and is available {@code false} if they are still loading.
+     * @return {@code true} if data has been loaded and is available, {@code false} if data is still being loaded.
      */
     boolean isLoaded();
 
