@@ -16,6 +16,9 @@
 
 package io.realm.rx;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
 import io.realm.Realm;
@@ -40,6 +43,22 @@ import rx.subscriptions.Subscriptions;
  * @see DynamicRealmObject#asObservable()
  */
 public class RealmObservableFactory implements RxObservableFactory {
+
+    // Maps for storing strong references to RealmResults while they are subscribed to.
+    // This is needed if users create Observables without manually maintaining a reference to them.
+    // In that case RealmObjects/RealmResults might be GC'ed too early.
+    ThreadLocal<StrongReferenceCounter<RealmResults>> resultsRefs = new ThreadLocal<StrongReferenceCounter<RealmResults>>() {
+        @Override
+        protected StrongReferenceCounter<RealmResults> initialValue() {
+            return new StrongReferenceCounter<RealmResults>();
+        }
+    };
+    ThreadLocal<StrongReferenceCounter<RealmObject>> objectRefs = new ThreadLocal<StrongReferenceCounter<RealmObject>>() {
+        @Override
+        protected StrongReferenceCounter<RealmObject> initialValue() {
+            return new StrongReferenceCounter<RealmObject>();
+        }
+    };
 
     @Override
     public Observable<Realm> from(Realm realm) {
@@ -107,12 +126,15 @@ public class RealmObservableFactory implements RxObservableFactory {
     @Override
     public <E extends RealmObject> Observable<RealmResults<E>> from(final Realm realm, final RealmResults<E> results) {
         final RealmConfiguration realmConfig = realm.getConfiguration();
+
         return Observable.create(new Observable.OnSubscribe<RealmResults<E>>() {
             @Override
             public void call(final Subscriber<? super RealmResults<E>> subscriber) {
                 // Get instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
+                resultsRefs.get().acquireReference(results);
+
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
@@ -127,6 +149,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     public void call() {
                         results.removeChangeListener(listener);
                         observableRealm.close();
+                        resultsRefs.get().releaseReference(results);
                     }
                 }));
 
@@ -146,6 +169,8 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Get instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
+                resultsRefs.get().acquireReference(results);
+
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
@@ -160,6 +185,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     public void call() {
                         results.removeChangeListener(listener);
                         observableRealm.close();
+                        resultsRefs.get().releaseReference(results);
                     }
                 }));
 
@@ -193,6 +219,8 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Get instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final Realm observableRealm = Realm.getInstance(realmConfig);
+                objectRefs.get().acquireReference(object);
+
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
@@ -207,6 +235,8 @@ public class RealmObservableFactory implements RxObservableFactory {
                     public void call() {
                         object.removeChangeListener(listener);
                         observableRealm.close();
+                        objectRefs.get().releaseReference(object);
+
                     }
                 }));
 
@@ -226,6 +256,8 @@ public class RealmObservableFactory implements RxObservableFactory {
                 // Get instance to make sure that the Realm is open for as long as the
                 // Observable is subscribed to it.
                 final DynamicRealm observableRealm = DynamicRealm.getInstance(realmConfig);
+                objectRefs.get().acquireReference(object);
+
                 final RealmChangeListener listener = new RealmChangeListener() {
                     @Override
                     public void onChange() {
@@ -240,6 +272,7 @@ public class RealmObservableFactory implements RxObservableFactory {
                     public void call() {
                         object.removeChangeListener(listener);
                         observableRealm.close();
+                        objectRefs.get().releaseReference(object);
                     }
                 }));
 
@@ -270,4 +303,30 @@ public class RealmObservableFactory implements RxObservableFactory {
         return 37;
     }
 
+
+    // Helper class for keeping track of strong references to objects.
+    private static class StrongReferenceCounter<K> {
+
+        private final Map<K, Integer> references = new IdentityHashMap<K, Integer>();
+
+        public void acquireReference(K object) {
+            Integer count = references.get(object);
+            if (count == null) {
+                references.put(object, 1);
+            } else {
+                references.put(object, count + 1);
+            }
+        }
+
+        public void releaseReference(K object) {
+            Integer count = references.get(object);
+            if (count == null) {
+                throw new IllegalStateException("Object does not have any references: " + object);
+            } else if (count > 0) {
+                references.put(object, count - 1);
+            } else {
+                references.remove(object);
+            }
+        }
+    }
 }
