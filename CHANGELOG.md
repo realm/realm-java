@@ -1,3 +1,9 @@
+## 0.88.3
+
+### Enhancements
+
+* Throws a IllegalArgumentExcpetion when calling Realm.copyToRealm()/Realm.copyToRealmOrUpdate() with a RealmObject which belongs to another Realm instance in a different thread.
+
 ## 0.88.2
 
 * Updated Realm Core to 0.97.2.

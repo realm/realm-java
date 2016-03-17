@@ -573,6 +573,10 @@ public class AllTypesRealmProxy extends AllTypes
     }
 
     public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId) {
+            throw new IllegalArgumentException(
+                    "Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+        }
         if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath())) {
             return object;
         }
