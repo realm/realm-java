@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
@@ -800,7 +801,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             checkRealmIsStable();
             pos++;
             if (pos >= size()) {
-                throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
+                throw new NoSuchElementException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
             }
             return get(pos);
         }
@@ -828,9 +829,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
 
         protected void checkRealmIsStable() {
             long version = view.getTable().getVersion();
-            if (tableViewVersion > -1 && version != tableViewVersion) {
-                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
-            }
+//            if (tableViewVersion > -1 && version != tableViewVersion) {
+//                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
+//            }
             tableViewVersion = version;
         }
     }
@@ -863,7 +864,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         @Override
         public boolean hasPrevious() {
             checkRealmIsStable();
-            return pos > 0;
+            return pos >= 0;
         }
 
         /**
@@ -884,7 +885,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             checkRealmIsStable();
             pos--;
             if (pos < 0) {
-                throw new IndexOutOfBoundsException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
+                throw new NoSuchElementException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
             }
             return get(pos);
         }

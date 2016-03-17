@@ -27,7 +27,9 @@ import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllTypes;
@@ -36,6 +38,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
+import io.realm.exceptions.RealmException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -965,5 +968,119 @@ public class RealmListTests extends CollectionTests {
 
         dynamicRealm.cancelTransaction();
         dynamicRealm.close();
+    }
+
+    // Check that the iterator `remove` only removes the object from the collection
+    @Test
+    public void iterator_managed_remove() {
+        Iterator<Dog> it = collection.iterator();
+        Dog obj = it.next();
+        assertEquals("Dog 0", obj.getName());
+        realm.beginTransaction();
+        it.remove();
+        assertTrue(obj.isValid());
+        assertEquals("Dog 1", collection.iterator().next().getName());
+        assertEquals(TEST_SIZE - 1, collection.size());
+    }
+
+    @Test
+    public void iterator_managed_deletedObjectNotAccessible() {
+        realm.beginTransaction();
+        Iterator<Dog> it = collection.iterator();
+        it.next(); // First item is a cyclic reference, avoid deleting that.
+        it.next().deleteFromRealm();
+        realm.commitTransaction();
+
+        // RealmLists are automatically updated.
+        assertEquals(TEST_SIZE - 1, collection.size());
+        it = collection.iterator();
+        it.next();
+        Dog obj = it.next();
+        assertEquals("Dog 2", obj.getName());
+    }
+
+
+
+    @Test
+    public void iterator_unManaged_remove() {
+        collection = createNonManagedDogList();
+        Iterator<Dog> it = collection.iterator();
+        Dog obj = it.next();
+        assertEquals("Dog 0", obj.getName());
+        it.remove();
+        assertTrue(obj.isValid());
+        assertEquals("Dog 1", collection.iterator().next().getName());
+        assertEquals(TEST_SIZE - 1, collection.size());
+    }
+
+    @Test
+    public void iterator_managed_remove_calledTwice() {
+        Iterator<Dog> it = collection.iterator();
+        it.next();
+        realm.beginTransaction();
+        it.remove();
+
+        thrown.expect(IllegalStateException.class);
+        it.remove();
+    }
+
+    // TODO Remove once waitForChange is introduced
+    public void iterator_managed_refreshWhileIterating() {
+        Iterator<Dog> it = collection.iterator();
+        it.next();
+
+        realm.beginTransaction();
+        realm.createObject(Dog.class).setName("Dog " + TEST_SIZE);
+        realm.commitTransaction();
+        realm.refresh(); // This will trigger rerunning all queries, but shouldn't effect RealmLists
+
+        assertEquals("Dog 1", it.next().getName());
+    }
+
+    @Test
+    public void listIterator_managed_emovedObjectsStillAccessible() {
+        realm.beginTransaction();
+        collection.iterator().next().deleteFromRealm();
+        realm.commitTransaction();
+
+        assertEquals(TEST_SIZE, collection.size()); // Size is same even if object is deleted
+        ListIterator<Dog> it = collection.listIterator();
+        Dog types = it.next(); // Iterator can still access the deleted object
+
+        assertFalse(types.isValid());
+    }
+
+    @Test
+    public void listIterator_remove_doesNotDeleteObject() {
+        ListIterator<Dog> it = collection.listIterator();
+        Dog obj = it.next();
+        assertEquals("Dog 0", obj.getName());
+        realm.beginTransaction();
+        it.remove();
+        assertTrue(obj.isValid());
+    }
+
+    @Test
+    public void listIterator_managed_set() {
+//        collection.listIterator().set(null);
+        fail();
+    }
+
+    @Test
+    public void listIterator_unManaged_set() {
+//        collection.listIterator().set(null);
+        fail();
+    }
+
+    @Test(expected = RealmException.class)
+    public void listIterator_managed_add() {
+//        collection.listIterator().add(null);
+        fail();
+    }
+
+    @Test(expected = RealmException.class)
+    public void listIterator_unManaged_add() {
+//        collection.listIterator().add(null);
+        fail();
     }
 }

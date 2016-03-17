@@ -129,7 +129,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         .getFieldList();
 
             case REALMRESULTS:
-                return realm.allObjects(AllJavaTypes.class);
+                return realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
@@ -660,6 +660,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     @Test
     public void mutableMethodsOutsideTransactions() {
         for (CollectionMutatorMethod method : CollectionMutatorMethod.values()) {
+            //noinspection TryWithIdenticalCatches
             try {
                 switch (method) {
                     case DELETE_ALL: collection.deleteAllFromRealm(); break;
@@ -672,7 +673,9 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                 }
                 fail("Unknown method or it failed to throw: " + method);
             } catch (IllegalStateException ignored) {
+                // Thrown by implementations supporting the method.
             } catch (UnsupportedOperationException ignored) {
+                // Thrown by implementations not supporting the method.
             }
         }
     }
@@ -782,33 +785,42 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         }
     }
 
-    @Test
-    public void iterator_removedObjectsStillAccessible() {
-        realm.beginTransaction();
-        collection.iterator().next().deleteFromRealm();
-        realm.commitTransaction();
-
-        assertEquals(TEST_SIZE, collection.size()); // Size is same even if object is deleted
-        Iterator<AllJavaTypes> it = collection.iterator();
-        AllJavaTypes obj = it.next(); // Iterator can still access the deleted object
-        assertFalse(obj.isValid());
-    }
-
     // TODO Remove once waitForChange is introduced
     @Test
     public void iterator_refreshClearsRemovedObjects() {
         assertEquals(0, collection.iterator().next().getFieldLong());
         realm.setAutoRefresh(false);
         realm.beginTransaction();
-        collection.iterator().next().deleteFromRealm();
+        Iterator<AllJavaTypes> it = collection.iterator();
+        it.next(); // First item is a cyclic reference, avoid deleting that
+        AllJavaTypes obj = it.next();
+        assertEquals(1, obj.getFieldLong());
+        obj.deleteFromRealm();
         realm.commitTransaction();
         realm.refresh(); // Refresh forces a refresh of all RealmResults
 
-        assertEquals(TEST_SIZE - 1, collection.size()); // Size is same even if object is deleted
-        Iterator<AllJavaTypes> it = collection.iterator();
-        AllJavaTypes obj = it.next(); // Iterator can no longer access the deleted object
+        assertEquals(TEST_SIZE - 1, collection.size());
 
+        it = collection.iterator();
+        it.next();
+        obj = it.next(); // Iterator can no longer access the deleted object
         assertTrue(obj.isValid());
-        assertEquals(1, obj.getFieldLong());
+        assertEquals(2, obj.getFieldLong());
+    }
+
+    @Test
+    public void iterator_remove_beforeNext() {
+        Iterator<AllJavaTypes> it = collection.iterator();
+        realm.beginTransaction();
+
+        //noinspection TryWithIdenticalCatches
+        try {
+            it.remove();
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+            // Thrown by implementations not supporting `remove`
+        } catch (IllegalStateException ignored) {
+            // Thrown by implementations supporting `remove`
+        }
     }
 }

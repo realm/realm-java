@@ -28,8 +28,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,6 +43,7 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.Owner;
+import io.realm.exceptions.RealmException;
 import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -73,7 +77,7 @@ public class RealmResultsTests extends CollectionTests {
         RealmConfiguration realmConfig = configFactory.createConfiguration();
         realm = Realm.getInstance(realmConfig);
         populateTestRealm();
-        collection = realm.allObjects(AllTypes.class);
+        collection = realm.allObjectsSorted(AllTypes.class, AllTypes.FIELD_LONG, Sort.ASCENDING);
     }
 
     @After
@@ -1002,4 +1006,84 @@ public class RealmResultsTests extends CollectionTests {
             }
         });
     }
+
+    @Test
+    public void iterator_remove() {
+        Iterator<AllTypes> it = collection.iterator();
+        it.next();
+
+        try {
+            it.remove();
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    @Test
+    public void iterator_deletedObjectStillAccessible() {
+        realm.beginTransaction();
+        Iterator<AllTypes> it = collection.iterator();
+        it.next(); // First item is a cyclic reference, avoid deleting that.
+        it.next().deleteFromRealm();
+        realm.commitTransaction();
+
+        // RealmResults are no "live", so deleted objects are still present
+        assertEquals(TEST_DATA_SIZE, collection.size());
+        it = collection.iterator();
+        it.next();
+        AllTypes obj = it.next(); // Iterator can still access the deleted object
+        assertFalse(obj.isValid());
+    }
+
+    // TODO Remove once waitForChange is introduced
+    @Test
+    public void iterator_refreshWhileIterating() {
+        Iterator<AllTypes> it = collection.iterator();
+        it.next();
+
+        realm.beginTransaction();
+        realm.createObject(AllTypes.class);
+        realm.commitTransaction();
+        realm.refresh(); // This will trigger rerunning all queries
+
+        thrown.expect(ConcurrentModificationException.class);
+        it.next();
+    }
+
+    @Test
+    public void listIterator_removedObjectsStillAccessible() {
+        realm.beginTransaction();
+        collection.iterator().next().deleteFromRealm();
+        realm.commitTransaction();
+
+        assertEquals(TEST_DATA_SIZE, collection.size()); // Size is same even if object is deleted
+        ListIterator<AllTypes> it = collection.listIterator();
+        AllTypes types = it.next(); // Iterator can still access the deleted object
+
+        assertFalse(types.isValid());
+    }
+
+    @Test
+    public void listIterator_unsupportedMethods() {
+        ListIterator<AllTypes> it = collection.listIterator();
+        it.next();
+        try {
+            it.remove();
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+
+        try {
+            it.add(null);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+
+        try {
+            it.set(null);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
 }

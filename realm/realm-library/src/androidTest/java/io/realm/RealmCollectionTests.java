@@ -22,7 +22,6 @@ import io.realm.rule.TestRealmConfigurationFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Test class for all methods part of the the {@link RealmCollection} interface.
@@ -140,8 +139,9 @@ public class RealmCollectionTests extends CollectionTests {
     }
 
     private void createNewObject() {
+        Number max = realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG);
         realm.beginTransaction();
-        realm.createObject(AllJavaTypes.class, realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG).longValue() + 1);
+        realm.createObject(AllJavaTypes.class, (max != null) ? max.longValue() + 1 : 0);
         realm.commitTransaction();
     }
 
@@ -245,37 +245,6 @@ public class RealmCollectionTests extends CollectionTests {
     }
 
     @Test
-    public void iterator_remove_beforeNext() {
-        Iterator<AllJavaTypes> it = collection.iterator();
-        realm.beginTransaction();
-
-        thrown.expect(IllegalStateException.class);
-        it.remove();
-    }
-
-    @Test
-    public void iterator_remove_deletesObject() {
-        Iterator<AllJavaTypes> it = collection.iterator();
-        AllJavaTypes obj = it.next();
-        assertEquals(0, obj.getFieldLong());
-        realm.beginTransaction();
-        it.remove();
-        assertFalse(obj.isValid());
-        assertEquals(1, collection.iterator().next().getFieldLong());
-    }
-
-    @Test
-    public void iterator_remove_calledTwice() {
-        Iterator<AllJavaTypes> it = collection.iterator();
-        it.next();
-        realm.beginTransaction();
-        it.remove();
-
-        thrown.expect(IllegalStateException.class);
-        it.remove();
-    }
-
-    @Test
     public void iterator_transactionBeforeNextItem() {
         Iterator<AllJavaTypes> it = collection.iterator();
         int i = 0;
@@ -287,19 +256,6 @@ public class RealmCollectionTests extends CollectionTests {
             // Committing transactions while iterating should not effect the current iterator.
             createNewObject();
         }
-    }
-
-    // TODO Remove once waitForChange is introduced
-    @Test
-    public void iterator_refreshWhileIterating() {
-        Iterator<AllJavaTypes> it = collection.iterator();
-        it.next();
-
-        createNewObject();
-        realm.refresh(); // This will trigger rerunning all queries
-
-        thrown.expect(ConcurrentModificationException.class);
-        it.next();
     }
 
     @Test

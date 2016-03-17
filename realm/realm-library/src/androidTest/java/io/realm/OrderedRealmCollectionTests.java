@@ -32,6 +32,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.exceptions.RealmException;
@@ -183,8 +184,8 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         }
     }
 
+    // Returns a collection with multiple copies of the same object
     private Pair<AllJavaTypes, OrderedRealmCollection<AllJavaTypes>> createCollectionWithMultipleCopies(Realm realm, CollectionClass collectionClass) {
-
         AllJavaTypes obj;
         switch (collectionClass) {
             case MANAGED_REALMLIST:
@@ -397,29 +398,76 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
-    public void listIterator() {
+    public void listIterator_empty() {
+        collection = createEmptyCollection(realm, collectionClass);
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+
+        assertFalse(it.hasPrevious());
+        assertFalse(it.hasNext());
+        assertEquals(0, it.nextIndex());
+        assertEquals(-1, it.previousIndex());
+
+        try {
+            it.next();
+            fail();
+        } catch (NoSuchElementException ignored) {
+        }
+
+        try {
+            it.previous();
+            fail();
+        } catch (NoSuchElementException ignored) {
+        }
+    }
+
+    @Test
+    public void listIterator_oneElement() {
+        ListIterator<AllJavaTypes> it = collection.subList(0, 1).listIterator();
+
+        // Test beginning of the list
+        assertFalse(it.hasPrevious());
+        assertTrue(it.hasNext());
+        assertEquals(-1, it.previousIndex());
+        assertEquals(0, it.nextIndex());
+
+        // Test end of the list
+        AllJavaTypes firstObject = it.next();
+        assertEquals(0, firstObject.getFieldLong());
+        assertTrue(it.hasPrevious());
+        assertFalse(it.hasNext());
+        assertEquals(0, it.previousIndex());
+        assertEquals(1, it.nextIndex());
+    }
+
+    @Test
+    public void listIterator_manyElements() {
         ListIterator<AllJavaTypes> it = collection.listIterator();
 
         // Test beginning of the list
         assertFalse(it.hasPrevious());
         assertTrue(it.hasNext());
+        assertEquals(-1, it.previousIndex());
         assertEquals(0, it.nextIndex());
+
+        // Test 1st element in the list
         AllJavaTypes firstObject = it.next();
         assertEquals(0, firstObject.getFieldLong());
-        assertFalse(it.hasPrevious());
+        assertTrue(it.hasPrevious());
+        assertEquals(0, it.previousIndex());
 
         // Move to second last element
         for (int i = 1; i < TEST_SIZE - 1; i++) {
             it.next();
 
         }
-
-        // Test end of the list
         assertTrue(it.hasPrevious());
         assertTrue(it.hasNext());
         assertEquals(TEST_SIZE - 1, it.nextIndex());
+
+        // Test end of the list
         AllJavaTypes lastObject = it.next();
         assertEquals(TEST_SIZE - 1, lastObject.getFieldLong());
+        assertTrue(it.hasPrevious());
         assertFalse(it.hasNext());
         assertEquals(TEST_SIZE, it.nextIndex());
     }
@@ -486,17 +534,8 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             it.remove();
             fail();
         } catch (IllegalStateException ignored) {
+        } catch (UnsupportedOperationException ignored) {
         }
-    }
-
-    @Test(expected = RealmException.class)
-    public void listIterator_set_thows() {
-        collection.listIterator().set(null);
-    }
-
-    @Test(expected = RealmException.class)
-    public void listIterator_add_thows() {
-        collection.listIterator().set(null);
     }
 
     @Test
@@ -506,16 +545,6 @@ public class OrderedRealmCollectionTests extends CollectionTests {
 
         thrown.expect(IllegalStateException.class);
         it.remove();
-    }
-
-    @Test
-    public void listIterator_remove_deletesObject() {
-        Iterator<AllJavaTypes> it = collection.listIterator();
-        AllJavaTypes obj = it.next();
-        assertEquals(0, obj.getFieldLong());
-        realm.beginTransaction();
-        it.remove();
-        assertFalse(obj.isValid());
     }
 
     @Test
@@ -553,19 +582,6 @@ public class OrderedRealmCollectionTests extends CollectionTests {
 
         thrown.expect(ConcurrentModificationException.class);
         it.next();
-    }
-
-    @Test
-    public void listIterator_removedObjectsStillAccessible() {
-        realm.beginTransaction();
-        collection.iterator().next().deleteFromRealm();
-        realm.commitTransaction();
-
-        assertEquals(TEST_SIZE, collection.size()); // Size is same even if object is deleted
-        Iterator<AllJavaTypes> it = collection.listIterator();
-        AllJavaTypes types = it.next(); // Iterator can still access the deleted object
-
-        assertFalse(types.isValid());
     }
 
     public void listIterator_refreshClearsRemovedObjects() {

@@ -759,7 +759,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
             checkRealmIsStable();
             pos++;
             if (pos >= size()) {
-                throw new IndexOutOfBoundsException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
+                throw new NoSuchElementException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
             }
             return get(pos);
         }
@@ -821,6 +821,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
          */
         @Override
         public boolean hasPrevious() {
+            realm.checkIfValid();
             checkRealmIsStable();
             return pos >= 0;
         }
@@ -855,6 +856,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
          */
         @Override
         public int previousIndex() {
+            realm.checkIfValid();
             checkRealmIsStable();
             return pos;
         }
@@ -878,7 +880,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     void swapTableViewPointer(long handoverTableViewPointer) {
         try {
             table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
-            isCompleted = true;
+            asyncQueryCompleted = true;
         } catch (BadVersionException e) {
             throw new IllegalStateException("Caller and Worker Realm should have been at the same version");
         }
