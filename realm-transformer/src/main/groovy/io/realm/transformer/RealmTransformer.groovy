@@ -112,7 +112,7 @@ class RealmTransformer extends Transform {
         def allManagedFields = []
         allModelClasses.each {
             allManagedFields.addAll(it.declaredFields.findAll {
-                it.getAnnotation(Ignore.class) == null && !Modifier.isStatic(it.getModifiers())
+                !it.hasAnnotation(Ignore.class) && !Modifier.isStatic(it.getModifiers())
             })
         }
         logger.info "Managed Fields: ${allManagedFields*.name}"

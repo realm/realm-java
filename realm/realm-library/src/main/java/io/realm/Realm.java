@@ -739,7 +739,8 @@ public final class Realm extends BaseRealm {
      *
      * @param object the {@link io.realm.RealmObject} to copy to the Realm.
      * @return a managed RealmObject with its properties backed by the Realm.
-     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null}.
+     * @throws java.lang.IllegalArgumentException if the object is {@code null} or it belongs to a Realm instance
+     * in a different thread.
      */
     public <E extends RealmObject> E copyToRealm(E object) {
         checkNotNullObject(object);
@@ -756,7 +757,8 @@ public final class Realm extends BaseRealm {
      *
      * @param object {@link io.realm.RealmObject} to copy or update.
      * @return the new or updated RealmObject with all its properties backed by the Realm.
-     * @throws java.lang.IllegalArgumentException if RealmObject is {@code null} or doesn't have a Primary key defined.
+     * @throws java.lang.IllegalArgumentException if the object is {@code null} or it belongs to a Realm instance
+     * in a different thread.
      * @see #copyToRealm(RealmObject)
      */
     public <E extends RealmObject> E copyToRealmOrUpdate(E object) {
