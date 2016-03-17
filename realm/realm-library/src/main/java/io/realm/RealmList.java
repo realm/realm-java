@@ -108,10 +108,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Checks if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm} instance hasn't
-     * been closed.
+     * Checks if the {@link RealmList} is managed by Realm and contains valid data i.e. the {@link io.realm.Realm}
+     * instance hasn't been closed.
      *
-     * @return {@code true} if still valid to use, {@code false} otherwise or if it is a standalone object.
+     * @return {@code true} if still valid to use, {@code false} otherwise or if it's an un-managed list.
      */
     public boolean isValid() {
         //noinspection SimplifiableIfStatement
