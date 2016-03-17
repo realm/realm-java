@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 
 import io.realm.RealmConfiguration;
+import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
 
 /**
@@ -78,7 +79,7 @@ public class SharedGroupManager implements Closeable {
     /**
      * Advances the Realm file to the given version.
      */
-    public void advanceRead(SharedGroup.VersionID version) {
+    public void advanceRead(SharedGroup.VersionID version) throws BadVersionException {
         transaction.advanceRead(version);
     }
 

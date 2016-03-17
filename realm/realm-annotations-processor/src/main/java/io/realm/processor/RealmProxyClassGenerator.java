@@ -563,6 +563,12 @@ public class RealmProxyClassGenerator {
                 "Realm", "realm", className, "object", "boolean", "update", "Map<RealmObject,RealmObjectProxy>", "cache" // Argument type & argument name
         );
 
+        writer
+            .beginControlFlow("if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId)")
+                .emitStatement("throw new IllegalArgumentException(\"Objects which belong to Realm instances in other" +
+                        " threads cannot be copied into this Realm instance.\")")
+            .endControlFlow();
+
         // If object is already in the Realm there is nothing to update
         writer
             .beginControlFlow("if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath()))")
@@ -699,14 +705,14 @@ public class RealmProxyClassGenerator {
             .beginControlFlow("if (currentDepth > maxDepth || realmObject == null)")
                 .emitStatement("return null")
             .endControlFlow()
-            .emitStatement("CacheData<%s> cachedObject = (CacheData) cache.get(realmObject)", className)
+            .emitStatement("CacheData<RealmObject> cachedObject = cache.get(realmObject)")
             .emitStatement("%s standaloneObject", className)
             .beginControlFlow("if (cachedObject != null)")
                 .emitSingleLineComment("Reuse cached object or recreate it because it was encountered at a lower depth.")
                 .beginControlFlow("if (currentDepth >= cachedObject.minDepth)")
-                    .emitStatement("return cachedObject.object")
+                    .emitStatement("return (%s)cachedObject.object", className)
                 .nextControlFlow("else")
-                    .emitStatement("standaloneObject = cachedObject.object")
+                    .emitStatement("standaloneObject = (%s)cachedObject.object", className)
                     .emitStatement("cachedObject.minDepth = currentDepth")
                 .endControlFlow()
             .nextControlFlow("else")

@@ -188,6 +188,26 @@ public class RealmTests {
     }
 
     @Test
+    public void getInstance_twiceWhenRxJavaUnavailable() {
+        // test for https://github.com/realm/realm-java/issues/2416
+
+        // Though it's not a recommended way to create multiple configuration instance with the same parameter, it's legal.
+        final RealmConfiguration configuration1 = configFactory.createConfiguration("no_RxJava.realm");
+        TestHelper.emulateRxJavaUnavailable(configuration1);
+        final RealmConfiguration configuration2 = configFactory.createConfiguration("no_RxJava.realm");
+        TestHelper.emulateRxJavaUnavailable(configuration2);
+
+        final Realm realm1 = Realm.getInstance(configuration1);
+        //noinspection TryFinallyCanBeTryWithResources
+        try {
+            final Realm realm2 = Realm.getInstance(configuration2);
+            realm2.close();
+        } finally {
+            realm1.close();
+        }
+    }
+
+    @Test
     public void checkIfValid() {
         // checkIfValid() must not throw any Exception against valid Realm instance.
         realm.checkIfValid();
@@ -1346,6 +1366,36 @@ public class RealmTests {
     }
 
     @Test
+    public void copyToRealm_objectInOtherThreadThrows() {
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
+
+        realm.beginTransaction();
+        final Dog dog = realm.createObject(Dog.class);
+        realm.commitTransaction();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                bgRealm.beginTransaction();
+                try {
+                    bgRealm.copyToRealm(dog);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals("Objects which belong to Realm instances in other threads cannot be copied into this" +
+                                    " Realm instance.",
+                            expected.getMessage());
+                }
+                bgRealm.cancelTransaction();
+                bgRealm.close();
+                bgThreadDoneLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgThreadDoneLatch);
+    }
+
+    @Test
     public void copyToRealmOrUpdate_null() {
         realm.beginTransaction();
         thrown.expect(IllegalArgumentException.class);
@@ -1597,6 +1647,68 @@ public class RealmTests {
 
         assertEquals(2, realm.allObjects(AllTypesPrimaryKey.class).size());
         assertEquals(1, realm.allObjects(DogPrimaryKey.class).size());
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_objectInOtherThreadThrows() {
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
+
+        realm.beginTransaction();
+        final OwnerPrimaryKey ownerPrimaryKey = realm.createObject(OwnerPrimaryKey.class);
+        realm.commitTransaction();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                bgRealm.beginTransaction();
+                try {
+                    bgRealm.copyToRealm(ownerPrimaryKey);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals("Objects which belong to Realm instances in other threads cannot be copied into this" +
+                                    " Realm instance.",
+                            expected.getMessage());
+                }
+                bgRealm.cancelTransaction();
+                bgRealm.close();
+                bgThreadDoneLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgThreadDoneLatch);
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_listHasObjectInOtherThreadThrows() {
+        final CountDownLatch bgThreadDoneLatch = new CountDownLatch(1);
+        final OwnerPrimaryKey ownerPrimaryKey = new OwnerPrimaryKey();
+
+        realm.beginTransaction();
+        Dog dog = realm.createObject(Dog.class);
+        realm.commitTransaction();
+        ownerPrimaryKey.setDogs(new RealmList<Dog>(dog));
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final Realm bgRealm = Realm.getInstance(realm.getConfiguration());
+                bgRealm.beginTransaction();
+                try {
+                    bgRealm.copyToRealm(ownerPrimaryKey);
+                    fail();
+                } catch (IllegalArgumentException expected) {
+                    assertEquals("Objects which belong to Realm instances in other threads cannot be copied into this" +
+                                    " Realm instance.",
+                            expected.getMessage());
+                }
+                bgRealm.cancelTransaction();
+                bgRealm.close();
+                bgThreadDoneLatch.countDown();
+            }
+        }).start();
+
+        TestHelper.awaitOrFail(bgThreadDoneLatch);
     }
 
     @Test
