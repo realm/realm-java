@@ -635,15 +635,24 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     // Due to implementation details both UnsupportedOperation and IllegalState is accepted at this level
     @Test
     public void mutableMethodsOutsideTransactions() {
-        Class<? extends Throwable> expected = null;
-        switch (collectionClass) {
-            case MANAGED_REALMLIST: expected = IllegalStateException.class; break;
-            case REALMRESULTS: expected = UnsupportedOperationException.class; break;
-            default:
-                fail("Unknown type:" + collectionClass);
-        }
 
         for (OrderedCollectionMutatorMethod method : OrderedCollectionMutatorMethod.values()) {
+
+            // Define expected exception
+            Class<? extends Throwable> expected = IllegalStateException.class;
+            if (collectionClass == ManagedCollection.REALMRESULTS) {
+                switch (method) {
+                    case ADD_INDEX:
+                    case ADD_ALL_INDEX:
+                    case SET:
+                    case REMOVE_INDEX:
+                        expected = UnsupportedOperationException.class;
+                        break;
+                    default:
+                        // Use default exception
+                }
+            }
+
             try {
                 switch (method) {
                     case DELETE_INDEX: collection.deleteFromRealm(0); break;
@@ -656,8 +665,8 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                 }
                 fail("Unknown method or it failed to throw: " + method);
             } catch (Throwable t) {
-                if (!t.getClass().isInstance(expected)) {
-                    fail(method + " didn't throw the expected exception. Was: " + t);
+                if (!t.getClass().equals(expected)) {
+                    fail(method + " didn't throw the expected exception. Was: " + t + ", expected: " + expected);
                 }
             }
         }
