@@ -565,7 +565,7 @@ public class RealmListTests extends CollectionTests {
     }
 
     @Test
-    public void remove_bbjectAfterContainerObjectRemoved() {
+    public void remove_objectAfterContainerObjectRemoved() {
         RealmList<Dog> dogs = createDeletedRealmList();
 
         realm.beginTransaction();
@@ -581,6 +581,20 @@ public class RealmListTests extends CollectionTests {
         List<Dog> objectsToRemove = Arrays.asList(collection.get(0));
         assertTrue(collection.removeAll(objectsToRemove));
         assertFalse(collection.contains(objectsToRemove.get(0)));
+    }
+
+    @Test
+    public void removeAll_managedMode_wrongClass() {
+        realm.beginTransaction();
+        //noinspection SuspiciousMethodCalls
+        assertFalse(collection.removeAll(Collections.singletonList(new Cat())));
+    }
+
+    @Test
+    public void removeAll_unmanaged_wrongClass() {
+        RealmList<Dog> list = createNonManagedDogList();
+        //noinspection SuspiciousMethodCalls
+        assertFalse(list.removeAll(Collections.singletonList(new Cat())));
     }
 
     @Test

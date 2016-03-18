@@ -25,7 +25,6 @@ import java.util.List;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
-import io.realm.internal.Table;
 
 /**
  * RealmList is used to model one-to-many relationships in a {@link io.realm.RealmObject}.
@@ -49,6 +48,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode";
     private static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values";
+    public static final String REMOVE_OUTSIDE_TRANSACTION_ERROR = "Objects can only be removed from inside a write transaction";
 
     private final boolean managedMode;
     protected Class<E> clazz;
@@ -116,9 +116,6 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
      */
     public boolean isValid() {
         //noinspection SimplifiableIfStatement
-        if (!managedMode) {
-            return false;
-        }
         if (realm == null || realm.isClosed()) {
             return false;
         }
@@ -356,7 +353,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     @Override
     public boolean remove(Object object) {
         if (managedMode && !realm.isInTransaction()) {
-            throw new IllegalStateException("Objects can only be removed from inside a write transaction");
+            throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
         return super.remove(object);
     }
@@ -375,13 +372,12 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
      * @param collection the collection of objects to remove.
      * @return {@code true} if this {@code Collection} is modified, {@code false} otherwise.
      * @throws ClassCastException if one or more elements of {@code collection} isn't of the correct type.
-     * @throws NullPointerException if {@code collection} contains at least one {@code null} element.
      * @throws NullPointerException if {@code collection} is {@code null}.
      */
     @Override
     public boolean removeAll(Collection<?> collection) {
         if (managedMode && !realm.isInTransaction()) {
-            throw new IllegalStateException("Objects can only be removed from inside a write transaction");
+            throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
         return super.removeAll(collection);
     }
@@ -399,7 +395,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
                 return false;
             }
         } else {
-            throw new UnsupportedOperationException("deleteFirstFromRealm() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -416,7 +412,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
                 return false;
             }
         } else {
-            throw new UnsupportedOperationException("deleteLastFromRealm() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -491,7 +487,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             return this.where().findAllSorted(fieldName, sortOrder);
         } else {
-            throw new UnsupportedOperationException("sort() not supported by un-managed RealmList.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -511,7 +507,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             return where().findAllSorted(fieldNames, sortOrders);
         } else {
-            throw new UnsupportedOperationException("sort() not supported by un-managed RealmList.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -524,7 +520,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             checkValidView();
             view.removeTargetRow(location);
         } else {
-            throw new UnsupportedOperationException("deleteFromRealm() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -569,7 +565,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             return this.where().min(fieldName);
         } else {
-            throw new UnsupportedOperationException("min() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -581,7 +577,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             return this.where().max(fieldName);
         } else {
-            throw new UnsupportedOperationException("max() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -593,7 +589,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             return this.where().sum(fieldName);
         } else {
-            throw new UnsupportedOperationException("sum() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -605,7 +601,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             return this.where().average(fieldName);
         } else {
-            throw new UnsupportedOperationException("average() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -617,7 +613,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             return this.where().maximumDate(fieldName);
         } else {
-            throw new UnsupportedOperationException("maxDate() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -629,7 +625,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         if (managedMode) {
             return this.where().minimumDate(fieldName);
         } else {
-            throw new UnsupportedOperationException("maxDate() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 
@@ -647,7 +643,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
                 return false;
             }
         } else {
-            throw new UnsupportedOperationException("deleteAllFromRealm() not supported by un-managed RealmLists.");
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
         }
     }
 

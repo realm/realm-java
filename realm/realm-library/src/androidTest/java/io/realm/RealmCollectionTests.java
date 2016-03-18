@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
 
@@ -152,6 +153,12 @@ public class RealmCollectionTests extends CollectionTests {
         } finally {
             realm2.close();
         }
+    }
+
+    @Test
+    public void contains_wrongType() {
+        //noinspection SuspiciousMethodCalls
+        assertFalse(collection.contains(new Dog()));
     }
 
     @Test

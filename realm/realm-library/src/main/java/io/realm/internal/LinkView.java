@@ -155,7 +155,7 @@ public class LinkView extends NativeObject {
     }
 
     /**
-     * Remove target row from both the Realm and the LinkView.
+     * Removes target row from both the Realm and the LinkView.
      */
     public void removeTargetRow(int index) {
         checkImmutable();

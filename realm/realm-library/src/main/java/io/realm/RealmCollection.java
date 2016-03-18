@@ -147,4 +147,16 @@ public interface RealmCollection<E extends RealmObject> extends Collection<E> {
      */
     BaseRealm getRealm();
 
+    /**
+     * Tests whether this {@code Collection} contains the specified object. Returns
+     * {@code true} if and only if at least one element {@code elem} in this
+     * {@code Collection} meets following requirement:
+     * {@code (object==null ? elem==null : object.equals(elem))}.
+     *
+     * @param object the object to search for.
+     * @return {@code true} if object is an element of this {@code Collection}, {@code false} otherwise.
+     * @throws NullPointerException if the object to look for is {@code null} and this {@code Collection} doesn't
+     *                              support {@code null} elements.
+     */
+    boolean contains(Object object);
 }
