@@ -186,7 +186,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         OrderedRealmCollection<AllJavaTypes> sortedList = collection.sort(AllJavaTypes.FIELD_BOOLEAN, Sort.ASCENDING, AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
         AllJavaTypes obj = sortedList.first();
         assertFalse(obj.isFieldBoolean());
-        assertEquals((TEST_SIZE % 2 == 0) ? TEST_SIZE - 1 : TEST_SIZE - 2, obj.getFieldLong());
+        assertEquals(TEST_SIZE - 1, obj.getFieldLong());
     }
 
     @Test
@@ -607,7 +607,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     public void deleteFirstFromRealm_emptyCollection() {
         OrderedRealmCollection<NullTypes> collection = createEmptyCollection(realm, collectionClass);
         realm.beginTransaction();
-        collection.deleteFirstFromRealm();
+        assertFalse(collection.deleteFirstFromRealm());
         realm.commitTransaction();
         assertEquals(0, collection.size());
     }
@@ -616,7 +616,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     public void deleteLastFromRealm() {
         assertEquals(TEST_SIZE - 1, collection.last().getFieldLong());
         realm.beginTransaction();
-        collection.deleteLastFromRealm();
+        assertTrue(collection.deleteLastFromRealm());
         realm.commitTransaction();
         assertEquals(TEST_SIZE - 1, collection.size());
         assertEquals(TEST_SIZE - 2, collection.last().getFieldLong());
@@ -626,7 +626,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     public void deleteLastFromRealm_emptyCollection() {
         OrderedRealmCollection<NullTypes> collection = createEmptyCollection(realm, collectionClass);
         realm.beginTransaction();
-        collection.deleteLastFromRealm();
+        assertFalse(collection.deleteLastFromRealm());
         realm.commitTransaction();
         assertEquals(0, collection.size());
     }
@@ -635,6 +635,14 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
     // Due to implementation details both UnsupportedOperation and IllegalState is accepted at this level
     @Test
     public void mutableMethodsOutsideTransactions() {
+        Class<? extends Throwable> expected = null;
+        switch (collectionClass) {
+            case MANAGED_REALMLIST: expected = IllegalStateException.class; break;
+            case REALMRESULTS: expected = UnsupportedOperationException.class; break;
+            default:
+                fail("Unknown type:" + collectionClass);
+        }
+
         for (OrderedCollectionMutatorMethod method : OrderedCollectionMutatorMethod.values()) {
             try {
                 switch (method) {
@@ -642,13 +650,15 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                     case DELETE_FIRST: collection.deleteFirstFromRealm(); break;
                     case DELETE_LAST: collection.deleteLastFromRealm(); break;
                     case ADD_INDEX: collection.add(0, new AllJavaTypes()); break;
-                    case ADD_ALL_INDEX: collection.addAll(0, Arrays.asList(new AllJavaTypes())); break;
+                    case ADD_ALL_INDEX: collection.addAll(0, Collections.singletonList(new AllJavaTypes())); break;
                     case SET: collection.set(0, new AllJavaTypes()); break;
                     case REMOVE_INDEX: collection.remove(0); break;
                 }
                 fail("Unknown method or it failed to throw: " + method);
-            } catch (IllegalStateException ignored) {
-            } catch (UnsupportedOperationException ignored) {
+            } catch (Throwable t) {
+                if (!t.getClass().isInstance(expected)) {
+                    fail(method + " didn't throw the expected exception. Was: " + t);
+                }
             }
         }
     }

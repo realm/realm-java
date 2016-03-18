@@ -111,6 +111,7 @@ public class RealmListTests extends CollectionTests {
     @Test(expected = IllegalArgumentException.class)
     public void constructor_nonManaged_null() {
         AllTypes[] args = null;
+        //noinspection ConstantConditions
         new RealmList<AllTypes>(args);
     }
 
@@ -698,11 +699,12 @@ public class RealmListTests extends CollectionTests {
         realm.beginTransaction();
         CyclicType one = realm.copyToRealm(new CyclicType());
         CyclicType two = realm.copyToRealm(new CyclicType());
-        two.setObjects(new RealmList<CyclicType>(one));
-        two.setObjects(new RealmList<CyclicType>(one));
-        realm.commitTransaction();
 
+        assertEquals(0, two.getObjects().size());
+        two.setObjects(new RealmList<CyclicType>(one));
         assertEquals(1, two.getObjects().size());
+        two.setObjects(new RealmList<CyclicType>(one, two));
+        assertEquals(2, two.getObjects().size());
     }
 
     @Test
@@ -745,18 +747,6 @@ public class RealmListTests extends CollectionTests {
                 realm.cancelTransaction();
             }
         }
-    }
-
-    @Test
-    public void setList_ClearsOldItems() {
-        realm.beginTransaction();
-        CyclicType one = realm.copyToRealm(new CyclicType());
-        CyclicType two = realm.copyToRealm(new CyclicType());
-        two.setObjects(new RealmList<CyclicType>(one));
-        two.setObjects(new RealmList<CyclicType>(one));
-        realm.commitTransaction();
-
-        assertEquals(1, two.getObjects().size());
     }
 
     @Test
