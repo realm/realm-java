@@ -19,9 +19,6 @@ package io.realm;
 import java.util.Collection;
 import java.util.Date;
 
-import io.realm.RealmObject;
-import io.realm.RealmQuery;
-
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
  * collections and the behavior that they will have in all implementations of {@code RealmCollection}s.
@@ -124,7 +121,7 @@ public interface RealmCollection<E extends RealmObject> extends Collection<E> {
     /**
      * Checks if a collection has finished loading its data yet.
      *
-     * @return {@code true} if data has loaded and is available {@code false} if they are still loading.
+     * @return {@code true} if data has been loaded and is available, {@code false} if data is still being loaded.
      */
     boolean isLoaded();
 
@@ -150,4 +147,16 @@ public interface RealmCollection<E extends RealmObject> extends Collection<E> {
      */
     BaseRealm getRealm();
 
+    /**
+     * Tests whether this {@code Collection} contains the specified object. Returns
+     * {@code true} if and only if at least one element {@code elem} in this
+     * {@code Collection} meets following requirement:
+     * {@code (object==null ? elem==null : object.equals(elem))}.
+     *
+     * @param object the object to search for.
+     * @return {@code true} if object is an element of this {@code Collection}, {@code false} otherwise.
+     * @throws NullPointerException if the object to look for is {@code null} and this {@code Collection} doesn't
+     *                              support {@code null} elements.
+     */
+    boolean contains(Object object);
 }

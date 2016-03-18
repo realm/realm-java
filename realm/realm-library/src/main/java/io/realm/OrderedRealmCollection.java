@@ -29,7 +29,7 @@ public interface OrderedRealmCollection<E extends RealmObject> extends List<E>, 
     /**
      * Gets the first object from the collection.
      *
-     * @return the first object or {@code null} if the collection is empty.
+     * @return the first object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
     E first();
@@ -37,60 +37,62 @@ public interface OrderedRealmCollection<E extends RealmObject> extends List<E>, 
     /**
      * Gets the last object from the collection.
      *
-     * @return the last object or {@code null} if the collection is empty.
+     * @return the last object.
      * @throws IndexOutOfBoundsException if the collection is empty.
      */
     E last();
 
     /**
-     * Sorts (ascending) a collection..
+     * Sorts a collection based on the provided field in ascending order.
      *
      * @param fieldName the field name to sort by. Only fields of type boolean, short, int, long, float, double, Date,
      *                  and String are supported.
+     * @return A sorted view of the collection.
      * @throws java.lang.IllegalArgumentException if field name does not exist or it has an invalid type.
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an un-managed collection.
-     * @return A sorted view of the collection.
      */
     RealmResults<E> sort(String fieldName);
 
     /**
-     * Sorts existing collection in-place.
+     * Sorts a collection based on the provided field and sort order.
      *
      * @param fieldName the field name to sort by. Only fields of type boolean, short, int, long, float, double, Date,
      *                  and String are supported.
      * @param sortOrder the direction to sort by.
+     * @return A sorted view of the collection.
      * @throws java.lang.IllegalArgumentException if field name does not exist or has an invalid type.
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an un-managed collection.
-     * @return A sorted copy of the collection.
      */
     RealmResults<E> sort(String fieldName, Sort sortOrder);
 
     /**
-     * Sorts existing {@link io.realm.RealmResults} in-place using two fields.
+     * Sorts a collection based on the provided fields and sort orders.
      *
-     * @param fieldName1 first field name.
+     * @param fieldName1 first field name. Only fields of type boolean, short, int, long, float,
+     *                   double, Date, and String are supported.
      * @param sortOrder1 sort order for first field.
-     * @param fieldName2 second field name.
+     * @param fieldName2 second field name. Only fields of type boolean, short, int, long, float,
+     *                   double, Date, and String are supported.
      * @param sortOrder2 sort order for second field.
+     * @return a sorted view of the collection.
      * @throws java.lang.IllegalArgumentException if a field name does not exist or has an invalid type.
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an un-managed collection.
-     * @return a sorted view of the collection.
      */
     RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2);
 
     /**
-     * Sorts existing {@link io.realm.RealmResults} in-place.
+     * Sorts a collection based on the provided fields and sort orders.
      *
      * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int, long, float,
      *                   double, Date, and String are supported.
      * @param sortOrders the directions to sort by.
+     * @return a sorted view of the collection.
      * @throws java.lang.IllegalArgumentException if a field name does not exist or has an invalid type.
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an un-managed collection.
-     * @return a sorted view of the collection.
      */
     RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders);
 
@@ -99,26 +101,26 @@ public interface OrderedRealmCollection<E extends RealmObject> extends List<E>, 
      *
      * @param location the array index identifying the object to be removed.
      * @throws IndexOutOfBoundsException if {@code location < 0 || location >= size()}.
-     * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
-     *                                         an un-managed collection.
+     * @throws java.lang.IllegalStateException if the Realm is closed or the method is called from the wrong thread.
+     * @throws UnsupportedOperationException if the collection is un-managed.
      */
     void deleteFromRealm(int location);
 
     /**
      * Deletes the first object from the Realm. This also removes it from this collection.
      *
-     * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
-     *                                         an un-managed collection.
      * @return {@code true} if an object was deleted, {@code false} otherwise.
+     * @throws java.lang.IllegalStateException if the Realm is closed or the method is called on the wrong thread.
+     * @throws UnsupportedOperationException if the collection is un-managed.
      */
     boolean deleteFirstFromRealm();
 
     /**
      * Deletes the last object from the Realm. This also removes it from this collection.
      *
-     * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
-     *                                         an un-managed collection.
      * @return {@code true} if an object was deleted, {@code false} otherwise.
+     * @throws java.lang.IllegalStateException if the Realm is closed or the method is called from the wrong thread.
+     * @throws UnsupportedOperationException if the collection is un-managed.
      */
     boolean deleteLastFromRealm();
 }

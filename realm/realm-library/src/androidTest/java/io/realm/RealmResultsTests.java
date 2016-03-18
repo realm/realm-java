@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -122,17 +123,18 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(TEST_DATA_SIZE - 1, sublist.get(sublist.size() - 1).getColumnLong());
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void unsupportedMethods() {
         for (CollectionMutatorMethod method : CollectionMutatorMethod.values()) {
             try {
                 switch (method) {
                     case ADD_OBJECT: collection.add(new AllTypes());
-                    case ADD_ALL_OBJECTS: collection.addAll(Arrays.asList(new AllTypes())); break;
+                    case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllTypes())); break;
                     case CLEAR: collection.clear(); break;
                     case REMOVE_OBJECT: collection.remove(new AllTypes());
-                    case REMOVE_ALL: collection.removeAll(Arrays.asList(new AllJavaTypes())); break;
-                    case RETAIN_ALL: collection.retainAll(Arrays.asList(new AllJavaTypes())); break;
+                    case REMOVE_ALL: collection.removeAll(Collections.singletonList(new AllTypes())); break;
+                    case RETAIN_ALL: collection.retainAll(Collections.singletonList(new AllTypes())); break;
 
                     // Supported methods
                     case DELETE_ALL:
@@ -147,7 +149,7 @@ public class RealmResultsTests extends CollectionTests {
             try {
                 switch (method) {
                     case ADD_INDEX: collection.add(0, new AllTypes()); break;
-                    case ADD_ALL_INDEX: collection.addAll(0, Arrays.asList(new AllTypes())); break;
+                    case ADD_ALL_INDEX: collection.addAll(0, Collections.singletonList(new AllTypes())); break;
                     case SET: collection.set(0, new AllTypes()); break;
                     case REMOVE_INDEX: collection.remove(0); break;
 
@@ -245,7 +247,6 @@ public class RealmResultsTests extends CollectionTests {
         // all three results are the same object
         assertTrue(allResults == distinctDates);
         assertTrue(allResults == distinctBooleans);
-        assertTrue(distinctDates == distinctBooleans);
     }
 
     @Test
@@ -640,12 +641,12 @@ public class RealmResultsTests extends CollectionTests {
         }
         // a null string field in the middle
         try {
-            results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null, AnnotationIndexTypes.FIELD_INDEX_INT);
+            results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, null, AnnotationIndexTypes.FIELD_INDEX_INT);
         } catch (IllegalArgumentException ignored) {
         }
         // a null string field at the end
         try {
-            results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, (String)null);
+            results.distinct(AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, null);
         } catch (IllegalArgumentException ignored) {
         }
         // (String)null makes varargs a null array.
@@ -655,17 +656,17 @@ public class RealmResultsTests extends CollectionTests {
         }
         // Two (String)null for first and varargs fields
         try {
-            results.distinct((String)null, (String)null);
+            results.distinct(null, (String) null);
         } catch (IllegalArgumentException ignored) {
         }
         // "" & (String)null combination
         try {
-            results.distinct("", (String)null);
+            results.distinct("", (String) null);
         } catch (IllegalArgumentException ignored) {
         }
         // "" & (String)null combination
         try {
-            results.distinct((String)null, "");
+            results.distinct(null, "");
         } catch (IllegalArgumentException ignored) {
         }
         // Two empty fields tests

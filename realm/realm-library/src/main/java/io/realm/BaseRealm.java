@@ -59,7 +59,7 @@ public abstract class BaseRealm implements Closeable {
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
-    protected long threadId;
+    final long threadId;
     protected RealmConfiguration configuration;
     protected SharedGroupManager sharedGroupManager;
     RealmSchema schema;
