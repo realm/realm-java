@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.rule.PowerMockRule;
@@ -30,7 +31,6 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ActivityController;
 
-import java.lang.Exception;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,24 +39,23 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.examples.unittesting.ExampleActivity;
 import io.realm.examples.unittesting.model.Person;
 import io.realm.internal.RealmCore;
-
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
@@ -168,6 +167,8 @@ public class ExampleActivityTest {
 
     @Test
     public void shouldBeAbleToAccessActivityAndVerifyRealmInteractions() {
+        doCallRealMethod().when(mockRealm).executeTransaction(Mockito.any(Realm.Transaction.class));
+
         // Create activity
         ActivityController<ExampleActivity> controller =
                 Robolectric.buildActivity(ExampleActivity.class).setup();
@@ -180,15 +181,15 @@ public class ExampleActivityTest {
         Realm.getInstance(any(RealmConfiguration.class));
 
         // verify that we have four begin and commit transaction calls
-        verify(mockRealm, times(4)).beginTransaction();
-        verify(mockRealm, times(4)).commitTransaction();
+        // Do not verify partial mock invocation count: https://github.com/jayway/powermock/issues/649
+        //verify(mockRealm, times(4)).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Click the clean up button
         activity.findViewById(R.id.clean_up).performClick();
 
         // Verify that begin and commit transaction were called (been called a total of 5 times now)
-        verify(mockRealm, times(5)).beginTransaction();
-        verify(mockRealm, times(5)).commitTransaction();
+        // Do not verify partial mock invocation count: https://github.com/jayway/powermock/issues/649
+        //verify(mockRealm, times(5)).executeTransaction(Mockito.any(Realm.Transaction.class));
 
         // Verify that we queried for all Person instance two times in this run (in the original
         // onCreate, and then again in the button click). Was called two times previously in the
@@ -206,6 +207,44 @@ public class ExampleActivityTest {
         // in onDestroy
         verify(mockRealm, times(2)).close();
     }
+
+    /**
+     * Have to verify the transaction execution in a different test because
+     * of a problem with Powermock: https://github.com/jayway/powermock/issues/649
+     */
+    @Test
+    public void shouldBeAbleToVerifyTransactionCalls() {
+
+        // Create activity
+        ActivityController<ExampleActivity> controller =
+                Robolectric.buildActivity(ExampleActivity.class).setup();
+        ExampleActivity activity = controller.get();
+
+        assertThat(activity.getTitle().toString(), is("Unit Test Example"));
+
+        // Verify that two Realm.getInstance() calls took place.
+        verifyStatic(times(2));
+        Realm.getInstance(any(RealmConfiguration.class));
+
+        // verify that we have four begin and commit transaction calls
+        // Do not verify partial mock invocation count: https://github.com/jayway/powermock/issues/649
+        verify(mockRealm, times(4)).executeTransaction(Mockito.any(Realm.Transaction.class));
+
+        // Click the clean up button
+        activity.findViewById(R.id.clean_up).performClick();
+
+        // Verify that begin and commit transaction were called (been called a total of 5 times now)
+        // Do not verify partial mock invocation count: https://github.com/jayway/powermock/issues/649
+        verify(mockRealm, times(5)).executeTransaction(Mockito.any(Realm.Transaction.class));
+
+        // Call the destroy method so we can verify that the .close() method was called (below)
+        controller.destroy();
+
+        // Verify that the realm got closed 2 separate times. Once in the AsyncTask, once
+        // in onDestroy
+        verify(mockRealm, times(2)).close();
+    }
+
 
     @SuppressWarnings("unchecked")
     private <T extends RealmObject> RealmQuery<T> mockRealmQuery() {

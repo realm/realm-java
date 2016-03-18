@@ -57,7 +57,7 @@ import rx.Observable;
 /**
  * The Realm class is the storage and transactional manager of your object persistent store. It is in charge of creating
  * instances of your RealmObjects. Objects within a Realm can be queried and read at any time. Creating, modifying, and
- * deleting objects must be done while inside a transaction. See {@link #beginTransaction()}
+ * deleting objects must be done while inside a transaction. See {@link #executeTransaction(Transaction)}
  * <p>
  * The transactions ensure that multiple instances (on multiple threads) can access the same objects in a consistent
  * state with full ACID guarantees.

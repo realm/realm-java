@@ -52,13 +52,16 @@ public class Zoo {
         return realm.where(Cat.class).count();
     }
 
-    public void addAnimals(int count) {
-        realm.beginTransaction();
-        for (int i = 0; i < count; i++) {
-            Cat cat = realm.createObject(Cat.class);
-            cat.setName("Cat " + i);
-        }
-        realm.commitTransaction();
+    public void addAnimals(final int count) {
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                for (int i = 0; i < count; i++) {
+                    Cat cat = realm.createObject(Cat.class);
+                    cat.setName("Cat " + i);
+                }
+            }
+        });
     }
 
     public void close() {

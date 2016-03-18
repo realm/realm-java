@@ -45,14 +45,20 @@ public class WorkerHandler extends Handler {
 
         switch (action) {
             case ADD_TIMESTAMP:
-                realm.beginTransaction();
-                realm.createObject(TimeStamp.class).setTimeStamp(timestamp);
-                realm.commitTransaction();
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.createObject(TimeStamp.class).setTimeStamp(timestamp);
+                    }
+                });
                 break;
             case REMOVE_TIMESTAMP:
-                realm.beginTransaction();
-                realm.where(TimeStamp.class).equalTo("timeStamp", timestamp).findAll().clear();
-                realm.commitTransaction();
+                realm.executeTransaction(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        realm.where(TimeStamp.class).equalTo("timeStamp", timestamp).findAll().clear();
+                    }
+                });
                 break;
         }
     }
