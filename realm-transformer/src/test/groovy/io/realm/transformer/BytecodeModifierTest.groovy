@@ -16,12 +16,16 @@
 
 package io.realm.transformer
 
+import io.realm.annotations.Ignore
 import javassist.ClassPool
 import javassist.CtClass
 import javassist.CtField
 import javassist.CtNewMethod
+import javassist.bytecode.AnnotationsAttribute
 import javassist.bytecode.CodeIterator
+import javassist.bytecode.ConstPool
 import javassist.bytecode.Opcode
+import javassist.bytecode.annotation.Annotation
 import spock.lang.Specification
 
 import java.lang.reflect.Modifier
@@ -49,6 +53,30 @@ class BytecodeModifierTest extends Specification {
         ctMethods.each {
             it.getModifiers() == Modifier.PUBLIC
         }
+    }
+
+    def "AddRealmAccessors_IgnoreAnnotation"() {
+        setup: 'generate an empty class'
+        def classPool = ClassPool.getDefault()
+        def ctClass = classPool.makeClass('TestClass')
+        def constPool = new ConstPool('TestClass')
+
+        and: 'add a field with @Ignore'
+        def ctField = new CtField(CtClass.intType, 'age', ctClass)
+        ctClass.addField(ctField)
+        def attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag)
+        def ignoreAnnotation = new Annotation(Ignore.class.name, constPool)
+        attr.addAnnotation(ignoreAnnotation)
+        ctField.fieldInfo.addAttribute(attr)
+
+        when: 'Try to add the accessor'
+        BytecodeModifier.addRealmAccessors(ctClass)
+
+        then: 'the accessor should not be generated'
+        def ctMethods = ctClass.getDeclaredMethods()
+        def methodNames = ctMethods.name
+        !methodNames.contains('realmGet$age')
+        !methodNames.contains('realmSet$age')
     }
 
     def "UseRealmAccessors"() {

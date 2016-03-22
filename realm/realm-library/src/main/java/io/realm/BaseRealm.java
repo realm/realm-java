@@ -56,9 +56,9 @@ abstract class BaseRealm implements Closeable {
     protected static final Map<Handler, String> handlers = new ConcurrentHashMap<Handler, String>();
 
     // Thread pool for all async operations (Query & transaction)
-    static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.getInstance();
+    static final RealmThreadPoolExecutor asyncQueryExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
-    protected long threadId;
+    final long threadId;
     protected RealmConfiguration configuration;
     protected SharedGroupManager sharedGroupManager;
     protected boolean autoRefresh;
@@ -557,7 +557,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @throws IllegalStateException if the corresponding Realm is closed or on an incorrect thread.
      */
-    public void clear() {
+    public void deleteAll() {
         checkIfValid();
         for (RealmObjectSchema objectSchema : schema.getAll()) {
             schema.getTable(objectSchema.getClassName()).clear();

@@ -190,6 +190,10 @@ public class SimpleRealmProxy extends Simple
     }
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId) {
+            throw new IllegalArgumentException(
+                    "Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+        }
         if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath())) {
             return object;
         }
@@ -208,14 +212,14 @@ public class SimpleRealmProxy extends Simple
         if (currentDepth > maxDepth || realmObject == null) {
             return null;
         }
-        CacheData<Simple> cachedObject = (CacheData) cache.get(realmObject);
+        CacheData<RealmObject> cachedObject = cache.get(realmObject);
         Simple standaloneObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
-                return cachedObject.object;
+                return (Simple)cachedObject.object;
             } else {
-                standaloneObject = cachedObject.object;
+                standaloneObject = (Simple)cachedObject.object;
                 cachedObject.minDepth = currentDepth;
             }
         } else {

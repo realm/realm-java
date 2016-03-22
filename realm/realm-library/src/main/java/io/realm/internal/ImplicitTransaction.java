@@ -16,6 +16,8 @@
 
 package io.realm.internal;
 
+import io.realm.internal.async.BadVersionException;
+
 public class ImplicitTransaction extends Group {
 
     private final SharedGroup parent;
@@ -38,7 +40,7 @@ public class ImplicitTransaction extends Group {
      *
      * @param versionID version of the shared group.
      */
-    public void advanceRead(SharedGroup.VersionID versionID) {
+    public void advanceRead(SharedGroup.VersionID versionID) throws BadVersionException {
         assertNotClosed();
         parent.advanceRead(versionID);
     }

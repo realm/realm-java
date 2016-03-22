@@ -573,6 +573,10 @@ public class AllTypesRealmProxy extends AllTypes
     }
 
     public static AllTypes copyOrUpdate(Realm realm, AllTypes object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+        if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId) {
+            throw new IllegalArgumentException(
+                    "Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+        }
         if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath())) {
             return object;
         }
@@ -646,14 +650,14 @@ public class AllTypesRealmProxy extends AllTypes
         if (currentDepth > maxDepth || realmObject == null) {
             return null;
         }
-        CacheData<AllTypes> cachedObject = (CacheData) cache.get(realmObject);
+        CacheData<RealmObject> cachedObject = cache.get(realmObject);
         AllTypes standaloneObject;
         if (cachedObject != null) {
             // Reuse cached object or recreate it because it was encountered at a lower depth.
             if (currentDepth >= cachedObject.minDepth) {
-                return cachedObject.object;
+                return (AllTypes)cachedObject.object;
             } else {
-                standaloneObject = cachedObject.object;
+                standaloneObject = (AllTypes)cachedObject.object;
                 cachedObject.minDepth = currentDepth;
             }
         } else {

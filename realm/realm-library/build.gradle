@@ -8,6 +8,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: 'checkstyle'
+apply plugin: 'com.github.kt3k.coveralls'
 
 android {
     compileSdkVersion 23
@@ -32,6 +33,9 @@ android {
     }
 }
 
+
+coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
+
 import io.realm.transformer.RealmTransformer
 
 android.registerTransform(new RealmTransformer())
@@ -43,7 +47,6 @@ repositories {
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
     compile "io.realm:realm-annotations:${version}"
-    compile 'com.github.KeepSafe:ReLinker:1.1'
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
     androidTestCompile 'com.android.support:support-annotations:23.1.1'
@@ -71,10 +74,17 @@ task javadoc(type: Javadoc) {
         encoding = 'UTF-8'
         charSet = 'UTF-8'
         locale = 'en_US'
+        overview = 'src/overview.html'
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
     exclude '**/R.java'
+    doLast {
+        copy {
+            from "src/realm-overview.png"
+            into "$buildDir/docs/javadoc"
+        }
+    }
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -145,7 +155,7 @@ install {
                 packaging 'aar'
 
                 // Add your description here
-                name 'realm-library'
+                name 'realm-android-library'
                 description 'Realm is a mobile database: a replacement for SQLite & ORMs.'
                 url 'http://realm.io'
 
@@ -182,7 +192,7 @@ bintray {
 
     pkg {
         repo = 'maven'
-        name = 'realm-annotations-processor'
+        name = 'realm-android-library'
         desc = 'Realm for Android'
         websiteUrl = 'http://realm.io'
         issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
