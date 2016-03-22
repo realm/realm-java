@@ -49,16 +49,16 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_createNativeTableView(
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeDistinct(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
     if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
-        return;
+        return 0;
     if (!COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
-        return;
+        return 0;
     if (!TV(nativeViewPtr)->get_parent().has_search_index(S(columnIndex))) {
         ThrowException(env, UnsupportedOperation, "The field must be indexed before distinct() can be used.");
-        return;
+        return 0;
     }
     try {
         switch (TV(nativeViewPtr)->get_column_type(S(columnIndex))) {
@@ -66,31 +66,31 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
             case type_Int:
             case type_DateTime:
             case type_String:
-                TV(nativeViewPtr)->distinct(S(columnIndex));
-                break;
+                return reinterpret_cast<jlong>( new TableView(TV(nativeViewPtr)->distinct(S(columnIndex))) );
             default:
                 ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
                 break;
         }
     } CATCH_STD()
+    return 0;
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
+JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
     JNIEnv* env, jobject, jlong nativeViewPtr, jlongArray columnIndexes)
 {
     if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
-        return;
+        return 0;
     try {
         JniLongArray indexes(env, columnIndexes);
         jsize indexes_len = indexes.len();
         std::vector<size_t> columns;
         for (int i = 0; i < indexes_len; ++i) {
             if (!COL_INDEX_VALID(env, TV(nativeViewPtr), indexes[i])) {
-                return;
+                return 0;
             }
             if (!TV(nativeViewPtr)->get_parent().has_search_index(S(indexes[i]))) {
                 ThrowException(env, IllegalArgument, "The field must be indexed before distinct(...) can be used.");
-                return;
+                return 0;
             }
             switch (TV(nativeViewPtr)->get_column_type(S(indexes[i]))) {
                 case type_Bool:
@@ -101,11 +101,12 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
                     break;
                 default:
                     ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
-                    return;
+                    return 0;
             }
         }
-        TV(nativeViewPtr)->distinct(columns);
+        return reinterpret_cast<jlong>( new TableView(TV(nativeViewPtr)->distinct(columns)) );
     } CATCH_STD()
+    return 0;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
