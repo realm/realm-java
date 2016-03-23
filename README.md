@@ -74,7 +74,7 @@ Prerequisites:
     export NDK_HOME=/usr/local/Cellar/android-ndk/r10e
     ```
 
- * If you are using OS X, you'd be better to add following lines to `~/.profile` in order for Android Studio to see those environment variables.
+ * If you are using OS X, you'd be better to add following lines to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see those environment variables.
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
@@ -85,6 +85,12 @@ Prerequisites:
 
    ```
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
+   ```
+
+   OS X users should also add following line to `~/.profile` (or `~/.zprofile` if the login shell is `zsh`) in order for Android Studio to see this environment variable..
+
+   ```
+   launchctl setenv REALM_CORE_DOWNLOAD_DIR "$REALM_CORE_DOWNLOAD_DIR"
    ```
 
 Once you have completed all the pre-requisites building Realm is done with a simple command
@@ -112,9 +118,11 @@ Generating the Javadoc using the command above will report a large number of war
 
 ### Gotchas
 
-The repository is organized in four Gradle projects:
+The repository is organized in six Gradle projects:
 
- * `realm`: it contains the actual library (including the JNI layer), the annotations and the annotations processor.
+ * `realm`: it contains the actual library (including the JNI layer) and the annotations processor.
+ * `realm-annotations`: it contains the annotations defined by Realm.
+ * `realm-transformer`: it contains the bytecode transformer.
  * `gradle-plugin`: it contains the Gradle plugin.
  * `examples`: it contains the example projects. This project directly depends on `gradle-plugin` which adds a dependency to the artifacts produced by `realm`.
  * The root folder is another Gradle project and all it does is orchestrating the other jobs

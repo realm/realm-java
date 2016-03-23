@@ -34,6 +34,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.Table;
+import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
 
@@ -594,6 +595,22 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         return where().distinctAsync(fieldName);
     }
 
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        return where().distinct(firstFieldName, remainingFieldNames);
+    }
+
     // Deleting
 
     /**
@@ -768,7 +785,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             throw new RealmException("Replacing elements not supported.");
         }
 
-
         /**
          * Removes the RealmObject at the current position from both the list and the underlying Realm.
          *
@@ -784,10 +800,15 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * thread.
      *
      * @param handoverTableViewPointer handover pointer to the new table_view.
+     * @throws IllegalStateException if caller and worker are not at the same version.
      */
     void swapTableViewPointer(long handoverTableViewPointer) {
-        table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
-        isCompleted = true;
+        try {
+            table = query.importHandoverTableView(handoverTableViewPointer, realm.sharedGroupManager.getNativePointer());
+            isCompleted = true;
+        } catch (BadVersionException e) {
+            throw new IllegalStateException("Caller and Worker Realm should have been at the same version");
+        }
     }
 
     /**
@@ -828,11 +849,12 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @return {@code true} if it successfully completed the query, {@code false} otherwise.
      */
     public boolean load() {
+        //noinspection SimplifiableIfStatement
         if (isLoaded()) {
             return true;
         } else {
-        // doesn't guarantee to import correctly the result (because the user may have advanced)
-        // in this case the Realm#handler will be responsible of retrying
+            // doesn't guarantee to import correctly the result (because the user may have advanced)
+            // in this case the Realm#handler will be responsible of retrying
             return onCompleted();
         }
     }
@@ -916,7 +938,8 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * </pre>
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
-     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
+     * corresponding Realm instance doesn't support RxJava.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
@@ -930,7 +953,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
             Observable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " not supported");
+            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava.");
         }
     }
 

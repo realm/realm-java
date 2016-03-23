@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -35,6 +36,7 @@ import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
 import io.realm.internal.async.ArgumentsHolder;
+import io.realm.internal.async.BadVersionException;
 import io.realm.internal.async.QueryUpdateTask;
 import io.realm.internal.log.RealmLog;
 
@@ -1111,7 +1113,8 @@ public class RealmQuery<E extends RealmObject> {
 
         RealmResults<E> realmResults;
         if (isDynamicQuery()) {
-            realmResults =  (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
         } else {
             realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
         }
@@ -1225,6 +1228,50 @@ public class RealmQuery<E extends RealmObject> {
             throw new IllegalArgumentException(String.format("Field name '%s' must be indexed in order to use it for distinct queries.", fieldName));
         }
         return columnIndex;
+    }
+
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<E> distinct(String firstFieldName, String... remainingFieldNames) {
+        checkQueryIsNotReused();
+        List<Long> columnIndexes = getValidatedColumIndexes(this.table.getTable(), firstFieldName, remainingFieldNames);
+        TableView tableView = this.query.findAll();
+        tableView.distinct(columnIndexes);
+
+        RealmResults<E> realmResults;
+        if (isDynamicQuery()) {
+            //noinspection unchecked
+            realmResults = (RealmResults<E>) RealmResults.createFromDynamicTableOrView(realm, tableView, className);
+        } else {
+            realmResults = RealmResults.createFromTableOrView(realm, tableView, clazz);
+        }
+        return realmResults;
+    }
+
+    // find and validate the column indices of fields for building a distinctive TableView with multi-args
+    static List<Long> getValidatedColumIndexes(Table table, String firstFieldName, String... remainingFieldNames) {
+        List<Long> columnIndexes = new ArrayList<Long>();
+        // find the first index
+        long firstIndex = getAndValidateDistinctColumnIndex(firstFieldName, table);
+        columnIndexes.add(firstIndex);
+        // add remaining of indexes
+        if (remainingFieldNames != null && 0 < remainingFieldNames.length) {
+            for (String field : remainingFieldNames) {
+                long index = getAndValidateDistinctColumnIndex(field, table);
+                columnIndexes.add(index);
+            }
+        }
+        return columnIndexes;
     }
 
     // Aggregates
@@ -1446,6 +1493,11 @@ public class RealmQuery<E extends RealmObject> {
 
                         return handoverTableViewPointer;
 
+                    } catch (BadVersionException e) {
+                        // In some rare race conditions, this can happen. In that case, just ignore the error.
+                        RealmLog.d("findAllAsync handover could not complete due to a BadVersionException. " +
+                                "Retry is scheduled by a REALM_CHANGED event.");
+
                     } catch (Exception e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
@@ -1559,6 +1611,11 @@ public class RealmQuery<E extends RealmObject> {
                                 weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                         return handoverTableViewPointer;
+                    } catch (BadVersionException e) {
+                        // In some rare race conditions, this can happen. In that case, just ignore the error.
+                        RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
+                                "Retry is scheduled by a REALM_CHANGED event.");
+
                     } catch (Exception e) {
                         RealmLog.e(e.getMessage(), e);
                         closeSharedGroupAndSendMessageToHandler(sharedGroup,
@@ -1630,6 +1687,7 @@ public class RealmQuery<E extends RealmObject> {
         } else {
             TableView tableView = query.findAll();
             List<Long> columnIndices = new ArrayList<Long>();
+            //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < fieldNames.length; i++) {
                 String fieldName = fieldNames[i];
                 long columnIndex = getColumnIndexForSort(fieldName);
@@ -1724,6 +1782,11 @@ public class RealmQuery<E extends RealmObject> {
                                     weakHandler, HandlerController.COMPLETED_ASYNC_REALM_RESULTS, result);
 
                             return handoverTableViewPointer;
+                        } catch (BadVersionException e) {
+                            // In some rare race conditions, this can happen. In that case, just ignore the error.
+                            RealmLog.d("findAllSortedAsync handover could not complete due to a BadVersionException. " +
+                                    "Retry is scheduled by a REALM_CHANGED event.");
+
                         } catch (Exception e) {
                             RealmLog.e(e.getMessage(), e);
                             closeSharedGroupAndSendMessageToHandler(sharedGroup,
@@ -1936,7 +1999,9 @@ public class RealmQuery<E extends RealmObject> {
         } else if (fieldNames.length == 0) {
             throw new IllegalArgumentException("At least one field name must be specified.");
         } else if (fieldNames.length != sortOrders.length) {
-            throw new IllegalArgumentException(String.format("Number of field names (%d) and sort orders (%d) does not match.", fieldNames.length, sortOrders.length));
+            throw new IllegalArgumentException(String.format(Locale.ENGLISH,
+                    "Number of field names (%d) and sort orders (%d) does not match.",
+                    fieldNames.length, sortOrders.length));
         }
     }
 

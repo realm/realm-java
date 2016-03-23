@@ -131,6 +131,15 @@ public class FilterableMediator extends RealmProxyMediator {
         return originalMediator.createDetachedCopy(realmObject, maxDepth, cache);
     }
 
+    @Override
+    public boolean transformerApplied() {
+        //noinspection SimplifiableIfStatement
+        if (originalMediator == null) {
+            return true;
+        }
+        return originalMediator.transformerApplied();
+    }
+
     // Validate if a model class (not RealmProxy) is part of this Schema.
     private void checkSchemaHasClass(Class<? extends RealmObject> clazz) {
         if (!allowedClasses.contains(clazz)) {

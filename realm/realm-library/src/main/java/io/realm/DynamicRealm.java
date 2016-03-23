@@ -79,8 +79,7 @@ public final class DynamicRealm extends BaseRealm {
         checkIfValid();
         Table table = schema.getTable(className);
         long rowIndex = table.addEmptyRow();
-        DynamicRealmObject dynamicRealmObject = get(DynamicRealmObject.class, className, rowIndex);
-        return dynamicRealmObject;
+        return get(DynamicRealmObject.class, className, rowIndex);
     }
 
     /**
@@ -217,7 +216,7 @@ public final class DynamicRealm extends BaseRealm {
      * objects instead.
      *
      * @param className the class to get all objects from.
-     * @param sortOrders sort ascending if SORT_ORDER_ASCENDING, sort descending if SORT_ORDER_DESCENDING.
+     * @param sortOrders sort ascending if Sort.ASCENDING, sort descending if Sort.DESCENDING.
      * @param fieldNames an array of field names to sort objects by.
      *        The objects are first sorted by fieldNames[0], then by fieldNames[1] and so forth.
      * @return A sorted {@link RealmResults} containing the objects.
@@ -276,6 +275,24 @@ public final class DynamicRealm extends BaseRealm {
     public RealmResults<DynamicRealmObject> distinctAsync(String className, String fieldName) {
         checkIfValid();
         return where(className).distinctAsync(fieldName);
+    }
+
+    /**
+     * Returns a distinct set of objects from a specific class. When multiple distinct fields are
+     * given, all unique combinations of values in the fields will be returned. In case of multiple
+     * matches, it is undefined which object is returned. Unless the result is sorted, then the
+     * first object will be returned.
+     *
+     * @param className the Class to get objects of.
+     * @param firstFieldName first field name to use when finding distinct objects.
+     * @param remainingFieldNames remaining field names when determining all unique combinations of field values.
+     * @return a non-null {@link RealmResults} containing the distinct objects.
+     * @throws IllegalArgumentException if field names is empty or {@code null}, does not exist,
+     * is an unsupported type, or points to a linked field.
+     */
+    public RealmResults<DynamicRealmObject> distinct(String className, String firstFieldName, String... remainingFieldNames) {
+        checkIfValid();
+        return where(className).distinct(firstFieldName, remainingFieldNames);
     }
 
     /**

@@ -18,9 +18,9 @@ package io.realm;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.test.annotation.UiThreadTest;
 import android.view.View;
 import android.widget.TextView;
 

@@ -34,12 +34,11 @@ import io.realm.entities.IOSChild;
 import io.realm.internal.Table;
 import io.realm.rule.TestRealmConfigurationFactory;
 
+import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-
-import static io.realm.internal.test.ExtraTests.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This class test interoperability with Realms created on iOS.

@@ -82,4 +82,9 @@ public class MediatorTest extends AndroidTestCase {
         assertFalse(mediator.getModelClasses().contains(Dog.class));
         assertFalse(mediator.getModelClasses().contains(AllTypes.class));
     }
+
+    public void testDefaultMediatorWasTransformed() {
+        final DefaultRealmModuleMediator defaultMediator = new DefaultRealmModuleMediator();
+        assertTrue(defaultMediator.transformerApplied());
+    }
 }

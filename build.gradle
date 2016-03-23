@@ -3,13 +3,10 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
         classpath 'ch.netzwerg:gradle-release-plugin:1.2.0'
     }
 }
 
-apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim();
@@ -20,16 +17,41 @@ props.each { key, val ->
     project.set(key, val)
 }
 
-task assembleGradlePlugin(type:GradleBuild) {
+task assembleAnnotations(type:GradleBuild) {
     group = 'Build'
-    description = 'Assemble the Realm Gradle plugin'
-    buildFile = file('gradle-plugin/build.gradle')
+    description = 'Assemble the Realm annotations'
+    buildFile = file('realm-annotations/build.gradle')
     tasks = ['assemble']
+}
+
+task installAnnotations(type:GradleBuild) {
+    group = 'Install'
+    description = 'Install the jar realm-annotations into mavenLocal()'
+    buildFile = file('realm-annotations/build.gradle')
+    tasks = ['install']
+}
+
+task assembleTransformer(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble the Realm transformer'
+    dependsOn installAnnotations
+    buildFile = file('realm-transformer/build.gradle')
+    tasks = ['assemble']
+}
+
+task installTransformer(type:GradleBuild) {
+    group = 'Install'
+    description = 'Install the jar realm-transformer into mavenLocal()'
+    dependsOn installAnnotations
+    buildFile = file('realm-transformer/build.gradle')
+    tasks = ['install']
 }
 
 task assembleRealm(type:GradleBuild) {
     group = 'Build'
     description = 'Assemble the Realm project'
+    dependsOn installAnnotations
+    dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['assemble', 'javadocJar', 'sourcesJar']
 }
@@ -44,21 +66,34 @@ task check(type:GradleBuild) {
 task connectedCheck(type:GradleBuild) {
     group = 'Test'
     description = 'Run the Android unit tests of the Realm project'
+    dependsOn installTransformer
     buildFile = file('realm/build.gradle')
     tasks = ['connectedCheck']
+}
+
+task installRealm(type:GradleBuild) {
+    group = 'Install'
+    description = 'Install the artifacts of Realm libraries into mavenLocal()'
+    dependsOn installTransformer
+    buildFile = file('realm/build.gradle')
+    tasks = ['install']
+}
+
+task assembleGradlePlugin(type:GradleBuild) {
+    group = 'Build'
+    description = 'Assemble the Realm Gradle plugin'
+    dependsOn installRealm
+    dependsOn installTransformer
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['assemble']
 }
 
 task installGradlePlugin(type:GradleBuild) {
     description = 'Install the Realm Gradle plugin into mavenLocal()'
     group = 'Install'
+    dependsOn installRealm
+    dependsOn installTransformer
     buildFile = file('gradle-plugin/build.gradle')
-    tasks = ['install']
-}
-
-task installRealm(type:GradleBuild) {
-    group = 'Install'
-    description = 'Install the artifacts of Realm project into mavenLocal()'
-    buildFile = file('realm/build.gradle')
     tasks = ['install']
 }
 
@@ -115,40 +150,16 @@ task sourcesJar(type:GradleBuild) {
     tasks = ['sourcesJar']
 }
 
-task eclipseJar(type:GradleBuild) {
-    description = 'Generate the Jar file to be used with Eclipse'
-    group = 'Artifact'
-    buildFile = file('realm/build.gradle')
-    tasks = ['shadowJar']
-}
-
-task gradleJar(type:Zip) {
-    description = 'Generate the jar file to be used with Gradle'
-    group = 'Artifact'
-    dependsOn eclipseJar
-    archiveName = "realm-android-${currentVersion}.jar"
-    destinationDir = file("${buildDir}/outputs/gradle")
-
-    from(zipTree("realm/realm-annotations-processor/build/libs/realm-android-${currentVersion}.jar"))
-    from('realm/realm-library/src/main/jniLibs/') {
-        include '**/*'
-        into 'lib'
-    }
-}
-
 task assemble {
     group 'Build'
     description = 'Build Realm, the Gradle plugin and the examples'
     dependsOn assembleExamples
-    dependsOn gradleJar
 }
 
 task distributionPackage(type:Zip) {
     description = 'Generate the distribution package'
-    dependsOn gradleJar
     dependsOn assembleRealm
     dependsOn javadoc
-    dependsOn eclipseJar
 
     group = 'Artifact'
     archiveName = "realm-java-${currentVersion}.zip"
@@ -157,14 +168,6 @@ task distributionPackage(type:Zip) {
     from('changelog.txt')
     from('LICENSE')
     from('version.txt')
-    from('realm/realm-annotations-processor/build/libs') {
-        include "realm-android-${currentVersion}.jar"
-        into 'eclipse'
-    }
-    from('realm/realm-library/src/main/jniLibs/') {
-        include '**/*'
-        into 'eclipse'
-    }
     from("${buildDir}/outputs/gradle") {
         include "realm-android-${currentVersion}.jar"
         into 'gradle'
@@ -228,9 +231,9 @@ task cleanLocalMavenRepos(type:Delete) {
 task clean {
     description = 'Perform all the other clean tasks'
     group = 'Clean'
-    dependsOn cleanRealm
-    dependsOn cleanGradlePlugin
-    dependsOn cleanExamples
+    cleanLocalMavenRepos.dependsOn cleanRealm
+    cleanLocalMavenRepos.dependsOn cleanGradlePlugin
+    cleanLocalMavenRepos.dependsOn cleanExamples
     dependsOn cleanLocalMavenRepos
 }
 
@@ -278,187 +281,82 @@ task distribute {
     dependsOn uploadUpdateVersion
 }
 
-// This is a work-around for a bug in the publish plugin that prevents publishing the same artifact twice in two
-// different publications
-task duplicateSourcesAndJavadoc(type: Copy) {
-    description = 'Prepare source and javadoc jars for publishing.'
+task bintrayRealm(type: GradleBuild) {
+    description = 'Publish the Realm AAR and AP to Bintray'
     group = 'Publishing'
-    dependsOn sourcesJar
-    dependsOn javadoc
-    from("${rootDir}/realm/realm-library/build/libs/") {
-        include '*.jar'
-        rename 'realm-android-library-(.*?)', 'realm-android-$1'
-    }
-    into "${rootDir}/realm/realm-library/build/libs/"
-}
-
-task bintrayAar(type: GradleBuild) {
-    description = 'Publish the Realm AAR to Bintray'
-    group = 'Distribute'
-    dependsOn duplicateSourcesAndJavadoc
-    buildFile = file('bintrayAar.gradle')
-    tasks = ['bintrayUpload']
-}
-
-task bintrayJar(type: GradleBuild) {
-    description = 'Publish the Realm Jar to Bintray'
-    group = 'Distribute'
-    dependsOn duplicateSourcesAndJavadoc
-    buildFile = file('bintrayJar.gradle')
+    buildFile = file('realm/build.gradle')
     tasks = ['bintrayUpload']
 }
 
 task bintrayAnnotations(type: GradleBuild) {
     description = 'Publish the Realm Annotations to Bintray'
-    group = 'Distribute'
-    buildFile = file('bintrayAnnotations.gradle')
-    tasks = ['bintrayUpload']
-}
-
-task bintrayAnnotationsProcessor(type: GradleBuild) {
-    description = 'Publish the Realm AP to Bintray'
-    group = 'Distribute'
-    buildFile = file('bintrayAnnotationsProcessor.gradle')
+    group = 'Publishing'
+    buildFile = file('realm-annotations/build.gradle')
     tasks = ['bintrayUpload']
 }
 
 task bintrayGradlePlugin(type: GradleBuild) {
     description = 'Publish the Realm Gradle Plugin to Bintray'
-    group = 'Distribute'
-    buildFile = file('bintrayGradlePlugin.gradle')
+    group = 'Publishing'
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['bintrayUpload']
+}
+
+task bintrayTransformer(type: GradleBuild) {
+    description = 'Publish the Realm Transformer to Bintray'
+    group = 'Publishing'
+    buildFile = file('realm-transformer/build.gradle')
     tasks = ['bintrayUpload']
 }
 
 task bintrayUpload {
     description = 'Publish all the Realm artifacts to Bintray'
-    group = 'Distribute'
-    dependsOn bintrayAar
-    dependsOn bintrayJar
+    group = 'Publishing'
+    dependsOn bintrayRealm
     dependsOn bintrayAnnotations
-    dependsOn bintrayAnnotationsProcessor
     dependsOn bintrayGradlePlugin
+    dependsOn bintrayTransformer
+}
+
+task ojoRealm(type: GradleBuild) {
+    description = 'Publish the Realm AAR and AP SNAPSHOT to Bintray'
+    group = 'Publishing'
+    buildFile = file('realm/build.gradle')
+    tasks = ['artifactoryPublish']
+}
+
+task ojoAnnotations(type: GradleBuild) {
+    description = 'Publish the Realm Annotations SNAPSHOT to Bintray'
+    group = 'Publishing'
+    buildFile = file('realm-annotations/build.gradle')
+    tasks = ['artifactoryPublish']
+}
+
+task ojoGradlePlugin(type: GradleBuild) {
+    description = 'Publish the Realm Gradle Plugin SNAPSHOT to Bintray'
+    group = 'Publishing'
+    buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['artifactoryPublish']
+}
+
+task ojoTransformer(type: GradleBuild) {
+    description = 'Publish the Realm Transformer SNAPSHOT to Bintray'
+    group = 'Publishing'
+    buildFile = file('realm-transformer/build.gradle')
+    tasks = ['artifactoryPublish']
 }
 
 task ojoUpload {
     description = 'Publish all the Realm SNAPSHOT artifacts to OJO'
     group = 'Publishing'
-    dependsOn duplicateSourcesAndJavadoc
-    dependsOn artifactoryPublish
-    artifactoryPublish.dependsOn duplicateSourcesAndJavadoc
+    dependsOn ojoRealm
+    dependsOn ojoAnnotations
+    dependsOn ojoGradlePlugin
+    dependsOn ojoTransformer
 }
 
 // This is just a placeholder for the release plugin
 task build {}
-
-def commonPom = {
-    licenses {
-        license {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'repo'
-        }
-    }
-    issueManagement {
-        system 'github'
-        url 'https://github.com/realm/realm-java/issues'
-    }
-    scm {
-        url 'scm:https://github.com/realm/realm-java'
-        connection 'scm:git@github.com:realm/realm-java.git'
-        developerConnection 'scm:git@github.com:realm/realm-java.git'
-    }
-}
-
-publishing {
-    publications {
-        jarLibrary(MavenPublication) {
-            groupId 'io.realm'
-            artifactId = 'realm-android'
-            artifact file("${buildDir}/outputs/gradle/realm-android-${currentVersion}.jar")
-            artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-sources.jar")) {
-                classifier = 'sources'
-            }
-            artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-${currentVersion}-javadoc.jar")) {
-                classifier = 'javadoc'
-            }
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'realm-android')
-                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
-                root.appendNode('url', 'http://realm.io')
-                root.children().last() + commonPom
-            }
-        }
-        aarLibrary(MavenPublication) {
-            groupId 'io.realm'
-            artifactId = 'realm-android-library'
-            artifact file("${rootDir}/realm/realm-library/build/outputs/aar/realm-android-library-release.aar")
-            artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-library-${currentVersion}-sources.jar")) {
-                classifier = 'sources'
-            }
-            artifact(file("${rootDir}/realm/realm-library/build/libs/realm-android-library-${currentVersion}-javadoc.jar")) {
-                classifier = 'javadoc'
-            }
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'realm-android-library')
-                root.appendNode('description', 'Realm is a mobile database: a replacement for SQLite & ORMs.')
-                root.appendNode('url', 'http://realm.io')
-                root.children().last() + commonPom
-            }
-        }
-        annotations(MavenPublication) {
-            groupId 'io.realm'
-            artifactId = 'realm-annotations'
-            artifact file("${rootDir}/realm/realm-annotations/build/libs/realm-annotations-${currentVersion}.jar")
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'realm-annotations')
-                root.appendNode('description', 'Annotations for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
-                root.appendNode('url', 'http://realm.io')
-                root.children().last() + commonPom
-            }
-        }
-        annotationsProcessor(MavenPublication) {
-            groupId 'io.realm'
-            artifactId = 'realm-annotations-processor'
-            artifact file("${rootDir}/realm/realm-annotations-processor/build/libs/realm-annotations-processor-${currentVersion}.jar")
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'realm-annotations-processor')
-                root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
-                root.appendNode('url', 'http://realm.io')
-                root.children().last() + commonPom
-            }
-        }
-        gradlePlugin(MavenPublication) {
-            groupId 'io.realm'
-            artifactId = 'realm-gradle-plugin'
-            artifact file("${rootDir}/gradle-plugin/build/libs/realm-gradle-plugin-${currentVersion}.jar")
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'realm-realm-plugin')
-                root.appendNode('description', 'Gradle plugin for Realm. Realm is a mobile database: a replacement for SQLite & ORMs.')
-                root.appendNode('url', 'http://realm.io')
-                root.children().last() + commonPom
-            }
-        }
-    }
-}
-
-artifactory {
-    contextUrl = 'https://oss.jfrog.org/artifactory'
-    publish {
-        repository {
-            repoKey = 'oss-snapshot-local'
-            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-        }
-        defaults {
-            publications ('jarLibrary', 'aarLibrary', 'annotations', 'annotationsProcessor', 'gradlePlugin')
-        }
-    }
-}
 
 release {
     push = false

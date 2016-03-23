@@ -148,7 +148,7 @@ public class IntroExampleActivity extends Activity {
         // Add ten persons in one transaction
         realm.beginTransaction();
         Dog fido = realm.createObject(Dog.class);
-        fido.setName("fido");
+        fido.name = "fido";
         for (int i = 0; i < 10; i++) {
             Person person = realm.createObject(Person.class);
             person.setId(i);
@@ -164,7 +164,7 @@ public class IntroExampleActivity extends Activity {
 
             for (int j = 0; j < i; j++) {
                 Cat cat = realm.createObject(Cat.class);
-                cat.setName("Cat_" + j);
+                cat.name = "Cat_" + j;
                 person.getCats().add(cat);
             }
         }
@@ -179,7 +179,7 @@ public class IntroExampleActivity extends Activity {
             if (pers.getDog() == null) {
                 dogName = "None";
             } else {
-                dogName = pers.getDog().getName();
+                dogName = pers.getDog().name;
             }
             status += "\n" + pers.getName() + ":" + pers.getAge() + " : " + dogName + " : " + pers.getCats().size();
         }
@@ -187,8 +187,8 @@ public class IntroExampleActivity extends Activity {
         // Sorting
         RealmResults<Person> sortedPersons = realm.allObjects(Person.class);
         sortedPersons.sort("age", Sort.DESCENDING);
-        status += "\nSorting " + sortedPersons.last().getName() + " == "
-                + realm.allObjects(Person.class).first().getName();
+        status += "\nSorting " + sortedPersons.last().getName() + " == " + realm.allObjects(Person.class).first()
+                .getName();
 
         realm.close();
         return status;

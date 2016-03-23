@@ -31,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
@@ -417,6 +418,41 @@ public class DynamicRealmTests {
         }
     }
 
+    private void populateForDistinctInvalidTypesLinked(DynamicRealm realm) {
+        realm.beginTransaction();
+        DynamicRealmObject notEmpty = realm.createObject(AllJavaTypes.CLASS_NAME);
+        notEmpty.setBlob(AllJavaTypes.FIELD_BINARY, new byte[]{1, 2, 3});
+        notEmpty.setObject(AllJavaTypes.FIELD_OBJECT, notEmpty);
+        notEmpty.setList(AllJavaTypes.FIELD_LIST, new RealmList<DynamicRealmObject>(notEmpty));
+        realm.commitTransaction();
+    }
+
+    /*
+     * Fields order test for Chained or Multi-Arguments Distinct()
+     *
+     * The idea is to interweave different values in 2's multiplier and 3's multiplier in a way that
+     * the outcome is different if the order of distinct* operations alternates. More numbers of
+     * fields can be constructed with the combination of multipliers in prime numbers such as 2, 3,
+     * and 5.
+     *
+     * An example is illustrated below.
+     *
+     * Object      : O1| O2| O3| O4| O5| O6
+     * indexString : A | A | B | B | A | A
+     * indexLong   : 1 | 1 | 1 | 2 | 2 | 2
+     */
+    private void populateForDistinctFieldsOrder(DynamicRealm realm, long numberOfBlocks) {
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfBlocks; i++) {
+            for (int j = 0; j < 6; j++) {
+                DynamicRealmObject obj = realm.createObject(AnnotationIndexTypes.CLASS_NAME);
+                obj.setString("indexString", (((j / 2) % 2) == 0) ? "A" : "B");
+                obj.setLong("indexLong", (j < 3) ? 1 : 2);
+            }
+        }
+        realm.commitTransaction();
+    }
+
     @Test
     public void distinct_invalidClassNames() {
         String[] classNames = new String[]{null, "", "foo", "foo.bar"};
@@ -482,6 +518,160 @@ public class DynamicRealmTests {
                 fail(field);
             } catch (IllegalArgumentException ignored) {
             }
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10; // must be greater than 1
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        RealmResults<DynamicRealmObject> distinctMulti = realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.INDEX_FIELDS);
+        assertEquals(numberOfBlocks, distinctMulti.size());
+    }
+
+    @Test
+    public void distinctMultiArgs_switchedFieldsOrder() {
+        final long numberOfBlocks = 25;
+        populateForDistinctFieldsOrder(realm, numberOfBlocks);
+
+        // Regardless of the block size defined above, the output size is expected to be the same, 4 in this case, due to receiving unique combinations of tuples
+        RealmResults<DynamicRealmObject> distinctStringLong = realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_STRING, AnnotationIndexTypes.FIELD_INDEX_LONG);
+        RealmResults<DynamicRealmObject> distinctLongString = realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_LONG, AnnotationIndexTypes.FIELD_INDEX_STRING);
+        assertEquals(4, distinctStringLong.size());
+        assertEquals(4, distinctLongString.size());
+        assertEquals(distinctStringLong.size(), distinctLongString.size());
+    }
+
+    @Test
+    public void distinctMultiArgs_emptyFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        // an empty string field in the middle
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_BOOL, "", AnnotationIndexTypes.FIELD_INDEX_INT);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // an empty string field at the end
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, "");
+        } catch (IllegalArgumentException ignored) {
+        }
+        // a null string field in the middle
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null, AnnotationIndexTypes.FIELD_INDEX_INT);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // a null string field at the end
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_BOOL, AnnotationIndexTypes.FIELD_INDEX_INT, (String)null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // (String)null makes varargs a null array.
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_BOOL, (String)null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // Two (String)null for first and varargs fields
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, (String)null, (String)null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // "" & (String)null combination
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, "", (String)null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        // "" & (String)null combination
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, (String)null, "");
+        } catch (IllegalArgumentException ignored) {
+        }
+        // Two empty fields tests
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, "", "");
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_withNullValues() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
+
+        RealmResults<DynamicRealmObject> distinctMulti = realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_DATE, AnnotationIndexTypes.FIELD_INDEX_STRING);
+        assertEquals(1, distinctMulti.size());
+    }
+
+    @Test
+    public void distinctMultiArgs_notIndexedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_NOT_INDEX_STRING, AnnotationIndexTypes.NOT_INDEX_FIELDS);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_doesNotExistField() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, false);
+
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.FIELD_INDEX_INT, AnnotationIndexTypes.NONEXISTANT_MIX_FIELDS);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_invalidTypesFields() {
+        populateTestRealm();
+
+        try {
+            realm.distinct(AllTypes.CLASS_NAME, AllTypes.FIELD_REALMOBJECT, AllTypes.INVALID_TYPES_FIELDS_FOR_DISTINCT);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_indexedLinkedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
+
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.INDEX_LINKED_FIELD_STRING, AnnotationIndexTypes.INDEX_LINKED_FIELDS);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_notIndexedLinkedFields() {
+        final long numberOfBlocks = 25;
+        final long numberOfObjects = 10;
+        populateForDistinct(realm, numberOfBlocks, numberOfObjects, true);
+
+        try {
+            realm.distinct(AnnotationIndexTypes.CLASS_NAME, AnnotationIndexTypes.NOT_INDEX_LINKED_FILED_STRING, AnnotationIndexTypes.NOT_INDEX_LINKED_FIELDS);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void distinctMultiArgs_invalidTypesLinkedFields() {
+        populateForDistinctInvalidTypesLinked(realm);
+
+        try {
+            realm.distinct(AllJavaTypes.CLASS_NAME, AllJavaTypes.INVALID_LINKED_BINARY_FIELD_FOR_DISTINCT, AllJavaTypes.INVALID_LINKED_TYPES_FIELDS_FOR_DISTINCT);
+        } catch (IllegalArgumentException ignored) {
         }
     }
 
@@ -783,7 +973,7 @@ public class DynamicRealmTests {
         assertEquals(1, realm.where("TestRemoveAll").count());
 
         realm.beginTransaction();
-        realm.clear();
+        realm.deleteAll();
         realm.commitTransaction();
 
         assertEquals(0, realm.where(AllTypes.CLASS_NAME).count());
@@ -800,7 +990,7 @@ public class DynamicRealmTests {
         assertEquals(2, list.size());
 
         realm.beginTransaction();
-        list.removeAllFromRealm();
+        list.deleteAllFromRealm();
         realm.commitTransaction();
 
         assertEquals(0, list.size());

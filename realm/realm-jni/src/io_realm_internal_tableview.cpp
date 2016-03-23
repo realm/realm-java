@@ -75,6 +75,39 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
     } CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
+    JNIEnv* env, jobject, jlong nativeViewPtr, jlongArray columnIndexes)
+{
+    if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
+        return;
+    try {
+        JniLongArray indexes(env, columnIndexes);
+        jsize indexes_len = indexes.len();
+        std::vector<size_t> columns;
+        for (int i = 0; i < indexes_len; ++i) {
+            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), indexes[i])) {
+                return;
+            }
+            if (!TV(nativeViewPtr)->get_parent().has_search_index(S(indexes[i]))) {
+                ThrowException(env, IllegalArgument, "The field must be indexed before distinct(...) can be used.");
+                return;
+            }
+            switch (TV(nativeViewPtr)->get_column_type(S(indexes[i]))) {
+                case type_Bool:
+                case type_Int:
+                case type_DateTime:
+                case type_String:
+                    columns.push_back(S(indexes[i]));
+                    break;
+                default:
+                    ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
+                    return;
+            }
+        }
+        TV(nativeViewPtr)->distinct(columns);
+    } CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativePivot(
     JNIEnv *env, jobject, jlong dataTablePtr, jlong stringCol, jlong intCol, jint operation, jlong resultTablePtr)
 {
