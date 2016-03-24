@@ -356,7 +356,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
             RealmFieldType type = getColumnType(primaryKeyColumnIndex);
             switch (type) {
                 case STRING:
-                    if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE) != NO_MATCH) {
+                    if (findFirstString(primaryKeyColumnIndex, STRING_DEFAULT_VALUE, true) != NO_MATCH) {
                         throwDuplicatePrimaryKeyException(STRING_DEFAULT_VALUE);
                     }
                     break;
@@ -386,15 +386,15 @@ public class Table implements TableOrView, TableSchema, Closeable {
         // Add with primary key initially set
         switch (type) {
             case STRING:
-                if (!(primaryKeyValue instanceof String)) {
+                if ((primaryKeyValue != null) && !(primaryKeyValue instanceof String)) {
                     throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
                 }
-                if (findFirstString(primaryKeyColumnIndex, (String)primaryKeyValue) != NO_MATCH) {
+                if (findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue, true) != NO_MATCH) {
                     throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                row = getUncheckedRow(rowIndex);
-                row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
+                getUncheckedRow(rowIndex);
+                nativeSetString(nativePtr, primaryKeyColumnIndex, rowIndex, (String) primaryKeyValue);
                 break;
 
             case INTEGER:
@@ -613,7 +613,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     void checkStringValueIsLegal(long columnIndex, long rowToUpdate, String value) {
         if (isPrimaryKey(columnIndex)) {
-            long rowIndex = findFirstString(columnIndex, value);
+            long rowIndex = findFirstString(columnIndex, value, true);
             if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
                 throwDuplicatePrimaryKeyException(value);
             }
@@ -1179,7 +1179,20 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     @Override
     public long findFirstString(long columnIndex, String value) {
-        if (value == null) {
+        return findFirstString(columnIndex, value, false);
+    }
+
+    /**
+     * Find the first row for an input string value. If the corresponding column is set to be nullable,
+     * then the input string value can be {@code null}.
+     *
+     * @param columnIndex 0 based index value of the table column.
+     * @param value string value to find.
+     * @param isNullable {@code value} can be null if {@code true}.
+     * @return the row index or {@code NO_MATCH} for not found.
+     */
+    public long findFirstString(long columnIndex, String value, boolean isNullable) {
+        if (!isNullable && value == null) {
             throw new IllegalArgumentException("null is not supported");
         }
         return nativeFindFirstString(nativePtr, columnIndex, value);

@@ -333,7 +333,14 @@ public class ClassMetaData {
         // primary keys cannot be nullable
         if (hasPrimaryKey()) {
             if (variableElement.equals(getPrimaryKey())) {
-                return false;
+                // Check if element type is String
+                String elementTypeCanonicalName = variableElement.asType().toString();
+                String columnType = Constants.JAVA_TO_COLUMN_TYPES.get(elementTypeCanonicalName);
+                if (columnType != null && columnType.equals("RealmFieldType.STRING")) {
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
         return nullableFields.contains(variableElement);

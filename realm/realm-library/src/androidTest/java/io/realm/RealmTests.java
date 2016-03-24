@@ -1322,8 +1322,10 @@ public class RealmTests {
     @Test
     public void copyToRealm_primaryKeyIsNull() {
         realm.beginTransaction();
-        thrown.expect(IllegalArgumentException.class);
         realm.copyToRealm(new PrimaryKeyAsString());
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(PrimaryKeyAsString.class).count());
     }
 
     @Test
@@ -1403,8 +1405,10 @@ public class RealmTests {
     @Test
     public void copyToRealmOrUpdate_primaryKeyFieldIsNull() {
         realm.beginTransaction();
-        thrown.expect(IllegalArgumentException.class);
         realm.copyToRealmOrUpdate(new PrimaryKeyAsString());
+        realm.commitTransaction();
+
+        assertEquals(1, realm.where(PrimaryKeyAsString.class).count());
     }
 
     @Test

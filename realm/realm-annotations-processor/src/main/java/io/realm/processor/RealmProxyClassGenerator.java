@@ -587,11 +587,7 @@ public class RealmProxyClassGenerator {
 
             String primaryKeyGetter = metadata.getPrimaryKeyGetter();
             if (Utils.isString(metadata.getPrimaryKey())) {
-                writer
-                    .beginControlFlow("if (((%s) object).%s() == null)", interfaceName, primaryKeyGetter)
-                        .emitStatement("throw new IllegalArgumentException(\"Primary key value must not be null.\")")
-                    .endControlFlow()
-                    .emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, ((%s) object).%s())",
+                writer.emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, ((%s) object).%s(), true)",
                             interfaceName, primaryKeyGetter);
             } else {
                 writer.emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, ((%s) object).%s())",
