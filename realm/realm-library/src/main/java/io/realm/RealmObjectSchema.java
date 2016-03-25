@@ -145,6 +145,10 @@ public final class RealmObjectSchema {
                 containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
             nullable = false;
         }
+        if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY) &&
+                metadata.realmType.equals(RealmFieldType.STRING)) {
+            nullable = true;
+        }
         long columnIndex = table.addColumn(metadata.realmType, fieldName, nullable);
 
         try {
