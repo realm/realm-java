@@ -1321,11 +1321,31 @@ public class RealmTests {
 
     @Test
     public void copyToRealm_primaryKeyIsNull() {
+        // null primary key object
+        PrimaryKeyAsString nullPrimaryKeyObj = new PrimaryKeyAsString();
+        nullPrimaryKeyObj.setId(2);
+        // not null primary key object
+        PrimaryKeyAsString notNullPrimaryKeyObj = new PrimaryKeyAsString();
+        notNullPrimaryKeyObj.setName("NotNullName");
+        notNullPrimaryKeyObj.setId(3);
         realm.beginTransaction();
-        realm.copyToRealm(new PrimaryKeyAsString());
+        realm.copyToRealm(notNullPrimaryKeyObj);
+        realm.copyToRealm(nullPrimaryKeyObj);
         realm.commitTransaction();
 
-        assertEquals(1, realm.where(PrimaryKeyAsString.class).count());
+        // iterative null primary key check between query and result.
+        RealmResults<PrimaryKeyAsString> totalResults = realm.where(PrimaryKeyAsString.class).findAll();
+        assertEquals(2, totalResults.size());
+        // null primary key result
+        RealmResults<PrimaryKeyAsString> nullNameResult = totalResults.where().equalTo("name", (String) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals(null, nullNameResult.first().getName());
+        assertEquals(2L, nullNameResult.first().getId());
+        // not null primary key result
+        RealmResults<PrimaryKeyAsString> notNameResult = totalResults.where().equalTo("name", "NotNullName").findAll();
+        assertEquals(1, notNameResult.size());
+        assertEquals("NotNullName", notNameResult.first().getName());
+        assertEquals(3L, notNameResult.first().getId());
     }
 
     @Test
@@ -1404,11 +1424,43 @@ public class RealmTests {
 
     @Test
     public void copyToRealmOrUpdate_primaryKeyFieldIsNull() {
+        // null primary key object
+        PrimaryKeyAsString nullPrimaryKeyObj = new PrimaryKeyAsString();
+        nullPrimaryKeyObj.setName((String) null);
+        nullPrimaryKeyObj.setId(2);
+        // not null primary key object
+        PrimaryKeyAsString notNullPrimaryKeyObj = new PrimaryKeyAsString();
+        notNullPrimaryKeyObj.setName("NotNullName");
+        notNullPrimaryKeyObj.setId(3);
         realm.beginTransaction();
-        realm.copyToRealmOrUpdate(new PrimaryKeyAsString());
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.copyToRealmOrUpdate(notNullPrimaryKeyObj);
         realm.commitTransaction();
 
-        assertEquals(1, realm.where(PrimaryKeyAsString.class).count());
+        // iterative null primary key object acquisition between query and result.
+        RealmResults<PrimaryKeyAsString> totalResults = realm.where(PrimaryKeyAsString.class).findAll();
+        assertEquals(2, totalResults.size());
+        // null primary key result
+        RealmResults<PrimaryKeyAsString> nullNameResult = totalResults.where().equalTo("name", (String) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals(null, nullNameResult.first().getName());
+        assertEquals(2L, nullNameResult.first().getId());
+        // not null primary key result
+        RealmResults<PrimaryKeyAsString> notNullNameResult = totalResults.where().equalTo("name", "NotNullName").findAll();
+        assertEquals(1, notNullNameResult.size());
+        assertEquals("NotNullName", notNullNameResult.first().getName());
+        assertEquals(3L, notNullNameResult.first().getId());
+
+        // update objects
+        nullPrimaryKeyObj.setId(44);
+        notNullPrimaryKeyObj.setId(56);
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.copyToRealmOrUpdate(notNullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        assertEquals(44L, realm.where(PrimaryKeyAsString.class).equalTo("name", (String) null).findAll().first().getId());
+        assertEquals(56L, realm.where(PrimaryKeyAsString.class).equalTo("name", "NotNullName").findAll().first().getId());
     }
 
     @Test

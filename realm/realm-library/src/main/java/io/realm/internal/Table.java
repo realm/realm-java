@@ -162,7 +162,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *
      * @param type the column type.
      * @param name the field/column name.
-     * @param isNullable {@code true} if column can contain null values, {@ code false}e otherwise.
+     * @param isNullable {@code true} if column can contain null values, {@code false} otherwise.
      * @return the index of the new column.
      */
     public long addColumn(RealmFieldType type, String name, boolean isNullable) {
@@ -393,8 +393,8 @@ public class Table implements TableOrView, TableSchema, Closeable {
                     throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
-                getUncheckedRow(rowIndex);
-                nativeSetString(nativePtr, primaryKeyColumnIndex, rowIndex, (String) primaryKeyValue);
+                row = getUncheckedRow(rowIndex);
+                row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
                 break;
 
             case INTEGER:
@@ -1183,13 +1183,14 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Find the first row for an input string value. If the corresponding column is set to be nullable,
+     * Find the first row index for an input string value. If the corresponding column is nullable,
      * then the input string value can be {@code null}.
      *
      * @param columnIndex 0 based index value of the table column.
      * @param value string value to find.
-     * @param isNullable {@code value} can be null if {@code true}.
+     * @param isNullable {@code true} if {@code value} can be {@code null}, {@code false} otherwise.
      * @return the row index or {@code NO_MATCH} for not found.
+     * @throws IllegalArgumentException when {@code value} is {@code null} when {@code isNullable} is {@code false}.
      */
     public long findFirstString(long columnIndex, String value, boolean isNullable) {
         if (!isNullable && value == null) {
