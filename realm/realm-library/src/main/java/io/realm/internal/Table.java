@@ -389,12 +389,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 if ((primaryKeyValue != null) && !(primaryKeyValue instanceof String)) {
                     throw new IllegalArgumentException("Primary key value is not a String: " + primaryKeyValue);
                 }
-                if (findFirstString(primaryKeyColumnIndex, (String) primaryKeyValue, true) != NO_MATCH) {
+                if (findFirstString(primaryKeyColumnIndex, (String)primaryKeyValue, true) != NO_MATCH) {
                     throwDuplicatePrimaryKeyException(primaryKeyValue);
                 }
                 rowIndex = nativeAddEmptyRow(nativePtr, 1);
                 row = getUncheckedRow(rowIndex);
-                row.setString(primaryKeyColumnIndex, (String) primaryKeyValue);
+                row.setString(primaryKeyColumnIndex, (String)primaryKeyValue);
                 break;
 
             case INTEGER:
