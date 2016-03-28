@@ -441,22 +441,37 @@ public class RealmProxyClassGenerator {
 
                 // make sure that nullability matches
                 if (metadata.isNullable(field)) {
-                    writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
-                    if (Utils.isBoxedType(fieldTypeCanonicalName)) {
+                    // Check if the existing Sting type PrimaryKey does support null value
+                    if (field.equals(metadata.getPrimaryKey()) && Utils.isString(fieldTypeCanonicalName)) {
+                        writer.beginControlFlow("if (!table.isColumnNullable(%s)" +
+                                " && table.getPrimaryKey() == table.getColumnIndex(\"%s\")" +
+                                " && columnTypes.get(\"%s\").equals(RealmFieldType.STRING))",
+                                fieldIndexVariableReference(field), fieldName, fieldName);
                         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
-                                "\"Field '%s' does not support null values in the existing Realm file. " +
-                                "Either set @Required, use the primitive type for field '%s' " +
-                                "or migrate using io.realm.internal.Table.convertColumnToNullable()." +
+                                "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
+                                "Migrate using io.realm.internal.Table.convertColumnToNullable()." +
                                 "\")",
-                                fieldName, fieldName);
+                                fieldName);
+                        writer.endControlFlow();
+                    // rest of nullability checks
                     } else {
-                        writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
-                                " \"Field '%s' is required. Either set @Required to field '%s' " +
-                                "or migrate using io.realm.internal.Table.convertColumnToNullable()." +
-                                "\")",
-                                fieldName, fieldName);
+                        writer.beginControlFlow("if (!table.isColumnNullable(%s))", fieldIndexVariableReference(field));
+                        if (Utils.isBoxedType(fieldTypeCanonicalName)) {
+                            writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
+                                    "\"Field '%s' does not support null values in the existing Realm file. " +
+                                    "Either set @Required, use the primitive type for field '%s' " +
+                                    "or migrate using io.realm.internal.Table.convertColumnToNullable()." +
+                                    "\")",
+                                    fieldName, fieldName);
+                        } else {
+                            writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
+                                    " \"Field '%s' is required. Either set @Required to field '%s' " +
+                                    "or migrate using io.realm.internal.Table.convertColumnToNullable()." +
+                                    "\")",
+                                    fieldName, fieldName);
+                        }
+                        writer.endControlFlow();
                     }
-                    writer.endControlFlow();
                 } else {
                     writer.beginControlFlow("if (table.isColumnNullable(%s))", fieldIndexVariableReference(field));
                     if (Utils.isPrimitiveType(fieldTypeCanonicalName)) {
