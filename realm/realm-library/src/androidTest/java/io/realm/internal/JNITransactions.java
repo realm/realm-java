@@ -368,6 +368,7 @@ public class JNITransactions {
     public void addEmptyRowWithPrimaryKeyNullString() {
         Table t = getTableWithStringPrimaryKey();
         t.addEmptyRowWithPrimaryKey(null);
+        assertEquals(1, t.size());
     }
 
     @Test

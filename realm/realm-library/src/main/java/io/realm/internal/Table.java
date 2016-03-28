@@ -1188,9 +1188,9 @@ public class Table implements TableOrView, TableSchema, Closeable {
      *
      * @param columnIndex 0 based index value of the table column.
      * @param value string value to find.
-     * @param isNullable {@code true} if {@code value} can be {@code null}, {@code false} otherwise.
+     * @param isNullable {@code true} if value can be {@code null}, {@code false} otherwise.
      * @return the row index or {@code NO_MATCH} for not found.
-     * @throws IllegalArgumentException when {@code value} is {@code null} when {@code isNullable} is {@code false}.
+     * @throws IllegalArgumentException when value is {@code null} and isNullable is {@code false}.
      */
     public long findFirstString(long columnIndex, String value, boolean isNullable) {
         if (!isNullable && value == null) {
