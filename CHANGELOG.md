@@ -2,8 +2,7 @@
 
 ### Breaking changes
 
-* @PrimaryKey field value can be null for java.lang.String, type and should be converted by using io.realm.internal.Table.convertColumnToNullable() for RealmMigration (#2515).
-
+* @PrimaryKey field value can be null for java.lang.String type, and should be converted by using io.realm.internal.Table.convertColumnToNullable() for RealmMigration (#2515).
 
 ## 0.89.0
 
