@@ -1184,13 +1184,13 @@ public class Table implements TableOrView, TableSchema, Closeable {
 
     /**
      * Find the first row index for an input string value. If the corresponding column is nullable,
-     * then the input string value can be {@code null}.
+     * then an input string value can be {@code null}.
      *
      * @param columnIndex 0 based index value of the table column.
-     * @param value string value to find.
+     * @param value a string value to find.
      * @param isNullable {@code true} if value can be {@code null}, {@code false} otherwise.
-     * @return the row index or {@code NO_MATCH} for not found.
-     * @throws IllegalArgumentException when value is {@code null} and isNullable is {@code false}.
+     * @return a row index for value or {@code NO_MATCH} for not found.
+     * @throws IllegalArgumentException when value should not be {@code null} by setting isNullable {@code false}.
      */
     public long findFirstString(long columnIndex, String value, boolean isNullable) {
         if (!isNullable && value == null) {
