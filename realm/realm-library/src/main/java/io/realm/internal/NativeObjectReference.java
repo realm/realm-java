@@ -23,25 +23,43 @@ import java.lang.ref.ReferenceQueue;
  * This class is used for holding the reference to the native pointers present in NativeObjects.
  * This is required as phantom references cannot access the original objects for this value.
  */
-public abstract class NativeObjectReference extends PhantomReference<NativeObject> {
+public final class NativeObjectReference extends PhantomReference<NativeObject> {
+
+    // Using int here instead of enum to make it faster since the cleanup needs to be called
+    // in a loop to dealloc every native reference.
+    public static final int TYPE_LINK_VIEW = 0;
+    public static final int TYPE_ROW = 1;
 
     // The pointer to the native object to be handled
-    protected final long nativePointer;
+    final long nativePointer;
+    final int type;
+    // Use boxed type to avoid box/un-box when access the freeIndexList
+    final Integer refIndex;
 
-    public NativeObjectReference(NativeObject referent, ReferenceQueue<? super NativeObject> referenceQueue) {
+    NativeObjectReference(int type,
+                          NativeObject referent,
+                          ReferenceQueue<? super NativeObject> referenceQueue,
+                          Integer index) {
         super(referent, referenceQueue);
-        nativePointer = referent.nativePointer;
+        this.type = type;
+        this.nativePointer = referent.nativePointer;
+        refIndex = index;
     }
 
     /**
-     * This method is called when this reference gets cleared.
-     * Subclasses should implement this method to dealloc the native pointer.
+     * To dealloc native resources.
      */
-    protected abstract void cleanup();
-
-    @Override
-    public void clear() {
-        cleanup();
-        super.clear();
+    void cleanup() {
+        switch (type) {
+            case TYPE_LINK_VIEW:
+                LinkView.nativeClose(nativePointer);
+                break;
+            case TYPE_ROW:
+                UncheckedRow.nativeClose(nativePointer);
+                break;
+            default:
+                // Cannot get here.
+                throw new IllegalStateException("Unknown native reference type " + type + ".");
+        }
     }
 }

@@ -24,18 +24,6 @@ import java.lang.ref.ReferenceQueue;
  */
 public class LinkView extends NativeObject {
 
-    private static class LinkViewReference extends NativeObjectReference {
-
-        public LinkViewReference(NativeObject referent, ReferenceQueue<? super NativeObject> referenceQueue) {
-            super(referent, referenceQueue);
-        }
-
-        @Override
-        protected void cleanup() {
-            nativeClose(nativePointer);
-        }
-    }
-
     private final Context context;
     final Table parent;
     final long columnIndexInParent;
@@ -46,8 +34,8 @@ public class LinkView extends NativeObject {
         this.columnIndexInParent = columnIndexInParent;
         this.nativePointer = nativeLinkViewPtr;
 
-        context.cleanNativeReferences();
-        context.rowReferences.put(new LinkViewReference(this, context.referenceQueue), Context.NATIVE_REFERENCES_VALUE);
+        context.executeDelayedDisposal();
+        context.addReference(NativeObjectReference.TYPE_LINK_VIEW, this);
     }
 
     /**
@@ -172,7 +160,7 @@ public class LinkView extends NativeObject {
         }
     }
 
-    private static native void nativeClose(long nativeLinkViewPtr);
+    static native void nativeClose(long nativeLinkViewPtr);
     native long nativeGetRow(long nativeLinkViewPtr, long pos);
     private native long nativeGetTargetRowIndex(long nativeLinkViewPtr, long pos);
     private native void nativeAdd(long nativeLinkViewPtr, long rowIndex);
