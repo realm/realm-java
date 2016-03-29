@@ -16,6 +16,9 @@
 
 package io.realm.internal;
 
+import android.os.Debug;
+
+import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,6 +98,11 @@ public class Context {
 
     private void cleanNativeReferences() {
         NativeObjectReference reference = (NativeObjectReference) referenceQueue.poll();
+        if (reference == null) return;
+
+        long startTime = System.nanoTime();
+
+        //Debug.startMethodTracing("/storage/sdcard0/ttt/" + totalCount);
         while (reference != null) {
             // Dealloc the native resources
             reference.cleanup();
@@ -103,7 +111,14 @@ public class Context {
             // setting the slot to null.
             referencesPool.freeIndexList.add(reference.refIndex);
             reference = (NativeObjectReference) referenceQueue.poll();
+
+            totalCount++;
         }
+        //Debug.stopMethodTracing();
+
+        long endTime = System.nanoTime();
+        long elapsedTime = endTime - startTime;
+        totalTime += elapsedTime;
     }
 
     public void asyncDisposeTable(long nativePointer, boolean isRoot) {
@@ -148,4 +163,7 @@ public class Context {
         executeDelayedDisposal();
         super.finalize();
     }
+
+    public static volatile long totalTime;
+    public static volatile long totalCount;
 }
