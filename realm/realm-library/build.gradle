@@ -81,7 +81,7 @@ task javadoc(type: Javadoc) {
     exclude '**/R.java'
     doLast {
         copy {
-            from "src/realm-overview.png"
+            from "src/realm-java-overview.png"
             into "$buildDir/docs/javadoc"
         }
     }
