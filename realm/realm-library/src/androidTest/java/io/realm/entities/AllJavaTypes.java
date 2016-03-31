@@ -58,6 +58,14 @@ public class AllJavaTypes extends RealmObject{
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 
+    public AllJavaTypes() {
+
+    }
+
+    public AllJavaTypes(long fieldLong) {
+        this.fieldLong = fieldLong;
+    }
+
     public String getFieldIgnored() {
         return fieldIgnored;
     }

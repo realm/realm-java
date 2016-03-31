@@ -1287,7 +1287,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public Number sum(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return query.sumInt(columnIndex);
@@ -1312,7 +1312,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      */
     public double average(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return query.averageInt(columnIndex);
@@ -1338,7 +1338,7 @@ public class RealmQuery<E extends RealmObject> {
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return this.query.minimumInt(columnIndex);
@@ -1361,7 +1361,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public Date minimumDate(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         return this.query.minimumDate(columnIndex);
     }
 
@@ -1378,7 +1378,7 @@ public class RealmQuery<E extends RealmObject> {
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return this.query.maximumInt(columnIndex);
@@ -1401,7 +1401,7 @@ public class RealmQuery<E extends RealmObject> {
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
     public Date maximumDate(String fieldName) {
-        long columnIndex = schema.getFieldIndex(fieldName);
+        long columnIndex = schema.getAndCheckFieldIndex(fieldName);
         return this.query.maximumDate(columnIndex);
     }
 
@@ -2052,6 +2052,9 @@ public class RealmQuery<E extends RealmObject> {
     // Get the column index for sorting related functions. A proper exception will be thrown if the field doesn't exist
     // or it belongs to the child object.
     private long getColumnIndexForSort(String fieldName) {
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Non-empty fieldname required.");
+        }
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
         }

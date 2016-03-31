@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Calendar;
 import java.util.Date;
@@ -104,7 +103,7 @@ public class RealmObjectTests {
         String[] strings = {"ABCD", "ÆØÅ", "Ö∫Ë", "ΠΑΟΚ", "Здравей"};
 
         realm.beginTransaction();
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
 
         for (String str : strings) {
             AllTypes obj1 = realm.createObject(AllTypes.class);
@@ -130,7 +129,7 @@ public class RealmObjectTests {
         String low  = "Invalid low surrogate \uD83C\uDF51\uDF51";
 
         realm.beginTransaction();
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
         realm.commitTransaction();
 
         realm.beginTransaction();
@@ -152,7 +151,7 @@ public class RealmObjectTests {
 
     // removing original object and see if has been removed
     @Test
-    public void removeFromRealm() {
+    public void deleteFromRealm() {
         realm.beginTransaction();
         Dog rex = realm.createObject(Dog.class);
         rex.setName("Rex");
@@ -164,7 +163,7 @@ public class RealmObjectTests {
         assertEquals(1, allDogsBefore.size());
 
         realm.beginTransaction();
-        rex.removeFromRealm();
+        rex.deleteFromRealm();
         realm.commitTransaction();
 
         RealmResults<Dog> allDogsAfter = realm.where(Dog.class).equalTo("name", "Rex").findAll();
@@ -180,7 +179,7 @@ public class RealmObjectTests {
         // deleting rex twice should fail
         realm.beginTransaction();
         try {
-            rex.removeFromRealm();
+            rex.deleteFromRealm();
             realm.close();
             fail();
         } catch (IllegalStateException ignored) {}
@@ -189,7 +188,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void removeFromRealm_twiceThrows() {
+    public void deleteFromRealm_twiceThrows() {
         realm.beginTransaction();
         Dog dog = realm.createObject(Dog.class);
         dog.setAge(42);
@@ -197,11 +196,11 @@ public class RealmObjectTests {
 
         realm.beginTransaction();
         assertTrue(dog.isValid());
-        dog.removeFromRealm();
+        dog.deleteFromRealm();
         assertFalse(dog.isValid());
 
         try {
-            dog.removeFromRealm();
+            dog.deleteFromRealm();
             fail();
         } catch (IllegalStateException ignored) {
         }
@@ -209,9 +208,9 @@ public class RealmObjectTests {
 
     // query for an object, remove it and see it has been removed from realm
     @Test
-    public void removeFromRealm_removedFromResults() {
+    public void deleteFromRealm_removedFromResults() {
         realm.beginTransaction();
-        realm.clear(Dog.class);
+        realm.delete(Dog.class);
         Dog dogToAdd = realm.createObject(Dog.class);
         dogToAdd.setName("Rex");
         realm.commitTransaction();
@@ -221,7 +220,7 @@ public class RealmObjectTests {
         Dog dogToRemove = realm.where(Dog.class).findFirst();
         assertNotNull(dogToRemove);
         realm.beginTransaction();
-        dogToRemove.removeFromRealm();
+        dogToRemove.deleteFromRealm();
         realm.commitTransaction();
 
         assertEquals(0, realm.allObjects(Dog.class).size());
@@ -243,7 +242,7 @@ public class RealmObjectTests {
     private void removeOneByOne(boolean atFirst) {
         Set<Long> ages = new HashSet<Long>();
         realm.beginTransaction();
-        realm.clear(Dog.class);
+        realm.delete(Dog.class);
         for (int i = 0; i < TEST_SIZE; i++) {
             Dog dog = realm.createObject(Dog.class);
             dog.setAge(i);
@@ -263,7 +262,7 @@ public class RealmObjectTests {
                 dogToRemove = dogs.last();
             }
             ages.remove(dogToRemove.getAge());
-            dogToRemove.removeFromRealm();
+            dogToRemove.deleteFromRealm();
 
             // object is no longer valid
             try {
@@ -284,7 +283,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void removeFromRealm_atPosition() {
+    public void deleteFromRealm_atPosition() {
         removeOneByOne(REMOVE_FIRST);
         removeOneByOne(REMOVE_LAST);
     }
@@ -292,7 +291,7 @@ public class RealmObjectTests {
     private enum Method {
         METHOD_GETTER,
         METHOD_SETTER,
-        METHOD_REMOVE_FROM_REALM
+        METHOD_DELETE_FROM_REALM
     }
 
     private boolean runMethodOnWrongThread(final Method method) throws ExecutionException, InterruptedException {
@@ -309,8 +308,8 @@ public class RealmObjectTests {
                         case METHOD_SETTER:
                             allTypes.setColumnFloat(1.0f);
                             break;
-                        case METHOD_REMOVE_FROM_REALM:
-                            allTypes.removeFromRealm();
+                        case METHOD_DELETE_FROM_REALM:
+                            allTypes.deleteFromRealm();
                             break;
                     }
                     return false;
@@ -408,7 +407,7 @@ public class RealmObjectTests {
         realm.beginTransaction();
         CyclicType foo = createCyclicData();
         realm.commitTransaction();
-        String expected = "CyclicType = [{name:Foo},{object:CyclicType},{otherObject:null},{objects:RealmList<CyclicType>[0]}]";
+        String expected = "CyclicType = [{id:0},{name:Foo},{date:null},{object:CyclicType},{otherObject:null},{objects:RealmList<CyclicType>[0]}]";
         assertEquals(expected, foo.toString());
     }
 
@@ -503,7 +502,7 @@ public class RealmObjectTests {
 
         // test valid dates but with precision lost
         realm.beginTransaction();
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
         for (long value : testDatesLoosePrecision) {
             AllTypes allTypes = realm.createObject(AllTypes.class);
             allTypes.setColumnDate(new Date(value));
@@ -585,7 +584,7 @@ public class RealmObjectTests {
             CyclicType target = realm.createObject(CyclicType.class);
 
             CyclicType removed = realm.createObject(CyclicType.class);
-            removed.removeFromRealm();
+            removed.deleteFromRealm();
 
             try {
                 target.setObject(removed);
@@ -725,7 +724,7 @@ public class RealmObjectTests {
             CyclicType target = realm.createObject(CyclicType.class);
 
             CyclicType removed = realm.createObject(CyclicType.class);
-            removed.removeFromRealm();
+            removed.deleteFromRealm();
 
             RealmList<CyclicType> list = new RealmList<>();
             list.add(realm.createObject(CyclicType.class));
@@ -889,7 +888,7 @@ public class RealmObjectTests {
         realm.beginTransaction();
         AllTypes allTypes = realm.createObject(AllTypes.class);
         assertTrue(allTypes.isValid());
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
         realm.commitTransaction();
         assertFalse(allTypes.isValid());
     }
@@ -1130,7 +1129,7 @@ public class RealmObjectTests {
             public void run() {
                 Realm realm = Realm.getInstance(realmConfig);
                 realm.beginTransaction();
-                realm.clear(AllTypes.class);
+                realm.delete(AllTypes.class);
                 realm.commitTransaction();
                 realm.close();
                 objectDeletedInBackground.countDown();
@@ -1155,7 +1154,7 @@ public class RealmObjectTests {
         assertTrue(dog.isValid());
 
         realm.beginTransaction();
-        dog.removeFromRealm();
+        dog.deleteFromRealm();
         realm.commitTransaction();
 
         assertFalse(dog.isValid());
@@ -1358,5 +1357,136 @@ public class RealmObjectTests {
         assertEquals("listeners_updated", managed.getListeners());
         assertEquals("pendingQuery_updated", managed.getPendingQuery());
         assertEquals("currentTableVersion_updated", managed.getCurrentTableVersion());
+    }
+
+    // Setting a not-nullable field to null is an error
+    // TODO Move this to RealmObjectTests?
+    @Test
+    public void setter_nullValueInRequiredField() {
+        TestHelper.populateTestRealmForNullTests(realm);
+        RealmResults<NullTypes> list = realm.allObjects(NullTypes.class);
+
+        // 1 String
+        try {
+            realm.beginTransaction();
+            list.first().setFieldStringNotNull(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        // 2 Bytes
+        try {
+            realm.beginTransaction();
+            list.first().setFieldBytesNotNull(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        // 3 Boolean
+        try {
+            realm.beginTransaction();
+            list.first().setFieldBooleanNotNull(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        // 4 Byte
+        try {
+            realm.beginTransaction();
+            list.first().setFieldBytesNotNull(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        // 5 Short 6 Integer 7 Long are skipped for this case, same with Bytes
+
+        // 8 Float
+        try {
+            realm.beginTransaction();
+            list.first().setFieldFloatNotNull(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        // 9 Double
+        try {
+            realm.beginTransaction();
+            list.first().setFieldDoubleNotNull(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+
+        // 10 Date
+        try {
+            realm.beginTransaction();
+            list.first().setFieldDateNotNull(null);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            realm.cancelTransaction();
+        }
+    }
+
+    // Setting a nullable field to null is not an error
+    // TODO Move this to RealmObjectsTest?
+    @Test
+    public void setter_nullValueInNullableField() {
+        TestHelper.populateTestRealmForNullTests(realm);
+        RealmResults<NullTypes> list = realm.allObjects(NullTypes.class);
+
+        // 1 String
+        realm.beginTransaction();
+        list.first().setFieldStringNull(null);
+        realm.commitTransaction();
+        assertNull(realm.allObjects(NullTypes.class).first().getFieldStringNull());
+
+        // 2 Bytes
+        realm.beginTransaction();
+        list.first().setFieldBytesNull(null);
+        realm.commitTransaction();
+        assertNull(realm.allObjects(NullTypes.class).first().getFieldBytesNull());
+
+        // 3 Boolean
+        realm.beginTransaction();
+        list.first().setFieldBooleanNull(null);
+        realm.commitTransaction();
+        assertNull(realm.allObjects(NullTypes.class).first().getFieldBooleanNull());
+
+        // 4 Byte
+        // 5 Short 6 Integer 7 Long are skipped
+        realm.beginTransaction();
+        list.first().setFieldByteNull(null);
+        realm.commitTransaction();
+        assertNull(realm.allObjects(NullTypes.class).first().getFieldByteNull());
+
+        // 8 Float
+        realm.beginTransaction();
+        list.first().setFieldFloatNull(null);
+        realm.commitTransaction();
+        assertNull(realm.allObjects(NullTypes.class).first().getFieldFloatNull());
+
+        // 9 Double
+        realm.beginTransaction();
+        list.first().setFieldDoubleNull(null);
+        realm.commitTransaction();
+        assertNull(realm.allObjects(NullTypes.class).first().getFieldDoubleNull());
+
+        // 10 Date
+        realm.beginTransaction();
+        list.first().setFieldDateNull(null);
+        realm.commitTransaction();
+        assertNull(realm.allObjects(NullTypes.class).first().getFieldDateNull());
     }
 }

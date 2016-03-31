@@ -86,7 +86,7 @@ public class ExampleActivity extends Activity {
     private void cleanUp() {
         // Delete all persons
         realm.beginTransaction();
-        realm.allObjects(Person.class).clear();
+        realm.allObjects(Person.class).deleteAllFromRealm();
         realm.commitTransaction();
     }
 

@@ -39,7 +39,6 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
-import io.realm.examples.unittesting.ExampleActivity;
 import io.realm.examples.unittesting.model.Person;
 import io.realm.internal.RealmCore;
 
@@ -197,7 +196,7 @@ public class ExampleActivityTest {
 
         // Verify that the clear method was called. Clear is also called in the start of the
         // activity to ensure we start with a clean db.
-        verify(people, times(2)).clear();
+        verify(people, times(2)).deleteAllFromRealm();
 
         // Call the destroy method so we can verify that the .close() method was called (below)
         controller.destroy();
