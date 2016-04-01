@@ -1051,7 +1051,11 @@ std::unique_ptr<Query> handoverQueryToWorker(jlong bgSharedGroupPtr, jlong query
     if (sg->get_transact_stage() != SharedGroup::transact_Reading) {
         // if the SharedGroup is not in Read Transaction, we position it at the same version as the handover
         sg->begin_read(handoverQuery->version);
-    } else if (sg->get_version_of_current_transaction() != handoverQuery->version) {
+    } else if (sg->get_version_of_current_transaction() < handoverQuery->version) {
+        // going forward
+        LangBindHelper::advance_read(*sg, handoverQuery->version);
+    } else if (handoverQuery->version < sg->get_version_of_current_transaction()) {
+        // going backward
         sg->end_read();
         sg->begin_read(handoverQuery->version);
     }
@@ -1162,7 +1166,11 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeBatchUpdate
         realm::SharedGroup* sg = SG(bgSharedGroupPtr);
         if (sg->get_transact_stage() != SharedGroup::transact_Reading) {
             sg->begin_read(handoverQuery->version);
-        } else if (sg->get_version_of_current_transaction() != handoverQuery->version) {
+        } else if (sg->get_version_of_current_transaction() < handoverQuery->version) {
+            // going forward
+            LangBindHelper::advance_read(*sg, handoverQuery->version);
+        } else if (handoverQuery->version < sg->get_version_of_current_transaction()) {
+            // going backward
             sg->end_read();
             sg->begin_read(handoverQuery->version);
         }
