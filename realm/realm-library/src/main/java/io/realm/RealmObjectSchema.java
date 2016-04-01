@@ -145,9 +145,8 @@ public final class RealmObjectSchema {
                 containsAttribute(attributes, FieldAttribute.PRIMARY_KEY)) {
             nullable = false;
         }
-        // allow String type PrimaryKey to be null
-        if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY) &&
-                metadata.realmType.equals(RealmFieldType.STRING)) {
+        // allow String & boxed variant type PrimaryKey to be null
+        if (containsAttribute(attributes, FieldAttribute.PRIMARY_KEY) && isNullablePrimaryKeyType(metadata)) {
             nullable = true;
         }
 
@@ -496,6 +495,14 @@ public final class RealmObjectSchema {
             }
         }
         return false;
+    }
+
+    // check if PrimaryKey field type can be nullable
+    private boolean isNullablePrimaryKeyType(FieldMetaData metadata) {
+        if (metadata.realmType.equals(RealmFieldType.STRING)) {
+            return true;
+        }
+        return (metadata.realmType.equals(RealmFieldType.INTEGER) && metadata.defaultNullable);
     }
 
     private void checkNewFieldName(String fieldName) {

@@ -151,6 +151,13 @@ public class Utils {
     }
 
     /**
+     * @return {@core ture} if a given field type is nullable PrimaryKey type, {@code false} otherwise.
+     */
+    public static boolean isNullablePrimaryKeyType(VariableElement field) {
+        return Constants.JAVA_TO_NULLABLE_PRIMARYKEY_TYPES.contains(field.asType().toString());
+    }
+
+    /**
      * @return the simple type name for a field.
      */
     public static String getFieldTypeSimpleName(VariableElement field) {

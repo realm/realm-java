@@ -240,8 +240,13 @@ public class UncheckedRow extends NativeObject implements Row {
     @Override
     public void setString(long columnIndex, String value) {
         parent.checkImmutable();
-        getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
-        nativeSetString(nativePointer, columnIndex, value);
+        if (value == null) {
+            getTable().checkNullValueIsLeval(columnIndex, getIndex());
+            nativeSetNull(nativePointer, columnIndex);
+        } else {
+            getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
+            nativeSetString(nativePointer, columnIndex, value);
+        }
     }
 
     @Override

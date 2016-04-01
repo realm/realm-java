@@ -441,15 +441,15 @@ public class RealmProxyClassGenerator {
 
                 // make sure that nullability matches
                 if (metadata.isNullable(field)) {
-                    // Check if the existing Sting type PrimaryKey does support null value
-                    if (field.equals(metadata.getPrimaryKey()) && Utils.isString(fieldTypeCanonicalName)) {
+                    // Check if the existing PrimaryKey does support null value.
+                    if (field.equals(metadata.getPrimaryKey()) && Utils.isNullablePrimaryKeyType(field)) {
                         writer.beginControlFlow("if (!table.isColumnNullable(%s)" +
                                 " && table.getPrimaryKey() == table.getColumnIndex(\"%s\")" +
-                                " && columnTypes.get(\"%s\").equals(RealmFieldType.STRING))",
-                                fieldIndexVariableReference(field), fieldName, fieldName);
+                                " && columnTypes.get(\"%s\").equals(%s))",
+                                fieldIndexVariableReference(field), fieldName, fieldName, Constants.JAVA_TO_COLUMN_TYPES.get(fieldTypeCanonicalName));
                         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                 "\"@PrimaryKey field '%s' does not support null values in the existing Realm file. " +
-                                "Migrate using io.realm.internal.Table.convertColumnToNullable()." +
+                                "Migrate using RealmObjectSchema.setNullable()." +
                                 "\")",
                                 fieldName);
                         writer.endControlFlow();
@@ -460,13 +460,13 @@ public class RealmProxyClassGenerator {
                             writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                     "\"Field '%s' does not support null values in the existing Realm file. " +
                                     "Either set @Required, use the primitive type for field '%s' " +
-                                    "or migrate using io.realm.internal.Table.convertColumnToNullable()." +
+                                    "or migrate using RealmObjectSchema.setNullable()." +
                                     "\")",
                                     fieldName, fieldName);
                         } else {
                             writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                     " \"Field '%s' is required. Either set @Required to field '%s' " +
-                                    "or migrate using io.realm.internal.Table.convertColumnToNullable()." +
+                                    "or migrate using RealmObjectSchema.setNullable()." +
                                     "\")",
                                     fieldName, fieldName);
                         }
@@ -477,12 +477,12 @@ public class RealmProxyClassGenerator {
                     if (Utils.isPrimitiveType(fieldTypeCanonicalName)) {
                         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                 " \"Field '%s' does support null values in the existing Realm file. " +
-                                "Use corresponding boxed type for field '%s' or migrate using io.realm.internal.Table.convertColumnToNotNullable().\")",
+                                "Use corresponding boxed type for field '%s' or migrate using RealmObjectSchema.setNullable().\")",
                                 fieldName, fieldName);
                     } else {
                         writer.emitStatement("throw new RealmMigrationNeededException(transaction.getPath()," +
                                 " \"Field '%s' does support null values in the existing Realm file. " +
-                                "Remove @Required or @PrimaryKey from field '%s' or migrate using io.realm.internal.Table.convertColumnToNotNullable().\")",
+                                "Remove @Required or @PrimaryKey from field '%s' or migrate using RealmObjectSchema.setNullable().\")",
                                 fieldName, fieldName);
                     }
                     writer.endControlFlow();
@@ -602,8 +602,23 @@ public class RealmProxyClassGenerator {
 
             String primaryKeyGetter = metadata.getPrimaryKeyGetter();
             if (Utils.isString(metadata.getPrimaryKey())) {
-                writer.emitStatement("long rowIndex = table.findFirstString(pkColumnIndex, ((%s) object).%s(), true)",
-                            interfaceName, primaryKeyGetter);
+                writer
+                    .emitStatement("String value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                    .emitStatement("long rowIndex = TableOrView.NO_MATCH")
+                    .beginControlFlow("if (value == null)")
+                        .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
+                    .nextControlFlow("else")
+                        .emitStatement("rowIndex = table.findFirstString(pkColumnIndex, value)")
+                    .endControlFlow();
+            } else if (Utils.isNullablePrimaryKeyType(metadata.getPrimaryKey())) {
+                writer
+                    .emitStatement("Number value = ((%s) object).%s()", interfaceName, primaryKeyGetter)
+                        .emitStatement("long rowIndex = TableOrView.NO_MATCH")
+                    .beginControlFlow("if (value == null)")
+                        .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
+                    .nextControlFlow("else")
+                        .emitStatement("rowIndex = table.findFirstLong(pkColumnIndex, value.longValue())")
+                    .endControlFlow();
             } else {
                 writer.emitStatement("long rowIndex = table.findFirstLong(pkColumnIndex, ((%s) object).%s())",
                         interfaceName, primaryKeyGetter);

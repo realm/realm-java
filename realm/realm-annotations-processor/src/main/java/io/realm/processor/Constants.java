@@ -16,7 +16,10 @@
 
 package io.realm.processor;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Constants {
@@ -94,5 +97,16 @@ public class Constants {
         JAVA_TO_FIELD_SETTER.put("java.lang.String", "set");
         JAVA_TO_FIELD_SETTER.put("java.util.Date", "set");
         JAVA_TO_FIELD_SETTER.put("byte[]", "set");
+    }
+
+    static final List<String> JAVA_TO_NULLABLE_PRIMARYKEY_TYPES;
+    static {
+        List<String> typeList = new ArrayList<String>();
+        typeList.add("java.lang.Byte");
+        typeList.add("java.lang.Short");
+        typeList.add("java.lang.Integer");
+        typeList.add("java.lang.Long");
+        typeList.add("java.lang.String");
+        JAVA_TO_NULLABLE_PRIMARYKEY_TYPES = Collections.unmodifiableList(typeList);
     }
 }
