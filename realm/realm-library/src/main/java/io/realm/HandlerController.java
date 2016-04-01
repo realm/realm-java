@@ -170,6 +170,24 @@ public class HandlerController implements Handler.Callback {
         }
     }
 
+    void removeWeakChangeListener(RealmChangeListener listener) {
+        List<WeakReference<RealmChangeListener>> toRemoveList = null;
+        for (int i = 0; i < weakChangeListeners.size(); i++) {
+            WeakReference<RealmChangeListener> weakRef = weakChangeListeners.get(i);
+            RealmChangeListener weakListener = weakRef.get();
+
+            // Collect all listeners that are GC'ed or we need to remove
+            if (weakListener == null || weakListener == listener) {
+                if (toRemoveList == null) {
+                    toRemoveList = new ArrayList<WeakReference<RealmChangeListener>>(weakChangeListeners.size());
+                }
+                toRemoveList.add(weakRef);
+            }
+        }
+
+        weakChangeListeners.removeAll(toRemoveList);
+    }
+
     void removeChangeListener(RealmChangeListener listener) {
         changeListeners.remove(listener);
     }

@@ -18,22 +18,23 @@ package io.realm;
 
 
 import java.util.AbstractList;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
 import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
 import io.realm.internal.TableQuery;
 import io.realm.internal.TableView;
-import io.realm.internal.Table;
 import io.realm.internal.async.BadVersionException;
 import io.realm.internal.log.RealmLog;
 import rx.Observable;
@@ -66,7 +67,9 @@ import rx.Observable;
  * @see Realm#allObjects(Class)
  * @see io.realm.Realm#beginTransaction()
  */
-public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
+public final class RealmResults<E extends RealmObject> extends AbstractList<E> implements OrderedRealmCollection<E> {
+
+    private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by RealmResults.";
 
     BaseRealm realm;
     Class<E> classSpec;   // Return type
@@ -81,6 +84,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
     private Future<Long> pendingQuery;
     private boolean isCompleted = false;
+
 
     static <E extends RealmObject> RealmResults<E> createFromTableQuery(BaseRealm realm, TableQuery query, Class<E> clazz) {
         return new RealmResults<E>(realm, query, clazz);
@@ -150,22 +154,16 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Checks if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm} instance hasn't
-     * been closed.
-     *
-     * @return {@code true} if still valid to use, {@code false} otherwise.
+     * {@inheritDoc}
      */
     public boolean isValid() {
         return realm != null && !realm.isClosed();
     }
 
     /**
-     * Returns a typed {@link io.realm.RealmQuery}, which can be used to query for specific objects of this type.
-     *
-     * @return a typed RealmQuery.
-     * @see io.realm.RealmQuery
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     * {@inheritDoc}
      */
+    @Override
     public RealmQuery<E> where() {
         realm.checkIfValid();
 
@@ -213,33 +211,53 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * This method is not supported.
-     *
-     * @throws NoSuchMethodError always.
+     * {@inheritDoc}
      */
     @Override
-    public int indexOf(Object o) {
-        throw new NoSuchMethodError("indexOf is not supported on RealmResults");
-    }
-
-    /**
-     * Gets the first object from the list.
-     *
-     * @return the first object.
-     * @throws ArrayIndexOutOfBoundsException if RealmResults is empty.
-     */
     public E first() {
-        return get(0);
+        if (size() > 0) {
+            return get(0);
+        } else {
+            throw new IndexOutOfBoundsException("No results was found.");
+        }
     }
 
     /**
-     * Gets the last object from the list.
-     *
-     * @return the last object.
-     * @throws ArrayIndexOutOfBoundsException if RealmResults is empty.
+     * {@inheritDoc}
      */
+    @Override
     public E last() {
-        return get(size()-1);
+        int size = size();
+        if (size > 0) {
+            return get(size - 1);
+        } else {
+            throw new IndexOutOfBoundsException("No results was found.");
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteFromRealm(int location) {
+        realm.checkIfValid();
+        TableOrView table = getTable();
+        table.remove(location);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean deleteAllFromRealm() {
+        realm.checkIfValid();
+        if (size() > 0) {
+            TableOrView table = getTable();
+            table.clear();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -295,7 +313,10 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Sorting
 
     // aux. method used by sort methods
-    private long getColumnIndex(String fieldName) {
+    private long getColumnIndexForSort(String fieldName) {
+        if (fieldName == null || fieldName.isEmpty()) {
+            throw new IllegalArgumentException("Non-empty field name required.");
+        }
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Sorting using child object fields is not supported: " + fieldName);
         }
@@ -307,86 +328,41 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Sorts (ascending) an existing {@link io.realm.RealmResults}.
-     *
-     * @param fieldName the field name to sort by. Only fields of type boolean, short, int, long, float, double, Date,
-     *                  and String are supported.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * {@inheritDoc}
      */
-    public void sort(String fieldName) {
-        this.sort(fieldName, Sort.ASCENDING);
+    @Override
+    public RealmResults<E> sort(String fieldName) {
+        return this.sort(fieldName, Sort.ASCENDING);
     }
 
     /**
-     * Sorts existing {@link io.realm.RealmResults}.
-     *
-     * @param fieldName the field name to sort by. Only fields of type boolean, short, int, long, float, double, Date,
-     *                  and String are supported.
-     * @param sortOrder the direction to sort by.
-     * @throws java.lang.IllegalArgumentException if field name does not exist.
+     * {@inheritDoc}
      */
-    public void sort(String fieldName, Sort sortOrder) {
-        if (fieldName == null) {
-            throw new IllegalArgumentException("fieldName must be provided");
-        }
-        realm.checkIfValid();
-        TableOrView table = getTable();
-
-        if (table instanceof TableView) {
-            long columnIndex = getColumnIndex(fieldName);
-            ((TableView) table).sort(columnIndex, sortOrder);
-        } else {
-            throw new IllegalArgumentException("Only RealmResults can be sorted - please use allObject() to create a RealmResults.");
-        }
+    @Override
+    public RealmResults<E> sort(String fieldName, Sort sortOrder) {
+        return where().findAllSorted(fieldName, sortOrder);
     }
 
     /**
-     * Sorts existing {@link io.realm.RealmResults}.
-     *
-     * @param fieldNames an array of field names to sort by. Only fields of type boolean, short, int, long, float,
-     *                   double, Date, and String are supported.
-     * @param sortOrders the directions to sort by.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * {@inheritDoc}
      */
-    public void sort(String fieldNames[], Sort sortOrders[]) {
-        if (fieldNames == null) {
-            throw new IllegalArgumentException("fieldNames must be provided.");
-        } else if (sortOrders == null) {
-            throw new IllegalArgumentException("sortOrder must be provided.");
-        }
-
-        if (fieldNames.length == 1 && sortOrders.length == 1) {
-            sort(fieldNames[0], sortOrders[0]);
-        } else {
-            realm.checkIfValid();
-            TableOrView table = getTable();
-            if (table instanceof TableView) {
-                List<Long> columnIndices = new ArrayList<Long>();
-                for (int i = 0; i < fieldNames.length; i++) {
-                    String fieldName = fieldNames[i];
-                    long columnIndex = getColumnIndex(fieldName);
-                    columnIndices.add(columnIndex);
-                }
-                ((TableView) table).sort(columnIndices, sortOrders);
-            }
-        }
+    @Override
+    public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
+        return where().findAllSorted(fieldNames, sortOrders);
     }
 
     /**
-     * Sorts existing {@link io.realm.RealmResults} using two fields.
-     *
-     * @param fieldName1 first field name.
-     * @param sortOrder1 sort order for first field.
-     * @param fieldName2 second field name.
-     * @param sortOrder2 sort order for second field.
-     * @throws java.lang.IllegalArgumentException if a field name does not exist.
+     * {@inheritDoc}
      */
-    public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
+    @Override
+    public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
+        return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
     /**
      * Sorts existing {@link io.realm.RealmResults} using three fields.
+     *
+     * DEPRECATED: Use {@link #sort(String[], Sort[])} instead.
      *
      * @param fieldName1 first field name.
      * @param sortOrder1 sort order for first field.
@@ -396,6 +372,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * @param sortOrder3 sort order for third field.
      * @throws java.lang.IllegalArgumentException if a field name does not exist.
      */
+    @Deprecated
     public void sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2, String fieldName3, Sort sortOrder3) {
         sort(new String[]{fieldName1, fieldName2, fieldName3}, new Sort[]{sortOrder1, sortOrder2, sortOrder3});
     }
@@ -418,17 +395,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Finds the minimum value of a field.
-     *
-     * @param fieldName the field to look for a minimum on. Only number fields are supported.
-     * @return if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
-     * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
-     * values are ignored.
-     * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * {@inheritDoc}
      */
     public Number min(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return table.minimumLong(columnIndex);
@@ -442,18 +413,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Finds the minimum date.
-     *
-     * @param fieldName the field to look for the minimum date. If fieldName is not of Date type, an exception is
-     *                  thrown.
-     * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
-     * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
-     * {@code null} values are ignored.
-     * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
+     * {@inheritDoc}
      */
     public Date minDate(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndexForSort(fieldName);
         if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
             return table.minimumDate(columnIndex);
         }
@@ -463,17 +427,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     }
 
     /**
-     * Finds the maximum value of a field.
-     *
-     * @param fieldName the field to look for a maximum on. Only number fields are supported.
-     * @return if no objects exist or they all have {@code null} as the value for the given field, {@code null} will be
-     * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
-     * values are ignored.
-     * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * {@inheritDoc}
      */
     public Number max(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return table.maximumLong(columnIndex);
@@ -498,7 +456,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      */
     public Date maxDate(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndexForSort(fieldName);
         if (table.getColumnType(columnIndex) == RealmFieldType.DATE) {
             return table.maximumDate(columnIndex);
         }
@@ -509,16 +467,11 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
 
 
     /**
-     * Calculates the sum of a given field.
-     *
-     * @param fieldName the field to sum. Only number fields are supported.
-     * @return the sum. If no objects exist or they all have {@code null} as the value for the given field, {@code 0}
-     * will be returned. When computing the sum, objects with {@code null} values are ignored.
-     * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * {@inheritDoc}
      */
     public Number sum(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return table.sumLong(columnIndex);
@@ -531,19 +484,12 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
     }
 
-
     /**
-     * Returns the average of a given field.
-     *
-     * @param fieldName the field to calculate average on. Only number fields are supported.
-     * @return the average for the given field amongst objects in query results. This will be of type double for all
-     * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
-     * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
-     * @throws java.lang.IllegalArgumentException if the field is not a number type.
+     * {@inheritDoc}
      */
     public double average(String fieldName) {
         realm.checkIfValid();
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndexForSort(fieldName);
         switch (table.getColumnType(columnIndex)) {
             case INTEGER:
                 return table.averageLong(columnIndex);
@@ -614,73 +560,162 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
     // Deleting
 
     /**
-     * Removes an object at a given index. This also deletes the object from the underlying Realm.
+     * Not supported by RealmResults.
      *
-     * Using this method while iterating the list can result in a undefined behavior. Use
-     * {@link io.realm.RealmResults.RealmResultsIterator#remove()} instead.
-     *
-     * @param index the array index identifying the object to be removed.
-     * @return always return {@code null}.
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     * @throws UnsupportedOperationException always.
      */
+    @Deprecated
     @Override
     public E remove(int index) {
-        realm.checkIfValid();
-        TableOrView table = getTable();
-        table.remove(index);
-        return null; // Returning the object doesn't make sense, since it could no longer access any data.
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
+    }
+
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
+    @Deprecated
+    @Override
+    public boolean remove(Object object) {
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
+    }
+
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
+    @Deprecated
+    @Override
+    public boolean removeAll(Collection<?> collection) {
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
+    }
+
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
+    @Deprecated
+    @Override
+    public E set(int location, E object) {
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
+    }
+
+
+
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
+    @Deprecated
+    @Override
+    public boolean retainAll(Collection<?> collection) {
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
     /**
      * Removes the last object in the list. This also deletes the object from the underlying Realm.
      *
-     * Using this method while iterating the list can result in a undefined behavior. Use
-     * {@link io.realm.RealmResults.RealmResultsListIterator#removeLast()} instead.
+     * DEPRECATED: Use {@link #deleteLastFromRealm()} instead.
      *
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
+    @Deprecated
     public void removeLast() {
-        realm.checkIfValid();
-        TableOrView table = getTable();
-        table.removeLast();
+        deleteLastFromRealm();
     }
 
     /**
-     * Removes all objects from the list. This also deletes the objects from the underlying Realm.
+     * Removes the last object in the list. This also deletes the object from the underlying Realm.
      *
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
-    public void clear() {
+    @Override
+    public boolean deleteLastFromRealm() {
         realm.checkIfValid();
-        TableOrView table = getTable();
-        table.clear();
+        if (size() > 0) {
+            TableOrView table = getTable();
+            table.removeLast();
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    // Adding objects
+    /**
+     * Removes the first object in the list. This also deletes the object from the underlying Realm.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     */
+    @Override
+    public boolean deleteFirstFromRealm() {
+        realm.checkIfValid();
+        if (size() > 0) {
+            TableOrView table = getTable();
+            table.removeFirst();
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
+    @Override
+    @Deprecated
+    public void clear() {
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
+    }
+
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
     @Override
     @Deprecated
     public boolean add(E element) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
     @Override
     @Deprecated
     public void add(int index, E element) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
-//
-//    /**
-//     * Replaces an object at the given index with a new object.
-//     *
-//     * @param index the array index of the object to be replaced.
-//     * @param element an object.
-//     */
-//    public void replace(int index, E element) {
-//        throw new NoSuchMethodError();
-//    }
 
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
+    @Override
+    @Deprecated
+    public boolean addAll(int location, Collection<? extends E> collection) {
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
+    }
 
+    /**
+     * Not supported by RealmResults.
+     *
+     * @throws UnsupportedOperationException always.
+     */
+    @Deprecated
+    @Override
+    public boolean addAll(Collection<? extends E> collection) {
+        throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
+    }
 
     // Custom RealmResults iterator. It ensures that we only iterate on a Realm that hasn't changed.
     private class RealmResultsIterator implements Iterator<E> {
@@ -706,10 +741,9 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         }
 
         /**
-         * Removes the RealmObject at the current position from both the list and the underlying Realm.
+         * Not supported by RealmResults.
          *
-         * WARNING: This method is currently disabled and will always throw an
-         * {@link io.realm.exceptions.RealmException}
+         * @throws UnsupportedOperationException always.
          */
         public void remove() {
             throw new RealmException("Removing is not supported.");
@@ -755,7 +789,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         @Override
         public boolean hasPrevious() {
             assertRealmIsStable();
-            return pos > 0;
+            return pos >= 0;
         }
 
         @Override
@@ -767,11 +801,13 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
         @Override
         public E previous() {
             assertRealmIsStable();
-            pos--;
-            if (pos < 0) {
-                throw new IndexOutOfBoundsException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
+            try {
+                E obj = get(pos);
+                pos--;
+                return obj;
+            } catch (IndexOutOfBoundsException e) {
+                throw new NoSuchElementException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
             }
-            return get(pos);
         }
 
         @Override
@@ -961,7 +997,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> {
      * Notifies all registered listeners.
      */
     void notifyChangeListeners() {
-        if (listeners != null && !listeners.isEmpty()) {
+        if (!listeners.isEmpty()) {
             // table might be null (if the async query didn't complete
             // but we have already registered listeners for it)
             if (pendingQuery != null && !isCompleted) return;

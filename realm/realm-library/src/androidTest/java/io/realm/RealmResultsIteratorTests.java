@@ -149,7 +149,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         testRealm.beginTransaction();
         try {
             for (AllTypes obj : result) {
-                obj.removeFromRealm();
+                obj.deleteFromRealm();
             }
         } catch (ConcurrentModificationException ignored) {
             return;
@@ -255,7 +255,7 @@ public class RealmResultsIteratorTests extends AndroidTestCase {
         final RealmConfiguration realmConfig = TestHelper.createConfiguration(getContext(), "test");
         Realm realm = Realm.getInstance(realmConfig);
         realm.beginTransaction();
-        realm.clear(AllTypes.class);
+        realm.delete(AllTypes.class);
         AllTypes o1 = realm.createObject(AllTypes.class);
         o1.setColumnLong(1);
         AllTypes o2 = realm.createObject(AllTypes.class);

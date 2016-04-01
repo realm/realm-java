@@ -232,7 +232,7 @@ public class RealmAnnotationTests {
     @Test
     public void namingConvention() {
         realm.beginTransaction();
-        realm.clear(AnnotationNameConventions.class);
+        realm.delete(AnnotationNameConventions.class);
         AnnotationNameConventions anc1 = realm.createObject(AnnotationNameConventions.class);
         anc1.setHasObject(true);
         anc1.setId_object(1);
