@@ -834,9 +834,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(
     if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
         return;
     try {
-        return pTable->set_null( S(columnIndex), S(rowIndex) );
+        return pTable->set_null(S(columnIndex), S(rowIndex));
     } CATCH_STD()
-    return;
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeClearSubtable(

@@ -345,7 +345,7 @@ public class DynamicRealmObjectTests {
             realm.cancelTransaction();
         }
     }
-/*
+
     @Test
     public void setter_nullOnRequiredFieldsThrows() {
         realm.beginTransaction();
@@ -378,7 +378,7 @@ public class DynamicRealmObjectTests {
             realm.cancelTransaction();
         }
     }
-*/
+
     // Test types where you can set null using the typed setter instead of using setNull().
     @Test
     public void typedSetter_null() {
