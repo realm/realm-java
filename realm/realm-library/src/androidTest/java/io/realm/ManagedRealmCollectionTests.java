@@ -129,7 +129,7 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         .getFieldList();
 
             case REALMRESULTS:
-                return realm.allObjectsSorted(AllJavaTypes.class, AllJavaTypes.FIELD_LONG, Sort.ASCENDING);
+                return realm.allObjects(AllJavaTypes.class);
 
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
@@ -636,11 +636,6 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
-    public void getRealm() {
-        assertTrue(realm == collection.getRealm());
-    }
-
-    @Test
     public void contains_deletedRealmObject() {
         AllJavaTypes obj = collection.iterator().next();
         realm.beginTransaction();
@@ -660,22 +655,36 @@ public class ManagedRealmCollectionTests extends CollectionTests {
     @Test
     public void mutableMethodsOutsideTransactions() {
         for (CollectionMutatorMethod method : CollectionMutatorMethod.values()) {
-            //noinspection TryWithIdenticalCatches
+
+            // Define expected exception
+            Class<? extends Throwable> expected = IllegalStateException.class;
+            if (collectionClass == ManagedCollection.REALMRESULTS) {
+                switch (method) {
+                    case ADD_OBJECT:
+                    case ADD_ALL_OBJECTS:
+                    case CLEAR:
+                    case REMOVE_OBJECT:
+                    case REMOVE_ALL:
+                    case RETAIN_ALL:
+                        expected = UnsupportedOperationException.class;
+                }
+            }
+
             try {
                 switch (method) {
                     case DELETE_ALL: collection.deleteAllFromRealm(); break;
                     case ADD_OBJECT: collection.add(new AllJavaTypes());
-                    case ADD_ALL_OBJECTS: collection.addAll(Arrays.asList(new AllJavaTypes())); break;
+                    case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllJavaTypes())); break;
                     case CLEAR: collection.clear(); break;
                     case REMOVE_OBJECT: collection.remove(new AllJavaTypes()); break;
-                    case REMOVE_ALL: collection.removeAll(Arrays.asList(new AllJavaTypes())); break;
-                    case RETAIN_ALL: collection.retainAll(Arrays.asList(new AllJavaTypes())); break;
+                    case REMOVE_ALL: collection.removeAll(Collections.singletonList(new AllJavaTypes())); break;
+                    case RETAIN_ALL: collection.retainAll(Collections.singletonList(new AllJavaTypes())); break;
                 }
                 fail("Unknown method or it failed to throw: " + method);
-            } catch (IllegalStateException ignored) {
-                // Thrown by implementations supporting the method.
-            } catch (UnsupportedOperationException ignored) {
-                // Thrown by implementations not supporting the method.
+            } catch (Throwable t) {
+                if (!t.getClass().equals(expected)) {
+                    fail(method + " didn't throw the expected exception. Was: " + t + ", expected: " + expected);
+                }
             }
         }
     }
@@ -711,8 +720,6 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     return false;
                 } catch (IllegalStateException ignored) {
                     return true;
-                } catch (UnsupportedOperationException ignored) {
-                    return true; // Some subclasses do not implement all methods.
                 }
             }
         });
@@ -727,12 +734,27 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
+
+                // Define expected exception
+                Class<? extends Throwable> expected = IllegalStateException.class;
+                if (collectionClass == ManagedCollection.REALMRESULTS) {
+                    switch (method) {
+                        case ADD_OBJECT:
+                        case ADD_ALL_OBJECTS:
+                        case CLEAR:
+                        case REMOVE_OBJECT:
+                        case REMOVE_ALL:
+                        case RETAIN_ALL:
+                            expected = UnsupportedOperationException.class;
+                    }
+                }
+
                 try {
                     switch (method) {
                         case ADD_OBJECT: collection.add(new AllJavaTypes()); break;
-                        case ADD_ALL_OBJECTS: collection.addAll(Arrays.asList(new AllJavaTypes())); break;
+                        case ADD_ALL_OBJECTS: collection.addAll(Collections.singletonList(new AllJavaTypes())); break;
                         case CLEAR: collection.clear(); case CONTAINS:
-                        case CONTAINS_ALL: collection.containsAll(Arrays.asList(new AllJavaTypes())); break;
+                        case CONTAINS_ALL: collection.containsAll(Collections.singletonList(new AllJavaTypes())); break;
                         case EQUALS: collection.equals(createCollection(collectionClass)); break;
                         case HASHCODE:
                             //noinspection ResultOfMethodCallIgnored
@@ -748,11 +770,12 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case TO_ARRAY_INPUT: collection.toArray(new Object[collection.size()]); break;
                     }
                     return false;
-                } catch (IllegalStateException ignored) {
-                    return true;
-                } catch (UnsupportedOperationException ignored) {
-                    return true; // Some subclasses do not implement all methods.
+                } catch (Throwable t) {
+                    if (!t.getClass().equals(expected)) {
+                        return false;
+                    }
                 }
+                return true;
             }
         });
         Boolean result = future.get();

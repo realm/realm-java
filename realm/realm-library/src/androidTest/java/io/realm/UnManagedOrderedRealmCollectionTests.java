@@ -179,8 +179,4 @@ public class UnManagedOrderedRealmCollectionTests extends CollectionTests {
         assertFalse(collection.isValid());
     }
 
-    @Test
-    public void getRealm() {
-        assertNull(collection.getRealm());
-    }
 }

@@ -177,7 +177,7 @@ public class LinkView extends NativeObject {
 
     private void checkImmutable() {
         if (parent.isImmutable()) {
-            throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
+            throw new IllegalStateException("Changing Realm data can only be done from inside a write transaction.");
         }
     }
 

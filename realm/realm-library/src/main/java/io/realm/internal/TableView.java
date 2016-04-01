@@ -774,7 +774,7 @@ public class TableView implements TableOrView, Closeable {
 
 
     private void throwImmutable() {
-        throw new IllegalStateException("Mutable method call during read transaction.");
+        throw new IllegalStateException("Realm data can only be changed inside a write transaction.");
     }
 
     protected long nativePtr;

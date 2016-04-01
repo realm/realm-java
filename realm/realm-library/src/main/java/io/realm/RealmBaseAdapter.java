@@ -53,7 +53,31 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
         };
 
         if (listener != null && data != null) {
-            data.getRealm().handlerController.addChangeListenerAsWeakReference(listener);
+            addListener(data);
+        }
+    }
+
+    private void addListener(OrderedRealmCollection<T> data) {
+        if (data instanceof RealmResults) {
+            RealmResults realmResults = (RealmResults) data;
+            realmResults.realm.handlerController.addChangeListenerAsWeakReference(listener);
+        } else if (data instanceof RealmList) {
+            RealmList realmList = (RealmList) data;
+            realmList.realm.handlerController.addChangeListenerAsWeakReference(listener);
+        } else {
+            throw new IllegalArgumentException("RealmCollection not supported: " + data.getClass());
+        }
+    }
+
+    private void removeListener(OrderedRealmCollection<T> data) {
+        if (data instanceof RealmResults) {
+            RealmResults realmResults = (RealmResults) data;
+            realmResults.realm.handlerController.removeWeakChangeListener(listener);
+        } else if (data instanceof RealmList) {
+            RealmList realmList = (RealmList) data;
+            realmList.realm.handlerController.removeWeakChangeListener(listener);
+        } else {
+            throw new IllegalArgumentException("RealmCollection not supported: " + data.getClass());
         }
     }
 
@@ -98,23 +122,35 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     /**
-     * Updates the RealmResults associated to the Adapter. Useful when the query has been changed.
-     * If the query does not change you might consider using the automaticUpdate feature.
-     *
-     * @param queryResults the new RealmResults coming from the new query.
+     * DEPRECATED: Use {@link #updateData(OrderedRealmCollection)} instead.
      */
+    @Deprecated
     public void updateRealmResults(RealmResults<T> queryResults) {
+        updateData(queryResults);
+    }
+
+    /**
+     * Updates the data associated with the Adapter.
+     *
+     * Note that RealmResults and RealmLists are "live" views, so they will automatically be updated to reflect the
+     * latest changes. This will also trigger {@code notifyDataSetChanged()} to be called on the adapter.
+     *
+     * This method is therefor only useful if you want to display data based on a new query without replacing the
+     * adapter.
+     *
+     * @param data the new {@link OrderedRealmCollection} to display.
+     */
+    public void updateData(OrderedRealmCollection<T> data) {
         if (listener != null) {
-            // Making sure that Adapter is refreshed correctly if new RealmResults come from another Realm
-            if (this.adapterData != null) {
-                this.adapterData.getRealm().removeChangeListener(listener);
+            if (adapterData != null) {
+                removeListener(adapterData);
             }
-            if (queryResults != null) {
-                queryResults.realm.addChangeListener(listener);
+            if (data != null) {
+                addListener(data);
             }
         }
 
-        this.adapterData = queryResults;
+        this.adapterData = data;
         notifyDataSetChanged();
     }
 }

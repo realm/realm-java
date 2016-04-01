@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.CyclicType;
@@ -39,6 +40,7 @@ import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.Func1;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -579,6 +581,180 @@ public class RxJavaTests {
 
         subscription.unsubscribe();
         assertTrue(dynamicRealm.isClosed());
+    }
+
+    // Tests that Observables keep strong references to their parent, so they are not accidentally GC'ed while
+    // waiting for results from the async API's.
+    @Test
+    @RunTestInLooperThread
+    public void realmResults_gcStressTest() {
+        final int TEST_SIZE = 50;
+        final AtomicLong innerCounter = new AtomicLong();
+        final Realm realm = looperThread.realm;
+
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            realm.createObject(AllTypes.class).setColumnLong(i);
+        }
+        realm.commitTransaction();
+
+        for (int i = 0; i < TEST_SIZE; i++) {
+            // Don't keep a reference to the Observable
+            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, i).findAllAsync().asObservable()
+                    .filter(new Func1<RealmResults<AllTypes>, Boolean>() {
+                        @Override
+                        public Boolean call(RealmResults<AllTypes> results) {
+                            return results.isLoaded();
+                        }
+                    })
+                    .take(1) // Unsubscribes from Realm
+                    .subscribe(new Action1<RealmResults<AllTypes>>() {
+                        @Override
+                        public void call(RealmResults<AllTypes> result) {
+                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result
+                            Runtime.getRuntime().gc();
+                            if (innerCounter.incrementAndGet() == TEST_SIZE) {
+                                looperThread.testComplete();
+                            }
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            fail(throwable.toString());
+                        }
+                    });
+        }
+    }
+
+    // Tests that Observables keep strong references to their parent, so they are not accidentally GC'ed while
+    // waiting for results from the async API's.
+    @Test
+    @RunTestInLooperThread
+    public void dynamicRealmResults_gcStressTest() {
+        final int TEST_SIZE = 50;
+        final AtomicLong innerCounter = new AtomicLong();
+        final DynamicRealm realm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            realm.createObject(AllTypes.CLASS_NAME).set(AllTypes.FIELD_LONG, i);
+        }
+        realm.commitTransaction();
+
+        for (int i = 0; i < TEST_SIZE; i++) {
+            // Don't keep a reference to the Observable
+            realm.where(AllTypes.CLASS_NAME).equalTo(AllTypes.FIELD_LONG, i).findAllAsync().asObservable()
+                    .filter(new Func1<RealmResults<DynamicRealmObject>, Boolean>() {
+                        @Override
+                        public Boolean call(RealmResults<DynamicRealmObject> results) {
+                            return results.isLoaded();
+                        }
+                    })
+                    .take(1) // Unsubscribes from Realm
+                    .subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
+                        @Override
+                        public void call(RealmResults<DynamicRealmObject> result) {
+                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result
+                            Runtime.getRuntime().gc();
+                            if (innerCounter.incrementAndGet() == TEST_SIZE) {
+                                realm.close();
+                                looperThread.testComplete();
+                            }
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            fail(throwable.toString());
+                        }
+                    });
+        }
+    }
+
+    // Tests that Observables keep strong references to their parent, so they are not accidentally GC'ed while
+    // waiting for results from the async API's.
+    @Test
+    @RunTestInLooperThread
+    public void realmObject_gcStressTest() {
+        final int TEST_SIZE = 50;
+        final AtomicLong innerCounter = new AtomicLong();
+        final Realm realm = looperThread.realm;
+
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            realm.createObject(AllTypes.class).setColumnLong(i);
+        }
+        realm.commitTransaction();
+
+        for (int i = 0; i < TEST_SIZE; i++) {
+            // Don't keep a reference to the Observable
+            realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, i).findFirstAsync().<AllTypes>asObservable()
+                    .filter(new Func1<AllTypes, Boolean>() {
+                        @Override
+                        public Boolean call(AllTypes obj) {
+                            return obj.isLoaded();
+                        }
+                    })
+                    .take(1) // Unsubscribes from Realm
+                    .subscribe(new Action1<AllTypes>() {
+                        @Override
+                        public void call(AllTypes result) {
+                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result
+                            Runtime.getRuntime().gc();
+                            if (innerCounter.incrementAndGet() == TEST_SIZE) {
+                                looperThread.testComplete();
+                            }
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            fail(throwable.toString());
+                        }
+                    });
+        }
+    }
+
+    // Tests that Observables keep strong references to their parent, so they are not accidentally GC'ed while
+    // waiting for results from the async API's.
+    @Test
+    @RunTestInLooperThread
+    public void dynamicRealmObject_gcStressTest() {
+        final int TEST_SIZE = 50;
+        final AtomicLong innerCounter = new AtomicLong();
+        final DynamicRealm realm = DynamicRealm.getInstance(looperThread.realmConfiguration);
+
+        realm.beginTransaction();
+        for (int i = 0; i < TEST_SIZE; i++) {
+            realm.createObject(AllTypes.CLASS_NAME).set(AllTypes.FIELD_LONG, i);
+        }
+        realm.commitTransaction();
+
+        for (int i = 0; i < TEST_SIZE; i++) {
+            // Don't keep a reference to the Observable
+            realm.where(AllTypes.CLASS_NAME).equalTo(AllTypes.FIELD_LONG, i).findFirstAsync().<DynamicRealmObject>asObservable()
+                    .filter(new Func1<DynamicRealmObject, Boolean>() {
+                        @Override
+                        public Boolean call(DynamicRealmObject obj) {
+                            return obj.isLoaded();
+                        }
+                    })
+                    .take(1) // Unsubscribes from Realm
+                    .subscribe(new Action1<DynamicRealmObject>() {
+                        @Override
+                        public void call(DynamicRealmObject result) {
+                            // Not guaranteed, but can result in the GC of other RealmResults waiting for a result
+                            Runtime.getRuntime().gc();
+                            if (innerCounter.incrementAndGet() == TEST_SIZE) {
+                                realm.close();
+                                looperThread.testComplete();
+                            }
+                        }
+                    }, new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable throwable) {
+                            fail(throwable.toString());
+                        }
+                    });
+        }
     }
 
 }

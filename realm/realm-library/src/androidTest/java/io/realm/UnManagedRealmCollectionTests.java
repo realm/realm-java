@@ -128,11 +128,6 @@ public class UnManagedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
-    public void getRealm() {
-        assertNull(collection.getRealm());
-    }
-
-    @Test
     public void contains() {
         AllJavaTypes obj = collection.iterator().next();
         assertTrue(collection.contains(obj));

@@ -117,8 +117,8 @@ import static org.junit.Assert.fail;
 public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
     private static final int TEST_SIZE = 10;
-    private final static int TEST_DATA_FIRST_HALF = (int) (2 * (TEST_SIZE / 4.0D) - 1);
-    private final static int TEST_DATA_LAST_HALF = (int) (2 * (TEST_SIZE / 4.0D) + 1);
+    private final static int TEST_DATA_FIRST_HALF = (int) ((TEST_SIZE / 2.0D) - 1);
+    private final static int TEST_DATA_LAST_HALF = (int) ((TEST_SIZE / 2.0D) + 1);
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
@@ -226,8 +226,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
 
         int numberOfDigits = 1 + ((int) Math.log10(TEST_SIZE));
         int largestNumber = 1;
-        for (int i = 1; i < numberOfDigits; i++)
-            largestNumber *= 10;  // 10*10* ... *10
+        largestNumber = (int) (largestNumber * Math.pow(10, numberOfDigits - 1));
         largestNumber = largestNumber - 1;
         assertEquals(resultList.get(largestNumber).getFieldString(), reverseList.last().getFieldString());
         RealmResults<AllJavaTypes> reverseSortedList = reverseList.sort(AllJavaTypes.FIELD_STRING, Sort.DESCENDING);
@@ -241,7 +240,7 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         sortedList = sortedList.sort(AllJavaTypes.FIELD_DOUBLE, Sort.DESCENDING);
         assertEquals(resultList.size(), sortedList.size());
         assertEquals(TEST_SIZE, sortedList.size());
-            assertEquals(resultList.first().getFieldDouble(), sortedList.last().getFieldDouble(), 0D);
+        assertEquals(resultList.first().getFieldDouble(), sortedList.last().getFieldDouble(), 0D);
 
         RealmResults<AllJavaTypes> reverseList = sortedList.sort(AllJavaTypes.FIELD_DOUBLE, Sort.ASCENDING);
         assertEquals(TEST_SIZE, reverseList.size());
@@ -702,8 +701,6 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                     return false;
                 } catch (IllegalStateException ignored) {
                     return true;
-                } catch (UnsupportedOperationException ignored) {
-                    return true; // Some subclasses do not implement all methods.
                 }
             }
         });
@@ -718,6 +715,21 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         Future<Boolean> future = executorService.submit(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
+                // Define expected exception
+                Class<? extends Throwable> expected = IllegalStateException.class;
+                if (collectionClass == ManagedCollection.REALMRESULTS) {
+                    switch (method) {
+                        case ADD_INDEX:
+                        case ADD_ALL_INDEX:
+                        case SET:
+                        case REMOVE_INDEX:
+                            expected = UnsupportedOperationException.class;
+                            break;
+                        default:
+                            // Use default exception
+                    }
+                }
+
                 try {
                     switch (method) {
                         case FIRST: collection.first(); break;
@@ -734,16 +746,16 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
                         case SUBLIST: collection.subList(0, 1); break;
                     }
                     return false;
-                } catch (IllegalStateException ignored) {
-                    return true;
-                } catch (UnsupportedOperationException ignored) {
-                    return true; // Some subclasses do not implement all methods.
+                } catch (Throwable t) {
+                    if (!t.getClass().equals(expected)) {
+                        return false;
+                    }
                 }
+                return true;
             }
         });
         Boolean result = future.get();
         realm.cancelTransaction();
         return result;
     }
-
 }

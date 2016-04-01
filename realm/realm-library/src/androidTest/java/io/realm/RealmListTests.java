@@ -773,7 +773,7 @@ public class RealmListTests extends CollectionTests {
             dogs.deleteAllFromRealm();
             fail("removeAllFromRealm should be called in a transaction.");
         } catch (IllegalStateException e) {
-            assertEquals("Changing Realm data can only be done from inside a transaction.", e.getMessage());
+            assertEquals("Changing Realm data can only be done from inside a write transaction.", e.getMessage());
         }
     }
 

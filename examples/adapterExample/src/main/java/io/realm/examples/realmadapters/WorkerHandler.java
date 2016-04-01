@@ -51,7 +51,7 @@ public class WorkerHandler extends Handler {
                 break;
             case REMOVE_TIMESTAMP:
                 realm.beginTransaction();
-                realm.where(TimeStamp.class).equalTo("timeStamp", timestamp).findAll().clear();
+                realm.where(TimeStamp.class).equalTo("timeStamp", timestamp).findAll().deleteAllFromRealm();
                 realm.commitTransaction();
                 break;
         }

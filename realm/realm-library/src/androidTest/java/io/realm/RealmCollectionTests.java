@@ -4,14 +4,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,7 +53,7 @@ import static org.junit.Assert.assertTrue;
  * + public boolean equals(Object object);
  * + public int hashCode();
  * + public boolean isEmpty();
- * + public Iterator<E> iterator();
+ * - public Iterator<E> iterator();
  * + public boolean remove(Object object);
  * + public boolean removeAll(Collection<?> collection);
  * + public boolean retainAll(Collection<?> collection);
@@ -73,8 +71,6 @@ public class RealmCollectionTests extends CollectionTests {
 
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     private final CollectionClass collectionClass;
     private Realm realm;
@@ -93,11 +89,6 @@ public class RealmCollectionTests extends CollectionTests {
     public void setup() {
         realm = Realm.getInstance(configFactory.createConfiguration());
         collection = createCollection(collectionClass);
-    }
-
-    @After
-    public void tearDown() {
-        realm.close();
     }
 
     private RealmCollection<AllJavaTypes> createCollection(CollectionClass collectionClass) {
@@ -137,6 +128,12 @@ public class RealmCollectionTests extends CollectionTests {
         }
 
         throw new AssertionError("Unknown collection: " + collectionClass);
+    }
+
+
+    @After
+    public void tearDown() {
+        realm.close();
     }
 
     private void createNewObject() {
@@ -273,4 +270,5 @@ public class RealmCollectionTests extends CollectionTests {
             i++;
         }
     }
+
 }

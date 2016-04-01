@@ -20,7 +20,6 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Date;
 import java.util.List;
@@ -114,10 +113,10 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     }
 
     /**
-     * Checks if {@link io.realm.RealmResults} is still valid to use i.e. the {@link io.realm.Realm} instance hasn't
-     * been closed.
+     * Checks if the {@link RealmList} is managed by Realm and contains valid data i.e. the {@link io.realm.Realm}
+     * instance hasn't been closed.
      *
-     * @return {@code true} if still valid to use, {@code false} otherwise or if it is a standalone object.
+     * @return {@code true} if still valid to use, {@code false} otherwise or if it's an un-managed list.
      */
     public boolean isValid() {
         //noinspection SimplifiableIfStatement
@@ -125,14 +124,6 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             return false;
         }
         return isAttached();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public BaseRealm getRealm() {
-        return realm;
     }
 
     private boolean isAttached() {

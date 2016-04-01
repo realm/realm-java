@@ -35,7 +35,6 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.exceptions.RealmException;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -139,11 +138,6 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         collection = createCollection(realm, collectionClass);
     }
 
-    @After
-    public void tearDown() {
-        realm.close();
-    }
-
     private OrderedRealmCollection<AllJavaTypes> createCollection(Realm realm, CollectionClass collectionClass) {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
@@ -184,8 +178,8 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         }
     }
 
-    // Returns a collection with multiple copies of the same object
     private Pair<AllJavaTypes, OrderedRealmCollection<AllJavaTypes>> createCollectionWithMultipleCopies(Realm realm, CollectionClass collectionClass) {
+
         AllJavaTypes obj;
         switch (collectionClass) {
             case MANAGED_REALMLIST:
@@ -210,6 +204,11 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
+    }
+
+    @After
+    public void tearDown() {
+        realm.close();
     }
 
     private void createNewObject() {

@@ -19,9 +19,15 @@ package io.realm;
 import java.util.Collection;
 import java.util.Date;
 
+import java.util.Collections;
+
 /**
  * {@code RealmCollection} is the root of the collection hierarchy that Realm supports. It defines operations on data
  * collections and the behavior that they will have in all implementations of {@code RealmCollection}s.
+ *
+ * Realm collections are "live" views to the underlying data. This means that they automatically will be kept up to
+ * date. As a consequence, using methods like {@link Collections#unmodifiableCollection(Collection)} will not prevent
+ * a collection from being modified.
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
@@ -139,13 +145,6 @@ public interface RealmCollection<E extends RealmObject> extends Collection<E> {
      * @return {@code true} if still valid to use, {@code false} otherwise.
      */
     boolean isValid();
-
-    /**
-     * Returns the Realm instance backing this collection.
-     *
-     * @return the {@link BaseRealm} backing this collection or {@code null} if it is an un-managed collection.
-     */
-    BaseRealm getRealm();
 
     /**
      * Tests whether this {@code Collection} contains the specified object. Returns

@@ -164,14 +164,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
      * {@inheritDoc}
      */
     @Override
-    public BaseRealm getRealm() {
-        return realm;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public RealmQuery<E> where() {
         realm.checkIfValid();
 
@@ -656,11 +648,28 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     /**
      * Removes the first object in the list. This also deletes the object from the underlying Realm.
      *
+     * DEPRECATED: Use {@link #deleteFirstFromRealm()} instead.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     */
+    @Deprecated
+    public boolean removeFirst() {
+        return deleteFirstFromRealm();
+    }
+
+    void syncIfNeeded() {
+        long newVersion = table.syncIfNeeded();
+        viewUpdated = newVersion != currentTableViewVersion;
+        currentTableViewVersion = newVersion;
+	}
+
+    /**
+     * Removes the first object in the list. This also deletes the object from the underlying Realm.
+     *
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
     @Override
     public boolean deleteFirstFromRealm() {
-        realm.checkIfValid();
         if (size() > 0) {
             TableOrView table = getTable();
             table.removeFirst();
@@ -669,12 +678,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
             return false;
         }
     }
-
-    void syncIfNeeded() {
-        long newVersion = table.syncIfNeeded();
-        viewUpdated = newVersion != currentTableViewVersion;
-        currentTableViewVersion = newVersion;
-	}
 
     /**
      * Not supported by RealmResults.
@@ -686,7 +689,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     public void clear() {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
-
 
     /**
      * Not supported by RealmResults.

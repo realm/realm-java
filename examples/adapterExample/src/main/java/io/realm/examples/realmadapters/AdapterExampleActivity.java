@@ -66,7 +66,7 @@ public class AdapterExampleActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        workerThread.workerHandler.getLooper().quit();
+        workerThread.quit();
     }
 
     @Override

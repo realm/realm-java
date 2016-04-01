@@ -33,7 +33,7 @@ public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapte
         TextView timestamp;
     }
 
-    public MyAdapter(Context context, int resId, RealmResults<TimeStamp> realmResults, boolean automaticUpdate) {
+    public MyAdapter(Context context, int resId, OrderedRealmCollection<TimeStamp> realmResults, boolean automaticUpdate) {
         super(context, realmResults, automaticUpdate);
     }
 
