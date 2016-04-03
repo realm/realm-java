@@ -46,6 +46,7 @@ repositories {
 
 dependencies {
     provided 'io.reactivex:rxjava:1.1.0'
+    compile "com.android.support:recyclerview-v7:23.1.1"
     compile "io.realm:realm-annotations:${version}"
 
     androidTestCompile 'io.reactivex:rxjava:1.1.0'
