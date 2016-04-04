@@ -345,7 +345,7 @@ public class DynamicRealmObjectTests {
             realm.cancelTransaction();
         }
     }
-
+/*
     @Test
     public void setter_nullOnRequiredFieldsThrows() {
         realm.beginTransaction();
@@ -425,7 +425,7 @@ public class DynamicRealmObjectTests {
             realm.cancelTransaction();
         }
     }
-
+*/
     @Test
     public void setObject_differentType() {
         realm.beginTransaction();

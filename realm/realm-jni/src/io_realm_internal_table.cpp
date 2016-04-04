@@ -831,8 +831,9 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetNull(
         return;
     if (!TBL_AND_ROW_INDEX_VALID(env, pTable, rowIndex))
         return;
-    if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
+    if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex)) {
         return;
+    }
     try {
         return pTable->set_null(S(columnIndex), S(rowIndex));
     } CATCH_STD()
@@ -1227,13 +1228,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeFindFirstNull(
 {
     Table* pTable = TBL(nativeTablePtr);
     if (!TBL_AND_COL_INDEX_VALID(env, pTable, columnIndex))
-        return to_jlong_or_not_found(realm::not_found);
+        return 0;
     if (!TBL_AND_COL_NULLABLE(env, pTable, columnIndex))
-        return to_jlong_or_not_found(realm::not_found);
+        return 0;
     try {
         return to_jlong_or_not_found( pTable->find_first_null( S(columnIndex) ) );
     } CATCH_STD()
-    return to_jlong_or_not_found(realm::not_found);
+    return 0;
 }
 
 // FindAll
