@@ -110,6 +110,22 @@ public class TestHelper {
         return t;
     }
 
+    /**
+     * Creates an empty table with 1 column of all nullable primary key type
+     * @return Table with Nullable PrimaryKey types
+     */
+    public static Table getTableWithNullablePrimaryKeyTypes(){
+        Table t = new Table();
+
+        t.addColumn(RealmFieldType.STRING, "String", Table.NULLABLE);
+        t.addColumn(RealmFieldType.INTEGER, "Byte", Table.NULLABLE);
+        t.addColumn(RealmFieldType.INTEGER, "Short", Table.NULLABLE);
+        t.addColumn(RealmFieldType.INTEGER, "Integer", Table.NULLABLE);
+        t.addColumn(RealmFieldType.INTEGER, "Long", Table.NULLABLE);
+
+        return t;
+    }
+
     public static String streamToString(InputStream in) throws IOException {
         BufferedReader br = null;
         StringBuilder sb = new StringBuilder();

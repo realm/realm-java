@@ -658,9 +658,18 @@ public class Table implements TableOrView, TableSchema, Closeable {
     // check if it is ok to use null value for given row and column.
     void checkNullValueIsLeval(long columnIndex, long rowToUpdate) {
         if (isPrimaryKeyColumn(columnIndex)) {
-            long rowIndex = findFirstNull(columnIndex);
-            if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
-                throwDuplicatePrimaryKeyException("null");
+            RealmFieldType type = getColumnType(columnIndex);
+            switch (type) {
+                case STRING:
+                case INTEGER:
+                    long rowIndex = findFirstNull(columnIndex);
+                    if (rowIndex != rowToUpdate && rowIndex != TableOrView.NO_MATCH) {
+                        throwDuplicatePrimaryKeyException("null");
+                    }
+                    break;
+                default:
+                    // Since it is sufficient to check the existance of duplicated null values
+                    // on PrimaryKey in supported types only, this part is left empty.
             }
         }
     }

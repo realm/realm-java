@@ -283,6 +283,8 @@ public class UncheckedRow extends NativeObject implements Row {
 
     @Override
     public void setNull(long columnIndex) {
+        parent.checkImmutable();
+        getTable().checkNullValueIsLeval(columnIndex, getIndex());
         nativeSetNull(nativePointer, columnIndex);
     }
 
