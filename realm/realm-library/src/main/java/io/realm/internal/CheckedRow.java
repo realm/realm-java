@@ -102,6 +102,9 @@ public class CheckedRow extends UncheckedRow {
     public void setNull(long columnIndex) {
         RealmFieldType columnType = getColumnType(columnIndex);
         if (columnType == RealmFieldType.STRING) {
+            if (!this.getTable().isColumnNullable(columnIndex)) {
+                throw new IllegalArgumentException("field is not nullable");
+            }
             super.setString(columnIndex, null);
         }
         else if (columnType == RealmFieldType.BINARY) {
