@@ -3,6 +3,7 @@
 ### Enhancements
 
 * Throws an IllegalArgumentExcpetion when calling Realm.copyToRealm()/Realm.copyToRealmOrUpdate() with a RealmObject which belongs to another Realm instance in a different thread.
+* Improves speed of cleaning up native resources (#2496).
 
 ### Bug fixes
 
