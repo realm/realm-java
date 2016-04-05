@@ -789,7 +789,12 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
 
         protected void checkRealmIsStable() {
             long version = table.getVersion();
-            if (tableViewVersion > -1 && version != tableViewVersion) {
+            // All changes inside a write transaction will continuously update the table version, and we can
+            // thus not depend on the tableVersion heuristic in that case .
+            // You could argue that in that case it is not really a "ConcurrentModification", but this interpretation
+            // is still more lax than what the standard Java Collection API gives.
+            // TODO: Try to come up with a better scheme
+            if (!realm.isInTransaction() && tableViewVersion > -1 && version != tableViewVersion) {
                 throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
             }
             tableViewVersion = version;
@@ -1040,6 +1045,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     void notifyChangeListeners(boolean syncBeforeNotifying) {
         notifyChangeListeners(syncBeforeNotifying, false);
     }
+
     void notifyChangeListeners(boolean syncBeforeNotifying, boolean forceNotify) {
         if (syncBeforeNotifying) {
             syncIfNeeded();

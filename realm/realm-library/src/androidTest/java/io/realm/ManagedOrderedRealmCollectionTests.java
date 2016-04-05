@@ -26,7 +26,10 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -145,6 +148,11 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         collection = createCollection(collectionClass);
     }
 
+    @After
+    public void tearDown() {
+        realm.close();
+    }
+
     OrderedRealmCollection<AllJavaTypes> createCollection(ManagedCollection collectionClass) {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
@@ -176,12 +184,19 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         throw new AssertionError("Unknown collection: " + collectionClass);
     }
 
-    @After
-    public void tearDown() {
-        realm.close();
+    private void createNewObject() {
+        Number currentMax = realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG);
+        long nextId = 0;
+        if (currentMax != null) {
+            nextId = currentMax.longValue() + 1;
+        }
+
+        realm.beginTransaction();
+        realm.createObject(AllJavaTypes.class, nextId);
+        realm.commitTransaction();
     }
 
-    @Test
+   @Test
     public void sort_twoFields() {
         OrderedRealmCollection<AllJavaTypes> sortedList = collection.sort(AllJavaTypes.FIELD_BOOLEAN, Sort.ASCENDING, AllJavaTypes.FIELD_LONG, Sort.DESCENDING);
         AllJavaTypes obj = sortedList.first();
@@ -757,5 +772,62 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         Boolean result = future.get();
         realm.cancelTransaction();
         return result;
+    }
+
+    @Test
+    public void listIterator_closedRealm_methods() {
+        int location = TEST_SIZE / 2;
+        ListIterator<AllJavaTypes> it = collection.listIterator(location);
+        realm.close();
+
+        try {
+            it.previousIndex();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.nextIndex();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.hasNext();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.next();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.previous();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.remove();
+            fail();
+        } catch (IllegalStateException ignored) {
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    // FIXME: Unfortunately this corner case is un-fixable for non-looper threads until we can remove `realm.refresh()`
+    // by introducing waitForChange instead.
+    @Test
+    public void listIterator_refreshWhileIterating() {
+        Iterator<AllJavaTypes> it = collection.listIterator();
+        it.next();
+
+        createNewObject();
+        realm.refresh(); // This will trigger rerunning all queries
+        thrown.expect(ConcurrentModificationException.class);
+        it.next(); // This can return anything :(
     }
 }

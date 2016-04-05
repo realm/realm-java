@@ -20,6 +20,7 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Date;
 import java.util.List;
@@ -808,7 +809,6 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             if (!realm.isInTransaction()) {
                 throw new IllegalStateException("Can only remove objects if inside a write transaction.");
             }
-            // TODO Should also delete the element in the list.
             RealmList.this.remove(pos);
             pos--;
             removeUsed = true;
@@ -816,9 +816,14 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
 
         protected void checkRealmIsStable() {
             long version = view.getTable().getVersion();
-//            if (tableViewVersion > -1 && version != tableViewVersion) {
-//                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
-//            }
+            // All changes inside a write transaction will continuously update the table version, and we can
+            // thus not depend on the tableVersion heuristic in that case .
+            // You could argue that in that case it is not really a "ConcurrentModification", but this interpretation
+            // is still more lax than what the standard Java Collection API gives.
+            // TODO: Try to come up with a better scheme
+            if (!realm.isInTransaction() && tableViewVersion > -1 && version != tableViewVersion) {
+                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
+            }
             tableViewVersion = version;
         }
     }
@@ -870,11 +875,13 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
         public E previous() {
             realm.checkIfValid();
             checkRealmIsStable();
-            pos--;
-            if (pos < 0) {
+            try {
+                E obj = get(pos);
+                pos--;
+                return obj;
+            } catch (IndexOutOfBoundsException e) {
                 throw new NoSuchElementException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
             }
-            return get(pos);
         }
 
         /**

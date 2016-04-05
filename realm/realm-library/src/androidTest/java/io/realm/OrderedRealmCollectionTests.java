@@ -16,6 +16,8 @@
 
 package io.realm;
 
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.UiThreadTestRule;
 import android.util.Pair;
 
 import org.junit.After;
@@ -115,6 +117,8 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     private static final int TEST_SIZE = 10;
 
     @Rule
+    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
+    @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -212,8 +216,14 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     }
 
     private void createNewObject() {
+        Number currentMax = realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG);
+        long nextId = 0;
+        if (currentMax != null) {
+            nextId = currentMax.longValue() + 1;
+        }
+
         realm.beginTransaction();
-        realm.createObject(AllJavaTypes.class, realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG).longValue() + 1);
+        realm.createObject(AllJavaTypes.class, nextId);
         realm.commitTransaction();
     }
 
@@ -494,50 +504,6 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     }
 
     @Test
-    public void listIterator_closedRealm_methods() {
-        int location = TEST_SIZE / 2;
-        ListIterator<AllJavaTypes> it = collection.listIterator(location);
-        realm.close();
-
-        try {
-            it.previousIndex();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-
-        try {
-            it.nextIndex();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-
-        try {
-            it.hasNext();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-
-        try {
-            it.next();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-
-        try {
-            it.previous();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-
-        try {
-            it.remove();
-            fail();
-        } catch (IllegalStateException ignored) {
-        } catch (UnsupportedOperationException ignored) {
-        }
-    }
-
-    @Test
     public void listIterator_remove_beforeNext() {
         Iterator<AllJavaTypes> it = collection.listIterator();
         realm.beginTransaction();
@@ -551,13 +517,28 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         Iterator<AllJavaTypes> it = collection.listIterator();
         it.next();
         realm.beginTransaction();
-        it.remove();
 
-        thrown.expect(IllegalStateException.class);
-        it.remove();
+        switch (collectionClass) {
+            case MANAGED_REALMLIST:
+            case UNMANAGED_REALMLIST:
+                it.remove();
+                thrown.expect(IllegalStateException.class);
+                it.remove();
+                break;
+            case REALMRESULTS:
+                try {
+                    it.remove(); // Method not supported
+                    fail();
+                } catch (UnsupportedOperationException ignored) {
+                }
+                break;
+            default:
+                fail("Unknown collection class: " + collectionClass);
+        }
     }
 
     @Test
+    @UiThreadTest
     public void listIterator_transactionBeforeNextItem() {
         Iterator<AllJavaTypes> it = collection.listIterator();
         int i = 0;
@@ -566,21 +547,9 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             assertEquals("Failed at index: " + i, i, item.getFieldLong());
             i++;
 
-            // Committing transactions while iterating should not effect the current iterator.
+            // Committing transactions while iterating should not effect the current iterator if on a looper thread
             createNewObject();
         }
-    }
-
-    @Test
-    public void listIterator_refreshWhileIterating() {
-        Iterator<AllJavaTypes> it = collection.listIterator();
-        it.next();
-
-        createNewObject();
-        realm.refresh(); // This will trigger rerunning all queries
-
-        thrown.expect(ConcurrentModificationException.class);
-        it.next();
     }
 
     public void listIterator_refreshClearsRemovedObjects() {
@@ -588,7 +557,6 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         collection.iterator().next().deleteFromRealm();
         realm.commitTransaction();
 
-        // TODO How does refresh work with async queries?
         realm.refresh(); // Refresh forces a refresh of all RealmResults
 
         assertEquals(TEST_SIZE - 1, collection.size()); // Size is same even if object is deleted
@@ -598,5 +566,8 @@ public class OrderedRealmCollectionTests extends CollectionTests {
         assertTrue(types.isValid());
         assertEquals(1, types.getFieldLong());
     }
+
+
+
 
 }
