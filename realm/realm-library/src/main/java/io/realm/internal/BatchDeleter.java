@@ -1,10 +1,13 @@
 package io.realm.internal;
 
+import android.os.Debug;
+import android.util.Log;
+
 import java.util.Arrays;
 
 public class BatchDeleter {
     public static class PointerVector {
-        private static final int INITIAL_SIZE = 1024;
+        private static final int INITIAL_SIZE = 4096;
         private long[] pointers = new long[INITIAL_SIZE];
         private int length;
 

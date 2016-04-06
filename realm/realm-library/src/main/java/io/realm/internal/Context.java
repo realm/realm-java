@@ -102,10 +102,13 @@ public class Context {
 
         long startTime = System.nanoTime();
 
+        BatchDeleter batchDeleter = new BatchDeleter();
+        boolean flag = false;
         //Debug.startMethodTracing("/storage/sdcard0/ttt/" + totalCount);
         while (reference != null) {
             // Dealloc the native resources
-            reference.cleanup();
+            //reference.cleanup();
+            batchDeleter.add(reference);
             // Inline referencesPool.remove() to make it faster.
             // referencesPool.pool.set(index, null); is not really needed. Make it faster by not
             // setting the slot to null.
@@ -113,8 +116,10 @@ public class Context {
             reference = (NativeObjectReference) referenceQueue.poll();
 
             totalCount++;
+            flag = true;
         }
         //Debug.stopMethodTracing();
+        if (flag) batchDeleter.dealloc();
 
         long endTime = System.nanoTime();
         long elapsedTime = endTime - startTime;
