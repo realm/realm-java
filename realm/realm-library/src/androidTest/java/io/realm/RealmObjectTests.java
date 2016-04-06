@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.ConflictingFieldName;
+import io.realm.entities.CustomMethods;
 import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
@@ -403,12 +404,77 @@ public class RealmObjectTests {
     }
 
     @Test
+    public void equals_plainCustomMethod() {
+        realm.beginTransaction();
+        CustomMethods cm = realm.createObject(CustomMethods.class);
+        cm.setName("Foo");
+        realm.commitTransaction();
+
+        CustomMethods cm1 = realm.where(CustomMethods.class).findFirst();
+        CustomMethods cm2 = realm.where(CustomMethods.class).findFirst();
+        assertTrue(cm1.equals(cm2));
+    }
+
+    @Test
+    public void equals_reverseCustomMethod() {
+        realm.beginTransaction();
+        CustomMethods cm = realm.createObject(CustomMethods.class);
+        cm.setName("Foo");
+        realm.commitTransaction();
+
+        CustomMethods cm1 = realm.where(CustomMethods.class).findFirst();
+        CustomMethods cm2 = realm.where(CustomMethods.class).findFirst();
+
+        realm.beginTransaction();
+        cm1.reverseEquals = true;
+        realm.commitTransaction();
+
+        assertFalse(cm1.equals(cm2));
+    }
+
+    @Test
+    public void equals_unmanagedCustomMethod() {
+        CustomMethods cm1 = new CustomMethods();
+        cm1.setName("Bar");
+        CustomMethods cm2 = new CustomMethods();
+        cm2.setName("Bar");
+        assertTrue(cm1.equals(cm2));
+    }
+
+    @Test
+    public void equals_mixedCustomMethod() {
+        CustomMethods cm1 = new CustomMethods();
+        cm1.setName("Bar");
+        CustomMethods cm2 = new CustomMethods();
+        cm2.setName("Bar");
+
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.copyToRealm(cm1);
+        realm.commitTransaction();
+
+        CustomMethods cm3 = realm.where(CustomMethods.class).findFirst();
+        assertFalse(cm3.equals(cm2));
+        assertTrue(cm3.getName().equals(cm2.getName()));
+    }
+
+    @Test
     public void toString_cyclicObject() {
         realm.beginTransaction();
         CyclicType foo = createCyclicData();
         realm.commitTransaction();
         String expected = "CyclicType = [{id:0},{name:Foo},{date:null},{object:CyclicType},{otherObject:null},{objects:RealmList<CyclicType>[0]}]";
         assertEquals(expected, foo.toString());
+    }
+
+    @Test
+    public void toString_customMethod() {
+        realm.beginTransaction();
+        CustomMethods cm = realm.createObject(CustomMethods.class);
+        cm.setName("Foo");
+        realm.commitTransaction();
+        String expected = CustomMethods.CUSTOM_TO_STRING;
+        assertEquals(expected, cm.toString());
     }
 
     @Test
@@ -463,6 +529,15 @@ public class RealmObjectTests {
         } finally {
             realm_differentPath.close();
         }
+    }
+
+    @Test
+    public void hashCode_customMethod() {
+        realm.beginTransaction();
+        CustomMethods cm = realm.createObject(CustomMethods.class);
+        cm.setName("Foo");
+        realm.commitTransaction();
+        assertEquals(CustomMethods.HASHCODE, cm.hashCode());
     }
 
     private CyclicType createCyclicData(Realm realm) {
