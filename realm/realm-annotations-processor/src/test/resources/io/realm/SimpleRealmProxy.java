@@ -114,7 +114,7 @@ public class SimpleRealmProxy extends Simple
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'String' for field 'name' in existing Realm file.");
             }
             if (!table.isColumnNullable(columnInfo.nameIndex)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'name' is required. Either set @Required to field 'name' or migrate using io.realm.internal.Table.convertColumnToNullable().");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'name' is required. Either set @Required to field 'name' or migrate using RealmObjectSchema.setNullable().");
             }
             if (!columnTypes.containsKey("age")) {
                 throw new RealmMigrationNeededException(transaction.getPath(), "Missing field 'age' in existing Realm file. Either remove field or migrate using io.realm.internal.Table.addColumn().");
@@ -123,7 +123,7 @@ public class SimpleRealmProxy extends Simple
                 throw new RealmMigrationNeededException(transaction.getPath(), "Invalid type 'int' for field 'age' in existing Realm file.");
             }
             if (table.isColumnNullable(columnInfo.ageIndex)) {
-                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'age' does support null values in the existing Realm file. Use corresponding boxed type for field 'age' or migrate using io.realm.internal.Table.convertColumnToNotNullable().");
+                throw new RealmMigrationNeededException(transaction.getPath(), "Field 'age' does support null values in the existing Realm file. Use corresponding boxed type for field 'age' or migrate using RealmObjectSchema.setNullable().");
             }
             return columnInfo;
         } else {
@@ -141,7 +141,7 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public static Simple createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
-            throws JSONException {
+        throws JSONException {
         Simple obj = realm.createObject(Simple.class);
         if (json.has("name")) {
             if (json.isNull("name")) {
@@ -162,7 +162,7 @@ public class SimpleRealmProxy extends Simple
 
     @SuppressWarnings("cast")
     public static Simple createUsingJsonStream(Realm realm, JsonReader reader)
-            throws IOException {
+        throws IOException {
         Simple obj = realm.createObject(Simple.class);
         reader.beginObject();
         while (reader.hasNext()) {
@@ -191,8 +191,7 @@ public class SimpleRealmProxy extends Simple
 
     public static Simple copyOrUpdate(Realm realm, Simple object, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
         if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId) {
-            throw new IllegalArgumentException(
-                    "Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
+            throw new IllegalArgumentException("Objects which belong to Realm instances in other threads cannot be copied into this Realm instance.");
         }
         if (((RealmObject) object).realm != null && ((RealmObject) object).realm.getPath().equals(realm.getPath())) {
             return object;
