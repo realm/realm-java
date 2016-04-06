@@ -260,6 +260,7 @@ public final class RealmObjectSchema {
      *
      * @param fieldName existing field name to check.
      * @return {@code true} if field is indexed, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exist.
      * @see io.realm.annotations.Index
      */
     public boolean hasIndex(String fieldName) {
@@ -376,12 +377,12 @@ public final class RealmObjectSchema {
      * Checks if a given field is required, i.e. is not allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
-     * @return {@code true} if it is requied, {@code false} otherwise.
+     * @return {@code true} if it is required, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exist.
      * @see #setRequired(String, boolean)
      */
     public boolean isRequired(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return !table.isColumnNullable(columnIndex);
     }
 
@@ -389,13 +390,26 @@ public final class RealmObjectSchema {
      * Checks if a given field is nullable, i.e. is allowed to contain {@code null} values.
      *
      * @param fieldName field to check.
-     * @return {@code true} if it is requied, {@code false} otherwise.
+     * @return {@code true} if it is required, {@code false} otherwise.
      * @throws IllegalArgumentException if field name doesn't exist.
      * @see #setNullable(String, boolean)
      */
     public boolean isNullable(String fieldName) {
-        long columnIndex = table.getColumnIndex(fieldName);
+        long columnIndex = getColumnIndex(fieldName);
         return table.isColumnNullable(columnIndex);
+    }
+
+    /**
+     * Checks if a given field is the primary key field.
+     *
+     * @param fieldName field to check.
+     * @return {@code true} if it is the primary key field, {@code false} otherwise.
+     * @throws IllegalArgumentException if field name doesn't exist.
+     * @see #addPrimaryKey(String)
+     */
+    public boolean isPrimaryKey(String fieldName) {
+        long columnIndex = getColumnIndex(fieldName);
+        return columnIndex == table.getPrimaryKey();
     }
 
     /**
@@ -593,13 +607,27 @@ public final class RealmObjectSchema {
 
     /**
      * Returns the column index in the underlying table for the given field name.
-     * INVARIANT: fieldName should be present.
      *
      * @param fieldName field name to find index for.
-     * @return column index
+     * @return column index or null if it doesn't exists.
      */
     Long getFieldIndex(String fieldName) {
         return columnIndices.get(fieldName);
+    }
+
+    /**
+     * Returns the column index in the underlying table for the given field name.
+     *
+     * @param fieldName field name to find index for.
+     * @return column index.
+     * @throws IllegalArgumentException if the field does not exists.
+     */
+    long getAndCheckFieldIndex(String fieldName) {
+        Long index = columnIndices.get(fieldName);
+        if (index == null) {
+            throw new IllegalArgumentException("Field does not exist: " + fieldName);
+        }
+        return index;
     }
 
     /**

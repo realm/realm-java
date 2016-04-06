@@ -66,7 +66,7 @@ public class KotlinExampleActivity : Activity() {
         // Using executeTransaction with a lambda reduces code size and makes it impossible
         // to forget to commit the transaction.
         realm.executeTransaction {
-            realm.allObjects(Person::class.java).clear()
+            realm.allObjects(Person::class.java).deleteAllFromRealm()
         }
 
         // More complex operations can be executed on another thread, for example using

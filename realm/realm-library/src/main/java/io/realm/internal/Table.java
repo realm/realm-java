@@ -339,6 +339,12 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     @Override
+    public void removeFirst() {
+        checkImmutable();
+        remove(0);
+    }
+
+    @Override
     public void removeLast() {
         checkImmutable();
         nativeRemoveLast(nativePtr);

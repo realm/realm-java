@@ -79,6 +79,8 @@ public abstract class RealmObject {
     private long currentTableVersion = -1;
 
     /**
+     * DEPRECATED: Use {@link #deleteFromRealm()} instead.
+     *
      * Removes the object from the Realm it is currently associated to.
      * <p>
      * After this method is called the object will be invalid and any operation (read or write) performed on it will
@@ -86,7 +88,21 @@ public abstract class RealmObject {
      *
      * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
      */
+    @Deprecated
     public void removeFromRealm() {
+        deleteFromRealm();
+    }
+
+    /**
+     * Deletes the object from the Realm it is currently associated to.
+     * <p>
+     * After this method is called the object will be invalid and any operation (read or write) performed on it will
+     * fail with an IllegalStateException.
+     *
+     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     * @see #isValid()
+     */
+    public void deleteFromRealm() {
         if (row == null) {
             throw new IllegalStateException("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with Realm.createObject()");
         }

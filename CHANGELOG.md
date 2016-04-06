@@ -1,3 +1,25 @@
+## 0.89.0
+
+### Breaking changes
+
+* RealmResults.clear() now throws UnsupportedOperationException. Use RealmResults.deleteAllFromRealm() instead.
+* RealmResults.remove(int) now throws UnsupportedOperationException. Use RealmResults.deleteFromRealm() instead.
+
+### Deprecated
+
+* RealmObject.removeFromRealm() in place of RealmObject.deleteFromRealm()
+* Realm.clear(Class) in favour of Realm.delete(Class).
+* DynamicRealm.clear(Class) in place of DynamicRealm.delete(Class).
+
+### Enhancements
+* RealmCollection and OrderedRealmCollection have been added. RealmList and RealmResults both implement these interfaces.
+* RealmBaseAdapter now accept an OrderedRealmCollection instead of only RealmResults.
+* RealmObjectSchema.isPrimaryKey(String) (#2440)
+
+### Bug fixes
+
+* RealmObjectSchema.isRequired() and RealmObjectSchema.isNullable() don't throw when the give field name doesn't exist.
+
 ## 0.88.3
 
 * Updated Realm Core to 0.97.3.

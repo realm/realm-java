@@ -200,6 +200,23 @@ public class RxJavaTests {
     }
 
     @Test
+    @UiThreadTest
+    public void dynamicRealmResults_emittedOnSubscribe() {
+        final DynamicRealm dynamicRealm = DynamicRealm.createInstance(realm.getConfiguration());
+        final AtomicBoolean subscribedNotified = new AtomicBoolean(false);
+        final RealmResults<DynamicRealmObject> results = dynamicRealm.allObjects(AllTypes.CLASS_NAME);
+        results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
+            @Override
+            public void call(RealmResults<DynamicRealmObject> rxResults) {
+                assertTrue(rxResults == results);
+                subscribedNotified.set(true);
+            }
+        });
+        assertTrue(subscribedNotified.get());
+        dynamicRealm.close();
+    }
+
+    @Test
     @RunTestInLooperThread
     public void realmResults_emittedOnUpdate() {
         final AtomicInteger subscriberCalled = new AtomicInteger(0);
@@ -220,6 +237,30 @@ public class RxJavaTests {
         realm.beginTransaction();
         realm.createObject(AllTypes.class);
         realm.commitTransaction();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void dynamicRealmResults_emittedOnUpdate() {
+        final AtomicInteger subscriberCalled = new AtomicInteger(0);
+        final DynamicRealm dynamicRealm = DynamicRealm.createInstance(looperThread.realmConfiguration);
+        dynamicRealm.beginTransaction();
+        RealmResults<DynamicRealmObject> results = dynamicRealm.allObjects(AllTypes.CLASS_NAME);
+        dynamicRealm.commitTransaction();
+
+        results.asObservable().subscribe(new Action1<RealmResults<DynamicRealmObject>>() {
+            @Override
+            public void call(RealmResults<DynamicRealmObject> allTypes) {
+                if (subscriberCalled.incrementAndGet() == 2) {
+                    dynamicRealm.close();
+                    looperThread.testComplete();
+                }
+            }
+        });
+
+        dynamicRealm.beginTransaction();
+        dynamicRealm.createObject(AllTypes.CLASS_NAME);
+        dynamicRealm.commitTransaction();
     }
 
     @Test
