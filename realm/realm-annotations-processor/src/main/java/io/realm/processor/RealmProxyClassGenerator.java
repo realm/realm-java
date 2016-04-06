@@ -831,6 +831,9 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitToStringMethod(JavaWriter writer) throws IOException {
+        if (metadata.containsToString()) {
+            return;
+        }
         writer.emitAnnotation("Override");
         writer.beginMethod("String", "toString", EnumSet.of(Modifier.PUBLIC));
         writer.beginControlFlow("if (!isValid())");
@@ -879,6 +882,9 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitHashcodeMethod(JavaWriter writer) throws IOException {
+        if (metadata.containsHashCode()) {
+            return;
+        }
         writer.emitAnnotation("Override");
         writer.beginMethod("int", "hashCode", EnumSet.of(Modifier.PUBLIC));
         writer.emitStatement("String realmName = ((RealmObject) this).realm.getPath()");
@@ -895,6 +901,9 @@ public class RealmProxyClassGenerator {
     }
 
     private void emitEqualsMethod(JavaWriter writer) throws IOException {
+        if (metadata.containsEquals()) {
+            return;
+        }
         String proxyClassName = className + Constants.PROXY_SUFFIX;
         writer.emitAnnotation("Override");
         writer.beginMethod("boolean", "equals", EnumSet.of(Modifier.PUBLIC), "Object", "o");
