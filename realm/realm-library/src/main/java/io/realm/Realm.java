@@ -1512,8 +1512,7 @@ public final class Realm extends BaseRealm {
         }
     }
 
-    @Deprecated
-    public Table getTable(Class<? extends RealmObject> clazz) {
+    Table getTable(Class<? extends RealmObject> clazz) {
         Table table = classToTable.get(clazz);
         if (table == null) {
             clazz = Util.getOriginalModelClass(clazz);
