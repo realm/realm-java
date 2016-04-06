@@ -241,7 +241,7 @@ public class UncheckedRow extends NativeObject implements Row {
     public void setString(long columnIndex, String value) {
         parent.checkImmutable();
         if (value == null) {
-            getTable().checkNullValueIsLeval(columnIndex, getIndex());
+            getTable().checkNullValueIsLegal(columnIndex, getIndex());
             nativeSetNull(nativePointer, columnIndex);
         } else {
             getTable().checkStringValueIsLegal(columnIndex, getIndex(), value);
@@ -284,7 +284,7 @@ public class UncheckedRow extends NativeObject implements Row {
     @Override
     public void setNull(long columnIndex) {
         parent.checkImmutable();
-        getTable().checkNullValueIsLeval(columnIndex, getIndex());
+        getTable().checkNullValueIsLegal(columnIndex, getIndex());
         nativeSetNull(nativePointer, columnIndex);
     }
 

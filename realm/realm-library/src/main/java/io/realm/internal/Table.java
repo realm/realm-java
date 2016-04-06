@@ -496,7 +496,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 break;
             case INTEGER:
                 if (value == null) {
-                    checkNullValueIsLeval(columnIndex, rowIndex);
+                    checkNullValueIsLegal(columnIndex, rowIndex);
                     nativeSetNull(nativePtr, columnIndex, rowIndex);
                 } else {
                     long intValue = ((Number) value).longValue();
@@ -512,7 +512,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
                 break;
             case STRING:
                 if (value == null) {
-                    checkNullValueIsLeval(columnIndex, rowIndex);
+                    checkNullValueIsLegal(columnIndex, rowIndex);
                     nativeSetNull(nativePtr, columnIndex, rowIndex);
                 } else {
                     String stringValue = (String) value;
@@ -656,7 +656,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     // check if it is ok to use null value for given row and column.
-    void checkNullValueIsLeval(long columnIndex, long rowToUpdate) {
+    void checkNullValueIsLegal(long columnIndex, long rowToUpdate) {
         if (isPrimaryKeyColumn(columnIndex)) {
             RealmFieldType type = getColumnType(columnIndex);
             switch (type) {
@@ -893,7 +893,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     public void setString(long columnIndex, long rowIndex, String value) {
         checkImmutable();
         if (value == null) {
-            checkNullValueIsLeval(columnIndex, rowIndex);
+            checkNullValueIsLegal(columnIndex, rowIndex);
             nativeSetNull(nativePtr, columnIndex, rowIndex);
         } else {
             checkStringValueIsLegal(columnIndex, rowIndex, value);
