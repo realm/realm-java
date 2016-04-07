@@ -17,12 +17,10 @@
 package io.realm;
 
 import android.os.Handler;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,7 +47,6 @@ import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
 import io.realm.rule.TestRealmConfigurationFactory;
-import io.realm.util.LooperSpy;
 import io.realm.util.RealmBackgroundTask;
 
 import static org.junit.Assert.assertEquals;

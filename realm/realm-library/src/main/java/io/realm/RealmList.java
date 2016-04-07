@@ -21,13 +21,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
-import java.util.Iterator;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
-import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.LinkView;
 
@@ -693,7 +692,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     @Override
     public Iterator<E> iterator() {
         if (managedMode) {
-            return new RealmListIterator();
+            return new RealmItr();
         } else {
             return super.iterator();
         }
@@ -713,7 +712,7 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     @Override
     public ListIterator<E> listIterator(int location) {
         if (managedMode) {
-            return new RealmListListIterator(location);
+            return new RealmListItr(location);
         } else {
             return super.listIterator(location);
         }
@@ -763,22 +762,33 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
     }
 
     // Custom RealmList iterator.
-    private class RealmListIterator implements Iterator<E> {
-        long tableViewVersion = 0;
-        int pos = -1;
-        private boolean removeUsed = false;
+    private class RealmItr implements Iterator<E> {
+        /**
+         * Index of element to be returned by subsequent call to next.
+         */
+        int cursor = 0;
 
-        RealmListIterator() {
-            tableViewVersion = view.getTable().getVersion();
-        }
+        /**
+         * Index of element returned by most recent call to next or
+         * previous.  Reset to -1 if this element is deleted by a call
+         * to remove.
+         */
+        int lastRet = -1;
+
+        /**
+         * The modCount value that the iterator believes that the backing
+         * List should have.  If this expectation is violated, the iterator
+         * has detected concurrent modification.
+         */
+        int expectedModCount = modCount;
 
         /**
          * {@inheritDoc}
          */
         public boolean hasNext() {
             realm.checkIfValid();
-            checkRealmIsStable();
-            return pos + 1 < size();
+            checkConcurrentModification();
+            return cursor != size();
         }
 
         /**
@@ -786,119 +796,137 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
          */
         public E next() {
             realm.checkIfValid();
-            checkRealmIsStable();
-            pos++;
-            if (pos >= size()) {
-                throw new NoSuchElementException("Cannot access index " + pos + " when size is " + size() +  ". Remember to check hasNext() before using next().");
+            checkConcurrentModification();
+            int i = cursor;
+            try {
+                E next = get(i);
+                lastRet = i;
+                cursor = i + 1;
+                return next;
+            } catch (IndexOutOfBoundsException e) {
+                checkConcurrentModification();
+                throw new NoSuchElementException("Cannot access index " + i + " when size is " + size() +  ". Remember to check hasNext() before using next().");
             }
-            return get(pos);
         }
 
         /**
-         * Removes the RealmObject at the current position from both the list and the underlying Realm.
+         * {@inheritDoc}
          */
         public void remove() {
             realm.checkIfValid();
-            checkRealmIsStable();
-            if (pos == -1) {
-                throw new IllegalStateException("Must call next() before calling remove().");
-            }
-            if (removeUsed) {
+            if (lastRet < 0) {
                 throw new IllegalStateException("Cannot call remove() twice. Must call next() in between.");
             }
-            if (!realm.isInTransaction()) {
-                throw new IllegalStateException("Can only remove objects if inside a write transaction.");
-            }
-            RealmList.this.remove(pos);
-            pos--;
-            removeUsed = true;
-        }
+            checkConcurrentModification();
 
-        protected void checkRealmIsStable() {
-            long version = view.getTable().getVersion();
-            // All changes inside a write transaction will continuously update the table version, and we can
-            // thus not depend on the tableVersion heuristic in that case .
-            // You could argue that in that case it is not really a "ConcurrentModification", but this interpretation
-            // is still more lax than what the standard Java Collection API gives.
-            // TODO: Try to come up with a better scheme
-            if (!realm.isInTransaction() && tableViewVersion > -1 && version != tableViewVersion) {
-                throw new ConcurrentModificationException("No outside changes to a Realm is allowed while iterating a RealmResults. Don't call Realm.refresh() while iterating.");
-            }
-            tableViewVersion = version;
-        }
-    }
-
-    // Custom RealmList list iterator.
-    private class RealmListListIterator extends RealmListIterator implements ListIterator<E> {
-
-        RealmListListIterator(int start) {
-            if (start >= 0 && start <= size()) {
-                pos = start - 1;
-            } else {
-                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + start);
-            }
-        }
-
-        /**
-         * Adding a new object to a {@link RealmResults} is not supported and will always throws an
-         * {@link UnsupportedOperationException}. Use {@link Realm#createObject(Class)} instead.
-         *
-         * @throws UnsupportedOperationException, always.
-         */
-        @Override
-        public void add(E object) {
-            throw new UnsupportedOperationException("Adding elements is not supported. Use Realm.createObject() instead.");
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean hasPrevious() {
-            checkRealmIsStable();
-            return pos >= 0;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public int nextIndex() {
-            checkRealmIsStable();
-            return pos + 1;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public E previous() {
-            realm.checkIfValid();
-            checkRealmIsStable();
             try {
-                E obj = get(pos);
-                pos--;
-                return obj;
+                RealmList.this.remove(lastRet);
+                if (lastRet < cursor) {
+                    cursor--;
+                }
+                lastRet = -1;
+                expectedModCount = modCount;
             } catch (IndexOutOfBoundsException e) {
-                throw new NoSuchElementException("Cannot access index less than zero. This was " + pos + ". Remember to check hasPrevious() before using previous().");
+                throw new ConcurrentModificationException();
+            }
+        }
+
+        final void checkConcurrentModification() {
+            // A Realm ListView is backed by the original Table and not a TableView, this means
+            // that all changes are reflected immediately. It is therefor not possible to use
+            // the same version pinning trick we use for RealmResults (avoiding calling sync-if-needed)
+            // Fortunately a LinkView does not change unless manually altered (unlike RealmResults)
+            // So therefor it should be acceptable to use the same heuristic as a normal AbstractList
+            // when detecting concurrent modifications.
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+        }
+    }
+
+    private class RealmListItr extends RealmItr implements ListIterator<E> {
+
+        RealmListItr(int index) {
+            if (index >= 0 && index <= size()) {
+                cursor = index;
+            } else {
+                throw new IndexOutOfBoundsException("Starting location must be a valid index: [0, " + (size() - 1) + "]. Yours was " + index);
             }
         }
 
         /**
          * {@inheritDoc}
          */
-        @Override
-        public int previousIndex() {
-            checkRealmIsStable();
-            return pos;
+        public boolean hasPrevious() {
+            return cursor != 0;
         }
 
         /**
          * {@inheritDoc}
          */
-        @Override
-        public void set(E object) {
-            throw new RealmException("Replacing elements not supported.");
+        public E previous() {
+            checkConcurrentModification();
+            int i = cursor - 1;
+            try {
+                E previous = get(i);
+                lastRet = cursor = i;
+                return previous;
+            } catch (IndexOutOfBoundsException e) {
+                checkConcurrentModification();
+                throw new NoSuchElementException("Cannot access index less than zero. This was " + i + ". Remember to check hasPrevious() before using previous().");
+            }
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public int nextIndex() {
+            return cursor;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public int previousIndex() {
+            return cursor - 1;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void set(E e) {
+            realm.checkIfValid();
+            if (lastRet < 0) {
+                throw new IllegalStateException();
+            }
+            checkConcurrentModification();
+
+            try {
+                RealmList.this.set(lastRet, e);
+                expectedModCount = modCount;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+        /**
+         * Adding a new object to the RealmList. If the object is not already manage by Realm it will be transparently
+         * copied using {@link Realm#copyToRealmOrUpdate(RealmObject)}
+         *
+         * @see #add(RealmObject)
+         */
+        public void add(E e) {
+            realm.checkIfValid();
+            checkConcurrentModification();
+            try {
+                int i = cursor;
+                RealmList.this.add(i, e);
+                lastRet = -1;
+                cursor = i + 1;
+                expectedModCount = modCount;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
         }
     }
+
 }
