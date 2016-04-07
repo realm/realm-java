@@ -39,11 +39,15 @@ class Realm implements Plugin<Project> {
             throw new GradleException('Realm gradle plugin only supports android gradle plugin 1.5.0 or later.')
         }
 
-        def isKotlinProject = project.plugins.find {
+        def hasKotlinPlugin = project.plugins.find {
             it.getClass().name == 'org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper'
         }
 
-        if (!isKotlinProject) {
+        def usesAptPlugin = project.plugins.findPlugin('com.neenbedankt.android-apt') != null
+
+        def isKaptProject = hasKotlinPlugin && !usesAptPlugin
+
+        if (!isKaptProject) {
             project.plugins.apply(AndroidAptPlugin)
         }
 
@@ -51,7 +55,7 @@ class Realm implements Plugin<Project> {
         project.repositories.add(project.getRepositories().jcenter())
         project.dependencies.add("compile", "io.realm:realm-android-library:${Version.VERSION}")
         project.dependencies.add("compile", "io.realm:realm-annotations:${Version.VERSION}")
-        if (isKotlinProject) {
+        if (isKaptProject) {
             project.dependencies.add("kapt", "io.realm:realm-annotations:${Version.VERSION}")
             project.dependencies.add("kapt", "io.realm:realm-annotations-processor:${Version.VERSION}")
         } else {
