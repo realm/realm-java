@@ -1333,7 +1333,7 @@ public class RealmTests {
         realm.commitTransaction();
 
         // iterative null primary key check between query and result.
-        RealmResults<PrimaryKeyAsString> results = realm.where(PrimaryKeyAsString.class).findAll();
+        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
         assertEquals(1, results.size());
         // null primary key result
         RealmResults<PrimaryKeyAsString> nullNameResult = results.where().equalTo("name", (String) null).findAll();
@@ -1352,7 +1352,7 @@ public class RealmTests {
         realm.commitTransaction();
 
         // iterative null primary key check between query and result.
-        RealmResults<PrimaryKeyAsBoxedByte> results = realm.where(PrimaryKeyAsBoxedByte.class).findAll();
+        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
         assertEquals(1, results.size());
         // null primary key result
         RealmResults<PrimaryKeyAsBoxedByte> nullNameResult = results.where().equalTo("id", (Byte) null).findAll();
@@ -1371,7 +1371,7 @@ public class RealmTests {
         realm.commitTransaction();
 
         // iterative null primary key check between query and result.
-        RealmResults<PrimaryKeyAsBoxedShort> results = realm.where(PrimaryKeyAsBoxedShort.class).findAll();
+        RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
         assertEquals(1, results.size());
         // null primary key result
         RealmResults<PrimaryKeyAsBoxedShort> nullNameResult = results.where().equalTo("id", (Short) null).findAll();
@@ -1390,7 +1390,7 @@ public class RealmTests {
         realm.commitTransaction();
 
         // iterative null primary key check between query and result.
-        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.where(PrimaryKeyAsBoxedInteger.class).findAll();
+        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
         assertEquals(1, results.size());
         // null primary key result
         RealmResults<PrimaryKeyAsBoxedInteger> nullNameResult = results.where().equalTo("id", (Integer) null).findAll();
@@ -1409,7 +1409,7 @@ public class RealmTests {
         realm.commitTransaction();
 
         // iterative null primary key check between query and result.
-        RealmResults<PrimaryKeyAsBoxedLong> results = realm.where(PrimaryKeyAsBoxedLong.class).findAll();
+        RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
         assertEquals(1, results.size());
         // null primary key result
         RealmResults<PrimaryKeyAsBoxedLong> nullNameResult = results.where().equalTo("id", (Long) null).findAll();

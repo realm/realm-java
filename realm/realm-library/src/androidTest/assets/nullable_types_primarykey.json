@@ -1,0 +1,16 @@
+[
+  {
+    "name" : null,
+    "id": 42
+  },
+  {
+    "id": 42
+  },
+  {
+    "id": null,
+    "name" : "nullPrimaryKeyObj"
+  },
+  {
+    "name" : "nullPrimaryKeyObj"
+  }
+]
