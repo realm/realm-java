@@ -748,8 +748,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
          * {@inheritDoc}
          */
         public boolean hasNext() {
-            realm.checkIfValid();
-            checkRealmIsStable();
             return pos + 1 < size();
         }
 
@@ -817,8 +815,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
          */
         @Override
         public boolean hasPrevious() {
-            realm.checkIfValid();
-            checkRealmIsStable();
             return pos >= 0;
         }
 
@@ -827,7 +823,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
          */
         @Override
         public int nextIndex() {
-            checkRealmIsStable();
             return pos + 1;
         }
 
@@ -852,8 +847,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
          */
         @Override
         public int previousIndex() {
-            realm.checkIfValid();
-            checkRealmIsStable();
             return pos;
         }
 

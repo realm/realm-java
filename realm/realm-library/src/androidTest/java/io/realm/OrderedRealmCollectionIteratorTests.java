@@ -16,6 +16,7 @@
 
 package io.realm;
 
+import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 
 import org.junit.After;
@@ -29,12 +30,15 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -102,15 +106,19 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
     }
 
-    private void appendElementToCollection(Realm realm, OrderedRealmCollection<AllJavaTypes> collection) {
+    private void appendElementToCollection(Realm realm, CollectionClass collection) {
         realm.beginTransaction();
-        if (collection instanceof RealmResults) {
-            realm.createObject(AllJavaTypes.class, collection.size() + 1);
-        } else if (collection instanceof RealmList) {
-            RealmList<AllJavaTypes> realmList = (RealmList<AllJavaTypes>) collection;
-            realmList.add(new AllJavaTypes(collection.size() + 1));
-        } else {
-            fail("Unknown class: " + collection.getClass());
+        switch (collectionClass) {
+            case MANAGED_REALMLIST:
+                realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_LONG, 0).findFirst().getFieldList().add(new AllJavaTypes(TEST_SIZE + 1));
+                break;
+
+            case UNMANAGED_REALMLIST:
+            case REALMRESULTS:
+                realm.createObject(AllJavaTypes.class, TEST_SIZE + 1);
+                break;
+            default:
+                fail("Unknown class: " + collection);
         }
         realm.commitTransaction();
     }
@@ -305,7 +313,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     // TODO Remove once waitForChange is introduced
-    public void iterator_refreshWhileIterating() {
+    @Test
+    public void iterator_refreshWhileIterating_nonLooper() {
         final CountDownLatch bgDone = new CountDownLatch(1);
         Iterator<AllJavaTypes> it = collection.iterator();
         it.next();
@@ -314,7 +323,42 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
             @Override
             public void run() {
                 Realm realm = Realm.getInstance(OrderedRealmCollectionIteratorTests.this.realm.getConfiguration());
-                appendElementToCollection(realm, collection);
+                appendElementToCollection(realm, collectionClass);
+                realm.close();
+                bgDone.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(bgDone);
+
+        realm.refresh();
+        switch (collectionClass) {
+            case UNMANAGED_REALMLIST:
+                assertEquals(TEST_SIZE, collection.size());
+                break;
+
+            case MANAGED_REALMLIST:
+            case REALMRESULTS:
+                assertEquals(TEST_SIZE + 1, collection.size());
+                break;
+
+            default:
+                fail("Unknown class: " + collectionClass);
+        }
+    }
+
+    // TODO Remove once waitForChange is introduced
+    @Test
+    @UiThreadTest
+    public void iterator_refreshWhileIterating_looper() {
+        final CountDownLatch bgDone = new CountDownLatch(1);
+        Iterator<AllJavaTypes> it = collection.iterator();
+        it.next();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(OrderedRealmCollectionIteratorTests.this.realm.getConfiguration());
+                appendElementToCollection(realm, collectionClass);
                 realm.close();
                 bgDone.countDown();
             }
@@ -324,23 +368,16 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         realm.refresh();
         switch (collectionClass) {
             case MANAGED_REALMLIST:
-                // Managed RealmLists are tied directly to the table that is being refreshed, so
-                // any change will be visible straight away.
-                assertEquals(TEST_SIZE + 1, collection.size());
-                break;
-
             case UNMANAGED_REALMLIST:
             case REALMRESULTS:
-                // All other collections should try to stay stable until next RunLoop.
                 assertEquals(TEST_SIZE, collection.size());
+                break;
 
             default:
-                fail();
+                fail("Unknown class: " + collectionClass);
         }
-
-        AllJavaTypes obj = it.next();
-        assertEquals("test data 1", obj.getFieldString());
     }
+
 
     // TODO Remove once waitForChange is introduced
     @Test
@@ -368,223 +405,296 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         assertEquals(2, obj.getFieldLong());
     }
 
-//    @Test
-//    public void listIterator_empty() {
-//        collection = createEmptyCollection(realm, collectionClass);
-//        ListIterator<AllJavaTypes> it = collection.listIterator();
-//
-//        assertFalse(it.hasPrevious());
-//        assertFalse(it.hasNext());
-//        assertEquals(0, it.nextIndex());
-//        assertEquals(-1, it.previousIndex());
-//
-//        try {
-//            it.next();
-//            fail();
-//        } catch (NoSuchElementException ignored) {
-//        }
-//
-//        try {
-//            it.previous();
-//            fail();
-//        } catch (NoSuchElementException ignored) {
-//        }
-//    }
-//
-//    @Test
-//    public void listIterator_oneElement() {
-//        ListIterator<AllJavaTypes> it = collection.subList(0, 1).listIterator();
-//
-//        // Test beginning of the list
-//        assertFalse(it.hasPrevious());
-//        assertTrue(it.hasNext());
-//        assertEquals(-1, it.previousIndex());
-//        assertEquals(0, it.nextIndex());
-//
-//        // Test end of the list
-//        AllJavaTypes firstObject = it.next();
-//        assertEquals(0, firstObject.getFieldLong());
-//        assertTrue(it.hasPrevious());
-//        assertFalse(it.hasNext());
-//        assertEquals(0, it.previousIndex());
-//        assertEquals(1, it.nextIndex());
-//    }
-//
-//    @Test
-//    public void listIterator_manyElements() {
-//        ListIterator<AllJavaTypes> it = collection.listIterator();
-//
-//        // Test beginning of the list
-//        assertFalse(it.hasPrevious());
-//        assertTrue(it.hasNext());
-//        assertEquals(-1, it.previousIndex());
-//        assertEquals(0, it.nextIndex());
-//
-//        // Test 1st element in the list
-//        AllJavaTypes firstObject = it.next();
-//        assertEquals(0, firstObject.getFieldLong());
-//        assertTrue(it.hasPrevious());
-//        assertEquals(0, it.previousIndex());
-//
-//        // Move to second last element
-//        for (int i = 1; i < TEST_SIZE - 1; i++) {
-//            it.next();
-//
-//        }
-//        assertTrue(it.hasPrevious());
-//        assertTrue(it.hasNext());
-//        assertEquals(TEST_SIZE - 1, it.nextIndex());
-//
-//        // Test end of the list
-//        AllJavaTypes lastObject = it.next();
-//        assertEquals(TEST_SIZE - 1, lastObject.getFieldLong());
-//        assertTrue(it.hasPrevious());
-//        assertFalse(it.hasNext());
-//        assertEquals(TEST_SIZE, it.nextIndex());
-//    }
-//
-//    @Test
-//    public void listIterator_defaultStartIndex() {
-//        ListIterator<AllJavaTypes> it1 = collection.listIterator(0);
-//        ListIterator<AllJavaTypes> it2 = collection.listIterator();
-//
-//        assertEquals(it1.previousIndex(), it2.previousIndex());
-//        assertEquals(it1.nextIndex(), it2.nextIndex());
-//    }
-//
-//    @Test
-//    public void listIterator_startIndex() {
-//        int i = TEST_SIZE/2;
-//        ListIterator<AllJavaTypes> it = collection.listIterator(i);
-//
-//        assertTrue(it.hasPrevious());
-//        assertTrue(it.hasNext());
-//        assertEquals(i - 1, it.previousIndex());
-//        assertEquals(i, it.nextIndex());
-//        AllJavaTypes nextObject = it.next();
-//        assertEquals(i, nextObject.getFieldLong());
-//    }
-//
-//    @Test
-//    public void listIterator_remove_beforeNext() {
-//        Iterator<AllJavaTypes> it = collection.listIterator();
-//        realm.beginTransaction();
-//
-//        thrown.expect(IllegalStateException.class);
-//        it.remove();
-//    }
-//
-//    @Test
-//    public void listIterator_remove_calledTwice() {
-//        Iterator<AllJavaTypes> it = collection.listIterator();
-//        it.next();
-//        realm.beginTransaction();
-//
-//        switch (collectionClass) {
-//            case MANAGED_REALMLIST:
-//            case UNMANAGED_REALMLIST:
-//                it.remove();
-//                thrown.expect(IllegalStateException.class);
-//                it.remove();
-//                break;
-//            case REALMRESULTS:
-//                try {
-//                    it.remove(); // Method not supported
-//                    fail();
-//                } catch (UnsupportedOperationException ignored) {
-//                }
-//                break;
-//            default:
-//                fail("Unknown collection class: " + collectionClass);
-//        }
-//    }
-//
-//    @Test
-//    @UiThreadTest
-//    public void listIterator_transactionBeforeNextItem() {
-//        Iterator<AllJavaTypes> it = collection.listIterator();
-//        int i = 0;
-//        while (it.hasNext()) {
-//            AllJavaTypes item = it.next();
-//            assertEquals("Failed at index: " + i, i, item.getFieldLong());
-//            i++;
-//
-//            // Committing transactions while iterating should not effect the current iterator if on a looper thread
-//            createNewObject();
-//        }
-//    }
-//
-//    public void listIterator_refreshClearsRemovedObjects() {
-//        realm.beginTransaction();
-//        collection.iterator().next().deleteFromRealm();
-//        realm.commitTransaction();
-//
-//        realm.refresh(); // Refresh forces a refresh of all RealmResults
-//
-//        assertEquals(TEST_SIZE - 1, collection.size()); // Size is same even if object is deleted
-//        Iterator<AllJavaTypes> it = collection.listIterator();
-//        AllJavaTypes types = it.next(); // Iterator can no longer access the deleted object
-//
-//        assertTrue(types.isValid());
-//        assertEquals(1, types.getFieldLong());
-//    }
-//
-//    @Test
-//    public void listIterator_closedRealm_methods() {
-//        int location = TEST_SIZE / 2;
-//        ListIterator<AllJavaTypes> it = collection.listIterator(location);
-//        realm.close();
-//
-//        try {
-//            it.previousIndex();
-//            fail();
-//        } catch (IllegalStateException ignored) {
-//        }
-//
-//        try {
-//            it.nextIndex();
-//            fail();
-//        } catch (IllegalStateException ignored) {
-//        }
-//
-//        try {
-//            it.hasNext();
-//            fail();
-//        } catch (IllegalStateException ignored) {
-//        }
-//
-//        try {
-//            it.next();
-//            fail();
-//        } catch (IllegalStateException ignored) {
-//        }
-//
-//        try {
-//            it.previous();
-//            fail();
-//        } catch (IllegalStateException ignored) {
-//        }
-//
-//        try {
-//            it.remove();
-//            fail();
-//        } catch (IllegalStateException ignored) {
-//        } catch (UnsupportedOperationException ignored) {
-//        }
-//    }
-//
-//    // FIXME: Unfortunately this corner case is un-fixable for non-looper threads until we can remove `realm.refresh()`
-//    // by introducing waitForChange instead.
-//    @Test
-//    public void listIterator_refreshWhileIterating() {
-//        Iterator<AllJavaTypes> it = collection.listIterator();
-//        it.next();
-//
-//        createNewObject();
-//        realm.refresh(); // This will trigger rerunning all queries
-//        thrown.expect(ConcurrentModificationException.class);
-//        it.next(); // This can return anything :(
-//    }
+    @Test
+    public void listIterator_empty() {
+        collection = createCollection(realm, collectionClass, 0);
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+
+        assertFalse(it.hasPrevious());
+        assertFalse(it.hasNext());
+        assertEquals(0, it.nextIndex());
+        assertEquals(-1, it.previousIndex());
+
+        try {
+            it.next();
+            fail();
+        } catch (NoSuchElementException ignored) {
+        }
+
+        try {
+            it.previous();
+            fail();
+        } catch (NoSuchElementException ignored) {
+        }
+    }
+
+    @Test
+    public void listIterator_oneElement() {
+        collection = createCollection(realm, collectionClass, 1);
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+
+        // Test beginning of the list
+        assertFalse(it.hasPrevious());
+        assertTrue(it.hasNext());
+        assertEquals(-1, it.previousIndex());
+        assertEquals(0, it.nextIndex());
+
+        // Test end of the list
+        AllJavaTypes firstObject = it.next();
+        assertEquals(0, firstObject.getFieldLong());
+        assertTrue(it.hasPrevious());
+        assertFalse(it.hasNext());
+        assertEquals(0, it.previousIndex());
+        assertEquals(1, it.nextIndex());
+    }
+
+    @Test
+    public void listIterator_manyElements() {
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+
+        // Test beginning of the list
+        assertFalse(it.hasPrevious());
+        assertTrue(it.hasNext());
+        assertEquals(-1, it.previousIndex());
+        assertEquals(0, it.nextIndex());
+
+        // Test 1st element in the list
+        AllJavaTypes firstObject = it.next();
+        assertEquals(0, firstObject.getFieldLong());
+        assertTrue(it.hasPrevious());
+        assertEquals(0, it.previousIndex());
+
+        // Move to second last element
+        for (int i = 1; i < TEST_SIZE - 1; i++) {
+            it.next();
+        }
+        assertTrue(it.hasPrevious());
+        assertTrue(it.hasNext());
+        assertEquals(TEST_SIZE - 1, it.nextIndex());
+
+        // Test end of the list
+        AllJavaTypes lastObject = it.next();
+        assertEquals(TEST_SIZE - 1, lastObject.getFieldLong());
+        assertTrue(it.hasPrevious());
+        assertFalse(it.hasNext());
+        assertEquals(TEST_SIZE, it.nextIndex());
+    }
+
+    @Test
+    public void listIterator_defaultStartIndex() {
+        ListIterator<AllJavaTypes> it1 = collection.listIterator(0);
+        ListIterator<AllJavaTypes> it2 = collection.listIterator();
+
+        assertEquals(it1.previousIndex(), it2.previousIndex());
+        assertEquals(it1.nextIndex(), it2.nextIndex());
+    }
+
+    @Test
+    public void listIterator_startIndex() {
+        int i = TEST_SIZE/2;
+        ListIterator<AllJavaTypes> it = collection.listIterator(i);
+
+        assertTrue(it.hasPrevious());
+        assertTrue(it.hasNext());
+        assertEquals(i - 1, it.previousIndex());
+        assertEquals(i, it.nextIndex());
+        AllJavaTypes nextObject = it.next();
+        assertEquals(i, nextObject.getFieldLong());
+    }
+
+    @Test
+    public void listIterator_remove_beforeNext() {
+        Iterator<AllJavaTypes> it = collection.listIterator();
+        realm.beginTransaction();
+
+        try {
+            it.remove();
+        } catch (IllegalStateException e) {
+            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+        } catch (UnsupportedOperationException e) {
+            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+        }
+    }
+
+    @Test
+    public void listIterator_remove_calledTwice() {
+        Iterator<AllJavaTypes> it = collection.listIterator();
+        it.next();
+        realm.beginTransaction();
+
+        switch (collectionClass) {
+            case MANAGED_REALMLIST:
+            case UNMANAGED_REALMLIST:
+                it.remove();
+                thrown.expect(IllegalStateException.class);
+                it.remove();
+                break;
+            case REALMRESULTS:
+                try {
+                    it.remove(); // Method not supported
+                    fail();
+                } catch (UnsupportedOperationException ignored) {
+                }
+                break;
+            default:
+                fail("Unknown collection class: " + collectionClass);
+        }
+    }
+
+    @Test
+    public void listIterator_transactionBeforeNextItem() {
+        Iterator<AllJavaTypes> it = collection.listIterator();
+        int i = 0;
+        while (it.hasNext()) {
+            AllJavaTypes item = it.next();
+            assertEquals("Failed at index: " + i, i, item.getFieldLong());
+            i++;
+
+            // Committing transactions while iterating should not effect the current iterator if on a looper thread
+            createNewObject();
+        }
+    }
+
+    @Test
+    public void listIterator_refreshClearsDeletedObjects() {
+        if (abortTest(CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        assertEquals(0, collection.iterator().next().getFieldLong());
+        realm.beginTransaction();
+        Iterator<AllJavaTypes> it = collection.listIterator();
+        it.next(); // First item is a cyclic reference, avoid deleting that
+        AllJavaTypes obj = it.next();
+        assertEquals(1, obj.getFieldLong());
+        obj.deleteFromRealm();
+        realm.commitTransaction();
+        realm.refresh(); // Refresh forces a refresh of all Collections
+
+        assertEquals(TEST_SIZE - 1, collection.size());
+
+        it = collection.iterator();
+        it.next();
+        obj = it.next(); // Iterator can no longer access the deleted object
+        assertTrue(obj.isValid());
+        assertEquals(2, obj.getFieldLong());
+    }
+
+    @Test
+    public void listIterator_closedRealm_methods() {
+        if (abortTest(CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        int location = TEST_SIZE / 2;
+        ListIterator<AllJavaTypes> it = collection.listIterator(location);
+        realm.close();
+
+        try {
+            assertEquals(location - 1, it.previousIndex());
+        } catch (IllegalStateException e) {
+            fail();
+        }
+
+        try {
+            assertEquals(location, it.nextIndex());
+        } catch (IllegalStateException e) {
+            fail();
+        }
+
+        try {
+            assertTrue(it.hasNext());
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.next();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.previous();
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        try {
+            it.remove();
+            fail();
+        } catch (IllegalStateException e) {
+            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+        } catch (UnsupportedOperationException ignored) {
+            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+        }
+    }
+
+    // TODO Remove once waitForChange is introduced
+    @Test
+    public void listIterator_refreshWhileIterating_nonLooper() {
+        final CountDownLatch bgDone = new CountDownLatch(1);
+        Iterator<AllJavaTypes> it = collection.iterator();
+        it.next();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(OrderedRealmCollectionIteratorTests.this.realm.getConfiguration());
+                appendElementToCollection(realm, collectionClass);
+                realm.close();
+                bgDone.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(bgDone);
+
+        realm.refresh();
+        switch (collectionClass) {
+            case UNMANAGED_REALMLIST:
+                assertEquals(TEST_SIZE, collection.size());
+                break;
+
+            case MANAGED_REALMLIST:
+            case REALMRESULTS:
+                assertEquals(TEST_SIZE + 1, collection.size());
+                break;
+
+            default:
+                fail("Unknown class: " + collectionClass);
+        }
+    }
+
+    // TODO Remove once waitForChange is introduced
+    @Test
+    @UiThreadTest
+    public void listIterator_refreshWhileIterating_looper() {
+        final CountDownLatch bgDone = new CountDownLatch(1);
+        Iterator<AllJavaTypes> it = collection.iterator();
+        it.next();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Realm realm = Realm.getInstance(OrderedRealmCollectionIteratorTests.this.realm.getConfiguration());
+                appendElementToCollection(realm, collectionClass);
+                realm.close();
+                bgDone.countDown();
+            }
+        }).start();
+        TestHelper.awaitOrFail(bgDone);
+
+        realm.refresh();
+        switch (collectionClass) {
+            case MANAGED_REALMLIST:
+            case UNMANAGED_REALMLIST:
+            case REALMRESULTS:
+                assertEquals(TEST_SIZE, collection.size());
+                break;
+
+            default:
+                fail("Unknown class: " + collectionClass);
+        }
+    }
+
 //
 //    @Test
 //    public void listIterator_managed_emovedObjectsStillAccessible() {
