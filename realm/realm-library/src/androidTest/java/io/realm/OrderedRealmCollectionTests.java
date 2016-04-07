@@ -16,7 +16,6 @@
 
 package io.realm;
 
-import android.support.test.annotation.UiThreadTest;
 import android.support.test.rule.UiThreadTestRule;
 import android.util.Pair;
 
@@ -30,18 +29,12 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
 
 import io.realm.entities.AllJavaTypes;
 import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -117,8 +110,6 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     private static final int TEST_SIZE = 10;
 
     @Rule
-    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
-    @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -140,6 +131,11 @@ public class OrderedRealmCollectionTests extends CollectionTests {
     public void setup() {
         realm = Realm.getInstance(configFactory.createConfiguration());
         collection = createCollection(realm, collectionClass);
+    }
+
+    @After
+    public void tearDown() {
+        realm.close();
     }
 
     private OrderedRealmCollection<AllJavaTypes> createCollection(Realm realm, CollectionClass collectionClass) {
@@ -208,23 +204,6 @@ public class OrderedRealmCollectionTests extends CollectionTests {
             default:
                 throw new AssertionError("Unsupported class: " + collectionClass);
         }
-    }
-
-    @After
-    public void tearDown() {
-        realm.close();
-    }
-
-    private void createNewObject() {
-        Number currentMax = realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG);
-        long nextId = 0;
-        if (currentMax != null) {
-            nextId = currentMax.longValue() + 1;
-        }
-
-        realm.beginTransaction();
-        realm.createObject(AllJavaTypes.class, nextId);
-        realm.commitTransaction();
     }
 
     @Test

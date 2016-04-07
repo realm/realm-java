@@ -107,6 +107,11 @@ public class RealmCollectionTests extends CollectionTests {
         collection = createCollection(collectionClass);
     }
 
+    @After
+    public void tearDown() {
+        realm.close();
+    }
+    
     private RealmCollection<AllJavaTypes> createCollection(CollectionClass collectionClass) {
         switch (collectionClass) {
             case MANAGED_REALMLIST:
@@ -144,19 +149,6 @@ public class RealmCollectionTests extends CollectionTests {
         }
 
         throw new AssertionError("Unknown collection: " + collectionClass);
-    }
-
-
-    @After
-    public void tearDown() {
-        realm.close();
-    }
-
-    private void createNewObject() {
-        Number max = realm.where(AllJavaTypes.class).max(AllJavaTypes.FIELD_LONG);
-        realm.beginTransaction();
-        realm.createObject(AllJavaTypes.class, (max != null) ? max.longValue() + 1 : 0);
-        realm.commitTransaction();
     }
 
     @Test

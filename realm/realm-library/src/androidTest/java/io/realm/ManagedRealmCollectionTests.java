@@ -77,7 +77,7 @@ import static org.junit.Assert.fail;
  * - public boolean equals(Object object);
  * - public int hashCode();
  * - public boolean isEmpty();
- * + public Iterator<E> iterator();
+ * - public Iterator<E> iterator();
  * - public boolean remove(Object object);
  * - public boolean removeAll(Collection<?> collection);
  * - public boolean retainAll(Collection<?> collection);
@@ -783,67 +783,5 @@ public class ManagedRealmCollectionTests extends CollectionTests {
         return result;
     }
 
-
-    @Test
-    public void iterator_closedRealm_methodsThrows() {
-        Iterator<AllJavaTypes> it = collection.iterator();
-        realm.close();
-
-        try {
-            it.hasNext();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-
-        try {
-            it.next();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-
-        try {
-            it.remove();
-            fail();
-        } catch (IllegalStateException ignored) {
-        }
-    }
-
-    // TODO Remove once waitForChange is introduced
-    @Test
-    public void iterator_refreshClearsRemovedObjects() {
-        assertEquals(0, collection.iterator().next().getFieldLong());
-        realm.setAutoRefresh(false);
-        realm.beginTransaction();
-        Iterator<AllJavaTypes> it = collection.iterator();
-        it.next(); // First item is a cyclic reference, avoid deleting that
-        AllJavaTypes obj = it.next();
-        assertEquals(1, obj.getFieldLong());
-        obj.deleteFromRealm();
-        realm.commitTransaction();
-        realm.refresh(); // Refresh forces a refresh of all RealmResults
-
-        assertEquals(TEST_SIZE - 1, collection.size());
-
-        it = collection.iterator();
-        it.next();
-        obj = it.next(); // Iterator can no longer access the deleted object
-        assertTrue(obj.isValid());
-        assertEquals(2, obj.getFieldLong());
-    }
-
-    @Test
-    public void iterator_remove_beforeNext() {
-        Iterator<AllJavaTypes> it = collection.iterator();
-        realm.beginTransaction();
-
-        //noinspection TryWithIdenticalCatches
-        try {
-            it.remove();
-            fail();
-        } catch (UnsupportedOperationException ignored) {
-            // Thrown by implementations not supporting `remove`
-        } catch (IllegalStateException ignored) {
-            // Thrown by implementations supporting `remove`
-        }
-    }
 }
+

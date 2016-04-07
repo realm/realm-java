@@ -767,24 +767,13 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         }
 
         /**
-         * Removes the RealmObject at the current position from both the list and the underlying Realm.
+         * Not supported by RealmResults iterators.
+         *
+         * @throws {@link UnsupportedOperationException} always
          */
+        @Deprecated
         public void remove() {
-            realm.checkIfValid();
-            checkRealmIsStable();
-            if (pos == -1) {
-                throw new IllegalStateException("Must call next() before calling remove().");
-            }
-            if (removeUsed) {
-                throw new IllegalStateException("Cannot call remove() twice. Must call next() in between.");
-            }
-            if (!realm.isInTransaction()) {
-                throw new IllegalStateException("Can only remove objects if inside a write transaction.");
-            }
-            // FIXME Element should also be removed from the TableView (and Table)
-            RealmResults.this.remove(pos);
-            pos--;
-            removeUsed = true;
+            throw new UnsupportedOperationException("remove() is not supported by RealmResults iterators.");
         }
 
         protected void checkRealmIsStable() {

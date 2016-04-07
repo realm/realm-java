@@ -19,7 +19,7 @@ package io.realm;
 import java.util.List;
 
 /**
- * A {@code OrderedRealmCollection} is a collection which maintains an ordering for its elements. Every
+ * An {@code OrderedRealmCollection} is a collection which maintains an ordering for its elements. Every
  * element in the {@code OrderedRealmCollection} has an index. Each element can thus be accessed by its
  * index, with the first index being zero. Normally, {@code OrderedRealmCollection}s allow duplicate
  * elements, as compared to Sets, where elements have to be unique.
@@ -47,7 +47,7 @@ public interface OrderedRealmCollection<E extends RealmObject> extends List<E>, 
      *
      * @param fieldName the field name to sort by. Only fields of type boolean, short, int, long, float, double, Date,
      *                  and String are supported.
-     * @return A sorted view of the collection.
+     * @return a sorted view of the collection.
      * @throws java.lang.IllegalArgumentException if field name does not exist or it has an invalid type.
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an un-managed collection.
@@ -60,7 +60,7 @@ public interface OrderedRealmCollection<E extends RealmObject> extends List<E>, 
      * @param fieldName the field name to sort by. Only fields of type boolean, short, int, long, float, double, Date,
      *                  and String are supported.
      * @param sortOrder the direction to sort by.
-     * @return A sorted view of the collection.
+     * @return a sorted view of the collection.
      * @throws java.lang.IllegalArgumentException if field name does not exist or has an invalid type.
      * @throws java.lang.IllegalStateException if the Realm is closed, called on the wrong thread or the collection is
      *                                         an un-managed collection.
