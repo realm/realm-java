@@ -441,7 +441,7 @@ public class RealmProxyClassGenerator {
 
                 // make sure that nullability matches
                 if (metadata.isNullable(field)) {
-                    // Check if the existing PrimaryKey does support null value.
+                    // Check if the existing PrimaryKey does support null value for String, Byte, Short, Integer, & Long
                     if (field.equals(metadata.getPrimaryKey()) && Utils.isNullablePrimaryKeyType(field)) {
                         writer.beginControlFlow("if (!table.isColumnNullable(%s)" +
                                 " && table.getPrimaryKey() == table.getColumnIndex(\"%s\")" +
@@ -959,6 +959,8 @@ public class RealmProxyClassGenerator {
         if (!metadata.hasPrimaryKey()) {
             writer.emitStatement("%s obj = realm.createObject(%s.class)", className, className);
         } else {
+            // Indentation for emitStatement, beginControlFlow, and endControlFlow is made to follow
+            // what would actually be generated.
             String pkType = Utils.isString(metadata.getPrimaryKey()) ? "String" : "Long";
             writer
                 .emitStatement("%s obj = null", className)
@@ -971,17 +973,20 @@ public class RealmProxyClassGenerator {
                     .beginControlFlow("if (json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
                         .emitStatement("rowIndex = table.findFirstNull(pkColumnIndex)")
                     .nextControlFlow("else")
-                        .emitStatement("rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))", pkType, pkType, metadata.getPrimaryKey().getSimpleName())
+                        .emitStatement("rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
+                                pkType, pkType, metadata.getPrimaryKey().getSimpleName())
                     .endControlFlow();
             } else {
                 writer
                     .beginControlFlow("if (!json.isNull(\"%s\"))", metadata.getPrimaryKey().getSimpleName())
-                    .emitStatement("rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))", pkType, pkType, metadata.getPrimaryKey().getSimpleName())
+                    .emitStatement("rowIndex = table.findFirst%s(pkColumnIndex, json.get%s(\"%s\"))",
+                            pkType, pkType, metadata.getPrimaryKey().getSimpleName())
                     .endControlFlow();
             }
             writer
                     .beginControlFlow("if (rowIndex != TableOrView.NO_MATCH)")
-                        .emitStatement("obj = new %s(realm.schema.getColumnInfo(%s.class))", Utils.getProxyClassName(className), className)
+                        .emitStatement("obj = new %s(realm.schema.getColumnInfo(%s.class))",
+                                Utils.getProxyClassName(className), className)
                         .emitStatement("((RealmObject) obj).realm = realm")
                         .emitStatement("((RealmObject) obj).row = table.getUncheckedRow(rowIndex)")
                     .endControlFlow()

@@ -71,6 +71,10 @@ import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.OwnerPrimaryKey;
+import io.realm.entities.PrimaryKeyAsBoxedByte;
+import io.realm.entities.PrimaryKeyAsBoxedInteger;
+import io.realm.entities.PrimaryKeyAsBoxedLong;
+import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyMix;
@@ -1320,7 +1324,7 @@ public class RealmTests {
     }
 
     @Test
-    public void copyToRealm_primaryKeyIsNull() {
+    public void copyToRealm_stringPrimaryKeyIsNull() {
         // null primary key object
         PrimaryKeyAsString nullPrimaryKeyObj = new PrimaryKeyAsString();
         nullPrimaryKeyObj.setId(2);
@@ -1336,6 +1340,82 @@ public class RealmTests {
         assertEquals(1, nullNameResult.size());
         assertEquals(null, nullNameResult.first().getName());
         assertEquals(2L, nullNameResult.first().getId());
+    }
+
+    @Test
+    public void copyToRealm_boxedBytePrimaryKeyIsNull() {
+        // null primary key object
+        PrimaryKeyAsBoxedByte nullPrimaryKeyObj = new PrimaryKeyAsBoxedByte();
+        nullPrimaryKeyObj.setName("nullBytePrimaryKeyObj");
+        realm.beginTransaction();
+        realm.copyToRealm(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        // iterative null primary key check between query and result.
+        RealmResults<PrimaryKeyAsBoxedByte> results = realm.where(PrimaryKeyAsBoxedByte.class).findAll();
+        assertEquals(1, results.size());
+        // null primary key result
+        RealmResults<PrimaryKeyAsBoxedByte> nullNameResult = results.where().equalTo("id", (Byte) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals("nullBytePrimaryKeyObj", nullNameResult.first().getName());
+        assertEquals(null, nullNameResult.first().getId());
+    }
+
+    @Test
+    public void copyToRealm_boxedShortPrimaryKeyIsNull() {
+        // null primary key object
+        PrimaryKeyAsBoxedShort nullPrimaryKeyObj = new PrimaryKeyAsBoxedShort();
+        nullPrimaryKeyObj.setName("nullShortPrimaryKeyObj");
+        realm.beginTransaction();
+        realm.copyToRealm(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        // iterative null primary key check between query and result.
+        RealmResults<PrimaryKeyAsBoxedShort> results = realm.where(PrimaryKeyAsBoxedShort.class).findAll();
+        assertEquals(1, results.size());
+        // null primary key result
+        RealmResults<PrimaryKeyAsBoxedShort> nullNameResult = results.where().equalTo("id", (Short) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals("nullShortPrimaryKeyObj", nullNameResult.first().getName());
+        assertEquals(null, nullNameResult.first().getId());
+    }
+
+    @Test
+    public void copyToRealm_boxedIntegerPrimaryKeyIsNull() {
+        // null primary key object
+        PrimaryKeyAsBoxedInteger nullPrimaryKeyObj = new PrimaryKeyAsBoxedInteger();
+        nullPrimaryKeyObj.setName("nullIntegerPrimaryKeyObj");
+        realm.beginTransaction();
+        realm.copyToRealm(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        // iterative null primary key check between query and result.
+        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.where(PrimaryKeyAsBoxedInteger.class).findAll();
+        assertEquals(1, results.size());
+        // null primary key result
+        RealmResults<PrimaryKeyAsBoxedInteger> nullNameResult = results.where().equalTo("id", (Integer) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals("nullIntegerPrimaryKeyObj", nullNameResult.first().getName());
+        assertEquals(null, nullNameResult.first().getId());
+    }
+
+    @Test
+    public void copyToRealm_boxedLongPrimaryKeyIsNull() {
+        // null primary key object
+        PrimaryKeyAsBoxedLong nullPrimaryKeyObj = new PrimaryKeyAsBoxedLong();
+        nullPrimaryKeyObj.setName("nullLongPrimaryKeyObj");
+        realm.beginTransaction();
+        realm.copyToRealm(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        // iterative null primary key check between query and result.
+        RealmResults<PrimaryKeyAsBoxedLong> results = realm.where(PrimaryKeyAsBoxedLong.class).findAll();
+        assertEquals(1, results.size());
+        // null primary key result
+        RealmResults<PrimaryKeyAsBoxedLong> nullNameResult = results.where().equalTo("id", (Long) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals("nullLongPrimaryKeyObj", nullNameResult.first().getName());
+        assertEquals(null, nullNameResult.first().getId());
     }
 
     @Test
@@ -1436,6 +1516,106 @@ public class RealmTests {
         realm.commitTransaction();
 
         assertEquals(44L, realm.where(PrimaryKeyAsString.class).equalTo("name", (String) null).findAll().first().getId());
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_boxedBytePrimaryKeyFieldIsNull() {
+        PrimaryKeyAsBoxedByte nullPrimaryKeyObj = new PrimaryKeyAsBoxedByte();
+        nullPrimaryKeyObj.setName("nullBytePrimaryKeyObj");
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        // iterative null primary key object acquisition between query and result.
+        RealmResults<PrimaryKeyAsBoxedByte> result = realm.where(PrimaryKeyAsBoxedByte.class).findAll();
+        assertEquals(1, result.size());
+        RealmResults<PrimaryKeyAsBoxedByte> nullNameResult = result.where().equalTo("id", (Byte) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals("nullBytePrimaryKeyObj", nullNameResult.first().getName());
+        assertEquals(null, nullNameResult.first().getId());
+
+        // update objects
+        nullPrimaryKeyObj.setName("nullBytePrimaryKeyObjUpdated");
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        assertEquals("nullBytePrimaryKeyObjUpdated", realm.where(PrimaryKeyAsBoxedByte.class).equalTo("id", (Byte) null).findAll().first().getName());
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_boxedShortPrimaryKeyFieldIsNull() {
+        PrimaryKeyAsBoxedShort nullPrimaryKeyObj = new PrimaryKeyAsBoxedShort();
+        nullPrimaryKeyObj.setName("nullShortPrimaryKeyObj");
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        // iterative null primary key object acquisition between query and result.
+        RealmResults<PrimaryKeyAsBoxedShort> result = realm.where(PrimaryKeyAsBoxedShort.class).findAll();
+        assertEquals(1, result.size());
+        RealmResults<PrimaryKeyAsBoxedShort> nullNameResult = result.where().equalTo("id", (Short) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals("nullShortPrimaryKeyObj", nullNameResult.first().getName());
+        assertEquals(null, nullNameResult.first().getId());
+
+        // update objects
+        nullPrimaryKeyObj.setName("nullShortPrimaryKeyObjUpdated");
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        assertEquals("nullShortPrimaryKeyObjUpdated", realm.where(PrimaryKeyAsBoxedShort.class).equalTo("id", (Short) null).findAll().first().getName());
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_boxedIntegerPrimaryKeyFieldIsNull() {
+        PrimaryKeyAsBoxedInteger nullPrimaryKeyObj = new PrimaryKeyAsBoxedInteger();
+        nullPrimaryKeyObj.setName("nullIntegerPrimaryKeyObj");
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        // iterative null primary key object acquisition between query and result.
+        RealmResults<PrimaryKeyAsBoxedInteger> result = realm.where(PrimaryKeyAsBoxedInteger.class).findAll();
+        assertEquals(1, result.size());
+        RealmResults<PrimaryKeyAsBoxedInteger> nullNameResult = result.where().equalTo("id", (Integer) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals("nullIntegerPrimaryKeyObj", nullNameResult.first().getName());
+        assertEquals(null, nullNameResult.first().getId());
+
+        // update objects
+        nullPrimaryKeyObj.setName("nullIntegerPrimaryKeyObjUpdated");
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        assertEquals("nullIntegerPrimaryKeyObjUpdated", realm.where(PrimaryKeyAsBoxedInteger.class).equalTo("id", (Integer) null).findAll().first().getName());
+    }
+
+    @Test
+    public void copyToRealmOrUpdate_boxedLongPrimaryKeyFieldIsNull() {
+        PrimaryKeyAsBoxedLong nullPrimaryKeyObj = new PrimaryKeyAsBoxedLong();
+        nullPrimaryKeyObj.setName("nullLongPrimaryKeyObj");
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        // iterative null primary key object acquisition between query and result.
+        RealmResults<PrimaryKeyAsBoxedLong> result = realm.where(PrimaryKeyAsBoxedLong.class).findAll();
+        assertEquals(1, result.size());
+        RealmResults<PrimaryKeyAsBoxedLong> nullNameResult = result.where().equalTo("id", (Long) null).findAll();
+        assertEquals(1, nullNameResult.size());
+        assertEquals("nullLongPrimaryKeyObj", nullNameResult.first().getName());
+        assertEquals(null, nullNameResult.first().getId());
+
+        // update objects
+        nullPrimaryKeyObj.setName("nullLongPrimaryKeyObjUpdated");
+        realm.beginTransaction();
+        realm.copyToRealmOrUpdate(nullPrimaryKeyObj);
+        realm.commitTransaction();
+
+        assertEquals("nullLongPrimaryKeyObjUpdated", realm.where(PrimaryKeyAsBoxedLong.class).equalTo("id", (Long) null).findAll().first().getName());
     }
 
     @Test
