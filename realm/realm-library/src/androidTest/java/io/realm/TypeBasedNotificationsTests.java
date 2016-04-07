@@ -43,6 +43,7 @@ import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsLong;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
@@ -1696,7 +1697,7 @@ public class TypeBasedNotificationsTests {
                 Cat cat = owner.getCat();
                 boolean foundKey = false;
                 // Check if cat has been added to the realmObjects in case of the behaviour of getCat changes
-                for (WeakReference<RealmObject> weakReference : realm.handlerController.realmObjects.keySet()) {
+                for (WeakReference<RealmObjectProxy> weakReference : realm.handlerController.realmObjects.keySet()) {
                     if (weakReference.get() == cat) {
                         foundKey = true;
                         break;

@@ -22,16 +22,14 @@ import java.util.concurrent.Future;
 import io.realm.BaseRealm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmModel;
-import io.realm.RealmObject;
 
 /**
- * Empty interface making it easy to determine if an object is the generated RealmProxy class or the original class.
+ * Interface making it easy to determine if an object is the generated RealmProxy class or the original class.
  *
  * Ideally all the static methods was also present here, but that is not supported before Java 8.
  */
 public interface RealmObjectProxy extends RealmModel {
 
-    // TODO Revisit naming on these since they suddenly became more "public"
     BaseRealm getRealm();
     void setRealm(BaseRealm realm);
     Row getRow();
@@ -42,7 +40,6 @@ public interface RealmObjectProxy extends RealmModel {
     void onCompleted(long rowPointer);
     List<RealmChangeListener> getListeners();
     void setTableVersion();
-    Table getTable();
     void notifyChangeListeners();
     void setPendingQuery(Future<Long> pendingQuery);
 

@@ -974,9 +974,8 @@ public class RealmListTests {
         try {
             list.removeAllFromRealm();
             fail("Cannot remove a list with a standalone object in it!");
-        } catch (IllegalStateException e) {
-            assertEquals("Object malformed: missing object in Realm. Make sure to instantiate RealmObjects with" +
-                    " Realm.createObject()", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            assertEquals("Object not managed by Realm, so it cannot be removed.", e.getMessage());
         } finally {
             testRealm.cancelTransaction();
         }

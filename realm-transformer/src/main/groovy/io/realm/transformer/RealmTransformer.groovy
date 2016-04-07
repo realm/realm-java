@@ -15,12 +15,14 @@
  */
 
 package io.realm.transformer
+
 import com.android.SdkConstants
 import com.android.build.api.transform.*
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Sets
 import groovy.io.FileType
 import io.realm.annotations.Ignore
+import io.realm.annotations.RealmClass
 import javassist.ClassPool
 import javassist.LoaderClassPath
 import org.slf4j.Logger
@@ -30,6 +32,7 @@ import java.lang.reflect.Modifier
 import java.util.jar.JarFile
 
 import static com.android.build.api.transform.QualifiedContent.*
+
 /**
  * This class implements the Transform API provided by the Android Gradle plugin.
  */
@@ -72,18 +75,17 @@ class RealmTransformer extends Transform {
 
         // Find all the class names
         def classNames = getClassNames(inputs)
-
         // Create and populate the Javassist class pool
         ClassPool classPool = createClassPool(inputs, referencedInputs)
 
         logger.info "ClassPool contains Realm classes: ${classPool.getOrNull('io.realm.RealmList') != null}"
 
         // Find the model classes
-        def realmObject = classPool.get('io.realm.RealmObject')
         def modelClasses = classNames
                 .findAll { it.endsWith('RealmProxy') }
                 .collect { classPool.getCtClass(it).superclass }
-                .findAll { it.superclass?.equals(realmObject) }
+                .findAll { it.hasAnnotation(RealmClass.class) || it.superclass.hasAnnotation(RealmClass.class) }
+
         logger.info "Model Classes: ${modelClasses*.name}"
 
         // Populate a list of the fields that need to be managed with bytecode manipulation

@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.List;
 
+import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -73,18 +74,8 @@ import rx.Observable;
  * @see Realm#copyToRealm(RealmModel)
  */
 
+@RealmClass
 public abstract class RealmObject implements RealmModel {
-
-
-// TODO Move this to the proxy classes and expose methods in the RealmObjectProxy interface
-//    protected Row row;
-//    protected BaseRealm realm;
-//
-//    private final List<RealmChangeListener> listeners = new CopyOnWriteArrayList<RealmChangeListener>();
-//    private Future<Long> pendingQuery;
-//    private boolean isCompleted = false;
-//    protected long currentTableVersion = -1;
-//
     /**
      * Removes the object from the Realm it is currently associated to.
      * <p>
@@ -374,107 +365,4 @@ public abstract class RealmObject implements RealmModel {
             throw new IllegalArgumentException("Cannot create Observables from un-managed RealmObjects");
         }
     }
-
-
-// TODO Move all the below methods somewhere else
-
-    // TODO Move to RealmObjectProxy
-//    protected Table getTable () {
-//        return realm.schema.getTable(getClass());
-//    }
-
-      // TODO Move to RealmObjectPRoxy
-//    /**
-//     * Sets the Future instance returned by the worker thread, we need this instance to force {@link #load()} an async
-//     * query, we use it to determine if the current RealmResults is a sync or async one.
-//     *
-//     * @param pendingQuery pending query.
-//     */
-//    void setPendingQuery(Future<Long> pendingQuery) {
-//        this.pendingQuery = pendingQuery;
-//        if (isLoaded()) {
-//            // the query completed before RealmQuery
-//            // had a chance to call setPendingQuery to register the pendingQuery (used btw
-//            // to determine isLoaded behaviour)
-//            onCompleted();
-//
-//        } // else, it will be handled by the Realm#handler
-//    }
-
-    // TODO Move to RealmObjectPRoxy
-//    /**
-//     * Called to import the handover row pointer & notify listeners.
-//     *
-//     * @return {@code true} if it successfully completed the query, {@code false} otherwise.
-//     */
-//    boolean onCompleted() {
-//        try {
-//            Long handoverResult = pendingQuery.get();// make the query blocking
-//            if (handoverResult != 0) {
-//                // this may fail with BadVersionException if the caller and/or the worker thread
-//                // are not in sync (same shared_group version).
-//                // COMPLETED_ASYNC_REALM_OBJECT will be fired by the worker thread
-//                // this should handle more complex use cases like retry, ignore etc
-//                onCompleted(handoverResult);
-//                notifyChangeListeners();
-//            } else {
-//                isCompleted = true;
-//            }
-//        } catch (Exception e) {
-//            RealmLog.d(e.getMessage());
-//            return false;
-//        }
-//        return true;
-//    }
-
-    // TODO Move to RealmObjectPRoxy
-//    void onCompleted(Long handoverRowPointer) {
-//        if (handoverRowPointer == 0) {
-//            // we'll retry later to update the row pointer, but we consider
-//            // the query done
-//            isCompleted = true;
-//
-//        } else if (!isCompleted || row == Row.EMPTY_ROW) {
-//            isCompleted = true;
-//            long nativeRowPointer = TableQuery.nativeImportHandoverRowIntoSharedGroup(handoverRowPointer, realm.sharedGroupManager.getNativePointer());
-//            Table table = getTable();
-//            this.row = table.getUncheckedRowByPointer(nativeRowPointer);
-//        }// else: already loaded query no need to import again the pointer
-//    }
-//
-//    /**
-//     * Notifies all registered listeners.
-//     */
-//    void notifyChangeListeners() {
-//        if (listeners != null && !listeners.isEmpty()) {
-//            boolean notify = false;
-//
-//            Table table = row.getTable();
-//            if (table == null) {
-//                // Completed async queries might result in `table == null`, `isCompleted == true` and `row == Row.EMPTY_ROW`
-//                // We still want to trigger change notifications for these cases.
-//                // isLoaded / isValid should be considered properties on RealmObjects as well so any change to these
-//                // should trigger a RealmChangeListener.
-//                notify = true;
-//            } else {
-//                long version = table.version();
-//                if (currentTableVersion != version) {
-//                    currentTableVersion = version;
-//                    notify = true;
-//                }
-//            }
-//
-//            if (notify) {
-//                for (RealmChangeListener listener : listeners) {
-//                    listener.onChange();
-//                }
-//            }
-//        }
-//    }
-//
-//    void setTableVersion() {
-//        if (row.getTable() != null) {
-//            currentTableVersion = row.getTable().version();
-//        }
-//    }
 }

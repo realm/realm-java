@@ -26,7 +26,10 @@ public class Utils {
     public static Types typeUtils;
     private static Messager messager;
     private static DeclaredType realmList;
+    private static DeclaredType markerInterface;
     private static TypeMirror realmObject;
+    private static TypeMirror object;
+
 
     public static void initialize(ProcessingEnvironment env) {
         typeUtils = env.getTypeUtils();
@@ -34,7 +37,10 @@ public class Utils {
         realmList = typeUtils.getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmList"),
                 typeUtils.getWildcardType(null, null));
         realmObject = env.getElementUtils().getTypeElement("io.realm.RealmObject").asType();
+        markerInterface = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("io.realm.RealmModel"));
+        object = env.getTypeUtils().getDeclaredType(env.getElementUtils().getTypeElement("java.lang.Object"));
     }
+
 
     /**
      * @return true if the given element is the default public no arg constructor for a class.
@@ -137,6 +143,13 @@ public class Utils {
     }
 
     /**
+     * @return {@code true} if a given type implement "RealmModel", {@code false} otherwise.
+     */
+    public static boolean isImplementingMarkerInterface(Element classElement) {
+        return typeUtils.isAssignable(classElement.asType(), markerInterface);
+    }
+
+    /**
      * @return {@code true} if a given field type is "RealmList", {@code false} otherwise.
      */
     public static boolean isRealmList(VariableElement field) {
@@ -148,6 +161,20 @@ public class Utils {
      */
     public static boolean isRealmObject(VariableElement field) {
         return typeUtils.isAssignable(field.asType(), realmObject);
+    }
+
+    /**
+     * @return {@code true} if a given type is "RealmObject", {@code false} otherwise.
+     */
+    public static boolean isRealmObject(Element classElement) {
+        return typeUtils.isAssignable(classElement.asType(), realmObject);
+    }
+
+    /**
+     * @return {@code true} if a given type is "java.lang.Object", {@code false} otherwise.
+     */
+    public static boolean isJavaLangObject(Element classElement) {
+        return typeUtils.isAssignable(object, classElement.asType());
     }
 
     /**

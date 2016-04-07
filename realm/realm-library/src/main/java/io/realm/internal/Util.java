@@ -95,7 +95,7 @@ public class Util {
         @SuppressWarnings("unchecked")
         Class<? extends RealmModel> superclass = (Class<? extends RealmModel>) clazz.getSuperclass();
 
-        if (!superclass.equals(RealmObject.class)) {
+        if (!superclass.equals(Object.class) && !superclass.equals(RealmObject.class)) {
             clazz = superclass;
         }
 

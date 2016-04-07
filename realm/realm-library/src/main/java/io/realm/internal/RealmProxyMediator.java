@@ -102,7 +102,7 @@ public abstract class RealmProxyMediator {
      * @param cache the cache for mapping between standalone objects and their {@link RealmObjectProxy} representation.
      * @return the managed Realm object.
      */
-    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache);
+    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
 
     /**
      * Creates or updates a {@link RealmObject} using the provided JSON data.
@@ -137,7 +137,7 @@ public abstract class RealmProxyMediator {
      * @param cache cache used to make sure standalone objects are reused correctly.
      * @return a standalone copy of the given object.
      */
-    public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmModel>> cache);
+    public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 
     @Override
     public boolean equals(Object o) {

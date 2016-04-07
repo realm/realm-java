@@ -818,7 +818,7 @@ public final class Realm extends BaseRealm {
         }
 
         ArrayList<E> standaloneObjects = new ArrayList<E>();
-        Map<RealmObject, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<RealmObject, RealmObjectProxy.CacheData<RealmModel>>();
+        Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> listCache = new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>();
         for (E object : realmObjects) {
             checkValidObjectForDetach(object);
             standaloneObjects.add(createDetachedCopy(object, maxDepth, listCache));
@@ -871,7 +871,7 @@ public final class Realm extends BaseRealm {
     public <E extends RealmModel> E copyFromRealm(E realmObject, int maxDepth) {
         checkMaxDepth(maxDepth);
         checkValidObjectForDetach(realmObject);
-        return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmObject, RealmObjectProxy.CacheData<RealmModel>>());
+        return createDetachedCopy(realmObject, maxDepth, new HashMap<RealmModel, RealmObjectProxy.CacheData<RealmModel>>());
     }
 
     boolean contains(Class<? extends RealmModel> clazz) {
@@ -1341,10 +1341,10 @@ public final class Realm extends BaseRealm {
     @SuppressWarnings("unchecked")
     private <E extends RealmModel> E copyOrUpdate(E object, boolean update) {
         checkIfValid();
-        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmObject, RealmObjectProxy>());
+        return configuration.getSchemaMediator().copyOrUpdate(this, object, update, new HashMap<RealmModel, RealmObjectProxy>());
     }
 
-    private <E extends RealmModel> E createDetachedCopy(E object, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmModel>> cache) {
+    private <E extends RealmModel> E createDetachedCopy(E object, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
         checkIfValid();
         return configuration.getSchemaMediator().createDetachedCopy(object, maxDepth, cache);
     }

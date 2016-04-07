@@ -4,6 +4,7 @@ package io.realm;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import io.realm.RealmFieldType;
+import io.realm.annotations.RealmModule;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
@@ -1087,7 +1088,7 @@ public class NullTypesRealmProxy extends NullTypes
         return copy(realm, object, update, cache);
     }
 
-    public static NullTypes copy(Realm realm, NullTypes newObject, boolean update, Map<RealmObject,RealmObjectProxy> cache) {
+    public static NullTypes copy(Realm realm, NullTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache) {
         NullTypes realmObject = realm.createObject(NullTypes.class);
         cache.put(newObject, (RealmObjectProxy) realmObject);
         ((NullTypesRealmProxyInterface) realmObject).realmSet$fieldStringNotNull(((NullTypesRealmProxyInterface)newObject).realmGet$fieldStringNotNull());

@@ -358,7 +358,7 @@ public class RealmAsyncQueryTests {
                             try {
                                 assertTrue(results[0].isLoaded());
                                 assertEquals(5, results[0].size());
-                                assertTrue(results[0].get(0).isValid());
+                                assertTrue(RealmObject.isValid(results[0].get(0)));
                             } catch (AssertionFailedError e) {
                                 threadAssertionError[0] = e;
                             } finally {

@@ -103,9 +103,11 @@ public class ClassMetaData {
         }
 
         TypeElement parentElement = (TypeElement) Utils.getSuperClass(classType);
-        if (!parentElement.toString().endsWith(".RealmObject")) {
-            Utils.error("A RealmClass annotated object must be derived from RealmObject", classType);
-            return false;
+        // The only allowed derived class is RealmObject, POJO implementing RealmModel
+        // (instead of deriving from RealmObject) must not derive from any other super class.
+        if (!Utils.isJavaLangObject(parentElement) && !Utils.isRealmObject(parentElement)) {
+                Utils.error("A RealmClass annotated object must be derived from RealmObject", classType);
+                return false;
         }
 
         PackageElement packageElement = (PackageElement) enclosingElement;

@@ -31,7 +31,6 @@ import java.util.Set;
 
 import io.realm.Realm;
 import io.realm.RealmModel;
-import io.realm.RealmObject;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.ImplicitTransaction;
 import io.realm.internal.RealmObjectProxy;
@@ -109,7 +108,7 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmObject, RealmObjectProxy> cache) {
+    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
         return originalMediator.copyOrUpdate(realm, object, update, cache);
     }
@@ -127,7 +126,7 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmObject, RealmObjectProxy.CacheData<RealmModel>> cache) {
+    public <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(realmObject.getClass()));
         return originalMediator.createDetachedCopy(realmObject, maxDepth, cache);
     }
