@@ -21,6 +21,8 @@ import io.realm.annotations.PrimaryKey;
 
 public class PrimaryKeyAsString extends RealmObject {
 
+    public static final String CLASS_NAME = "PrimaryKeyAsString";
+
     @PrimaryKey
     private String name;
 

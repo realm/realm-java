@@ -38,6 +38,11 @@ import io.realm.entities.Cat;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.Owner;
+import io.realm.entities.PrimaryKeyAsBoxedByte;
+import io.realm.entities.PrimaryKeyAsBoxedInteger;
+import io.realm.entities.PrimaryKeyAsBoxedLong;
+import io.realm.entities.PrimaryKeyAsBoxedShort;
+import io.realm.entities.PrimaryKeyAsString;
 import io.realm.internal.log.RealmLog;
 import io.realm.proxy.HandlerProxy;
 import io.realm.rule.RunInLooperThread;
@@ -181,6 +186,61 @@ public class DynamicRealmTests {
         DynamicRealmObject dog = realm.createObject(DogPrimaryKey.CLASS_NAME, 42);
         assertEquals(42, dog.getLong("id"));
         realm.cancelTransaction();
+    }
+
+    @Test
+    public void createObject_withNullStringPrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsString.CLASS_NAME, (String) null);
+        realm.commitTransaction();
+
+        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsString.CLASS_NAME);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getString("name"));
+    }
+
+    @Test
+    public void createObject_withNullBytePrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedByte.CLASS_NAME, (Byte) null);
+        realm.commitTransaction();
+
+        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedByte.CLASS_NAME);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getObject("id"));
+    }
+
+    @Test
+    public void createObject_withNullShortPrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedShort.CLASS_NAME, (Short) null);
+        realm.commitTransaction();
+
+        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedShort.CLASS_NAME);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getObject("id"));
+    }
+
+    @Test
+    public void createObject_withNullIntegerPrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedInteger.CLASS_NAME, (Integer) null);
+        realm.commitTransaction();
+
+        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedInteger.CLASS_NAME);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getObject("id"));
+    }
+
+    @Test
+    public void createObject_withNullLongPrimaryKey() {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedLong.CLASS_NAME, (Long) null);
+        realm.commitTransaction();
+
+        RealmResults<DynamicRealmObject> results = realm.allObjects(PrimaryKeyAsBoxedLong.CLASS_NAME);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getObject("id"));
     }
 
     @Test(expected = IllegalArgumentException.class)

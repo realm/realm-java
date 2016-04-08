@@ -21,6 +21,8 @@ import io.realm.annotations.PrimaryKey;
 
 public class PrimaryKeyAsBoxedByte extends RealmObject {
 
+    public static final String CLASS_NAME = "PrimaryKeyAsBoxedByte";
+
     @PrimaryKey
     private Byte id;
 

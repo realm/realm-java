@@ -21,6 +21,8 @@ import io.realm.annotations.PrimaryKey;
 
 public class PrimaryKeyAsBoxedShort extends RealmObject {
 
+    public static final String CLASS_NAME = "PrimaryKeyAsBoxedShort";
+
     @PrimaryKey
     private Short id;
 
