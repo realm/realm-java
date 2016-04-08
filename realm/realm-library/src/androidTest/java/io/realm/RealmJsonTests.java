@@ -47,7 +47,9 @@ import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NullTypes;
 import io.realm.entities.OwnerPrimaryKey;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
+import io.realm.entities.PrimaryKeyAsBoxedInteger;
 import io.realm.entities.PrimaryKeyAsBoxedLong;
+import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmException;
 import io.realm.rule.TestRealmConfigurationFactory;
@@ -1184,54 +1186,6 @@ public class RealmJsonTests {
 
     // Nullable PrimaryKey tests for PrimaryKeyAsString
     @Test
-    public void createObjectFromJson_stringPrimaryKeyFieldIsNullFromJsonString() throws IOException, JSONException {
-        realm.beginTransaction();
-        realm.createObjectFromJson(PrimaryKeyAsString.class, "{ \"name\":null, \"id\":42 }");
-        realm.commitTransaction();
-
-        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getName());
-        assertEquals(42, results.first().getId());
-    }
-
-    @Test
-    public void createObjectFromJson_stringPrimaryKeyFieldIsAbsentFromJsonString() throws IOException, JSONException {
-        realm.beginTransaction();
-        realm.createObjectFromJson(PrimaryKeyAsString.class, "{ \"id\":42 }");
-        realm.commitTransaction();
-
-        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getName());
-        assertEquals(42, results.first().getId());
-    }
-
-    @Test
-    public void createObjectFromJson_stringPrimaryKeyFieldIsNullFromJsonStream() throws IOException, JSONException {
-        realm.beginTransaction();
-        realm.createObjectFromJson(PrimaryKeyAsString.class, TestHelper.stringToStream("{ \"name\":null, \"id\":42 }"));
-        realm.commitTransaction();
-
-        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getName());
-        assertEquals(42, results.first().getId());
-    }
-
-    @Test
-    public void createObjectFromJson_stringPrimaryKeyFieldIsAbsentFromJsonStream() throws IOException, JSONException {
-        realm.beginTransaction();
-        realm.createObjectFromJson(PrimaryKeyAsString.class, TestHelper.stringToStream("{ \"id\":42 }"));
-        realm.commitTransaction();
-
-        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
-        assertEquals(1, results.size());
-        assertEquals(null, results.first().getName());
-        assertEquals(42, results.first().getId());
-    }
-
-    @Test
     public void createObjectFromJson_stringPrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
         realm.beginTransaction();
         realm.createObjectFromJson(PrimaryKeyAsString.class, new JSONObject("{ \"name\":null, \"id\":42 }"));
@@ -1255,55 +1209,57 @@ public class RealmJsonTests {
         assertEquals(42, results.first().getId());
     }
 
+    @Test
+    public void createOrUpdateObjectFromJson_stringPrimaryKeyFieldIsNullFromJsonObject() throws JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsString.class, new JSONObject("{ \"name\":null, \"id\":42 }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getName());
+        assertEquals(42, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_stringPrimaryKeyFieldIsAbsentFromJsonObject() throws JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsString.class, new JSONObject("{ \"id\":42 }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getName());
+        assertEquals(42, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_stringPrimaryKeyFieldIsNullUpdateFromJsonObject() throws JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsString.class); // name = null, id = 0
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsString.class, new JSONObject("{ \"name\":null, \"id\":42 }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getName());
+        assertEquals(42, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_stringPrimaryKeyFieldIsAbsentUpdateFromJsonObject() throws JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsString.class); // name = null, id = 0
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsString.class, new JSONObject("{ \"id\":42 }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsString> results = realm.allObjects(PrimaryKeyAsString.class);
+        assertEquals(1, results.size());
+        assertEquals(null, results.first().getName());
+        assertEquals(42, results.first().getId());
+    }
+
     // Nullable PrimaryKey tests for PrimaryKeyAsBoxedByte
-    @Test
-    public void createObjectFromJson_bytePrimaryKeyFieldIsNullFromJsonString() throws IOException, JSONException {
-        realm.beginTransaction();
-        realm.createObjectFromJson(PrimaryKeyAsBoxedByte.class, "{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }");
-        realm.commitTransaction();
-
-        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
-        assertEquals(1, results.size());
-        assertEquals("nullPrimaryKeyObj", results.first().getName());
-        assertEquals(null, results.first().getId());
-    }
-
-    @Test
-    public void createObjectFromJson_bytePrimaryKeyFieldIsAbsentFromJsonString() throws IOException, JSONException {
-        realm.beginTransaction();
-        realm.createObjectFromJson(PrimaryKeyAsBoxedByte.class,  "{ \"name\":\"nullPrimaryKeyObj\" }");
-        realm.commitTransaction();
-
-        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
-        assertEquals(1, results.size());
-        assertEquals("nullPrimaryKeyObj", results.first().getName());
-        assertEquals(null, results.first().getId());
-    }
-
-    @Test
-    public void createObjectFromJson_bytePrimaryKeyFieldIsNullFromJsonStream() throws IOException, JSONException {
-        realm.beginTransaction();
-        realm.createObjectFromJson(PrimaryKeyAsBoxedByte.class, TestHelper.stringToStream("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
-        realm.commitTransaction();
-
-        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
-        assertEquals(1, results.size());
-        assertEquals("nullPrimaryKeyObj", results.first().getName());
-        assertEquals(null, results.first().getId());
-    }
-
-    @Test
-    public void createObjectFromJson_bytePrimaryKeyFieldIsAbsentFromJsonStream() throws IOException, JSONException {
-        realm.beginTransaction();
-        realm.createObjectFromJson(PrimaryKeyAsBoxedByte.class, TestHelper.stringToStream("{ \"name\":\"nullPrimaryKeyObj\" }"));
-        realm.commitTransaction();
-
-        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
-        assertEquals(1, results.size());
-        assertEquals("nullPrimaryKeyObj", results.first().getName());
-        assertEquals(null, results.first().getId());
-    }
-
     @Test
     public void createObjectFromJson_bytePrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
         realm.beginTransaction();
@@ -1323,6 +1279,281 @@ public class RealmJsonTests {
         realm.commitTransaction();
 
         RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_bytePrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedByte.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_bytePrimaryKeyFieldIsAbsentFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedByte.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_bytePrimaryKeyFieldIsNullUpdateFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedByte.class); // id = null, name = null
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedByte.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_bytePrimaryKeyFieldIsAbsentUpdateFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedByte.class); // id = null, name = null
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedByte.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedByte> results = realm.allObjects(PrimaryKeyAsBoxedByte.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    // Nullable PrimaryKey tests for PrimaryKeyAsBoxedShort
+    @Test
+    public void createObjectFromJson_shortPrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObjectFromJson(PrimaryKeyAsBoxedShort.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createObjectFromJson_shortPrimaryKeyFieldIsAbsentFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObjectFromJson(PrimaryKeyAsBoxedShort.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_shortPrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedShort.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_shortPrimaryKeyFieldIsAbsentFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedShort.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_shortPrimaryKeyFieldIsNullUpdateFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedShort.class); // id = null, name = null
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedShort.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_shortPrimaryKeyFieldIsAbsentUpdateFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedShort.class); // id = null, name = null
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedShort.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedShort> results = realm.allObjects(PrimaryKeyAsBoxedShort.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    // Nullable PrimaryKey tests for PrimaryKeyAsBoxedInteger
+    @Test
+    public void createObjectFromJson_integerPrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObjectFromJson(PrimaryKeyAsBoxedInteger.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createObjectFromJson_integerPrimaryKeyFieldIsAbsentFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObjectFromJson(PrimaryKeyAsBoxedInteger.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_integerPrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedInteger.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_integerPrimaryKeyFieldIsAbsentFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedInteger.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_integerPrimaryKeyFieldIsNullUpdateFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedInteger.class); // id = null, name = null
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedInteger.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_integerPrimaryKeyFieldIsAbsentUpdateFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedInteger.class); // id = null, name = null
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedInteger.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedInteger> results = realm.allObjects(PrimaryKeyAsBoxedInteger.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    // Nullable PrimaryKey tests for PrimaryKeyAsBoxedLong
+    @Test
+    public void createObjectFromJson_longPrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObjectFromJson(PrimaryKeyAsBoxedLong.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createObjectFromJson_longPrimaryKeyFieldIsAbsentFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObjectFromJson(PrimaryKeyAsBoxedLong.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_longPrimaryKeyFieldIsNullFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedLong.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_longPrimaryKeyFieldIsAbsentFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedLong.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_longPrimaryKeyFieldIsNullUpdateFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedLong.class); // id = null, name = null
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedLong.class, new JSONObject("{ \"id\":null, \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
+        assertEquals(1, results.size());
+        assertEquals("nullPrimaryKeyObj", results.first().getName());
+        assertEquals(null, results.first().getId());
+    }
+
+    @Test
+    public void createOrUpdateObjectFromJson_longPrimaryKeyFieldIsAbsentUpdateFromJsonObject() throws IOException, JSONException {
+        realm.beginTransaction();
+        realm.createObject(PrimaryKeyAsBoxedLong.class); // id = null, name = null
+        realm.createOrUpdateObjectFromJson(PrimaryKeyAsBoxedLong.class, new JSONObject("{ \"name\":\"nullPrimaryKeyObj\" }"));
+        realm.commitTransaction();
+
+        RealmResults<PrimaryKeyAsBoxedLong> results = realm.allObjects(PrimaryKeyAsBoxedLong.class);
         assertEquals(1, results.size());
         assertEquals("nullPrimaryKeyObj", results.first().getName());
         assertEquals(null, results.first().getId());
