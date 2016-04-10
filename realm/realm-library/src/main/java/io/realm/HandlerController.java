@@ -101,7 +101,6 @@ public final class HandlerController implements Handler.Callback {
         // access to the handlers as they are the prime mean of notifying about updates. Instead we make sure
         // that if a message does slip though (however unlikely), it will not try to update a SharedGroup that no
         // longer exists. `sharedGroupManager` will only be null if a Realm is really closed.
-        RealmLog.d("Handle: " + message.what);
         if (realm.sharedGroupManager != null) {
             QueryUpdateTask.Result result;
             switch (message.what) {
@@ -255,7 +254,7 @@ public final class HandlerController implements Handler.Callback {
         notifyTypeBasedListeners();
 
         // empty async RealmObject shouldn't block the realm to advance
-        // they're empty so no risk on running into a corrupt state
+        // they're empty so no risk for running into a corrupt state
         // where the pointer (Row) is using one version of a Realm, whereas the
         // current Realm is advancing to a newer version (they're empty anyway)
         if (!realm.isClosed() && threadContainsAsyncEmptyRealmObject()) {

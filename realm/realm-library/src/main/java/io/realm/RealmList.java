@@ -838,8 +838,9 @@ public class RealmList<E extends RealmObject> extends AbstractList<E> implements
             // Fortunately a LinkView does not change unless manually altered (unlike RealmResults)
             // So therefor it should be acceptable to use the same heuristic as a normal AbstractList
             // when detecting concurrent modifications.
-            if (modCount != expectedModCount)
+            if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
+            }
         }
     }
 

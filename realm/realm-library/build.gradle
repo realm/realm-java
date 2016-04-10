@@ -54,7 +54,6 @@ dependencies {
     androidTestCompile 'com.android.support.test:rules:0.4.1'
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
-    androidTestCompile 'junit:junit:4.12'
 
     androidTestApt project(':realm-annotations-processor')
 }

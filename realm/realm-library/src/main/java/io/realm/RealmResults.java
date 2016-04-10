@@ -645,18 +645,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         }
     }
 
-    /**
-     * Removes the first object in the list. This also deletes the object from the underlying Realm.
-     *
-     * DEPRECATED: Use {@link #deleteFirstFromRealm()} instead.
-     *
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
-     */
-    @Deprecated
-    public boolean removeFirst() {
-        return deleteFirstFromRealm();
-    }
-
     void syncIfNeeded() {
         long newVersion = table.syncIfNeeded();
         viewUpdated = newVersion != currentTableViewVersion;

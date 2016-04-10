@@ -140,7 +140,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
      * @param unsupportedTypes list of unsupported test types
      * @return {@code true} if the unit test should be aborted, {@code false} if it should continue.
      */
-    private boolean abortTest(CollectionClass... unsupportedTypes) {
+    private boolean skipTest(CollectionClass... unsupportedTypes) {
         for (int i = 0; i < unsupportedTypes.length; i++) {
             if (unsupportedTypes[i].equals(collectionClass)) {
                 return true;
@@ -182,7 +182,6 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         assertEquals(1, collection.size());
     }
 
-
     @Test
     public void iterator_unrelatedTransactionBeforeNextItem() {
         Iterator<AllJavaTypes> it = collection.iterator();
@@ -198,13 +197,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     @Test
-    public void iterator_relatedTransactionBeforeNextItem() {
-        // FIXME
-    }
-
-    @Test
     public void iterator_closedRealm_methodsThrows() {
-        if (abortTest(CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -263,7 +257,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
 
         // un-managed objects are always invalid, but cannot be GC'ed while we have a reference.
-        // managed objects should not be deleted (=invalid).
+        // managed objects should not be deleted (= invalid).
         assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
         assertTrue(obj.isValid());
         assertEquals("test data 1", collection.iterator().next().getFieldString());
@@ -299,7 +293,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void iterator_removedCalledTwice() {
-        if (abortTest(CollectionClass.REALMRESULTS)) {
+        if (skipTest(CollectionClass.REALMRESULTS)) {
             return; // remove() not supported by RealmResults
         }
 
@@ -382,7 +376,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     // TODO Remove once waitForChange is introduced
     @Test
     public void iterator_refreshClearsDeletedObjects() {
-        if (abortTest(CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -394,7 +388,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         assertEquals(1, obj.getFieldLong());
         obj.deleteFromRealm();
         realm.commitTransaction();
-        realm.refresh(); // Refresh forces a refresh of all Collections
+        realm.refresh(); // Force a refresh of all Collections
 
         assertEquals(TEST_SIZE - 1, collection.size());
 
@@ -557,7 +551,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void listIterator_refreshClearsDeletedObjects() {
-        if (abortTest(CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -582,7 +576,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void listIterator_closedRealm_methods() {
-        if (abortTest(CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -739,7 +733,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void listIterator_set() {
-        if (abortTest(CollectionClass.REALMRESULTS)) {
+        if (skipTest(CollectionClass.REALMRESULTS)) {
             return;
         }
 
@@ -764,7 +758,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     public void listIterator_add() {
-        if (abortTest(CollectionClass.REALMRESULTS)) {
+        if (skipTest(CollectionClass.REALMRESULTS)) {
             return;
         }
 
@@ -817,46 +811,8 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     }
 
     @Test
-    public void useCase_simpleIterator_outerTransaction() {
-        realm.beginTransaction();
-        for (int i = 0; i < collection.size(); i++) {
-            assertEquals(i, collection.get(i).getFieldLong());
-        }
-        realm.commitTransaction();
-    }
-
-    @Test
-    public void useCase_simpleIterator_innerTransaction() {
-        for (int i = 0; i < collection.size(); i++) {
-            realm.beginTransaction();
-            assertEquals(i, collection.get(i).getFieldLong());
-            realm.commitTransaction();
-        }
-    }
-
-    @Test
-    public void useCase_forEachIterator_outerTransaction() {
-        realm.beginTransaction();
-        int i = 0;
-        for (AllJavaTypes obj : collection) {
-            assertEquals(i++, obj.getFieldLong());
-        }
-        realm.commitTransaction();
-    }
-
-    @Test
-    public void useCase_forEachIterator_innerTransaction() {
-        int i = 0;
-        for (AllJavaTypes obj : collection) {
-            realm.beginTransaction();
-            assertEquals(i++, obj.getFieldLong());
-            realm.commitTransaction();
-        }
-    }
-
-    @Test
     public void useCase_simpleIterator_modifyQueryResult_innerTransaction() {
-        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -875,7 +831,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void useCase_simpleIterator_modifyQueryResult_outerTransaction() {
-        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -894,7 +850,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void useCase_forEachIterator_modifyQueryResult_innerTransaction() {
-        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -912,7 +868,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
 
     @Test
     public void useCase_forEachIterator_modifyQueryResult_outerTransaction() {
-        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -931,7 +887,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     @Test
     @UiThreadTest
     public void useCase_simpleIterator_modifyQueryResult_innerTransaction_looperThread() {
-        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -951,7 +907,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     @Test
     @UiThreadTest
     public void useCase_simpleIterator_modifyQueryResult_outerTransaction_looperThread() {
-        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -971,7 +927,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     @Test
     @UiThreadTest
     public void useCase_forEachIterator_modifyQueryResult_innerTransaction_looperThread() {
-        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 
@@ -990,7 +946,7 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
     @Test
     @UiThreadTest
     public void useCase_forEachIterator_modifyQueryResult_outerTransaction_looperThread() {
-        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+        if (skipTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
             return;
         }
 

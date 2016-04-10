@@ -2165,8 +2165,8 @@ public class RealmTests {
         }
     }
 
-    // This test assure that calling refresh will not trigger local listeners
-    // after the Looper receivess REALM_CHANGE message
+    // This test assure that calling refresh will not trigger local listeners until after the Looper receives a
+    // REALM_CHANGE message
     @Test
     public void processRefreshLocalListenersAfterLooperQueueStart() throws Throwable {
         // Used to validate the result
