@@ -648,7 +648,7 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         long newVersion = table.syncIfNeeded();
         viewUpdated = newVersion != currentTableViewVersion;
         currentTableViewVersion = newVersion;
-	}
+    }
 
     /**
      * Removes the first object in the list. This also deletes the object from the underlying Realm.
