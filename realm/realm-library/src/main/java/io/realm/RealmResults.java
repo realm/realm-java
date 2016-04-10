@@ -29,7 +29,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 
-import io.realm.exceptions.RealmException;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.Table;
 import io.realm.internal.TableOrView;
@@ -726,7 +725,6 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
     private class RealmResultsIterator implements Iterator<E> {
         long tableViewVersion = 0;
         int pos = -1;
-        private boolean removeUsed = false;
 
         RealmResultsIterator() {
             tableViewVersion = currentTableViewVersion;
