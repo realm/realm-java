@@ -800,14 +800,14 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         }
 
         /**
-         * Adding a new object to a {@link RealmResults} is not supported and will always throws an {@link RealmException}.
-         * Use {@link Realm#createObject(Class)} instead.
+         * Unsupported by RealmResults iterators.
          *
-         * @throws RealmException, always.
+         * @throws UnsupportedOperationException, always.
          */
         @Override
+        @Deprecated
         public void add(E object) {
-            throw new RealmException("Adding elements is not supported. Use Realm.createObject() instead.");
+            throw new UnsupportedOperationException("Adding elements is not supported. Use Realm.createObject() instead.");
         }
 
         /**
@@ -851,11 +851,14 @@ public final class RealmResults<E extends RealmObject> extends AbstractList<E> i
         }
 
         /**
-         * {@inheritDoc}
+         * Unsupported by RealmResults iterators.
+         *
+         * @throws UnsupportedOperationException, always.
          */
         @Override
+        @Deprecated
         public void set(E object) {
-            throw new RealmException("Replacing elements not supported.");
+            throw new UnsupportedOperationException("Replacing elements not supported.");
         }
     }
 

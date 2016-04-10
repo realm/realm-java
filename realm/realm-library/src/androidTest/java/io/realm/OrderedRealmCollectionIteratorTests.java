@@ -695,153 +695,314 @@ public class OrderedRealmCollectionIteratorTests extends CollectionTests {
         }
     }
 
-//
-//    @Test
-//    public void listIterator_managed_emovedObjectsStillAccessible() {
-//        realm.beginTransaction();
-//        collection.iterator().next().deleteFromRealm();
-//        realm.commitTransaction();
-//
-//        assertEquals(TEST_SIZE, collection.size()); // Size is same even if object is deleted
-//        ListIterator<AllJavaTypes> it = collection.listIterator();
-//        AllJavaTypes types = it.next(); // Iterator can still access the deleted object
-//
-//        assertFalse(types.isValid());
-//    }
-//
-//    @Test
-//    public void listIterator_remove_doesNotDeleteObject() {
-//        ListIterator<AllJavaTypes> it = collection.listIterator();
-//        AllJavaTypes obj = it.next();
-//        assertEquals("Dog 0", obj.getFieldString());
-//        realm.beginTransaction();
-//        it.remove();
-//        assertTrue(obj.isValid());
-//    }
-//
-//    @Test
-//    public void listIterator_managed_set() {
-////        collection.listIterator().set(null);
-//        fail();
-//    }
-//
-//    @Test
-//    public void listIterator_unManaged_set() {
-////        collection.listIterator().set(null);
-//        fail();
-//    }
-//
-//    @Test(expected = RealmException.class)
-//    public void listIterator_managed_add() {
-////        collection.listIterator().add(null);
-//        fail();
-//    }
-//
-//    @Test(expected = RealmException.class)
-//    public void listIterator_unManaged_add() {
-////        collection.listIterator().add(null);
-//        fail();
-//    }
-//
-//
-//    @Test
-//    public void iterator_remove() {
-//        Iterator<AllJavaTypes> it = collection.iterator();
-//        it.next();
-//
-//        try {
-//            it.remove();
-//            fail();
-//        } catch (UnsupportedOperationException ignored) {
-//        }
-//    }
-//
-//    @Test
-//    public void iterator_deletedObjectStillAccessible() {
-//        realm.beginTransaction();
-//        Iterator<AllJavaTypes> it = collection.iterator();
-//        it.next(); // First item is a cyclic reference, avoid deleting that.
-//        it.next().deleteFromRealm();
-//        realm.commitTransaction();
-//
-//        // RealmResults are no "live", so deleted objects are still present
-//        assertEquals(TEST_SIZE, collection.size());
-//        it = collection.iterator();
-//        it.next();
-//        AllJavaTypes obj = it.next(); // Iterator can still access the deleted object
-//        assertFalse(obj.isValid());
-//    }
-//
-//    // TODO Remove once waitForChange is introduced
-//    @Test
-//    public void iterator_refreshWhileIterating() {
-//        Iterator<AllJavaTypes> it = collection.iterator();
-//        it.next();
-//
-//        realm.beginTransaction();
-//        realm.createObject(AllTypes.class);
-//        realm.commitTransaction();
-//        realm.refresh(); // This will trigger rerunning all queries
-//
-//        thrown.expect(ConcurrentModificationException.class);
-//        it.next();
-//    }
-//
-//    @Test
-//    public void listIterator_removedObjectsStillAccessible() {
-//        realm.beginTransaction();
-//        collection.iterator().next().deleteFromRealm();
-//        realm.commitTransaction();
-//
-//        assertEquals(TEST_SIZE, collection.size()); // Size is same even if object is deleted
-//        ListIterator<AllJavaTypes> it = collection.listIterator();
-//        AllJavaTypes types = it.next(); // Iterator can still access the deleted object
-//
-//        assertFalse(types.isValid());
-//    }
-//
-//    @Test
-//    public void listIterator_unsupportedMethods() {
-//        ListIterator<AllJavaTypes> it = collection.listIterator();
-//        it.next();
-//        try {
-//            it.remove();
-//            fail();
-//        } catch (UnsupportedOperationException ignored) {
-//        }
-//
-//        try {
-//            it.add(null);
-//            fail();
-//        } catch (UnsupportedOperationException ignored) {
-//        }
-//
-//        try {
-//            it.set(null);
-//            fail();
-//        } catch (UnsupportedOperationException ignored) {
-//        }
-//    }
-//
+    @Test
+    public void listIterator_deleteManagedObjectIndirectly() {
+        realm.beginTransaction();
+        Iterator<AllJavaTypes> it = collection.iterator();
+        it.next();
+        it.next().deleteFromRealm();
+        realm.commitTransaction();
 
 
-//   // Use cases
-//    @Test
-//    public void simple_iterator() {
-//        for (int i = 0; i < collection.size(); i++) {
-//            assertEquals("Failed at index: " + i, i, collection.get(i).getFieldLong());
-//        }
-//    }
-//
-//    @Test
-//    public void iterator_forEach() {
-//        int i = 0;
-//        for (AllJavaTypes item : collection) {
-//            assertEquals("Failed at index: " + i, i, item.getFieldLong());
-//            i++;
-//        }
-//    }
+        switch (collectionClass) {
+            case MANAGED_REALMLIST:
+                assertEquals(TEST_SIZE - 1, collection.size());
+                break;
+            case UNMANAGED_REALMLIST:
+            case REALMRESULTS:
+                assertEquals(TEST_SIZE, collection.size());
+                break;
+        }
+        it = collection.listIterator();
+        it.next();
+        AllJavaTypes types = it.next(); // Iterator can still access the deleted object
 
+        assertFalse(collectionClass == CollectionClass.MANAGED_REALMLIST ? !types.isValid() : types.isValid());
+    }
 
+    @Test
+    public void listIterator_remove_doesNotDeleteObject() {
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+        AllJavaTypes obj = it.next();
+        assertEquals("test data 0", obj.getFieldString());
+        realm.beginTransaction();
+        try {
+            it.remove();
+            if (collectionClass == CollectionClass.REALMRESULTS) {
+                fail();
+            }
+            assertTrue(obj.isValid());
+        } catch (UnsupportedOperationException e) {
+            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+        }
+    }
 
+    @Test
+    public void listIterator_set() {
+        if (abortTest(CollectionClass.REALMRESULTS)) {
+            return;
+        }
+
+        realm.beginTransaction();
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+
+        // Calling set() before next() should throw
+        try {
+            it.set(new AllJavaTypes());
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        AllJavaTypes obj = it.next();
+        assertEquals(0, obj.getFieldLong());
+        it.set(new AllJavaTypes(42));
+
+        it.next();
+        it.previous(); // A big ListIterator WTF!, but it is by design.
+        obj = it.previous();
+        assertEquals(42, obj.getFieldLong());
+    }
+
+    public void listIterator_add() {
+        if (abortTest(CollectionClass.REALMRESULTS)) {
+            return;
+        }
+
+        realm.beginTransaction();
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+
+        // Calling set() before next() should throw
+        try {
+            it.add(new AllJavaTypes());
+            fail();
+        } catch (IllegalStateException ignored) {
+        }
+
+        AllJavaTypes obj = it.next();
+        assertEquals(0, obj.getFieldLong());
+        it.add(new AllJavaTypes(42));
+        obj = it.previous();
+        assertEquals(42, obj.getFieldLong());
+    }
+
+    @Test
+    public void listIterator_unsupportedMethods() {
+        ListIterator<AllJavaTypes> it = collection.listIterator();
+        try {
+            it.remove();
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+        } catch (IllegalStateException e) {
+            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+        }
+
+        try {
+            it.add(null);
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+        } catch (IllegalArgumentException e) {
+            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+        }
+
+        try {
+            it.set(new AllJavaTypes());
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertEquals(CollectionClass.REALMRESULTS, collectionClass);
+        } catch (IllegalStateException e) {
+            assertNotEquals(CollectionClass.REALMRESULTS, collectionClass);
+        }
+    }
+
+    @Test
+    public void useCase_simpleIterator_outerTransaction() {
+        realm.beginTransaction();
+        for (int i = 0; i < collection.size(); i++) {
+            assertEquals(i, collection.get(i).getFieldLong());
+        }
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void useCase_simpleIterator_innerTransaction() {
+        for (int i = 0; i < collection.size(); i++) {
+            realm.beginTransaction();
+            assertEquals(i, collection.get(i).getFieldLong());
+            realm.commitTransaction();
+        }
+    }
+
+    @Test
+    public void useCase_forEachIterator_outerTransaction() {
+        realm.beginTransaction();
+        int i = 0;
+        for (AllJavaTypes obj : collection) {
+            assertEquals(i++, obj.getFieldLong());
+        }
+        realm.commitTransaction();
+    }
+
+    @Test
+    public void useCase_forEachIterator_innerTransaction() {
+        int i = 0;
+        for (AllJavaTypes obj : collection) {
+            realm.beginTransaction();
+            assertEquals(i++, obj.getFieldLong());
+            realm.commitTransaction();
+        }
+    }
+
+    @Test
+    public void useCase_simpleIterator_modifyQueryResult_innerTransaction() {
+        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
+        assertEquals(TEST_SIZE, collection.size());
+        for (int i = 0; i < collection.size(); i++) {
+            realm.beginTransaction();
+            AllJavaTypes obj = collection.get(i);
+            obj.setFieldLong(obj.getFieldLong() + TEST_SIZE);
+            realm.commitTransaction();
+        }
+
+        // Verify that all elements where modified
+        assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
+    }
+
+    @Test
+    public void useCase_simpleIterator_modifyQueryResult_outerTransaction() {
+        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
+        assertEquals(TEST_SIZE, collection.size());
+        realm.beginTransaction();
+        for (int i = 0; i < collection.size(); i++) {
+            AllJavaTypes obj = collection.get(i);
+            obj.setFieldLong(obj.getFieldLong() + TEST_SIZE);
+        }
+        realm.commitTransaction();
+
+        // Verify that all elements where modified
+        assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
+    }
+
+    @Test
+    public void useCase_forEachIterator_modifyQueryResult_innerTransaction() {
+        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
+        assertEquals(TEST_SIZE, collection.size());
+        for (AllJavaTypes obj : collection) {
+            realm.beginTransaction();
+            obj.setFieldLong(obj.getFieldLong() + TEST_SIZE);
+            realm.commitTransaction();
+        }
+
+        // Verify that all elements where modified
+        assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
+    }
+
+    @Test
+    public void useCase_forEachIterator_modifyQueryResult_outerTransaction() {
+        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
+        assertEquals(TEST_SIZE, collection.size());
+        realm.beginTransaction();
+        for (AllJavaTypes obj : collection) {
+            obj.setFieldLong(obj.getFieldLong() + TEST_SIZE);
+        }
+        realm.commitTransaction();
+
+        // Verify that all elements where modified
+        assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
+    }
+
+    @Test
+    @UiThreadTest
+    public void useCase_simpleIterator_modifyQueryResult_innerTransaction_looperThread() {
+        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
+        assertEquals(TEST_SIZE, collection.size());
+        for (int i = 0; i < collection.size(); i++) {
+            realm.beginTransaction();
+            AllJavaTypes obj = collection.get(i);
+            obj.setFieldLong(obj.getFieldLong() + TEST_SIZE);
+            realm.commitTransaction();
+        }
+
+        // Verify that all elements where modified
+        assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
+    }
+
+    @Test
+    @UiThreadTest
+    public void useCase_simpleIterator_modifyQueryResult_outerTransaction_looperThread() {
+        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
+        assertEquals(TEST_SIZE, collection.size());
+        realm.beginTransaction();
+        for (int i = 0; i < collection.size(); i++) {
+            AllJavaTypes obj = collection.get(i);
+            obj.setFieldLong(obj.getFieldLong() + TEST_SIZE);
+        }
+        realm.commitTransaction();
+
+        // Verify that all elements where modified
+        assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
+    }
+
+    @Test
+    @UiThreadTest
+    public void useCase_forEachIterator_modifyQueryResult_innerTransaction_looperThread() {
+        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
+        assertEquals(TEST_SIZE, collection.size());
+        for (AllJavaTypes obj : collection) {
+            realm.beginTransaction();
+            obj.setFieldLong(obj.getFieldLong() + TEST_SIZE);
+            realm.commitTransaction();
+        }
+
+        // Verify that all elements where modified
+        assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
+    }
+
+    @Test
+    @UiThreadTest
+    public void useCase_forEachIterator_modifyQueryResult_outerTransaction_looperThread() {
+        if (abortTest(CollectionClass.MANAGED_REALMLIST, CollectionClass.UNMANAGED_REALMLIST)) {
+            return;
+        }
+
+        collection = realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).findAll();
+        assertEquals(TEST_SIZE, collection.size());
+        realm.beginTransaction();
+        for (AllJavaTypes obj : collection) {
+            obj.setFieldLong(obj.getFieldLong() + TEST_SIZE);
+        }
+        realm.commitTransaction();
+
+        // Verify that all elements where modified
+        assertEquals(0, realm.where(AllJavaTypes.class).lessThan(AllJavaTypes.FIELD_LONG, TEST_SIZE).count());
+    }
 }
