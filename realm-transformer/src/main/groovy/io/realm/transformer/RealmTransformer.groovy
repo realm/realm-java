@@ -198,8 +198,12 @@ class RealmTransformer extends Transform {
                     !it.directory && it.name.endsWith(SdkConstants.DOT_CLASS)
                 }.each {
                     def path = it.name
+                    // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
+                    // `/`. It depends on how the jar file was created.
+                    // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
                     def className = path.substring(0, path.length() - SdkConstants.DOT_CLASS.length())
-                            .replace(File.separatorChar, '.' as char)
+                            .replace('/' as char , '.' as char)
+                            .replace('\\' as char , '.' as char)
                     classNames.add(className)
                 }
             }

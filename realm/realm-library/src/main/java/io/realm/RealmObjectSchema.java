@@ -132,7 +132,7 @@ public final class RealmObjectSchema {
         FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
-                throw new IllegalArgumentException("Use addLinkField() instead to add fields that link to other RealmObjects: " + fieldName);
+                throw new IllegalArgumentException("Use addRealmObjectField() instead to add fields that link to other RealmObjects: " + fieldName);
             } else {
                 throw new IllegalArgumentException(String.format("Realm doesn't support this field type: %s(%s)",
                         fieldName, fieldType));
