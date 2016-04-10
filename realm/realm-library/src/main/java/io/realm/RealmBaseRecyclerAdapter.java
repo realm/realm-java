@@ -23,19 +23,16 @@ import android.view.LayoutInflater;
 /**
  * The RealmBaseRecyclerAdapter class is an abstract utility class for binding RecyclerView UI elements to Realm data.
  * <p>
- * This adapter will automatically handle any updates to its data and call
- * {@link android.support.v7.widget.RecyclerView.Adapter#notifyDataSetChanged()} as appropriate.
- * Currently there is no support for RecyclerView's data callback methods like
- * {@link android.support.v7.widget.RecyclerView.Adapter#notifyItemInserted(int)},
- * {@link android.support.v7.widget.RecyclerView.Adapter#notifyItemRemoved(int)},
- * {@link android.support.v7.widget.RecyclerView.Adapter#notifyItemChanged(int)} etc.
+ * This adapter will automatically handle any updates to its data and call notifyDataSetChanged() as appropriate.
+ * Currently there is no support for RecyclerView's data callback methods like notifyItemInserted(int), notifyItemRemoved(int),
+ * notifyItemChanged(int) etc.
  * It means that, there is no possibility to use default data animations.
  * <p>
  * The RealmAdapter will stop receiving updates if the Realm instance providing the {@link OrderedRealmCollection} is
  * closed.
  *
  * @param <T> type of {@link RealmObject} stored in the adapter.
- * @param <VH> type of {@link android.support.v7.widget.RecyclerView.ViewHolder} used in the adapter.
+ * @param <VH> type of RecyclerView.ViewHolder used in the adapter.
  */
 public abstract class RealmBaseRecyclerAdapter<T extends RealmObject, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
@@ -80,8 +77,7 @@ public abstract class RealmBaseRecyclerAdapter<T extends RealmObject, VH extends
 
     /**
      * Returns the current ID for an item. Note that item IDs are not stable so you cannot rely on the item ID being the
-     * same after {@link android.support.v7.widget.RecyclerView.Adapter#notifyDataSetChanged()}
-     * or {@link #updateData(OrderedRealmCollection)} has been called.
+     * same after notifyDataSetChanged() or {@link #updateData(OrderedRealmCollection)} has been called.
      *
      * @param index position of item in the adapter.
      * @return current item ID.
