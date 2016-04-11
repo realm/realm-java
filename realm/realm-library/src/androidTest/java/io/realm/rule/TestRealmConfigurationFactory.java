@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 
+import static org.junit.Assert.assertTrue;
+
 /**
  * Rule that creates the {@link RealmConfiguration } in a temporary directory and deletes the Realm created with that
  * configuration once the test finishes. Be sure to close all Realm instances before finishing the test. Otherwise
@@ -88,6 +90,17 @@ public class TestRealmConfigurationFactory extends TemporaryFolder {
 
     public RealmConfiguration createConfiguration() {
         RealmConfiguration configuration = new RealmConfiguration.Builder(getRoot())
+                .build();
+
+        configurations.add(configuration);
+        return configuration;
+    }
+
+    public RealmConfiguration createConfiguration(String subDir, String name) {
+        final File folder = new File(getRoot(), subDir);
+        assertTrue(folder.mkdirs());
+        RealmConfiguration configuration = new RealmConfiguration.Builder(folder)
+                .name(name)
                 .build();
 
         configurations.add(configuration);

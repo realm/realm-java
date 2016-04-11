@@ -24,35 +24,21 @@
 
 using namespace realm;
 
-// The validation will try to sync the table view as well.
-// if you disable the validation, please remember to call sync_if_needed() 
-#define VIEW_VALID_AND_IN_SYNC(env, ptr) (is_view_valid(env, ptr) && sync_table_view(env, ptr))
+// if you disable the validation, please remember to call sync_in_needed() 
+#define VIEW_VALID_AND_IN_SYNC(env, ptr) view_valid_and_in_sync(env, ptr)
 
-inline bool is_view_valid(JNIEnv* env, jlong nativeViewPtr) {
-    if (TV(nativeViewPtr) == NULL) {
-        // Should never get here
-        ThrowException(env, FatalError, "Null pointer of table view.");
-        return false;
-    }
-    if (!TV(nativeViewPtr)->is_attached()) {
-        ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
-        return false;
-    }
-    return true;
-}
-
-// Sync the TableView and return false if sync failed.
-inline bool sync_table_view(JNIEnv* /*env*/, jlong nativeViewPtr) {
-    try {
+inline bool view_valid_and_in_sync(JNIEnv* env, jlong nativeViewPtr) {
+    bool valid = (TV(nativeViewPtr) != NULL);
+    if (valid) {
+        if (!TV(nativeViewPtr)->is_attached()) {
+            ThrowException(env, TableInvalid, "The Realm has been closed and is no longer accessible.");
+            return false;
+        }
         TV(nativeViewPtr)->sync_if_needed();
-    } catch (realm::DeletedLinkView&) {
-        // FIXME: Temp fix for https://github.com/realm/realm-core/pull/1434
-        // Better solution would be core only throw the exception when really necessary, methods like size
-        // should just return 0.
-        return false;
     }
-    return true;
+    return valid;
 }
+
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_createNativeTableView(
     JNIEnv* env, jobject, jobject, jlong)
@@ -86,6 +72,39 @@ JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinct(
                 ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
                 break;
         }
+    } CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_TableView_nativeDistinctMulti(
+    JNIEnv* env, jobject, jlong nativeViewPtr, jlongArray columnIndexes)
+{
+    if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
+        return;
+    try {
+        JniLongArray indexes(env, columnIndexes);
+        jsize indexes_len = indexes.len();
+        std::vector<size_t> columns;
+        for (int i = 0; i < indexes_len; ++i) {
+            if (!COL_INDEX_VALID(env, TV(nativeViewPtr), indexes[i])) {
+                return;
+            }
+            if (!TV(nativeViewPtr)->get_parent().has_search_index(S(indexes[i]))) {
+                ThrowException(env, IllegalArgument, "The field must be indexed before distinct(...) can be used.");
+                return;
+            }
+            switch (TV(nativeViewPtr)->get_column_type(S(indexes[i]))) {
+                case type_Bool:
+                case type_Int:
+                case type_DateTime:
+                case type_String:
+                    columns.push_back(S(indexes[i]));
+                    break;
+                default:
+                    ThrowException(env, IllegalArgument, "Invalid type - Only String, Date, boolean, byte, short, int, long and their boxed variants are supported.");
+                    return;
+            }
+        }
+        TV(nativeViewPtr)->distinct(columns);
     } CATCH_STD()
 }
 
@@ -145,14 +164,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetSourceRowIndex
 (JNIEnv *env, jobject, jlong nativeViewPtr, jlong rowIndex)
 {
     try {
-        if (!is_view_valid(env, nativeViewPtr)) {
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return npos;
-        }
-        if (!sync_table_view(env, nativeViewPtr)) {
-            TR_ERR("The source LinkView created this TableView has been deleted.");
-            // Let it fall through. Since the size will return 0, an ArrayIndexOutOfBoundsException
-            // will be thrown in ROW_INDEX_VALID check.
-        }
         if (!ROW_INDEX_VALID(env, TV(nativeViewPtr), rowIndex))
             return npos;
     } CATCH_STD()
@@ -163,8 +176,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetColumnCount
   (JNIEnv *env, jobject, jlong nativeViewPtr)
 {
     try {
-        // No need to sync here.
-        if (!is_view_valid(env, nativeViewPtr))
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
             return 0;
     } CATCH_STD()
     return TV(nativeViewPtr)->get_column_count();
@@ -174,8 +186,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_TableView_nativeGetColumnName
   (JNIEnv *env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
     try {
-        // No need to sync here.
-        if (!is_view_valid(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
             return NULL;
         return to_jstring(env, TV(nativeViewPtr)->get_column_name( S(columnIndex)));
     } CATCH_STD()
@@ -186,9 +197,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableView_nativeGetColumnIndex
    (JNIEnv *env, jobject, jlong nativeViewPtr, jstring columnName)
 {
     try {
-        // No need to sync here.
-        if (!is_view_valid(env, nativeViewPtr))
-            return 0;
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr))
+        return 0;
 
         JStringAccessor columnName2(env, columnName); // throws
         return to_jlong_or_not_found( TV(nativeViewPtr)->get_column_index(columnName2) ); // noexcept
@@ -200,8 +210,7 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_TableView_nativeGetColumnType
   (JNIEnv *env, jobject, jlong nativeViewPtr, jlong columnIndex)
 {
     try {
-        // No need to sync here.
-        if (!is_view_valid(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
+        if (!VIEW_VALID_AND_IN_SYNC(env, nativeViewPtr) || !COL_INDEX_VALID(env, TV(nativeViewPtr), columnIndex))
             return 0;
     } CATCH_STD()
     return static_cast<int>( TV(nativeViewPtr)->get_column_type( S(columnIndex)) );

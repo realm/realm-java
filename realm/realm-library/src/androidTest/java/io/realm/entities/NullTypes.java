@@ -37,6 +37,8 @@ import io.realm.annotations.Required;
 // 11 Object
 public class NullTypes extends RealmObject {
 
+    public static String CLASS_NAME = "NullTypes";
+    public static String FIELD_ID = "id";
     public static String FIELD_STRING_NOT_NULL = "fieldStringNotNull";
     public static String FIELD_STRING_NULL = "fieldStringNull";
     public static String FIELD_BYTES_NOT_NULL = "fieldBytesNotNull";

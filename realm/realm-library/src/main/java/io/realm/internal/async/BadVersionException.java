@@ -16,7 +16,6 @@
 
 package io.realm.internal.async;
 
-import io.realm.exceptions.RealmException;
 import io.realm.internal.Keep;
 
 /**
@@ -24,7 +23,7 @@ import io.realm.internal.Keep;
  * state of the Realm which might be more up-to-date than the provided results or vice versa.
  */
 @Keep
-public class BadVersionException extends RealmException {
+public class BadVersionException extends Exception {
 
     public BadVersionException(String detailMessage) {
         super(detailMessage);

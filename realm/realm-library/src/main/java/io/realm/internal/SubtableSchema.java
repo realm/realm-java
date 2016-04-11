@@ -16,7 +16,6 @@
 
 package io.realm.internal;
 
-
 import io.realm.RealmFieldType;
 
 public class SubtableSchema implements TableSchema {
@@ -31,11 +30,9 @@ public class SubtableSchema implements TableSchema {
 
     @Override
     public SubtableSchema getSubtableSchema(long columnIndex) {
-        long[] newPath = new long[this.path.length+1];
-        for (int i = 0; i < this.path.length; i++) {
-            newPath[i] = path[i];
-        }
-        newPath[this.path.length] = columnIndex;
+        long[] newPath = new long[path.length + 1];
+        System.arraycopy(path, 0, newPath, 0, path.length);
+        newPath[path.length] = columnIndex;
         return new SubtableSchema(this.parentNativePtr, newPath);
     }
 

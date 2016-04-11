@@ -1,0 +1,92 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.bintray'
+
+sourceCompatibility = '1.6'
+targetCompatibility = '1.6'
+
+group = 'io.realm'
+version = file("${projectDir}/../version.txt").text.trim();
+
+def commonPom = {
+    licenses {
+        license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+        }
+    }
+    issueManagement {
+        system 'github'
+        url 'https://github.com/realm/realm-java/issues'
+    }
+    scm {
+        url 'scm:https://github.com/realm/realm-java'
+        connection 'scm:git@github.com:realm/realm-java.git'
+        developerConnection 'scm:git@github.com:realm/realm-java.git'
+    }
+}
+
+publishing {
+    publications {
+        realmPublication(MavenPublication) {
+            groupId 'io.realm'
+            artifactId = 'realm-annotations'
+            from components.java
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'realm-annotations')
+                root.appendNode('description', 'Annotations for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
+                root.appendNode('url', 'http://realm.io')
+                root.children().last() + commonPom
+            }
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+
+    dryRun = false
+    publish = false
+
+    publications = ['realmPublication']
+    pkg {
+        repo = 'maven'
+        name = 'realm-annotations'
+        desc = 'Realm for Android'
+        websiteUrl = 'http://realm.io'
+        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
+        vcsUrl = 'https://github.com/realm/realm-java.git'
+        licenses = ['Apache-2.0']
+        labels = ['android', 'realm']
+        publicDownloadNumbers = false
+    }
+}
+
+artifactory {
+    contextUrl = 'https://oss.jfrog.org/artifactory'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+        }
+        defaults {
+            publications ('realmPublication')
+        }
+    }
+}

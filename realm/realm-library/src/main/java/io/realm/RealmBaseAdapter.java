@@ -34,16 +34,16 @@ import android.widget.BaseAdapter;
 public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapter {
 
     protected LayoutInflater inflater;
-    protected RealmResults<T> realmResults;
+    protected OrderedRealmCollection<T> adapterData;
     protected Context context;
     private final RealmChangeListener listener;
 
-    public RealmBaseAdapter(Context context, RealmResults<T> realmResults, boolean automaticUpdate) {
+    public RealmBaseAdapter(Context context, OrderedRealmCollection<T> data, boolean automaticUpdate) {
         if (context == null) {
             throw new IllegalArgumentException("Context cannot be null");
         }
         this.context = context;
-        this.realmResults = realmResults;
+        this.adapterData = data;
         this.inflater = LayoutInflater.from(context);
         this.listener = (!automaticUpdate) ? null : new RealmChangeListener() {
             @Override
@@ -52,8 +52,32 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
             }
         };
 
-        if (listener != null && realmResults != null) {
+        if (listener != null && data != null) {
+            addListener(data);
+        }
+    }
+
+    private void addListener(OrderedRealmCollection<T> data) {
+        if (data instanceof RealmResults) {
+            RealmResults realmResults = (RealmResults) data;
             realmResults.realm.handlerController.addChangeListenerAsWeakReference(listener);
+        } else if (data instanceof RealmList) {
+            RealmList realmList = (RealmList) data;
+            realmList.realm.handlerController.addChangeListenerAsWeakReference(listener);
+        } else {
+            throw new IllegalArgumentException("RealmCollection not supported: " + data.getClass());
+        }
+    }
+
+    private void removeListener(OrderedRealmCollection<T> data) {
+        if (data instanceof RealmResults) {
+            RealmResults realmResults = (RealmResults) data;
+            realmResults.realm.handlerController.removeWeakChangeListener(listener);
+        } else if (data instanceof RealmList) {
+            RealmList realmList = (RealmList) data;
+            realmList.realm.handlerController.removeWeakChangeListener(listener);
+        } else {
+            throw new IllegalArgumentException("RealmCollection not supported: " + data.getClass());
         }
     }
 
@@ -64,10 +88,10 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
      */
     @Override
     public int getCount() {
-        if (realmResults == null) {
+        if (adapterData == null) {
             return 0;
         }
-        return realmResults.size();
+        return adapterData.size();
     }
 
     /**
@@ -78,10 +102,10 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
      */
     @Override
     public T getItem(int i) {
-        if (realmResults == null) {
+        if (adapterData == null) {
             return null;
         }
-        return realmResults.get(i);
+        return adapterData.get(i);
     }
 
     /**
@@ -98,23 +122,35 @@ public abstract class RealmBaseAdapter<T extends RealmObject> extends BaseAdapte
     }
 
     /**
-     * Updates the RealmResults associated to the Adapter. Useful when the query has been changed.
-     * If the query does not change you might consider using the automaticUpdate feature.
-     *
-     * @param queryResults the new RealmResults coming from the new query.
+     * DEPRECATED: Use {@link #updateData(OrderedRealmCollection)} instead.
      */
+    @Deprecated
     public void updateRealmResults(RealmResults<T> queryResults) {
+        updateData(queryResults);
+    }
+
+    /**
+     * Updates the data associated with the Adapter.
+     *
+     * Note that RealmResults and RealmLists are "live" views, so they will automatically be updated to reflect the
+     * latest changes. This will also trigger {@code notifyDataSetChanged()} to be called on the adapter.
+     *
+     * This method is therefor only useful if you want to display data based on a new query without replacing the
+     * adapter.
+     *
+     * @param data the new {@link OrderedRealmCollection} to display.
+     */
+    public void updateData(OrderedRealmCollection<T> data) {
         if (listener != null) {
-            // Making sure that Adapter is refreshed correctly if new RealmResults come from another Realm
-            if (this.realmResults != null) {
-                this.realmResults.realm.removeChangeListener(listener);
+            if (adapterData != null) {
+                removeListener(adapterData);
             }
-            if (queryResults != null) {
-                queryResults.realm.addChangeListener(listener);
+            if (data != null) {
+                addListener(data);
             }
         }
 
-        this.realmResults = queryResults;
+        this.adapterData = data;
         notifyDataSetChanged();
     }
 }

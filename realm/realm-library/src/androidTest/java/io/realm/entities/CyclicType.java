@@ -16,12 +16,20 @@
 
 package io.realm.entities;
 
+import java.util.Date;
+
 import io.realm.RealmList;
 import io.realm.RealmObject;
 
 public class CyclicType extends RealmObject {
 
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_ID = "id";
+    public static final String FIELD_DATE = "date";
+
+    private long id;
     private String name;
+    private Date date;
     private CyclicType object;
     private CyclicType otherObject;
     private RealmList<CyclicType> objects;
@@ -31,6 +39,15 @@ public class CyclicType extends RealmObject {
 
     public CyclicType(String name) {
         this.name = name;
+    }
+
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -63,5 +80,13 @@ public class CyclicType extends RealmObject {
 
     public void setOtherObject(CyclicType otherObject) {
         this.otherObject = otherObject;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }

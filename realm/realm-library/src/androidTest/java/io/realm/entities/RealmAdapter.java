@@ -23,6 +23,7 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import io.realm.RealmBaseAdapter;
+import io.realm.OrderedRealmCollection;
 import io.realm.RealmResults;
 
 public class RealmAdapter extends RealmBaseAdapter<AllTypes> implements ListAdapter {
@@ -47,12 +48,12 @@ public class RealmAdapter extends RealmBaseAdapter<AllTypes> implements ListAdap
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        AllTypes item = realmResults.get(position);
+        AllTypes item = adapterData.get(position);
         viewHolder.textView.setText(item.getColumnString());
         return convertView;
     }
 
-    public RealmResults<AllTypes> getRealmResults() {
-        return realmResults;
+    public OrderedRealmCollection<AllTypes> getRealmResults() {
+        return adapterData;
     }
 }

@@ -46,37 +46,42 @@ public class RealmJsonTypeHelper {
         JAVA_TO_JSON_TYPES.put("java.lang.String", new SimpleTypeConverter("String", "String"));
         JAVA_TO_JSON_TYPES.put("java.util.Date", new JsonToRealmFieldTypeConverter() {
             @Override
-            public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
+            public void emitTypeConversion(String interfaceName, String setter, String fieldName, String fieldType,
+                                           JavaWriter writer)
                     throws IOException {
                 writer
                     .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                         .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                            .emitStatement("obj.%s(null)", setter)
+                            .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
                         .nextControlFlow("else")
                             .emitStatement("Object timestamp = json.get(\"%s\")", fieldName)
                             .beginControlFlow("if (timestamp instanceof String)")
-                               .emitStatement("obj.%s(JsonUtils.stringToDate((String) timestamp))", setter)
+                               .emitStatement("((%s) obj).%s(JsonUtils.stringToDate((String) timestamp))",
+                                       interfaceName, setter)
                             .nextControlFlow("else")
-                                .emitStatement("obj.%s(new Date(json.getLong(\"%s\")))", setter, fieldName)
+                                .emitStatement("((%s) obj).%s(new Date(json.getLong(\"%s\")))", interfaceName, setter,
+                                        fieldName)
                             .endControlFlow()
                         .endControlFlow()
                     .endControlFlow();
             }
 
             @Override
-            public void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
+            public void emitStreamTypeConversion(String interfaceName, String setter, String fieldName, String
+                    fieldType, JavaWriter writer)
                     throws IOException {
                 writer
                     .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                         .emitStatement("reader.skipValue()")
-                        .emitStatement("obj.%s(null)", setter)
+                        .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
                     .nextControlFlow("else if (reader.peek() == JsonToken.NUMBER)")
                         .emitStatement("long timestamp = reader.nextLong()", fieldName)
                         .beginControlFlow("if (timestamp > -1)")
-                            .emitStatement("obj.%s(new Date(timestamp))", setter)
+                            .emitStatement("((%s) obj).%s(new Date(timestamp))", interfaceName, setter)
                         .endControlFlow()
                     .nextControlFlow("else")
-                        .emitStatement("obj.%s(JsonUtils.stringToDate(reader.nextString()))", setter)
+                        .emitStatement("((%s) obj).%s(JsonUtils.stringToDate(reader.nextString()))", interfaceName,
+                                setter)
                     .endControlFlow();
             }
 
@@ -87,27 +92,31 @@ public class RealmJsonTypeHelper {
         });
         JAVA_TO_JSON_TYPES.put("byte[]", new JsonToRealmFieldTypeConverter() {
             @Override
-            public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
+            public void emitTypeConversion(String interfaceName, String setter, String fieldName, String fieldType,
+                                           JavaWriter writer)
                     throws IOException {
                 writer
                     .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                         .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                            .emitStatement("obj.%s(null)", setter)
+                            .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
                         .nextControlFlow("else")
-                            .emitStatement("obj.%s(JsonUtils.stringToBytes(json.getString(\"%s\")))", setter, fieldName)
+                            .emitStatement("((%s) obj).%s(JsonUtils.stringToBytes(json.getString(\"%s\")))",
+                                    interfaceName, setter, fieldName)
                         .endControlFlow()
                     .endControlFlow();
             }
 
             @Override
-            public void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
+            public void emitStreamTypeConversion(String interfaceName, String setter, String fieldName, String
+                    fieldType, JavaWriter writer)
                     throws IOException {
                 writer
                     .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                         .emitStatement("reader.skipValue()")
-                        .emitStatement("obj.%s(null)", setter)
+                        .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
                     .nextControlFlow("else")
-                        .emitStatement("obj.%s(JsonUtils.stringToBytes(reader.nextString()))", setter)
+                        .emitStatement("((%s) obj).%s(JsonUtils.stringToBytes(reader.nextString()))", interfaceName,
+                                setter)
                     .endControlFlow();
             }
 
@@ -126,79 +135,80 @@ public class RealmJsonTypeHelper {
         }
     }
 
-    public static void emitFillJavaTypeWithJsonValue(String setter, String fieldName, String qualifiedFieldType,
+    public static void emitFillJavaTypeWithJsonValue(String interfaceName, String setter, String fieldName, String
+            qualifiedFieldType,
                                                      JavaWriter writer) throws IOException {
         JsonToRealmFieldTypeConverter typeEmitter = JAVA_TO_JSON_TYPES.get(qualifiedFieldType);
         if (typeEmitter != null) {
-            typeEmitter.emitTypeConversion(setter, fieldName, qualifiedFieldType, writer);
+            typeEmitter.emitTypeConversion(interfaceName, setter, fieldName, qualifiedFieldType, writer);
         }
     }
 
-    public static void emitFillRealmObjectWithJsonValue(String setter, String fieldName, String qualifiedFieldType,
-                                                        String proxyClass, JavaWriter writer) throws IOException {
+    public static void emitFillRealmObjectWithJsonValue(String interfaceName, String setter, String fieldName, String
+            qualifiedFieldType, String proxyClass, JavaWriter writer) throws IOException {
         writer
             .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                 .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                    .emitStatement("obj.%s(null)", setter)
+                    .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
                 .nextControlFlow("else")
                     .emitStatement("%s %sObj = %s.createOrUpdateUsingJsonObject(realm, json.getJSONObject(\"%s\"), update)",
                             qualifiedFieldType, fieldName, proxyClass, fieldName)
-                    .emitStatement("obj.%s(%sObj)", setter, fieldName)
+                    .emitStatement("((%s) obj).%s(%sObj)", interfaceName, setter, fieldName)
                 .endControlFlow()
             .endControlFlow();
     }
 
-    public static void emitFillRealmListWithJsonValue(String getter, String setter, String fieldName,
-                                                      String fieldTypeCanonicalName, String proxyClass,
-                                                      JavaWriter writer) throws IOException {
+    public static void emitFillRealmListWithJsonValue(String interfaceName, String getter, String setter, String
+            fieldName, String fieldTypeCanonicalName, String proxyClass, JavaWriter writer) throws IOException {
         writer
             .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                 .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                    .emitStatement("obj.%s(null)", setter)
+                    .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
                 .nextControlFlow("else")
-                    .emitStatement("obj.%s().clear()", getter)
+                    .emitStatement("((%s) obj).%s().clear()", interfaceName, getter)
                     .emitStatement("JSONArray array = json.getJSONArray(\"%s\")", fieldName)
                     .beginControlFlow("for (int i = 0; i < array.length(); i++)")
                         .emitStatement("%s item = %s.createOrUpdateUsingJsonObject(realm, array.getJSONObject(i), update)",
                                 fieldTypeCanonicalName, proxyClass, fieldTypeCanonicalName)
-                        .emitStatement("obj.%s().add(item)", getter)
+                        .emitStatement("((%s) obj).%s().add(item)", interfaceName, getter)
                     .endControlFlow()
                 .endControlFlow()
             .endControlFlow();
     }
 
 
-    public static void emitFillJavaTypeFromStream(String setter, String fieldName, String fieldType, JavaWriter writer)
-            throws IOException {
+    public static void emitFillJavaTypeFromStream(String interfaceName, String setter, String fieldName, String
+            fieldType, JavaWriter writer) throws IOException {
         if (JAVA_TO_JSON_TYPES.containsKey(fieldType)) {
-            JAVA_TO_JSON_TYPES.get(fieldType).emitStreamTypeConversion(setter, fieldName, fieldType, writer);
+            JAVA_TO_JSON_TYPES.get(fieldType).emitStreamTypeConversion(interfaceName, setter, fieldName, fieldType,
+                    writer);
         }
     }
 
-    public static void emitFillRealmObjectFromStream(String setter, String fieldName, String fieldTypeCanonicalName,
-                                                     String proxyClass, JavaWriter writer) throws IOException {
+    public static void emitFillRealmObjectFromStream(String interfaceName, String setter, String fieldName, String
+            fieldTypeCanonicalName, String proxyClass, JavaWriter writer) throws IOException {
         writer
             .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                 .emitStatement("reader.skipValue()")
-                .emitStatement("obj.%s(null)", setter)
+                .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
             .nextControlFlow("else")
                 .emitStatement("%s %sObj = %s.createUsingJsonStream(realm, reader)", fieldTypeCanonicalName, fieldName,
                         proxyClass)
-                .emitStatement("obj.%s(%sObj)", setter, fieldName)
+                .emitStatement("((%s) obj).%s(%sObj)", interfaceName, setter, fieldName)
             .endControlFlow();
     }
 
-    public static void emitFillRealmListFromStream(String getter, String setter, String fieldTypeCanonicalName,
-                                                   String proxyClass, JavaWriter writer) throws IOException {
+    public static void emitFillRealmListFromStream(String interfaceName, String getter, String setter, String
+            fieldTypeCanonicalName, String proxyClass, JavaWriter writer) throws IOException {
         writer
             .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                 .emitStatement("reader.skipValue()")
-                .emitStatement("obj.%s(null)", setter)
+                .emitStatement("((%s) obj).%s(null)", interfaceName, setter)
             .nextControlFlow("else")
                 .emitStatement("reader.beginArray()")
                 .beginControlFlow("while (reader.hasNext())")
                     .emitStatement("%s item = %s.createUsingJsonStream(realm, reader)", fieldTypeCanonicalName, proxyClass)
-                    .emitStatement("obj.%s().add(item)", getter)
+                    .emitStatement("((%s) obj).%s().add(item)", interfaceName, getter)
                 .endControlFlow()
                 .emitStatement("reader.endArray()")
             .endControlFlow();
@@ -223,7 +233,9 @@ public class RealmJsonTypeHelper {
         }
 
         @Override
-        public void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
+        public void emitTypeConversion(String interfaceName, String setter, String fieldName, String fieldType,
+                                       JavaWriter
+                writer)
                 throws IOException {
             String statementSetNullOrThrow;
             if (Utils.isPrimitiveType(fieldType)) {
@@ -231,20 +243,22 @@ public class RealmJsonTypeHelper {
                 // the setter.
                 statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
             } else {
-                statementSetNullOrThrow = String.format("obj.%s(null)", setter);
+                statementSetNullOrThrow = String.format("((%s) obj).%s(null)", interfaceName, setter);
             }
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                     .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
                         .emitStatement(statementSetNullOrThrow)
                     .nextControlFlow("else")
-                        .emitStatement("obj.%s((%s) json.get%s(\"%s\"))", setter, castType, jsonType, fieldName)
+                        .emitStatement("((%s) obj).%s((%s) json.get%s(\"%s\"))", interfaceName, setter, castType,
+                                jsonType, fieldName)
                     .endControlFlow()
                 .endControlFlow();
         }
 
         @Override
-        public void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer)
+        public void emitStreamTypeConversion(String interfaceName, String setter, String fieldName, String fieldType,
+                                             JavaWriter writer)
                 throws IOException {
             String statementSetNullOrThrow;
             if (Utils.isPrimitiveType(fieldType)) {
@@ -252,14 +266,14 @@ public class RealmJsonTypeHelper {
                 // the setter.
                 statementSetNullOrThrow = String.format(Constants.STATEMENT_EXCEPTION_ILLEGAL_NULL_VALUE, fieldName);
             } else {
-                statementSetNullOrThrow = String.format("obj.%s(null)", setter);
+                statementSetNullOrThrow = String.format("((%s) obj).%s(null)", interfaceName, setter);
             }
             writer
                 .beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                     .emitStatement("reader.skipValue()")
                     .emitStatement(statementSetNullOrThrow)
                 .nextControlFlow("else")
-                    .emitStatement("obj.%s((%s) reader.next%s())", setter, castType, jsonType)
+                    .emitStatement("((%s) obj).%s((%s) reader.next%s())", interfaceName, setter, castType, jsonType)
                 .endControlFlow();
         }
 
@@ -270,20 +284,22 @@ public class RealmJsonTypeHelper {
             writer
                 .beginControlFlow("if (json.has(\"%s\"))", fieldName)
                     .beginControlFlow("if (json.isNull(\"%s\"))", fieldName)
-                        .emitStatement("obj = realm.createObject(%s.class, null)", qualifiedRealmObjectClass)
+                        .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class, null)", qualifiedRealmObjectClass)
                     .nextControlFlow("else")
-                        .emitStatement("obj = realm.createObject(%s.class, json.get%s(\"%s\"))",
+                        .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class, json.get%2$s(\"%3$s\"))",
                                 qualifiedRealmObjectClass, jsonType, fieldName)
                     .endControlFlow()
                 .nextControlFlow("else")
-                    .emitStatement("obj = realm.createObject(%s.class)", qualifiedRealmObjectClass)
+                    .emitStatement("obj = (%1$sRealmProxy) realm.createObject(%1$s.class)", qualifiedRealmObjectClass)
                 .endControlFlow();
         }
     }
 
     private interface JsonToRealmFieldTypeConverter {
-        void emitTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException;
-        void emitStreamTypeConversion(String setter, String fieldName, String fieldType, JavaWriter writer) throws IOException;
+        void emitTypeConversion(String interfaceName, String setter, String fieldName, String fieldType, JavaWriter
+                writer) throws IOException;
+        void emitStreamTypeConversion(String interfaceName, String setter, String fieldName, String fieldType,
+                                      JavaWriter writer) throws IOException;
         void emitGetObjectWithPrimaryKeyValue(String qualifiedRealmObjectClass, String fieldName, JavaWriter writer) throws IOException;
     }
 }
