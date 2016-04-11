@@ -222,7 +222,7 @@ public class RealmMigrationTests {
     // adding search index is idempotent
     @Test
     public void addingSearchIndexTwice() throws IOException {
-        Class[] classes = {PrimaryKeyAsLong.class, PrimaryKeyAsString.class};
+        final Class[] classes = {PrimaryKeyAsLong.class, PrimaryKeyAsString.class};
 
         for (final Class clazz : classes) {
             final AtomicBoolean didMigrate = new AtomicBoolean(false);
@@ -230,13 +230,10 @@ public class RealmMigrationTests {
             RealmMigration migration = new RealmMigration() {
                 @Override
                 public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                    Table table = realm.getSchema().getTable(clazz);
-                    long columnIndex = table.getColumnIndex("id");
-                    table.addSearchIndex(columnIndex);
+                    RealmObjectSchema schema = realm.getSchema().getSchemaForClass(clazz.getSimpleName());
+                    schema.addIndex("id");
                     // @PrimaryKey fields in PrimaryKeyAsLong and PrimaryKeyAsString.class should be set 'nullable'.
-                    columnIndex = table.getColumnIndex("name");
-                    table.convertColumnToNullable(columnIndex);
-                    //realm.getSchema().getSchemaForClass(clazz).setNullable("name", true);
+                    schema.setNullable("name", true);
                     didMigrate.set(true);
                 }
             };
@@ -548,9 +545,7 @@ public class RealmMigrationTests {
         RealmMigration migration = new RealmMigration() {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                Table table = realm.schema.getTable(PrimaryKeyAsString.class);
-                table.convertColumnToNullable(table.getColumnIndex("name"));
-                //realm.getSchema().getSchemaForClass(PrimaryKeyAsString.class).setNullable("name", true);
+                realm.getSchema().getSchemaForClass("PrimaryKeyAsString").setNullable("name", true);
                 didMigrate.set(true);
             }
         };
