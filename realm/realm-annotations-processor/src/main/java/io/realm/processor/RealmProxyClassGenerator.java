@@ -645,7 +645,7 @@ public class RealmProxyClassGenerator {
         );
 
         writer
-            .beginControlFlow("if (((RealmObject) object).realm != null && ((RealmObject) object).realm.threadId != realm.threadId)")
+            .beginControlFlow("if (object instanceof RealmObjectProxy && ((RealmObjectProxy) object).getRealm() != null && ((RealmObjectProxy) object).getRealm().threadId != realm.threadId)")
                 .emitStatement("throw new IllegalArgumentException(\"Objects which belong to Realm instances in other" +
                         " threads cannot be copied into this Realm instance.\")")
             .endControlFlow();
@@ -786,7 +786,7 @@ public class RealmProxyClassGenerator {
             .beginControlFlow("if (currentDepth > maxDepth || realmObject == null)")
                 .emitStatement("return null")
             .endControlFlow()
-            .emitStatement("CacheData<RealmObject> cachedObject = cache.get(realmObject)")
+            .emitStatement("CacheData<RealmModel> cachedObject = cache.get(realmObject)")
             .emitStatement("%s standaloneObject", className)
             .beginControlFlow("if (cachedObject != null)")
                 .emitSingleLineComment("Reuse cached object or recreate it because it was encountered at a lower depth.")

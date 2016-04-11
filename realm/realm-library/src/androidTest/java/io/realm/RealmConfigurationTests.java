@@ -623,7 +623,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public <E extends RealmObject> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
+            public <E extends RealmModel> Observable<RealmResults<E>> from(Realm realm, RealmResults<E> results) {
                 return null;
             }
 
@@ -633,7 +633,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public <E extends RealmObject> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
+            public <E extends RealmModel> Observable<RealmList<E>> from(Realm realm, RealmList<E> list) {
                 return null;
             }
 
@@ -643,7 +643,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public <E extends RealmObject> Observable<E> from(Realm realm, E object) {
+            public <E extends RealmModel> Observable<E> from(Realm realm, E object) {
                 return null;
             }
 
@@ -653,7 +653,7 @@ public class RealmConfigurationTests {
             }
 
             @Override
-            public <E extends RealmObject> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
+            public <E extends RealmModel> Observable<RealmQuery<E>> from(Realm realm, RealmQuery<E> query) {
                 return null;
             }
 
