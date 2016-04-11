@@ -932,7 +932,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Define a primary key for this table. This needs to be called manually before inserting data into the table.
+     * Defines a primary key for this table. This needs to be called manually before inserting data into the table.
      *
      * @param columnName the name of the field that will function primary key. "" or {@code null} will remove any
      *                   previous set magic key.
@@ -1304,7 +1304,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Return the table name as it is in the associated group.
+     * Returns the table name as it is in the associated group.
      *
      * @return Name of the the table or null if it not part of a group.
      */
@@ -1369,7 +1369,7 @@ public class Table implements TableOrView, TableSchema, Closeable {
     }
 
     /**
-     * Report the current versioning counter for the table. The versioning counter is guaranteed to
+     * Reports the current versioning counter for the table. The versioning counter is guaranteed to
      * change when the contents of the table changes after advance_read() or promote_to_write(), or
      * immediately after calls to methods which change the table.
      *

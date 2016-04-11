@@ -212,7 +212,7 @@ public class Utils {
     }
 
     /**
-     * Encode the given string with Base64
+     * Encodes the given string with Base64
      * @param data the string to encode
      * @return the encoded string
      * @throws UnsupportedEncodingException
@@ -222,7 +222,7 @@ public class Utils {
     }
 
     /**
-     * Compute the SHA-256 hash of the given byte array
+     * Computes the SHA-256 hash of the given byte array
      * @param data the byte array to hash
      * @return the hashed byte array
      * @throws NoSuchAlgorithmException
@@ -233,7 +233,7 @@ public class Utils {
     }
 
     /**
-     * Convert a byte array to its hex-string
+     * Converts a byte array to its hex-string
      * @param data the byte array to convert
      * @return the hex-string of the byte array
      */
