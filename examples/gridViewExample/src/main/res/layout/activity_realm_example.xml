@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="@string/my_favorite_city"
+        android:text="@string/my_favortie_city"
         android:textSize="18sp" />
 
     <TextView
