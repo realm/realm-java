@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">Intro example</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="status_output">Status Output…</string>
 
 </resources>
