@@ -852,7 +852,7 @@ public class RealmQueryTests {
     @Test
     public void contains_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
-        TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null,   SECONDARY_FIELD_NUMBER);
+        TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER);
 
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).contains(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD, null).findAll().first().getId());
     }
@@ -860,7 +860,7 @@ public class RealmQueryTests {
     @Test
     public void endsWith_nullStringPrimaryKey() {
         final long SECONDARY_FIELD_NUMBER = 49992417L;
-        TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null,   SECONDARY_FIELD_NUMBER);
+        TestHelper.populateTestRealmForStringPrimaryKey(realm, (String) null, SECONDARY_FIELD_NUMBER);
 
         assertEquals(SECONDARY_FIELD_NUMBER, realm.where(PrimaryKeyAsString.class).endsWith(PrimaryKeyAsString.NULLABLE_PRIMARY_KEY_FIELD, null).findAll().first().getId());
     }
