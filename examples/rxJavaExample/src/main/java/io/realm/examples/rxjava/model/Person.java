@@ -20,17 +20,10 @@ import io.realm.RealmObject;
 
 public class Person extends RealmObject {
 
-    private long id;
-
     // All fields are by default persisted.
     private String name;
     private int age;
     private String githubUserName;
-
-
-    // The standard getters and setters your IDE generates are fine.
-    // Realm will overload them and code inside them is ignored.
-    // So if you prefer you can also just have empty abstract methods.
 
     public String getName() {
         return name;
@@ -46,14 +39,6 @@ public class Person extends RealmObject {
 
     public void setAge(int age) {
         this.age = age;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public String getGithubUserName() {
