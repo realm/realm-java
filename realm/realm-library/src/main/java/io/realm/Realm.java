@@ -315,6 +315,11 @@ public final class Realm extends BaseRealm {
                 columnInfoMap.put(modelClass, mediator.validateTable(modelClass, realm.sharedGroupManager.getTransaction()));
             }
             realm.schema.columnIndices = new ColumnIndices(columnInfoMap);
+
+            final Transaction transaction = realm.getConfiguration().getInitialDataTransaction();
+            if (transaction != null) {
+                transaction.execute(realm);
+            }
         } finally {
             if (commitNeeded) {
                 realm.commitTransaction(false, null);

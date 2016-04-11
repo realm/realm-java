@@ -52,6 +52,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -672,5 +673,63 @@ public class RealmConfigurationTests {
                 .build();
         assertNotNull(configuration2.getRxFactory());
         assertFalse(configuration2.getRxFactory() == dummyFactory);
+    }
+
+    @Test
+    public void initialDataTransactionEqual() {
+        final Realm.Transaction transaction = new Realm.Transaction() {
+            @Override
+            public void execute(final Realm realm) {
+            }
+        };
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(transaction)
+                .build();
+
+        assertEquals(transaction, configuration.getInitialDataTransaction());
+    }
+
+    @Test
+    public void initialDataTransactionNull() {
+        assertNull(defaultConfig.getInitialDataTransaction());
+
+        realm = Realm.getInstance(defaultConfig);
+        assertTrue(realm.isEmpty());
+    }
+
+    @Test
+    public void initialDataTransactionNotNull() {
+        // Remove default instance
+        Realm.deleteRealm(defaultConfig);
+
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .initialData(new Realm.Transaction() {
+                    @Override
+                    public void execute(final Realm realm) {
+                        realm.createObject(AllTypes.class);
+                        realm.createObject(Owner.class).setCat(realm.createObject(Cat.class));
+                    }
+                }).build();
+
+        realm = Realm.getInstance(configuration);
+
+        // First time check for initial data
+        assertEquals(1, realm.where(AllTypes.class).count());
+        assertEquals(1, realm.where(Owner.class).count());
+        assertEquals(1, realm.where(Cat.class).count());
+
+        realm.beginTransaction();
+        realm.delete(AllTypes.class);
+        realm.commitTransaction();
+
+        assertEquals(0, realm.where(AllTypes.class).count());
+
+        realm.close();
+        realm = Realm.getInstance(configuration);
+        // Check if there is still the same data
+        assertEquals(0, realm.where(AllTypes.class).count());
+        assertEquals(1, realm.where(Owner.class).count());
+        assertEquals(1, realm.where(Cat.class).count());
     }
 }
