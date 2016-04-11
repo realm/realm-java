@@ -157,12 +157,6 @@ public class RealmProcessor extends AbstractProcessor {
             }
         }
 
-        String environmentVariable = System.getenv("REALM_DISABLE_ANALYTICS");
-        if (environmentVariable == null || !environmentVariable.equals("true")) {
-            RealmAnalytics analytics = RealmAnalytics.getInstance(packages);
-            analytics.execute();
-        }
-
         hasProcessedModules = true;
         return processModules(roundEnv);
     }
