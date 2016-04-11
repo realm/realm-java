@@ -24,7 +24,6 @@ import android.widget.TextView;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmBaseAdapter;
-import io.realm.RealmResults;
 import io.realm.examples.realmadapters.models.TimeStamp;
 
 public class MyAdapter extends RealmBaseAdapter<TimeStamp> implements ListAdapter {
