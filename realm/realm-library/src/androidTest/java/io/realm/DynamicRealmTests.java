@@ -16,7 +16,6 @@
 
 package io.realm;
 
-
 import android.os.Handler;
 import android.support.test.runner.AndroidJUnit4;
 
