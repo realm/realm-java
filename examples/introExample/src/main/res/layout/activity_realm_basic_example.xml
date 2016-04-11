@@ -13,7 +13,7 @@
         android:layout_height="wrap_content">
         <TextView
             android:gravity="center_horizontal"
-            android:text="Status Output..."
+            android:text="@string/status_output"
             android:textStyle="bold"
             android:textSize="18sp"
             android:layout_width="match_parent"
